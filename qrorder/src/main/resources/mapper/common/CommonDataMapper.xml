@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.Initial.common.repository.CommonDataMapper">
+
+    <select id="getDepts" resultType="htms.Initial.common.dto.CommonDept">
+        select
+        sys_id ,
+        dept_cd as code,
+        dept_nm as name
+        from mas_dept sd
+        where 1=1
+        <if test="searchKeyCond!=null and searchKeyCond!=''">
+            and (dept_cd = #{searchKeyCond} or
+            dept_nm = #{searchKeyCond})
+        </if>
+        and use_yn = 'Y'
+        and sys_plant_cd = #{sysPlantCd}
+        order by dept_cd asc
+    </select>
+
+    <select id="getUsers" resultType="htms.Initial.common.dto.CommonUsers">
+        select
+        sys_id ,
+        user_id as code,
+        user_name as name
+        from sys_user su
+        where 1=1
+        <if test="searchKeyCond!=null and searchKeyCond!=''">
+            and (user_id = #{searchKeyCond} or
+            user_name = #{searchKeyCond})
+        </if>
+        <if test="deptCd!=null and deptCd!=''">
+            and su.dept_cd = #{deptCd}
+        </if>
+        and delete_yn = 'N'
+        and sys_plant_cd = #{sysPlantCd}
+        order by user_id asc
+    </select>
+
+    <select id="getPlants" resultType="htms.Initial.common.dto.CommonPlant">
+        select
+        sys_id ,
+        plant_cd as code,
+        plant_nm as name,
+        from sys_plant sp
+        where 1=1
+        <if test="searchKeyCond!=null and searchKeyCond!=''">
+            and (plant_cd = #{searchKeyCond} or
+            plant_nm = #{searchKeyCond})
+        </if>
+        and delete_yn = 'N'
+        and use_yn = 'Y'
+        and sys_plant_cd = #{sysPlantCd}
+        order by plant_cd asc
+    </select>
+
+    <select id="getDeptUsers" resultType="htms.Initial.common.dto.CommonDeptUser">
+        select
+        su.sys_id ,
+        su.dept_cd ,
+        sd.dept_nm ,
+        su.user_id as userId,
+        su.user_name as userNm
+        from sys_user su
+        left join mas_dept sd
+            on sd.dept_cd = su.dept_cd
+            and sd.tree_level = '3'
+            and su.sys_plant_cd = sd.sys_plant_cd
+        where 1=1
+        <if test="searchKeyCond!=null and searchKeyCond!=''">
+            and (su.user_id = #{searchKeyCond} or
+            su.user_name = #{searchKeyCond})
+        </if>
+        and su.delete_yn = 'N'
+        and su.sys_plant_cd = #{sysPlantCd}
+        order by su.user_id asc
+    </select>
+
+    <select id="getEmail" resultType="htms.Initial.common.dto.CommonEmail">
+        select
+        case
+            when email_url_use_yn = 'Y'
+                then email_url
+            else domain_url
+        end as email_url
+        from sys_plant sp
+        where 1=1
+        and sp.plant_cd = #{sysPlantCd}
+        and delete_yn = 'N'
+        and use_yn = 'Y'
+    </select>
+</mapper>

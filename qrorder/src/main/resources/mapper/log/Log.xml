@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.Initial.log.repository.LogMapper">
+    <insert id="insertLoginLog">
+        insert into sys_login_log_master (
+            sys_id,
+            user_id ,
+            ip_address ,
+            login_datetime ,
+            logout_datetime ,
+            login_result ,
+            fail_reason,
+            sys_plant_cd
+        )
+        values (
+            #{uuid},
+            #{userId},
+            #{ip},
+            now(),
+            null,
+            #{successStatus},
+            #{errMsg},
+            #{sysPlantCd}
+        )
+    </insert>
+
+    <update id="insertLogoutLog">
+        update sys_login_log_master set
+            logout_datetime = now()
+        where 1=1
+        and sys_id = #{uuid}
+    </update>
+
+    <insert id="insertMenuOpenAccessLog">
+        insert into sys_login_log_detail (
+            sys_id,
+            link_sys_id ,
+            menu_cd ,
+            menu_open_datetime
+        )
+        values (
+            #{menuUuid},
+            #{logUuid},
+            #{menuCd},
+            now()
+        )
+    </insert>
+
+    <update id="insertMenuCloseAccessLog">
+        update sys_login_log_detail set
+            menu_close_datetime = now()
+        where 1=1
+        and sys_id = #{menuUuid}
+    </update>
+
+    <update id="closeAllOpenSessions">
+        update sys_login_log_master set
+            logout_datetime = now()
+        where logout_datetime is null
+    </update>
+
+    <update id="closeAllOpenMenuSessions">
+        update sys_login_log_detail set
+            menu_close_datetime = now()
+        where menu_close_datetime is null
+    </update>
+</mapper>

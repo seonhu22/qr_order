@@ -1,0 +1,30 @@
+# ============================================================
+# application-local.properties 작성 예시
+# 이 파일을 복사해서 application-local.properties 로 저장 후 값을 채워주세요.
+# ============================================================
+
+# SSH Tunnel Configuration
+ssh.enabled=true
+ssh.host=your-ssh-server.com
+ssh.port=22
+ssh.user=your-username
+ssh.private-key.local=/Users/your-name/.ssh/id_ed25519
+ssh.remote.host=localhost
+ssh.remote.port=5432
+ssh.local.port=15432
+
+# DataSource Configuration
+spring.datasource.url=jdbc:postgresql://localhost:15432/your-db-name
+spring.datasource.username=your-db-username
+spring.datasource.password=your-db-password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# HikariCP Configuration
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=30000
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=600000
+spring.datasource.hikari.validation-timeout=5000
+spring.datasource.hikari.leak-detection-threshold=60000
+spring.datasource.hikari.connection-test-query=SELECT 1

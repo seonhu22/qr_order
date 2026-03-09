@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.Initial.auth.repository.LoginMapper">
+    <select id="findByUserId" resultType="Login">
+        select
+            su.sys_id,
+            su.user_id,
+            su.user_name,
+            su.dept_cd,
+            sd.dept_nm,
+            su.user_password,
+            su.password_fail_cnt,
+            su.init_yn,
+            su.use_yn,
+            su.sys_plant_cd
+        from sys_user su
+        left join mas_dept sd
+            on sd.dept_cd = su.dept_cd
+            and sd.sys_plant_cd = su.sys_plant_cd
+        where 1=1
+        and su.user_id = #{userId}
+        and su.delete_yn = 'N'
+    </select>
+
+    <update id="initPwd">
+        update sys_user set
+            init_yn = 'Y',
+            user_password = #{initPwdRequest.password}
+        where 1=1
+        and user_id = #{userId}
+    </update>
+</mapper>

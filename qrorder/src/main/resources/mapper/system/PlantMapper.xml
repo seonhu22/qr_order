@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.Initial.system.repository.PlantMapper">
+
+    <resultMap id="plantResultMap" type="htms.Initial.system.domain.Plant">
+        <result column="sys_id" property="sysId"/>
+        <result column="plant_cd" property="plantCd"/>
+        <result column="plant_nm" property="plantNm"/>
+        <result column="domain_url" property="domainUrl"/>
+        <result column="use_yn" property="useYn"/>
+    </resultMap>
+
+    <select id="findPlantBySearchCond" resultMap="plantResultMap">
+        select
+            sys_id,
+            plant_cd,
+            plant_nm,
+            domain_url,
+            email_url_use_yn,
+            email_url,
+            use_yn
+        from sys_plant
+        where 1=1
+        <if test="searchCond != null and searchCond != ''">
+            and (
+                plant_cd like concat('%', #{searchCond}, '%') or
+                plant_nm like concat('%', #{searchCond}, '%') or
+                domain_url like concat('%', #{searchCond}, '%')
+            )
+        </if>
+        and delete_yn = 'N'
+        order by plant_cd asc
+    </select>
+
+    <select id="findByDomainUrl" resultMap="plantResultMap">
+        select
+            sys_id,
+            plant_cd,
+            plant_nm,
+            domain_url,
+            email_url_use_yn,
+            email_url,
+            use_yn
+        from sys_plant
+        where domain_url = #{domainUrl}
+        and use_yn = 'Y'
+        and delete_yn = 'N'
+    </select>
+
+    <delete id="delPlantByCheckCond">
+        update sys_plant set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </delete>
+
+    <insert id="newPlant">
+        insert into sys_plant (
+            sys_id,
+            plant_cd,
+            plant_nm,
+            domain_url,
+            email_url,
+            email_url_use_yn,
+            use_yn,
+            delete_yn,
+            insert_datetime,
+            insert_user_id,
+            modify_datetime,
+            modify_user_id
+        )
+        values (
+            #{plant.sysId},
+            #{plant.plantCd},
+            #{plant.plantNm},
+            #{plant.domainUrl},
+            #{plant.emailUrl},
+            #{plant.emailUrlUseYn},
+            #{plant.useYn},
+            'N',
+            now(),
+            #{userId},
+            null,
+            null
+        )
+    </insert>
+
+    <select id="checkDuplicate" resultType="boolean">
+        select
+            COUNT(*) > 0
+        from sys_plant
+        where 1=1
+        and plant_cd = #{plantCd}
+    </select>
+
+    <update id="updatePlant">
+        update sys_plant set
+            plant_nm = #{plant.plantNm},
+            domain_url = #{plant.domainUrl},
+            email_url_use_yn = #{plant.emailUrlUseYn},
+            email_url = #{plant.emailUrl},
+            use_yn = #{plant.useYn},
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id = #{plant.sysId}
+    </update>
+
+    <select id="getOldData" resultMap="plantResultMap">
+        select
+            sys_id,
+            plant_cd,
+            plant_nm,
+            domain_url,
+            email_url_use_yn,
+            email_url,
+            use_yn
+        from sys_plant
+        where 1=1
+        and sys_id = #{sysId}
+    </select>
+</mapper>
