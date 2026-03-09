@@ -3,9 +3,7 @@ package htms.Initial.popup.controller;
 import htms.Initial.auth.domain.Login;
 import htms.Initial.auth.dto.ChangePwdRequest;
 import htms.Initial.common.dto.CommonResponse;
-import htms.Initial.popup.dto.PopupPasswordRole;
 import htms.Initial.popup.service.PopupPasswordRoleService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,15 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/popup/")
 public class PopupController {
     private final PopupPasswordRoleService popupPasswordRoleService;
-
-    @GetMapping("/change_password")
-    @ResponseBody
-    public PopupPasswordRole getPasswordRole(HttpSession session) {
-
-        Login loginUser = (Login) session.getAttribute("loginUser");
-
-        return popupPasswordRoleService.getPasswordRole(loginUser.getSysPlantCd());
-    }
 
     @PostMapping("/change_password/change")
     public ResponseEntity<CommonResponse> changePassword(@RequestBody ChangePwdRequest changePwdRequest,

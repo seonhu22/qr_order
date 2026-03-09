@@ -2,7 +2,6 @@ package htms.Initial.audit.controller;
 
 import htms.Initial.audit.domain.TableInfo;
 import htms.Initial.audit.service.AuditService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;

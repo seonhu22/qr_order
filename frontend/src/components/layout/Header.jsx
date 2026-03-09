@@ -21,7 +21,7 @@ function Header() {
       <div className="header-right">
         {user && (
           <span className="header-user">
-            {user.userName}
+            {user.userNm}
             {user.deptNm ? ` · ${user.deptNm}` : ''}
           </span>
         )}

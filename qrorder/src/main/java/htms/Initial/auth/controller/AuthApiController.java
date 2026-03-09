@@ -27,7 +27,6 @@ public class AuthApiController {
                 "user", Map.of(
                         "userId", loginUser.getUserId(),
                         "userName", loginUser.getUserName(),
-                        "deptNm", loginUser.getDeptNm() != null ? loginUser.getDeptNm() : "",
                         "sysPlantCd", loginUser.getSysPlantCd() != null ? loginUser.getSysPlantCd() : ""
                 )
         ));

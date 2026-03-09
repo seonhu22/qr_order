@@ -17,6 +17,7 @@ public class MainController {
 
     @GetMapping("/info")
     public ResponseEntity<Map<String, Object>> getDashboardInfo(HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         return ResponseEntity.ok(Map.of(
                 "success", true,

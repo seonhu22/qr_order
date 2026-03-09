@@ -42,11 +42,6 @@ public class LoginService {
             logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
             throw new LoginFailException(errMsg);
         }
-        else if (dbLoginData.getUseYn().equals("N")) {
-            String errMsg = "해당 계정은 사용 중지된 상태입니다.";
-            logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
-            throw new LoginFailException(errMsg);
-        }
         else if (dbLoginData.getPasswordFailCnt() > 5) {
             String errMsg = "해당 계정은 비밀번호 5회 초과 오류로 사용 중지된 상태입니다.";
             logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);

@@ -24,8 +24,8 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Login login,
-                                                     HttpServletRequest request,
-                                                     HttpSession session) {
+                                                        HttpServletRequest request,
+                                                        HttpSession session) {
         try {
             boolean initPwdRequired = loginService.loginCheck(login, request, session);
             Login loginUser = (Login) session.getAttribute("loginUser");
@@ -37,7 +37,6 @@ public class LoginController {
                     "user", Map.of(
                             "userId", loginUser.getUserId(),
                             "userName", loginUser.getUserName(),
-                            "deptNm", loginUser.getDeptNm() != null ? loginUser.getDeptNm() : "",
                             "sysPlantCd", loginUser.getSysPlantCd() != null ? loginUser.getSysPlantCd() : ""
                     )
             ));
@@ -51,7 +50,7 @@ public class LoginController {
 
     @PostMapping("/init-pwd")
     public ResponseEntity<CommonResponse> initPwd(@RequestBody @Valid InitPwdRequest initPwdRequest,
-                                                  @RequestParam String userId) {
+                                                    @RequestParam String userId) {
         loginService.initPwd(initPwdRequest, userId);
         return ResponseEntity.ok(CommonResponse.builder()
                 .success(true)

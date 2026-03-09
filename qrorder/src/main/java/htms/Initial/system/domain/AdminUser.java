@@ -1,10 +1,10 @@
-package htms.Initial.auth.domain;
+package htms.Initial.system.domain;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class Login {
+public class AdminUser {
     private String sysId;
     @NotBlank(message = "사용자 아이디는 필수입니다.")
     private String userId;
@@ -12,8 +12,4 @@ public class Login {
     private String userNm;
     @NotBlank(message = "비밀번호는 필수입니다.")
     private String userPassword;
-    private Integer passwordFailCnt;
-    private String initYn;
-    @NotBlank(message = "사업장은 필수입니다.")
-    private String sysPlantCd;
 }

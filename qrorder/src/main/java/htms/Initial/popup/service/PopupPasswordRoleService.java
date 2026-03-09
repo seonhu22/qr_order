@@ -2,7 +2,6 @@ package htms.Initial.popup.service;
 
 import htms.Initial.auth.dto.ChangePwdRequest;
 import htms.Initial.common.exception.ValidationException;
-import htms.Initial.popup.dto.PopupPasswordRole;
 import htms.Initial.popup.repository.PopupPasswordRoleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +17,6 @@ public class PopupPasswordRoleService {
 
     private final PasswordEncoder passwordEncoder;
     private final PopupPasswordRoleMapper popupPasswordRoleMapper;
-
-    public PopupPasswordRole getPasswordRole(String sysPlantCd) {
-
-        return popupPasswordRoleMapper.getPasswordRole(sysPlantCd);
-    }
 
     public void changePassword(ChangePwdRequest changePwdRequest,
                                 String sysPlantCd) {
