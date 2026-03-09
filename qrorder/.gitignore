@@ -42,3 +42,9 @@ out/
 
 ### Local environment config (contains sensitive info) ###
 src/main/resources/application-local.properties
+
+### macOS ###
+.DS_Store
+
+### Claude Code ###
+.claude/
