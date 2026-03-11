@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.CommonDetailMapper">
+
+    <resultMap id="commonDetailResultMap" type="htms.QROrder.system.domain.CommonDetail">
+        <result column="sys_id" property="sysId"/>
+        <result column="link_sys_id" property="linkSysId"/>
+        <result column="common_master_cd" property="commonMasterCd"/>
+        <result column="ord_no" property="ordNo"/>
+        <result column="common_cd" property="commonCd"/>
+        <result column="common_nm" property="commonNm"/>
+        <result column="use_yn" property="useYn"/>
+    </resultMap>
+
+    <select id="findCommonDetailBySearchCond" resultMap="commonDetailResultMap">
+        select
+            scd.sys_id,
+            scd.link_sys_id,
+            scm.common_cd as master_common_cd,
+            scd.common_cd,
+            scd.common_nm,
+            scd.use_yn
+        from sys_common_detail scd
+        left join sys_common_master scm on scm.sys_id = scd.link_sys_id
+        where 1=1
+        and link_sys_id = #{linkSysId}
+        <if test="searchCond != null and searchCond != ''">
+            and (
+                scd.common_cd like concat('%', #{searchCond}, '%') or
+                scd.common_nm like concat('%', #{searchCond}, '%')
+            )
+        </if>
+        and scd.delete_yn = 'N'
+        order by scd.ord_no asc
+    </select>
+
+    <insert id="newCommonDetail">
+        insert into sys_common_detail (
+            sys_id,
+            link_sys_id,
+            common_cd,
+            common_nm,
+            ord_no,
+            use_yn,
+            delete_yn,
+            insert_datetime,
+            insert_user_id,
+            modify_datetime,
+            modify_user_id,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="commonDetail" item="item" separator=",">
+            (
+            #{item.sysId},
+            #{item.linkSysId},
+            #{item.commonCd},
+            #{item.commonNm},
+            #{item.ordNo},
+            #{item.useYn},
+            'N',
+            now(),
+            #{userId},
+            null,
+            null,
+            null
+            )
+        </foreach>
+    </insert>
+
+    <delete id="delCommonDetail">
+        update sys_common_detail set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateCommonDetail">
+        <foreach collection="commonDetail" item="item" separator=";">
+            update sys_common_detail set
+                common_nm = #{item.commonNm},
+                ord_no = #{item.ordNo},
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <select id="checkDuplicate" resultType="boolean">
+        select
+            COUNT(*) > 0
+        from sys_common_detail
+        where 1=1
+        and common_cd in
+        <foreach collection="commonDetail" item="item" open="(" separator="," close=")">
+            #{item.commonCd}
+        </foreach>
+        and link_sys_id = #{tempLinkSysId}
+    </select>
+
+    <select id="getOldData" resultMap="commonDetailResultMap">
+        select
+            scd.sys_id,
+            scd.link_sys_id,
+            scm.common_cd as master_common_cd,
+            scd.common_cd,
+            scd.common_nm,
+            scd.use_yn
+        from sys_common_detail scd
+        left join sys_common_master scm on scm.sys_id = scd.link_sys_id
+        where 1=1
+        and scd.sys_id in
+        <foreach collection="commonDetails" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+</mapper>

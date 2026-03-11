@@ -21,7 +21,6 @@ function LoginPage() {
       const result = await login(userId, password);
       if (result.success) {
         setUser(result.data);
-        navigate('/dashboard');
       } else {
         setError(result.message || '로그인에 실패했습니다.');
       }

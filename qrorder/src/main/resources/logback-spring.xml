@@ -20,19 +20,19 @@
     </appender>
 
     <!-- MyBatis Mapper 로그 -->
-    <logger name="htms.Initial.auth.repository" level="DEBUG" additivity="false">
+    <logger name="htms.QROrder.auth.repository" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="SQL_FILE"/>
     </logger>
 
     <!-- Profile별 설정 -->
     <springProfile name="dev">
-        <logger name="htms.Initial" level="DEBUG"/>
+        <logger name="htms.QROrder" level="DEBUG"/>
     </springProfile>
 
     <springProfile name="prod">
-        <logger name="htms.Initial.auth.repository" level="INFO"/>
-        <logger name="htms.Initial" level="WARN"/>
+        <logger name="htms.QROrder.auth.repository" level="INFO"/>
+        <logger name="htms.QROrder" level="WARN"/>
     </springProfile>
 
     <root level="INFO">

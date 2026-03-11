@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="htms.Initial.log.repository.LogMapper">
+<mapper namespace="htms.QROrder.log.repository.LogMapper">
     <insert id="insertLoginLog">
         insert into sys_login_log_master (
             sys_id,

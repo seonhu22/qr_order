@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.CommonMasterMapper">
+
+    <resultMap id="commonResultMap" type="htms.QROrder.system.domain.CommonMaster">
+        <result column="sys_id" property="sysId"/>
+        <result column="common_cd" property="commonCd"/>
+        <result column="common_nm" property="commonNm"/>
+        <result column="use_yn" property="useYn"/>
+    </resultMap>
+
+    <select id="findCommonBySearchCond" resultMap="commonResultMap">
+        select
+            sys_id,
+            common_cd,
+            common_nm,
+            use_yn
+        from sys_common_master
+        where 1=1
+        <if test="searchCond != null and searchCond != ''">
+            and (
+                common_cd like concat('%', #{searchCond}, '%') or
+                common_nm like concat('%', #{searchCond}, '%')
+            )
+        </if>
+        and delete_yn = 'N'
+        order by common_cd asc
+    </select>
+
+    <insert id="newCommonMaster">
+        insert into sys_common_master (
+            sys_id,
+            common_cd,
+            common_nm,
+            use_yn,
+            delete_yn,
+            insert_datetime,
+            insert_user_id,
+            modify_datetime,
+            modify_user_id,
+            sys_plant_cd
+        )
+        values (
+            #{commonMaster.sysId},
+            #{commonMaster.commonCd},
+            #{commonMaster.commonNm},
+            #{commonMaster.useYn},
+            'N',
+            now(),
+            #{userId},
+            null,
+            null,
+            null
+        )
+    </insert>
+
+    <select id="checkDuplicate" resultType="boolean">
+        select
+            COUNT(*) > 0
+        from sys_common_master
+        where 1=1
+        and common_cd = #{commonCd}
+    </select>
+
+    <delete id="delCommonMasterByCheckCond">
+        update sys_common_master set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+    </delete>
+
+    <update id="updateCommonMaster">
+        update sys_common_master set
+            common_nm = #{commonMaster.commonNm},
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id = #{commonMaster.sysId}
+    </update>
+
+    <select id="getOldData" resultMap="commonResultMap">
+        select
+            sys_id,
+            common_cd,
+            common_nm,
+            use_yn
+        from sys_common_master
+        where 1=1
+        and sys_id = #{sysId}
+    </select>
+</mapper>

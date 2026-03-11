@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="htms.Initial.system.repository.PlantMapper">
+<mapper namespace="htms.QROrder.system.repository.PlantMapper">
 
-    <resultMap id="plantResultMap" type="htms.Initial.system.domain.Plant">
+    <resultMap id="plantResultMap" type="htms.QROrder.system.domain.Plant">
         <result column="sys_id" property="sysId"/>
         <result column="plant_cd" property="plantCd"/>
         <result column="plant_nm" property="plantNm"/>
