@@ -36,6 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
+/frontend/node_modules
 
 ### log ###
 /logs/**
@@ -44,7 +45,8 @@ out/
 src/main/resources/application-local.properties
 
 ### macOS ###
-.DS_Store
+/frontend/.DS_Store
+/qrorder/.DS_Store
 
 ### Claude Code ###
 .claude/

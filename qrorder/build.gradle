@@ -26,23 +26,43 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// Spring Web MVC (@RestController, @RequestMapping 등 REST API)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-	implementation 'org.postgresql:postgresql:42.7.1'
-	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
+
+	// 유효성 검사 (@Valid, @NotBlank, @NotNull 등)
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Spring Security (BCryptPasswordEncoder 비밀번호 암호화)
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
-	// SSH 터널링을 위한 JSch (Ed25519 지원 포크 버전)
+	// JDBC (DataSource, JdbcTemplate 등 DB 연결 기반)
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+	// PostgreSQL JDBC 드라이버
+	implementation 'org.postgresql:postgresql:42.7.1'
+
+	// MyBatis (SQL 매퍼, XML 기반 쿼리)
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
+
+	// SSH 터널링 (원격 DB 접속 시 SSH 포트포워딩)
 	implementation 'com.github.mwiede:jsch:0.2.21'
 
-	// ULID (시간 순 정렬 가능한 고유 ID 생성)
+	// ULID (시간순 정렬 가능한 고유 ID 생성, sysId에 사용)
 	implementation 'com.github.f4b6a3:ulid-creator:5.2.3'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	// Swagger UI (localhost:8080/swagger-ui/index.html 에서 API 문서 확인)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+
+	// Kotlin 표준 라이브러리
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	// Lombok (@Getter, @Builder, @RequiredArgsConstructor 등 보일러플레이트 제거)
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// 테스트
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
