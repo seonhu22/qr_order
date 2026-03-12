@@ -35,6 +35,7 @@ node_modules/
 ### Vite / Frontend build ###
 frontend/dist/
 frontend/.vite/
+qrorder/src/main/resources/static/
 
 ### macOS ###
 .DS_Store
