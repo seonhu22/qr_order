@@ -36,17 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-/frontend/node_modules
-
 ### log ###
 /logs/**
 
 ### Local environment config (contains sensitive info) ###
 src/main/resources/application-local.properties
-
-### macOS ###
-/frontend/.DS_Store
-/qrorder/.DS_Store
 
 ### Claude Code ###
 .claude/
