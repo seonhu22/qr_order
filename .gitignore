@@ -29,9 +29,26 @@ replay_pid*
 ### Node ###
 node_modules/
 
+### Vite / Frontend build ###
+frontend/dist/
+frontend/.vite/
+
 ### macOS ###
 .DS_Store
 
+### Gradle ###
+qrorder/.gradle/
+qrorder/build/
+qrorder/out/
+
+### Spring Boot ###
+qrorder/src/main/resources/application-local.properties
+qrorder/src/main/resources/application-secret.properties
+
+### Logs ###
+logs/
+qrorder/logs/
+
 ### Claude Code ###
 .claude/
-
+CLAUDE.md
