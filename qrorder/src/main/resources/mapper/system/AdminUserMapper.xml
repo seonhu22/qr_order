@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.AdminUserMapper">
+
+    <select id="getAdminUser" resultType="htms.QROrder.system.domain.AdminUser">
+        select
+            su.sys_id,
+            su.user_id ,
+            su.user_nm ,
+            su.plant_cd ,
+            sp.plant_nm
+        from sys_user su
+        left join sys_plant sp
+            on sp.plant_cd = su.plant_cd
+        where 1=1
+        and (su.user_id like concat('%', #{searchKeyword}, '%')
+                or su.user_nm like concat('%', #{searchKeyword}, '%'))
+        and su.plant_cd = 'ADMIN'
+        and su.delete_yn = 'N'
+        and sp.delete_yn = 'N'
+    </select>
+
+    <insert id="newAdminUser">
+        insert into sys_user (
+            sys_id ,
+            user_id ,
+            user_nm ,
+            user_password ,
+            init_yn ,
+            password_fail_cnt ,
+            plant_cd ,
+            delete_yn,
+            insert_user_id ,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator=",">
+            (
+                #{item.sysId},
+                #{item.userId},
+                #{item.userNm},
+                #{item.userPassword},
+                'N',
+                0,
+                #{item.plantCd},
+                'N',
+                #{userId},
+                now(),
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+    
+    <update id="updateItems">
+        <foreach collection="updateItems" item="item" separator=";">
+            update sys_user set
+                user_nm = #{item.userNm},
+                plant_cd = #{item.plantCd},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and #{item.sysId}
+        </foreach>
+    </update>
+    
+    <delete id="delItems">
+        <foreach collection="delItems" item="item" separator=";">
+            update sys_user set
+                delete_yn = #{item.deleteYn},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and #{item.sysId}
+        </foreach>
+    </delete>
+</mapper>

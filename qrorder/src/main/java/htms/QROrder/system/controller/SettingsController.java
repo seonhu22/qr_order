@@ -3,6 +3,8 @@ package htms.QROrder.system.controller;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.system.domain.*;
+import htms.QROrder.system.dto.AdminUserRequest;
+import htms.QROrder.system.dto.AdminUserResponse;
 import htms.QROrder.system.dto.CommonDetailRequest;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
@@ -23,10 +25,12 @@ public class SettingsController {
     private final CommonMasterService commonMasterService;
     private final CommonDetailService commonDetailService;
     private final PlantService plantService;
+    private final AdminUserService adminUserService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
     public List<CommonMaster> searchCommon(@RequestParam(required = false) String searchKeyword) {
+
         return commonMasterService.findCommonBySearchCond(searchKeyword);
     }
 
@@ -34,6 +38,7 @@ public class SettingsController {
     @GetMapping("/common/search/{linkSysId}")
     public List<CommonDetail> searchCommonDetail(@PathVariable("linkSysId") String masterSysId,
                                                     @RequestParam(required = false) String searchKeyword) {
+
         return commonDetailService.findCommonDetailBySearchCond(masterSysId, searchKeyword);
     }
 
@@ -41,9 +46,12 @@ public class SettingsController {
     @PostMapping("/common/master/new")
     public ResponseEntity<CommonResponse<Void>> newCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
                                                                 HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         commonMasterService.newCommonMaster(commonMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -56,9 +64,12 @@ public class SettingsController {
     @PostMapping("/common/master/del")
     public ResponseEntity<CommonResponse<Void>> delCommonMaster(@RequestBody List<CommonMaster> commonMasters,
                                                                 HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         commonMasterService.delCommonMasterByCheckCond(commonMasters, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -71,9 +82,12 @@ public class SettingsController {
     @PostMapping("/common/master/update")
     public ResponseEntity<CommonResponse<Void>> updateCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
                                                                     HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         commonMasterService.updateCommonMaster(commonMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -86,9 +100,12 @@ public class SettingsController {
     @PostMapping("/common/detail/save")
     public ResponseEntity<CommonResponse<Void>> saveCommonDetail(@RequestBody @Valid CommonDetailRequest requestData,
                                                                     HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         commonDetailService.saveCommonDetail(requestData, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -100,6 +117,7 @@ public class SettingsController {
     // 사업장 조회
     @GetMapping("/plant/search")
     public List<Plant> searchPlant(@RequestParam(required = false) String searchKeyword) {
+
         return plantService.findPlantBySearchCond(searchKeyword);
     }
 
@@ -107,9 +125,12 @@ public class SettingsController {
     @PostMapping("/plant/new")
     public ResponseEntity<CommonResponse<Void>> newPlant(@RequestBody @Valid Plant plant,
                                                             HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         plantService.newPlant(plant, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -122,9 +143,12 @@ public class SettingsController {
     @PostMapping("/plant/update")
     public ResponseEntity<CommonResponse<Void>> updatePlant(@RequestBody @Valid Plant plant,
                                                             HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         plantService.updatePlant(plant, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
@@ -137,13 +161,38 @@ public class SettingsController {
     @PostMapping("/plant/del")
     public ResponseEntity<CommonResponse<Void>> delPlant(@RequestBody List<Plant> plants,
                                                             HttpSession session) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+
         plantService.delPlantByCheckCond(plants, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
                         .success(true)
                         .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/adminuser/search")
+    public List<AdminUserResponse> getAdminUser(@RequestParam(required = false) String searchKeyword) {
+
+        return adminUserService.getAdminUser(searchKeyword);
+    }
+
+    @PostMapping("/adminuser/save")
+    public ResponseEntity<CommonResponse> saveAdminUser(@RequestBody AdminUserRequest adminUserRequest,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        adminUserService.saveAdminUser(adminUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
                         .build()
         );
     }
