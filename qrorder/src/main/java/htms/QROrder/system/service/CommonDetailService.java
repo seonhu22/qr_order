@@ -39,7 +39,14 @@ public class CommonDetailService {
                 .orElse(null);
 
         if(checkDuplicate(commonDetail, tempLinkSysId)) {
-            throw new DuplicateException("이미 존재하는 코드입니다.");
+
+            List<CommonDetail> commonDetails = checkDuplicateData(commonDetail);
+
+            String result = commonDetails.stream()
+                .map(u -> u.getCommonNm() + "(" + u.getCommonCd() + ")")
+                .collect(Collectors.joining(", "));
+
+            throw new DuplicateException("중복된 코드가 존재합니다.\n" + result);
         }
         else {
             commonDetail.forEach(item -> item.setSysId(UlidCreator.getMonotonicUlid().toString()));
@@ -73,6 +80,11 @@ public class CommonDetailService {
                                     String tempLinkSysId) {
 
         return  commonDetailMapper.checkDuplicate(commonDetail, tempLinkSysId);
+    }
+
+    public List<CommonDetail> checkDuplicateData(List<CommonDetail> commonDetail) {
+
+        return commonDetailMapper.checkDuplicateData(commonDetail);
     }
 
     public void saveCommonDetail(CommonDetailRequest requestData,

@@ -18,7 +18,7 @@ public class PopupController {
     private final PopupPasswordRoleService popupPasswordRoleService;
 
     @PostMapping("/change_password/change")
-    public ResponseEntity<CommonResponse<Void>> changePassword(@RequestBody ChangePwdRequest changePwdRequest,
+    public ResponseEntity<CommonResponse> changePassword(@RequestBody ChangePwdRequest changePwdRequest,
                                                                 HttpSession session) {
         Login loginUser = (Login) session.getAttribute("loginUser");
         popupPasswordRoleService.changePassword(changePwdRequest, loginUser.getSysPlantCd());

@@ -17,7 +17,7 @@ public class LogoutController {
     private final LogService logService;
 
     @PostMapping("/logout")
-    public ResponseEntity<CommonResponse<Void>> logout(HttpSession session) {
+    public ResponseEntity<CommonResponse> logout(HttpSession session) {
 
         String logUuid = (String) session.getAttribute("logUuid");
 

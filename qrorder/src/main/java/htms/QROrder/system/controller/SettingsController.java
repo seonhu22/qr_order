@@ -3,6 +3,7 @@ package htms.QROrder.system.controller;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.system.domain.*;
+import htms.QROrder.system.domain.Menu;
 import htms.QROrder.system.dto.AdminUserRequest;
 import htms.QROrder.system.dto.AdminUserResponse;
 import htms.QROrder.system.dto.CommonDetailRequest;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.*;
 import java.util.List;
 
 @Slf4j
@@ -26,6 +28,7 @@ public class SettingsController {
     private final CommonDetailService commonDetailService;
     private final PlantService plantService;
     private final AdminUserService adminUserService;
+    private final MenuService menuService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -44,7 +47,7 @@ public class SettingsController {
 
     // 공통코드 마스터 추가
     @PostMapping("/common/master/new")
-    public ResponseEntity<CommonResponse<Void>> newCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
+    public ResponseEntity<CommonResponse> newCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
                                                                 HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -62,7 +65,7 @@ public class SettingsController {
 
     // 공통코드 마스터 삭제
     @PostMapping("/common/master/del")
-    public ResponseEntity<CommonResponse<Void>> delCommonMaster(@RequestBody List<CommonMaster> commonMasters,
+    public ResponseEntity<CommonResponse> delCommonMaster(@RequestBody List<CommonMaster> commonMasters,
                                                                 HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -80,7 +83,7 @@ public class SettingsController {
 
     // 공통코드 마스터 업데이트
     @PostMapping("/common/master/update")
-    public ResponseEntity<CommonResponse<Void>> updateCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
+    public ResponseEntity<CommonResponse> updateCommonMaster(@RequestBody @Valid CommonMaster commonMaster,
                                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -98,7 +101,7 @@ public class SettingsController {
 
     // 공통코드 상세 저장
     @PostMapping("/common/detail/save")
-    public ResponseEntity<CommonResponse<Void>> saveCommonDetail(@RequestBody @Valid CommonDetailRequest requestData,
+    public ResponseEntity<CommonResponse> saveCommonDetail(@RequestBody @Valid CommonDetailRequest requestData,
                                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -123,7 +126,7 @@ public class SettingsController {
 
     // 사업장 추가
     @PostMapping("/plant/new")
-    public ResponseEntity<CommonResponse<Void>> newPlant(@RequestBody @Valid Plant plant,
+    public ResponseEntity<CommonResponse> newPlant(@RequestBody @Valid Plant plant,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -141,7 +144,7 @@ public class SettingsController {
 
     // 사업장 수정
     @PostMapping("/plant/update")
-    public ResponseEntity<CommonResponse<Void>> updatePlant(@RequestBody @Valid Plant plant,
+    public ResponseEntity<CommonResponse> updatePlant(@RequestBody @Valid Plant plant,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -159,7 +162,7 @@ public class SettingsController {
 
     // 사업장 삭제
     @PostMapping("/plant/del")
-    public ResponseEntity<CommonResponse<Void>> delPlant(@RequestBody List<Plant> plants,
+    public ResponseEntity<CommonResponse> delPlant(@RequestBody List<Plant> plants,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -188,6 +191,28 @@ public class SettingsController {
         Login loginUser = (Login) session.getAttribute("loginUser");
 
         adminUserService.saveAdminUser(adminUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/menu/search")
+    public List<Menu> getMenu() {
+
+        return menuService.getMenu();
+    }
+
+    @PostMapping("/menu/save")
+    public ResponseEntity<CommonResponse> saveMenu(List<Menu> menu,
+                                                    HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        menuService.saveMenu(menu, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

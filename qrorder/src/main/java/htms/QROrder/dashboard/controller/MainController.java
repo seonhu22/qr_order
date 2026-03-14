@@ -15,12 +15,11 @@ import org.springframework.web.bind.annotation.*;
 public class MainController {
 
     @GetMapping("/info")
-    public ResponseEntity<CommonResponse<String>> getDashboardInfo(HttpSession session) {
+    public ResponseEntity<CommonResponse> getDashboardInfo(HttpSession session) {
         Login loginUser = (Login) session.getAttribute("loginUser");
         return ResponseEntity.ok(
                 CommonResponse.<String>builder()
                         .success(true)
-                        .data(loginUser.getUserNm())
                         .build()
         );
     }

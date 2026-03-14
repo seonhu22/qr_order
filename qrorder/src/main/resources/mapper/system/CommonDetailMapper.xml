@@ -105,6 +105,25 @@
         and link_sys_id = #{tempLinkSysId}
     </select>
 
+    <select id="checkDuplicateData" resultMap="commonDetailResultMap">
+        select
+            scd.sys_id,
+            scd.link_sys_id,
+            scm.common_cd as master_common_cd,
+            scd.common_cd,
+            scd.common_nm,
+            scd.use_yn
+        from sys_common_detail scd
+        left join sys_common_master scm on scm.sys_id = scd.link_sys_id
+        where 1=1
+        and common_cd in
+        <foreach collection="commonDetail" item="item" open="(" separator="," close=")">
+            #{item.commonCd}
+        </foreach>
+        and scd.delete_yn = 'N'
+        order by scd.ord_no asc
+    </select>
+
     <select id="getOldData" resultMap="commonDetailResultMap">
         select
             scd.sys_id,

@@ -75,4 +75,35 @@
             and #{item.sysId}
         </foreach>
     </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_user
+        where 1=1
+        and user_id in
+            <foreach collection="adminUser" item="item" open="(" separator="," close=")">
+                #{item.userId}
+            </foreach>
+    </select>
+
+    <select id="getDeuplicateAdminUser" resultType="htms.QROrder.system.domain.AdminUser">
+        select
+            su.sys_id,
+            su.user_id ,
+            su.user_nm ,
+            su.plant_cd ,
+            sp.plant_nm
+        from sys_user su
+        left join sys_plant sp
+            on sp.plant_cd = su.plant_cd
+        where 1=1
+        and su.user_id in
+        <foreach collection="adminUser" item="item" open="(" separator="," close=")">
+            #{item.userId}
+        </foreach>
+        and su.plant_cd = 'ADMIN'
+        and su.delete_yn = 'N'
+        and sp.delete_yn = 'N'
+    </select>
 </mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.MenuMapper">
+
+    <select id="getMenu" resultType="htms.QROrder.system.domain.Menu">
+        select
+            sys_id ,
+            menu_cd ,
+            menu_nm ,
+            parent_menu_cd ,
+            ord_no ,
+            tree_level ,
+            menu_url
+        from sys_menu sm
+        order by tree_level asc, ord_no asc
+    </select>
+</mapper>

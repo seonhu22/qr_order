@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateException.class)
-    public ResponseEntity<CommonResponse<Void>> handleDuplicatePlantException(DuplicateException e) {
+    public ResponseEntity<CommonResponse> handleDuplicatePlantException(DuplicateException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(CommonResponse.<Void>builder()
+                .body(CommonResponse.<Object>builder()
                         .success(false)
                         .message(e.getMessage())
                         .build()
@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<CommonResponse<Void>> handleValidationException(ValidationException e) {
+    public ResponseEntity<CommonResponse> handleValidationException(ValidationException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CommonResponse.<Void>builder()
                         .success(false)
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<CommonResponse<Void>> handleException(Exception e) {
+    public ResponseEntity<CommonResponse> handleException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CommonResponse.<Void>builder()
                         .success(false)

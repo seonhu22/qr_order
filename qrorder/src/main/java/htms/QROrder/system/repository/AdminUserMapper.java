@@ -12,4 +12,6 @@ public interface AdminUserMapper {
     void newAdminUser(List<AdminUser> newItems, String userId, String sysPlantCd);
     void updateAdminUser(List<AdminUser> updateItems, String userId, String sysPlantCd);
     void deleteAdminUser(List<AdminUser> delItems, String userId, String sysPlantCd);
+    boolean duplicateChk(List<AdminUser> adminUser);
+    List<AdminUserResponse> getDeuplicateData(List<AdminUser> adminUser);
 }
