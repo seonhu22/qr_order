@@ -22,11 +22,11 @@
             use_yn
         from sys_plant
         where 1=1
-        <if test="searchCond != null and searchCond != ''">
+        <if test="searchKeyword != null and searchKeyword != ''">
             and (
-                plant_cd like concat('%', #{searchCond}, '%') or
-                plant_nm like concat('%', #{searchCond}, '%') or
-                domain_url like concat('%', #{searchCond}, '%')
+                plant_cd like concat('%', #{searchKeyword}, '%') or
+                plant_nm like concat('%', #{searchKeyword}, '%') or
+                domain_url like concat('%', #{searchKeyword}, '%')
             )
         </if>
         and delete_yn = 'N'
