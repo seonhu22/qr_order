@@ -1,19 +1,23 @@
-# IDE file
-.idea
+# IDE metadata and editor-specific files.
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
 
-# Compiled class file
+# Java and IDE build outputs. These are recreated locally and should not be committed.
 *.class
+qrorder/bin/
+qrorder/build/
+qrorder/out/
+qrorder/.gradle/
 
-# Log file
-*.log
-
-# BlueJ files
+# Temporary files from older Java tooling.
 *.ctxt
-
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Packaged artifacts generated during build/release.
 *.jar
 *.war
 *.nar
@@ -22,37 +26,32 @@
 *.tar.gz
 *.rar
 
-# Gradle wrapper jar exception
+# Keep the Gradle wrapper binary under version control.
 !qrorder/gradle/wrapper/gradle-wrapper.jar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# JVM crash dumps and runtime logs.
+*.log
 hs_err_pid*
 replay_pid*
-
-### Node ###
-node_modules/
-
-### Vite / Frontend build ###
-frontend/dist/
-frontend/.vite/
-qrorder/src/main/resources/static/
-
-### macOS ###
-.DS_Store
-
-### Gradle ###
-qrorder/.gradle/
-qrorder/build/
-qrorder/out/
-
-### Spring Boot ###
-qrorder/src/main/resources/application-local.properties
-qrorder/src/main/resources/application-secret.properties
-
-### Logs ###
 logs/
 qrorder/logs/
 
-### Claude Code ###
+# Frontend dependencies and Vite build cache/output.
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Built frontend assets copied into the Spring Boot static directory.
+qrorder/src/main/resources/static/
+
+# Local-only Spring Boot configuration files with machine/environment secrets.
+qrorder/src/main/resources/application-local.properties
+qrorder/src/main/resources/application-secret.properties
+
+# OS-specific noise.
+.DS_Store
+
+# Local Codex/Claude workspace metadata.
 .claude/
 CLAUDE.md
