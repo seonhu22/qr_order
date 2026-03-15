@@ -7,6 +7,7 @@ import htms.QROrder.system.domain.Menu;
 import htms.QROrder.system.dto.AdminUserRequest;
 import htms.QROrder.system.dto.AdminUserResponse;
 import htms.QROrder.system.dto.CommonDetailRequest;
+import htms.QROrder.system.dto.MessageRequest;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ public class SettingsController {
     private final PlantService plantService;
     private final AdminUserService adminUserService;
     private final MenuService menuService;
+    private final MessageService messageService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -213,6 +215,28 @@ public class SettingsController {
         Login loginUser = (Login) session.getAttribute("loginUser");
 
         menuService.saveMenu(menu, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/message/search")
+    public List<Message> getMessage(@RequestParam(required = false) String searchKeyword) {
+
+        return messageService.getMessage(searchKeyword);
+    }
+
+    @PostMapping("/message/save")
+    public ResponseEntity<CommonResponse> saveMessage(@RequestBody MessageRequest messageRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        messageService.saveMessage(messageRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
