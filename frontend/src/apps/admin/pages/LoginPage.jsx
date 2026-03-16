@@ -1,12 +1,12 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../api/auth';
-import { AuthContext } from '../context/AuthContext';
-import '../styles/login.css';
+import { login } from '@/shared/api/auth';
+import { useAuth } from '@/shared/auth/AuthContext';
+import '@/shared/styles/login.css';
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { signIn } = useAuth();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,8 +20,8 @@ function LoginPage() {
     try {
       const result = await login(userId, password);
       if (result.success) {
-        setUser(true);
-        navigate('/dashboard');
+        signIn(result.user ?? { userId });
+        navigate('/dashboard', { replace: true });
       } else {
         setError(result.message || '로그인에 실패했습니다.');
       }
