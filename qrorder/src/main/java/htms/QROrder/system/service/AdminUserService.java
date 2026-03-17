@@ -37,7 +37,7 @@ public class AdminUserService {
         if(!newItems.isEmpty()){
 
             if(duplicateChk(newItems)) {
-                List<AdminUserResponse> deuplicateAdminUser = getDeuplicateData(newItems);
+                List<AdminUserResponse> deuplicateAdminUser = getDuplicateData(newItems);
 
                 String result = deuplicateAdminUser.stream()
                     .map(u -> u.getUserNm() + "(" + u.getUserId() + ")")
@@ -69,8 +69,8 @@ public class AdminUserService {
         return adminUserMapper.duplicateChk(adminUser);
     }
 
-    public List<AdminUserResponse> getDeuplicateData(List<AdminUser> adminUser) {
+    public List<AdminUserResponse> getDuplicateData(List<AdminUser> adminUser) {
 
-        return adminUserMapper.getDeuplicateData(adminUser);
+        return adminUserMapper.getDuplicateData(adminUser);
     }
 }

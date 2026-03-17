@@ -65,9 +65,9 @@ public class CommonDetailService {
         return  commonDetailMapper.duplicateChk(commonDetail);
     }
 
-    public List<CommonDetail> getDeuplicateData(List<CommonDetail> commonDetail) {
+    public List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail) {
 
-        return commonDetailMapper.getDeuplicateData(commonDetail);
+        return commonDetailMapper.getDuplicateData(commonDetail);
     }
 
     public void saveCommonDetail(CommonDetailRequest requestData,
@@ -81,13 +81,13 @@ public class CommonDetailService {
 
         if(!newItems.isEmpty()) {
             if(duplicateChk(newItems)) {
-                List<CommonDetail> deuplicateAdminUser = getDeuplicateData(newItems);
+                List<CommonDetail> duplicateAdminUser = getDuplicateData(newItems);
 
-                String result = deuplicateAdminUser.stream()
+                String result = duplicateAdminUser.stream()
                     .map(u -> u.getCommonNm() + "(" + u.getCommonCd() + ")")
                     .collect(Collectors.joining(", "));
 
-                throw new DuplicateException("중복된 사용자가 존재합니다.\n" + result);
+                throw new DuplicateException("중복된 코드가 존재합니다.\n" + result);
             }
 
             newCommonDetail(newItems, userId, sysPlantId, menuCd);

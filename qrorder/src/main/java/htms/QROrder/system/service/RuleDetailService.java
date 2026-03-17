@@ -40,7 +40,7 @@ public class RuleDetailService {
 
         if(!newItems.isEmpty()){
             if(duplicateChk(newItems)) {
-                List<RuleDetail> deuplicateData = getDeuplicateData(newItems);
+                List<RuleDetail> deuplicateData = getDuplicateData(newItems);
 
                 String result = deuplicateData.stream()
                         .map(u -> u.getOptionNm() + "(" + u.getOptionCd() + ")")
@@ -72,8 +72,8 @@ public class RuleDetailService {
         return ruleDetailMapper.duplicateChk(ruleDetails);
     }
 
-    public List<RuleDetail> getDeuplicateData(List<RuleDetail> ruleDetail) {
+    public List<RuleDetail> getDuplicateData(List<RuleDetail> ruleDetail) {
 
-        return ruleDetailMapper.getDeuplicateData(ruleDetail);
+        return ruleDetailMapper.getDuplicateData(ruleDetail);
     }
 }

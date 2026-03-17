@@ -37,7 +37,7 @@ public class MessageService {
         if(!newItems.isEmpty()){
             if(duplicateMessage(newItems)){
 
-                List<Message> deuplicateData = getDeuplicateData(newItems);
+                List<Message> deuplicateData = getDuplicateData(newItems);
 
                 String result = deuplicateData.stream()
                     .map(u -> u.getMsgNm() + "(" + u.getMsgCd() + ")")
@@ -63,8 +63,8 @@ public class MessageService {
         return messageMapper.duplicateMessage(newItems);
     }
 
-    public List<Message> getDeuplicateData(List<Message> newItems) {
+    public List<Message> getDuplicateData(List<Message> newItems) {
 
-        return messageMapper.getDeuplicateData(newItems);
+        return messageMapper.getDuplicateData(newItems);
     }
 }
