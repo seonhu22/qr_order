@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.RuleMasterMapper">
+
+    <select id="getRuleMaster" resultType="htms.QROrder.system.domain.RuleMaster">
+        select
+            sys_id ,
+            rule_cd ,
+            rule_nm ,
+            use_yn
+        from sys_rule_master srm
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (
+                rule_cd like concat('%', #{searchKeyword}, '%') or
+                rule_nm like concat('%', #{searchKeyword}, '%')
+            )
+        </if>
+    </select>
+    
+    <insert id="newRuleMaster">
+        insert into sys_rule_master (
+            sys_id ,
+            rule_cd ,
+            rule_nm ,
+            use_yn ,
+            delete_yn ,
+            insert_user_id ,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values (
+            #{ruleMaster.sysId},
+            #{ruleMaster.ruleCd},
+            #{ruleMaster.ruleNm},
+            #{ruleMaster.useYn},
+            'N',
+            #{userId},
+            now(),
+            #{sysPlantCd}
+        )
+    </insert>
+
+    <update id="ruleMaster">
+        update sys_rule_master set
+            rule_nm  = #{ruleMaster.ruleNm},
+            use_yn = #{ruleMaster.useYn},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{ruleMaster.sysId}
+    </update>
+
+    <delete id="delRuleMaster">
+        update sys_rule_master set
+            delete_yn = #{ruleMaster.deleteYn},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{ruleMaster.sysId}
+    </delete>
+</mapper>

@@ -4,10 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.system.domain.*;
 import htms.QROrder.system.domain.Menu;
-import htms.QROrder.system.dto.AdminUserRequest;
-import htms.QROrder.system.dto.AdminUserResponse;
-import htms.QROrder.system.dto.CommonDetailRequest;
-import htms.QROrder.system.dto.MessageRequest;
+import htms.QROrder.system.dto.*;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -31,6 +28,8 @@ public class SettingsController {
     private final AdminUserService adminUserService;
     private final MenuService menuService;
     private final MessageService messageService;
+    private final RuleMasterService ruleMasterService;
+    private final RuleDetailService ruleDetailService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -243,6 +242,82 @@ public class SettingsController {
                         .success(true)
                         .message("저장 완료.")
                         .build()
+        );
+    }
+
+    @GetMapping("/rule/master/search")
+    public List<RuleMaster> getRuleMaster(@RequestParam(required = false) String searchKeyword) {
+
+        return ruleMasterService.getRuleMaster(searchKeyword);
+    }
+
+    @PostMapping("/rule/master/new")
+    public ResponseEntity<CommonResponse> newRuleMaster(@RequestBody RuleMaster ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.newRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("저장 완료.")
+                    .build()
+        );
+    }
+
+    @PostMapping("/rule/master/update")
+    public ResponseEntity<CommonResponse> updateRuleMaster(@RequestBody RuleMaster ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.updateRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("수정 완료.")
+                    .build()
+        );
+    }
+
+    @PostMapping("/rule/master/del")
+    public ResponseEntity<CommonResponse> delRuleMaster(@RequestBody List<RuleMaster> ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.delRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("삭제 완료.")
+                    .build()
+        );
+    }
+
+    @GetMapping("/rule/detail/search")
+    public List<RuleDetail> getRuleDetail(@RequestParam String sysId) {
+
+        return ruleDetailService.getRuleDetail(sysId);
+    }
+
+    @PostMapping("/rule/detail/save")
+    public ResponseEntity<CommonResponse> saveRule(@RequestBody RuleDetailRequest ruleDetailRequest,
+                                                    HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleDetailService.saveRuleDetail(ruleDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("저장 완료.")
+                    .build()
         );
     }
 }
