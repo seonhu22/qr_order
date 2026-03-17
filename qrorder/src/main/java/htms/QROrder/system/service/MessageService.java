@@ -34,23 +34,25 @@ public class MessageService {
         List<Message> updateItems = messageRequest.getUpdateItems();
         List<Message> delItems = messageRequest.getDelItems();
 
-        if(duplicateMessage(newItems)){
-
-            List<Message> deuplicateData = getDeuplicateData(newItems);
-
-            String result = deuplicateData.stream()
-                .map(u -> u.getMsgNm() + "(" + u.getMsgCd() + ")")
-                .collect(Collectors.joining(", "));
-
-            throw new DuplicateException("중복된 메시지가 존재합니다.\n" + result);
-        }
-
         if(!newItems.isEmpty()){
+            if(duplicateMessage(newItems)){
+
+                List<Message> deuplicateData = getDeuplicateData(newItems);
+
+                String result = deuplicateData.stream()
+                    .map(u -> u.getMsgNm() + "(" + u.getMsgCd() + ")")
+                    .collect(Collectors.joining(", "));
+
+                throw new DuplicateException("중복된 메시지가 존재합니다.\n" + result);
+            }
+
             messageMapper.newMessage(newItems, userId, sysPlantCd);
         }
+
         if(!updateItems.isEmpty()){
             messageMapper.updateMessage(updateItems, userId);
         }
+
         if(!delItems.isEmpty()){
             messageMapper.delMessage(delItems, userId);
         }

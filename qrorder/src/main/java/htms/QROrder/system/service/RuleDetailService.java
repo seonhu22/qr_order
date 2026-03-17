@@ -38,17 +38,16 @@ public class RuleDetailService {
         List<RuleDetail> updateItems = ruleDetailRequest.getUpdateItems();
         List<RuleDetail> delItems = ruleDetailRequest.getDelItems();
 
-        if(duplicateChk(newItems)){
-            List<RuleDetail> deuplicateData = getDeuplicateData(newItems);
-
-            String result = deuplicateData.stream()
-                .map(u -> u.getOptionNm() + "(" + u.getOptionCd() + ")")
-                .collect(Collectors.joining(", "));
-
-            throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
-        }
-
         if(!newItems.isEmpty()){
+            if(duplicateChk(newItems)) {
+                List<RuleDetail> deuplicateData = getDeuplicateData(newItems);
+
+                String result = deuplicateData.stream()
+                        .map(u -> u.getOptionNm() + "(" + u.getOptionCd() + ")")
+                        .collect(Collectors.joining(", "));
+
+                throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
+            }
 
             newItems.forEach(ruleDetail -> {
                 ruleDetail.setSysId(UlidCreator.getUlid().toString());

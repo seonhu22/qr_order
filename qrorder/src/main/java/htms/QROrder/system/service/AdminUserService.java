@@ -34,18 +34,17 @@ public class AdminUserService {
         List<AdminUser> updateItems = adminUserRequest.getUpdateItems();
         List<AdminUser> delItems = adminUserRequest.getDelItems();
 
-        if(duplicateChk(newItems)) {
-
-            List<AdminUserResponse> deuplicateAdminUser = getDeuplicateData(newItems);
-
-            String result = deuplicateAdminUser.stream()
-                .map(u -> u.getUserNm() + "(" + u.getUserId() + ")")
-                .collect(Collectors.joining(", "));
-
-            throw new DuplicateException("중복된 사용자가 존재합니다.\n" + result);
-        }
-
         if(!newItems.isEmpty()){
+
+            if(duplicateChk(newItems)) {
+                List<AdminUserResponse> deuplicateAdminUser = getDeuplicateData(newItems);
+
+                String result = deuplicateAdminUser.stream()
+                    .map(u -> u.getUserNm() + "(" + u.getUserId() + ")")
+                    .collect(Collectors.joining(", "));
+
+                throw new DuplicateException("중복된 사용자가 존재합니다.\n" + result);
+            }
 
             newItems.forEach(adminUser -> {
                 adminUser.setSysId(UlidCreator.getUlid().toString());
