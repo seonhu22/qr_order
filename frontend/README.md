@@ -270,6 +270,58 @@ http://localhost:3000
 - 목록 조회 실패
 - 네트워크 오류 메시지 발생
 
+### 9.3 개발 모킹(MSW) 모드와 실제 백엔드 모드
+
+초보 개발자가 가장 많이 헷갈리는 부분은 "지금 API가 실제 백엔드로 가는지, MSW가 응답하는지"이다.  
+아래 기준으로 구분하면 된다.
+
+#### 9.3.1 개발 모킹(MSW) 모드
+
+- 권장 명령: `npm run dev:mock`
+- 동작: 브라우저에서 MSW가 요청을 가로채고 `src/test/handlers.js`의 응답을 반환한다.
+- 장점: 백엔드가 없어도 로딩/성공/실패 UI를 안정적으로 확인할 수 있다.
+- 참고: `npm run dev`도 사용할 수 있으며, 기본값은 MSW 활성 상태다.
+
+관련 파일:
+
+- `src/main.jsx`: 개발 환경(`import.meta.env.DEV`)에서만 worker 시작
+- `src/mocks/browser.js`: 브라우저 worker 설정
+- `public/mockServiceWorker.js`: Service Worker 스크립트
+
+#### 9.3.2 실제 백엔드 모드
+
+방법 A. 개발 서버 유지 (`npm run dev:real`)
+
+- `VITE_ENABLE_MSW=false`로 실행되므로 MSW가 시작되지 않는다.
+- `/api` 요청은 Vite proxy를 통해 `http://localhost:8080`으로 전달된다.
+
+방법 A-2. 기존 명령 유지 (`npm run dev`)
+
+- 기존 `npm run dev`도 계속 사용 가능하다.
+- 다만 이 경우 기본값이 MSW 활성 상태이므로, 실제 백엔드 확인 목적이면 `npm run dev:real`을 권장한다.
+
+방법 B. 빌드 결과 확인
+
+```powershell
+npm run build
+npm run preview
+```
+
+- `preview`는 개발 모드가 아니므로 MSW가 시작되지 않는다.
+- 따라서 실제 백엔드 연동 상태를 확인하기 쉽다.
+
+주의:
+
+- 현재 `package.json`에는 `npm run start` 스크립트가 없다.
+- 빌드 결과를 로컬에서 확인할 때는 `npm run preview`를 사용한다.
+
+#### 9.3.3 빠른 체크리스트
+
+1. 브라우저 콘솔에 MSW 활성 로그가 보이는가
+2. 목록 조회 화면에서 데이터가 표시되는가
+3. 백엔드 실행 후 네트워크 탭에서 `localhost:8080` 호출이 보이는가
+4. 실패 핸들러를 적용했을 때 에러 UI가 표시되는가
+
 ---
 
 ## 10. 사용 가능한 스크립트
@@ -284,6 +336,20 @@ npm run dev
 
 - Vite 개발 서버를 실행한다.
 - 기본 포트는 `3000`이다.
+
+```powershell
+npm run dev:mock
+```
+
+- MSW를 활성화한 개발 서버를 실행한다.
+- 백엔드 없이도 화면 흐름을 점검할 수 있다.
+
+```powershell
+npm run dev:real
+```
+
+- MSW를 비활성화한 개발 서버를 실행한다.
+- 실제 백엔드 연동 상태를 확인할 때 사용한다.
 
 ### 10.2 린트 검사
 
@@ -325,6 +391,7 @@ npm run test:coverage
 - 결과는 `coverage` 디렉터리에 생성된다.
 - 이 보고서는 "테스트가 몇 개 있나"를 보는 용도가 아니라, 어떤 파일과 분기문이 테스트되지 않았는지를 확인하는 용도로 사용한다.
 - 일반적으로 기능 추가 후 테스트 누락 영역을 찾거나, 리팩터링 전에 위험 구간을 파악할 때 확인한다.
+- 사용 방법은 coverage 파일의 html을 실행시키면 된다(live server나 다른 브라우저로)
 
 ### 10.5 빌드
 

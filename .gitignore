@@ -41,6 +41,7 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/coverage/
 
 # Built frontend assets copied into the Spring Boot static directory.
 qrorder/src/main/resources/static/
