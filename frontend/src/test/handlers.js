@@ -4,6 +4,7 @@ export const handlers = [
   http.get('/api/auth/me', () => {
     return HttpResponse.json({ success: false }, { status: 401 });
   }),
+
   http.post('/api/auth/login', async ({ request }) => {
     const body = await request.json();
 
@@ -16,7 +17,16 @@ export const handlers = [
       { status: 200 },
     );
   }),
+
   http.post('/api/auth/logout', () => {
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('/api/system/settings/plant/search', () => {
+    return HttpResponse.json([
+      { plantCd: 'SEOUL', plantNm: '서울점', useYn: 'Y' },
+      { plantCd: 'BUSAN', plantNm: '부산점', useYn: 'Y' },
+      { plantCd: 'JEJU', plantNm: '제주점', useYn: 'N' },
+    ]);
   }),
 ];
