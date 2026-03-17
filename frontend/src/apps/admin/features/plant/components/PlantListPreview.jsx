@@ -54,6 +54,7 @@ function PlantListPreview() {
     return (
       <div>
         <p>{error instanceof Error ? error.message : '사업장 목록 조회 중 오류가 발생했습니다.'}</p>
+        {/* useQuery의 refetch를 이용해 다시 조회 */}
         <button type="button" onClick={() => refetch()}>
           다시 조회
         </button>
