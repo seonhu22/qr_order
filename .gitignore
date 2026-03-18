@@ -1,5 +1,10 @@
-# IDE file
-.idea
+# IDE metadata and editor-specific files.
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
 
 # Compiled class file
 *.class
@@ -25,12 +30,13 @@
 # Gradle wrapper jar exception
 !qrorder/gradle/wrapper/gradle-wrapper.jar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# JVM crash dumps and runtime logs.
 hs_err_pid*
 replay_pid*
 
 ### Node ###
 node_modules/
+frontend/node_modules/
 
 ### Vite / Frontend build ###
 frontend/dist/
@@ -42,6 +48,7 @@ qrorder/src/main/resources/static/
 
 ### Gradle ###
 qrorder/.gradle/
+qrorder/bin/
 qrorder/build/
 qrorder/out/
 
@@ -52,6 +59,9 @@ qrorder/src/main/resources/application-secret.properties
 ### Logs ###
 logs/
 qrorder/logs/
+
+### Test ###
+qrorder/src/test/
 
 ### Claude Code ###
 .claude/
