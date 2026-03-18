@@ -53,6 +53,9 @@ qrorder/src/main/resources/application-secret.properties
 logs/
 qrorder/logs/
 
+### Test ###
+qrorder/src/test/
+
 ### Claude Code ###
 .claude/
 CLAUDE.md
