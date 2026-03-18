@@ -1,23 +1,19 @@
-# IDE metadata and editor-specific files.
-.idea/
-.vscode/
-*.iml
-.classpath
-.project
-.settings/
+# IDE file
+.idea
 
-# Java and IDE build outputs. These are recreated locally and should not be committed.
+# Compiled class file
 *.class
-qrorder/bin/
-qrorder/build/
-qrorder/out/
-qrorder/.gradle/
 
-# Temporary files from older Java tooling.
+# Log file
+*.log
+
+# BlueJ files
 *.ctxt
+
+# Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Packaged artifacts generated during build/release.
+# Package Files #
 *.jar
 *.war
 *.nar
@@ -26,32 +22,40 @@ qrorder/.gradle/
 *.tar.gz
 *.rar
 
-# Keep the Gradle wrapper binary under version control.
+# Gradle wrapper jar exception
 !qrorder/gradle/wrapper/gradle-wrapper.jar
 
-# JVM crash dumps and runtime logs.
-*.log
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-logs/
-qrorder/logs/
 
-# Frontend dependencies and Vite build cache/output.
+### Node ###
 node_modules/
-frontend/node_modules/
+
+### Vite / Frontend build ###
 frontend/dist/
 frontend/.vite/
-
-# Built frontend assets copied into the Spring Boot static directory.
 qrorder/src/main/resources/static/
 
-# Local-only Spring Boot configuration files with machine/environment secrets.
+### macOS ###
+.DS_Store
+
+### Gradle ###
+qrorder/.gradle/
+qrorder/build/
+qrorder/out/
+
+### Spring Boot ###
 qrorder/src/main/resources/application-local.properties
 qrorder/src/main/resources/application-secret.properties
 
-# OS-specific noise.
-.DS_Store
+### Logs ###
+logs/
+qrorder/logs/
 
-# Local Codex/Claude workspace metadata.
+### Test ###
+qrorder/src/test/
+
+### Claude Code ###
 .claude/
 CLAUDE.md
