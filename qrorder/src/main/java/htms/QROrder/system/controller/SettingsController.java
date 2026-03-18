@@ -30,6 +30,7 @@ public class SettingsController {
     private final MessageService messageService;
     private final RuleMasterService ruleMasterService;
     private final RuleDetailService ruleDetailService;
+    private final PaymentService paymentService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -318,6 +319,60 @@ public class SettingsController {
                     .success(true)
                     .message("저장 완료.")
                     .build()
+        );
+    }
+
+    @GetMapping("/payment/search")
+    public List<PaymentResponse> getPayment(@RequestParam(required = false) String searchKeyword) {
+
+        return paymentService.getPayment(searchKeyword);
+    }
+
+    @PostMapping("/payment/new")
+    public ResponseEntity<CommonResponse> newPayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.newPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/payment/update")
+    public ResponseEntity<CommonResponse> updatePayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.updatePayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/payment/del")
+    public ResponseEntity<CommonResponse> delPayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.delPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("삭제 완료.")
+                        .build()
         );
     }
 }

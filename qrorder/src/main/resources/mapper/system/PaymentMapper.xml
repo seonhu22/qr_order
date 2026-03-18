@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.PaymentMapper">
+
+    <select id="getPayment" resultType="htms.QROrder.system.dto.PaymentResponse">
+        select
+            sp.sys_id ,
+            sp.plant_cd ,
+            sp2.plant_nm ,
+            sp.payment_cd ,
+            sp.payment_nm ,
+            sp.payment_fee ,
+            sp.payment_fee_unit ,
+            sp.license_valid_month
+        from sys_payment sp
+        left join sys_plant sp2
+            on sp2.plant_cd = sp.plant_nm
+        where 1=1
+        and (sp.user_id like concat('%', #{searchKeyword}, '%') or
+                sp.user_nm like concat('%', #{searchKeyword}, '%'))
+        and sp.delete_yn = 'N'
+        and sp2.delete_yn = 'N'
+    </select>
+
+    <insert id="newPayment">
+        insert into sys_payment (
+            sys_id,
+            plant_cd,
+            payment_cd ,
+            payment_nm ,
+            payment_fee ,
+            payment_fee_unit ,
+            license_valid_month ,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values (
+            #{payment.sysId},
+            #{payment.plantCd},
+            #{payment.paymentCd},
+            #{payment.paymentNm},
+            #{payment.paymentFee},
+            #{payment.paymentFeeUnit},
+            #{payment.licenseValidMonth},
+            #{userId},
+            now(),
+            #{payment.sysPlantCd}
+        )
+    </insert>
+
+    <update id="updatePayment">
+        update sys_payment set
+            payment_nm = #{payment.paymentNm},
+            payment_fee = #{payment.paymentFee},
+            payment_fee_unit = #{payment.paymentFeeUnit},
+            license_valid_month = #{payment.licenseValidMonth},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{payment.sysId}
+    </update>
+
+    <delete id="delPayment">
+        update sys_payment set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{payment.sysId}
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_payment
+        where 1=1
+        and payment_cd = #{payment.paymentCd}
+    </select>
+
+    <select id="isPaymentCdUse" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_plant_pay_info
+        where 1=1
+        and payment_cd = #{payment.paymentCd}
+    </select>
+</mapper>

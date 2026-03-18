@@ -60,4 +60,12 @@
         where 1=1
         and sys_id = #{ruleMaster.sysId}
     </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_rule_master
+        where 1=1
+        and rule_cd = #{ruleMaster.ruleCd}
+    </select>
 </mapper>
