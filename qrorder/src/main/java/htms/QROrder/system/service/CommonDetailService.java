@@ -87,7 +87,7 @@ public class CommonDetailService {
                     .map(u -> u.getCommonNm() + "(" + u.getCommonCd() + ")")
                     .collect(Collectors.joining(", "));
 
-                throw new DuplicateException("중복된 코드가 존재합니다.\n" + result);
+                throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
             }
 
             newCommonDetail(newItems, userId, sysPlantId, menuCd);

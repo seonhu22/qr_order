@@ -43,7 +43,7 @@ public class AdminUserService {
                     .map(u -> u.getUserNm() + "(" + u.getUserId() + ")")
                     .collect(Collectors.joining(", "));
 
-                throw new DuplicateException("중복된 사용자가 존재합니다.\n" + result);
+                throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
             }
 
             newItems.forEach(adminUser -> {

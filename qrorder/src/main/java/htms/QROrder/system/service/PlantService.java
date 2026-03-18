@@ -41,7 +41,7 @@ public class PlantService {
                             String sysPlantCd,
                             String menuCd) {
         if(checkDuplicate(plant)) {
-            throw new DuplicateException("이미 존재하는 사업장 코드입니다.");
+            throw new DuplicateException("이미 존재하는 데이터입니다.");
         }
 
         String ULID = UlidCreator.getMonotonicUlid().toString();
