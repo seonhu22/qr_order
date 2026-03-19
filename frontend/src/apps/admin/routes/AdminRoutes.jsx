@@ -1,24 +1,24 @@
-import DashboardPage from '@/apps/admin/pages/DashboardPage';
-import PlantPage from '@/apps/admin/pages/system/PlantPage';
-
-const dashboardIndexElement = (
-  <div className="welcome-content">
-    <p>좌측 메뉴에서 항목을 선택해주세요.</p>
-  </div>
-);
-
+// AdminRoutes.jsx
+/**
+ * 관리자 페이지 라우트 정의
+ * - 관리자 페이지는 인증이 필요한 라우트로 구성되어 있습니다.
+ * - AppRoutes.jsx에서 RequireAuth 컴포넌트를 통해 보호됩니다.
+ */
 export const adminRoutes = [
   {
+    // 대시보드 메인 페이지 (인덱스 라우트)
     path: '/dashboard',
-    element: <DashboardPage />,
+    element: <></>,
     children: [
       {
+        //
         index: true,
-        element: dashboardIndexElement,
+        element: <></>,
       },
       {
+        // 예시
         path: 'system/settings/plant',
-        element: <PlantPage />,
+        element: <></>,
       },
     ],
   },
