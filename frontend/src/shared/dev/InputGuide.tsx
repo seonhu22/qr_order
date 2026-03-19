@@ -14,13 +14,7 @@ import { TextInput } from '@/shared/components/input';
 /* =====================================================
  * 간단한 섹션 레이아웃 헬퍼
  * ===================================================== */
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: '2.5rem' }}>
       <h2
@@ -94,7 +88,6 @@ export default function InputGuide() {
       }}
     >
       <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-
         {/* 헤더 */}
         <div style={{ marginBottom: '3rem' }}>
           <h1
@@ -112,7 +105,6 @@ export default function InputGuide() {
           </p>
         </div>
 
-
         {/* ─── 크기 ─────────────────────────────────────── */}
         <Section title="Size">
           <Card label="sm">
@@ -125,7 +117,6 @@ export default function InputGuide() {
             <TextInput size="lg" label="Large" placeholder="44px" />
           </Card>
         </Section>
-
 
         {/* ─── 상태 ─────────────────────────────────────── */}
         <Section title="State">
@@ -157,15 +148,10 @@ export default function InputGuide() {
           </Card>
         </Section>
 
-
         {/* ─── 도움말 텍스트 ─────────────────────────────── */}
         <Section title="Helper Text">
           <Card label="hint">
-            <TextInput
-              label="닉네임"
-              hint="한글·영문 2~10자"
-              placeholder="닉네임 입력"
-            />
+            <TextInput label="닉네임" hint="한글·영문 2~10자" placeholder="닉네임 입력" />
           </Card>
           <Card label="infoText (항상 표시)">
             <TextInput
@@ -184,16 +170,24 @@ export default function InputGuide() {
           </Card>
         </Section>
 
-
         {/* ─── 아이콘 슬롯 ───────────────────────────────── */}
         <Section title="Icon Slot">
           <Card label="leftIcon">
             <TextInput
               label="검색"
               leftIcon={
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
                 </svg>
               }
               placeholder="검색어를 입력하세요"
@@ -203,9 +197,7 @@ export default function InputGuide() {
             <TextInput
               label="금액"
               rightIcon={
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
-                  원
-                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>원</span>
               }
               placeholder="0"
               type="number"
@@ -215,23 +207,38 @@ export default function InputGuide() {
             <TextInput
               label="URL"
               leftIcon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
               }
               rightIcon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               }
               placeholder="https://example.com"
             />
           </Card>
         </Section>
-
 
         {/* ─── 기능 ─────────────────────────────────────── */}
         <Section title="Feature">
@@ -247,12 +254,7 @@ export default function InputGuide() {
             />
           </Card>
           <Card label="로딩">
-            <TextInput
-              label="아이디 중복 확인"
-              loading
-              value="checking..."
-              readOnly
-            />
+            <TextInput label="아이디 중복 확인" loading value="checking..." readOnly />
           </Card>
           <Card label="제어 컴포넌트 (onChange)">
             <TextInput
@@ -264,7 +266,6 @@ export default function InputGuide() {
             />
           </Card>
         </Section>
-
 
         {/* ─── 레이블 위치 ───────────────────────────────── */}
         <Section title="Label Position">
@@ -292,7 +293,6 @@ export default function InputGuide() {
           </Card>
         </Section>
 
-
         {/* ─── 조합 예시 ─────────────────────────────────── */}
         <Section title="실제 사용 예시 — 로그인 폼">
           <div
@@ -314,10 +314,18 @@ export default function InputGuide() {
               placeholder="example@email.com"
               size="lg"
               leftIcon={
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="20" height="16" x="2" y="4" rx="2"/>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                 </svg>
               }
             />
@@ -329,16 +337,23 @@ export default function InputGuide() {
               size="lg"
               placeholder="비밀번호 입력"
               leftIcon={
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               }
             />
           </div>
         </Section>
-
       </div>
     </div>
   );
