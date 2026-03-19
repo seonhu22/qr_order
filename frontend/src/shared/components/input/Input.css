@@ -1,0 +1,292 @@
+/* =====================================================
+ * Input 컴포넌트 공통 스타일
+ * - InputBase / InputWrapper / TextInput 에서 공유
+ * - semantic-tokens.css / primitive-tokens.css 변수만 참조
+ * - Tailwind 미사용, 순수 CSS
+ * ===================================================== */
+
+
+/* =====================================================
+ * InputBase — .input-control
+ * 테두리·배경·아이콘 슬롯을 담당하는 컨트롤 박스
+ * ===================================================== */
+
+.input-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  transition:
+    border-color var(--transition-ui),
+    box-shadow   var(--transition-ui),
+    background   var(--transition-ui);
+  cursor: text;
+}
+
+/* 호버 — disabled · readonly 상태 제외 */
+.input-control:not([data-state="disabled"]):not([data-state="readonly"]):hover {
+  border-color: var(--color-border-hover);
+}
+
+/* 포커스 — disabled · readonly 상태 제외 */
+.input-control:not([data-state="disabled"]):not([data-state="readonly"]):focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  outline: none;
+}
+
+/* 에러 상태 */
+.input-control[data-state="error"] {
+  border-color: var(--color-border-error);
+}
+.input-control[data-state="error"]:focus-within {
+  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+}
+
+/* 성공 상태 */
+.input-control[data-state="success"] {
+  border-color: var(--color-border-success);
+}
+.input-control[data-state="success"]:focus-within {
+  box-shadow: 0 0 0 3px var(--color-success-focus-ring);
+}
+
+/* 비활성(disabled) 상태 */
+.input-control[data-state="disabled"] {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-default);
+  cursor: not-allowed;
+}
+
+/* 읽기 전용(readonly) 상태 */
+.input-control[data-state="readonly"] {
+  background-color: var(--color-bg-muted);
+  cursor: default;
+}
+
+
+/* ─── 크기 변형 ──────────────────────────────────── */
+
+/* Small (30px) */
+.input-control--sm {
+  height: var(--height-component-sm);
+  padding: 0 var(--spacing-input-x-sm);
+}
+
+/* Medium (36px) — 기본값 */
+.input-control--md {
+  height: var(--height-component-md);
+  padding: 0 var(--spacing-input-x-md);
+}
+
+/* Large (44px) */
+.input-control--lg {
+  height: var(--height-component-lg);
+  padding: 0 var(--spacing-input-x-lg);
+}
+
+
+/* ─── 내부 <input> 요소 ──────────────────────────── */
+
+.input-control__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--typography-font-base);
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-ui);
+}
+
+.input-control__input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* 브라우저 기본 파란 포커스 아웃라인 제거 (Chrome · Safari 공통)
+ * 포커스 시각화는 부모 .input-control의 :focus-within 으로 처리 */
+.input-control__input:focus,
+.input-control__input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.input-control__input:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.input-control__input:read-only {
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+/* 크기별 폰트 크기 */
+.input-control--sm .input-control__input {
+  font-size: var(--font-size-xs);
+}
+.input-control--md .input-control__input,
+.input-control--lg .input-control__input {
+  font-size: var(--typography-size-ui);
+}
+
+
+/* ─── 좌우 슬롯 (아이콘·버튼 영역) ─────────────── */
+
+.input-control__slot-left,
+.input-control__slot-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  pointer-events: none; /* 슬롯 자체는 이벤트 차단 — 내부 버튼은 override */
+}
+
+.input-control__slot-left  { margin-right: var(--spacing-2); }
+.input-control__slot-right { margin-left:  var(--spacing-2); }
+
+/* 크기별 슬롯 아이콘 크기 */
+.input-control--sm .input-control__slot-left,
+.input-control--sm .input-control__slot-right {
+  width:  var(--icon-xs);
+  height: var(--icon-xs);
+}
+.input-control--md .input-control__slot-left,
+.input-control--md .input-control__slot-right {
+  width:  var(--icon-sm);
+  height: var(--icon-sm);
+}
+.input-control--lg .input-control__slot-left,
+.input-control--lg .input-control__slot-right {
+  width:  var(--icon-md);
+  height: var(--icon-md);
+}
+
+
+/* =====================================================
+ * TextInput 전용 — 비밀번호 토글 버튼
+ * ===================================================== */
+
+.input-pw-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-ui);
+  pointer-events: auto; /* 부모 슬롯의 pointer-events: none 을 override */
+}
+
+.input-pw-toggle:hover {
+  color: var(--color-text-secondary);
+}
+
+
+/* =====================================================
+ * TextInput 전용 — 로딩 스피너
+ * ===================================================== */
+
+.input-spinner {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+  will-change: transform; /* 컴포지트 레이어 승격으로 GPU 가속 */
+  animation: input-spin 0.75s linear infinite;
+}
+
+@keyframes input-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* =====================================================
+ * InputWrapper — .input-wrapper
+ * 레이블 · 도움말 · 레이아웃을 담당하는 래퍼
+ * Select · Checkbox 등도 이 래퍼를 재사용한다
+ * ===================================================== */
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
+/* ─── 레이블 ─────────────────────────────────────── */
+
+.input-wrapper__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-family: var(--typography-font-base);
+  font-size: var(--font-size-xs);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-2);
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* 필수 표시 (*) */
+.input-wrapper__required {
+  color: var(--color-status-error-default);
+  margin-left: var(--spacing-1);
+}
+
+
+/* ─── 도움말 영역 ────────────────────────────────── */
+
+.input-wrapper__helper {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-wrapper__hint,
+.input-wrapper__info,
+.input-wrapper__error,
+.input-wrapper__success {
+  display: block;
+  margin-top: var(--spacing-2);
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-ui);
+}
+
+.input-wrapper__hint    { color: var(--color-text-tertiary); }
+
+/* 고정 안내 메시지 — 상태에 무관하게 항상 표시 */
+.input-wrapper__info    { color: var(--color-status-info-text); }
+
+.input-wrapper__error   { color: var(--color-status-error-text); }
+.input-wrapper__success { color: var(--color-status-success-text); }
+
+
+/* ─── 레이블 위치 — left / right 수평 레이아웃 ──── */
+
+.input-wrapper__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+/* row 안의 레이블은 하단 마진 제거 */
+.input-wrapper__row .input-wrapper__label {
+  margin-bottom: 0;
+}
+
+/* 인풋 본문 영역 (row 내부) */
+.input-wrapper__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}

@@ -30,8 +30,14 @@
   /* 액티브/pressed 상태 — 클릭 중 */
   --color-brand-active:     var(--orange-80);
 
-  /* 포커스 링 — 키보드 포커스 시 외곽선 */
+  /* 포커스 링 — 키보드 포커스 시 외곽선 (브랜드) */
   --color-brand-focus-ring: rgba(255, 107, 43, 0.2);
+
+  /* 포커스 링 — 에러 상태 */
+  --color-error-focus-ring:   rgba(239, 68, 68, 0.2);
+
+  /* 포커스 링 — 성공 상태 */
+  --color-success-focus-ring: rgba(16, 185, 129, 0.2);
 
   /* 비활성 상태 — disabled 버튼·요소 */
   --color-brand-disabled:   rgba(255, 107, 43, 0.4);
@@ -298,6 +304,9 @@
 
   /* 버튼 LG 좌우 패딩 */
   --spacing-button-x-lg: var(--spacing-9);  /* 20px */
+
+  /* 인풋 SM 좌우 패딩 */
+  --spacing-input-x-sm:  var(--spacing-4);  /* 8px  */
 
   /* 인풋 MD 좌우 패딩 */
   --spacing-input-x-md:  var(--spacing-6);  /* 12px */
