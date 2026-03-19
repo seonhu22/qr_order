@@ -821,6 +821,12 @@ npm run build
 현재 프론트 목표 문서 기준으로 `window.alert`, `window.confirm`, `window.prompt`는 사용하지 않는다.  
 반드시 커스텀 모달 구조로 통일해야 한다.
 
+### 14.4 네이밍 규칙을 통일한다
+
+- `className`은 BEM(Block\_\_Element--Modifier) 규칙을 사용한다.
+- JS/TS에서 사용하는 변수·함수·상수 기반 클래스 문자열은 camelCase를 사용한다.
+- 즉, CSS 셀렉터 체계는 BEM으로 유지하고, JS에서 동적으로 조합하는 클래스 키는 camelCase로 관리한다.
+
 ---
 
 ## 15. 자주 발생하는 문제와 점검 방법
