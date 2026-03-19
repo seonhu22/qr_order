@@ -125,10 +125,17 @@ frontend/
         routes/
     shared/
       components/
+        input/        ← TextInput 계열 (InputBase / InputWrapper / TextInput)
+        button/
+        modal/
+        table/
+        feedback/
+      dev/            ← 개발 전용 컴포넌트 가이드 페이지 (/dev/*)
       hooks/
-      lib/
+      lib/            ← queryClient.js 등 공용 인프라
       api/
       stores/
+      styles/         ← 디자인 토큰 및 전역 CSS
       utils/
       types/
     mocks/
@@ -140,11 +147,13 @@ frontend/
 - `apps/*/pages`: 실제 라우트 단위 화면
 - `apps/*/features`: 화면 내부에서 재사용되는 기능 단위 코드
 - `apps/*/routes`: 앱별 라우터 정의
-- `shared/components`: 공통 UI 컴포넌트
+- `shared/components`: 공통 UI 컴포넌트 (컴포넌트 종류별 하위 폴더로 분리)
+- `shared/dev`: 개발 전용 가이드 페이지 (프로덕션 빌드와 무관)
 - `shared/hooks`: 공통 훅
 - `shared/lib`: Query Client, fetch 래퍼, 포맷 유틸 같은 공용 인프라 코드
 - `shared/api`: API 함수 또는 API 클라이언트 계층
 - `shared/stores`: Zustand 전역 스토어
+- `shared/styles`: 디자인 토큰 CSS 및 전역 스타일
 - `shared/utils`: 날짜, 문자열, 정렬 등 공용 유틸리티
 - `shared/types`: DTO, 공통 타입, 응답 타입
 - `mocks`: MSW 브라우저 mock 구성
@@ -161,18 +170,148 @@ frontend/
 
 ---
 
-## 7. 사전 준비 사항
+## 7. 디자인 토큰 시스템
+
+본 프로젝트는 Tailwind CSS를 사용하지 않는다.
+대신 CSS 커스텀 프로퍼티(변수) 기반의 2단계 토큰 구조를 채택하였다.
+
+### 7.1 파일 구조
+
+```text
+shared/styles/
+  primitive-tokens.css   ← 원시값 정의 (색상 팔레트, 간격, 폰트 등)
+  semantic-tokens.css    ← 용도 기반 이름 (컴포넌트에서 이 파일만 참조)
+  global.css             ← 앱 진입점 (reset + fonts + tokens 통합 import)
+  reset.css              ← 브라우저 기본 스타일 초기화
+  fonts.css              ← 폰트 선언
+```
+
+### 7.2 사용 원칙
+
+컴포넌트에서 CSS 변수를 사용할 때는 반드시 `semantic-tokens.css`의 변수만 참조한다.
+`primitive-tokens.css`의 변수는 컴포넌트에서 직접 사용하지 않는다.
+
+```css
+/* 올바른 사용 */
+color: var(--color-text-primary);
+
+/* 금지 — primitive 직접 참조 */
+color: var(--slate-90);
+```
+
+### 7.3 토큰 계층 요약
+
+| 파일 | 역할 | 예시 |
+|------|------|------|
+| `primitive-tokens.css` | 원시값 정의 | `--slate-90`, `--orange-60`, `--spacing-8` |
+| `semantic-tokens.css` | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
+
+---
+
+## 8. 공용 컴포넌트 작성 규칙
+
+`shared/components` 하위 컴포넌트는 아래 규칙을 따른다.
+
+### 8.1 3-레이어 패턴
+
+공용 컴포넌트는 역할에 따라 3개 레이어로 분리한다.
+
+| 레이어 | 역할 | 예시 |
+|--------|------|------|
+| **Base** | 순수 컨트롤 박스 (테두리·배경·슬롯) | `InputBase` |
+| **Wrapper** | 레이블·도움말·레이아웃 | `InputWrapper` |
+| **완성형** | Base + Wrapper + 기능 조합 | `TextInput` |
+
+Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립적으로 설계한다.
+예를 들어 `Select`, `Checkbox` 등 신규 컴포넌트 작성 시 `InputWrapper`를 그대로 재사용한다.
+
+### 8.2 스타일 규칙
+
+- Tailwind CSS를 사용하지 않는다.
+- `semantic-tokens.css`의 CSS 변수만 참조한다.
+- 각 컴포넌트 폴더 내부에 전용 CSS 파일을 작성한다 (예: `Input.css`).
+- 클래스 네이밍은 BEM 방식을 따른다 (예: `.input-control__slot-left`).
+
+### 8.3 타입 규칙
+
+- 신규 컴포넌트는 TypeScript(`.tsx`)로 작성한다.
+- 공통 타입은 컴포넌트 폴더 내 `types.ts`에 정의한다.
+- 폴더 외부에서는 `index.ts` 배럴 파일을 통해서만 import한다.
+
+```ts
+// 올바른 import
+import { TextInput } from '@/shared/components/input';
+
+// 금지 — 내부 파일 직접 참조
+import { TextInput } from '@/shared/components/input/TextInput';
+```
+
+### 8.4 신규 컴포넌트 추가 절차
+
+1. `shared/components/{컴포넌트명}/` 폴더 생성
+2. `types.ts` → CSS 파일 → Base/Wrapper → 완성형 순서로 작성
+3. `index.ts` 배럴 파일에 공개 API 등록
+4. `shared/dev/{컴포넌트명}Guide.tsx` 가이드 페이지 작성
+5. `DevRoutes.tsx` 및 `DevLayout.tsx` 에 라우트·메뉴 등록
+
+---
+
+## 9. 개발 전용 가이드 페이지
+
+공용 컴포넌트의 시각적 동작을 확인하기 위한 개발 전용 페이지가 있다.
+
+### 9.1 접근 방법
+
+개발 서버 실행 후 아래 주소로 접속한다.
+
+```text
+http://localhost:3000/dev/input
+```
+
+- 로그인 인증이 필요 없다.
+- 로컬 개발 환경 전용이며 프로덕션 배포와 무관하다.
+
+### 9.2 현재 등록된 가이드
+
+| 경로 | 내용 |
+|------|------|
+| `/dev/input` | TextInput 크기·상태·레이블 위치·기능 전체 예시 |
+
+### 9.3 신규 가이드 추가 방법
+
+1. `shared/dev/{컴포넌트명}Guide.tsx` 파일 생성
+2. `shared/dev/DevRoutes.tsx`에 라우트 추가
+
+```ts
+// DevRoutes.tsx
+import ButtonGuide from './ButtonGuide';
+
+{ path: 'button', element: <ButtonGuide /> },
+```
+
+3. `shared/dev/DevLayout.tsx`의 `NAV_ITEMS` 배열에 메뉴 등록
+
+```ts
+const NAV_ITEMS = [
+  { path: '/dev/input',  label: 'TextInput' },
+  { path: '/dev/button', label: 'Button' },   // 추가
+];
+```
+
+---
+
+## 10. 사전 준비 사항
 
 프로젝트 실행 전 아래 항목이 준비되어 있어야 한다.
 
-### 7.1 필수 설치 도구
+### 10.1 필수 설치 도구
 
 - `Node.js` 20 이상 권장
 - `npm` 사용
 - `Java 17` 이상
 - 백엔드 서버 실행 환경
 
-### 7.2 확인해야 할 사항
+### 10.2 확인해야 할 사항
 
 - 백엔드 서버가 `8080` 포트에서 정상 기동 중인지 확인한다.
 - 프론트엔드 디렉터리는 `frontend`인지 확인한다.
@@ -184,7 +323,7 @@ frontend/
 cd C:\Users\user\Desktop\k-digital\DEV\qr_order\frontend
 ```
 
-### 7.3 백엔드가 `8080`에서 정상 기동 중인지 확인하는 방법
+### 10.3 백엔드가 `8080`에서 정상 기동 중인지 확인하는 방법
 
 가장 확실한 방법은 로그 확인이다.  
 Spring Boot 실행 로그에 아래와 유사한 문구가 보이면 정상 기동으로 판단할 수 있다.
@@ -218,9 +357,9 @@ tasklist /FI "PID eq <Listening 옆 번호 - PiD>"
 
 ---
 
-## 8. 설치 절차
+## 11. 설치 절차
 
-### 8.1 의존성 설치
+### 11.1 의존성 설치
 
 아래 명령어를 실행한다.
 
@@ -230,7 +369,7 @@ npm install
 
 설치가 완료되면 `node_modules`와 `frontend/package-lock.json`이 생성 또는 갱신된다.
 
-### 8.2 설치 후 확인 포인트
+### 11.2 설치 후 확인 포인트
 
 설치가 끝났다고 바로 개발을 시작하지 말고, 아래 3가지를 먼저 확인한다.
 
@@ -244,9 +383,9 @@ npm test
 
 ---
 
-## 9. 실행 절차
+## 12. 실행 절차
 
-### 9.1 프론트 개발 서버 실행
+### 12.1 프론트 개발 서버 실행
 
 ```powershell
 npm run dev
@@ -258,7 +397,7 @@ npm run dev
 http://localhost:3000
 ```
 
-### 9.2 백엔드와 함께 사용할 때
+### 12.2 백엔드와 함께 사용할 때
 
 프론트는 `/api` 요청을 자동으로 `http://localhost:8080`으로 전달한다.  
 따라서 백엔드가 켜져 있어야 로그인, 세션 확인, 데이터 조회 같은 기능이 정상 작동한다.
@@ -270,12 +409,12 @@ http://localhost:3000
 - 목록 조회 실패
 - 네트워크 오류 메시지 발생
 
-### 9.3 개발 모킹(MSW) 모드와 실제 백엔드 모드
+### 12.3 개발 모킹(MSW) 모드와 실제 백엔드 모드
 
 초보 개발자가 가장 많이 헷갈리는 부분은 "지금 API가 실제 백엔드로 가는지, MSW가 응답하는지"이다.  
 아래 기준으로 구분하면 된다.
 
-#### 9.3.1 개발 모킹(MSW) 모드
+#### 12.3.1 개발 모킹(MSW) 모드
 
 - 권장 명령: `npm run dev:mock`
 - 동작: 브라우저에서 MSW가 요청을 가로채고 `src/test/handlers.js`의 응답을 반환한다.
@@ -288,7 +427,7 @@ http://localhost:3000
 - `src/mocks/browser.js`: 브라우저 worker 설정
 - `public/mockServiceWorker.js`: Service Worker 스크립트
 
-#### 9.3.2 실제 백엔드 모드
+#### 12.3.2 실제 백엔드 모드
 
 방법 A. 개발 서버 유지 (`npm run dev:real`)
 
@@ -315,7 +454,7 @@ npm run preview
 - 현재 `package.json`에는 `npm run start` 스크립트가 없다.
 - 빌드 결과를 로컬에서 확인할 때는 `npm run preview`를 사용한다.
 
-#### 9.3.3 빠른 체크리스트
+#### 12.3.3 빠른 체크리스트
 
 1. 브라우저 콘솔에 MSW 활성 로그가 보이는가
 2. 목록 조회 화면에서 데이터가 표시되는가
@@ -324,11 +463,11 @@ npm run preview
 
 ---
 
-## 10. 사용 가능한 스크립트
+## 13. 사용 가능한 스크립트
 
 `package.json`에는 아래 스크립트가 정의되어 있다.
 
-### 10.1 개발 서버
+### 13.1 개발 서버
 
 ```powershell
 npm run dev
@@ -351,7 +490,7 @@ npm run dev:real
 - MSW를 비활성화한 개발 서버를 실행한다.
 - 실제 백엔드 연동 상태를 확인할 때 사용한다.
 
-### 10.2 린트 검사
+### 13.2 린트 검사
 
 ```powershell
 npm run lint
@@ -360,7 +499,7 @@ npm run lint
 - ESLint 규칙 위반 여부를 검사한다.
 - 코드 스타일과 잠재적 실수를 빠르게 확인할 수 있다.
 
-### 10.3 타입 검사
+### 13.3 타입 검사
 
 ```powershell
 npm run typecheck
@@ -369,7 +508,7 @@ npm run typecheck
 - TypeScript 타입 검사를 수행한다.
 - 현재는 `allowJs` 기반으로 동작하므로 JS/JSX 프로젝트에서도 점진적으로 타입 기준을 강화할 수 있다.
 
-### 10.4 테스트 실행
+### 13.4 테스트 실행
 
 ```powershell
 npm test
@@ -393,7 +532,7 @@ npm run test:coverage
 - 일반적으로 기능 추가 후 테스트 누락 영역을 찾거나, 리팩터링 전에 위험 구간을 파악할 때 확인한다.
 - 사용 방법은 coverage 파일의 html을 실행시키면 된다(live server나 다른 브라우저로)
 
-### 10.5 빌드
+### 13.5 빌드
 
 ```powershell
 npm run build
@@ -410,9 +549,9 @@ npm run build
 
 ---
 
-## 11. 주요 설정 파일 설명
+## 14. 주요 설정 파일 설명
 
-### 11.1 `vite.config.js`
+### 14.1 `vite.config.js`
 
 역할은 다음과 같다.
 
@@ -422,14 +561,14 @@ npm run build
 - Vitest 테스트 환경 설정
 - 빌드 결과물 출력 위치 지정
 
-### 11.2 `tsconfig.json`
+### 14.2 `tsconfig.json`
 
 - TypeScript 컴파일 기준 정의
 - JSX를 React 기준으로 해석
 - 현재 JS/JSX 코드도 점진적으로 수용
 - 타입 검사만 수행하고 실제 파일 출력은 하지 않음
 
-### 11.3 `eslint.config.js`
+### 14.3 `eslint.config.js`
 
 - 코드 품질 검사 규칙 정의
 - React Hooks 규칙 검사
@@ -437,7 +576,7 @@ npm run build
 - TypeScript ESLint 규칙 적용
 - Prettier와 충돌하는 포맷 규칙 제거
 
-### 11.4 `.prettierrc.json`
+### 14.4 `.prettierrc.json`
 
 - 세미콜론 사용
 - 작은따옴표 사용
@@ -446,7 +585,7 @@ npm run build
 
 즉, 코드 포맷을 팀 기준으로 통일하기 위한 파일이다.
 
-### 11.5 `src/test/*`
+### 14.5 `src/test/*`
 
 역할은 다음과 같다.
 
@@ -456,11 +595,11 @@ npm run build
 
 ---
 
-## 12. 테스트 도구 구성 설명
+## 15. 테스트 도구 구성 설명
 
 현재 테스트는 `Vitest + Testing Library + MSW` 조합으로 구성하였다.
 
-### 12.1 왜 Jest 대신 Vitest를 사용하는가
+### 15.1 왜 Jest 대신 Vitest를 사용하는가
 
 본 프로젝트는 Vite 기반 프로젝트이므로 테스트 도구도 Vite 생태계와 잘 맞는 구성이 유리하다.  
 이 때문에 `Jest` 대신 `Vitest`를 채택하였다.
@@ -475,7 +614,7 @@ npm run build
 
 정리하면, 본 프로젝트에서는 `Jest`보다 `Vitest`가 초기 설정 비용과 운영 부담이 더 낮다고 판단하였다.
 
-### 12.2 왜 Testing Library를 사용하는가
+### 15.2 왜 Testing Library를 사용하는가
 
 `Testing Library`는 테스트 실행기가 아니다.  
 이 도구는 "무엇을 어떻게 찾고 검증할 것인가"를 담당하는 테스트 보조 라이브러리이다.
@@ -493,7 +632,7 @@ npm run build
 - 구현 상세보다 화면 동작을 기준으로 테스트하게 만들어 불필요한 결합을 줄인다.
 - 화면 내부 구현이 바뀌어도 사용자 동작이 유지되면 테스트를 계속 활용할 수 있다.
 
-### 12.3 왜 MSW를 사용하는가
+### 15.3 왜 MSW를 사용하는가
 
 `MSW(Mock Service Worker)`는 실제 네트워크 요청을 가로채서 가짜 응답을 반환할 수 있게 해준다.
 
@@ -508,11 +647,11 @@ npm run build
 
 ---
 
-## 13. 라이브러리 선정 이유
+## 16. 라이브러리 선정 이유
 
 본 절에서는 현재 채택한 주요 라이브러리와 그 이유를 정리한다.
 
-### 13.1 React
+### 16.1 React
 
 사용 목적:
 
@@ -526,7 +665,7 @@ npm run build
 - 컴포넌트 단위 재사용 구조를 만들기 쉽다.
 - 관리자/사업자/소비자 앱으로 확장할 때 구조적 이점이 크다.
 
-### 13.2 React Router DOM
+### 16.2 React Router DOM
 
 사용 목적:
 
@@ -539,7 +678,7 @@ npm run build
 - React 기반 웹 애플리케이션에서 사실상 표준적인 선택지이다.
 - 로그인 페이지, 대시보드, 시스템 관리 화면처럼 URL 단위 분리가 필요한 현재 구조와 잘 맞는다.
 
-### 13.3 TypeScript
+### 16.3 TypeScript
 
 사용 목적:
 
@@ -553,7 +692,7 @@ npm run build
 - 백엔드 API 명세와 프론트 모델을 연결할 때 실수를 줄일 수 있다.
 - 팀 협업 시 코드 의도를 더 명확하게 전달할 수 있다.
 
-### 13.4 TanStack Query
+### 16.4 TanStack Query
 
 사용 목적:
 
@@ -567,7 +706,7 @@ npm run build
 - 단순 조회 화면이 많은 관리자 프로젝트에서 반복 코드를 줄이는 효과가 크다.
 - 캐싱과 재요청 제어를 수동 구현하지 않아도 된다.
 
-### 13.5 Zustand
+### 16.5 Zustand
 
 사용 목적:
 
@@ -580,7 +719,7 @@ npm run build
 - 보일러플레이트가 적다.
 - 서버 상태는 TanStack Query, UI 전역 상태는 Zustand로 역할을 분리하기 좋다.
 
-### 13.6 Zod
+### 16.6 Zod
 
 사용 목적:
 
@@ -593,7 +732,7 @@ npm run build
 - 백엔드 응답 계약이 변경되거나 흔들릴 때 프론트에서 빠르게 감지할 수 있다.
 - TypeScript 타입 선언만으로는 막을 수 없는 런타임 데이터 오류를 보완할 수 있다.
 
-### 13.7 Day.js
+### 16.7 Day.js
 
 사용 목적:
 
@@ -606,7 +745,7 @@ npm run build
 - 접속이력, 변경이력, 쿠폰 기간 등 날짜 처리 요구가 명세에 많다.
 - 사용법이 비교적 단순하고 번들 부담이 크지 않다.
 
-### 13.8 ESLint
+### 16.8 ESLint
 
 사용 목적:
 
@@ -618,7 +757,7 @@ npm run build
 - 팀원이 늘어날수록 스타일 차이보다 "실수 방지"가 더 중요해진다.
 - React Hooks 규칙 위반, 사용하지 않는 변수, 구조적 문제를 빠르게 찾을 수 있다.
 
-### 13.9 Prettier
+### 16.9 Prettier
 
 사용 목적:
 
@@ -629,7 +768,7 @@ npm run build
 - 코드 리뷰에서 포맷 논쟁을 줄일 수 있다.
 - 사람이 직접 맞추는 스타일 규칙을 도구가 대신 처리해준다.
 
-### 13.10 Vitest
+### 16.10 Vitest
 
 사용 목적:
 
@@ -641,7 +780,7 @@ npm run build
 - Jest 대비 초기 설정 비용이 낮다.
 - `jsdom` 환경과 커버리지 구성도 비교적 간단하다.
 
-### 13.11 Testing Library
+### 16.11 Testing Library
 
 사용 목적:
 
@@ -652,7 +791,7 @@ npm run build
 - 화면 텍스트, 버튼, 입력 요소 중심으로 테스트하게 만들어 유지보수성이 좋다.
 - 구현 세부사항이 바뀌어도 사용자 동작이 유지되면 테스트를 계속 활용할 수 있다.
 
-### 13.12 MSW
+### 16.12 MSW
 
 사용 목적:
 
@@ -667,16 +806,16 @@ npm run build
 
 ---
 
-## 14. 현재 단계에서 반드시 이해해야 할 운영 원칙
+## 17. 현재 단계에서 반드시 이해해야 할 운영 원칙
 
-### 14.1 서버 상태와 UI 상태를 분리한다
+### 17.1 서버 상태와 UI 상태를 분리한다
 
 - 서버 데이터 조회: `TanStack Query`
 - 전역 UI 상태: `Zustand`
 
 이 원칙을 지키지 않으면 상태가 서로 섞여 화면이 복잡해지고 유지보수성이 크게 떨어진다.
 
-### 14.2 저장/수정/삭제 응답은 공통 응답 구조를 따른다
+### 17.2 저장/수정/삭제 응답은 공통 응답 구조를 따른다
 
 명세 기준으로 저장성 API는 `CommonResponse` 구조를 반환한다.
 
@@ -694,21 +833,21 @@ npm run build
 
 프론트에서는 이 구조를 공통 처리해야 한다.
 
-### 14.3 브라우저 기본 alert 사용을 지양한다
+### 17.3 브라우저 기본 alert 사용을 지양한다
 
 현재 프론트 목표 문서 기준으로 `window.alert`, `window.confirm`, `window.prompt`는 사용하지 않는다.  
 반드시 커스텀 모달 구조로 통일해야 한다.
 
 ---
 
-## 15. 자주 발생하는 문제와 점검 방법
+## 18. 자주 발생하는 문제와 점검 방법
 
-### 15.1 `npm install` 중 의존성 충돌이 발생하는 경우
+### 18.1 `npm install` 중 의존성 충돌이 발생하는 경우
 
 - 패키지 버전 충돌 가능성이 높다.
 - `package.json`을 임의로 수정했다면 peer dependency 범위를 먼저 확인한다.
 
-### 15.2 화면은 열리는데 API가 실패하는 경우
+### 18.2 화면은 열리는데 API가 실패하는 경우
 
 아래를 순서대로 확인한다.
 
@@ -717,7 +856,7 @@ npm run build
 3. 백엔드 인증 설정 확인
 4. 브라우저 개발자 도구의 Network 탭 확인
 
-### 15.3 테스트가 실패하는 경우
+### 18.3 테스트가 실패하는 경우
 
 아래를 확인한다.
 
@@ -727,7 +866,7 @@ npm run build
 
 ---
 
-## 16. 결론
+## 19. 결론
 
 현재 프론트엔드 환경은 다음 목표를 기준으로 구성되어 있다.
 
