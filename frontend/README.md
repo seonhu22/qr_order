@@ -1,5 +1,24 @@
 # QR Order Frontend 설정 가이드
 
+## 목차
+
+- [1. 문서 목적](#1-문서-목적)
+- [2. 팀원 작업 시작 순서 권장안](#2-팀원-작업-시작-순서-권장안)
+- [3. 프로젝트 개요](#3-프로젝트-개요)
+- [4. 권장 개발 사이클](#4-권장-개발-사이클)
+- [5. 동작 구조](#5-동작-구조)
+- [6. 현재 폴더 구조와 주요 파일 설명](#6-현재-폴더-구조와-주요-파일-설명)
+- [7. 사전 준비 사항](#7-사전-준비-사항)
+- [8. 설치 절차](#8-설치-절차)
+- [9. 실행 절차](#9-실행-절차)
+- [10. 사용 가능한 스크립트](#10-사용-가능한-스크립트)
+- [11. 주요 설정 파일 및 경로 설명](#11-주요-설정-파일-및-경로-설명)
+- [12. 테스트 도구 구성 설명](#12-테스트-도구-구성-설명)
+- [13. 라이브러리 선정 이유](#13-라이브러리-선정-이유)
+- [14. 현재 단계에서 반드시 이해해야 할 운영 원칙](#14-현재-단계에서-반드시-이해해야-할-운영-원칙)
+- [15. 자주 발생하는 문제와 점검 방법](#15-자주-발생하는-문제와-점검-방법)
+- [16. 결론](#16-결론)
+
 ## 1. 문서 목적
 
 본 문서는 `frontend` 프로젝트를 처음 전달받은 팀원이 개발 환경을 스스로 구성하고, 실행, 점검, 테스트까지 수행할 수 있도록 작성한 설정 가이드이다.  
@@ -94,36 +113,39 @@ npm run test:watch
 
 ---
 
-## 6. 폴더 설계안
+## 6. 현재 폴더 구조와 주요 파일 설명
 
-폴더 구조는 아직 확정이 아니라 유동적이다.  
-다만 공통 기준 없이 화면을 먼저 늘리면 나중에 정리 비용이 급격히 커지므로, 아래와 같은 설계안을 참고 구조로 둔다.
-
-현재 목표는 멀티앱 구조이다.
-
-- `admin`: 관리자 웹
-- `client`: 사업자 웹/모바일
-- `consumer`: 소비자 모바일 중심
-
-권장 예시는 아래와 같다.
+현재 프론트엔드는 README 초안 단계의 단순 구조에서 한 번 더 정리되었으며, 아래 구조를 기준으로 이해하는 편이 좋다.
 
 ```text
 frontend/
+  public/
+    mockServiceWorker.js
+    static/
+      fonts/
   src/
     apps/
       admin/
-        pages/
         features/
+          plant/
+            components/
+        pages/
+          system/
         routes/
       client/
-        pages/
         features/
+        pages/
         routes/
       consumer/
-        pages/
         features/
+        pages/
         routes/
+    mocks/
     shared/
+      api/
+      assets/
+        icons/
+      auth/
       components/
         input/        ← TextInput 계열 (InputBase / InputWrapper / TextInput)
         button/
@@ -137,12 +159,10 @@ frontend/
       stores/
       styles/         ← 디자인 토큰 및 전역 CSS
       utils/
-      types/
-    mocks/
     test/
 ```
 
-각 영역의 역할은 다음과 같다.
+### 6.1 앱 계층
 
 - `apps/*/pages`: 실제 라우트 단위 화면
 - `apps/*/features`: 화면 내부에서 재사용되는 기능 단위 코드
@@ -167,6 +187,87 @@ frontend/
 - 초기에는 단순 구조로 시작하더라도, 나중에 멀티앱 구조로 확장하기 쉽다.
 
 즉, 이 설계안은 "지금 당장 강제 규칙"이 아니라 "증설 시 기준점"으로 이해하면 된다.
+- `src/apps/admin/pages`: 관리자 라우트에서 직접 보여주는 페이지 컴포넌트
+- `src/apps/admin/features`: 관리자 화면 내부에서 재사용되는 기능 단위 컴포넌트
+- `src/apps/admin/routes`: 관리자 앱 라우팅 정의
+- `src/apps/client`, `src/apps/consumer`: 추후 확장을 위한 골격 디렉터리
+
+현재 구현된 예시는 아래와 같다.
+
+- `src/apps/admin/pages/LoginPage.jsx`: 관리자 로그인 화면
+- `src/apps/admin/pages/DashboardPage.jsx`: 관리자 레이아웃 페이지
+- `src/apps/admin/pages/system/PlantPage.jsx`: 사업장 관리 페이지
+- `src/apps/admin/features/plant/components/PlantListPreview.jsx`: TanStack Query 조회 예시 컴포넌트
+- `src/apps/admin/routes/AdminRoutes.jsx`: 관리자 앱 라우트 목록
+
+### 6.2 shared 계층
+
+- `src/shared/api`: 공용 API 함수
+  - 예: `auth.js`
+- `src/shared/auth`: 인증 컨텍스트와 Provider
+  - 예: `AuthContext.jsx`, `AuthProvider.jsx`
+- `src/shared/lib`: Query Client 등 공용 인프라
+- `src/shared/routes`: 앱 공통 라우트 엔트리
+- `src/shared/styles`: reset, fonts, design token, global style 진입점
+- `src/shared/assets`: 공용 정적 리소스
+  - 현재 `src/shared/assets/icons/sprite.svg` 존재
+- `src/shared/components`: 공용 UI 컴포넌트 계층
+
+### 6.3 `index.ts` 파일의 의미
+
+`src/shared/components/input/index.ts` 같은 파일은 현재 구현체를 담고 있는 파일이라기보다, **배럴 파일(barrel file)** 또는 **공용 export 진입점**으로 사용하기 위한 자리이다.
+
+예를 들어 나중에 아래처럼 구성할 수 있다.
+
+```text
+src/shared/components/input/
+  BaseInput.tsx
+  SearchInput.tsx
+  index.ts
+```
+
+그리고 `index.ts`에서는 다음처럼 export를 모을 수 있다.
+
+```ts
+export { BaseInput } from './BaseInput';
+export { SearchInput } from './SearchInput';
+```
+
+이 방식을 쓰면 import가 단순해진다.
+
+```ts
+import { BaseInput } from '@/shared/components/input';
+```
+
+즉, `index.ts`는 “해당 폴더의 public API 입구” 역할을 한다.
+
+### 6.4 public 디렉터리의 의미
+
+`public` 디렉터리는 Vite가 정적 파일로 그대로 제공하는 경로이다.
+
+현재 포함된 주요 파일은 다음과 같다.
+
+- `public/mockServiceWorker.js`
+  - MSW 브라우저 모킹을 위해 필요한 Service Worker 파일
+- `public/static/fonts/*`
+  - Pretendard 폰트 파일
+
+이 파일들은 import 없이도 고정 경로로 접근할 수 있다.
+
+예시:
+
+- `/mockServiceWorker.js`
+- `/static/fonts/Pretendard-Regular.woff2`
+
+### 6.5 assets 디렉터리의 의미
+
+`src/shared/assets`는 React 코드 안에서 import 하거나 조합해서 사용할 공용 리소스를 두는 위치이다.
+
+현재는 아래 파일이 존재한다.
+
+- `src/shared/assets/icons/sprite.svg`
+
+즉, `public`은 “그대로 제공되는 정적 파일”, `src/shared/assets`는 “코드와 함께 관리되는 에셋”으로 구분하면 된다.
 
 ---
 
@@ -556,6 +657,7 @@ npm run build
 역할은 다음과 같다.
 
 - React 플러그인 활성화
+- `@` 별칭을 `src` 루트에 연결
 - 개발 서버 포트 `3000` 지정
 - `/api` 요청을 `8080` 백엔드로 프록시
 - Vitest 테스트 환경 설정
@@ -564,6 +666,7 @@ npm run build
 ### 14.2 `tsconfig.json`
 
 - TypeScript 컴파일 기준 정의
+- `@/* -> src/*` 경로 별칭 정의
 - JSX를 React 기준으로 해석
 - 현재 JS/JSX 코드도 점진적으로 수용
 - 타입 검사만 수행하고 실제 파일 출력은 하지 않음
@@ -585,13 +688,44 @@ npm run build
 
 즉, 코드 포맷을 팀 기준으로 통일하기 위한 파일이다.
 
-### 14.5 `src/test/*`
+### 14.5 `src/main.jsx`
+
+- React 앱 진입점
+- `import.meta.env`를 기준으로 MSW 활성화 여부를 판단
+- `@/shared/styles/global.css`를 먼저 로드하고 앱을 렌더링
+
+### 14.6 `src/App.jsx`
+
+- `BrowserRouter`, `QueryClientProvider`, `AuthProvider`를 앱 최상단에 연결
+- 라우팅, 서버 상태 관리, 인증 컨텍스트의 시작점 역할
+
+### 14.7 `src/shared/styles/*`
+
+현재 스타일 구조는 아래 파일들로 나뉜다.
+
+- `reset.css`: 브라우저 기본 스타일 초기화
+- `fonts.css`: `public/static/fonts`의 Pretendard 폰트 선언
+- `primitive-tokens.css`: 원시 디자인 토큰
+- `semantic-tokens.css`: 의미 기반 토큰
+- `global.css`: 위 파일들을 한 번에 로드하는 진입점
+
+### 14.8 `src/shared/components/*/index.ts`
+
+- 공용 컴포넌트 폴더의 export 진입점으로 사용하기 위한 파일
+- 현재는 골격 수준이지만, 이후 컴포넌트 구현이 들어오면 이 파일이 import 단순화 역할을 맡게 된다
+
+### 14.9 `src/test/*`
 
 역할은 다음과 같다.
 
 - `setup.js`: 테스트 시작 전 공통 초기화
 - `server.js`: Node 테스트 환경에서 MSW 서버 설정
 - `handlers.js`: 테스트용 API 응답 정의
+
+### 14.10 `public/*`
+
+- `mockServiceWorker.js`: 브라우저 MSW 동작에 필요한 worker 스크립트
+- `static/fonts/*`: Pretendard 폰트 정적 파일
 
 ---
 
