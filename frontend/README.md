@@ -376,7 +376,8 @@ http://localhost:3000/dev/input
 
 | 경로 | 내용 |
 |------|------|
-| `/dev/input` | TextInput 크기·상태·레이블 위치·기능 전체 예시 |
+| `/dev/input`  | TextInput 크기·상태·레이블 위치·기능 전체 예시 |
+| `/dev/select` | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시 |
 
 ### 9.3 신규 가이드 추가 방법
 
