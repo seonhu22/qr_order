@@ -6,6 +6,7 @@ import htms.QROrder.system.domain.*;
 import htms.QROrder.system.domain.Menu;
 import htms.QROrder.system.dto.*;
 import htms.QROrder.system.repository.PaymentCouponMapper;
+import htms.QROrder.system.repository.SysAccessLogMapper;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -34,6 +36,8 @@ public class SettingsController {
     private final PaymentService paymentService;
     private final PlantStatusService plantStatusService;
     private final PaymentCouponService paymentCouponService;
+    private final SysAccessLogService sysAccessLogService;
+    private final AuditTrailService auditTrailService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -405,5 +409,27 @@ public class SettingsController {
                         .message("저장 완료.")
                         .build()
         );
+    }
+
+    @GetMapping("/log/login/master")
+    public List<SysAccessLogMaster> getSysAccessLogMaster(@RequestParam(required = false) String searchKeyword,
+                                                            @RequestParam Date startDate,
+                                                            @RequestParam Date endDate) {
+
+        return sysAccessLogService.getSysAccessLogMaster(searchKeyword, startDate, endDate);
+    }
+
+    @GetMapping("/log/login/detail")
+    public List<SysAccessLogDetail> getSysAccessLogDetail(@RequestParam String sysId) {
+
+        return sysAccessLogService.getSysAccessLogDetail(sysId);
+    }
+
+    @GetMapping("/log/audittrail")
+    public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
+                                            @RequestParam Date startDate,
+                                            @RequestParam Date endDate) {
+
+        return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
     }
 }

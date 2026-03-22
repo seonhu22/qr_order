@@ -1,5 +1,6 @@
 package htms.QROrder.system.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.Message;
 import htms.QROrder.system.dto.AdminUserResponse;
@@ -45,6 +46,10 @@ public class MessageService {
 
                 throw new DuplicateException("중복된 메시지가 존재합니다.\n" + result);
             }
+
+            newItems.forEach(item -> {
+                item.setSysId(UlidCreator.getUlid().toString());
+            });
 
             messageMapper.newMessage(newItems, userId, sysPlantCd);
         }
