@@ -207,6 +207,387 @@
 
 
 /* =====================================================
+ * SelectInput — .select-control
+ * 트리거 버튼·상태·크기를 담당하는 컨트롤 박스
+ * ===================================================== */
+
+.select-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  transition:
+    border-color var(--transition-ui),
+    box-shadow   var(--transition-ui),
+    background   var(--transition-ui);
+  cursor: pointer;
+}
+
+/* 호버 — disabled · readonly 상태 제외 */
+.select-control:not([data-state="disabled"]):not([data-state="readonly"]):hover {
+  border-color: var(--color-border-hover);
+}
+
+/* 열림/포커스 — disabled · readonly 상태 제외 */
+.select-control:not([data-state="disabled"]):not([data-state="readonly"]):focus-within,
+.select-control:not([data-state="disabled"]):not([data-state="readonly"])[data-open="true"] {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  outline: none;
+}
+
+/* 에러 상태 */
+.select-control[data-state="error"] {
+  border-color: var(--color-border-error);
+}
+.select-control[data-state="error"]:focus-within,
+.select-control[data-state="error"][data-open="true"] {
+  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+}
+
+/* 성공 상태 */
+.select-control[data-state="success"] {
+  border-color: var(--color-border-success);
+}
+.select-control[data-state="success"]:focus-within,
+.select-control[data-state="success"][data-open="true"] {
+  box-shadow: 0 0 0 3px var(--color-success-focus-ring);
+}
+
+/* 비활성(disabled) 상태 */
+.select-control[data-state="disabled"] {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-default);
+  cursor: not-allowed;
+}
+
+/* 읽기 전용(readonly) 상태 */
+.select-control[data-state="readonly"] {
+  background-color: var(--color-bg-muted);
+  cursor: default;
+}
+
+
+/* ─── 크기 변형 ──────────────────────────────────── */
+
+.select-control--sm {
+  height: var(--height-component-sm);
+  padding: 0 var(--spacing-input-x-sm);
+}
+
+.select-control--md {
+  height: var(--height-component-md);
+  padding: 0 var(--spacing-input-x-md);
+}
+
+.select-control--lg {
+  height: var(--height-component-lg);
+  padding: 0 var(--spacing-input-x-lg);
+}
+
+
+/* ─── 트리거 버튼 ────────────────────────────────── */
+
+.select-control__trigger {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  cursor: inherit;
+  font-family: var(--typography-font-base);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  text-align: left;
+}
+
+.select-control__trigger:disabled {
+  cursor: not-allowed;
+}
+
+/* 크기별 폰트 크기 */
+.select-control--sm .select-control__trigger {
+  font-size: var(--font-size-xs);
+}
+.select-control--md .select-control__trigger,
+.select-control--lg .select-control__trigger {
+  font-size: var(--typography-size-ui);
+}
+
+/* 선택된 값 */
+.select-control__value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+/* 플레이스홀더 */
+.select-control__placeholder {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-placeholder);
+}
+
+/* disabled 텍스트 */
+.select-control[data-state="disabled"] .select-control__value,
+.select-control[data-state="disabled"] .select-control__placeholder {
+  color: var(--color-text-disabled);
+}
+
+/* readonly 텍스트 */
+.select-control[data-state="readonly"] .select-control__value {
+  color: var(--color-text-secondary);
+}
+
+
+/* ─── 오른쪽 슬롯 (chevron · 스피너) ───────────── */
+
+.select-control__slot-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: var(--spacing-2);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.select-control--sm .select-control__slot-right {
+  width:  var(--icon-xs);
+  height: var(--icon-xs);
+}
+.select-control--md .select-control__slot-right {
+  width:  var(--icon-sm);
+  height: var(--icon-sm);
+}
+.select-control--lg .select-control__slot-right {
+  width:  var(--icon-md);
+  height: var(--icon-md);
+}
+
+/* Chevron 회전 애니메이션 */
+.select-control__chevron {
+  transition: transform var(--transition-ui);
+}
+.select-control[data-open="true"] .select-control__chevron {
+  transform: rotate(180deg);
+}
+
+
+/* =====================================================
+ * SelectInput — 드롭다운 패널
+ * ===================================================== */
+
+.select-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-dropdown);
+  overflow: hidden;
+}
+
+.select-dropdown--below {
+  top: calc(100% + var(--spacing-2));
+}
+
+.select-dropdown--above {
+  bottom: calc(100% + var(--spacing-2));
+}
+
+
+/* ─── 검색 영역 ──────────────────────────────────── */
+
+.select-dropdown__search {
+  padding: var(--spacing-2);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.select-dropdown__search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--spacing-12); /* 32px */
+}
+
+.select-dropdown__search-icon {
+  position: absolute;
+  left: var(--spacing-5); /* 10px */
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.select-dropdown__search-input {
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--spacing-6) 0 var(--spacing-11); /* 좌측 아이콘 공간 확보: 28px */
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  outline: none;
+  transition: border-color var(--transition-ui);
+}
+
+.select-dropdown__search-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.select-dropdown__search-input:focus {
+  border-color: var(--color-border-focus);
+}
+
+
+/* ─── 옵션 목록 ──────────────────────────────────── */
+
+.select-dropdown__list {
+  padding: var(--spacing-1) 0;
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+}
+
+.select-dropdown__empty {
+  padding: var(--spacing-10) var(--spacing-6);
+  text-align: center;
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+
+/* ─── 그룹 헤더 ──────────────────────────────────── */
+
+.select-option-group__label {
+  padding: var(--spacing-3) var(--spacing-6);
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  list-style: none;
+}
+
+
+/* ─── 개별 옵션 ──────────────────────────────────── */
+
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5); /* 10px */
+  padding: var(--spacing-4) var(--spacing-6); /* 8px 12px */
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-ui);
+  list-style: none;
+}
+
+.select-option:hover:not(.select-option--disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+.select-option--selected {
+  background-color: var(--color-bg-selected);
+  color: var(--color-brand-default);
+}
+
+.select-option--selected:hover {
+  background-color: var(--color-bg-selected);
+}
+
+.select-option--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 옵션 내 레이블+설명 영역 */
+.select-option__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.select-option__label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-option__desc {
+  display: block;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  margin-top: var(--spacing-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 선택된 옵션 설명 색상 */
+.select-option--selected .select-option__desc {
+  color: var(--color-brand-default);
+  opacity: 0.7;
+}
+
+/* 왼쪽 아이콘 슬롯 */
+.select-option__icon {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+}
+
+.select-option--selected .select-option__icon {
+  color: var(--color-brand-default);
+}
+
+/* 체크 아이콘 */
+.select-option__check {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--color-brand-default);
+  display: flex;
+  align-items: center;
+}
+
+
+/* =====================================================
+ * SelectInput — 로딩 스피너
+ * ===================================================== */
+
+.select-spinner {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+  will-change: transform;
+  animation: select-spin 0.75s linear infinite;
+}
+
+@keyframes select-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* =====================================================
  * InputWrapper — .input-wrapper
  * 레이블 · 도움말 · 레이아웃을 담당하는 래퍼
  * Select · Checkbox 등도 이 래퍼를 재사용한다

@@ -19,6 +19,7 @@
 export { InputBase }    from './InputBase';
 export { InputWrapper } from './InputWrapper';
 export { TextInput }    from './TextInput';
+export { SelectInput }  from './SelectInput';
 
 /* 타입 */
 export type {
@@ -28,4 +29,6 @@ export type {
   InputWrapperBaseProps,
   InputBaseProps,
   TextInputProps,
+  SelectOption,
+  SelectInputProps,
 } from './types';
