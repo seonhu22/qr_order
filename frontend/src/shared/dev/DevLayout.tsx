@@ -15,9 +15,9 @@ import { NavLink, Outlet } from 'react-router-dom';
  * 새 가이드 페이지를 추가할 때 여기에만 등록
  * ===================================================== */
 const NAV_ITEMS = [
-  { path: '/dev/input',    label: 'TextInput' },
+  { path: '/dev/input', label: 'TextInput' },
+  { path: '/dev/modal', label: 'Modal' },
   // { path: '/dev/button',   label: 'Button' },       // 추후 추가
-  // { path: '/dev/modal',    label: 'Modal' },
   // { path: '/dev/table',    label: 'Table' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;
@@ -25,7 +25,6 @@ const NAV_ITEMS = [
 export default function DevLayout() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--typography-font-base)' }}>
-
       {/* ── 사이드 내비게이션 ────────────────────────── */}
       <nav
         style={{
@@ -73,9 +72,7 @@ export default function DevLayout() {
                   borderRadius: 'var(--radius-button)',
                   fontSize: '0.8125rem',
                   fontWeight: isActive ? 600 : 400,
-                  color: isActive
-                    ? 'var(--color-brand-default)'
-                    : 'var(--color-text-secondary)',
+                  color: isActive ? 'var(--color-brand-default)' : 'var(--color-text-secondary)',
                   background: isActive ? 'var(--color-bg-selected)' : 'transparent',
                   textDecoration: 'none',
                   transition: 'background var(--transition-ui), color var(--transition-ui)',
@@ -92,7 +89,6 @@ export default function DevLayout() {
       <main style={{ flex: 1, overflowY: 'auto' }}>
         <Outlet />
       </main>
-
     </div>
   );
 }

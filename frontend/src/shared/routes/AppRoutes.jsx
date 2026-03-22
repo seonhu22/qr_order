@@ -1,5 +1,6 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
+import LoginPage from './LoginPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
@@ -35,7 +36,7 @@ function AppRoutes() {
   const routes = useRoutes([
     {
       path: '/',
-      // element: isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />,
+      element: isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />,
     },
     ...withProtectedElement(adminRoutes),
 

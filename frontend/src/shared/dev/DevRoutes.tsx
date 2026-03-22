@@ -15,8 +15,8 @@
 import { Navigate } from 'react-router-dom';
 import DevLayout from './DevLayout';
 import InputGuide from './InputGuide';
+import ModalGuide from './ModalGuide';
 // import ButtonGuide   from './ButtonGuide';   // 추후 추가
-// import ModalGuide    from './ModalGuide';
 // import TableGuide    from './TableGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
@@ -26,11 +26,11 @@ export const devRoutes = [
     element: <DevLayout />,
     children: [
       /* /dev 진입 시 첫 가이드로 리다이렉트 */
-      { index: true, element: <Navigate to="/dev/input" replace /> },
+      { index: true, element: <Navigate to="/dev/modal" replace /> },
 
-      { path: 'input',    element: <InputGuide /> },
+      { path: 'input', element: <InputGuide /> },
+      { path: 'modal', element: <ModalGuide /> },
       // { path: 'button',   element: <ButtonGuide /> },
-      // { path: 'modal',    element: <ModalGuide /> },
       // { path: 'table',    element: <TableGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],
