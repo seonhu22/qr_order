@@ -16,6 +16,7 @@ import { NavLink, Outlet } from 'react-router-dom';
  * ===================================================== */
 const NAV_ITEMS = [
   { path: '/dev/input',    label: 'TextInput' },
+  { path: '/dev/select',   label: 'SelectInput' },
   // { path: '/dev/button',   label: 'Button' },       // 추후 추가
   // { path: '/dev/modal',    label: 'Modal' },
   // { path: '/dev/table',    label: 'Table' },
