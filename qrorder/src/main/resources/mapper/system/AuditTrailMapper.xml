@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.AuditTrailMapper">
+
+    <select id="getAdminUser" resultType="htms.QROrder.system.domain.AuditTrail">
+        select
+            sat.audit_flag ,
+            sat.menu_cd ,
+            sm.menu_nm ,
+            sat.audit_trail_contents ,
+            sat.insert_datetime
+        from sys_audit_trail sat
+        left join sys_menu sm
+            on sm.menu_cd = sat.menu_cd
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (
+                sm.menu_nm like concat('%', #{searchKeyword}, '%') or
+                sat.audit_trail_contents like concat('%', #{searchKeyword}, '%')
+            )
+        </if>
+        and sat.insert_datetime between #{startDate} and #{endDate}
+        order by sat.insert_datetime desc
+    </select>
+</mapper>

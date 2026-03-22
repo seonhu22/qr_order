@@ -11,4 +11,5 @@ public class PaymentCoupon {
     private String couponNm;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String useYn;
 }

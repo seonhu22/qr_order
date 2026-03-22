@@ -66,3 +66,6 @@ qrorder/src/test/
 ### Claude Code ###
 .claude/
 CLAUDE.md
+
+### 백엔드 테스트파일 ###
+qrorder/src/test/

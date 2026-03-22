@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.MessageMapper">
+
+    <select id="getMessage" resultType="htms.QROrder.system.domain.Message">
+        select
+            sys_id ,
+            msg_cd ,
+            msg_nm ,
+            msg_description
+        from sys_message sm
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (
+                msg_cd like concat('%', #{searchKeyword}, '%') or
+                msg_nm like concat('%', #{searchKeyword}, '%') or
+                msg_description like concat('%', #{searchKeyword}, '%')
+            )
+        </if>
+        and delete_yn = 'N'
+        order by msg_cd asc
+    </select>
+
+    <insert id="newMessage">
+        insert into sys_message (
+            sys_id ,
+            msg_cd ,
+            msg_nm ,
+            msg_description ,
+            delete_yn,
+            insert_user_id,
+            insert_datetime ,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator=",">
+            (
+                #{item.sysId},
+                #{item.msgCd},
+                #{item.msgNm},
+                #{item.msgDescription},
+                'N',
+                #{userId},
+                now(),
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateMessage">
+        <foreach collection="updateItems" item="item" separator=";">
+            update sys_message set
+                msg_nm = #{item.msgNm},
+                msg_description = #{item.msgDescription},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delMessage">
+        <foreach collection="delItems" item="item" separator=";">
+            update sys_message set
+                delete_yn = #{item.deleteYn},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateMessage" resultType="boolean">
+        select
+            COUNT(*) > 0
+        from sys_message
+        where 1=1
+        and msg_cd in
+        <foreach collection="newItems" item="item" open="(" separator="," close=")">
+            #{item.msgCd}
+        </foreach>
+    </select>
+
+    <select id="getDeuplicateData" resultType="htms.QROrder.system.domain.Message">
+        select
+            sys_id ,
+            msg_cd ,
+            msg_nm ,
+            msg_description
+        from sys_message sm
+        where 1=1
+        and msg_cd in
+        <foreach collection="newItems" item="item" open="(" separator="," close=")">
+            #{item.msgCd}
+        </foreach>
+    </select>
+</mapper>

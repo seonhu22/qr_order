@@ -31,7 +31,7 @@ public class CommonMasterService {
                                 String menuCd) {
 
         if(checkDuplicate(commonMaster)) {
-            throw new DuplicateException("이미 존재하는 공통코드입니다.\n" + commonMaster.getCommonNm() + "(" + commonMaster.getCommonCd() + ")");
+            throw new DuplicateException("이미 존재하는 데이터입니다.");
         }
         else {
             commonMaster.setSysId(UlidCreator.getMonotonicUlid().toString());
