@@ -390,7 +390,6 @@ export function SelectInput({
             {searchable && (
               <div className="select-dropdown__search">
                 <div className="select-dropdown__search-box">
-                  <SearchIcon size={13} />
                   <span className="select-dropdown__search-icon">
                     <SearchIcon size={13} />
                   </span>
