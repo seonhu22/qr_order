@@ -93,7 +93,7 @@
         </foreach>
     </update>
 
-    <select id="checkDuplicate" resultType="boolean">
+    <select id="duplicateChk" resultType="boolean">
         select
             COUNT(*) > 0
         from sys_common_detail
@@ -105,7 +105,7 @@
         and link_sys_id = #{tempLinkSysId}
     </select>
 
-    <select id="checkDuplicateData" resultMap="commonDetailResultMap">
+    <select id="getDeuplicateData" resultMap="commonDetailResultMap">
         select
             scd.sys_id,
             scd.link_sys_id,

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.PaymentCouponMapper">
+
+    <select id="findPlantBySearchCond" resultType="htms.QROrder.system.domain.PaymentCoupon">
+        select
+            sys_id ,
+            coupon_cd ,
+            coupon_nm ,
+            start_date ,
+            end_date,
+            use_yn
+        from sys_payment_coupon spc
+        where 1=1
+        delete_yn = 'N'
+        order by sys_id desc
+    </select>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_payment_coupon
+        where 1=1
+        and coupon_cd in
+            <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
+                #{item.couponCd}
+            </foreach>
+    </select>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.PaymentCoupon">
+        select
+            sys_id ,
+            coupon_cd ,
+            coupon_nm ,
+            start_date ,
+            end_date,
+            use_yn
+        from sys_payment_coupon spc
+        where 1=1
+        delete_yn = 'N'
+        and coupon_cd in
+        <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
+            #{item.couponCd}
+        </foreach>
+    </select>
+
+    <insert id="newPaymentCoupon">
+        insert into sys_payment_coupon (
+            sys_id ,
+            coupon_cd,
+            coupon_nm,
+            start_date,
+            end_date,
+            use_yn,
+            delete_yn,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator=",">
+            (
+                #{item.sysId},
+                #{item.couponCd},
+                #{item.couponNm},
+                #{item.startDate},
+                #{item.endDate},
+                #{item.useYn},
+                'N',
+                #{userId},
+                now(),
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updatePaymentCoupon">
+        <foreach collection="updateItems" item="item" separator=";">
+            update sys_payment_coupon set
+                coupon_nm = #{item.couponNm},
+                start_date = #{item.startDate},
+                end_date = #{item.endDate},
+                use_yn = #{item.useYn},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delPaymentCoupon">
+        update sys_payment_coupon set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </delete>
+</mapper>

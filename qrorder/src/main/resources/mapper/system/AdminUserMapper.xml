@@ -87,7 +87,7 @@
             </foreach>
     </select>
 
-    <select id="getDeuplicateAdminUser" resultType="htms.QROrder.system.domain.AdminUser">
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.AdminUser">
         select
             su.sys_id,
             su.user_id ,
