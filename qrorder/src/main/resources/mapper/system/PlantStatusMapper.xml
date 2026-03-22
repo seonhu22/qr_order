@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.PlantStatusMapper">
+
+    <select id="findPlantBySearchCond" resultType="htms.QROrder.system.dto.PlantStatusResponse">
+        select
+            sppi.sys_id ,
+            sppi.plant_cd ,
+            sp2.plant_nm ,
+            sppi.payment_cd ,
+            sp.payment_nm ,
+            sppi.last_checkout_date ,
+            sppi.estimate_checkout_date
+        from sys_plant_pay_info sppi
+        left join sys_payment sp
+            on sp.payment_cd = sppi.payment_cd
+        left join sys_plant sp2
+            on sp2.plant_cd = sp.plant_cd
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (
+                sppi.plant_cd like concat('%', #{searchKeyword}, '%') or
+                sp2.plant_nm like concat('%', #{searchKeyword}, '%') or
+                sppi.payment_cd like concat('%', #{searchKeyword}, '%') or
+                sp.payment_nm like concat('%', #{searchKeyword}, '%')
+            )
+        </if>
+        and sp.delete_yn = 'N'
+        and sp2.delete_yn = 'N'
+        order by sppi.plant_cd asc
+    </select>
+</mapper>

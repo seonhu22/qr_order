@@ -37,9 +37,9 @@ public class AdminUserService {
         if(!newItems.isEmpty()){
 
             if(duplicateChk(newItems)) {
-                List<AdminUserResponse> deuplicateAdminUser = getDuplicateData(newItems);
+                List<AdminUserResponse> duplicateData = getDuplicateData(newItems);
 
-                String result = deuplicateAdminUser.stream()
+                String result = duplicateData.stream()
                     .map(u -> u.getUserNm() + "(" + u.getUserId() + ")")
                     .collect(Collectors.joining(", "));
 

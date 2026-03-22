@@ -5,6 +5,7 @@ import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.system.domain.*;
 import htms.QROrder.system.domain.Menu;
 import htms.QROrder.system.dto.*;
+import htms.QROrder.system.repository.PaymentCouponMapper;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -31,6 +32,8 @@ public class SettingsController {
     private final RuleMasterService ruleMasterService;
     private final RuleDetailService ruleDetailService;
     private final PaymentService paymentService;
+    private final PlantStatusService plantStatusService;
+    private final PaymentCouponService paymentCouponService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -372,6 +375,34 @@ public class SettingsController {
                 CommonResponse.builder()
                         .success(true)
                         .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/plant_status/search")
+    public List<PlantStatusResponse> getPlantStatus(@RequestParam(required = false) String searchKeyword) {
+
+        return plantStatusService.getPlantStatus(searchKeyword);
+    }
+
+    @GetMapping("/payment_coupon/search")
+    public List<PaymentCoupon> getPaymentCoupon(@RequestParam(required = false) String searchKeyword) {
+
+        return paymentCouponService.getPaymentCoupon(searchKeyword);
+    }
+
+    @PostMapping("/payment_coupon/save")
+    public ResponseEntity<CommonResponse> savePaymentCoupon(@RequestBody PaymentCouponRequest paymentCouponRequest,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentCouponService.savePaymentCoupon(paymentCouponRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
                         .build()
         );
     }
