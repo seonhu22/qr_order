@@ -8,7 +8,7 @@
  * @module input/types
  */
 
-import type { InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
 
 
 /* =====================================================
@@ -108,6 +108,81 @@ export interface InputBaseProps
    * @default ''
    */
   controlState?: InputControlState;
+}
+
+
+/* =====================================================
+ * SelectInput — 옵션 아이템
+ * ===================================================== */
+
+/**
+ * 셀렉트 드롭다운 옵션 아이템
+ */
+export interface SelectOption {
+  /** 선택 시 onChange 로 전달되는 값 */
+  value: string;
+  /** 드롭다운에 표시되는 텍스트 */
+  label: string;
+  /** 옵션 아래 부가 설명 (선택) */
+  description?: string;
+  /** 옵션 왼쪽 아이콘 (선택) */
+  icon?: ReactNode;
+  /** 비활성화 여부 */
+  disabled?: boolean;
+  /** 그룹핑 키 — 같은 값끼리 그룹 헤더 아래 묶임 */
+  group?: string;
+}
+
+
+/* =====================================================
+ * SelectInput Props
+ * ===================================================== */
+
+/**
+ * 셀렉트 인풋 완성형 컴포넌트(SelectInput) Props
+ *
+ * InputWrapperBaseProps(레이블·도움말) 를 조합한다
+ *
+ * @extends {InputWrapperBaseProps}
+ */
+export interface SelectInputProps extends InputWrapperBaseProps {
+  /** 드롭다운 옵션 목록 */
+  options: SelectOption[];
+  /**
+   * 제어 컴포넌트용 선택 값
+   * 미입력 시 비제어(defaultValue) 방식으로 동작
+   */
+  value?: string;
+  /** 비제어 모드 초기값 */
+  defaultValue?: string;
+  /** 값 변경 콜백 */
+  onChange?: (value: string) => void;
+  /**
+   * 미선택 시 표시 텍스트
+   * @default '선택하세요'
+   */
+  placeholder?: string;
+  /**
+   * 컴포넌트 크기
+   * @default 'md'
+   */
+  size?: InputSize;
+  /**
+   * 검색 기능 활성화 — 드롭다운 상단에 검색 인풋 표시
+   * @default false
+   */
+  searchable?: boolean;
+  /**
+   * 로딩 스피너 표시 — 비동기 옵션 로딩 시 사용
+   * @default false
+   */
+  loading?: boolean;
+  /** 비활성화 여부 */
+  disabled?: boolean;
+  /** 읽기 전용 — 드롭다운이 열리지 않음 */
+  readOnly?: boolean;
+  /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
+  className?: string;
 }
 
 

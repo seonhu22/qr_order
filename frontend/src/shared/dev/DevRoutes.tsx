@@ -16,6 +16,7 @@ import { Navigate } from 'react-router-dom';
 import DevLayout from './DevLayout';
 import InputGuide from './InputGuide';
 import ModalGuide from './ModalGuide';
+import SelectGuide from './SelectGuide';
 // import ButtonGuide   from './ButtonGuide';   // 추후 추가
 // import TableGuide    from './TableGuide';
 // import FeedbackGuide from './FeedbackGuide';
@@ -30,6 +31,7 @@ export const devRoutes = [
 
       { path: 'input', element: <InputGuide /> },
       { path: 'modal', element: <ModalGuide /> },
+      { path: 'select', element: <SelectGuide /> },
       // { path: 'button',   element: <ButtonGuide /> },
       // { path: 'table',    element: <TableGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },

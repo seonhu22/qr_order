@@ -187,6 +187,7 @@ frontend/
 - 초기에는 단순 구조로 시작하더라도, 나중에 멀티앱 구조로 확장하기 쉽다.
 
 즉, 이 설계안은 "지금 당장 강제 규칙"이 아니라 "증설 시 기준점"으로 이해하면 된다.
+
 - `src/apps/admin/pages`: 관리자 라우트에서 직접 보여주는 페이지 컴포넌트
 - `src/apps/admin/features`: 관리자 화면 내부에서 재사용되는 기능 단위 컴포넌트
 - `src/apps/admin/routes`: 관리자 앱 라우팅 정의
@@ -302,10 +303,10 @@ color: var(--slate-90);
 
 ### 7.3 토큰 계층 요약
 
-| 파일 | 역할 | 예시 |
-|------|------|------|
-| `primitive-tokens.css` | 원시값 정의 | `--slate-90`, `--orange-60`, `--spacing-8` |
-| `semantic-tokens.css` | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
+| 파일                   | 역할           | 예시                                            |
+| ---------------------- | -------------- | ----------------------------------------------- |
+| `primitive-tokens.css` | 원시값 정의    | `--slate-90`, `--orange-60`, `--spacing-8`      |
+| `semantic-tokens.css`  | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
 
 ---
 
@@ -317,11 +318,11 @@ color: var(--slate-90);
 
 공용 컴포넌트는 역할에 따라 3개 레이어로 분리한다.
 
-| 레이어 | 역할 | 예시 |
-|--------|------|------|
-| **Base** | 순수 컨트롤 박스 (테두리·배경·슬롯) | `InputBase` |
-| **Wrapper** | 레이블·도움말·레이아웃 | `InputWrapper` |
-| **완성형** | Base + Wrapper + 기능 조합 | `TextInput` |
+| 레이어      | 역할                                | 예시           |
+| ----------- | ----------------------------------- | -------------- |
+| **Base**    | 순수 컨트롤 박스 (테두리·배경·슬롯) | `InputBase`    |
+| **Wrapper** | 레이블·도움말·레이아웃              | `InputWrapper` |
+| **완성형**  | Base + Wrapper + 기능 조합          | `TextInput`    |
 
 Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립적으로 설계한다.
 예를 들어 `Select`, `Checkbox` 등 신규 컴포넌트 작성 시 `InputWrapper`를 그대로 재사용한다.
@@ -374,9 +375,13 @@ http://localhost:3000/dev/input
 
 ### 9.2 현재 등록된 가이드
 
-| 경로 | 내용 |
-|------|------|
-| `/dev/input` | TextInput 크기·상태·레이블 위치·기능 전체 예시 |
+| 경로          | 내용                                                         |
+| ------------- | ------------------------------------------------------------ |
+| `/dev/input`  | TextInput 크기·상태·레이블 위치·기능 전체 예시               |
+| `/dev/select` | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시 |
+
+<!-- modal 업데이트 후 추가 -->
+<!-- button 업데이트 후 추가 -->
 
 ### 9.3 신규 가이드 추가 방법
 
@@ -394,8 +399,8 @@ import ButtonGuide from './ButtonGuide';
 
 ```ts
 const NAV_ITEMS = [
-  { path: '/dev/input',  label: 'TextInput' },
-  { path: '/dev/button', label: 'Button' },   // 추가
+  { path: '/dev/input', label: 'TextInput' },
+  { path: '/dev/button', label: 'Button' }, // 추가
 ];
 ```
 
