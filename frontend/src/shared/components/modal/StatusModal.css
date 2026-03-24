@@ -1,0 +1,37 @@
+@charset "utf-8";
+
+/*
+ * StatusModal 전용 스타일
+ * - .status-modal__icon-wrapper        : 상태 아이콘 배경 래퍼
+ * - .status-modal__icon-wrapper--info  : 정보형 색상 조합
+ * - .status-modal__icon-svg            : 아이콘 SVG 공통 크기
+ * - .status-modal__description         : 본문 설명 텍스트 (줄바꿈 지원)
+ */
+
+.status-modal__icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+}
+
+.status-modal__icon-wrapper--info {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+
+.status-modal__icon-svg {
+  display: block;
+}
+
+.status-modal__description {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-body);
+  line-height: 1.42;
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: pre-line;
+}

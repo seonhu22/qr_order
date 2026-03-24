@@ -14,7 +14,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { WrapperModal } from '@/shared/components/modal';
+import { StatusModal, WrapperModal } from '@/shared/components/modal';
 import type { ModalSize, WrapperModalActions, WrapperModalLayout } from '@/shared/components/modal';
 import './devStyles/ModalGuide.css';
 
@@ -127,6 +127,40 @@ const BUTTON_MIGRATION_NOTES = [
 ];
 
 /**
+ * StatusModal 가이드 섹션을 렌더링한다.
+ *
+ * @returns {JSX.Element}
+ */
+function StatusModalSection() {
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">StatusModal (안내)</p>
+        <p className="modal-guide__card-description">
+          information 아이콘 · 단일 확인 버튼 · layout=notice
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setAlertOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <StatusModal
+        open={alertOpen}
+        title="안내"
+        description={'비밀번호를 5번이상 틀리셨습니다.\n관리자에게 문의해주세요.'}
+        onClose={() => setAlertOpen(false)}
+      />
+    </>
+  );
+}
+
+/**
  * 가이드 카드 UI를 렌더링한다.
  *
  * @param {{ label: string; description: string; onOpen: () => void }} props 카드 표시 정보
@@ -210,6 +244,17 @@ export default function ModalGuide() {
                 onOpen={() => setActivePresetKey(preset.key)}
               />
             ))}
+          </div>
+        </section>
+
+        <section className="modal-guide__section">
+          <h2 className="modal-guide__section-title">StatusModals</h2>
+          <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
+            <code>StatusModal</code>은 WrapperModal <code>layout=&quot;notice&quot;</code> +{' '}
+            <code>noticeTopPadding</code> 조합의 상태 전달용 완성형 모달입니다.
+          </p>
+          <div className="modal-guide__grid">
+            <StatusModalSection />
           </div>
         </section>
 
