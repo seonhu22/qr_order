@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.common.repository.FileMapper">
+
+    <select id="getAttachFile" resultType="htms.QROrder.common.dto.FileResponse">
+        select
+            sys_id ,
+            link_sys_id ,
+            original_file_nm ,
+            convert_file_nm ,
+            file_ext ,
+            mime_type ,
+            file_size ,
+            file_path
+        from attach_file af
+        where 1=1
+        and link_sys_id = #{sysId}
+        and delete_yn = 'N'
+        order by ord_no
+    </select>
+
+    <insert id="newFile">
+        insert into attach_file (
+            sys_id ,
+            link_sys_id ,
+            original_file_nm ,
+            convert_file_nm ,
+            file_ext ,
+            mime_type ,
+            file_size ,
+            file_path ,
+            ord_no ,
+            delete_yn ,
+            insert_user_id ,
+            insert_datetime ,
+            sys_plant_cd,
+        )
+        values
+        <foreach collection="newItems" item="item" separator=",">
+            (
+                #{item.sysId},
+                #{item.linkSysId},
+                #{item.originalFileNm},
+                #{item.convertFileNm},
+                #{item.fileExt},
+                #{item.mimeType},
+                #{item.fileSize},
+                #{item.filePath},
+                #{item.ordNo},
+                'N',
+                #{userId},
+                now(),
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateFile">
+        <foreach collection="updateItems" item="item" separator=";">
+            update attach_file set
+                ord_no = #{item.ordNo},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delFile">
+        update attach_file set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")" >
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getOldData" resultType="htms.QROrder.common.dto.FileInfo">
+        select
+            sys_id ,
+            link_sys_id ,
+            original_file_nm ,
+            convert_file_nm ,
+            file_ext ,
+            mime_type ,
+            file_size ,
+            file_path ,
+            full_path ,
+            ord_no
+        from attach_file af
+        where 1=1
+        and sys_id in
+        <foreach collection="updateItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+</mapper>

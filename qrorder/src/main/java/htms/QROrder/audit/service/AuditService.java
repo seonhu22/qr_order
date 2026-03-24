@@ -48,7 +48,7 @@ public class AuditService {
         auditMapper.insertNewMultiAuditTrailData(audit, userId, sysPlantCd);
     }
 
-    public <T> Audit convertNewAuditTrailData(T newData,
+    private  <T> Audit convertNewAuditTrailData(T newData,
                                             String menuCd,
                                             String tableNm) {
 
@@ -59,7 +59,12 @@ public class AuditService {
 
         Audit audit = new Audit();
         audit.setAuditSysId(ULID);
-        audit.setAuditFlag("I");
+        if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FI");
+        }
+        else {
+            audit.setAuditFlag("I");
+        }
         audit.setMenuCd(menuCd);
         audit.setTableNm(tableNm);
         audit.setInsertDatetime(LocalDateTime.now());
@@ -85,7 +90,7 @@ public class AuditService {
         return audit;
     }
 
-    public <T> List<Audit> convertNewAuditTrailData(List<T> newData,
+    private <T> List<Audit> convertNewAuditTrailData(List<T> newData,
                                             String menuCd,
                                             String tableNm) {
 
@@ -102,7 +107,12 @@ public class AuditService {
 
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("I");
+            if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FI");
+            }
+            else {
+                audit.setAuditFlag("I");
+            }
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
             audit.setInsertDatetime(LocalDateTime.now());
@@ -160,7 +170,7 @@ public class AuditService {
         auditMapper.insertUpdateMultiAuditTrailData(audit, userId, sysPlantCd);
     }
 
-    public <T> Audit convertUpdateAuditTrailData(T oldData,
+    private <T> Audit convertUpdateAuditTrailData(T oldData,
                                                     T newData,
                                                     String menuCd,
                                                     String tableNm) {
@@ -172,7 +182,12 @@ public class AuditService {
 
         Audit audit = new Audit();
         audit.setAuditSysId(ULID);
-        audit.setAuditFlag("U");
+        if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FU");
+        }
+        else {
+            audit.setAuditFlag("U");
+        }
         audit.setMenuCd(menuCd);
         audit.setTableNm(tableNm);
         audit.setInsertDatetime(LocalDateTime.now());
@@ -208,7 +223,7 @@ public class AuditService {
         return audit;
     }
 
-    public <T> List<Audit> convertUpdateAuditTrailData(List<T> oldData,
+    private <T> List<Audit> convertUpdateAuditTrailData(List<T> oldData,
                                             List<T> newData,
                                             String menuCd,
                                             String tableNm) {
@@ -262,7 +277,12 @@ public class AuditService {
             String ULID = UlidCreator.getMonotonicUlid().toString();
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("U");
+            if(tableNm.equals("attach_file")){
+                audit.setAuditFlag("FU");
+            }
+            else {
+                audit.setAuditFlag("U");
+            }
             audit.setRefKey(sysId);
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
@@ -284,7 +304,7 @@ public class AuditService {
         auditMapper.insertDeleteAuditTrailData(audit, userId, sysPlantCd);
     }
 
-    public <T> List<Audit> convertDeleteAuditTrailData(List<T> delIds,
+    private <T> List<Audit> convertDeleteAuditTrailData(List<T> delIds,
                                             String menuCd,
                                             String tableNm) {
 
@@ -301,7 +321,12 @@ public class AuditService {
 
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("D");
+            if(tableNm.equals("attach_file")){
+                audit.setAuditFlag("FD");
+            }
+            else {
+                audit.setAuditFlag("D");
+            }
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
             audit.setInsertDatetime(LocalDateTime.now());
