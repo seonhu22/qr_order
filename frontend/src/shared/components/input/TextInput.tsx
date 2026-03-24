@@ -15,74 +15,8 @@
 import { useState, useId } from 'react';
 import { InputBase } from './InputBase';
 import { InputWrapper } from './InputWrapper';
+import { Icon } from '@/shared/assets/icons/Icon';
 import type { TextInputProps, InputControlState, InputSize } from './types';
-
-
-/* =====================================================
- * 내부 SVG 아이콘 (외부 아이콘 라이브러리 의존 없음)
- * ===================================================== */
-
-/** 비밀번호 표시 아이콘 (눈 모양) */
-function EyeIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size} height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-/** 비밀번호 숨기기 아이콘 (눈에 선이 그어진 모양) */
-function EyeOffIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size} height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-      <line x1="2" x2="22" y1="2" y2="22" />
-    </svg>
-  );
-}
-
-/** 로딩 스피너 아이콘 */
-function SpinnerIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size} height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="input-spinner"
-      aria-hidden="true"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
 
 
 /* =====================================================
@@ -195,7 +129,7 @@ export function TextInput({
   let rightSlot: React.ReactNode = rightIcon ?? null;
 
   if (loading) {
-    rightSlot = <SpinnerIcon size={SPINNER_SIZE[size]} />;
+    rightSlot = <Icon id="i-loading" size={SPINNER_SIZE[size]} className="input-spinner" />;
   } else if (showPasswordToggle) {
     rightSlot = (
       <button
@@ -206,8 +140,8 @@ export function TextInput({
         aria-label={showPw ? '비밀번호 숨기기' : '비밀번호 표시'}
       >
         {showPw
-          ? <EyeOffIcon size={PW_ICON_SIZE[size]} />
-          : <EyeIcon    size={PW_ICON_SIZE[size]} />
+          ? <Icon id="i-eye-off" size={PW_ICON_SIZE[size]} />
+          : <Icon id="i-eye-on"  size={PW_ICON_SIZE[size]} />
         }
       </button>
     );
