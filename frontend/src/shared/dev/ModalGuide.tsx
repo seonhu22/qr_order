@@ -1,27 +1,35 @@
+// src/shared/dev/ModalGuide.tsx
+
 /**
- * @fileoverview BaseModal 컴포넌트 개발 가이드 페이지
+ * @fileoverview WrapperModal 컴포넌트 개발 가이드 페이지
  *
  * @description
  * - 로컬 개발 전용 미리보기 페이지 (/dev/modal)
- * - BaseModal의 주요 시나리오와 props 조합을 빠르게 검증
+ * - WrapperModal의 주요 시나리오와 props 조합을 빠르게 검증
  *
  * @module dev/ModalGuide
+ *
+ * @example
+ * <ModalGuide />
  */
 
 import { useMemo, useState } from 'react';
-import { BaseModal } from '@/shared/components/modal';
-import { ModalSize } from '@/shared/components/modal/modalType';
+import { WrapperModal } from '@/shared/components/modal';
+import type { ModalSize, WrapperModalActions, WrapperModalLayout } from '@/shared/components/modal';
 import './devStyles/ModalGuide.css';
 
 type Preset = {
   key: string;
   label: string;
-  title: string;
+  title?: string;
+  subtitle?: string;
   size: ModalSize;
-  primaryDescription?: string;
-  secondaryDescription?: string;
+  layout?: WrapperModalLayout;
+  actions?: WrapperModalActions;
   closeOnOverlayClick?: boolean;
   primaryLabel?: string;
+  secondaryLabel?: string;
+  icon?: string;
   onConfirmType?: 'default-close' | 'custom-close';
 };
 
@@ -31,39 +39,43 @@ const PRESETS: Preset[] = [
     label: '기본 모달',
     title: '기본 안내',
     size: 'sm',
-    primaryDescription: '가장 기본적인 안내 모달입니다.',
+    subtitle: '가장 기본적인 안내 모달입니다.',
     primaryLabel: '확인',
     onConfirmType: 'default-close',
   },
   {
-    key: 'double-description',
-    label: '설명 2줄',
+    key: 'double-action',
+    label: '2버튼 모달',
     title: '주문 취소 확인',
     size: 'md',
-    primaryDescription: '진행 중인 주문을 취소하시겠습니까?',
-    secondaryDescription: '취소 후에는 되돌릴 수 없습니다.',
+    subtitle: '진행 중인 주문을 취소하시겠습니까?',
+    actions: 'double',
     primaryLabel: '취소하기',
+    secondaryLabel: '닫기',
     onConfirmType: 'custom-close',
   },
   {
-    key: 'secondary-empty',
-    label: 'secondaryDescription 빈값',
-    title: '빈 문자열 처리',
+    key: 'notice-single',
+    label: '안내형 1버튼',
+    title: '저장 완료',
     size: 'sm',
-    primaryDescription: 'secondaryDescription이 빈 문자열이면 노출되지 않습니다.',
-    secondaryDescription: '',
+    layout: 'notice',
+    subtitle: '정상적으로 저장되었습니다.',
+    icon: '✓',
     primaryLabel: '확인',
     onConfirmType: 'default-close',
   },
   {
-    key: 'overlay-locked',
-    label: '오버레이 닫기 비활성',
-    title: '강제 확인 필요',
+    key: 'notice-double',
+    label: '안내형 2버튼',
+    title: '삭제 확인',
     size: 'md',
-    primaryDescription: '오버레이를 클릭해도 닫히지 않습니다.',
-    secondaryDescription: '닫기(X) 또는 확인 버튼으로만 종료할 수 있습니다.',
-    closeOnOverlayClick: false,
-    primaryLabel: '확인',
+    layout: 'notice',
+    actions: 'double',
+    subtitle: '선택한 항목을 삭제하시겠습니까?',
+    icon: '!',
+    primaryLabel: '삭제',
+    secondaryLabel: '닫기',
     onConfirmType: 'custom-close',
   },
   {
@@ -71,7 +83,7 @@ const PRESETS: Preset[] = [
     label: '사이즈 sm',
     title: 'Small Modal',
     size: 'sm',
-    primaryDescription: 'sm 사이즈 확인용 모달입니다.',
+    subtitle: 'sm 사이즈 확인용 모달입니다.',
     onConfirmType: 'default-close',
   },
   {
@@ -79,7 +91,7 @@ const PRESETS: Preset[] = [
     label: '사이즈 md',
     title: 'Medium Modal',
     size: 'md',
-    primaryDescription: 'md 사이즈 확인용 모달입니다.',
+    subtitle: 'md 사이즈 확인용 모달입니다.',
     onConfirmType: 'default-close',
   },
   {
@@ -87,7 +99,7 @@ const PRESETS: Preset[] = [
     label: '사이즈 lg',
     title: 'Large Modal',
     size: 'lg',
-    primaryDescription: 'lg 사이즈 확인용 모달입니다.',
+    subtitle: 'lg 사이즈 확인용 모달입니다.',
     onConfirmType: 'default-close',
   },
   {
@@ -95,7 +107,7 @@ const PRESETS: Preset[] = [
     label: '사이즈 xl',
     title: 'X-Large Modal',
     size: 'xl',
-    primaryDescription: 'xl 사이즈 확인용 모달입니다.',
+    subtitle: 'xl 사이즈 확인용 모달입니다.',
     onConfirmType: 'default-close',
   },
 ];
@@ -108,11 +120,24 @@ const A11Y_CHECK_ITEMS = [
 ];
 
 const BUTTON_MIGRATION_NOTES = [
-  '닫기(X) 버튼: IconButton 도입 시 BaseModal의 close 버튼 영역부터 교체',
+  '닫기(X) 버튼: IconButton 도입 시 WrapperModal의 close 버튼 영역부터 교체',
   '확인 버튼: Button 도입 시 base-modal__confirm 스타일 대응 variant 정의',
+  '보조 버튼: Button 도입 시 base-modal__secondary 스타일 대응 variant 정의',
   '교체 후에도 onConfirm 미지정 시 onClose fallback 동작 유지',
 ];
 
+/**
+ * 가이드 카드 UI를 렌더링한다.
+ *
+ * @param {{ label: string; description: string; onOpen: () => void }} props 카드 표시 정보
+ * @param {string} props.label 카드 제목
+ * @param {string} props.description 카드 설명
+ * @param {() => void} props.onOpen 클릭 시 모달을 여는 핸들러
+ * @returns {JSX.Element}
+ *
+ * @example
+ * <GuideCard label="기본 모달" description="size=sm" onOpen={() => {}} />
+ */
 function GuideCard({
   label,
   description,
@@ -133,6 +158,15 @@ function GuideCard({
   );
 }
 
+/**
+ * WrapperModal 조합을 미리보기하는 개발용 가이드 페이지이다.
+ *
+ * @param {object} _props 별도 props를 받지 않는다.
+ * @returns {JSX.Element}
+ *
+ * @example
+ * <ModalGuide />
+ */
 export default function ModalGuide() {
   const [activePresetKey, setActivePresetKey] = useState<string | null>(null);
   const [confirmCount, setConfirmCount] = useState(0);
@@ -160,7 +194,7 @@ export default function ModalGuide() {
     <div className="modal-guide">
       <div className="modal-guide__container">
         <div className="modal-guide__header">
-          <h1 className="modal-guide__title">BaseModal Guide</h1>
+          <h1 className="modal-guide__title">WrapperModal Guide</h1>
           <p className="modal-guide__subtitle">개발 전용 미리보기 · /dev/modal</p>
           <p className="modal-guide__meta">custom confirm 호출 횟수: {confirmCount}</p>
         </div>
@@ -199,12 +233,15 @@ export default function ModalGuide() {
       </div>
 
       {activePreset && (
-        <BaseModal
+        <WrapperModal
           open={Boolean(activePreset)}
           title={activePreset.title}
+          subtitle={activePreset.subtitle}
+          layout={activePreset.layout}
+          actions={activePreset.actions}
+          icon={activePreset.icon ? <span aria-hidden="true">{activePreset.icon}</span> : undefined}
           primaryLabel={activePreset.primaryLabel}
-          primaryDescription={activePreset.primaryDescription}
-          secondaryDescription={activePreset.secondaryDescription}
+          secondaryLabel={activePreset.secondaryLabel}
           closeOnOverlayClick={activePreset.closeOnOverlayClick}
           size={activePreset.size}
           onClose={closeModal}
