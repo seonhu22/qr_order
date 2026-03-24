@@ -9,4 +9,6 @@ public class FileResponse {
     private String fileSize;
     private String filePath;
     private Integer ordNo;
+    private String fileExt;
+    private String pdfYn;
 }

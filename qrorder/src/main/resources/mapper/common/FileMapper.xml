@@ -6,16 +6,50 @@
     <select id="getAttachFile" resultType="htms.QROrder.common.dto.FileResponse">
         select
             sys_id ,
+            original_file_nm ,
+            file_size ,
+            file_path ,
+            ord_no ,
+            file_ext ,
+            pdf_yn
+        from attach_file af
+        where 1=1
+        and link_sys_id = #{sysId}
+        and delete_yn = 'N'
+        order by ord_no
+    </select>
+
+    <select id="getFileInfo" resultType="htms.QROrder.common.dto.FileInfo">
+        select
+            sys_id ,
             link_sys_id ,
             original_file_nm ,
             convert_file_nm ,
             file_ext ,
             mime_type ,
             file_size ,
-            file_path
+            file_path ,
+            pdf_yn ,
+            ord_no
         from attach_file af
         where 1=1
-        and link_sys_id = #{sysId}
+        and sys_id = #{sysId}
+    </select>
+
+    <select id="getFileInfoList" resultType="htms.QROrder.common.dto.FileInfo">
+        select
+            sys_id ,
+            original_file_nm ,
+            convert_file_nm ,
+            file_ext ,
+            mime_type ,
+            file_size ,
+            file_path ,
+            pdf_yn ,
+            ord_no
+        from attach_file
+        where 1=1
+        and link_sys_id = #{linkSysId}
         and delete_yn = 'N'
         order by ord_no
     </select>
@@ -30,11 +64,12 @@
             mime_type ,
             file_size ,
             file_path ,
+            pdf_yn ,
             ord_no ,
             delete_yn ,
             insert_user_id ,
             insert_datetime ,
-            sys_plant_cd,
+            sys_plant_cd
         )
         values
         <foreach collection="newItems" item="item" separator=",">
@@ -47,6 +82,7 @@
                 #{item.mimeType},
                 #{item.fileSize},
                 #{item.filePath},
+                #{item.pdfYn},
                 #{item.ordNo},
                 'N',
                 #{userId},
@@ -89,7 +125,6 @@
             mime_type ,
             file_size ,
             file_path ,
-            full_path ,
             ord_no
         from attach_file af
         where 1=1

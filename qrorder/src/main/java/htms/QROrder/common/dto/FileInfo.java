@@ -12,6 +12,6 @@ public class FileInfo {
     private String mimeType;
     private String fileSize;
     private String filePath;
-    private String fullPath;
     private Integer ordNo;
+    private String pdfYn;
 }
