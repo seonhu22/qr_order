@@ -1,32 +1,53 @@
-// frontend/src/shared/components/modal/types.ts
-// 모달 컴포넌트에서 사용되는 타입들을 정의하는 파일입니다.
+// src/shared/components/modal/modalType.ts
+
+/**
+ * @fileoverview WrapperModal 타입 정의
+ *
+ * @description
+ * - 공용 모달 래퍼와 완성형 모달이 함께 사용하는 타입을 관리한다.
+ * - shared/types가 아닌 modal 폴더 내부에 두는 이유는 모달 전용 타입이기 때문이다.
+ *
+ * @example
+ * import type { WrapperModalProps } from '@/shared/components/modal';
+ *
+ * @example
+ * const size: ModalSize = 'md';
+ */
+
+import type { ReactNode } from 'react';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
-/* =====================================================
- * BaseModal Props
- * ===================================================== */
+export type WrapperModalLayout = 'default' | 'notice';
 
-/**
- * 베이스 모달(BaseModal) Props
- */
-export interface BaseModalProps {
-  /** 모달 노출 여부 */
+export type WrapperModalActions = 'single' | 'double';
+
+export interface ModalCommonProps {
   open: boolean;
-  /** 모달 제목 (기본: '알림') */
-  title?: string;
-  /** 확인 버튼 라벨 (기본: '확인') */
-  primaryLabel?: string;
-  /** 본문 1차 설명 */
-  primaryDescription?: string;
-  /** 본문 2차 설명 — 빈 문자열/undefined는 렌더링하지 않음 */
-  secondaryDescription?: string;
-  /** 오버레이 클릭 닫기 허용 여부 (기본: true) */
-  closeOnOverlayClick?: boolean;
-  /** 모달 크기 (기본: 'sm') */
   size?: ModalSize;
-  /** 모달 닫기 핸들러 */
+  layout?: WrapperModalLayout;
+  title?: string;
+  subtitle?: string;
+  noticeTopPadding?: boolean;
+  closeOnOverlayClick?: boolean;
   onClose: () => void;
-  /** 확인 버튼 핸들러 — 미지정 시 onClose fallback */
+}
+
+export interface ModalActionProps {
+  actions?: WrapperModalActions;
+  primaryLabel?: string;
+  secondaryLabel?: string;
   onConfirm?: () => void;
+  onSecondaryAction?: () => void;
+}
+
+export interface WrapperModalProps extends ModalCommonProps, ModalActionProps {
+  icon?: ReactNode;
+  children?: ReactNode;
+}
+
+export interface StatusModalProps
+  extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'>,
+    Pick<ModalActionProps, 'primaryLabel' | 'onConfirm'> {
+  description?: string;
 }
