@@ -1,1 +1,2 @@
+#!/bin/sh
 sh scripts/gitleaks-staged.sh
