@@ -176,9 +176,13 @@ export function WrapperModal({
           {isNoticeLayout && (
             <div className="base-modal__notice">
               {icon ? <div className="base-modal__notice-icon">{icon}</div> : null}
-              {title ? <h3 className="base-modal__title base-modal__title--center">{title}</h3> : null}
+              {title ? (
+                <h3 className="base-modal__title base-modal__title--center">{title}</h3>
+              ) : null}
               {hasSubtitle ? (
-                <p className="base-modal__description base-modal__description--center">{subtitle}</p>
+                <p className="base-modal__description base-modal__description--center">
+                  {subtitle}
+                </p>
               ) : null}
             </div>
           )}
@@ -193,6 +197,10 @@ export function WrapperModal({
         <footer className="base-modal__footer">
           {shouldRenderDoubleActions ? (
             <>
+              {/* TODO: 공용 Button 컴포넌트 도입 시 기본 버튼으로 교체 */}
+              <button className="base-modal__confirm" type="button" onClick={handlePrimaryAction}>
+                {primaryLabel}
+              </button>
               {/* TODO: 공용 Button 컴포넌트 도입 시 보조 버튼으로 교체 */}
               <button
                 className="base-modal__secondary"
@@ -200,10 +208,6 @@ export function WrapperModal({
                 onClick={handleSecondaryAction}
               >
                 {secondaryLabel}
-              </button>
-              {/* TODO: 공용 Button 컴포넌트 도입 시 기본 버튼으로 교체 */}
-              <button className="base-modal__confirm" type="button" onClick={handlePrimaryAction}>
-                {primaryLabel}
               </button>
             </>
           ) : (
