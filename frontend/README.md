@@ -386,7 +386,8 @@ http://localhost:3000/dev/input
 | `/dev/input`  | TextInput 크기·상태·레이블 위치·기능 전체 예시                              |
 | `/dev/select` | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                |
 | `/dev/modal`  | Modal 크기·상태·레이아웃 전체 예시                                          |
-| `/dev/button` | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시 |
+| `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시        |
+| `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                    |
 
 ### 9.3 신규 가이드 추가 방법
 
