@@ -132,7 +132,7 @@
   background-color: var(--color-brand-active);
 }
 .btn--primary:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* secondary */
@@ -147,7 +147,7 @@
   background-color: var(--color-border-divider);
 }
 .btn--secondary:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* outline */
@@ -164,7 +164,7 @@
   background-color: var(--color-bg-hover);
 }
 .btn--outline:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
   border-color: var(--color-border-focus);
 }
 
@@ -181,7 +181,7 @@
   background-color: var(--color-bg-selected);
 }
 .btn--ghost:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* danger */
@@ -196,7 +196,7 @@
   filter: brightness(0.85);
 }
 .btn--danger:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+  box-shadow: var(--focus-ring-error);
 }
 
 /* text */
@@ -208,7 +208,7 @@
   color: var(--color-text-primary);
 }
 .btn--text:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* link */
@@ -220,7 +220,7 @@
   text-decoration: underline;
 }
 .btn--link:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* icon */
@@ -236,7 +236,7 @@
   background-color: var(--color-bg-selected);
 }
 .btn--icon:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* icon-text */
@@ -251,7 +251,7 @@
   background-color: var(--color-border-divider);
 }
 .btn--icon-text:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* toggle — 기본 (미선택) */
@@ -264,7 +264,7 @@
   background-color: var(--color-bg-hover);
 }
 .btn--toggle:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* toggle — 선택됨 */
@@ -307,9 +307,5 @@
   align-items: center;
   flex-shrink: 0;
   will-change: transform;
-  animation: btn-spin 0.75s linear infinite;
-}
-
-@keyframes btn-spin {
-  to { transform: rotate(360deg); }
+  animation: ui-spin 0.75s linear infinite;
 }

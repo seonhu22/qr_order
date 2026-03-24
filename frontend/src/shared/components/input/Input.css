@@ -34,7 +34,7 @@
 /* 포커스 — disabled · readonly 상태 제외 */
 .input-control:not([data-state="disabled"]):not([data-state="readonly"]):focus-within {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
   outline: none;
 }
 
@@ -43,7 +43,7 @@
   border-color: var(--color-border-error);
 }
 .input-control[data-state="error"]:focus-within {
-  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+  box-shadow: var(--focus-ring-error);
 }
 
 /* 성공 상태 */
@@ -51,7 +51,7 @@
   border-color: var(--color-border-success);
 }
 .input-control[data-state="success"]:focus-within {
-  box-shadow: 0 0 0 3px var(--color-success-focus-ring);
+  box-shadow: var(--focus-ring-success);
 }
 
 /* 비활성(disabled) 상태 */
@@ -198,11 +198,7 @@
   display: inline-flex;
   color: var(--color-text-tertiary);
   will-change: transform; /* 컴포지트 레이어 승격으로 GPU 가속 */
-  animation: input-spin 0.75s linear infinite;
-}
-
-@keyframes input-spin {
-  to { transform: rotate(360deg); }
+  animation: ui-spin 0.75s linear infinite;
 }
 
 
@@ -235,7 +231,7 @@
 .select-control:not([data-state="disabled"]):not([data-state="readonly"]):focus-within,
 .select-control:not([data-state="disabled"]):not([data-state="readonly"])[data-open="true"] {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
   outline: none;
 }
 
@@ -245,7 +241,7 @@
 }
 .select-control[data-state="error"]:focus-within,
 .select-control[data-state="error"][data-open="true"] {
-  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+  box-shadow: var(--focus-ring-error);
 }
 
 /* 성공 상태 */
@@ -254,7 +250,7 @@
 }
 .select-control[data-state="success"]:focus-within,
 .select-control[data-state="success"][data-open="true"] {
-  box-shadow: 0 0 0 3px var(--color-success-focus-ring);
+  box-shadow: var(--focus-ring-success);
 }
 
 /* 비활성(disabled) 상태 */
@@ -579,11 +575,7 @@
   display: inline-flex;
   color: var(--color-text-tertiary);
   will-change: transform;
-  animation: select-spin 0.75s linear infinite;
-}
-
-@keyframes select-spin {
-  to { transform: rotate(360deg); }
+  animation: ui-spin 0.75s linear infinite;
 }
 
 

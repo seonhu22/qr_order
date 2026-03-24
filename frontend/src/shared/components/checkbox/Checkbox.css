@@ -85,7 +85,7 @@
 /* ── 상태: 포커스 ── */
 .checkbox-control__native:focus-visible + .checkbox-control__box {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
   outline: none;
 }
 
@@ -96,7 +96,7 @@
   color: var(--color-brand-text);
 }
 .checkbox-control__native:checked:focus-visible + .checkbox-control__box {
-  box-shadow: 0 0 0 3px var(--color-brand-focus-ring);
+  box-shadow: var(--focus-ring-brand);
 }
 
 /* ── 상태: indeterminate ── */
@@ -113,7 +113,7 @@
 .checkbox-control--error
   .checkbox-control__native:focus-visible
   + .checkbox-control__box {
-  box-shadow: 0 0 0 3px var(--color-error-focus-ring);
+  box-shadow: var(--focus-ring-error);
   border-color: var(--color-border-error);
 }
 .checkbox-control--error
