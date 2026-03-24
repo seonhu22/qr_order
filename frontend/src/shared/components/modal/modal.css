@@ -86,6 +86,10 @@
   text-align: center;
 }
 
+.base-modal--notice-padding-top .base-modal__body {
+  padding-top: 24px;
+}
+
 .base-modal__notice {
   display: flex;
   flex-direction: column;

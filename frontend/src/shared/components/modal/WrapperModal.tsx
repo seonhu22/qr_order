@@ -31,6 +31,16 @@
  *   onClose={handleClose}
  *   onConfirm={handleDelete}
  * />
+ *
+ * @example
+ * <WrapperModal
+ *   open={open}
+ *   layout="notice"
+ *   noticeTopPadding
+ *   title="안내"
+ *   subtitle="상단 여백이 추가된 안내 모달입니다."
+ *   onClose={handleClose}
+ * />
  */
 
 import { useEffect } from 'react';
@@ -57,6 +67,7 @@ const sizeClassMap: Record<ModalSize, string> = {
  * @param {string} [props.subtitle] 제목 아래 설명 문구
  * @param {import('react').ReactNode} [props.icon] notice 레이아웃에서 중앙 정렬로 보여줄 아이콘
  * @param {import('react').ReactNode} [props.children] 본문에 렌더링할 커스텀 콘텐츠
+ * @param {boolean} [props.noticeTopPadding=false] notice 레이아웃에서 본문 상단에 24px 추가 패딩 적용 여부
  * @param {boolean} [props.closeOnOverlayClick=true] 배경 클릭 시 닫기 허용 여부
  * @param {string} [props.primaryLabel='확인'] 기본 액션 버튼 라벨
  * @param {string} [props.secondaryLabel='닫기'] 보조 액션 버튼 라벨
@@ -74,6 +85,7 @@ export function WrapperModal({
   subtitle,
   icon,
   children,
+  noticeTopPadding = false,
   closeOnOverlayClick = true,
   primaryLabel = '확인',
   secondaryLabel = '닫기',
@@ -143,6 +155,8 @@ export function WrapperModal({
   const isNoticeLayout = layout === 'notice';
   const shouldRenderDoubleActions = actions === 'double';
   const shouldRenderDescriptionBlock = !children && hasSubtitle;
+  const noticePaddingClassName =
+    isNoticeLayout && noticeTopPadding ? ' base-modal--notice-padding-top' : '';
 
   return (
     <div
@@ -153,7 +167,7 @@ export function WrapperModal({
       <section
         aria-label={title || subtitle || '모달'}
         aria-modal="true"
-        className={`base-modal ${sizeClassMap[size]}${isNoticeLayout ? ' base-modal--notice' : ''}`}
+        className={`base-modal ${sizeClassMap[size]}${isNoticeLayout ? ' base-modal--notice' : ''}${noticePaddingClassName}`}
         role="dialog"
         onClick={(event) => event.stopPropagation()}
       >

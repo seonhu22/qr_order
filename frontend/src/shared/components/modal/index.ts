@@ -10,13 +10,23 @@
  * @param {never} _unused 이 파일은 런타임 파라미터를 사용하지 않는 export 배럴 파일이다.
  * @example
  * // 일반 사용
- * import { WrapperModal } from '@/shared/components/modal';
+ * import { StatusModal, WrapperModal } from '@/shared/components/modal';
  *
  * @example
  * // 타입 사용
- * import type { ModalSize, WrapperModalProps } from '@/shared/components/modal';
+ * import type { ModalCommonProps, ModalSize, WrapperModalProps } from '@/shared/components/modal';
  */
 
 export { WrapperModal } from './WrapperModal';
 
-export type { ModalSize, WrapperModalActions, WrapperModalLayout, WrapperModalProps } from './modalType';
+export type {
+  ModalActionProps,
+  ModalCommonProps,
+  ModalSize,
+  StatusModalProps,
+  WrapperModalActions,
+  WrapperModalLayout,
+  WrapperModalProps,
+} from './modalType';
+
+export { StatusModal } from './StatusModal';
