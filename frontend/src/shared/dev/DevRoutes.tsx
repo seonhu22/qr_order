@@ -17,7 +17,7 @@ import DevLayout from './DevLayout';
 import InputGuide from './InputGuide';
 import ModalGuide from './ModalGuide';
 import SelectGuide from './SelectGuide';
-// import ButtonGuide   from './ButtonGuide';   // 추후 추가
+import ButtonGuide from './ButtonGuide';
 // import TableGuide    from './TableGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
@@ -29,10 +29,10 @@ export const devRoutes = [
       /* /dev 진입 시 첫 가이드로 리다이렉트 */
       { index: true, element: <Navigate to="/dev/modal" replace /> },
 
-      { path: 'input', element: <InputGuide /> },
-      { path: 'modal', element: <ModalGuide /> },
+      { path: 'input',  element: <InputGuide /> },
+      { path: 'modal',  element: <ModalGuide /> },
       { path: 'select', element: <SelectGuide /> },
-      // { path: 'button',   element: <ButtonGuide /> },
+      { path: 'button', element: <ButtonGuide /> },
       // { path: 'table',    element: <TableGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],

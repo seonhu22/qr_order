@@ -15,10 +15,10 @@ import { NavLink, Outlet } from 'react-router-dom';
  * 새 가이드 페이지를 추가할 때 여기에만 등록
  * ===================================================== */
 const NAV_ITEMS = [
-  { path: '/dev/input', label: 'TextInput' },
-  { path: '/dev/modal', label: 'Modal' },
+  { path: '/dev/input',  label: 'TextInput' },
+  { path: '/dev/modal',  label: 'Modal' },
   { path: '/dev/select', label: 'SelectInput' },
-  // { path: '/dev/button',   label: 'Button' },       // 추후 추가
+  { path: '/dev/button', label: 'Button' },
   // { path: '/dev/table',    label: 'Table' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;
