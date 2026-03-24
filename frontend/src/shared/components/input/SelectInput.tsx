@@ -13,90 +13,8 @@
 import './Input.css';
 import { useState, useId, useRef, useEffect } from 'react';
 import { InputWrapper } from './InputWrapper';
+import { Icon } from '@/shared/assets/icons/Icon';
 import type { SelectInputProps, SelectOption, InputControlState, InputSize } from './types';
-
-/* =====================================================
- * 내부 SVG 아이콘 (외부 아이콘 라이브러리 의존 없음)
- * ===================================================== */
-
-function ChevronDownIcon({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
-function CheckIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
-function SearchIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function SpinnerIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="select-spinner"
-      aria-hidden="true"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
 
 /* =====================================================
  * 크기별 아이콘 픽셀 크기
@@ -143,7 +61,7 @@ function OptionItem({
       {/* 선택 체크 */}
       {selected && (
         <span className="select-option__check">
-          <CheckIcon size={13} />
+          <Icon id="i-check" size={13} />
         </span>
       )}
     </li>
@@ -364,9 +282,9 @@ export function SelectInput({
         {/* 오른쪽 슬롯 — 로딩 스피너 또는 chevron */}
         <span className="select-control__slot-right" aria-hidden="true">
           {loading ? (
-            <SpinnerIcon size={iconSize} />
+            <Icon id="i-loading" size={iconSize} className="select-spinner" />
           ) : (
-            <ChevronDownIcon size={iconSize} className="select-control__chevron" />
+            <Icon id="i-chevron-down" size={iconSize} className="select-control__chevron" />
           )}
         </span>
 
@@ -380,7 +298,7 @@ export function SelectInput({
               <div className="select-dropdown__search">
                 <div className="select-dropdown__search-box">
                   <span className="select-dropdown__search-icon">
-                    <SearchIcon size={13} />
+                    <Icon id="i-search" size={13} />
                   </span>
                   <input
                     ref={searchRef}
