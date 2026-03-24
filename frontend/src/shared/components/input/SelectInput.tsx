@@ -117,6 +117,7 @@ function OptionItem({
   selected: boolean;
   onSelect: (opt: SelectOption) => void;
 }) {
+  // 원인: role="option" 요소는 listbox 또는 group 내부에 있어야 하고, 현재 중간 presentation 래퍼/중첩 ul 구조 때문에 부모-자식 ARIA 관계와 boolean 속성 해석 경고가 함께 발생한다.
   return (
     <li
       role="option"
@@ -349,6 +350,7 @@ export function SelectInput({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-invalid={errorText ? true : undefined}
+          // 버튼은 readonly 옵션 불필요
           aria-readonly={readOnly ? true : undefined}
           aria-describedby={
             errorText ? `${triggerId}-error` : hint ? `${triggerId}-hint` : undefined
@@ -395,6 +397,7 @@ export function SelectInput({
               </div>
             )}
 
+            {/* 원인: role="listbox"의 직접 자식은 option 또는 group이어야 하는데 현재는 presentation 래퍼(li) 구조가 섞여 있어 axe 경고가 발생한다. */}
             {/* 옵션 목록 */}
             <ul className="select-dropdown__list" role="listbox" aria-label={label ?? placeholder}>
               {/* 그룹 없는 옵션 */}
