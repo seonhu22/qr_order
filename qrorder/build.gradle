@@ -60,6 +60,14 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// JodConverter (LibreOffice 기반 Office → PDF 변환)
+	implementation 'org.jodconverter:jodconverter-local-lo:4.4.7'
+	implementation 'org.jodconverter:jodconverter-spring-boot-starter:4.4.7'
+
+	// Apache POI (Office 파일 암호화 감지)
+	implementation 'org.apache.poi:poi:5.3.0'
+	implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
 	// 테스트
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
