@@ -14,8 +14,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { StatusModal, WrapperModal } from '@/shared/components/modal';
-import type { ModalSize, WrapperModalActions, WrapperModalLayout } from '@/shared/components/modal';
+import { NoticeModal, WrapperModal } from '@/shared/components/modal';
+import type { ModalSize, WrapperModalLayout } from '@/shared/components/modal';
 import './devStyles/ModalGuide.css';
 
 type Preset = {
@@ -25,10 +25,9 @@ type Preset = {
   subtitle?: string;
   size: ModalSize;
   layout?: WrapperModalLayout;
-  actions?: WrapperModalActions;
   closeOnOverlayClick?: boolean;
-  primaryLabel?: string;
-  secondaryLabel?: string;
+  primaryActionLabel?: string;
+  secondaryActionLabel?: string;
   icon?: string;
   onConfirmType?: 'default-close' | 'custom-close';
 };
@@ -40,7 +39,7 @@ const PRESETS: Preset[] = [
     title: '기본 안내',
     size: 'sm',
     subtitle: '가장 기본적인 안내 모달입니다.',
-    primaryLabel: '확인',
+    primaryActionLabel: '확인',
     onConfirmType: 'default-close',
   },
   {
@@ -49,9 +48,8 @@ const PRESETS: Preset[] = [
     title: '주문 취소 확인',
     size: 'md',
     subtitle: '진행 중인 주문을 취소하시겠습니까?',
-    actions: 'double',
-    primaryLabel: '취소하기',
-    secondaryLabel: '닫기',
+    primaryActionLabel: '취소하기',
+    secondaryActionLabel: '닫기',
     onConfirmType: 'custom-close',
   },
   {
@@ -62,7 +60,7 @@ const PRESETS: Preset[] = [
     layout: 'notice',
     subtitle: '정상적으로 저장되었습니다.',
     icon: '✓',
-    primaryLabel: '확인',
+    primaryActionLabel: '확인',
     onConfirmType: 'default-close',
   },
   {
@@ -71,11 +69,10 @@ const PRESETS: Preset[] = [
     title: '삭제 확인',
     size: 'md',
     layout: 'notice',
-    actions: 'double',
     subtitle: '선택한 항목을 삭제하시겠습니까?',
     icon: '!',
-    primaryLabel: '삭제',
-    secondaryLabel: '닫기',
+    primaryActionLabel: '삭제',
+    secondaryActionLabel: '닫기',
     onConfirmType: 'custom-close',
   },
   {
@@ -127,19 +124,19 @@ const BUTTON_MIGRATION_NOTES = [
 ];
 
 /**
- * StatusModal 가이드 섹션을 렌더링한다.
+ * NoticeModal 가이드 섹션을 렌더링한다.
  *
  * @returns {JSX.Element}
  */
-function StatusModalSection() {
+function NoticeModalSection() {
   const [alertOpen, setAlertOpen] = useState(false);
 
   return (
     <>
       <div className="modal-guide__card">
-        <p className="modal-guide__card-label">StatusModal (안내)</p>
+        <p className="modal-guide__card-label">NoticeModal (안내)</p>
         <p className="modal-guide__card-description">
-          information 아이콘 · 단일 확인 버튼 · layout=notice
+          information 아이콘 · 1버튼 고정 · layout=notice
         </p>
         <button
           className="modal-guide__card-button"
@@ -150,7 +147,7 @@ function StatusModalSection() {
         </button>
       </div>
 
-      <StatusModal
+      <NoticeModal
         open={alertOpen}
         title="안내"
         description={'비밀번호를 5번이상 틀리셨습니다.\n관리자에게 문의해주세요.'}
@@ -248,13 +245,35 @@ export default function ModalGuide() {
         </section>
 
         <section className="modal-guide__section">
-          <h2 className="modal-guide__section-title">StatusModals</h2>
+          <h2 className="modal-guide__section-title">NoticeModal</h2>
           <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
-            <code>StatusModal</code>은 WrapperModal <code>layout=&quot;notice&quot;</code> +{' '}
-            <code>noticeTopPadding</code> 조합의 상태 전달용 완성형 모달입니다.
+            <code>NoticeModal</code>은 WrapperModal <code>layout=&quot;notice&quot;</code> 기반의
+            1버튼 안내형 완성 모달입니다.
           </p>
           <div className="modal-guide__grid">
-            <StatusModalSection />
+            <NoticeModalSection />
+          </div>
+        </section>
+
+        <section className="modal-guide__section">
+          <h2 className="modal-guide__section-title">StatusModal</h2>
+          <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
+            <code>StatusModal</code>은 삭제/수정/저장 확인 같은 2버튼 상태 전달용 완성 모달입니다.
+          </p>
+          <div className="modal-guide__grid">
+            <div className="modal-guide__card">
+              <p className="modal-guide__card-label">StatusModal (2버튼)</p>
+              <p className="modal-guide__card-description">
+                danger tone · 확인/닫기 버튼 · layout=notice
+              </p>
+              <button
+                className="modal-guide__card-button"
+                type="button"
+                onClick={() => setActivePresetKey('notice-double')}
+              >
+                모달 열기
+              </button>
+            </div>
           </div>
         </section>
 
@@ -283,14 +302,24 @@ export default function ModalGuide() {
           title={activePreset.title}
           subtitle={activePreset.subtitle}
           layout={activePreset.layout}
-          actions={activePreset.actions}
           icon={activePreset.icon ? <span aria-hidden="true">{activePreset.icon}</span> : undefined}
-          primaryLabel={activePreset.primaryLabel}
-          secondaryLabel={activePreset.secondaryLabel}
+          primaryAction={
+            activePreset.primaryActionLabel
+              ? {
+                  label: activePreset.primaryActionLabel,
+                  onClick:
+                    activePreset.onConfirmType === 'custom-close' ? handleConfirm : undefined,
+                }
+              : undefined
+          }
+          secondaryAction={
+            activePreset.secondaryActionLabel
+              ? { label: activePreset.secondaryActionLabel, onClick: closeModal }
+              : undefined
+          }
           closeOnOverlayClick={activePreset.closeOnOverlayClick}
           size={activePreset.size}
           onClose={closeModal}
-          onConfirm={activePreset.onConfirmType === 'custom-close' ? handleConfirm : undefined}
         />
       )}
     </div>
