@@ -4,9 +4,9 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.system.domain.*;
 import htms.QROrder.system.domain.Menu;
-import htms.QROrder.system.dto.AdminUserRequest;
-import htms.QROrder.system.dto.AdminUserResponse;
-import htms.QROrder.system.dto.CommonDetailRequest;
+import htms.QROrder.system.dto.*;
+import htms.QROrder.system.repository.PaymentCouponMapper;
+import htms.QROrder.system.repository.SysAccessLogMapper;
 import htms.QROrder.system.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -29,6 +30,14 @@ public class SettingsController {
     private final PlantService plantService;
     private final AdminUserService adminUserService;
     private final MenuService menuService;
+    private final MessageService messageService;
+    private final RuleMasterService ruleMasterService;
+    private final RuleDetailService ruleDetailService;
+    private final PaymentService paymentService;
+    private final PlantStatusService plantStatusService;
+    private final PaymentCouponService paymentCouponService;
+    private final SysAccessLogService sysAccessLogService;
+    private final AuditTrailService auditTrailService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -220,5 +229,207 @@ public class SettingsController {
                         .message("저장 완료.")
                         .build()
         );
+    }
+
+    @GetMapping("/message/search")
+    public List<Message> getMessage(@RequestParam(required = false) String searchKeyword) {
+
+        return messageService.getMessage(searchKeyword);
+    }
+
+    @PostMapping("/message/save")
+    public ResponseEntity<CommonResponse> saveMessage(@RequestBody MessageRequest messageRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        messageService.saveMessage(messageRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/rule/master/search")
+    public List<RuleMaster> getRuleMaster(@RequestParam(required = false) String searchKeyword) {
+
+        return ruleMasterService.getRuleMaster(searchKeyword);
+    }
+
+    @PostMapping("/rule/master/new")
+    public ResponseEntity<CommonResponse> newRuleMaster(@RequestBody RuleMaster ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.newRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("저장 완료.")
+                    .build()
+        );
+    }
+
+    @PostMapping("/rule/master/update")
+    public ResponseEntity<CommonResponse> updateRuleMaster(@RequestBody RuleMaster ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.updateRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("수정 완료.")
+                    .build()
+        );
+    }
+
+    @PostMapping("/rule/master/del")
+    public ResponseEntity<CommonResponse> delRuleMaster(@RequestBody List<RuleMaster> ruleMaster,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleMasterService.delRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("삭제 완료.")
+                    .build()
+        );
+    }
+
+    @GetMapping("/rule/detail/search")
+    public List<RuleDetail> getRuleDetail(@RequestParam String sysId) {
+
+        return ruleDetailService.getRuleDetail(sysId);
+    }
+
+    @PostMapping("/rule/detail/save")
+    public ResponseEntity<CommonResponse> saveRule(@RequestBody RuleDetailRequest ruleDetailRequest,
+                                                    HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        ruleDetailService.saveRuleDetail(ruleDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                    .success(true)
+                    .message("저장 완료.")
+                    .build()
+        );
+    }
+
+    @GetMapping("/payment/search")
+    public List<PaymentResponse> getPayment(@RequestParam(required = false) String searchKeyword) {
+
+        return paymentService.getPayment(searchKeyword);
+    }
+
+    @PostMapping("/payment/new")
+    public ResponseEntity<CommonResponse> newPayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.newPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/payment/update")
+    public ResponseEntity<CommonResponse> updatePayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.updatePayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/payment/del")
+    public ResponseEntity<CommonResponse> delPayment(@RequestBody Payment payment,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentService.delPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/plant_status/search")
+    public List<PlantStatusResponse> getPlantStatus(@RequestParam(required = false) String searchKeyword) {
+
+        return plantStatusService.getPlantStatus(searchKeyword);
+    }
+
+    @GetMapping("/payment_coupon/search")
+    public List<PaymentCoupon> getPaymentCoupon(@RequestParam(required = false) String searchKeyword) {
+
+        return paymentCouponService.getPaymentCoupon(searchKeyword);
+    }
+
+    @PostMapping("/payment_coupon/save")
+    public ResponseEntity<CommonResponse> savePaymentCoupon(@RequestBody PaymentCouponRequest paymentCouponRequest,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        paymentCouponService.savePaymentCoupon(paymentCouponRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/log/login/master")
+    public List<SysAccessLogMaster> getSysAccessLogMaster(@RequestParam(required = false) String searchKeyword,
+                                                            @RequestParam Date startDate,
+                                                            @RequestParam Date endDate) {
+
+        return sysAccessLogService.getSysAccessLogMaster(searchKeyword, startDate, endDate);
+    }
+
+    @GetMapping("/log/login/detail")
+    public List<SysAccessLogDetail> getSysAccessLogDetail(@RequestParam String sysId) {
+
+        return sysAccessLogService.getSysAccessLogDetail(sysId);
+    }
+
+    @GetMapping("/log/audittrail")
+    public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
+                                            @RequestParam Date startDate,
+                                            @RequestParam Date endDate) {
+
+        return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
     }
 }

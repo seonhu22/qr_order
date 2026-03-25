@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.common.repository.ComboMapper">
+
+    <select id="getCommonCombo" resultType="htms.QROrder.common.dto.Combo">
+        select
+            scd.common_cd as code,
+            scd.common_nm as name
+        from sys_common_detail scd
+        left join sys_common_master scm
+            on scm.sys_id = scd.link_sys_id
+        where 1=1
+        and scm.common_cd = #{code}
+        and scm.delete_yn = 'N'
+        and scm.use_yn = 'Y'
+        and scd.delete_yn = 'N'
+        and scd.use_yn = 'Y'
+    </select>
+
+    <select id="getPlantCombo" resultType="htms.QROrder.common.dto.Combo">
+        select
+            plant_cd as code,
+            plant_nm as name
+        from sys_plant sp
+        where 1=1
+        and delete_yn = 'N'
+        and use_yn = 'Y'
+    </select>
+</mapper>

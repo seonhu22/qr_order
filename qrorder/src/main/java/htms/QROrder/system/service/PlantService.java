@@ -41,15 +41,14 @@ public class PlantService {
                             String sysPlantCd,
                             String menuCd) {
         if(checkDuplicate(plant)) {
-            throw new DuplicateException("이미 존재하는 사업장 코드입니다.");
+            throw new DuplicateException("이미 존재하는 데이터입니다.");
         }
-        else {
-            String ULID = UlidCreator.getMonotonicUlid().toString();
-            plant.setSysId(ULID);
 
-            auditService.insertNewAuditTrailData(plant, ULID, menuCd, "sys_plant", userId, sysPlantCd);
-            plantMapper.newPlant(plant, userId);
-        }
+        String ULID = UlidCreator.getMonotonicUlid().toString();
+        plant.setSysId(ULID);
+
+        auditService.insertNewAuditTrailData(plant, ULID, menuCd, "sys_plant", userId, sysPlantCd);
+        plantMapper.newPlant(plant, userId);
     }
 
     public void updatePlant(Plant plant,
