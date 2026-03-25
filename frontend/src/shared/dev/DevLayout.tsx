@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { path: '/dev/select', label: 'SelectInput' },
   { path: '/dev/button',   label: 'Button' },
   { path: '/dev/checkbox', label: 'CheckboxInput' },
+  { path: '/dev/radio',    label: 'RadioInput' },
   // { path: '/dev/table',    label: 'Table' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;

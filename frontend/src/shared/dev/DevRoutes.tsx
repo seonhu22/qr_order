@@ -19,6 +19,7 @@ import ModalGuide from './ModalGuide';
 import SelectGuide from './SelectGuide';
 import ButtonGuide from './ButtonGuide';
 import CheckboxGuide from './CheckboxGuide';
+import RadioGuide from './RadioGuide';
 // import TableGuide    from './TableGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
@@ -35,6 +36,7 @@ export const devRoutes = [
       { path: 'select', element: <SelectGuide /> },
       { path: 'button',   element: <ButtonGuide /> },
       { path: 'checkbox', element: <CheckboxGuide /> },
+      { path: 'radio',    element: <RadioGuide /> },
       // { path: 'table',    element: <TableGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],
