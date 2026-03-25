@@ -1,0 +1,288 @@
+/* =====================================================
+ * Radio 컴포넌트 스타일
+ * - RadioInput / RadioGroup 에서 공유
+ * - semantic-tokens.css 변수 우선 참조
+ * - 라디오 전용 크기는 local 정의 (semantic 미정의)
+ * - Tailwind 미사용, 순수 CSS
+ * ===================================================== */
+
+
+/* =====================================================
+ * RadioInput — .radio-control
+ * ===================================================== */
+
+/* ── 최상위 래퍼 ── */
+.radio-control {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 4px */
+}
+
+/* ── 라디오 행 (원 + 레이블) ── */
+.radio-control__row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-4); /* 8px */
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-control--disabled .radio-control__row {
+  cursor: not-allowed;
+}
+
+/* ── 히든 네이티브 input ── */
+.radio-control__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 커스텀 라디오 원 ── */
+.radio-control__box {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px; /* 첫 줄 텍스트 베이스라인 정렬 */
+  border-radius: 50%;
+  border: var(--border-1) solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  transition:
+    border-color var(--transition-ui),
+    box-shadow   var(--transition-ui);
+}
+
+/* ── 크기 변형 ── */
+.radio-control--sm .radio-control__box {
+  width: 0.875rem;   /* 14px */
+  height: 0.875rem;
+}
+.radio-control--md .radio-control__box {
+  width: 1rem;       /* 16px */
+  height: 1rem;
+}
+.radio-control--lg .radio-control__box {
+  width: 1.125rem;   /* 18px */
+  height: 1.125rem;
+}
+
+/* ── 내부 점 (checked 시 표시) ── */
+.radio-control__dot {
+  border-radius: 50%;
+  background-color: var(--color-brand-default);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity   var(--transition-ui),
+    transform var(--transition-ui);
+}
+
+.radio-control--sm .radio-control__dot {
+  width: 5px;
+  height: 5px;
+}
+.radio-control--md .radio-control__dot {
+  width: 6px;
+  height: 6px;
+}
+.radio-control--lg .radio-control__dot {
+  width: 7px;
+  height: 7px;
+}
+
+/* ── 상태: 호버 (disabled 제외) ── */
+.radio-control:not(.radio-control--disabled)
+  .radio-control__row:hover
+  .radio-control__box {
+  border-color: var(--color-border-hover);
+}
+
+/* ── 상태: 포커스 ── */
+.radio-control__native:focus-visible + .radio-control__box {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+  outline: none;
+}
+
+/* ── 상태: 체크됨 ── */
+.radio-control__native:checked + .radio-control__box {
+  border-color: var(--color-brand-default);
+}
+
+.radio-control__native:checked + .radio-control__box .radio-control__dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.radio-control__native:checked:focus-visible + .radio-control__box {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* ── 상태: 에러 ── */
+.radio-control--error .radio-control__box {
+  border-color: var(--color-border-error);
+}
+
+.radio-control--error
+  .radio-control__native:focus-visible
+  + .radio-control__box {
+  box-shadow: var(--focus-ring-error);
+  border-color: var(--color-border-error);
+}
+
+.radio-control--error
+  .radio-control__native:checked
+  + .radio-control__box {
+  border-color: var(--color-status-error-default);
+}
+
+.radio-control--error
+  .radio-control__native:checked
+  + .radio-control__box
+  .radio-control__dot {
+  background-color: var(--color-status-error-default);
+}
+
+/* ── 상태: 비활성(disabled) ── */
+.radio-control--disabled .radio-control__box {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-default);
+}
+
+.radio-control--disabled
+  .radio-control__native:checked
+  + .radio-control__box {
+  border-color: var(--color-brand-disabled);
+}
+
+.radio-control--disabled
+  .radio-control__native:checked
+  + .radio-control__box
+  .radio-control__dot {
+  background-color: var(--color-brand-disabled);
+}
+
+
+/* ── 레이블 영역 ── */
+.radio-control__label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+}
+
+.radio-control__label {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-snug);
+}
+
+.radio-control--disabled .radio-control__label {
+  color: var(--color-text-disabled);
+}
+
+.radio-control__desc {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--typography-leading-normal);
+}
+
+.radio-control--disabled .radio-control__desc {
+  color: var(--color-text-disabled);
+}
+
+
+/* ── 도움말 영역 ── */
+.radio-control__helper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+}
+
+/* 원 너비 + row gap 만큼 들여쓰기 → 레이블 텍스트와 정렬 */
+.radio-control--sm .radio-control__helper {
+  padding-left: calc(0.875rem + var(--spacing-4));
+}
+.radio-control--md .radio-control__helper {
+  padding-left: calc(1rem + var(--spacing-4));
+}
+.radio-control--lg .radio-control__helper {
+  padding-left: calc(1.125rem + var(--spacing-4));
+}
+
+.radio-control__hint {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.radio-control__error {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-text);
+}
+
+.radio-control__success {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-success-text);
+}
+
+
+/* =====================================================
+ * RadioGroup — .radio-group
+ * ===================================================== */
+
+.radio-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 4px */
+}
+
+.radio-group__label {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2); /* 4px */
+}
+
+.radio-group__list {
+  display: flex;
+}
+
+.radio-group__list--col {
+  flex-direction: column;
+  gap: var(--spacing-5); /* 10px */
+}
+
+.radio-group__list--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-8); /* 16px */
+}
+
+/* ── 도움말 영역 (RadioGroup 하단) ── */
+.radio-group__helper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.radio-group__hint {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.radio-group__error {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-text);
+}
+
+.radio-group__success {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-success-text);
+}
