@@ -4,6 +4,9 @@
  * StatusModal 전용 스타일
  * - .status-modal__icon-wrapper        : 상태 아이콘 배경 래퍼
  * - .status-modal__icon-wrapper--info  : 정보형 색상 조합
+ * - .status-modal__icon-wrapper--success : 성공형 색상 조합
+ * - .status-modal__icon-wrapper--danger  : 삭제/위험형 색상 조합
+ * - .status-modal__icon-wrapper--error   : 오류형 색상 조합
  * - .status-modal__icon-svg            : 아이콘 SVG 공통 크기
  * - .status-modal__description         : 본문 설명 텍스트 (줄바꿈 지원)
  */
@@ -20,6 +23,21 @@
 .status-modal__icon-wrapper--info {
   background: var(--color-brand-subtle);
   color: var(--color-brand-default);
+}
+
+.status-modal__icon-wrapper--success {
+  background: color-mix(in srgb, var(--color-success-default) 12%, white);
+  color: var(--color-success-default);
+}
+
+.status-modal__icon-wrapper--danger {
+  background: color-mix(in srgb, var(--color-danger-default) 12%, white);
+  color: var(--color-danger-default);
+}
+
+.status-modal__icon-wrapper--error {
+  background: color-mix(in srgb, var(--color-danger-default) 12%, white);
+  color: var(--color-danger-default);
 }
 
 .status-modal__icon-svg {

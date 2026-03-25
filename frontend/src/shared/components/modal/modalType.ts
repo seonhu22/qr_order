@@ -15,12 +15,13 @@
  */
 
 import type { ReactNode } from 'react';
+import type { ButtonVariant } from '@/shared/components/button';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type WrapperModalLayout = 'default' | 'notice';
 
-export type WrapperModalActions = 'single' | 'double';
+export type StatusModalTone = 'info' | 'success' | 'danger' | 'error';
 
 export interface ModalCommonProps {
   open: boolean;
@@ -28,26 +29,45 @@ export interface ModalCommonProps {
   layout?: WrapperModalLayout;
   title?: string;
   subtitle?: string;
-  noticeTopPadding?: boolean;
   closeOnOverlayClick?: boolean;
   onClose: () => void;
 }
 
-export interface ModalActionProps {
-  actions?: WrapperModalActions;
-  primaryLabel?: string;
-  secondaryLabel?: string;
-  onConfirm?: () => void;
-  onSecondaryAction?: () => void;
+export interface ModalActionConfig {
+  label?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  onClick?: () => void;
 }
 
-export interface WrapperModalProps extends ModalCommonProps, ModalActionProps {
+export interface ModalPrimaryAction extends ModalActionConfig {
+  variant?: Extract<ButtonVariant, 'primary' | 'danger'>;
+}
+
+export interface ModalSecondaryAction extends ModalActionConfig {
+  variant?: Extract<ButtonVariant, 'secondary'>;
+}
+
+export type StatusPrimaryAction = Omit<ModalPrimaryAction, 'label' | 'variant'>;
+
+export type StatusSecondaryAction = Omit<ModalSecondaryAction, 'label' | 'variant'>;
+
+export interface WrapperModalProps extends ModalCommonProps {
   icon?: ReactNode;
   children?: ReactNode;
+  primaryAction?: ModalPrimaryAction;
+  secondaryAction?: ModalSecondaryAction;
 }
 
-export interface StatusModalProps
-  extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'>,
-    Pick<ModalActionProps, 'primaryLabel' | 'onConfirm'> {
+export interface StatusModalProps extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'> {
   description?: string;
+  tone?: StatusModalTone;
+  primaryAction?: StatusPrimaryAction;
+  secondaryAction?: StatusSecondaryAction;
+}
+
+export interface NoticeModalProps extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'> {
+  description?: string;
+  tone?: StatusModalTone;
+  primaryAction?: ModalPrimaryAction;
 }

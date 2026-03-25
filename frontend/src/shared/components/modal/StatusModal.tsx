@@ -5,20 +5,22 @@
  *
  * @description
  * - WrapperModal의 `layout="notice"` 조합을 사용하는 상태 전달용 완성형 모달이다.
- * - 저장, 수정, 확인, 삭제 같은 상태 메시지를 일관된 UI로 보여주기 위한 출발점이다.
- * - 현재는 정보형 아이콘과 단일 확인 버튼을 기본 제공하며, 추후 variant와 공용 버튼 컴포넌트로 확장한다.
+ * - StatusModal은 2버튼 구조로 고정하고, tone에 따라 아이콘과 컨테이너 색상, 기본 버튼 variant만 바꾼다.
  *
  * @example
  * <StatusModal
  *   open={open}
- *   title="안내"
- *   description={"비밀번호를 5번이상 틀리셨습니다.\n관리자에게 문의해주세요."}
+ *   tone="danger"
+ *   title="삭제 확인"
+ *   description="선택한 항목을 삭제하시겠습니까?"
  *   onClose={() => setOpen(false)}
+ *   primaryAction={{ label: '삭제', onClick: handleDelete, variant: 'danger' }}
  * />
  */
 
+import { Icon } from '@/shared/assets/icons/Icon';
 import { WrapperModal } from './WrapperModal';
-import { StatusInfoIcon } from '@/shared/components/icon';
+import { STATUS_MODAL_ICON_MAP } from './modal.constants';
 import type { StatusModalProps } from './modalType';
 import './StatusModal.css';
 
@@ -29,36 +31,49 @@ import './StatusModal.css';
  * @param {boolean} props.open 모달 노출 여부
  * @param {string} [props.title='안내'] 모달 제목
  * @param {string} [props.description] 본문 설명 텍스트
- * @param {string} [props.primaryLabel='확인'] 확인 버튼 라벨
+ * @param {'info' | 'success' | 'danger' | 'error'} [props.tone='info'] 상태 모달 종류
+ * @param {{ disabled?: boolean; loading?: boolean; onClick?: () => void }} [props.primaryAction] 확인 버튼 설정
+ * @param {{ disabled?: boolean; loading?: boolean; onClick?: () => void }} [props.secondaryAction] 닫기 버튼 설정
  * @param {() => void} props.onClose 모달 닫기 핸들러
- * @param {() => void} [props.onConfirm] 확인 버튼 클릭 핸들러
  * @returns {JSX.Element | null} 모달이 열려 있으면 다이얼로그를, 닫혀 있으면 null을 반환한다.
  */
 export function StatusModal({
   open,
   title = '안내',
   description,
-  primaryLabel = '확인',
+  tone = 'info',
   size = 'sm',
+  primaryAction,
+  secondaryAction,
   onClose,
-  onConfirm,
 }: StatusModalProps) {
+  const resolvedPrimaryAction = {
+    label: '확인',
+    variant: tone === 'danger' ? 'danger' : 'primary',
+    ...primaryAction,
+  } as const;
+
+  const resolvedSecondaryAction = {
+    label: '닫기',
+    variant: 'secondary',
+    onClick: onClose,
+    ...secondaryAction,
+  } as const;
+
   return (
     <WrapperModal
-      actions="single"
       icon={
-        <div className="status-modal__icon-wrapper status-modal__icon-wrapper--info">
-          <StatusInfoIcon className="status-modal__icon-svg" />
+        <div className={`status-modal__icon-wrapper status-modal__icon-wrapper--${tone}`}>
+          <Icon className="status-modal__icon-svg" id={STATUS_MODAL_ICON_MAP[tone]} size={28} />
         </div>
       }
-      noticeTopPadding
       layout="notice"
       open={open}
-      primaryLabel={primaryLabel}
+      primaryAction={resolvedPrimaryAction}
+      secondaryAction={resolvedSecondaryAction}
       size={size}
       title={title}
       onClose={onClose}
-      onConfirm={onConfirm}
     >
       {description ? <p className="status-modal__description">{description}</p> : null}
     </WrapperModal>
