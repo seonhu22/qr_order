@@ -17,8 +17,10 @@
         left join sys_plant sp2
             on sp2.plant_cd = sp.plant_nm
         where 1=1
-        and (sp.user_id like concat('%', #{searchKeyword}, '%') or
-                sp.user_nm like concat('%', #{searchKeyword}, '%'))
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (sp.user_id like concat('%', #{searchKeyword}, '%') or
+                    sp.user_nm like concat('%', #{searchKeyword}, '%'))
+        </if>
         and sp.delete_yn = 'N'
         and sp2.delete_yn = 'N'
     </select>
@@ -68,7 +70,10 @@
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
-        and sys_id = #{payment.sysId}
+        and sys_id
+        <foreach collection="payment" open="(" separator="," close=")">
+            #{payment.sysId}
+        </foreach>
     </delete>
 
     <select id="duplicateChk" resultType="boolean">
@@ -85,5 +90,19 @@
         from sys_plant_pay_info
         where 1=1
         and payment_cd = #{payment.paymentCd}
+    </select>
+
+    <select id="getPayment" resultType="htms.QROrder.system.domain.Payment">
+        select
+        sp.sys_id ,
+        sp.plant_cd ,
+        sp.payment_cd ,
+        sp.payment_nm ,
+        sp.payment_fee ,
+        sp.payment_fee_unit ,
+        sp.license_valid_month
+        from sys_payment sp
+        where 1=1
+        and sys_id = #{payment.sysId}
     </select>
 </mapper>

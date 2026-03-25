@@ -25,10 +25,10 @@ public class PlantService {
         return plantMapper.findPlantBySearchCond(searchCond);
     }
 
-    public void delPlantByCheckCond(List<Plant> plants,
-                                    String userId,
-                                    String sysPlantCd,
-                                    String menuCd) {
+    public void delPlant(List<Plant> plants,
+                            String userId,
+                            String sysPlantCd,
+                            String menuCd) {
 
         List<String> ids = plants.stream().map(Plant::getSysId).collect(Collectors.toList());
 
@@ -62,12 +62,12 @@ public class PlantService {
         plantMapper.updatePlant(plant, userId);
     }
 
-    public boolean checkDuplicate(Plant plant) {
+    private boolean checkDuplicate(Plant plant) {
 
         return plantMapper.checkDuplicate(plant);
     }
 
-    public Plant getOldData(String sysId) {
+    private Plant getOldData(String sysId) {
 
         return plantMapper.getOldData(sysId);
     }

@@ -29,7 +29,7 @@ public class CommonDetailService {
         return commonDetailMapper.findCommonDetailBySearchCond(linkSysId , searchCond);
     }
 
-    public void newCommonDetail(List<CommonDetail> commonDetail,
+    private void newCommonDetail(List<CommonDetail> commonDetail,
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
@@ -39,7 +39,7 @@ public class CommonDetailService {
         commonDetailMapper.newCommonDetail(commonDetail, userId);
     }
 
-    public void delCommonDetail(List<CommonDetail> commonDetail,
+    private void delCommonDetail(List<CommonDetail> commonDetail,
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
@@ -50,22 +50,23 @@ public class CommonDetailService {
         commonDetailMapper.delCommonDetail(ids, userId);
     }
 
-    public void updateCommonDetail(List<CommonDetail> commonDetail,
+    private void updateCommonDetail(List<CommonDetail> commonDetail,
                                     String userId,
                                 String sysPlantCd,
                                 String menuCd) {
 
         List<CommonDetail> oldData = commonDetailMapper.getOldData(commonDetail);
+
         auditService.insertUpdateAuditTrailData(oldData, commonDetail, menuCd, "sys_common_detail", userId, sysPlantCd);
         commonDetailMapper.updateCommonDetail(commonDetail, userId);
     }
 
-    public boolean duplicateChk(List<CommonDetail> commonDetail) {
+    private boolean duplicateChk(List<CommonDetail> commonDetail) {
 
         return  commonDetailMapper.duplicateChk(commonDetail);
     }
 
-    public List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail) {
+    private List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail) {
 
         return commonDetailMapper.getDuplicateData(commonDetail);
     }

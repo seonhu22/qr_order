@@ -14,4 +14,5 @@ public interface PaymentCouponMapper {
     void delPaymentCoupon(List<PaymentCoupon> delItems, String userId, String sysPlantCd);
     boolean duplicateChk(List<PaymentCoupon> paymentCoupon);
     List<PaymentCoupon> getDuplicateData(List<PaymentCoupon> paymentCoupon);
+    List<PaymentCoupon> getOldData(List<PaymentCoupon> paymentCoupon);
 }

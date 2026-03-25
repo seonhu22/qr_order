@@ -1,6 +1,7 @@
 package htms.QROrder.system.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.AdminUser;
 import htms.QROrder.system.domain.PaymentCoupon;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class PaymentCouponService {
 
     private final PaymentCouponMapper paymentCouponMapper;
+    private final AuditService auditService;
 
     public List<PaymentCoupon> getPaymentCoupon(String searchKeyword) {
 
@@ -31,7 +33,8 @@ public class PaymentCouponService {
 
     public void savePaymentCoupon(PaymentCouponRequest paymentCouponRequest,
                                     String userId,
-                                    String sysPlantCd) {
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         List<PaymentCoupon> newItems = paymentCouponRequest.getNewItems();
         List<PaymentCoupon> updateItems = paymentCouponRequest.getUpdateItems();
@@ -52,36 +55,44 @@ public class PaymentCouponService {
                 item.setSysId(UlidCreator.getUlid().toString());
             });
 
-            newPaymentCoupon(newItems, userId, sysPlantCd);
+            newPaymentCoupon(newItems, userId, sysPlantCd, menuCd);
         }
 
         if(!updateItems.isEmpty()){
-            updatePaymentCoupon(updateItems, userId, sysPlantCd);
+            updatePaymentCoupon(updateItems, userId, sysPlantCd, menuCd);
         }
 
         if(!delItems.isEmpty()){
-            delPaymentCoupon(delItems, userId, sysPlantCd);
+            delPaymentCoupon(delItems, userId, sysPlantCd, menuCd);
         }
     }
 
     private void newPaymentCoupon(List<PaymentCoupon> newItems,
                                     String userId,
-                                    String sysPlantCd) {
+                                    String sysPlantCd,
+                                    String menuCd) {
 
+        auditService.insertNewAuditTrailData(newItems, menuCd, "sys_payment_coupon", userId, sysPlantCd);
         paymentCouponMapper.newPaymentCoupon(newItems,  userId, sysPlantCd);
     }
 
     private void updatePaymentCoupon(List<PaymentCoupon> updateItems,
-                                    String userId,
-                                    String sysPlantCd) {
+                                        String userId,
+                                        String sysPlantCd,
+                                        String menuCd) {
 
+        List<PaymentCoupon> oldData = getOldData(updateItems);
+
+        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "sys_payment_coupon", userId, sysPlantCd);
         paymentCouponMapper.updatePaymentCoupon(updateItems,  userId, sysPlantCd);
     }
 
     private void delPaymentCoupon(List<PaymentCoupon> delItems,
                                     String userId,
-                                    String sysPlantCd) {
+                                    String sysPlantCd,
+                                    String menuCd) {
 
+        auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_payment_coupon", userId, sysPlantCd);
         paymentCouponMapper.delPaymentCoupon(delItems,  userId, sysPlantCd);
     }
 
@@ -93,5 +104,10 @@ public class PaymentCouponService {
     private List<PaymentCoupon> getDuplicateData(List<PaymentCoupon> paymentCoupons) {
 
         return paymentCouponMapper.getDuplicateData(paymentCoupons);
+    }
+
+    private List<PaymentCoupon> getOldData(List<PaymentCoupon> paymentCoupons) {
+
+        return paymentCouponMapper.getOldData(paymentCoupons);
     }
 }

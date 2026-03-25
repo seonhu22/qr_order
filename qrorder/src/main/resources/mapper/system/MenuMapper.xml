@@ -15,4 +15,100 @@
         from sys_menu sm
         order by tree_level asc, ord_no asc
     </select>
+
+    <insert id="newMenu">
+        insert into sys_menu (
+            sys_id ,
+            menu_cd ,
+            menu_nm ,
+            parent_menu_cd ,
+            ord_no ,
+            tree_level ,
+            menu_url ,
+            insert_user_id ,
+            insert_datetime ,
+            sys_plant_cd
+        )
+        values 
+        <foreach collection="newItems" item="item" separator=",">
+            (
+                #{item.sysId},
+                #{item.menuCd},
+                #{item.menuNm},
+                #{item.parentMenuCd},
+                #{item.ordNo},
+                #{item.treeLevel},
+                #{item.menuUrl},
+                #{userId},
+                now(),
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateMenu">
+        <foreach collection="updateItems" item="item" separator=";">
+            update sys_menu set
+                menu_nm = #{item.menuNm},
+                ord_no = #{item.ordNo},
+                menu_url = #{item.menuUrl},
+                modify_user_id = #{userId},
+                modify_datetime = now()
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delMenu">
+        delete from sys_menu
+        where 1=1
+        and sys_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            COUNT(*) > 0
+        where 1=1
+        and menu_cd in
+        <foreach collection="menu" item="item" open="(" separator="," close=")" >
+            #{item.menuCd}
+        </foreach>
+    </select>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.Menu">
+        select
+            sys_id ,
+            menu_cd ,
+            menu_nm ,
+            parent_menu_cd ,
+            ord_no ,
+            tree_level ,
+            menu_url
+        from sys_menu sm
+        where 1=1
+        and sys_id in
+        <foreach collection="menu" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.system.domain.Menu">
+        select
+            sys_id ,
+            menu_cd ,
+            menu_nm ,
+            parent_menu_cd ,
+            ord_no ,
+            tree_level ,
+            menu_url
+        from sys_menu sm
+        where 1=1
+        and sys_id in
+        <foreach collection="menu" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
 </mapper>

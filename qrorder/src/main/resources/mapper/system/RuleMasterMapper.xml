@@ -68,4 +68,26 @@
         where 1=1
         and rule_cd = #{ruleMaster.ruleCd}
     </select>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.RuleMaster">
+        select
+            sys_id ,
+            rule_cd ,
+            rule_nm ,
+            use_yn
+        from sys_rule_master srm
+        where 1=1
+        and sys_id = #{sysId}
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.system.domain.RuleMaster">
+        select
+            sys_id ,
+            rule_cd ,
+            rule_nm ,
+            use_yn
+        from sys_rule_master srm
+        where 1=1
+        and sys_id = #{sysId}
+    </select>
 </mapper>

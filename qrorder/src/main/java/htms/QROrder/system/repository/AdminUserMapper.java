@@ -14,4 +14,5 @@ public interface AdminUserMapper {
     void deleteAdminUser(List<AdminUser> delItems, String userId, String sysPlantCd);
     boolean duplicateChk(List<AdminUser> adminUser);
     List<AdminUserResponse> getDuplicateData(List<AdminUser> adminUser);
+    List<AdminUser> getOldData(List<AdminUser> adminUser);
 }
