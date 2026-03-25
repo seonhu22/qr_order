@@ -1,4 +1,4 @@
-// src/shared/components/modal/modal.constants.ts
+// src/shared/components/modal/base/modal.constants.ts
 
 /**
  * @fileoverview modal 계열 상수 정의
@@ -29,8 +29,8 @@ export const MODAL_BUTTON_SIZE_MAP: Record<ModalSize, ButtonSize> = {
 };
 
 export const STATUS_MODAL_ICON_MAP: Record<StatusModalTone, string> = {
-  info: 'i-info',
-  success: 'i-success',
-  danger: 'i-trash',
-  error: 'i-error',
+  info: 'i-modal-information',
+  success: 'i-modal-check',
+  danger: 'i-modal-trash',
+  edit: 'i-modal-pencil',
 };

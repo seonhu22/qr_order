@@ -1,3 +1,4 @@
+/* src/shared/components/modal/template/StatusModal.css */
 @charset "utf-8";
 
 /*
@@ -6,7 +7,7 @@
  * - .status-modal__icon-wrapper--info  : 정보형 색상 조합
  * - .status-modal__icon-wrapper--success : 성공형 색상 조합
  * - .status-modal__icon-wrapper--danger  : 삭제/위험형 색상 조합
- * - .status-modal__icon-wrapper--error   : 오류형 색상 조합
+ * - .status-modal__icon-wrapper--edit    : 수정형 색상 조합
  * - .status-modal__icon-svg            : 아이콘 SVG 공통 크기
  * - .status-modal__description         : 본문 설명 텍스트 (줄바꿈 지원)
  */
@@ -35,9 +36,9 @@
   color: var(--color-danger-default);
 }
 
-.status-modal__icon-wrapper--error {
-  background: color-mix(in srgb, var(--color-danger-default) 12%, white);
-  color: var(--color-danger-default);
+.status-modal__icon-wrapper--edit {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand-default);
 }
 
 .status-modal__icon-svg {

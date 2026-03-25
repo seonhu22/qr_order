@@ -1,4 +1,4 @@
-// src/shared/components/modal/WrapperModal.test.tsx
+// src/shared/components/modal/wrapper/WrapperModal.test.tsx
 
 /**
  * @fileoverview WrapperModal 컴포넌트 테스트
@@ -11,7 +11,7 @@
  * npm test
  *
  * @example
- * npx vitest run src/shared/components/modal/WrapperModal.test.tsx
+ * npx vitest run src/shared/components/modal/wrapper/WrapperModal.test.tsx
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';

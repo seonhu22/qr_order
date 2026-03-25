@@ -1,5 +1,7 @@
-// src/shared/components/modal/WrapperModal.tsx
+// src/shared/components/modal/wrapper/WrapperModal.tsx
 
+// TODO : Portal 적용하여 DOM 트리 최상단에 렌더링하도록 개선
+// TODO : Dimmed 기능 확인 필요
 /**
  * @fileoverview 공용 모달 레이아웃 래퍼 컴포넌트
  *
@@ -34,10 +36,10 @@
 
 import { useEffect } from 'react';
 import { Button } from '@/shared/components/button';
-import { MODAL_BUTTON_SIZE_MAP, MODAL_SIZE_CLASS_MAP } from './modal.constants';
-import './modal.css';
+import { MODAL_BUTTON_SIZE_MAP, MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
+import '../base/modal.css';
 
-import type { WrapperModalProps } from './modalType';
+import type { WrapperModalProps } from '../base/modalType';
 
 /**
  * 공용 모달 래퍼를 렌더링한다.

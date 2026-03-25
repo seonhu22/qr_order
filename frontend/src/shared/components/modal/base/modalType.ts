@@ -1,4 +1,4 @@
-// src/shared/components/modal/modalType.ts
+// src/shared/components/modal/base/modalType.ts
 
 /**
  * @fileoverview WrapperModal 타입 정의
@@ -21,7 +21,7 @@ export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type WrapperModalLayout = 'default' | 'notice';
 
-export type StatusModalTone = 'info' | 'success' | 'danger' | 'error';
+export type StatusModalTone = 'info' | 'success' | 'danger' | 'edit';
 
 export interface ModalCommonProps {
   open: boolean;

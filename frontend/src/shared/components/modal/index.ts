@@ -17,8 +17,6 @@
  * import type { ModalCommonProps, ModalSize, WrapperModalProps } from '@/shared/components/modal';
  */
 
-export { WrapperModal } from './WrapperModal';
-
 export type {
   ModalActionConfig,
   ModalCommonProps,
@@ -32,7 +30,8 @@ export type {
   StatusModalTone,
   WrapperModalLayout,
   WrapperModalProps,
-} from './modalType';
+} from './base/modalType';
 
-export { NoticeModal } from './NoticeModal';
-export { StatusModal } from './StatusModal';
+export { WrapperModal } from './wrapper/WrapperModal';
+export { NoticeModal } from './template/NoticeModal';
+export { StatusModal } from './template/StatusModal';

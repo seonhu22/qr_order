@@ -1,4 +1,4 @@
-// src/shared/components/modal/StatusModal.tsx
+// src/shared/components/modal/template/StatusModal.tsx
 
 /**
  * @fileoverview 상태 전달용 완성형 모달 컴포넌트
@@ -14,14 +14,14 @@
  *   title="삭제 확인"
  *   description="선택한 항목을 삭제하시겠습니까?"
  *   onClose={() => setOpen(false)}
- *   primaryAction={{ label: '삭제', onClick: handleDelete, variant: 'danger' }}
+ *   primaryAction={{ onClick: handleDelete }}
  * />
  */
 
 import { Icon } from '@/shared/assets/icons/Icon';
-import { WrapperModal } from './WrapperModal';
-import { STATUS_MODAL_ICON_MAP } from './modal.constants';
-import type { StatusModalProps } from './modalType';
+import { WrapperModal } from '../wrapper/WrapperModal';
+import { STATUS_MODAL_ICON_MAP } from '../base/modal.constants';
+import type { StatusModalProps } from '../base/modalType';
 import './StatusModal.css';
 
 /**
@@ -31,7 +31,7 @@ import './StatusModal.css';
  * @param {boolean} props.open 모달 노출 여부
  * @param {string} [props.title='안내'] 모달 제목
  * @param {string} [props.description] 본문 설명 텍스트
- * @param {'info' | 'success' | 'danger' | 'error'} [props.tone='info'] 상태 모달 종류
+ * @param {'info' | 'success' | 'danger' | 'edit'} [props.tone='info'] 상태 모달 종류
  * @param {{ disabled?: boolean; loading?: boolean; onClick?: () => void }} [props.primaryAction] 확인 버튼 설정
  * @param {{ disabled?: boolean; loading?: boolean; onClick?: () => void }} [props.secondaryAction] 닫기 버튼 설정
  * @param {() => void} props.onClose 모달 닫기 핸들러
