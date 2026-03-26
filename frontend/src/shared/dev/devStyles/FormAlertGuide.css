@@ -152,3 +152,22 @@
 .form-alert-guide__form-submit:hover {
   background: var(--color-brand-hover);
 }
+
+/* ── 버튼 행 (시뮬레이션) ── */
+.form-alert-guide__form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.form-alert-guide__form-submit--flex {
+  flex: 1;
+}
+
+.form-alert-guide__form-submit--success {
+  flex: 1;
+  background: var(--color-status-success-default);
+}
+
+.form-alert-guide__form-submit--success:hover {
+  background: var(--color-status-success-text);
+}

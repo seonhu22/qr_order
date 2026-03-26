@@ -152,6 +152,7 @@ frontend/
         checkbox/     ← CheckboxInput / CheckboxGroup
         radio/        ← RadioInput / RadioGroup
         toggle/       ← ToggleInput (sm/md/lg × ON/OFF/disabled/loading)
+        form-alert/   ← FormAlert / DismissibleFormAlert (error/info/guide/success)
         modal/
         table/
         feedback/
