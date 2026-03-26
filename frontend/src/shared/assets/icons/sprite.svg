@@ -79,7 +79,7 @@
             fill="currentColor"/>
         </symbol>
         <!-- chevron < -->
-        <symbol id="i-chevron-left" xmlns="http://www.w3.org/2020/svg" viewBox="0 0 24 24" fill="none">
+        <symbol id="i-chevron-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <path d="M7.30718 12.5429L15.6667 20.5079C15.8062 20.6409 15.9915 20.7151 16.1842 20.7151C16.3769 20.7151 16.5622 20.6409 16.7017 20.5079L16.7107 20.4989C16.7785 20.4345 16.8326 20.3569 16.8695 20.2709C16.9064 20.1849 16.9254 20.0923 16.9254 19.9987C16.9254 19.9051 16.9064 19.8125 16.8695 19.7265C16.8326 19.6405 16.7785 19.5629 16.7107 19.4984L8.83868 11.9984L16.7107 4.50145C16.7785 4.43699 16.8326 4.3594 16.8695 4.2734C16.9064 4.1874 16.9254 4.09479 16.9254 4.0012C16.9254 3.90761 16.9064 3.815 16.8695 3.729C16.8326 3.643 16.7785 3.56541 16.7107 3.50095L16.7017 3.49195C16.5622 3.35898 16.3769 3.2848 16.1842 3.2848C15.9915 3.2848 15.8062 3.35898 15.6667 3.49195L7.30718 11.4569C7.23366 11.527 7.17513 11.6112 7.13514 11.7046C7.09515 11.7979 7.07453 11.8984 7.07453 11.9999C7.07453 12.1015 7.09515 12.202 7.13514 12.2953C7.17513 12.3887 7.23366 12.4729 7.30718 12.5429Z"
             fill="currentColor"/>
         </symbol>
@@ -218,6 +218,21 @@
             <path d="M9.33334 6.99998V4.66665C9.33334 3.49998 10.5 2.33331 11.6667 2.33331H16.3333C17.5 2.33331 18.6667 3.49998 18.6667 4.66665V6.99998" stroke="currentColor" stroke-width="2.33333" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M11.6667 12.8333V19.8333" stroke="currentColor" stroke-width="2.33333" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M16.3333 12.8333V19.8333" stroke="currentColor" stroke-width="2.33333" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 링크/체인 -->
+        <symbol id="i-link" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 메일/이메일 -->
+        <symbol id="i-mail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <rect width="20" height="16" x="2" y="4" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 자물쇠/비밀번호 -->
+        <symbol id="i-lock" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
     </defs>
 </svg>
