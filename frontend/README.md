@@ -319,6 +319,21 @@ color: var(--slate-90);
 | `primitive-tokens.css` | 원시값 정의    | `--slate-90`, `--orange-60`, `--spacing-8`      |
 | `semantic-tokens.css`  | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
 
+### 7.4 단위 규칙 (rem)
+
+스타일 값은 `px` 대신 `rem`을 사용한다. 기준은 브라우저 기본값인 **1rem = 16px**이며, 변환식은 `px ÷ 16 = rem`이다.
+간격·폰트·반지름 등 대부분의 수치는 `semantic-tokens.css`의 변수로 제공되므로, 직접 계산 없이 변수를 참조한다.
+변수에 없는 값을 추가할 때만 rem으로 변환하여 작성한다.
+
+```css
+/* 올바른 사용 */
+padding: var(--spacing-5);   /* 토큰 우선 */
+margin-top: 0.125rem;        /* 2px — 토큰 없을 때만 rem 직접 작성 */
+
+/* 금지 */
+padding: 10px;
+```
+
 ---
 
 ## 8. 공용 컴포넌트 작성 규칙
