@@ -62,9 +62,11 @@
   height: 24px;
   border: none;
   background: none;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--sb-text-dim);
   flex-shrink: 0;
+  transition: color 0.15s ease;
 }
 
 .admin-sidebar-user__logout:hover {

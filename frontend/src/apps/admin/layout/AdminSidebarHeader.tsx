@@ -12,11 +12,11 @@ import { Icon } from '@/shared/assets/icons/Icon';
  */
 export function AdminSidebarHeader() {
   return (
-    <div className="admin-sidebar-header">
+    <header className="admin-sidebar-header">
       <AdminBrand />
       <button type="button" className="admin-sidebar-header__close" aria-label="사이드바 닫기">
         <Icon id="i-close" size={16} />
       </button>
-    </div>
+    </header>
   );
 }

@@ -9,7 +9,7 @@ import { Icon } from '@/shared/assets/icons/Icon';
  */
 export function AdminSidebarUser() {
   return (
-    <div className="admin-sidebar-user">
+    <footer className="admin-sidebar-user">
       <div className="admin-sidebar-user__avatar">
         <Icon id="i-user" size={16} />
       </div>
@@ -20,6 +20,6 @@ export function AdminSidebarUser() {
       <button type="button" className="admin-sidebar-user__logout" aria-label="로그아웃">
         <Icon id="i-logout" size={16} />
       </button>
-    </div>
+    </footer>
   );
 }
