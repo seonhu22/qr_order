@@ -20,9 +20,9 @@
 
 import { Icon } from '@/shared/assets/icons/Icon';
 import { WrapperModal } from '../wrapper/WrapperModal';
-import { STATUS_MODAL_ICON_MAP } from '../base/modal.constants';
+import { CONFIRM_MODAL_ICON_MAP } from '../base/modal.constants';
 import type { NoticeModalProps } from '../base/modalType';
-import './StatusModal.css';
+import './ConfirmModal.css';
 
 /**
  * 안내형 완성 모달을 렌더링한다.
@@ -58,7 +58,7 @@ export function NoticeModal({
     <WrapperModal
       icon={
         <div className={`status-modal__icon-wrapper status-modal__icon-wrapper--${tone}`}>
-          <Icon className="status-modal__icon-svg" id={STATUS_MODAL_ICON_MAP[tone]} size={28} />
+          <Icon className="status-modal__icon-svg" id={CONFIRM_MODAL_ICON_MAP[tone]} size={28} />
         </div>
       }
       layout="notice"
