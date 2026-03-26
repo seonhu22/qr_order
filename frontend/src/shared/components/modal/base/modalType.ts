@@ -21,7 +21,7 @@ export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type WrapperModalLayout = 'default' | 'notice';
 
-export type StatusModalTone = 'info' | 'success' | 'danger' | 'edit';
+export type ConfirmModalTone = 'info' | 'success' | 'danger' | 'edit';
 
 export interface ModalCommonProps {
   open: boolean;
@@ -48,9 +48,9 @@ export interface ModalSecondaryAction extends ModalActionConfig {
   variant?: Extract<ButtonVariant, 'secondary'>;
 }
 
-export type StatusPrimaryAction = Omit<ModalPrimaryAction, 'label' | 'variant'>;
+export type ConfirmPrimaryAction = Omit<ModalPrimaryAction, 'variant'>;
 
-export type StatusSecondaryAction = Omit<ModalSecondaryAction, 'label' | 'variant'>;
+export type ConfirmSecondaryAction = Omit<ModalSecondaryAction, 'label' | 'variant'>;
 
 export interface WrapperModalProps extends ModalCommonProps {
   icon?: ReactNode;
@@ -59,15 +59,21 @@ export interface WrapperModalProps extends ModalCommonProps {
   secondaryAction?: ModalSecondaryAction;
 }
 
-export interface StatusModalProps extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'> {
+export interface ConfirmModalProps extends Pick<
+  ModalCommonProps,
+  'open' | 'size' | 'title' | 'onClose'
+> {
   description?: string;
-  tone?: StatusModalTone;
-  primaryAction?: StatusPrimaryAction;
-  secondaryAction?: StatusSecondaryAction;
+  tone?: ConfirmModalTone;
+  primaryAction?: ConfirmPrimaryAction;
+  secondaryAction?: ConfirmSecondaryAction;
 }
 
-export interface NoticeModalProps extends Pick<ModalCommonProps, 'open' | 'size' | 'title' | 'onClose'> {
+export interface NoticeModalProps extends Pick<
+  ModalCommonProps,
+  'open' | 'size' | 'title' | 'onClose'
+> {
   description?: string;
-  tone?: StatusModalTone;
+  tone?: ConfirmModalTone;
   primaryAction?: ModalPrimaryAction;
 }
