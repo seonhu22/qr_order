@@ -14,6 +14,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { Icon } from '@/shared/assets/icons/Icon';
 import {
   DeleteConfirmModal,
   EditConfirmModal,
@@ -66,7 +67,7 @@ const PRESETS: Preset[] = [
     size: 'sm',
     layout: 'notice',
     subtitle: '정상적으로 저장되었습니다.',
-    icon: '✓',
+    icon: 'i-modal-check',
     primaryActionLabel: '확인',
     onConfirmType: 'default-close',
   },
@@ -77,7 +78,7 @@ const PRESETS: Preset[] = [
     size: 'md',
     layout: 'notice',
     subtitle: '선택한 항목을 삭제하시겠습니까?',
-    icon: '!',
+    icon: 'i-modal-information',
     primaryActionLabel: '삭제',
     secondaryActionLabel: '닫기',
     onConfirmType: 'custom-close',
@@ -210,9 +211,7 @@ function EditConfirmModalSection() {
     <>
       <div className="modal-guide__card">
         <p className="modal-guide__card-label">EditConfirmModal (수정)</p>
-        <p className="modal-guide__card-description">
-          pencil 아이콘 · 2버튼 고정 · layout=notice
-        </p>
+        <p className="modal-guide__card-description">pencil 아이콘 · 2버튼 고정 · layout=notice</p>
         <button
           className="modal-guide__card-button"
           type="button"
@@ -245,9 +244,7 @@ function SaveConfirmModalSection() {
     <>
       <div className="modal-guide__card">
         <p className="modal-guide__card-label">SaveConfirmModal (저장)</p>
-        <p className="modal-guide__card-description">
-          check 아이콘 · 2버튼 고정 · layout=notice
-        </p>
+        <p className="modal-guide__card-description">check 아이콘 · 2버튼 고정 · layout=notice</p>
         <button
           className="modal-guide__card-button"
           type="button"
@@ -280,9 +277,7 @@ function DeleteConfirmModalSection() {
     <>
       <div className="modal-guide__card">
         <p className="modal-guide__card-label">DeleteConfirmModal (삭제)</p>
-        <p className="modal-guide__card-description">
-          trash 아이콘 · 2버튼 고정 · layout=notice
-        </p>
+        <p className="modal-guide__card-description">trash 아이콘 · 2버튼 고정 · layout=notice</p>
         <button
           className="modal-guide__card-button"
           type="button"
@@ -452,7 +447,7 @@ export default function ModalGuide() {
           title={activePreset.title}
           subtitle={activePreset.subtitle}
           layout={activePreset.layout}
-          icon={activePreset.icon ? <span aria-hidden="true">{activePreset.icon}</span> : undefined}
+          icon={activePreset.icon ? <Icon id={activePreset.icon} size={28} /> : undefined}
           primaryAction={
             activePreset.primaryActionLabel
               ? {
