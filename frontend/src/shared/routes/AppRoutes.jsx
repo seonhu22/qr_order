@@ -1,6 +1,6 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
-import LoginPage from './LoginPage';
+import LoginPage from '@/apps/admin/pages/LoginPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
@@ -8,10 +8,10 @@ import { devRoutes } from '@/shared/dev/DevRoutes';
 // 인증이 필요한 라우트를 보호하는 컴포넌트
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
+  // TODO3 : 테스트를 위해 로그인페이지 리다이렉트 임시 차단
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/" replace />;
+  // }
 
   return children;
 }

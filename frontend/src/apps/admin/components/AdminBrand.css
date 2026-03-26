@@ -1,0 +1,53 @@
+/* =====================================================
+ * AdminBrand — 관리자 앱 브랜드 로고
+ * - 로그인 카드 헤더, 사이드바 상단 등 다크 배경 위에서 사용
+ * ===================================================== */
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ---- 아이콘 박스 (주황 정사각형) ---- */
+.admin-brand__icon-box {
+  width: 38px;
+  height: 38px;
+  background-color: var(--color-brand-default);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-on-brand);
+}
+
+/* ---- "QRorder" 텍스트 ---- */
+.admin-brand__name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  letter-spacing: 0.003em;
+  white-space: nowrap;
+}
+
+.admin-brand__name--qr {
+  color: var(--color-brand-default);
+}
+
+.admin-brand__name--order {
+  color: var(--color-text-inverse);
+}
+
+/* ---- ADMIN 뱃지 ---- */
+.admin-brand__badge {
+  background-color: #1d293d;
+  color: var(--slate-60);
+  font-size: 10px;
+  font-weight: var(--font-weight-normal);
+  line-height: 15px;
+  letter-spacing: 0.12px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}

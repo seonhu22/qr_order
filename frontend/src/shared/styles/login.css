@@ -1,3 +1,96 @@
 /* =====================================================
  * QR Order — 로그인 페이지 스타일
  * ===================================================== */
+
+/* ---- 페이지 루트 ---- */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- 장식 원형 (브랜드 컬러 5% 불투명도) ---- */
+.login-page__deco {
+  position: absolute;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 107, 43, 0.05);
+  pointer-events: none;
+}
+
+.login-page__deco--top-right {
+  width: 400px;
+  height: 400px;
+  top: -80px;
+  right: -80px;
+}
+
+.login-page__deco--bottom-left {
+  width: 300px;
+  height: 300px;
+  bottom: -80px;
+  left: -80px;
+}
+
+/* ---- 카드 ---- */
+.login-card {
+  width: 420px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- 카드 헤더 (다크 네이비) ---- */
+.login-card__header {
+  background-color: var(--color-sidebar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+/* ---- 폼 영역 ---- */
+.login-card__body {
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-card__heading {
+  font-size: var(--typography-size-h2);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-heading);
+  letter-spacing: var(--tracking-tight);
+}
+
+.login-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 로그인 버튼 전체 너비 */
+.login-card__submit {
+  width: 100%;
+}
+
+/* ---- 저작권 텍스트 ---- */
+.login-copyright {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+  text-align: center;
+  line-height: var(--leading-normal);
+  position: relative;
+  z-index: 1;
+}
