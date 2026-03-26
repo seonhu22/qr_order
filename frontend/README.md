@@ -151,6 +151,7 @@ frontend/
         button/       ← Button / LinkButton (10가지 변형 × 3가지 크기)
         checkbox/     ← CheckboxInput / CheckboxGroup
         radio/        ← RadioInput / RadioGroup
+        toggle/       ← ToggleInput (sm/md/lg × ON/OFF/disabled/loading)
         modal/
         table/
         feedback/
@@ -220,6 +221,7 @@ frontend/
   - `button/` : Button / LinkButton (10가지 변형 × 3가지 크기, `Button.tsx` / `Button.css` / `types.ts` / `index.ts`)
   - `checkbox/` : CheckboxInput / CheckboxGroup (sm 16px / md 20px / lg 24px, indeterminate 지원)
   - `radio/` : RadioInput / RadioGroup (sm 14px / md 16px / lg 18px, options 배열 기반 그룹)
+  - `toggle/` : ToggleInput (sm 32×24px / md 40×28px / lg 44×30px, 제어·비제어·loading 지원)
 
 ### 6.3 `index.ts` 파일의 의미
 
@@ -353,6 +355,7 @@ import { TextInput } from '@/shared/components/input';
 import { Button, LinkButton } from '@/shared/components/button';
 import { CheckboxInput, CheckboxGroup } from '@/shared/components/checkbox';
 import { RadioInput, RadioGroup } from '@/shared/components/radio';
+import { ToggleInput } from '@/shared/components/toggle';
 import { Icon } from '@/shared/assets/icons/Icon';
 
 // 금지 — 내부 파일 직접 참조
@@ -395,6 +398,7 @@ http://localhost:3000/dev/input
 | `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시        |
 | `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                    |
 | `/dev/radio`    | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시   |
+| `/dev/toggle`   | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
 
 ### 9.3 신규 가이드 추가 방법
 
