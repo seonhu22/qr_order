@@ -117,6 +117,38 @@ export default function FormAlertGuide() {
           </Card>
         </Section>
 
+        {/* ─── 에러 목록 (불릿 리스트) ─────────────────── */}
+        <Section title="Errors (불릿 리스트)">
+          <Card label="errors만">
+            <FormAlert
+              type="error"
+              errors={['이메일 형식이 올바르지 않습니다', '비밀번호는 8자 이상이어야 합니다']}
+              dismissible={false}
+            />
+          </Card>
+          <Card label="title + errors">
+            <FormAlert
+              type="error"
+              title="다음 항목을 확인해주세요"
+              errors={[
+                '이메일 형식이 올바르지 않습니다',
+                '비밀번호는 8자 이상이어야 합니다',
+                '전화번호를 입력해주세요',
+              ]}
+              dismissible={false}
+            />
+          </Card>
+          <Card label="title + description + errors">
+            <FormAlert
+              type="error"
+              title="회원가입 실패"
+              description="아래 항목을 수정 후 다시 시도해주세요."
+              errors={['이미 사용 중인 이메일입니다', '비밀번호 확인이 일치하지 않습니다']}
+              dismissible={false}
+            />
+          </Card>
+        </Section>
+
         {/* ─── 닫기 버튼 ───────────────────────────────── */}
         <Section title="Dismissible">
           <Card label="dismissible=true (기본) — 버튼 클릭 시 콘솔 출력">

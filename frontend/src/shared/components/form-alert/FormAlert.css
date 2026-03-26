@@ -21,23 +21,23 @@
 
 /* ── 유형별 배경·보더 색상 ── */
 .form-alert--error {
-  background-color: var(--color-status-error-bg);
-  border-color: var(--color-border-error);
+  background-color: var(--color-status-error-bg-subtle);
+  border-color: var(--color-status-error-border-subtle);
 }
 
 .form-alert--info {
-  background-color: var(--color-status-info-bg);
-  border-color: var(--color-status-info-default);
+  background-color: var(--color-status-info-bg-subtle);
+  border-color: var(--color-status-info-border-subtle);
 }
 
 .form-alert--guide {
-  background-color: var(--color-status-warning-bg);
-  border-color: var(--color-status-warning-default);
+  background-color: var(--color-status-warning-bg-subtle);
+  border-color: var(--color-status-warning-border-subtle);
 }
 
 .form-alert--success {
-  background-color: var(--color-status-success-bg);
-  border-color: var(--color-border-success);
+  background-color: var(--color-status-success-bg-subtle);
+  border-color: var(--color-status-success-border-subtle);
 }
 
 
@@ -47,7 +47,7 @@
 
 .form-alert__icon {
   flex-shrink: 0;
-  margin-top: 1px; /* 첫 줄 텍스트 베이스라인 정렬 */
+  margin-top: var(--spacing-1); /* 0.125rem = 2px */
 }
 
 .form-alert--error   .form-alert__icon { color: var(--color-status-error-default);   }
@@ -70,9 +70,9 @@
 
 /* ── 제목 ── */
 .form-alert__title {
-  font-size: var(--typography-size-ui);      /* 14px */
-  font-weight: var(--typography-weight-ui);  /* 500 */
-  line-height: var(--typography-leading-snug);
+  font-size: var(--typography-size-ui);           /* 14px */
+  font-weight: var(--typography-weight-ui);       /* 500 — medium */
+  line-height: var(--typography-leading-normal);  /* 1.5 — body 와 통일 */
 }
 
 .form-alert--error   .form-alert__title { color: var(--color-status-error-text);   }
@@ -82,9 +82,9 @@
 
 /* ── 설명 ── */
 .form-alert__desc {
-  font-size: var(--typography-size-ui);      /* 14px */
-  font-weight: var(--typography-weight-body); /* 400 */
-  line-height: var(--typography-leading-normal);
+  font-size: var(--typography-size-ui);          /* 14px */
+  font-weight: var(--typography-weight-body);    /* 400 */
+  line-height: var(--typography-leading-normal); /* 1.5 */
   margin: 0;
 }
 
@@ -100,13 +100,19 @@
 /* ── 에러 목록 ── */
 .form-alert__errors {
   margin: var(--spacing-1) 0 0;
-  padding-left: var(--spacing-8); /* 16px */
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1); /* 2px */
-  list-style: disc;
+  padding-left: var(--spacing-8); /* 16px — 불릿 들여쓰기 */
   font-size: var(--typography-size-ui);
   line-height: var(--typography-leading-normal);
+}
+
+/* reset.css 에서 li { list-style: none } 으로 직접 지정하므로
+   상속이 아닌 명시적 override 필요 */
+.form-alert__errors li {
+  list-style: disc;
+}
+
+.form-alert__errors li + li {
+  margin-top: var(--spacing-1); /* 2px */
 }
 
 .form-alert--error   .form-alert__errors { color: var(--color-status-error-text);   }
