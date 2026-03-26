@@ -1,0 +1,72 @@
+/* =====================================================
+ * AdminSidebarUser — 사이드바 하단 사용자 정보
+ * 부모 .admin-sidebar 의 --sb-* 로컬 변수를 공유
+ * ===================================================== */
+
+.admin-sidebar-user {
+  display: flex;
+  align-items: center;
+  height: 61px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--sb-border);
+  flex-shrink: 0;
+}
+
+/* 아바타 박스 */
+.admin-sidebar-user__avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-brand-default);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+/* 이름 + 역할 */
+.admin-sidebar-user__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  overflow: hidden;
+}
+
+.admin-sidebar-user__name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: var(--tracking-tight);
+  color: var(--sb-text-active);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-sidebar-user__role {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 16px;
+  color: var(--sb-text-dim);
+  white-space: nowrap;
+}
+
+/* 로그아웃 버튼 — Figma 17:4271 아이콘 사용 */
+.admin-sidebar-user__logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-user__logout:hover {
+  color: var(--sb-text-normal);
+}

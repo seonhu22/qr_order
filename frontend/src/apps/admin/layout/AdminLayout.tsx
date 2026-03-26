@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import './AdminLayout.css';
-import { AdminBrand } from '../components/AdminBrand';
+import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
 /**
@@ -18,12 +18,7 @@ export function AdminLayout() {
     <div className="admin-layout">
       {/* ---- 사이드바 ---- */}
       <aside className="admin-layout__sidebar" aria-label="사이드 내비게이션">
-        <div className="admin-layout__sidebar-brand">
-          <AdminBrand />
-        </div>
-        <nav className="admin-layout__nav" aria-label="메인 메뉴">
-          {/* TODO: 메뉴 아이템 */}
-        </nav>
+        <AdminSidebar />
       </aside>
 
       {/* ---- 오른쪽 콘텐츠 래퍼 ---- */}
