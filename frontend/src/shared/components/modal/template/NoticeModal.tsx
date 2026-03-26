@@ -57,8 +57,8 @@ export function NoticeModal({
   return (
     <WrapperModal
       icon={
-        <div className={`status-modal__icon-wrapper status-modal__icon-wrapper--${tone}`}>
-          <Icon className="status-modal__icon-svg" id={CONFIRM_MODAL_ICON_MAP[tone]} size={28} />
+        <div className={`notice-modal__icon-wrapper notice-modal__icon-wrapper--${tone}`}>
+          <Icon className="notice-modal__icon-svg" id={CONFIRM_MODAL_ICON_MAP[tone]} size={28} />
         </div>
       }
       layout="notice"
@@ -68,7 +68,7 @@ export function NoticeModal({
       title={title}
       onClose={onClose}
     >
-      {description ? <p className="status-modal__description">{description}</p> : null}
+      {description ? <p className="notice-modal__description">{description}</p> : null}
     </WrapperModal>
   );
 }

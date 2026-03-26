@@ -12,7 +12,8 @@
  * - .confirm-modal__description         : 본문 설명 텍스트 (줄바꿈 지원)
  */
 
-.confirm-modal__icon-wrapper {
+.confirm-modal__icon-wrapper,
+.notice-modal__icon-wrapper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,31 +22,33 @@
   border-radius: 9999px;
 }
 
-.confirm-modal__icon-wrapper--info {
-  background: var(--color-brand-subtle);
+.notice-modal__icon-wrapper--info {
+  background: color-mix(in srgb, var(--color-brand-default) 12%, white);
   color: var(--color-brand-default);
 }
 
 .confirm-modal__icon-wrapper--success {
-  background: color-mix(in srgb, var(--color-status-success-bg) 12%, white);
+  background: color-mix(in srgb, var(--color-status-success-default) 12%, white);
   color: var(--color-status-success-default);
 }
 
 .confirm-modal__icon-wrapper--danger {
-  background: color-mix(in srgb, var(--color-status-error-bg) 12%, white);
+  background: color-mix(in srgb, var(--color-status-error-default) 12%, white);
   color: var(--color-status-error-default);
 }
 
 .confirm-modal__icon-wrapper--edit {
-  background: var(--color-brand-subtle);
+  background: color-mix(in srgb, var(--color-brand-default) 12%, white);
   color: var(--color-brand-default);
 }
 
-.confirm-modal__icon-svg {
+.confirm-modal__icon-svg,
+.notice-modal__icon-svg {
   display: block;
 }
 
-.confirm-modal__description {
+.confirm-modal__description,
+.notice-modal__description {
   margin: 0;
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-body);
