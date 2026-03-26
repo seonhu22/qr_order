@@ -1,3 +1,4 @@
+/* src/shared/components/modal/base/modal.css */
 @charset "utf-8";
 
 .base-modal-overlay {
@@ -84,9 +85,6 @@
 .base-modal--notice .base-modal__body {
   align-items: center;
   text-align: center;
-}
-
-.base-modal--notice-padding-top .base-modal__body {
   padding-top: 24px;
 }
 
@@ -139,48 +137,6 @@
   min-height: 61px;
   padding: 13px var(--spacing-modal-x) 12px;
   border-top: var(--border-1) solid var(--color-border-divider);
-}
-
-.base-modal__secondary {
-  min-width: 56px;
-  height: var(--height-component-md);
-  border: var(--border-1) solid var(--color-border-divider);
-  border-radius: var(--radius-button);
-  padding: 0 var(--spacing-button-x-md);
-  background: var(--color-bg-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-ui);
-  line-height: 1;
-  cursor: pointer;
-  transition: var(--transition-ui);
-}
-
-.base-modal__secondary:hover {
-  background: var(--color-bg-hover);
-}
-
-.base-modal__confirm {
-  min-width: 56px;
-  height: var(--height-component-md);
-  border: 0;
-  border-radius: var(--radius-button);
-  padding: 0 var(--spacing-button-x-md);
-  background: var(--color-brand-default);
-  color: var(--color-text-on-brand);
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-ui);
-  line-height: 1;
-  cursor: pointer;
-  transition: var(--transition-ui);
-}
-
-.base-modal__confirm:hover {
-  background: var(--color-brand-hover);
-}
-
-.base-modal__confirm:active {
-  background: var(--color-brand-active);
 }
 
 @media (max-width: 768px) {

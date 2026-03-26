@@ -222,8 +222,42 @@ frontend/
   - `checkbox/` : CheckboxInput / CheckboxGroup (sm 16px / md 20px / lg 24px, indeterminate 지원)
   - `radio/` : RadioInput / RadioGroup (sm 14px / md 16px / lg 18px, options 배열 기반 그룹)
   - `toggle/` : ToggleInput (sm 32×24px / md 40×28px / lg 44×30px, 제어·비제어·loading 지원)
+  - `modal/` : wrapper / base / template 계층을 갖는 공용 모달 체계
 
-### 6.3 `index.ts` 파일의 의미
+### 6.3 모달 폴더 구조 원칙
+
+모달은 `frontend.md`의 공용 컴포넌트 원칙을 따르며, 아래와 같은 3계층 구조를 기준으로 설계한다.
+
+```text
+src/shared/components/modal/
+  wrapper/
+    ModalWrapper.tsx      ← 최하위 공통 껍데기 (Portal, Dimmed, Overlay)
+  base/
+    BaseModal.tsx         ← Header, Body, Footer 공통 골격
+    BaseFormModal.tsx     ← 폼 전용 베이스 (유효성 검사, 전송 로직)
+  template/
+    SaveModal.tsx         ← 저장용 완성형
+    UpdateModal.tsx       ← 수정용 완성형
+    DetailModal.tsx       ← 상세 보기 완성형
+```
+
+현재 저장소의 실제 파일명은 과도기 구조일 수 있다.  
+그러나 신규 모달을 설계할 때는 위와 같은 `wrapper -> base -> template` 책임 분리를 공통 원칙으로 적용한다.
+
+### 6.4 모달 계층별 역할 (예시)
+
+- `wrapper`
+  - React `createPortal` 적용
+  - overlay, dimmed, 배경 클릭 닫기 같은 기계적 동작 담당
+- `base`
+  - Title, close button, footer button 배치 같은 공통 시각 골격 담당
+  - 디자인 시스템 일관성을 유지하는 레이어
+- `template`
+  - 저장, 수정, 상세, 삭제 같은 실제 비즈니스 용도의 완성형 모달
+  - DTO와 연결되는 실제 화면 계층
+  - 저장/수정 시 Audit Trail을 위한 변경 전/후 데이터 비교는 이 레이어에서 처리
+
+### 6.5 `index.ts` 파일의 의미
 
 `src/shared/components/input/index.ts` 같은 파일은 현재 구현체를 담고 있는 파일이라기보다, **배럴 파일(barrel file)** 또는 **공용 export 진입점**으로 사용하기 위한 자리이다.
 
@@ -251,7 +285,7 @@ import { BaseInput } from '@/shared/components/input';
 
 즉, `index.ts`는 “해당 폴더의 public API 입구” 역할을 한다.
 
-### 6.4 public 디렉터리의 의미
+### 6.6 public 디렉터리의 의미
 
 `public` 디렉터리는 Vite가 정적 파일로 그대로 제공하는 경로이다.
 
@@ -269,7 +303,7 @@ import { BaseInput } from '@/shared/components/input';
 - `/mockServiceWorker.js`
 - `/static/fonts/Pretendard-Regular.woff2`
 
-### 6.5 assets 디렉터리의 의미
+### 6.7 assets 디렉터리의 의미
 
 `src/shared/assets`는 React 코드 안에서 import 하거나 조합해서 사용할 공용 리소스를 두는 위치이다.
 
@@ -336,6 +370,16 @@ color: var(--slate-90);
 Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립적으로 설계한다.
 예를 들어 `Select`, `Checkbox` 등 신규 컴포넌트 작성 시 `InputWrapper`를 그대로 재사용한다.
 
+모달은 이 원칙을 더 엄격하게 적용한다.
+
+| 레이어      | 역할                                                         | 모달 예시                                 |
+| ----------- | ------------------------------------------------------------ | ----------------------------------------- |
+| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `ModalWrapper`                            |
+| **Base**    | Header, Body, Footer 구조와 버튼 배치 규칙 정의              | `BaseModal`, `BaseFormModal`              |
+| **완성형**  | DTO 연결, 저장/수정/상세 같은 비즈니스 처리                  | `SaveModal`, `UpdateModal`, `DetailModal` |
+
+즉 모달은 단순 시각 컴포넌트가 아니라, 공통 인프라와 공통 골격, 비즈니스 목적을 분리해서 관리해야 한다.
+
 ### 8.2 스타일 규칙
 
 - Tailwind CSS를 사용하지 않는다.
@@ -371,6 +415,17 @@ import { Button } from '@/shared/components/button/Button';
 4. `shared/dev/{컴포넌트명}Guide.tsx` 가이드 페이지 작성
 5. `DevRoutes.tsx` 및 `DevLayout.tsx` 에 라우트·메뉴 등록
 
+### 8.5 모달 작성 시 추가 원칙
+
+모달은 공용 컴포넌트 중에서도 구조 규칙을 강하게 따른다.
+
+1. `wrapper`는 DOM 분리와 overlay 동작만 담당한다.
+2. `base`는 시각적 골격만 담당한다.
+3. `template`는 실제 DTO와 연결되는 비즈니스 목적 모달만 담당한다.
+4. 저장/수정/삭제 흐름은 가능하면 template 계층에서 명확히 분리한다.
+5. 폼을 포함한 모달은 `BaseFormModal`처럼 별도 베이스를 두고 검증/전송 규칙을 공통화한다.
+6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
+
 ---
 
 ## 9. 개발 전용 가이드 페이지
@@ -390,14 +445,14 @@ http://localhost:3000/dev/input
 
 ### 9.2 현재 등록된 가이드
 
-| 경로          | 내용                                                                        |
-| ------------- | --------------------------------------------------------------------------- |
-| `/dev/input`  | TextInput 크기·상태·레이블 위치·기능 전체 예시                              |
-| `/dev/select` | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                |
-| `/dev/modal`  | Modal 크기·상태·레이아웃 전체 예시                                          |
-| `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시        |
-| `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                    |
-| `/dev/radio`    | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시   |
+| 경로            | 내용                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `/dev/input`    | TextInput 크기·상태·레이블 위치·기능 전체 예시                                       |
+| `/dev/select`   | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                         |
+| `/dev/modal`    | Modal 크기·상태·레이아웃 전체 예시                                                   |
+| `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시          |
+| `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                     |
+| `/dev/radio`    | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시     |
 | `/dev/toggle`   | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
 
 ### 9.3 신규 가이드 추가 방법
