@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import './AdminLayout.css';
 import { AdminBrand } from '../components/AdminBrand';
+import { AdminHeader } from './AdminHeader';
 
 /**
  * 관리자 메인 레이아웃
@@ -28,7 +29,7 @@ export function AdminLayout() {
       {/* ---- 오른쪽 콘텐츠 래퍼 ---- */}
       <div className="admin-layout__content">
         <header className="admin-layout__header">
-          {/* TODO: 페이지 제목, 사용자 정보 */}
+          <AdminHeader />
         </header>
         <main className="admin-layout__main">
           <Outlet />
