@@ -19,7 +19,9 @@ export function AdminBrand() {
         <span className="admin-brand__name--qr">QR</span>
         <span className="admin-brand__name--order">order</span>
       </span>
-      <span className="admin-brand__badge" aria-label="관리자">ADMIN</span>
+      <span className="admin-brand__badge" aria-label="관리자">
+        ADMIN
+      </span>
     </div>
   );
 }
