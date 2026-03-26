@@ -14,7 +14,14 @@
  */
 
 import { useMemo, useState } from 'react';
-import { NoticeModal, WrapperModal } from '@/shared/components/modal';
+import {
+  DeleteConfirmModal,
+  EditConfirmModal,
+  NoticeModal,
+  NoticeConfirmModal,
+  SaveConfirmModal,
+  WrapperModal,
+} from '@/shared/components/modal';
 import type { ModalSize, WrapperModalLayout } from '@/shared/components/modal';
 import './devStyles/ModalGuide.css';
 
@@ -158,6 +165,145 @@ function NoticeModalSection() {
 }
 
 /**
+ * NoticeConfirmModal 가이드 섹션을 렌더링한다.
+ *
+ * @returns {JSX.Element}
+ */
+function NoticeConfirmModalSection() {
+  const [noticeConfirmOpen, setNoticeConfirmOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">NoticeConfirmModal (안내 확인)</p>
+        <p className="modal-guide__card-description">
+          information 아이콘 · 1버튼 고정 · layout=notice
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setNoticeConfirmOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <NoticeConfirmModal
+        open={noticeConfirmOpen}
+        title="안내"
+        description="입력한 내용을 다시 확인해주세요."
+        onClose={() => setNoticeConfirmOpen(false)}
+      />
+    </>
+  );
+}
+
+/**
+ * EditConfirmModal 가이드 섹션을 렌더링한다.
+ *
+ * @returns {JSX.Element}
+ */
+function EditConfirmModalSection() {
+  const [editOpen, setEditOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">EditConfirmModal (수정)</p>
+        <p className="modal-guide__card-description">
+          pencil 아이콘 · 2버튼 고정 · layout=notice
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setEditOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <EditConfirmModal
+        open={editOpen}
+        title="수정 확인"
+        description="선택한 정보를 수정하시겠습니까?"
+        primaryAction={{ onClick: () => setEditOpen(false) }}
+        onClose={() => setEditOpen(false)}
+      />
+    </>
+  );
+}
+
+/**
+ * SaveConfirmModal 가이드 섹션을 렌더링한다.
+ *
+ * @returns {JSX.Element}
+ */
+function SaveConfirmModalSection() {
+  const [saveOpen, setSaveOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">SaveConfirmModal (저장)</p>
+        <p className="modal-guide__card-description">
+          check 아이콘 · 2버튼 고정 · layout=notice
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setSaveOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <SaveConfirmModal
+        open={saveOpen}
+        title="저장 확인"
+        description="입력한 정보를 저장하시겠습니까?"
+        primaryAction={{ onClick: () => setSaveOpen(false) }}
+        onClose={() => setSaveOpen(false)}
+      />
+    </>
+  );
+}
+
+/**
+ * DeleteConfirmModal 가이드 섹션을 렌더링한다.
+ *
+ * @returns {JSX.Element}
+ */
+function DeleteConfirmModalSection() {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">DeleteConfirmModal (삭제)</p>
+        <p className="modal-guide__card-description">
+          trash 아이콘 · 2버튼 고정 · layout=notice
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setDeleteOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <DeleteConfirmModal
+        open={deleteOpen}
+        title="삭제 확인"
+        description="선택한 항목을 삭제하시겠습니까?"
+        primaryAction={{ onClick: () => setDeleteOpen(false) }}
+        onClose={() => setDeleteOpen(false)}
+      />
+    </>
+  );
+}
+
+/**
  * 가이드 카드 UI를 렌더링한다.
  *
  * @param {{ label: string; description: string; onOpen: () => void }} props 카드 표시 정보
@@ -252,17 +398,18 @@ export default function ModalGuide() {
           </p>
           <div className="modal-guide__grid">
             <NoticeModalSection />
+            <NoticeConfirmModalSection />
           </div>
         </section>
 
         <section className="modal-guide__section">
-          <h2 className="modal-guide__section-title">StatusModal</h2>
+          <h2 className="modal-guide__section-title">ConfirmModal</h2>
           <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
-            <code>StatusModal</code>은 삭제/수정/저장 확인 같은 2버튼 상태 전달용 완성 모달입니다.
+            <code>ConfirmModal</code>은 삭제/수정/저장 확인 같은 2버튼 상태 전달용 완성 모달입니다.
           </p>
           <div className="modal-guide__grid">
             <div className="modal-guide__card">
-              <p className="modal-guide__card-label">StatusModal (2버튼)</p>
+              <p className="modal-guide__card-label">ConfirmModal (2버튼)</p>
               <p className="modal-guide__card-description">
                 danger tone · 확인/닫기 버튼 · layout=notice
               </p>
@@ -274,6 +421,9 @@ export default function ModalGuide() {
                 모달 열기
               </button>
             </div>
+            <DeleteConfirmModalSection />
+            <SaveConfirmModalSection />
+            <EditConfirmModalSection />
           </div>
         </section>
 
