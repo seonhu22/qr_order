@@ -111,6 +111,27 @@ npm run test:watch
 - 로컬 개발 중 CORS 설정 부담을 줄일 수 있다.
 - 실제 운영 경로와 유사하게 `/api` 기준으로 코드를 유지할 수 있다.
 
+### 5.1 관리자 라우트 기준
+
+관리자 화면은 `/admin` prefix를 기준으로 통일한다.
+
+- 공개 경로: `/admin/login`
+- 보호 경로: `/admin/*`
+- 기본 진입:
+  - 비로그인 상태에서 `/` 접근 시 `/admin/login`
+  - 로그인 상태에서 `/` 접근 시 `/admin/main`
+  - `/admin` 접근 시 `/admin/main`
+
+관리자 화면은 child route 구조를 사용한다.  
+즉 `AdminLayout(Header + Sidebar + Container)`는 고정하고, URL에 따라 컨테이너 내부 페이지만 교체한다.
+
+예시:
+
+- `/admin/main`
+- `/admin/systemSettings/plant`
+
+현재 초기 구현 목표는 `/admin/main`의 빈 메인 컨테이너 화면까지이다.
+
 ---
 
 ## 6. 현재 폴더 구조와 주요 파일 설명

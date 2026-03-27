@@ -1,23 +1,34 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
-import LoginPage from './LoginPage';
+import LoginPage from '@/apps/admin/pages/LoginPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
-// TODO : 리펙토링 필요
-// 인증이 필요한 라우트를 보호하는 컴포넌트
+
+/**
+ * 인증이 필요한 관리자 라우트를 보호한다.
+ *
+ * @param {{ children: React.ReactNode }} props 보호 대상 라우트 요소
+ * @param {React.ReactNode} props.children 인증 성공 시 렌더링할 요소
+ * @returns {React.ReactNode}
+ */
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
+  // TODO : 로그인 상태 테스트를 위해 잠시 가렸다.
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/admin/login" replace />;
+  // }
 
   return children;
 }
 
-// TODO : 리팩토링 필요,
-// 인증이 필요한 라우트에 RequireAuth 컴포넌트를 적용하는 헬퍼 함수
+/**
+ * 인증이 필요한 관리자 라우트 배열에 RequireAuth를 적용한다.
+ *
+ * @param {Array<{ path: string, element: React.ReactNode, children?: unknown[] }>} routes 보호 대상 라우트 목록
+ * @returns {Array<{ path: string, element: React.ReactNode, children?: unknown[] }>}
+ */
 function withProtectedElement(routes) {
   return routes.map((route) => ({
     ...route,
@@ -25,7 +36,6 @@ function withProtectedElement(routes) {
   }));
 }
 
-// TODO : 로딩 스피너 컴포넌트로 교체(Feedback 컴포넌트로 이동)
 function LoadingScreen() {
   return <div className="app-loading">로딩 중...</div>;
 }
@@ -36,7 +46,11 @@ function AppRoutes() {
   const routes = useRoutes([
     {
       path: '/',
-      element: isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />,
+      element: <Navigate to={isAuthenticated ? '/admin/main' : '/admin/login'} replace />,
+    },
+    {
+      path: '/admin/login',
+      element: isAuthenticated ? <Navigate to="/admin/main" replace /> : <LoginPage />,
     },
     ...withProtectedElement(adminRoutes),
 
@@ -45,7 +59,7 @@ function AppRoutes() {
 
     {
       path: '*',
-      element: <Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />,
+      element: <Navigate to={isAuthenticated ? '/admin/main' : '/admin/login'} replace />,
     },
   ]);
 

@@ -1,0 +1,59 @@
+/* =====================================================
+ * AdminHeader — 관리자 레이아웃 상단 헤더
+ * ===================================================== */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 100%;
+  padding: 0 16px;
+}
+
+/* ---- 사이드바 토글 버튼 ---- */
+.admin-header__toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background-color 0.15s;
+}
+
+.admin-header__toggle:hover {
+  background-color: var(--color-bg-hover);
+}
+
+/* ---- 상단 내비게이션 탭 ---- */
+.admin-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-header__nav-item {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.admin-header__nav-item:hover {
+  color: var(--color-brand-hover);
+}
+
+.admin-header__nav-item--active {
+  color: var(--color-brand-default);
+}
