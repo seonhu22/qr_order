@@ -1,0 +1,182 @@
+/* =====================================================
+ * AdminSidebarNav — 사이드바 트리 내비게이션 Wrapper
+ * 3계층: Depth1(카테고리) > Depth2(그룹) > Depth3(페이지)
+ * --sb-* 변수는 부모 .admin-sidebar 에서 상속
+ * ===================================================== */
+
+/* nav 컨테이너 */
+.admin-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 2px;
+}
+
+/* Depth 1 최상위 목록 */
+.admin-sidebar-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* =====================================================
+ * Depth 1
+ * ===================================================== */
+
+.admin-sidebar-nav__d1-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-sidebar-nav__d1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--sb-text-normal);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar-nav__d1:hover {
+  background-color: var(--sb-overlay);
+}
+
+.admin-sidebar-nav__d1--active {
+  background-color: var(--sb-overlay);
+}
+
+.admin-sidebar-nav__d1-label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: var(--tracking-tight);
+  color: var(--sb-text-active);
+  white-space: nowrap;
+}
+
+.admin-sidebar-nav__d1-label--inactive {
+  color: var(--sb-text-normal);
+}
+
+/* =====================================================
+ * Depth 2
+ * ===================================================== */
+
+.admin-sidebar-nav__d2-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--sb-border);
+  margin-left: 16px;
+  padding: 0 3px;
+}
+
+.admin-sidebar-nav__d2-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar-nav__d2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--sb-text-muted);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar-nav__d2:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
+
+.admin-sidebar-nav__d2--expanded {
+  background-color: var(--sb-overlay);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-sidebar-nav__d2-label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.admin-sidebar-nav__d2-label--muted {
+  color: var(--sb-text-muted);
+}
+
+/* =====================================================
+ * Depth 3
+ * ===================================================== */
+
+.admin-sidebar-nav__d3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--sb-border);
+  margin-left: 12px;
+  padding: 2px 4px 2px 13px;
+}
+
+.admin-sidebar-nav__d3 {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 16px;
+  color: var(--sb-text-dim);
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar-nav__d3:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
+
+.admin-sidebar-nav__d3--active {
+  background-color: var(--color-brand-default);
+  color: #ffffff;
+}
+
+.admin-sidebar-nav__d3--active:hover {
+  background-color: var(--color-brand-hover);
+}
+
+/* ---- 공통 chevron ---- */
+.admin-sidebar-nav__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: inherit;
+  transition: transform 0.2s ease;
+}
+
+/* 펼침 상태: 180° 회전 → 아래 방향 */
+.admin-sidebar-nav__chevron--open {
+  transform: rotate(180deg);
+}

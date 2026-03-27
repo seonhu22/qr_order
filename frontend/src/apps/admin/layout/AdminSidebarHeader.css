@@ -1,0 +1,55 @@
+/* =====================================================
+ * AdminSidebarHeader — 사이드바 상단 브랜드 헤더
+ * Figma: node 17-4098
+ *
+ * 아이콘박스 30×30 / top:16 / QRorder 18px / gap: 10px
+ * 닫기버튼 24×24 / top:19 (세로 아이콘 중심과 동일)
+ * ===================================================== */
+
+.admin-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 63px;
+  padding: 0 16px;
+  /* border-bottom: 1px solid var(--sb-border); */
+  flex-shrink: 0;
+}
+
+/* ---- AdminBrand 사이즈 오버라이드 (사이드바 전용) ---- */
+/* 기본 AdminBrand는 로그인 카드용(38×38, 24px)이므로 재정의 */
+.admin-sidebar-header .admin-brand {
+  gap: 10px;
+}
+
+.admin-sidebar-header .admin-brand__icon-box {
+  width: 30px;
+  height: 30px;
+}
+
+.admin-sidebar-header .admin-brand__name {
+  font-size: var(--font-size-lg); /* 18px */
+  line-height: 28px;
+}
+
+/* ---- 닫기 버튼 ---- */
+.admin-sidebar-header__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar-header__close:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
