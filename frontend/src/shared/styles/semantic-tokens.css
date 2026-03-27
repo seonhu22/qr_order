@@ -130,24 +130,32 @@
    * ===================================================== */
 
   /* Error — 에러·삭제·위험 */
-  --color-status-error-default: var(--red-50);
-  --color-status-error-bg:      var(--red-20);
-  --color-status-error-text:    var(--red-70);
+  --color-status-error-default:       var(--red-50);
+  --color-status-error-bg:            var(--red-20);   /* 배지·강조 배경 */
+  --color-status-error-bg-subtle:     var(--red-10);   /* 인라인 알림 등 연한 배경 */
+  --color-status-error-border-subtle: var(--red-30);   /* 인라인 알림 연한 보더 */
+  --color-status-error-text:          var(--red-70);
 
   /* Success — 성공·완료·활성 */
-  --color-status-success-default: var(--emerald-50);
-  --color-status-success-bg:      var(--emerald-20);
-  --color-status-success-text:    var(--emerald-80);
+  --color-status-success-default:       var(--emerald-50);
+  --color-status-success-bg:            var(--emerald-20);
+  --color-status-success-bg-subtle:     var(--emerald-10);
+  --color-status-success-border-subtle: var(--emerald-30);
+  --color-status-success-text:          var(--emerald-80);
 
   /* Warning — 경고·주의·임박 */
-  --color-status-warning-default: var(--amber-50);
-  --color-status-warning-bg:      var(--amber-20);
-  --color-status-warning-text:    var(--amber-80);
+  --color-status-warning-default:       var(--amber-50);
+  --color-status-warning-bg:            var(--amber-20);
+  --color-status-warning-bg-subtle:     var(--amber-10);
+  --color-status-warning-border-subtle: var(--amber-30);
+  --color-status-warning-text:          var(--amber-80);
 
   /* Info — 안내·정보·참고 */
-  --color-status-info-default: var(--blue-50);
-  --color-status-info-bg:      var(--blue-20);
-  --color-status-info-text:    var(--blue-80);
+  --color-status-info-default:       var(--blue-50);
+  --color-status-info-bg:            var(--blue-20);
+  --color-status-info-bg-subtle:     var(--blue-10);
+  --color-status-info-border-subtle: var(--blue-30);
+  --color-status-info-text:          var(--blue-80);
 
 
   /* =====================================================

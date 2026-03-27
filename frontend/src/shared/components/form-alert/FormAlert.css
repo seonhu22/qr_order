@@ -1,0 +1,158 @@
+/* =====================================================
+ * FormAlert 컴포넌트 스타일
+ * - FormAlert / DismissibleFormAlert 에서 공유
+ * - semantic-tokens.css 변수 우선 참조
+ * - Tailwind 미사용, 순수 CSS
+ * ===================================================== */
+
+
+/* =====================================================
+ * 래퍼
+ * ===================================================== */
+
+.form-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);        /* 8px */
+  padding: var(--spacing-5) var(--spacing-7); /* 10px 14px */
+  border-radius: var(--radius-button); /* 4px */
+  border: var(--border-1) solid transparent;
+}
+
+/* ── 유형별 배경·보더 색상 ── */
+.form-alert--error {
+  background-color: var(--color-status-error-bg-subtle);
+  border-color: var(--color-status-error-border-subtle);
+}
+
+.form-alert--info {
+  background-color: var(--color-status-info-bg-subtle);
+  border-color: var(--color-status-info-border-subtle);
+}
+
+.form-alert--guide {
+  background-color: var(--color-status-warning-bg-subtle);
+  border-color: var(--color-status-warning-border-subtle);
+}
+
+.form-alert--success {
+  background-color: var(--color-status-success-bg-subtle);
+  border-color: var(--color-status-success-border-subtle);
+}
+
+
+/* =====================================================
+ * 아이콘
+ * ===================================================== */
+
+.form-alert__icon {
+  flex-shrink: 0;
+  margin-top: var(--spacing-1); /* 0.125rem = 2px */
+}
+
+.form-alert--error   .form-alert__icon { color: var(--color-status-error-default);   }
+.form-alert--info    .form-alert__icon { color: var(--color-status-info-default);    }
+.form-alert--guide   .form-alert__icon { color: var(--color-status-warning-default); }
+.form-alert--success .form-alert__icon { color: var(--color-status-success-default); }
+
+
+/* =====================================================
+ * 본문 영역
+ * ===================================================== */
+
+.form-alert__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+}
+
+/* ── 제목 ── */
+.form-alert__title {
+  font-size: var(--typography-size-ui);           /* 14px */
+  font-weight: var(--typography-weight-ui);       /* 500 — medium */
+  line-height: var(--typography-leading-normal);  /* 1.5 — body 와 통일 */
+}
+
+.form-alert--error   .form-alert__title { color: var(--color-status-error-text);   }
+.form-alert--info    .form-alert__title { color: var(--color-status-info-text);    }
+.form-alert--guide   .form-alert__title { color: var(--color-status-warning-text); }
+.form-alert--success .form-alert__title { color: var(--color-status-success-text); }
+
+/* ── 설명 ── */
+.form-alert__desc {
+  font-size: var(--typography-size-ui);          /* 14px */
+  font-weight: var(--typography-weight-body);    /* 400 */
+  line-height: var(--typography-leading-normal); /* 1.5 */
+  margin: 0;
+}
+
+.form-alert__title + .form-alert__desc {
+  margin-top: var(--spacing-1); /* 2px — 제목 있을 때 간격 추가 */
+}
+
+.form-alert--error   .form-alert__desc { color: var(--color-status-error-text);   }
+.form-alert--info    .form-alert__desc { color: var(--color-status-info-text);    }
+.form-alert--guide   .form-alert__desc { color: var(--color-status-warning-text); }
+.form-alert--success .form-alert__desc { color: var(--color-status-success-text); }
+
+/* ── 에러 목록 ── */
+.form-alert__errors {
+  margin: var(--spacing-1) 0 0;
+  padding-left: var(--spacing-8); /* 16px — 불릿 들여쓰기 */
+  font-size: var(--typography-size-ui);
+  line-height: var(--typography-leading-normal);
+}
+
+/* reset.css 에서 li { list-style: none } 으로 직접 지정하므로
+   상속이 아닌 명시적 override 필요 */
+.form-alert__errors li {
+  list-style: disc;
+}
+
+.form-alert__errors li + li {
+  margin-top: var(--spacing-1); /* 2px */
+}
+
+.form-alert--error   .form-alert__errors { color: var(--color-status-error-text);   }
+.form-alert--info    .form-alert__errors { color: var(--color-status-info-text);    }
+.form-alert--guide   .form-alert__errors { color: var(--color-status-warning-text); }
+.form-alert--success .form-alert__errors { color: var(--color-status-success-text); }
+
+
+/* =====================================================
+ * 닫기 버튼
+ * ===================================================== */
+
+.form-alert__dismiss {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  padding: var(--spacing-1);    /* 2px */
+  border-radius: var(--radius-xs); /* 3px */
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: var(--opacity-60);
+  transition:
+    opacity      var(--transition-ui),
+    background   var(--transition-ui);
+}
+
+.form-alert__dismiss:hover {
+  opacity: var(--opacity-100);
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.form-alert__dismiss:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+.form-alert--error   .form-alert__dismiss { color: var(--color-status-error-default);   }
+.form-alert--info    .form-alert__dismiss { color: var(--color-status-info-default);    }
+.form-alert--guide   .form-alert__dismiss { color: var(--color-status-warning-default); }
+.form-alert--success .form-alert__dismiss { color: var(--color-status-success-default); }

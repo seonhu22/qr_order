@@ -200,6 +200,10 @@
         <symbol id="i-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
+        <!-- 전구 (가이드/안내) -->
+        <symbol id="i-lightbulb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M9 21H15M12 3C8.68629 3 6 5.68629 6 9C6 11.0736 7.02694 12.9003 8.60777 14.0116C9.15875 14.4 9.5 15.0016 9.5 15.6567V17C9.5 17.5523 9.94772 18 10.5 18H13.5C14.0523 18 14.5 17.5523 14.5 17V15.6567C14.5 15.0016 14.8412 14.4 15.3922 14.0116C16.9731 12.9003 18 11.0736 18 9C18 5.68629 15.3137 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
         <!-- 모달 전용 정보 아이콘 -->
         <symbol id="i-modal-information" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none">
             <path d="M14 25.6666C20.4433 25.6666 25.6667 20.4433 25.6667 14C25.6667 7.55666 20.4433 2.33331 14 2.33331C7.55669 2.33331 2.33334 7.55666 2.33334 14C2.33334 20.4433 7.55669 25.6666 14 25.6666Z" stroke="currentColor" stroke-width="2.33333" stroke-linecap="round" stroke-linejoin="round"/>

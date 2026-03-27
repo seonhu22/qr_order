@@ -173,6 +173,7 @@ frontend/
         checkbox/     ← CheckboxInput / CheckboxGroup
         radio/        ← RadioInput / RadioGroup
         toggle/       ← ToggleInput (sm/md/lg × ON/OFF/disabled/loading)
+        form-alert/   ← FormAlert / DismissibleFormAlert (error/info/guide/success)
         modal/
         table/
         feedback/
@@ -243,6 +244,7 @@ frontend/
   - `checkbox/` : CheckboxInput / CheckboxGroup (sm 16px / md 20px / lg 24px, indeterminate 지원)
   - `radio/` : RadioInput / RadioGroup (sm 14px / md 16px / lg 18px, options 배열 기반 그룹)
   - `toggle/` : ToggleInput (sm 32×24px / md 40×28px / lg 44×30px, 제어·비제어·loading 지원)
+  - `form-alert/` : FormAlert / DismissibleFormAlert (error·info·guide·success 4가지 유형, 에러 목록·닫기 버튼 지원)
   - `modal/` : wrapper / base / template 계층을 갖는 공용 모달 체계
 
 ### 6.3 모달 폴더 구조 원칙
@@ -372,6 +374,21 @@ color: var(--slate-90);
 | `primitive-tokens.css` | 원시값 정의    | `--slate-90`, `--orange-60`, `--spacing-8`      |
 | `semantic-tokens.css`  | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
 
+### 7.4 단위 규칙 (rem)
+
+스타일 값은 `px` 대신 `rem`을 사용한다. 기준은 브라우저 기본값인 **1rem = 16px**이며, 변환식은 `px ÷ 16 = rem`이다.
+간격·폰트·반지름 등 대부분의 수치는 `semantic-tokens.css`의 변수로 제공되므로, 직접 계산 없이 변수를 참조한다.
+변수에 없는 값을 추가할 때만 rem으로 변환하여 작성한다.
+
+```css
+/* 올바른 사용 */
+padding: var(--spacing-5);   /* 토큰 우선 */
+margin-top: 0.125rem;        /* 2px — 토큰 없을 때만 rem 직접 작성 */
+
+/* 금지 */
+padding: 10px;
+```
+
 ---
 
 ## 8. 공용 컴포넌트 작성 규칙
@@ -421,6 +438,7 @@ import { Button, LinkButton } from '@/shared/components/button';
 import { CheckboxInput, CheckboxGroup } from '@/shared/components/checkbox';
 import { RadioInput, RadioGroup } from '@/shared/components/radio';
 import { ToggleInput } from '@/shared/components/toggle';
+import { FormAlert, DismissibleFormAlert } from '@/shared/components/form-alert';
 import { Icon } from '@/shared/assets/icons/Icon';
 
 // 금지 — 내부 파일 직접 참조
@@ -474,7 +492,8 @@ http://localhost:3000/dev/input
 | `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시          |
 | `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                     |
 | `/dev/radio`    | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시     |
-| `/dev/toggle`   | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
+| `/dev/toggle`     | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
+| `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기·DismissibleFormAlert·로그인 폼 실사용 예시    |
 
 ### 9.3 신규 가이드 추가 방법
 
