@@ -1,9 +1,11 @@
 // src/apps/admin/layout/AdminLayout.tsx
 
+import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import './AdminLayout.css';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
+import { useAdminLayoutStore } from '../stores/adminLayoutStore';
 
 /**
  * 관리자 메인 레이아웃
@@ -18,10 +20,33 @@ import { AdminHeader } from './AdminHeader';
  * { path: '/admin', element: <AdminLayout />, children: [...] }
  */
 export function AdminLayout() {
+  const isSidebarOpen = useAdminLayoutStore((state) => state.isSidebarOpen);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const sidebarElement = sidebarRef.current;
+
+    if (!sidebarElement) {
+      return;
+    }
+
+    // 사이드바가 닫힌 동안 내부 포커스 요소까지 비활성화해 접근성 경고를 줄인다.
+    if (isSidebarOpen) {
+      sidebarElement.removeAttribute('inert');
+      return;
+    }
+
+    sidebarElement.setAttribute('inert', '');
+  }, [isSidebarOpen]);
+
   return (
     <div className="admin-layout">
       {/* ---- 사이드바 ---- */}
-      <aside className="admin-layout__sidebar" aria-label="사이드 내비게이션">
+      <aside
+        ref={sidebarRef}
+        className={`admin-layout__sidebar${isSidebarOpen ? '' : ' admin-layout__sidebar--closed'}`}
+        aria-label="사이드 내비게이션"
+      >
         <AdminSidebar />
       </aside>
 
