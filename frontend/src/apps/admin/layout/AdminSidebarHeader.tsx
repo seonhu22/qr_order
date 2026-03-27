@@ -1,6 +1,9 @@
+// src/apps/admin/layout/AdminSidebarHeader.tsx
+
 import './AdminSidebarHeader.css';
 import { AdminBrand } from '../components/AdminBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { useAdminLayoutStore } from '../stores/adminLayoutStore';
 
 /**
  * 관리자 사이드바 브랜드 헤더
@@ -11,10 +14,17 @@ import { Icon } from '@/shared/assets/icons/Icon';
  * Figma: node 17-4098
  */
 export function AdminSidebarHeader() {
+  const closeSidebar = useAdminLayoutStore((state) => state.closeSidebar);
+
   return (
     <header className="admin-sidebar-header">
       <AdminBrand />
-      <button type="button" className="admin-sidebar-header__close" aria-label="사이드바 닫기">
+      <button
+        type="button"
+        className="admin-sidebar-header__close"
+        aria-label="사이드바 닫기"
+        onClick={closeSidebar}
+      >
         <Icon id="i-close" size={16} />
       </button>
     </header>
