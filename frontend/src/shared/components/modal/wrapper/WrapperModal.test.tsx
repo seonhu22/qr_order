@@ -1,4 +1,4 @@
-// src/shared/components/modal/WrapperModal.test.tsx
+// src/shared/components/modal/wrapper/WrapperModal.test.tsx
 
 /**
  * @fileoverview WrapperModal 컴포넌트 테스트
@@ -11,7 +11,7 @@
  * npm test
  *
  * @example
- * npx vitest run src/shared/components/modal/WrapperModal.test.tsx
+ * npx vitest run src/shared/components/modal/wrapper/WrapperModal.test.tsx
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -45,8 +45,7 @@ function renderModal(
       title="기본 타이틀"
       subtitle="기본 설명"
       onClose={onClose}
-      onConfirm={onConfirm}
-      onSecondaryAction={onSecondaryAction}
+      primaryAction={{ label: '확인', onClick: onConfirm }}
       {...overrideProps}
     />,
   );
@@ -75,10 +74,9 @@ describe('WrapperModal', () => {
   it('renders the notice layout without the top close button and with two footer actions', () => {
     renderModal({
       layout: 'notice',
-      actions: 'double',
       icon: <span data-testid="notice-icon">!</span>,
-      primaryLabel: '저장',
-      secondaryLabel: '닫기',
+      primaryAction: { label: '저장', onClick: vi.fn() },
+      secondaryAction: { label: '닫기', onClick: vi.fn() },
     });
 
     expect(screen.getByTestId('notice-icon')).toBeInTheDocument();
@@ -94,10 +92,9 @@ describe('WrapperModal', () => {
 
     render(
       <WrapperModal
-        actions="double"
         open
-        primaryLabel="확인"
-        secondaryLabel="닫기"
+        primaryAction={{ label: '확인' }}
+        secondaryAction={{ label: '닫기' }}
         onClose={onClose}
       />,
     );
@@ -125,5 +122,18 @@ describe('WrapperModal', () => {
     fireEvent.click(screen.getByRole('dialog').parentElement as HTMLElement);
 
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('renders button state from action config', () => {
+    renderModal({
+      primaryAction: {
+        label: '삭제',
+        loading: true,
+        disabled: true,
+        variant: 'danger',
+      },
+    });
+
+    expect(screen.getByRole('button', { name: '삭제' })).toBeDisabled();
   });
 });
