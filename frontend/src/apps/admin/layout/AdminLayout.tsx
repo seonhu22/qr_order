@@ -1,3 +1,5 @@
+// src/apps/admin/layout/AdminLayout.tsx
+
 import { Outlet } from 'react-router-dom';
 import './AdminLayout.css';
 import { AdminSidebar } from './AdminSidebar';
@@ -6,12 +8,14 @@ import { AdminHeader } from './AdminHeader';
 /**
  * 관리자 메인 레이아웃
  *
- * 사이드바(좌) + 헤더 + 콘텐츠 영역(우) 3단 구조
- * React Router <Outlet /> 으로 하위 페이지를 렌더링
+ * @description
+ * - `/admin/*` 보호 라우트에서 사용하는 공통 레이아웃이다.
+ * - 사이드바(좌) + 헤더 + 콘텐츠 영역(우) 3단 구조를 유지한다.
+ * - React Router `<Outlet />` 으로 `/admin/main` 등 child route를 렌더링한다.
  *
  * @example
  * // AdminRoutes.jsx
- * { path: '/dashboard', element: <AdminLayout />, children: [...] }
+ * { path: '/admin', element: <AdminLayout />, children: [...] }
  */
 export function AdminLayout() {
   return (
