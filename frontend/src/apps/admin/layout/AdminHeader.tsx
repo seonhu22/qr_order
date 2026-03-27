@@ -1,5 +1,8 @@
+// src/apps/admin/layout/AdminHeader.tsx
+
 import './AdminHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { useAdminLayoutStore } from '../stores/adminLayoutStore';
 
 /**
  * 관리자 레이아웃 상단 헤더
@@ -10,10 +13,17 @@ import { Icon } from '@/shared/assets/icons/Icon';
  * TODO: 활성 탭·토글 동작은 라우트·상태 연결 예정 (현재 UI only)
  */
 export function AdminHeader() {
+  const toggleSidebar = useAdminLayoutStore((state) => state.toggleSidebar);
+
   return (
     <div className="admin-header">
       {/* 사이드바 토글 버튼 */}
-      <button type="button" className="admin-header__toggle" aria-label="메뉴 열기/닫기">
+      <button
+        type="button"
+        className="admin-header__toggle"
+        aria-label="메뉴 열기/닫기"
+        onClick={toggleSidebar}
+      >
         <Icon id="i-menu" size={20} />
       </button>
 
