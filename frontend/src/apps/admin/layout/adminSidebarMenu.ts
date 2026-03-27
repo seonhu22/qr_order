@@ -14,44 +14,41 @@
 
 export const ADMIN_SIDEBAR_MENU = [
   {
+    key: 'system',
     label: '시스템',
-    active: true,
-    expanded: true,
     groups: [
       {
+        key: 'systemSettings',
         label: '시스템 관리',
-        expanded: true,
         items: [
-          { label: '공통코드 관리', active: true },
-          { label: '사업장 조회', active: false },
-          { label: '관리자 관리', active: false },
-          { label: '메뉴 관리', active: false },
-          { label: '메시지 관리', active: false },
-          { label: '규칙 관리', active: false },
+          { key: 'commonCode', label: '공통코드 관리', active: true },
+          { key: 'plant', label: '사업장 조회', active: false },
+          { key: 'adminUser', label: '관리자 관리', active: false },
+          { key: 'menu', label: '메뉴 관리', active: false },
+          { key: 'message', label: '메시지 관리', active: false },
+          { key: 'rule', label: '규칙 관리', active: false },
         ],
       },
       {
+        key: 'billManagement',
         label: '결제 관리',
-        expanded: false,
         items: [],
       },
       {
+        key: 'logManagement',
         label: '이력 관리',
-        expanded: false,
         items: [],
       },
     ],
   },
   {
+    key: 'bill',
     label: '결제 관리',
-    active: false,
-    expanded: false,
     groups: [],
   },
   {
+    key: 'history',
     label: '이력 관리',
-    active: false,
-    expanded: false,
     groups: [],
   },
 ] as const;
