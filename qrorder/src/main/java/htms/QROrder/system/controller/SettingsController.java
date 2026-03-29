@@ -177,7 +177,7 @@ public class SettingsController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        plantService.delPlantByCheckCond(plants, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        plantService.delPlant(plants, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()
@@ -198,8 +198,9 @@ public class SettingsController {
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        adminUserService.saveAdminUser(adminUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+        adminUserService.saveAdminUser(adminUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -216,12 +217,13 @@ public class SettingsController {
     }
 
     @PostMapping("/menu/save")
-    public ResponseEntity<CommonResponse> saveMenu(List<Menu> menu,
+    public ResponseEntity<CommonResponse> saveMenu(@RequestBody MenuRequest menuRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        menuService.saveMenu(menu, loginUser.getUserId(), loginUser.getSysPlantCd());
+        menuService.saveMenu(menuRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -242,8 +244,9 @@ public class SettingsController {
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        messageService.saveMessage(messageRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+        messageService.saveMessage(messageRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -264,8 +267,9 @@ public class SettingsController {
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String  menuCd = (String) session.getAttribute("menuCd");
 
-        ruleMasterService.newRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+        ruleMasterService.newRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -280,8 +284,9 @@ public class SettingsController {
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String  menuCd = (String) session.getAttribute("menuCd");
 
-        ruleMasterService.updateRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+        ruleMasterService.updateRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -296,8 +301,9 @@ public class SettingsController {
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String  menuCd = (String) session.getAttribute("menuCd");
 
-        ruleMasterService.delRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd());
+        ruleMasterService.delRuleMaster(ruleMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -318,8 +324,9 @@ public class SettingsController {
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        ruleDetailService.saveRuleDetail(ruleDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+        ruleDetailService.saveRuleDetail(ruleDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -340,8 +347,9 @@ public class SettingsController {
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        paymentService.newPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+        paymentService.newPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -356,8 +364,9 @@ public class SettingsController {
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        paymentService.updatePayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+        paymentService.updatePayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -368,12 +377,13 @@ public class SettingsController {
     }
 
     @PostMapping("/payment/del")
-    public ResponseEntity<CommonResponse> delPayment(@RequestBody Payment payment,
+    public ResponseEntity<CommonResponse> delPayment(@RequestBody List<Payment> payment,
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        paymentService.delPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd());
+        paymentService.delPayment(payment, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -400,8 +410,9 @@ public class SettingsController {
                                                                 HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
 
-        paymentCouponService.savePaymentCoupon(paymentCouponRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+        paymentCouponService.savePaymentCoupon(paymentCouponRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

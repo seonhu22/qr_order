@@ -16,4 +16,5 @@ public interface RuleDetailMapper {
     void delRuleDetail(List<RuleDetail> delItems, String userId, String sysPlantCd);
     boolean duplicateChk(List<RuleDetail> ruleDetail);
     List<RuleDetail> getDuplicateData(List<RuleDetail> ruleDetail);
+    List<RuleDetail> getOldData(List<RuleDetail> ruleDetail);
 }

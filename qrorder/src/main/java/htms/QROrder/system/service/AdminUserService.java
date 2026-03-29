@@ -1,6 +1,7 @@
 package htms.QROrder.system.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.AdminUser;
 import htms.QROrder.system.dto.AdminUserRequest;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminUserService {
     private final AdminUserMapper adminUserMapper;
+    private final AuditService auditService;
 
     public List<AdminUserResponse> getAdminUser(String searchKeyword) {
 
@@ -28,7 +30,8 @@ public class AdminUserService {
 
     public void saveAdminUser(AdminUserRequest adminUserRequest,
                                 String userId,
-                                String sysPlantCd) {
+                                String sysPlantCd,
+                                String menuCd) {
 
         List<AdminUser> newItems = adminUserRequest.getNewItems();
         List<AdminUser> updateItems = adminUserRequest.getUpdateItems();
@@ -50,27 +53,61 @@ public class AdminUserService {
                 adminUser.setSysId(UlidCreator.getUlid().toString());
             });
 
-            adminUserMapper.newAdminUser(newItems, userId, sysPlantCd);
+            newAdminUser(userId, sysPlantCd, menuCd, newItems);
         }
 
         if(!updateItems.isEmpty()){
 
-            adminUserMapper.updateAdminUser(updateItems, userId, sysPlantCd);
+            updateAdminUser(userId, sysPlantCd, menuCd, updateItems);
         }
 
         if(!delItems.isEmpty()){
 
-            adminUserMapper.deleteAdminUser(delItems, userId, sysPlantCd);
+            delAdminUser(userId, sysPlantCd, menuCd, delItems);
         }
     }
 
-    public boolean duplicateChk(List<AdminUser> adminUser) {
+    private void delAdminUser(String userId,
+                                String sysPlantCd,
+                                String menuCd,
+                                List<AdminUser> delItems) {
+
+        auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
+        adminUserMapper.deleteAdminUser(delItems, userId, sysPlantCd);
+    }
+
+    private void updateAdminUser(String userId,
+                                    String sysPlantCd,
+                                    String menuCd,
+                                    List<AdminUser> updateItems) {
+
+        List<AdminUser> oldData = getOldData(updateItems);
+
+        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "sys_user", userId, sysPlantCd);
+        adminUserMapper.updateAdminUser(updateItems, userId, sysPlantCd);
+    }
+
+    private void newAdminUser(String userId,
+                                String sysPlantCd,
+                                String menuCd,
+                                List<AdminUser> newItems) {
+
+        auditService.insertNewAuditTrailData(newItems, menuCd, "sys_user", userId, sysPlantCd);
+        adminUserMapper.newAdminUser(newItems, userId, sysPlantCd);
+    }
+
+    private boolean duplicateChk(List<AdminUser> adminUser) {
 
         return adminUserMapper.duplicateChk(adminUser);
     }
 
-    public List<AdminUserResponse> getDuplicateData(List<AdminUser> adminUser) {
+    private List<AdminUserResponse> getDuplicateData(List<AdminUser> adminUser) {
 
         return adminUserMapper.getDuplicateData(adminUser);
+    }
+
+    private List<AdminUser> getOldData(List<AdminUser> adminUser) {
+
+        return adminUserMapper.getOldData(adminUser);
     }
 }

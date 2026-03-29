@@ -13,4 +13,6 @@ public interface RuleMasterMapper {
     void updateRuleMaster(RuleMaster ruleMaster, String userId, String sysPlantCd);
     void delRuleMaster(List<RuleMaster> ruleMaster, String userId, String sysPlantCd);
     boolean duplicateChk(RuleMaster ruleMaster);
+    RuleMaster getDuplicateData(RuleMaster ruleMaster);
+    RuleMaster getOldData(RuleMaster ruleMaster);
 }

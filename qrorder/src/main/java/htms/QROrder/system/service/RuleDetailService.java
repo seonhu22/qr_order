@@ -1,6 +1,7 @@
 package htms.QROrder.system.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.AdminUser;
 import htms.QROrder.system.domain.RuleDetail;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class RuleDetailService {
 
     private final RuleDetailMapper ruleDetailMapper;
+    private final AuditService auditService;
 
     public List<RuleDetail> getRuleDetail(String sysId) {
 
@@ -32,7 +34,8 @@ public class RuleDetailService {
 
     public void saveRuleDetail(RuleDetailRequest ruleDetailRequest,
                                     String userId,
-                                    String sysPlantCd) {
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         List<RuleDetail> newItems = ruleDetailRequest.getNewItems();
         List<RuleDetail> updateItems = ruleDetailRequest.getUpdateItems();
@@ -53,27 +56,61 @@ public class RuleDetailService {
                 ruleDetail.setSysId(UlidCreator.getUlid().toString());
             });
 
-            ruleDetailMapper.newRuleDetail(newItems, userId, sysPlantCd);
+            newRuleDetail(userId, sysPlantCd, menuCd, newItems);
         }
 
         if(!updateItems.isEmpty()){
 
-            ruleDetailMapper.updateRuleDetail(updateItems, userId, sysPlantCd);
+            updateRuleDetail(userId, sysPlantCd, menuCd, updateItems);
         }
 
         if(!delItems.isEmpty()){
 
-            ruleDetailMapper.delRuleDetail(delItems, userId, sysPlantCd);
+            delRuleDetail(userId, sysPlantCd, menuCd, delItems);
         }
     }
 
-    public boolean duplicateChk(List<RuleDetail> ruleDetails) {
+    private void delRuleDetail(String userId,
+                                String sysPlantCd,
+                                String menuCd,
+                                List<RuleDetail> delItems) {
+
+        auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_rule_detail", userId, sysPlantCd);
+        ruleDetailMapper.delRuleDetail(delItems, userId, sysPlantCd);
+    }
+
+    private void updateRuleDetail(String userId,
+                                    String sysPlantCd,
+                                    String menuCd,
+                                    List<RuleDetail> updateItems) {
+
+        List<RuleDetail> oldData = getOldData(updateItems);
+
+        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "sys_rule_detail", userId, sysPlantCd);
+        ruleDetailMapper.updateRuleDetail(updateItems, userId, sysPlantCd);
+    }
+
+    private void newRuleDetail(String userId,
+                                String sysPlantCd,
+                                String menuCd,
+                                List<RuleDetail> newItems) {
+
+        auditService.insertNewAuditTrailData(newItems, menuCd, "sys_rule_detail", userId, sysPlantCd);
+        ruleDetailMapper.newRuleDetail(newItems, userId, sysPlantCd);
+    }
+
+    private boolean duplicateChk(List<RuleDetail> ruleDetails) {
 
         return ruleDetailMapper.duplicateChk(ruleDetails);
     }
 
-    public List<RuleDetail> getDuplicateData(List<RuleDetail> ruleDetail) {
+    private List<RuleDetail> getDuplicateData(List<RuleDetail> ruleDetail) {
 
         return ruleDetailMapper.getDuplicateData(ruleDetail);
+    }
+
+    private List<RuleDetail> getOldData(List<RuleDetail> ruleDetail) {
+
+        return ruleDetailMapper.getOldData(ruleDetail);
     }
 }
