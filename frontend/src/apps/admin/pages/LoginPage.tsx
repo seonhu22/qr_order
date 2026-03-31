@@ -1,9 +1,42 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
 import { TextInput } from '@/shared/components/input/TextInput';
 import { Button } from '@/shared/components/button';
 import { AdminBrand } from '../components/AdminBrand';
+import { login } from '@/generated/login-controller/login-controller';
+import { useAuth } from '@/shared/auth/AuthContext';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+
+  const [userId, setUserId] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const { mutate: loginMutate, isPending } = useMutation({
+    mutationFn: () => login({ userId, userPassword }),
+    onSuccess: (data) => {
+      if (data.success) {
+        signIn(data.data ?? null);
+        navigate('/admin/main');
+      } else {
+        setErrorMessage(data.message ?? '로그인에 실패했습니다.');
+      }
+    },
+    onError: () => {
+      setErrorMessage('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    },
+  });
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setErrorMessage('');
+    loginMutate();
+  };
+
   return (
     <main className="login-page">
       {/* 배경 장식 원형 */}
@@ -16,7 +49,7 @@ export default function LoginPage() {
           <AdminBrand />
         </header>
 
-        <div className="login-card__body">
+        <form className="login-card__body" onSubmit={handleSubmit}>
           <h1 className="login-card__heading">로그인</h1>
 
           <div className="login-card__fields">
@@ -26,6 +59,8 @@ export default function LoginPage() {
               size="lg"
               id="login-id"
               autoComplete="username"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
             />
             <TextInput
               label="비밀번호"
@@ -35,12 +70,24 @@ export default function LoginPage() {
               size="lg"
               id="login-pw"
               autoComplete="current-password"
+              value={userPassword}
+              onChange={(e) => setUserPassword(e.target.value)}
             />
-            <Button size="lg" className="login-card__submit">
-              로그인
+            {errorMessage && (
+              <p className="login-card__error" role="alert">
+                {errorMessage}
+              </p>
+            )}
+            <Button
+              type="submit"
+              size="lg"
+              className="login-card__submit"
+              disabled={isPending}
+            >
+              {isPending ? '로그인 중...' : '로그인'}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
 
       {/* 저작권 */}

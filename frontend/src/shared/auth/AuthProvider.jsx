@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getMe } from '@/shared/api/auth';
+import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
 import { AuthContext } from '@/shared/auth/AuthContext';
 
 function resolveUser(payload) {
@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
 
-    getMe()
+    getCurrentUser()
       .then((data) => {
         if (!isMounted) {
           return;
