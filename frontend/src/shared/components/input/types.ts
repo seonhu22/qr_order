@@ -181,6 +181,12 @@ export interface SelectInputProps extends InputWrapperBaseProps {
   disabled?: boolean;
   /** 읽기 전용 — 드롭다운이 열리지 않음 */
   readOnly?: boolean;
+  /**
+   * 에러 보더만 표시하고 메시지는 생략할 때 사용
+   * errorText 없이 error 상태 스타일만 적용된다
+   * @default false
+   */
+  isError?: boolean;
   /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
   className?: string;
 }
@@ -225,6 +231,12 @@ export interface TextInputProps
    * @default false
    */
   showPasswordToggle?: boolean;
+  /**
+   * 에러 보더만 표시하고 메시지는 생략할 때 사용
+   * errorText 없이 error 상태 스타일만 적용된다
+   * @default false
+   */
+  isError?: boolean;
   /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
   className?: string;
 }

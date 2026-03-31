@@ -85,6 +85,7 @@ export function TextInput({
   /* 기능 플래그 */
   loading = false,
   showPasswordToggle = false,
+  isError = false,
 
   /* 레이아웃 */
   className,
@@ -116,7 +117,7 @@ export function TextInput({
   const controlState: InputControlState = (() => {
     if (disabled)    return 'disabled';
     if (readOnly)    return 'readonly';
-    if (errorText)   return 'error';
+    if (errorText || isError) return 'error';
     if (successText) return 'success';
     return '';
   })();

@@ -51,7 +51,10 @@ export default function LoginPage() {
         </header>
 
         <form className="login-card__body" onSubmit={handleSubmit}>
-          <h1 className="login-card__heading">로그인</h1>
+          <div className="login-card__title">
+            <h1 className="login-card__heading">로그인</h1>
+            <p className="login-card__subheading">계정 정보를 입력하여 로그인하세요.</p>
+          </div>
 
           {/* 에러 알림 — 폼 최상단 */}
           {errorMessage && (
@@ -72,7 +75,7 @@ export default function LoginPage() {
               autoComplete="username"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              errorText={errorMessage || undefined}
+              isError={!!errorMessage}
             />
             <TextInput
               label="비밀번호"
@@ -84,7 +87,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={userPassword}
               onChange={(e) => setUserPassword(e.target.value)}
-              errorText={errorMessage || undefined}
+              isError={!!errorMessage}
             />
             <Button
               type="submit"

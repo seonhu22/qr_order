@@ -126,6 +126,7 @@ export function SelectInput({
   loading = false,
   disabled = false,
   readOnly = false,
+  isError = false,
   className,
 }: SelectInputProps) {
   /** 접근성용 고유 id — label htmlFor 과 trigger button id 를 연결 */
@@ -153,7 +154,7 @@ export function SelectInput({
   const controlState: InputControlState = (() => {
     if (disabled) return 'disabled';
     if (readOnly) return 'readonly';
-    if (errorText) return 'error';
+    if (errorText || isError) return 'error';
     if (successText) return 'success';
     return '';
   })();
