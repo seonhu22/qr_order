@@ -83,6 +83,26 @@ src/mocks/handlers.ts            ← 생성된 핸들러 통합 등록
 | `npm run dev:mock` | MSW 활성 — 백엔드 없이 화면 개발 |
 | `npm run dev:real` | MSW 비활성 — 실제 백엔드 연동 |
 
+### mock 모드 확인 방법
+
+브라우저 콘솔에 아래 로그가 보이면 MSW가 활성 상태다.
+
+```
+[MSW] POST /api/auth/login (200 OK)
+```
+
+`/api/auth/me` 요청이 에러로 보이더라도, MSW가 401을 반환 → `AuthProvider`의 catch 블록이 처리 → 로그인 페이지로 이동하는 **의도된 흐름**이다.
+
+### real 모드 확인 방법
+
+```bash
+npm run dev:real
+```
+
+- 콘솔에 `[MSW]` 로그가 없으면 real 모드로 동작 중이다.
+- 브라우저 Network 탭에서 `/api/auth/me`, `/api/auth/login` 요청이 `localhost:8080`으로 전달되는지 확인한다.
+- 백엔드가 켜져 있어야 로그인, 데이터 조회가 정상 동작한다.
+
 ---
 
 ## 상태 분리 원칙
