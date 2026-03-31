@@ -14,7 +14,9 @@
     "test:coverage": "vitest run --coverage",
     "build": "vite build",
     "preview": "vite preview",
-    "generate:api-types": "openapi-typescript http://localhost:8080/v3/api-docs -o src/types/schema.d.ts",
+    "generate:schema": "curl -s http://localhost:8080/v3/api-docs -o openapi.json",
+    "generate:api-types": "openapi-typescript openapi.json -o src/types/schema.d.ts",
+    "generate": "npm run generate:api-types && orval"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.91.2",
@@ -41,6 +43,7 @@
     "jsdom": "^29.0.0",
     "msw": "^2.12.11",
     "openapi-typescript": "^7.13.0",
+    "orval": "^7.13.2",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
