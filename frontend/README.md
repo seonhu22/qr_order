@@ -42,7 +42,7 @@
 1. `frontend/README.md` 전체 읽기
 2. `npm install`
 3. 백엔드 기동 확인
-4. `npm run generate:api-types` (백엔드 API 타입 생성)
+4. `npm run generate` (API 타입 + 훅 + MSW 핸들러 전체 생성)
 5. `npm run lint`
 6. `npm run typecheck`
 7. `npm test`
@@ -71,7 +71,7 @@
 아래 사이클을 반복하는 것을 권장한다.
 
 1. 기능 구현 또는 수정
-2. 백엔드 API가 변경된 경우 `npm run generate:api-types` 재실행
+2. 백엔드 API가 변경된 경우 `npm run generate` 재실행
 3. `npm run lint`
 4. `npm run typecheck`
 5. `npm test`
@@ -142,18 +142,26 @@ npm run test:watch
 
 ```text
 frontend/
+  docs/
+    decisions.md      ← 기술 의사결정 기록 (ADR)
+    api-codegen.md    ← API 코드 생성 가이드
+  openapi.json        ← OpenAPI 명세 원본 (git 커밋, generate:schema로 갱신)
+  orval.config.ts     ← Orval 코드 생성 설정
   public/
     mockServiceWorker.js
     static/
       fonts/
   src/
+    generated/        ← Orval 자동 생성 영역 (직접 수정 금지)
+      {컨트롤러}/
+        {컨트롤러}.ts       ← API fetch 함수 + TanStack Query 훅
+        {컨트롤러}.msw.ts   ← MSW 핸들러
+    types/            ← openapi-typescript 생성 DTO 타입
+      schema.d.ts
     apps/
       admin/
         features/
-          plant/
-            components/
         pages/
-          system/
         routes/
       client/
         features/
@@ -164,6 +172,8 @@ frontend/
         pages/
         routes/
     mocks/
+      browser.ts      ← MSW 브라우저 worker
+      handlers.ts     ← 생성된 핸들러 통합 등록
     shared/
       api/
       assets/
@@ -181,8 +191,7 @@ frontend/
         feedback/
       dev/            ← 개발 전용 컴포넌트 가이드 페이지 (/dev/*)
       hooks/
-      lib/            ← queryClient.js 등 공용 인프라
-      api/
+      lib/            ← httpClient.ts, queryClient.ts 등 공용 인프라
       stores/
       styles/         ← 디자인 토큰 및 전역 CSS
       utils/
@@ -767,27 +776,40 @@ npm run build
 
 즉, 프론트 단독 배포가 아니라 백엔드 정적 리소스와 연결하는 방식에 맞춘 설정이다.
 
-### 13.6 API 타입 생성
+### 13.6 API 코드 생성
 
-```powershell
-npm run generate:api-types
+본 프로젝트는 Orval을 사용해 OpenAPI 명세로부터 API 함수, TanStack Query 훅, MSW 핸들러를 자동 생성한다.
+
+**전체 흐름:**
+
+```text
+Spring Boot Swagger → openapi.json → schema.d.ts + src/generated/ (API 함수·훅·MSW 핸들러)
 ```
 
-- 백엔드 OpenAPI 명세(`/v3/api-docs`)를 읽어 TypeScript 타입 파일을 자동 생성한다.
-- 출력 위치: `src/types/schema.d.ts`
-- 백엔드가 `8080` 포트에서 실행 중인 상태여야 한다.
-- 백엔드 API 구조가 변경된 경우 이 명령을 다시 실행해서 타입을 최신 상태로 유지한다.
+**명령어:**
 
-사용 시점:
+```powershell
+# 백엔드 기동 후 — OpenAPI 명세를 openapi.json으로 저장
+npm run generate:schema
 
-1. 프로젝트 최초 세팅 시 1회 실행
-2. 백엔드 API(DTO, 엔드포인트)가 변경된 경우 재실행
-3. 생성된 `schema.d.ts`는 커밋에 포함해도 되지만, 백엔드 변경 시 반드시 재생성 후 커밋한다.
+# 백엔드 불필요 — openapi.json 기반으로 전체 코드 재생성
+npm run generate
+```
 
-주의:
+**사용 시점:**
 
-- `openapi-typescript` 패키지가 설치되어 있어야 한다 (`npm install` 시 자동 설치).
-- 백엔드가 꺼져 있으면 명세를 읽지 못해 실패한다.
+1. 프로젝트 최초 세팅 시: `npm run generate` 1회 실행
+2. 백엔드 API(DTO, 엔드포인트)가 변경된 경우:
+   ```powershell
+   npm run generate:schema  # 명세 갱신 (백엔드 켜야 함)
+   npm run generate         # 코드 재생성
+   ```
+
+**주의:**
+
+- `src/generated/` 하위 파일은 직접 수정하지 않는다. 다음 `generate` 실행 시 덮어씌워진다.
+- `openapi.json`은 git에 커밋한다. 팀원 전체가 동일한 명세 기준으로 작업할 수 있다.
+- 상세 내용은 `docs/api-codegen.md`를 참고한다.
 
 ---
 
@@ -1154,12 +1176,23 @@ npm run generate:api-types
 - React 19 기반 UI 개발
 - TypeScript 기준의 점진 전환
 - 서버 상태와 UI 상태의 분리
+- OpenAPI 명세 기반 자동 코드 생성 (Orval)
 - 빠른 테스트 실행 환경 구축
 - 초기에 품질 도구를 함께 도입하여 기술 부채를 늦추는 구조
 
-실무적으로 가장 중요한 점은 다음 두 가지이다.
+실무적으로 가장 중요한 점은 다음 세 가지이다.
 
 - 개발 서버만 띄우는 것으로 끝내지 말고 `lint`, `typecheck`, `test`까지 항상 함께 확인할 것
 - 서버 상태와 UI 상태를 섞지 말고, 선택한 라이브러리의 역할을 명확히 구분할 것
+- 백엔드 API가 변경되면 `npm run generate`를 반드시 재실행하고 커밋할 것
 
 이 원칙을 지키면 프로젝트가 커져도 구조가 무너지지 않고 유지될 가능성이 높다.
+
+---
+
+## 참고 문서
+
+| 문서 | 내용 |
+|------|------|
+| `docs/api-codegen.md` | API 코드 자동 생성 전체 가이드, 명령어, 파일 구조, 모드 전환 방법 |
+| `docs/decisions.md` | 기술 의사결정 기록 (Orval 선택, 로컬 파일 방식, 통합 config 등)
