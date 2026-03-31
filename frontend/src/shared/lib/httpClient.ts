@@ -1,14 +1,30 @@
+type HttpClientConfig = {
+  url: string;
+  method: string;
+  params?: Record<string, unknown>;
+  data?: unknown;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  responseType?: string;
+};
+
 export const httpClient = async <T>(
-  url: string,
-  options?: RequestInit,
+  { url, method, params, data, headers, signal }: HttpClientConfig,
+  _options?: unknown,
 ): Promise<T> => {
-  const response = await fetch(url, {
-    ...options,
+  const searchParams = params
+    ? '?' + new URLSearchParams(params as Record<string, string>).toString()
+    : '';
+
+  const response = await fetch(`${url}${searchParams}`, {
+    method,
     headers: {
       'Content-Type': 'application/json',
-      ...options?.headers,
+      ...headers,
     },
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     credentials: 'include',
+    signal,
   });
 
   if (!response.ok) {
