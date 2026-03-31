@@ -41,13 +41,14 @@
 
 1. `frontend/README.md` 전체 읽기
 2. `npm install`
-3. `npm run lint`
-4. `npm run typecheck`
-5. `npm test`
-6. `npm run dev`
-7. 백엔드 기동 확인
-8. 브라우저에서 기본 화면 확인
-9. 이후 담당 화면 개발 시작
+3. 백엔드 기동 확인
+4. `npm run generate:api-types` (백엔드 API 타입 생성)
+5. `npm run lint`
+6. `npm run typecheck`
+7. `npm test`
+8. `npm run dev`
+9. 브라우저에서 기본 화면 확인
+10. 이후 담당 화면 개발 시작
 
 이 순서를 앞에 둔 이유는, 초보자에게 가장 필요한 정보가 "무엇부터 해야 하는가"이기 때문이다.  
 설정 문서를 처음 읽는 사람이 뒤쪽까지 내려가지 않아도 바로 작업을 시작할 수 있도록 구성하였다.
@@ -70,12 +71,13 @@
 아래 사이클을 반복하는 것을 권장한다.
 
 1. 기능 구현 또는 수정
-2. `npm run lint`
-3. `npm run typecheck`
-4. `npm test`
-5. 필요 시 특정 테스트를 감시 모드로 실행
-6. 브라우저에서 실제 동작 확인
-7. 커밋 전 다시 `lint`, `typecheck`, `test` 수행
+2. 백엔드 API가 변경된 경우 `npm run generate:api-types` 재실행
+3. `npm run lint`
+4. `npm run typecheck`
+5. `npm test`
+6. 필요 시 특정 테스트를 감시 모드로 실행
+7. 브라우저에서 실제 동작 확인
+8. 커밋 전 다시 `lint`, `typecheck`, `test` 수행
 
 대표 명령어는 아래와 같다.
 
@@ -764,6 +766,28 @@ npm run build
 ```
 
 즉, 프론트 단독 배포가 아니라 백엔드 정적 리소스와 연결하는 방식에 맞춘 설정이다.
+
+### 13.6 API 타입 생성
+
+```powershell
+npm run generate:api-types
+```
+
+- 백엔드 OpenAPI 명세(`/v3/api-docs`)를 읽어 TypeScript 타입 파일을 자동 생성한다.
+- 출력 위치: `src/types/schema.d.ts`
+- 백엔드가 `8080` 포트에서 실행 중인 상태여야 한다.
+- 백엔드 API 구조가 변경된 경우 이 명령을 다시 실행해서 타입을 최신 상태로 유지한다.
+
+사용 시점:
+
+1. 프로젝트 최초 세팅 시 1회 실행
+2. 백엔드 API(DTO, 엔드포인트)가 변경된 경우 재실행
+3. 생성된 `schema.d.ts`는 커밋에 포함해도 되지만, 백엔드 변경 시 반드시 재생성 후 커밋한다.
+
+주의:
+
+- `openapi-typescript` 패키지가 설치되어 있어야 한다 (`npm install` 시 자동 설치).
+- 백엔드가 꺼져 있으면 명세를 읽지 못해 실패한다.
 
 ---
 
