@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--spacing-8);
   min-height: 100vh;
   background-color: var(--color-bg-app);
   position: relative;
@@ -24,28 +24,26 @@
 }
 
 .login-page__deco--top-right {
-  width: 400px;
-  height: 400px;
-  top: -80px;
-  right: -80px;
+  width: 25rem;
+  height: 25rem;
+  top: -5rem;
+  right: -5rem;
 }
 
 .login-page__deco--bottom-left {
-  width: 300px;
-  height: 300px;
-  bottom: -80px;
-  left: -80px;
+  width: 18.75rem;
+  height: 18.75rem;
+  bottom: -5rem;
+  left: -5rem;
 }
 
 /* ---- 카드 ---- */
 .login-card {
-  width: 420px;
+  width: 26.25rem;
   background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border-default);
+  border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-lg);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
   z-index: 1;
@@ -57,15 +55,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: var(--spacing-12);
 }
 
 /* ---- 폼 영역 ---- */
 .login-card__body {
-  padding: 40px 32px;
+  padding: var(--spacing-13) var(--spacing-12);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-9);
 }
 
 .login-card__heading {
@@ -79,7 +77,7 @@
 .login-card__fields {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-8);
 }
 
 /* 로그인 버튼 전체 너비 */

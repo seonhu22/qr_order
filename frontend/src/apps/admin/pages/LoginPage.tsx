@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
 import { TextInput } from '@/shared/components/input/TextInput';
 import { Button } from '@/shared/components/button';
+import { FormAlert } from '@/shared/components/form-alert';
 import { AdminBrand } from '../components/AdminBrand';
 import { login } from '@/generated/login-controller/login-controller';
 import { useAuth } from '@/shared/auth/AuthContext';
@@ -52,6 +53,16 @@ export default function LoginPage() {
         <form className="login-card__body" onSubmit={handleSubmit}>
           <h1 className="login-card__heading">로그인</h1>
 
+          {/* 에러 알림 — 폼 최상단 */}
+          {errorMessage && (
+            <FormAlert
+              type="error"
+              description={errorMessage}
+              dismissible
+              onDismiss={() => setErrorMessage('')}
+            />
+          )}
+
           <div className="login-card__fields">
             <TextInput
               label="아이디"
@@ -61,6 +72,7 @@ export default function LoginPage() {
               autoComplete="username"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
+              errorText={errorMessage || undefined}
             />
             <TextInput
               label="비밀번호"
@@ -72,12 +84,8 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={userPassword}
               onChange={(e) => setUserPassword(e.target.value)}
+              errorText={errorMessage || undefined}
             />
-            {errorMessage && (
-              <p className="login-card__error" role="alert">
-                {errorMessage}
-              </p>
-            )}
             <Button
               type="submit"
               size="lg"
