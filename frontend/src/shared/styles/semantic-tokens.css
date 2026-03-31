@@ -134,7 +134,7 @@
   --color-status-error-bg:            var(--red-20);   /* 배지·강조 배경 */
   --color-status-error-bg-subtle:     var(--red-10);   /* 인라인 알림 등 연한 배경 */
   --color-status-error-border-subtle: var(--red-30);   /* 인라인 알림 연한 보더 */
-  --color-status-error-text:          var(--red-70);
+  --color-status-error-text:          #E7000B;
 
   /* Success — 성공·완료·활성 */
   --color-status-success-default:       var(--emerald-50);

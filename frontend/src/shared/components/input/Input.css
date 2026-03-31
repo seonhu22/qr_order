@@ -26,8 +26,8 @@
   cursor: text;
 }
 
-/* 호버 — disabled · readonly 상태 제외 */
-.input-control:not([data-state="disabled"]):not([data-state="readonly"]):hover {
+/* 호버 — disabled · readonly · error 상태 제외 */
+.input-control:not([data-state="disabled"]):not([data-state="readonly"]):not([data-state="error"]):hover {
   border-color: var(--color-border-hover);
 }
 
@@ -222,8 +222,8 @@
   cursor: pointer;
 }
 
-/* 호버 — disabled · readonly 상태 제외 */
-.select-control:not([data-state="disabled"]):not([data-state="readonly"]):hover {
+/* 호버 — disabled · readonly · error 상태 제외 */
+.select-control:not([data-state="disabled"]):not([data-state="readonly"]):not([data-state="error"]):hover {
   border-color: var(--color-border-hover);
 }
 
