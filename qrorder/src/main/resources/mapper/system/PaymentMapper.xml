@@ -92,7 +92,7 @@
         and payment_cd = #{payment.paymentCd}
     </select>
 
-    <select id="getPayment" resultType="htms.QROrder.system.domain.Payment">
+    <select id="getOldData" resultType="htms.QROrder.system.domain.Payment">
         select
         sp.sys_id ,
         sp.plant_cd ,
