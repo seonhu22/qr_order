@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:api-types": "openapi-typescript http://localhost:8080/v3/api-docs -o src/types/schema.d.ts",
   },
   "dependencies": {
     "@tanstack/react-query": "^5.91.2",
