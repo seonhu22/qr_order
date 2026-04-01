@@ -22,8 +22,6 @@
   justify-content: center;
   flex-shrink: 0;
   color: var(--color-text-inverse);
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-heading);
 }
 
 /* 이름 + 역할 */

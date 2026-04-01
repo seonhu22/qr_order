@@ -11,7 +11,7 @@ export function AdminSidebarUser() {
   return (
     <footer className="admin-sidebar-user">
       <div className="admin-sidebar-user__avatar">
-        관
+        <Icon id="i-user" size={16} />
       </div>
       <div className="admin-sidebar-user__info">
         <span className="admin-sidebar-user__name">관리자</span>
