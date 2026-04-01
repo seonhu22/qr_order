@@ -196,6 +196,9 @@
   /* 라벨·힌트·캡션 */
   --typography-size-caption: var(--font-size-xs);
 
+  /* 사이드바 메뉴 텍스트 (2depth · 3depth 공용) */
+  --typography-size-sidebar: var(--font-size-2xs);
+
   /* 버튼·인풋 텍스트 */
   --typography-size-ui:      var(--font-size-sm);
 

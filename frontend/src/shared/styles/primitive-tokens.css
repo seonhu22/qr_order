@@ -117,6 +117,7 @@
    * - lg~xl    : 서브 헤딩·강조 텍스트
    * - 2xl~5xl  : 헤딩·KPI 숫자·빈 상태 안내 */
   --font-size-xs:   0.75rem;   /* 12px */
+  --font-size-2xs:  0.8125rem; /* 13px */
   --font-size-sm:   0.875rem;  /* 14px */
   --font-size-base: 1rem;      /* 16px */
   --font-size-lg:   1.125rem;  /* 18px */
