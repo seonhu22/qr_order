@@ -149,7 +149,7 @@
   font-size: var(--typography-size-caption);
   font-weight: var(--typography-weight-body);
   line-height: var(--typography-leading-ui);
-  color: var(--sb-text-dim);
+  color: var(--sb-text-muted);
   text-align: left;
   transition: background-color var(--transition-ui), color var(--transition-ui);
 }
