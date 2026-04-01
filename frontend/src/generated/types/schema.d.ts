@@ -1287,7 +1287,7 @@ export interface operations {
     saveMenu: {
         parameters: {
             query: {
-                menu: components["schemas"]["Menu"][];
+                arg0: components["schemas"]["Menu"][];
             };
             header?: never;
             path?: never;
@@ -1453,7 +1453,7 @@ export interface operations {
     insertMenuOpenAccessLog: {
         parameters: {
             query: {
-                menuCd: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -1535,7 +1535,7 @@ export interface operations {
     initPwd: {
         parameters: {
             query: {
-                userId: string;
+                arg1: string;
             };
             header?: never;
             path?: never;
@@ -1561,7 +1561,7 @@ export interface operations {
     saveFile: {
         parameters: {
             query: {
-                fileRequest: components["schemas"]["FileRequest"];
+                arg0: components["schemas"]["FileRequest"];
             };
             header?: never;
             path?: never;
@@ -1583,7 +1583,7 @@ export interface operations {
     getRuleMaster: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1605,7 +1605,7 @@ export interface operations {
     getRuleDetail: {
         parameters: {
             query: {
-                sysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -1627,7 +1627,7 @@ export interface operations {
     getPlantStatus: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1649,7 +1649,7 @@ export interface operations {
     searchPlant: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1671,7 +1671,7 @@ export interface operations {
     getPaymentCoupon: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1693,7 +1693,7 @@ export interface operations {
     getPayment: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1715,7 +1715,7 @@ export interface operations {
     getMessage: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1757,9 +1757,9 @@ export interface operations {
     getSysAccessLogMaster: {
         parameters: {
             query: {
-                searchKeyword?: string;
-                startDate: string;
-                endDate: string;
+                arg0?: string;
+                arg1: string;
+                arg2: string;
             };
             header?: never;
             path?: never;
@@ -1781,7 +1781,7 @@ export interface operations {
     getSysAccessLogDetail: {
         parameters: {
             query: {
-                sysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -1803,9 +1803,9 @@ export interface operations {
     getAuditTrail: {
         parameters: {
             query: {
-                searchKeyword?: string;
-                startDate: string;
-                endDate: string;
+                arg0?: string;
+                arg1: string;
+                arg2: string;
             };
             header?: never;
             path?: never;
@@ -1827,7 +1827,7 @@ export interface operations {
     searchCommon: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1849,7 +1849,7 @@ export interface operations {
     searchCommonDetail: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg1?: string;
             };
             header?: never;
             path: {
@@ -1873,7 +1873,7 @@ export interface operations {
     getAdminUser: {
         parameters: {
             query?: {
-                searchKeyword?: string;
+                arg0?: string;
             };
             header?: never;
             path?: never;
@@ -1935,7 +1935,7 @@ export interface operations {
     getCommonCombo: {
         parameters: {
             query: {
-                code: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -1977,7 +1977,7 @@ export interface operations {
     getAttachFile: {
         parameters: {
             query: {
-                sysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -1999,7 +1999,7 @@ export interface operations {
     viewFile: {
         parameters: {
             query: {
-                sysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -2021,7 +2021,7 @@ export interface operations {
     downloadAllFile: {
         parameters: {
             query: {
-                linkSysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;
@@ -2043,7 +2043,7 @@ export interface operations {
     downloadFile: {
         parameters: {
             query: {
-                sysId: string;
+                arg0: string;
             };
             header?: never;
             path?: never;

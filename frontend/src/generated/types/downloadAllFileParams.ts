@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type InsertMenuOpenAccessLogParams = {
-menuCd: string;
+export type DownloadAllFileParams = {
+arg0: string;
 };

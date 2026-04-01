@@ -60,7 +60,7 @@ import type {
   SearchPlantParams,
   SysAccessLogDetail,
   SysAccessLogMaster
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

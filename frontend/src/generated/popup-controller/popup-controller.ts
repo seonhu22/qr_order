@@ -18,7 +18,7 @@ import type {
 import type {
   ChangePwdRequest,
   CommonResponse
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

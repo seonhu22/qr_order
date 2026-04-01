@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetPlantStatusParams = {
-searchKeyword?: string;
+export type GetSysAccessLogDetailParams = {
+arg0: string;
 };

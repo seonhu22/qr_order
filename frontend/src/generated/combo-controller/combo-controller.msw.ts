@@ -20,7 +20,7 @@ import type {
 
 import type {
   Combo
-} from '../../types';
+} from '.././types';
 
 
 export const getGetPlantComboResponseMock = (): Combo[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({code: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))

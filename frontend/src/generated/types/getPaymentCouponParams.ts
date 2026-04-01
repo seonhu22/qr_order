@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type SearchPlantParams = {
-searchKeyword?: string;
+export type GetPaymentCouponParams = {
+arg0?: string;
 };

@@ -6,8 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAuditTrailParams = {
-searchKeyword?: string;
-startDate: string;
-endDate: string;
+export type SearchPlantParams = {
+arg0?: string;
 };

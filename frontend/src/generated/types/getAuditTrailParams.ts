@@ -6,6 +6,8 @@
  * OpenAPI spec version: v1.0
  */
 
-export type DownloadFileParams = {
-sysId: string;
+export type GetAuditTrailParams = {
+arg0?: string;
+arg1: string;
+arg2: string;
 };

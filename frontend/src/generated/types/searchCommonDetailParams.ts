@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAdminUserParams = {
-searchKeyword?: string;
+export type SearchCommonDetailParams = {
+arg1?: string;
 };

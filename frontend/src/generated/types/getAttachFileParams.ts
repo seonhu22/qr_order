@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetMessageParams = {
-searchKeyword?: string;
+export type GetAttachFileParams = {
+arg0: string;
 };

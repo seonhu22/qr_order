@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type SearchCommonDetailParams = {
-searchKeyword?: string;
+export type GetCommonComboParams = {
+arg0: string;
 };

@@ -5,7 +5,8 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { Menu } from './menu';
 
-export type GetCommonComboParams = {
-code: string;
+export type SaveMenuParams = {
+arg0: Menu[];
 };

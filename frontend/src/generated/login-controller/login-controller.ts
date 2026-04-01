@@ -20,7 +20,7 @@ import type {
   InitPwdParams,
   InitPwdRequest,
   LoginRequest
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

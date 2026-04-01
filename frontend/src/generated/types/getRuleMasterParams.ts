@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAttachFileParams = {
-sysId: string;
+export type GetRuleMasterParams = {
+arg0?: string;
 };
