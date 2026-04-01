@@ -16,6 +16,7 @@
 import { Navigate } from 'react-router-dom';
 import { AdminLayout } from '../layout/AdminLayout';
 import { MainPage } from '../pages/MainPage';
+import AdminPlaceholderPage from '../components/AdminPlaceholderPage';
 
 export const adminRoutes = [
   {
@@ -31,9 +32,48 @@ export const adminRoutes = [
         element: <MainPage />,
       },
       {
-        // 예시
-        path: 'system/settings/plant',
-        element: <></>,
+        path: 'system/common-code',
+        element: <AdminPlaceholderPage title="공통코드 관리" />,
+      },
+      {
+        path: 'system/plant',
+        element: <AdminPlaceholderPage title="사업장 조회" />,
+      },
+      {
+        path: 'system/admin-user',
+        element: <AdminPlaceholderPage title="관리자 관리" />,
+      },
+      {
+        path: 'system/menu',
+        element: <AdminPlaceholderPage title="메뉴 관리" />,
+      },
+      {
+        path: 'system/message',
+        element: <AdminPlaceholderPage title="메시지 관리" />,
+      },
+      {
+        path: 'system/rule',
+        element: <AdminPlaceholderPage title="규칙 관리" />,
+      },
+      {
+        path: 'payment/rate',
+        element: <AdminPlaceholderPage title="결제 요금 관리" />,
+      },
+      {
+        path: 'payment/plant-status',
+        element: <AdminPlaceholderPage title="사업장 상태 조회" />,
+      },
+      {
+        path: 'payment/coupon',
+        element: <AdminPlaceholderPage title="쿠폰 관리" />,
+      },
+      {
+        path: 'history/access-log',
+        element: <AdminPlaceholderPage title="접속 정보 조회" />,
+      },
+      {
+        path: 'history/audit-log',
+        element: <AdminPlaceholderPage title="변경 이력 조회" />,
       },
     ],
   },

@@ -18,37 +18,34 @@ export const ADMIN_SIDEBAR_MENU = [
     label: '시스템',
     groups: [
       {
-        key: 'systemSettings',
-        label: '시스템 관리',
+        key: 'systemManagement',
+        label: '시스템',
         items: [
-          { key: 'commonCode', label: '공통코드 관리', active: true },
-          { key: 'plant', label: '사업장 조회', active: false },
-          { key: 'adminUser', label: '관리자 관리', active: false },
-          { key: 'menu', label: '메뉴 관리', active: false },
-          { key: 'message', label: '메시지 관리', active: false },
-          { key: 'rule', label: '규칙 관리', active: false },
+          { key: 'commonCode', label: '공통코드 관리', path: '/admin/system/common-code' },
+          { key: 'plantSearch', label: '사업장 조회', path: '/admin/system/plant' },
+          { key: 'adminUser', label: '관리자 관리', path: '/admin/system/admin-user' },
+          { key: 'menu', label: '메뉴 관리', path: '/admin/system/menu' },
+          { key: 'message', label: '메시지 관리', path: '/admin/system/message' },
+          { key: 'rule', label: '규칙 관리', path: '/admin/system/rule' },
         ],
       },
       {
-        key: 'billManagement',
+        key: 'paymentManagement',
         label: '결제 관리',
-        items: [],
+        items: [
+          { key: 'paymentRate', label: '결제 요금 관리', path: '/admin/payment/rate' },
+          { key: 'plantStatus', label: '사업장 상태 조회', path: '/admin/payment/plant-status' },
+          { key: 'coupon', label: '쿠폰 관리', path: '/admin/payment/coupon' },
+        ],
       },
       {
         key: 'logManagement',
         label: '이력 관리',
-        items: [],
+        items: [
+          { key: 'accessLog', label: '접속 정보 조회', path: '/admin/history/access-log' },
+          { key: 'auditLog', label: '변경 이력 조회', path: '/admin/history/audit-log' },
+        ],
       },
     ],
-  },
-  {
-    key: 'bill',
-    label: '결제 관리',
-    groups: [],
-  },
-  {
-    key: 'history',
-    label: '이력 관리',
-    groups: [],
   },
 ] as const;
