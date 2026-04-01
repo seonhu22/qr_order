@@ -8,7 +8,7 @@ export default defineConfig({
     output: {
       mode: 'tags-split',
       target: './src/generated',
-      schemas: './src/types',
+      schemas: './src/generated/types',
       client: 'react-query',
       mock: true,
       override: {

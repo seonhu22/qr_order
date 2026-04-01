@@ -153,11 +153,11 @@ frontend/
       fonts/
   src/
     generated/        ← Orval 자동 생성 영역 (직접 수정 금지)
+      types/          ← openapi-typescript + Orval 생성 DTO 타입
+        schema.d.ts
       {컨트롤러}/
         {컨트롤러}.ts       ← API fetch 함수 + TanStack Query 훅
         {컨트롤러}.msw.ts   ← MSW 핸들러
-    types/            ← openapi-typescript 생성 DTO 타입
-      schema.d.ts
     apps/
       admin/
         features/
@@ -783,7 +783,7 @@ npm run build
 **전체 흐름:**
 
 ```text
-Spring Boot Swagger → openapi.json → schema.d.ts + src/generated/ (API 함수·훅·MSW 핸들러)
+Spring Boot Swagger → openapi.json → src/generated/types/schema.d.ts + src/generated/ (API 함수·훅·MSW 핸들러)
 ```
 
 **명령어:**

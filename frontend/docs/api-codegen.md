@@ -12,15 +12,16 @@ Spring Boot Swagger (/v3/api-docs)
          ↓ npm run generate:schema   (백엔드 켜야 함)
 openapi.json                         ← OpenAPI 명세 원본 (git 커밋)
          ↓ npm run generate          (백엔드 불필요)
-src/types/schema.d.ts                ← DTO 타입 (openapi-typescript)
+src/generated/types/schema.d.ts      ← DTO 타입 (openapi-typescript)
          ↓ Orval
 ┌─────────────────────────────────────────┐
 │ src/generated/  (자동 생성 — 직접 수정 금지) │
-│  plant.ts / auth.ts   — API fetch 함수  │
-│  plant.msw.ts         — MSW 핸들러      │
-│  hooks/                                 │
-│    usePlant.ts        — TanStack Query 훅│
-│    useAuth.ts                           │
+│  types/              — DTO 타입          │
+│  plant.ts / auth.ts  — API fetch 함수    │
+│  plant.msw.ts        — MSW 핸들러        │
+│  hooks/                                    │
+│    usePlant.ts       — TanStack Query 훅  │
+│    useAuth.ts                              │
 └─────────────────────────────────────────┘
          ↓
 PlantPage.tsx
@@ -46,7 +47,7 @@ npm run generate:schema
 npm run generate
 
 # 3. 생성 결과 커밋
-git add openapi.json src/types/schema.d.ts src/generated/
+git add openapi.json src/generated/
 ```
 
 ---
@@ -57,8 +58,8 @@ git add openapi.json src/types/schema.d.ts src/generated/
 
 ```text
 openapi.json                     ← OpenAPI 명세 원본
-src/types/schema.d.ts            ← DTO 타입 (openapi-typescript 생성)
 src/generated/
+  types/                         ← DTO 타입 (openapi-typescript + Orval 생성)
   {도메인}.ts                    ← API fetch 함수
   {도메인}.msw.ts                ← MSW 핸들러
   hooks/

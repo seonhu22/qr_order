@@ -15,7 +15,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate:schema": "curl -s http://localhost:8080/v3/api-docs -o openapi.json",
-    "generate:api-types": "openapi-typescript openapi.json -o src/types/schema.d.ts",
+    "generate:api-types": "openapi-typescript openapi.json -o src/generated/types/schema.d.ts",
     "generate": "npm run generate:api-types && orval"
   },
   "dependencies": {
