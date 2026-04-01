@@ -13,13 +13,11 @@ import { devRoutes } from '@/shared/dev/DevRoutes';
  * @returns {React.ReactNode}
  */
 function RequireAuth({ children }) {
-  // 보호 라우트는 아직 실제 인증 정책 확정 전이라, 상태값은 후속 구현 시 다시 사용한다.
-  const { isAuthenticated: _isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  // TODO : 로그인 상태 테스트를 위해 잠시 가렸다.
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/admin/login" replace />;
-  // }
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   return children;
 }

@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
 import { TextInput } from '@/shared/components/input/TextInput';
 import { Button } from '@/shared/components/button';
 import { FormAlert } from '@/shared/components/form-alert';
 import { AdminBrand } from '../components/AdminBrand';
-import { login } from '@/generated/login-controller/login-controller';
+import { useLogin } from '@/generated/login-controller/login-controller';
 import { useAuth } from '@/shared/auth/AuthContext';
 
 export default function LoginPage() {
@@ -17,8 +16,8 @@ export default function LoginPage() {
   const [userPassword, setUserPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { mutate: loginMutate, isPending } = useMutation({
-    mutationFn: () => login({ userId, userPassword }),
+  const { mutate: loginMutate, isPending } = useLogin({
+    mutation: {
     onSuccess: (data) => {
       if (data.success) {
         signIn(data.data ?? null);
@@ -30,12 +29,13 @@ export default function LoginPage() {
     onError: () => {
       setErrorMessage('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     },
+    },
   });
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setErrorMessage('');
-    loginMutate();
+    loginMutate({ data: { userId, userPassword } });
   };
 
   return (
