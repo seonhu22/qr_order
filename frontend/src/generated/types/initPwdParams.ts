@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetSysAccessLogDetailParams = {
-sysId: string;
+export type InitPwdParams = {
+arg1: string;
 };

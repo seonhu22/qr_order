@@ -6,6 +6,8 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetPaymentParams = {
-searchKeyword?: string;
+export type GetSysAccessLogMasterParams = {
+arg0?: string;
+arg1: string;
+arg2: string;
 };

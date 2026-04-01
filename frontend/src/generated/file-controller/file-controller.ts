@@ -32,7 +32,7 @@ import type {
   GetAttachFileParams,
   SaveFileParams,
   ViewFileParams
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

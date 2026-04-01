@@ -17,7 +17,7 @@ import type {
 
 import type {
   CommonResponse
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

@@ -20,7 +20,7 @@ import type {
 
 import type {
   CommonResponse
-} from '../../types';
+} from '.././types';
 
 
 export const getGetDashboardInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})

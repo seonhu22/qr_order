@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type SearchCommonParams = {
-searchKeyword?: string;
+export type GetPlantStatusParams = {
+arg0?: string;
 };

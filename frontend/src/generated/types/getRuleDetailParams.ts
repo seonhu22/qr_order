@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type DownloadAllFileParams = {
-linkSysId: string;
+export type GetRuleDetailParams = {
+arg0: string;
 };

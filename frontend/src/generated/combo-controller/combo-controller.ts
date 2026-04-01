@@ -23,7 +23,7 @@ import type {
 import type {
   Combo,
   GetCommonComboParams
-} from '../../types';
+} from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 

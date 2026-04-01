@@ -34,7 +34,7 @@ import type {
   RuleMaster,
   SysAccessLogDetail,
   SysAccessLogMaster
-} from '../../types';
+} from '.././types';
 
 
 export const getUpdateRuleMasterResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})

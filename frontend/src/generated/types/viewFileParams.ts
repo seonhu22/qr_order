@@ -7,5 +7,5 @@
  */
 
 export type ViewFileParams = {
-sysId: string;
+arg0: string;
 };

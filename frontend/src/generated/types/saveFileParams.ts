@@ -5,7 +5,8 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { FileRequest } from './fileRequest';
 
-export type InitPwdParams = {
-userId: string;
+export type SaveFileParams = {
+arg0: FileRequest;
 };

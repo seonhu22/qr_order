@@ -6,8 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetSysAccessLogMasterParams = {
-searchKeyword?: string;
-startDate: string;
-endDate: string;
+export type GetMessageParams = {
+arg0?: string;
 };

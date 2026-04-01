@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetRuleMasterParams = {
-searchKeyword?: string;
+export type InsertMenuOpenAccessLogParams = {
+arg0: string;
 };
