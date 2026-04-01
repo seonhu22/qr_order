@@ -55,6 +55,7 @@ export type ConfirmSecondaryAction = Omit<ModalSecondaryAction, 'label' | 'varia
 export interface WrapperModalProps extends ModalCommonProps {
   icon?: ReactNode;
   children?: ReactNode;
+  buttonSize?: 'sm' | 'md' | 'lg';
   primaryAction?: ModalPrimaryAction;
   secondaryAction?: ModalSecondaryAction;
 }
