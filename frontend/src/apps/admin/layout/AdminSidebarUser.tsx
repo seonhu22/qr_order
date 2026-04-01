@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './AdminSidebarUser.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
-import { useLogout } from '@/generated/logout-controller/logout-controller';
 import { useAuth } from '@/shared/auth/AuthContext';
+import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
 /**
  * 관리자 사이드바 — 하단 사용자 정보 영역
@@ -14,20 +14,29 @@ import { useAuth } from '@/shared/auth/AuthContext';
 export function AdminSidebarUser() {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user } = useAuth();
 
-  const { mutate: logoutMutate, isPending } = useLogout({
+  const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
     mutation: {
       onSuccess: () => {
-        signOut();
-        navigate('/login');
+        setModalOpen(false);
+        navigate('/admin/login');
       },
       onError: () => {
-        signOut();
-        navigate('/login');
+        setModalOpen(false);
+        navigate('/admin/login');
       },
     },
   });
+
+  const userName =
+    typeof user?.userName === 'string'
+      ? user.userName
+      : typeof user?.userId === 'string'
+        ? user.userId
+        : '관리자';
+
+  const userRole = typeof user?.role === 'string' ? user.role : 'ADMIN';
 
   return (
     <>
@@ -36,8 +45,8 @@ export function AdminSidebarUser() {
           <Icon id="i-user" size={16} />
         </div>
         <div className="admin-sidebar-user__info">
-          <span className="admin-sidebar-user__name">관리자</span>
-          <span className="admin-sidebar-user__role">admin</span>
+          <span className="admin-sidebar-user__name">{userName}</span>
+          <span className="admin-sidebar-user__role">{userRole}</span>
         </div>
         <button
           type="button"

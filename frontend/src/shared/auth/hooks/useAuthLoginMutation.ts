@@ -2,11 +2,21 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useLogin } from '@/generated/login-controller/login-controller';
+import type { LoginMutationResult } from '@/generated/login-controller/login-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 
-type UseLoginOptions = Parameters<typeof useLogin>[0];
+type AuthLoginMutationOptions = {
+  mutation?: {
+    onSuccess?: (
+      data: LoginMutationResult,
+      variables: { data: { userId: string; userPassword: string } },
+      context: unknown,
+    ) => void;
+    onError?: (error: unknown) => void;
+  };
+};
 
-export function useAuthLoginMutation(options: UseLoginOptions = {}) {
+export function useAuthLoginMutation(options: AuthLoginMutationOptions = {}) {
   const queryClient = useQueryClient();
   const mutationOptions = options?.mutation ?? {};
 
@@ -19,6 +29,9 @@ export function useAuthLoginMutation(options: UseLoginOptions = {}) {
         }
 
         mutationOptions.onSuccess?.(data, variables, context);
+      },
+      onError: (error) => {
+        mutationOptions.onError?.(error);
       },
     },
   });
