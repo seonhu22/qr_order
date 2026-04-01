@@ -136,7 +136,9 @@ export function WrapperModal({
   const resolvedPrimaryAction = primaryAction ?? { label: '확인', variant: 'primary' as const };
   const resolvedSecondaryAction = secondaryAction ?? {
     label: '닫기',
-    variant: 'secondary' as const,
+    variant: 'outline' as const,
+    loading: false,
+    disabled: false,
   };
   const hasPrimaryAction = Boolean(primaryAction);
   const hasSecondaryAction = Boolean(secondaryAction);
@@ -207,7 +209,7 @@ export function WrapperModal({
               <Button
                 loading={resolvedSecondaryAction.loading}
                 size={buttonSize}
-                variant={resolvedSecondaryAction.variant ?? 'secondary'}
+                variant={resolvedSecondaryAction.variant ?? 'outline'}
                 disabled={resolvedSecondaryAction.disabled}
                 type="button"
                 onClick={handleSecondaryAction}

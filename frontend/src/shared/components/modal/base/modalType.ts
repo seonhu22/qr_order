@@ -77,4 +77,5 @@ export interface NoticeModalProps extends Pick<
   description?: string;
   tone?: ConfirmModalTone;
   primaryAction?: ModalPrimaryAction;
+  secondaryAction?: ConfirmSecondaryAction;
 }

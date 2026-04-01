@@ -51,20 +51,18 @@ export function AdminSidebarUser() {
 
       <WrapperModal
         open={modalOpen}
-        title="알림"
+        title="로그아웃"
+        subtitle="로그아웃 하시겠습니까?"
         primaryAction={{
           label: '확인',
           loading: isPending,
           onClick: () => logoutMutate(),
         }}
         secondaryAction={{
-          label: '닫기',
           onClick: () => setModalOpen(false),
         }}
         onClose={() => setModalOpen(false)}
-      >
-        <p>로그아웃 하시겠습니까?</p>
-      </WrapperModal>
+      />
     </>
   );
 }
