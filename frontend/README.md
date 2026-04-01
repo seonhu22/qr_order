@@ -130,7 +130,7 @@ npm run test:watch
 예시:
 
 - `/admin/main`
-- `/admin/systemSettings/plant`
+- `/admin/system/plant`
 
 현재 초기 구현 목표는 `/admin/main`의 빈 메인 컨테이너 화면까지이다.
 
@@ -160,7 +160,7 @@ frontend/
         {컨트롤러}.msw.ts   ← MSW 핸들러
     apps/
       admin/
-        features/
+        hooks/
         pages/
         routes/
       client/
@@ -190,7 +190,6 @@ frontend/
         table/
         feedback/
       dev/            ← 개발 전용 컴포넌트 가이드 페이지 (/dev/*)
-      hooks/
       lib/            ← httpClient.ts, queryClient.ts 등 공용 인프라
       stores/
       styles/         ← 디자인 토큰 및 전역 CSS
@@ -211,7 +210,6 @@ frontend/
 - `shared/stores`: Zustand 전역 스토어
 - `shared/styles`: 디자인 토큰 CSS 및 전역 스타일
 - `shared/utils`: 날짜, 문자열, 정렬 등 공용 유틸리티
-- `shared/types`: DTO, 공통 타입, 응답 타입
 - `mocks`: MSW 브라우저 mock 구성
 - `test`: 테스트 설정 및 공통 테스트 유틸
 
@@ -231,18 +229,26 @@ frontend/
 
 현재 구현된 예시는 아래와 같다.
 
-- `src/apps/admin/pages/LoginPage.jsx`: 관리자 로그인 화면
-- `src/apps/admin/pages/DashboardPage.jsx`: 관리자 레이아웃 페이지
-- `src/apps/admin/pages/system/PlantPage.jsx`: 사업장 관리 페이지
-- `src/apps/admin/features/plant/components/PlantListPreview.jsx`: TanStack Query 조회 예시 컴포넌트
+- `src/apps/admin/pages/LoginPage.tsx`: 관리자 로그인 화면
+- `src/apps/admin/pages/MainPage.tsx`: 관리자 메인 페이지
 - `src/apps/admin/routes/AdminRoutes.jsx`: 관리자 앱 라우트 목록
+- `src/apps/admin/layout/adminSidebarMenu.ts`: 관리자 메뉴 메타데이터
+- `src/apps/admin/hooks/useDashboardInfo.ts`: 대시보드 Query wrapper 예시
+- `src/shared/auth/hooks/useCurrentUser.ts`: auth/me Query wrapper
+- `src/shared/auth/hooks/useAuthLoginMutation.ts`: 로그인 mutation wrapper
+- `src/shared/auth/hooks/useAuthLogoutMutation.ts`: 로그아웃 mutation wrapper
+
+참고:
+
+- `PlantPage.tsx`, `usePlantList.ts`는 Query 구조 검증용 시범 연결 상태이며, 현재 우선 구현 대상으로 확정된 화면은 아니다.
+- 즉 사업장 조회는 구조 예시로 남아 있으나, 실제 테이블 UX와 기능 범위는 추후 다시 정리될 수 있다.
 
 ### 6.2 shared 계층
 
-- `src/shared/api`: 공용 API 함수
-  - 예: `auth.js`
+- `src/shared/api`: 공용 API 함수 및 query key
+  - 예: `queryKeys.ts`
 - `src/shared/auth`: 인증 컨텍스트와 Provider
-  - 예: `AuthContext.jsx`, `AuthProvider.jsx`
+  - 예: `AuthContext.tsx`, `AuthProvider.jsx`
 - `src/shared/lib`: Query Client 등 공용 인프라
 - `src/shared/routes`: 앱 공통 라우트 엔트리
 - `src/shared/styles`: reset, fonts, design token, global style 진입점
@@ -746,7 +752,9 @@ http://localhost:3000
 #### 12.3.1 개발 모킹(MSW) 모드
 
 - 권장 명령: `npm run dev:mock`
-- 동작: 브라우저에서 MSW가 요청을 가로채고 `src/test/handlers.js`의 응답을 반환한다.
+- 동작: 브라우저에서 MSW가 요청을 가로챈다.
+- 인증 관련(`/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)은 `src/test/handlers.js`의 커스텀 응답을 우선 사용한다.
+- 그 외 다수 API는 `src/generated/*.msw.ts`에서 생성된 핸들러를 `src/mocks/handlers.ts`에서 통합 등록한다.
 - 장점: 백엔드가 없어도 로딩/성공/실패 UI를 안정적으로 확인할 수 있다.
 - 참고: `npm run dev`도 사용할 수 있으며, 기본값은 MSW 활성 상태다.
 
@@ -919,6 +927,31 @@ npm run generate
 - (중요) CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema` 후 `npm run generate` 결과를 함께 커밋해야 한다.
 - 상세 내용은 `docs/api-codegen.md`를 참고한다.
 
+### 13.7 현재 Query 구조
+
+현재는 generated 훅을 페이지에서 직접 사용하지 않고, 필요한 곳부터 wrapper 훅으로 감싸는 방식으로 정리 중이다.
+
+- `auth/me` → `src/shared/auth/hooks/useCurrentUser.ts`
+- `login` → `src/shared/auth/hooks/useAuthLoginMutation.ts`
+- `logout` → `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+- `dashboard/info` → `src/apps/admin/hooks/useDashboardInfo.ts`
+
+공통 query key는 `src/shared/api/queryKeys.ts`에서 관리한다.
+
+예시:
+
+```ts
+queryKeys.auth.me
+queryKeys.dashboard.info
+queryKeys.menu.admin
+```
+
+운영 메모:
+
+- 위 세 key가 현재 합의된 표준 key의 시작점이다.
+- 기능별 `list/detail/search` key는 실제 화면 연결이 확정될 때 추가한다.
+- 사업장 조회용 key는 현재 화면 방향이 보류 상태이므로 표준 규칙에 포함하지 않는다.
+
 ---
 
 ## 14. 주요 설정 파일 설명
@@ -969,6 +1002,7 @@ npm run generate
 
 - `BrowserRouter`, `QueryClientProvider`, `AuthProvider`를 앱 최상단에 연결
 - 라우팅, 서버 상태 관리, 인증 컨텍스트의 시작점 역할
+- `AuthProvider`는 `auth/me` Query 캐시를 기반으로 인증 상태를 계산한다
 
 ### 14.7 `src/shared/styles/*`
 
@@ -997,6 +1031,24 @@ npm run generate
 
 - `mockServiceWorker.js`: 브라우저 MSW 동작에 필요한 worker 스크립트
 - `static/fonts/*`: Pretendard 폰트 정적 파일
+
+### 14.11 인증 구조
+
+현재 인증 구조는 아래 흐름을 따른다.
+
+```text
+login mutation 성공
+-> auth/me 캐시 갱신
+-> AuthProvider가 Query 캐시를 읽어 인증 상태 계산
+-> 보호 라우트가 /admin/* 접근 허용
+```
+
+관련 파일:
+
+- `src/shared/auth/AuthProvider.jsx`
+- `src/shared/auth/hooks/useCurrentUser.ts`
+- `src/shared/auth/hooks/useAuthLoginMutation.ts`
+- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
 
 ---
 
@@ -1116,13 +1168,19 @@ npm run generate
 사용 목적:
 
 - 전역 UI 상태 관리
-- 사용자 정보, 메뉴 상태, 모달 상태 등 공용 상태 관리
+- 사이드바 열림/닫힘, 메뉴 펼침 상태, 모달 상태 등 공용 UI 상태 관리
 
 선정 이유:
 
 - Redux보다 초기 진입 장벽이 낮다.
 - 보일러플레이트가 적다.
 - 서버 상태는 TanStack Query, UI 전역 상태는 Zustand로 역할을 분리하기 좋다.
+
+주의:
+
+- 사용자 정보와 세션 확인은 현재 Query 캐시로 관리한다.
+- 관리자 메뉴 데이터는 현재 정적 상수로 관리한다.
+- 따라서 Zustand는 메뉴 원본 데이터가 아니라 메뉴 표시 상태만 관리한다.
 
 ### 16.6 Zod
 
@@ -1293,6 +1351,22 @@ npm run generate
 - 개발 서버만 띄우는 것으로 끝내지 말고 `lint`, `typecheck`, `test`까지 항상 함께 확인할 것
 - 서버 상태와 UI 상태를 섞지 말고, 선택한 라이브러리의 역할을 명확히 구분할 것
 - 백엔드 API가 변경되면 `npm run generate`를 반드시 재실행하고 커밋할 것
+
+현재 구현 기준으로는 아래 항목이 이미 반영되어 있다.
+
+- OpenAPI 기반 DTO/API/MSW 자동 생성
+- codegen drift CI 검증
+- auth/me Query 기반 인증 상태 관리
+- 로그인/로그아웃 wrapper 훅
+- 관리자 메뉴 상수화 및 보호 라우트 연결
+- 대시보드 Query wrapper 연결
+
+아직 후속 정리가 필요한 항목은 아래와 같다.
+
+- 권한 기준 접근 처리
+- 실제 기능 화면별 Query key 확장
+- 관리자 실화면 테이블/폼 UX 정리
+- `dev:mock`, `dev:real` 기준 기능별 실검증 확대
 
 이 원칙을 지키면 프로젝트가 커져도 구조가 무너지지 않고 유지될 가능성이 높다.
 
