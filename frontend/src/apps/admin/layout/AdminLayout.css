@@ -15,14 +15,14 @@
  * 사이드바
  * ===================================================== */
 .admin-layout__sidebar {
-  width: 240px;
+  width: var(--width-sidebar);
   flex-shrink: 0;
   background-color: var(--color-sidebar-bg);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--color-sidebar-border);
+  border-right: var(--border-1) solid var(--color-sidebar-border);
   overflow: hidden;
-  transition: width 0.2s ease, border-color 0.2s ease;
+  transition: width var(--transition-panel), border-color var(--transition-panel);
 }
 
 .admin-layout__sidebar--closed {
@@ -32,15 +32,15 @@
 
 /* 브랜드 로고 영역 */
 .admin-layout__sidebar-brand {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--color-sidebar-border);
+  padding: var(--spacing-10) var(--spacing-9);
+  border-bottom: var(--border-1) solid var(--color-sidebar-border);
   flex-shrink: 0;
 }
 
 /* 네비게이션 메뉴 영역 */
 .admin-layout__nav {
   flex: 1;
-  padding: 12px 0;
+  padding: var(--spacing-6) 0;
   overflow-y: auto;
 }
 
@@ -57,10 +57,10 @@
 
 /* ---- 상단 헤더 바 ---- */
 .admin-layout__header {
-  height: 56px;
+  height: var(--height-12);
   flex-shrink: 0;
   background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--border-1) solid var(--color-border-default);
 }
 
 /* ---- 메인 콘텐츠 스크롤 영역 ---- */
@@ -68,5 +68,5 @@
   flex: 1;
   overflow-y: auto;
   background-color: var(--color-bg-app);
-  padding: 24px;
+  padding: var(--spacing-page-x);
 }
