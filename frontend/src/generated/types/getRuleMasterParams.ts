@@ -7,5 +7,5 @@
  */
 
 export type GetRuleMasterParams = {
-arg0?: string;
+searchKeyword?: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type GetPlantStatusParams = {
-arg0?: string;
+searchKeyword?: string;
 };

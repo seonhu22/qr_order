@@ -7,5 +7,5 @@
  */
 
 export type GetMessageParams = {
-arg0?: string;
+searchKeyword?: string;
 };

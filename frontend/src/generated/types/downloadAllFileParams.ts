@@ -7,5 +7,5 @@
  */
 
 export type DownloadAllFileParams = {
-arg0: string;
+linkSysId: string;
 };

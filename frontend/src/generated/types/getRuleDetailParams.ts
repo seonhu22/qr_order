@@ -7,5 +7,5 @@
  */
 
 export type GetRuleDetailParams = {
-arg0: string;
+sysId: string;
 };

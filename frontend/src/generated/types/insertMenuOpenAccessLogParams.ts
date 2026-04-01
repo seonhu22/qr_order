@@ -7,5 +7,5 @@
  */
 
 export type InsertMenuOpenAccessLogParams = {
-arg0: string;
+menuCd: string;
 };

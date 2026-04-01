@@ -7,5 +7,5 @@
  */
 
 export type InitPwdParams = {
-arg1: string;
+userId: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type SearchCommonDetailParams = {
-arg1?: string;
+searchKeyword?: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type GetAdminUserParams = {
-arg0?: string;
+searchKeyword?: string;
 };

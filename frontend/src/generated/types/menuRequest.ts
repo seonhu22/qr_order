@@ -5,8 +5,10 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { FileRequest } from './fileRequest';
+import type { Menu } from './menu';
 
-export type SaveFileParams = {
-fileRequest: FileRequest;
-};
+export interface MenuRequest {
+  newItems?: Menu[];
+  updateItems?: Menu[];
+  delItems?: Menu[];
+}

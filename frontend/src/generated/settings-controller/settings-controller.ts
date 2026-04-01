@@ -43,6 +43,7 @@ import type {
   GetSysAccessLogDetailParams,
   GetSysAccessLogMasterParams,
   Menu,
+  MenuRequest,
   Message,
   MessageRequest,
   Payment,
@@ -54,7 +55,6 @@ import type {
   RuleDetail,
   RuleDetailRequest,
   RuleMaster,
-  SaveMenuParams,
   SearchCommonDetailParams,
   SearchCommonParams,
   SearchPlantParams,
@@ -650,7 +650,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(mutationOptions, queryClient);
     }
     export const delPayment = (
-    payment: Payment,
+    payment: Payment[],
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
@@ -666,8 +666,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getDelPaymentMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment[]}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment[]}, TContext> => {
 
 const mutationKey = ['delPayment'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -679,7 +679,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof delPayment>>, {data: Payment}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof delPayment>>, {data: Payment[]}> = (props) => {
           const {data} = props ?? {};
 
           return  delPayment(data,requestOptions)
@@ -691,15 +691,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DelPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof delPayment>>>
-    export type DelPaymentMutationBody = Payment
+    export type DelPaymentMutationBody = Payment[]
     export type DelPaymentMutationError = unknown
 
     export const useDelPayment = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delPayment>>, TError,{data: Payment[]}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delPayment>>,
         TError,
-        {data: Payment},
+        {data: Payment[]},
         TContext
       > => {
 
@@ -766,14 +766,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(mutationOptions, queryClient);
     }
     export const saveMenu = (
-    params: SaveMenuParams,
+    menuRequest: MenuRequest,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
       
       return httpClient<CommonResponse>(
       {url: `/api/system/settings/menu/save`, method: 'POST',
-        params, signal
+      headers: {'Content-Type': 'application/json', },
+      data: menuRequest, signal
     },
       options);
     }
@@ -781,8 +782,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getSaveMenuMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{params: SaveMenuParams}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{params: SaveMenuParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{data: MenuRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{data: MenuRequest}, TContext> => {
 
 const mutationKey = ['saveMenu'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -794,10 +795,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveMenu>>, {params: SaveMenuParams}> = (props) => {
-          const {params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveMenu>>, {data: MenuRequest}> = (props) => {
+          const {data} = props ?? {};
 
-          return  saveMenu(params,requestOptions)
+          return  saveMenu(data,requestOptions)
         }
 
         
@@ -806,15 +807,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SaveMenuMutationResult = NonNullable<Awaited<ReturnType<typeof saveMenu>>>
-    
+    export type SaveMenuMutationBody = MenuRequest
     export type SaveMenuMutationError = unknown
 
     export const useSaveMenu = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{params: SaveMenuParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenu>>, TError,{data: MenuRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof saveMenu>>,
         TError,
-        {params: SaveMenuParams},
+        {data: MenuRequest},
         TContext
       > => {
 

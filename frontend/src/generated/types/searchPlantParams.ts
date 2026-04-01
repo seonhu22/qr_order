@@ -7,5 +7,5 @@
  */
 
 export type SearchPlantParams = {
-arg0?: string;
+searchKeyword?: string;
 };

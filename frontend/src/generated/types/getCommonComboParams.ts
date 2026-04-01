@@ -7,5 +7,5 @@
  */
 
 export type GetCommonComboParams = {
-arg0: string;
+code: string;
 };

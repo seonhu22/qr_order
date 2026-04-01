@@ -7,5 +7,5 @@
  */
 
 export type GetPaymentParams = {
-arg0?: string;
+searchKeyword?: string;
 };

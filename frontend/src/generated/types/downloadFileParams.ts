@@ -7,5 +7,5 @@
  */
 
 export type DownloadFileParams = {
-arg0: string;
+sysId: string;
 };

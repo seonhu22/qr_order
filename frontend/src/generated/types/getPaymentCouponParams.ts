@@ -7,5 +7,5 @@
  */
 
 export type GetPaymentCouponParams = {
-arg0?: string;
+searchKeyword?: string;
 };

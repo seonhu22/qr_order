@@ -40,6 +40,7 @@ export * from './initPwdRequest';
 export * from './insertMenuOpenAccessLogParams';
 export * from './loginRequest';
 export * from './menu';
+export * from './menuRequest';
 export * from './message';
 export * from './messageRequest';
 export * from './payment';

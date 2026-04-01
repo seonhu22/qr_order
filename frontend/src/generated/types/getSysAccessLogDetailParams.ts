@@ -7,5 +7,5 @@
  */
 
 export type GetSysAccessLogDetailParams = {
-arg0: string;
+sysId: string;
 };
