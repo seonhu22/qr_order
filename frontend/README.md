@@ -393,8 +393,8 @@ color: var(--slate-90);
 
 ```css
 /* 올바른 사용 */
-padding: var(--spacing-5);   /* 토큰 우선 */
-margin-top: 0.125rem;        /* 2px — 토큰 없을 때만 rem 직접 작성 */
+padding: var(--spacing-5); /* 토큰 우선 */
+margin-top: 0.125rem; /* 2px — 토큰 없을 때만 rem 직접 작성 */
 
 /* 금지 */
 padding: 10px;
@@ -495,16 +495,16 @@ http://localhost:3000/dev/input
 
 ### 9.2 현재 등록된 가이드
 
-| 경로            | 내용                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------ |
-| `/dev/input`    | TextInput 크기·상태·레이블 위치·기능 전체 예시                                       |
-| `/dev/select`   | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                         |
-| `/dev/modal`    | Modal 크기·상태·레이아웃 전체 예시                                                   |
-| `/dev/button`   | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시          |
-| `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                     |
-| `/dev/radio`    | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시     |
+| 경로              | 내용                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `/dev/input`      | TextInput 크기·상태·레이블 위치·기능 전체 예시                                       |
+| `/dev/select`     | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                         |
+| `/dev/modal`      | Modal 크기·상태·레이아웃 전체 예시                                                   |
+| `/dev/button`     | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시          |
+| `/dev/checkbox`   | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                     |
+| `/dev/radio`      | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시     |
 | `/dev/toggle`     | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
-| `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기·DismissibleFormAlert·로그인 폼 실사용 예시    |
+| `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기·DismissibleFormAlert·로그인 폼 실사용 예시     |
 
 ### 9.3 신규 가이드 추가 방법
 
@@ -805,10 +805,18 @@ npm run generate
    npm run generate         # 코드 재생성
    ```
 
+**CI 검증 방식:**
+
+- CI는 `generate:schema`를 실행하지 않는다.
+- 저장소에 커밋된 `openapi.json`을 기준으로 `npm run generate`만 다시 실행한다.
+- 이때 `src/generated/`에 diff가 생기면 codegen drift로 판단하고 CI를 실패시킨다.
+- 실패 시 "`npm run generate` 후 `frontend/src/generated`를 커밋하라"는 안내 메시지를 출력한다.
+
 **주의:**
 
 - `src/generated/` 하위 파일은 직접 수정하지 않는다. 다음 `generate` 실행 시 덮어씌워진다.
 - `openapi.json`은 git에 커밋한다. 팀원 전체가 동일한 명세 기준으로 작업할 수 있다.
+- (중요) CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema` 후 `npm run generate` 결과를 함께 커밋해야 한다.
 - 상세 내용은 `docs/api-codegen.md`를 참고한다.
 
 ---
@@ -1192,7 +1200,7 @@ npm run generate
 
 ## 참고 문서
 
-| 문서 | 내용 |
-|------|------|
+| 문서                  | 내용                                                              |
+| --------------------- | ----------------------------------------------------------------- |
 | `docs/api-codegen.md` | API 코드 자동 생성 전체 가이드, 명령어, 파일 구조, 모드 전환 방법 |
-| `docs/decisions.md` | 기술 의사결정 기록 (Orval 선택, 로컬 파일 방식, 통합 config 등)
+| `docs/decisions.md`   | 기술 의사결정 기록 (Orval 선택, 로컬 파일 방식, 통합 config 등)   |

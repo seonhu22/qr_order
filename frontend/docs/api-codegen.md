@@ -37,6 +37,15 @@ usePlantList() 훅만 호출 — 경로·타입·캐시 신경 쓸 필요 없음
 | `npm run generate:schema` | `openapi.json` 갱신 | 필요 |
 | `npm run generate` | `openapi.json` → 전체 코드 재생성 | 불필요 |
 
+### CI에서 어떻게 검증하는가
+
+- CI는 `npm run generate:schema`를 실행하지 않는다.
+- 대신 저장소에 이미 커밋된 `openapi.json`을 기준으로 `npm run generate`만 다시 실행한다.
+- 재생성 후 `src/generated/`에 diff가 생기면 codegen drift로 판단하고 실패시킨다.
+- 실패 메시지는 "`npm run generate` 후 `frontend/src/generated`를 커밋하라"는 안내를 출력한다.
+
+즉 CI의 역할은 **명세 최신화**가 아니라 **생성 누락 검증**이다.
+
 **DTO 변경 대응 순서:**
 
 ```bash
@@ -120,6 +129,7 @@ npm run dev:real
 ## 주의사항
 
 - `src/generated/` 하위 파일은 직접 수정하지 않는다. 수정해도 다음 `generate` 실행 시 덮어씌워진다.
+- CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema`로 명세를 갱신한 뒤 `npm run generate` 결과까지 함께 커밋해야 한다.
 - `operationId`가 없는 API는 함수명이 지저분하게 생성된다. 백엔드에 `operationId` 명시를 요청한다.
 - PR 리뷰 시 `src/generated/` 변경분은 명세 변경에 의한 것이므로 별도 커밋으로 분리하면 리뷰 노이즈를 줄일 수 있다.
 
