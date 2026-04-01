@@ -46,6 +46,7 @@ export function NoticeModal({
   tone = 'info',
   size = 'sm',
   primaryAction,
+  secondaryAction,
   onClose,
 }: NoticeModalProps) {
   const resolvedPrimaryAction = {
@@ -64,6 +65,7 @@ export function NoticeModal({
       layout="notice"
       open={open}
       primaryAction={resolvedPrimaryAction}
+      secondaryAction={secondaryAction}
       size={size}
       title={title}
       onClose={onClose}

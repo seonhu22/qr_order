@@ -36,7 +36,7 @@
 
 import { useEffect } from 'react';
 import { Button } from '@/shared/components/button';
-import { MODAL_BUTTON_SIZE_MAP, MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
+import { MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
 import '../base/modal.css';
 
 import type { WrapperModalProps } from '../base/modalType';
@@ -67,6 +67,7 @@ export function WrapperModal({
   icon,
   children,
   closeOnOverlayClick = true,
+  buttonSize = 'md',
   primaryAction,
   secondaryAction,
   onClose,
@@ -132,11 +133,12 @@ export function WrapperModal({
   const hasSubtitle = Boolean(subtitle?.trim());
   const isNoticeLayout = layout === 'notice';
   const shouldRenderDescriptionBlock = !children && hasSubtitle;
-  const buttonSize = MODAL_BUTTON_SIZE_MAP[size];
   const resolvedPrimaryAction = primaryAction ?? { label: '확인', variant: 'primary' as const };
   const resolvedSecondaryAction = secondaryAction ?? {
     label: '닫기',
-    variant: 'secondary' as const,
+    variant: 'outline' as const,
+    loading: false,
+    disabled: false,
   };
   const hasPrimaryAction = Boolean(primaryAction);
   const hasSecondaryAction = Boolean(secondaryAction);
@@ -207,7 +209,7 @@ export function WrapperModal({
               <Button
                 loading={resolvedSecondaryAction.loading}
                 size={buttonSize}
-                variant={resolvedSecondaryAction.variant ?? 'secondary'}
+                variant={resolvedSecondaryAction.variant ?? 'outline'}
                 disabled={resolvedSecondaryAction.disabled}
                 type="button"
                 onClick={handleSecondaryAction}
