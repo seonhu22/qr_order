@@ -66,4 +66,36 @@
             #{item.sysId}
         </foreach>
     </delete>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.RuleDetail">
+        select
+            sys_id ,
+            link_sys_id ,
+            option_cd ,
+            option_nm ,
+            option_data ,
+            description
+        from sys_rule_detail srd
+        where 1=1
+        and sys_id in
+        <foreach collection="ruleDetail" open="(" separator="," close=")">
+            #{ruleDetail.sysId}
+        </foreach>
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.system.domain.RuleDetail">
+        select
+        sys_id ,
+        link_sys_id ,
+        option_cd ,
+        option_nm ,
+        option_data ,
+        description
+        from sys_rule_detail srd
+        where 1=1
+        and sys_id in
+        <foreach collection="ruleDetail" open="(" separator="," close=")">
+            #{ruleDetail.sysId}
+        </foreach>
+    </select>
 </mapper>

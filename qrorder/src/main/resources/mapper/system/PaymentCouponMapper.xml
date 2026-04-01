@@ -45,6 +45,23 @@
         </foreach>
     </select>
 
+    <select id="getOldData" resultType="htms.QROrder.system.domain.PaymentCoupon">
+        select
+        sys_id ,
+        coupon_cd ,
+        coupon_nm ,
+        start_date ,
+        end_date,
+        use_yn
+        from sys_payment_coupon spc
+        where 1=1
+        delete_yn = 'N'
+        and coupon_cd in
+        <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
+            #{item.couponCd}
+        </foreach>
+    </select>
+
     <insert id="newPaymentCoupon">
         insert into sys_payment_coupon (
             sys_id ,

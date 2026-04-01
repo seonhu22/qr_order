@@ -95,4 +95,18 @@
             #{item.msgCd}
         </foreach>
     </select>
+
+    <select id="getOldData" resultType="htms.QROrder.system.domain.Message">
+        select
+        sys_id ,
+        msg_cd ,
+        msg_nm ,
+        msg_description
+        from sys_message sm
+        where 1=1
+        and msg_cd in
+        <foreach collection="updateItems" item="item" open="(" separator="," close=")">
+            #{item.msgCd}
+        </foreach>
+    </select>
 </mapper>

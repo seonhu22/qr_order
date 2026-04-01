@@ -13,5 +13,6 @@ public interface AuditMapper {
     void insertNewMultiAuditTrailData(List<Audit> audit, String userId, String sysPlantCd);
     void insertUpdateSingleAuditTrailData(Audit audit, String refKey, String userId, String sysPlantCd);
     void insertUpdateMultiAuditTrailData(List<Audit> audit, String userId, String sysPlantCd);
-    void insertDeleteAuditTrailData(List<Audit> audit, String userId, String sysPlantCd);
+    void insertDeleteSingleAuditTrailData(Audit audit, String refKey, String userId, String sysPlantCd);
+    void insertDeleteMultiAuditTrailData(List<Audit> audit, String userId, String sysPlantCd);
 }

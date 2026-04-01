@@ -13,4 +13,5 @@ public interface MessageMapper {
     List<Message> delMessage(List<Message> delItems, String userId);
     boolean duplicateMessage(List<Message> newItems);
     List<Message> getDuplicateData(List<Message> newItems);
+    List<Message> getOldData(List<Message> updateItems);
 }

@@ -14,7 +14,8 @@ public interface PaymentMapper {
     List<PaymentResponse> getPayment(String searchKeyword);
     void newPayment(Payment payment, String userId, String sysPlantCd);
     void updatePayment(Payment payment, String userId, String sysPlantCd);
-    void delPayment(Payment payment, String userId, String sysPlantCd);
+    void delPayment(List<Payment> payment, String userId, String sysPlantCd);
     boolean duplicateChk(Payment payment);
     boolean isPaymentCdUse(Payment payment);
+    Payment getOldData(Payment payment);
 }

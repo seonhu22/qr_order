@@ -130,7 +130,32 @@
         </foreach>
     </insert>
 
-    <insert id="insertDeleteAuditTrailData">
+    <insert id="insertDeleteSingleAuditTrailData">
+        insert into sys_audit_trail (
+            audit_sys_id,
+            audit_flag ,
+            ref_key ,
+            menu_cd ,
+            table_nm ,
+            audit_trail_contents ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values (
+            #{audit.auditSysId},
+            #{audit.auditFlag},
+            #{refKey},
+            #{audit.menuCd},
+            #{audit.tableNm},
+            #{audit.auditTrailContents},
+            now(),
+            #{userId},
+            #{sysPlantCd}
+        )
+    </insert>
+
+    <insert id="insertDeleteMultiAuditTrailData">
         insert into sys_audit_trail (
             audit_sys_id,
             audit_flag ,
