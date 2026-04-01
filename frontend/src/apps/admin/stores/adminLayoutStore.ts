@@ -23,6 +23,7 @@ type AdminLayoutStore = {
   isSidebarOpen: boolean;
   expandedDepth1Key: string | null;
   expandedDepth2Key: string | null;
+  setExpandedMenu: (depth1Key: string | null, depth2Key: string | null) => void;
   openSidebar: () => void;
   closeSidebar: () => void;
   toggleSidebar: () => void;
@@ -33,7 +34,12 @@ type AdminLayoutStore = {
 export const useAdminLayoutStore = create<AdminLayoutStore>((set) => ({
   isSidebarOpen: true,
   expandedDepth1Key: 'system',
-  expandedDepth2Key: 'systemSettings',
+  expandedDepth2Key: 'systemManagement',
+  setExpandedMenu: (depth1Key, depth2Key) =>
+    set({
+      expandedDepth1Key: depth1Key,
+      expandedDepth2Key: depth2Key,
+    }),
   openSidebar: () => set({ isSidebarOpen: true }),
   closeSidebar: () => set({ isSidebarOpen: false }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
