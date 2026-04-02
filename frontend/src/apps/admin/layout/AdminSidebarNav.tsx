@@ -1,8 +1,11 @@
 // src/apps/admin/layout/AdminSidebarNav.tsx
 
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './AdminSidebarNav.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { ADMIN_SIDEBAR_MENU } from './adminSidebarMenu';
+import { findExpandedMenuKeys } from './findExpandedMenuKeys';
 import { useAdminLayoutStore } from '../stores/adminLayoutStore';
 
 /**
@@ -14,10 +17,24 @@ import { useAdminLayoutStore } from '../stores/adminLayoutStore';
  * UI only — 라우터 기반 활성 상태·펼침 토글은 추후 연결
  */
 export function AdminSidebarNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const expandedDepth1Key = useAdminLayoutStore((state) => state.expandedDepth1Key);
   const expandedDepth2Key = useAdminLayoutStore((state) => state.expandedDepth2Key);
+  const setExpandedMenu = useAdminLayoutStore((state) => state.setExpandedMenu);
   const toggleDepth1 = useAdminLayoutStore((state) => state.toggleDepth1);
   const toggleDepth2 = useAdminLayoutStore((state) => state.toggleDepth2);
+
+  // 초기 진입 시 URL에 맞는 메뉴 펼침 상태로 자동 설정
+  useEffect(() => {
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname);
+
+    if (!depth1Key) {
+      return;
+    }
+
+    setExpandedMenu(depth1Key, depth2Key);
+  }, [location.pathname, setExpandedMenu]);
 
   return (
     <nav className="admin-sidebar-nav" aria-label="사이드 메뉴">
@@ -30,6 +47,7 @@ export function AdminSidebarNav() {
 
               return (
                 <>
+                  {/* Depth1 메뉴 */}
                   <button
                     type="button"
                     className={`admin-sidebar-nav__d1${isDepth1Expanded ? ' admin-sidebar-nav__d1--active' : ''}`}
@@ -44,13 +62,11 @@ export function AdminSidebarNav() {
                     <span
                       className={`admin-sidebar-nav__chevron${isDepth1Expanded ? ' admin-sidebar-nav__chevron--open' : ''}`}
                     >
-                      <Icon
-                        id={isDepth1Expanded ? 'i-chevron-up' : 'i-chevron-right'}
-                        size={13}
-                      />
+                      <Icon id={isDepth1Expanded ? 'i-chevron-up' : 'i-chevron-right'} size={13} />
                     </span>
                   </button>
 
+                  {/* Depth2 메뉴 */}
                   {hasDepth1Children && isDepth1Expanded ? (
                     <ul className="admin-sidebar-nav__d2-list">
                       {depth1.groups.map((group) => {
@@ -80,19 +96,25 @@ export function AdminSidebarNav() {
                               </span>
                             </button>
 
+                            {/* Depth3 메뉴 */}
                             {hasDepth2Children && isDepth2Expanded ? (
                               <ul className="admin-sidebar-nav__d3-list">
-                                {group.items.map((item) => (
-                                  <li key={item.key}>
-                                    <button
-                                      type="button"
-                                      className={`admin-sidebar-nav__d3${item.active ? ' admin-sidebar-nav__d3--active' : ''}`}
-                                      aria-current={item.active ? 'page' : undefined}
-                                    >
-                                      {item.label}
-                                    </button>
-                                  </li>
-                                ))}
+                                {group.items.map((item) => {
+                                  const isActive = location.pathname === item.path;
+
+                                  return (
+                                    <li key={item.key}>
+                                      <button
+                                        type="button"
+                                        className={`admin-sidebar-nav__d3${isActive ? ' admin-sidebar-nav__d3--active' : ''}`}
+                                        aria-current={isActive ? 'page' : undefined}
+                                        onClick={() => navigate(item.path)}
+                                      >
+                                        {item.label}
+                                      </button>
+                                    </li>
+                                  );
+                                })}
                               </ul>
                             ) : null}
                           </li>

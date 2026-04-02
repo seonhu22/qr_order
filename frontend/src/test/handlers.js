@@ -1,15 +1,36 @@
 import { http, HttpResponse } from 'msw';
 
+let currentUser = null;
+
 export const handlers = [
   http.get('/api/auth/me', () => {
-    return HttpResponse.json({ success: false }, { status: 401 });
+    if (!currentUser) {
+      return HttpResponse.json({ success: false }, { status: 401 });
+    }
+
+    return HttpResponse.json({
+      success: true,
+      data: currentUser,
+    });
   }),
   http.post('/api/auth/login', async ({ request }) => {
     const body = await request.json();
 
     if (body.userId === 'admin' && body.userPassword === 'password') {
-      return HttpResponse.json({ success: true, message: '로그인 성공' });
+      currentUser = {
+        userId: 'admin',
+        userName: '관리자',
+        role: 'ADMIN',
+      };
+
+      return HttpResponse.json({
+        success: true,
+        message: '로그인 성공',
+        data: currentUser,
+      });
     }
+
+    currentUser = null;
 
     return HttpResponse.json(
       { success: false, message: '아이디 또는 비밀번호를 확인해주세요.' },
@@ -17,6 +38,8 @@ export const handlers = [
     );
   }),
   http.post('/api/auth/logout', () => {
-    return new HttpResponse(null, { status: 204 });
+    currentUser = null;
+
+    return HttpResponse.json({ success: true });
   }),
 ];
