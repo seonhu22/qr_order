@@ -8,6 +8,34 @@ type HttpClientConfig = {
   responseType?: string;
 };
 
+async function readErrorMessage(response: Response): Promise<string> {
+  const contentType = response.headers.get('content-type') ?? '';
+
+  try {
+    if (contentType.includes('application/json')) {
+      const payload = await response.json();
+
+      if (payload && typeof payload === 'object' && 'message' in payload) {
+        const message = payload.message;
+
+        if (typeof message === 'string' && message.trim()) {
+          return message;
+        }
+      }
+    } else {
+      const text = await response.text();
+
+      if (text.trim()) {
+        return text;
+      }
+    }
+  } catch {
+    return `${response.status} ${response.statusText}`;
+  }
+
+  return `${response.status} ${response.statusText}`;
+}
+
 export const httpClient = async <T>(
   { url, method, params, data, headers, signal }: HttpClientConfig,
   _options?: unknown,
@@ -28,7 +56,7 @@ export const httpClient = async <T>(
   });
 
   if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
+    throw new Error(await readErrorMessage(response));
   }
 
   if (response.status === 204) {

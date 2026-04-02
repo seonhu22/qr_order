@@ -24,7 +24,12 @@ export default function LoginPage() {
           setErrorMessage(data.message ?? '로그인에 실패했습니다.');
         }
       },
-      onError: () => {
+      onError: (error) => {
+        if (error instanceof Error && error.message) {
+          setErrorMessage(error.message);
+          return;
+        }
+
         setErrorMessage('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       },
     },
