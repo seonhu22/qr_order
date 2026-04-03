@@ -1,0 +1,186 @@
+.common-code-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 100%;
+}
+
+.common-code-page__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.common-code-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  overflow: hidden;
+}
+
+.common-code-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0 var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.common-code-card__title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-primary);
+}
+
+.common-code-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.common-code-card__actions--detail {
+  gap: var(--spacing-2);
+}
+
+.common-code-card__icon-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.common-code-card__icon-ghost:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+.common-table-wrap {
+  overflow-x: auto;
+}
+
+.common-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.common-table th,
+.common-table td {
+  padding: 0 var(--spacing-6);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  height: 2.5rem;
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-secondary);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.common-table th {
+  background-color: var(--color-bg-muted);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+}
+
+.common-table td {
+  font-weight: var(--typography-weight-body);
+}
+
+.common-table tbody tr {
+  cursor: pointer;
+}
+
+.common-table tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.common-table tbody tr.is-selected {
+  background-color: rgba(255, 107, 43, 0.06);
+  box-shadow: inset 2px 0 0 var(--color-brand-default);
+}
+
+.common-table__mono {
+  font-family: var(--typography-font-mono);
+  font-size: var(--typography-size-sidebar);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.125rem;
+  border-radius: var(--radius-xs);
+  padding: 0 var(--spacing-2);
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-ui);
+}
+
+.status-badge--yes {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.status-badge--no {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-disabled);
+}
+
+.common-table__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.common-table__icon-button:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.common-table__input {
+  width: 100%;
+  height: 1.625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-surface);
+  padding: 0 var(--spacing-4);
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-secondary);
+}
+
+.common-table__input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+}
+
+.common-table--detail tbody tr {
+  cursor: default;
+}
+
+.common-code-card__footnote {
+  margin: 0;
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-6);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}

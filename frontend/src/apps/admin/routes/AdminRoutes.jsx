@@ -15,6 +15,7 @@
 
 import { Navigate } from 'react-router-dom';
 import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
+import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import { MainPage } from '@/apps/admin/pages/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 
@@ -33,7 +34,7 @@ export const adminRoutes = [
       },
       {
         path: 'system/common-code',
-        element: <AdminPlaceholderPage title="공통코드 관리" />,
+        element: <AdminMainLayout />,
       },
       {
         path: 'system/plant',
