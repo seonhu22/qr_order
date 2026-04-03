@@ -5,7 +5,7 @@ export const CommonCodeFeedback = () => {
   return (
     <section className="common-code-feedback" aria-live="polite" aria-label="상세코드 안내">
       <div className="common-code-feedback__icon-wrap" aria-hidden="true">
-        <Icon id="i-info" size={20} className="common-code-feedback__icon" />
+        <Icon id="i-feedback-pointer" size={22} className="common-code-feedback__icon" />
       </div>
       <p className="common-code-feedback__title">목록을 선택해주세요</p>
       <p className="common-code-feedback__description">
