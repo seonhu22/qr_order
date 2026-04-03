@@ -40,7 +40,9 @@
   border-radius: var(--radius-button);
   cursor: pointer;
   color: var(--sb-text-normal);
-  transition: background-color var(--transition-ui), color var(--transition-ui);
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
 }
 
 .admin-sidebar-nav__d1:hover {
@@ -96,7 +98,9 @@
   border-radius: var(--radius-xs);
   cursor: pointer;
   color: var(--sb-text-muted);
-  transition: background-color var(--transition-ui), color var(--transition-ui);
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
 }
 
 .admin-sidebar-nav__d2:hover {
@@ -151,7 +155,9 @@
   line-height: var(--typography-leading-ui);
   color: var(--sb-text-dim);
   text-align: left;
-  transition: background-color var(--transition-ui), color var(--transition-ui);
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
 }
 
 .admin-sidebar-nav__d3:hover {

@@ -1,4 +1,4 @@
-// src/apps/admin/layout/adminSidebarMenu.ts
+// src/apps/admin/features/sidebar/config/adminSidebarMenu.ts
 
 /**
  * @fileoverview 관리자 사이드바 메뉴 데이터
@@ -9,7 +9,7 @@
  *
  * @param {never} _unused 이 파일은 상수 데이터만 내보낸다.
  * @example
- * import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/layout/adminSidebarMenu';
+ * import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/adminSidebarMenu';
  */
 
 export const ADMIN_SIDEBAR_MENU = [

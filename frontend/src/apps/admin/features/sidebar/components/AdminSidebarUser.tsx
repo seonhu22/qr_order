@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminSidebarUser.css';
+import '@/apps/admin/features/sidebar/styles/AdminSidebarUser.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import { useAuth } from '@/shared/auth/AuthContext';
