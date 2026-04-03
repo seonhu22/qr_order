@@ -1,8 +1,8 @@
-// src/apps/admin/layout/AdminHeader.tsx
+// src/apps/admin/features/header/components/AdminHeader.tsx
 
-import './AdminHeader.css';
+import '@/apps/admin/features/header/styles/AdminHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { useAdminLayoutStore } from '../stores/adminLayoutStore';
+import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 
 /**
  * 관리자 레이아웃 상단 헤더

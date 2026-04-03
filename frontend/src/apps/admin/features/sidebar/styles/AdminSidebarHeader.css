@@ -46,7 +46,9 @@
   cursor: pointer;
   color: var(--sb-text-dim);
   flex-shrink: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .admin-sidebar-header__close:hover {

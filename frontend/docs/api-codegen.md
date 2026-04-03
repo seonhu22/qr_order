@@ -24,8 +24,8 @@ src/generated/types/schema.d.ts      ← DTO 타입 (openapi-typescript)
 │    useAuth.ts                              │
 └─────────────────────────────────────────┘
          ↓
-PlantPage.tsx
-usePlantList() 훅만 호출 — 경로·타입·캐시 신경 쓸 필요 없음
+LoginPage.tsx / MainPage.tsx
+wrapper 훅만 호출 — 경로·타입·캐시 세부 구현을 직접 다루지 않음
 ```
 
 ---
@@ -84,6 +84,14 @@ src/mocks/browser.ts             ← MSW 브라우저 worker
 src/mocks/handlers.ts            ← 생성된 핸들러 통합 등록
 ```
 
+### 현재 운영 원칙
+
+- generated API 함수/훅은 기반 계층으로 유지한다.
+- 화면에서는 가능하면 wrapper 훅을 통해 사용한다.
+- 인증 관련 요청은 generated handler 대신 커스텀 MSW 핸들러를 우선 사용한다.
+- 현재 wrapper 적용 범위는 `auth/me`, `login`, `logout`, `dashboard/info`까지다.
+- 특정 기능 화면 실구현이 확정되기 전에는 generated 훅을 억지로 wrapper로 늘리지 않는다.
+
 ---
 
 ## 개발 모드 전환
@@ -101,7 +109,13 @@ src/mocks/handlers.ts            ← 생성된 핸들러 통합 등록
 [MSW] POST /api/auth/login (200 OK)
 ```
 
-`/api/auth/me` 요청이 에러로 보이더라도, MSW가 401을 반환 → `AuthProvider`의 catch 블록이 처리 → 로그인 페이지로 이동하는 **의도된 흐름**이다.
+인증 관련 요청은 generated handler 대신 `src/test/handlers.js`의 커스텀 핸들러를 우선 사용한다.
+
+- `/api/auth/login`
+- `/api/auth/logout`
+- `/api/auth/me`
+
+그 외 다수 API는 `src/generated/*.msw.ts`에서 생성된 핸들러를 `src/mocks/handlers.ts`가 묶어서 사용한다.
 
 ### real 모드 확인 방법
 
@@ -119,10 +133,15 @@ npm run dev:real
 
 | 상태 종류 | 도구 | 예시 |
 |-----------|------|------|
-| 서버 데이터 조회 | TanStack Query | 사업장 목록, 사용자 정보, 주문 내역 |
+| 서버 데이터 조회 | TanStack Query | 사용자 정보, 대시보드 정보, 조회 목록 |
 | 전역 UI 상태 | Zustand | 모달 열림 여부, 사이드바 상태 |
 
 서버 상태와 UI 상태를 섞으면 화면이 복잡해지고 유지보수성이 크게 떨어진다.
+
+현재 예시:
+
+- 서버 상태: `auth/me`, `dashboard/info`
+- UI 상태: 사이드바 열림, 메뉴 펼침, 로그인 폼 입력값
 
 ---
 

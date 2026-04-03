@@ -1,83 +1,35 @@
-import { useEffect, useState } from 'react';
-import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/api/queryKeys';
+import { resolveAuthUser } from '@/shared/auth/authResponse';
 import { AuthContext } from '@/shared/auth/AuthContext';
-
-function resolveUser(payload) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-
-  return payload.user ?? payload.data ?? payload;
-}
+import { useCurrentUser } from '@/shared/auth/hooks/useCurrentUser';
 
 export function AuthProvider({ children }) {
-  const [authState, setAuthState] = useState({
-    isAuthenticated: false,
-    isLoading: true,
-    user: null,
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-
-    getCurrentUser()
-      .then((data) => {
-        if (!isMounted) {
-          return;
-        }
-
-        if (data?.success) {
-          setAuthState({
-            isAuthenticated: true,
-            isLoading: false,
-            user: resolveUser(data),
-          });
-          return;
-        }
-
-        setAuthState({
-          isAuthenticated: false,
-          isLoading: false,
-          user: null,
-        });
-      })
-      .catch(() => {
-        if (!isMounted) {
-          return;
-        }
-
-        setAuthState({
-          isAuthenticated: false,
-          isLoading: false,
-          user: null,
-        });
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useCurrentUser();
+  const user = resolveAuthUser(data);
+  const isAuthenticated = !!user;
 
   const signIn = (user) => {
-    setAuthState({
-      isAuthenticated: true,
-      isLoading: false,
-      user: user ?? null,
+    queryClient.setQueryData(queryKeys.auth.me, {
+      success: true,
+      data: user ?? null,
     });
   };
 
   const signOut = () => {
-    setAuthState({
-      isAuthenticated: false,
-      isLoading: false,
-      user: null,
+    queryClient.setQueryData(queryKeys.auth.me, {
+      success: false,
+      data: null,
     });
   };
 
   return (
     <AuthContext.Provider
       value={{
-        ...authState,
+        isAuthenticated,
+        isLoading,
+        user,
         signIn,
         signOut,
       }}

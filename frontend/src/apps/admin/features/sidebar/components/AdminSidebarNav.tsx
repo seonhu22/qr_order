@@ -1,12 +1,10 @@
-// src/apps/admin/layout/AdminSidebarNav.tsx
-
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './AdminSidebarNav.css';
+import '@/apps/admin/features/sidebar/styles/AdminSidebarNav.css';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { ADMIN_SIDEBAR_MENU } from './adminSidebarMenu';
-import { findExpandedMenuKeys } from './findExpandedMenuKeys';
-import { useAdminLayoutStore } from '../stores/adminLayoutStore';
+import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/adminSidebarMenu';
+import { findExpandedMenuKeys } from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
+import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 
 /**
  * AdminSidebarNav — 사이드바 트리 내비게이션 Wrapper

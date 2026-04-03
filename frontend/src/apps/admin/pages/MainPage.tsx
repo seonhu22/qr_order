@@ -13,9 +13,12 @@
  * <MainPage />
  */
 
-import './MainPage.css';
+import '@/apps/admin/pages/MainPage.css';
+import { useDashboardInfo } from '@/apps/admin/hooks/useDashboardInfo';
 
 export function MainPage() {
+  const { data, isLoading, isError } = useDashboardInfo();
+
   return (
     <section className="admin-main-page" aria-labelledby="admin-main-page-title">
       <header className="admin-main-page__header">
@@ -30,9 +33,24 @@ export function MainPage() {
       <div className="admin-main-page__canvas">
         <div className="admin-main-page__placeholder">
           <strong className="admin-main-page__placeholder-title">/admin/main</strong>
-          <p className="admin-main-page__placeholder-copy">
-            Header, Sidebar, Container 구조를 우선 점검한 뒤 실제 기능 화면을 배치합니다.
-          </p>
+          {isLoading ? (
+            // 로딩 피드백
+            <p className="admin-main-page__placeholder-copy">
+              대시보드 데이터를 불러오는 중입니다.
+            </p>
+          ) : null}
+          {isError ? (
+            // 에러 피드백
+            <p className="admin-main-page__placeholder-copy">
+              대시보드 데이터를 불러오지 못했습니다.
+            </p>
+          ) : null}
+          {!isLoading && !isError ? (
+            // 성공적으로 데이터를 불러왔을 때 보여줄 곳
+            <p className="admin-main-page__placeholder-copy">
+              대시보드 응답 메시지: {data?.message ?? '메시지가 없습니다.'}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
-import './AdminSidebar.css';
-import { AdminSidebarHeader } from './AdminSidebarHeader';
-import { AdminSidebarNav } from './AdminSidebarNav';
-import { AdminSidebarUser } from './AdminSidebarUser';
+import '@/apps/admin/features/sidebar/styles/AdminSidebar.css';
+import { AdminSidebarHeader } from '@/apps/admin/features/sidebar/components/AdminSidebarHeader';
+import { AdminSidebarNav } from '@/apps/admin/features/sidebar/components/AdminSidebarNav';
+import { AdminSidebarUser } from '@/apps/admin/features/sidebar/components/AdminSidebarUser';
 
 /**
  * AdminSidebar — 사이드바 Template

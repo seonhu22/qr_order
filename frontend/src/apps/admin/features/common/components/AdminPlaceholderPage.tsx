@@ -1,4 +1,4 @@
-// src/apps/admin/components/AdminPlaceholderPage.tsx
+// src/apps/admin/features/common/components/AdminPlaceholderPage.tsx
 
 /**
  * 관리자 페이지의 placeholder 컴포넌트
