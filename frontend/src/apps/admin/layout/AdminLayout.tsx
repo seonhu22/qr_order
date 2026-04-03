@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
-import './AdminLayout.css';
-import { AdminSidebar } from './AdminSidebar';
-import { AdminHeader } from './AdminHeader';
-import { useAdminLayoutStore } from '../stores/adminLayoutStore';
+import '@/apps/admin/layout/AdminLayout.css';
+import { AdminSidebar } from '@/apps/admin/features/sidebar/components/AdminSidebar';
+import { AdminHeader } from '@/apps/admin/features/header/components/AdminHeader';
+import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 
 /**
  * 관리자 메인 레이아웃

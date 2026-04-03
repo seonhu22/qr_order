@@ -4,7 +4,7 @@ import '@/shared/styles/login.css';
 import { TextInput } from '@/shared/components/input/TextInput';
 import { Button } from '@/shared/components/button';
 import { FormAlert } from '@/shared/components/form-alert';
-import { AdminBrand } from '../components/AdminBrand';
+import { AdminBrand } from '@/apps/admin/features/brand/components/AdminBrand';
 import type { LoginMutationResult } from '@/generated/login-controller/login-controller';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
 
@@ -92,12 +92,7 @@ export default function LoginPage() {
               onChange={(e) => setUserPassword(e.target.value)}
               isError={!!errorMessage}
             />
-            <Button
-              type="submit"
-              size="lg"
-              className="login-card__submit"
-              disabled={isPending}
-            >
+            <Button type="submit" size="lg" className="login-card__submit" disabled={isPending}>
               {isPending ? '로그인 중...' : '로그인'}
             </Button>
           </div>

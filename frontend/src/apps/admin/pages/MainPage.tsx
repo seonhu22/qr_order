@@ -13,8 +13,8 @@
  * <MainPage />
  */
 
-import './MainPage.css';
-import { useDashboardInfo } from '../hooks/useDashboardInfo';
+import '@/apps/admin/pages/MainPage.css';
+import { useDashboardInfo } from '@/apps/admin/hooks/useDashboardInfo';
 
 export function MainPage() {
   const { data, isLoading, isError } = useDashboardInfo();

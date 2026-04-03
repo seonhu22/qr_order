@@ -1,5 +1,5 @@
-//src/apps/admin/layout/findExpandedMenuKeys.ts
-import { ADMIN_SIDEBAR_MENU } from './adminSidebarMenu';
+//src/apps/admin/features/sidebar/utils/findExpandedMenuKeys.ts
+import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/adminSidebarMenu';
 /**
  * 주어진 경로명에 해당하는 확장된 메뉴 키를 찾습니다.
  * @param {string} pathname - 찾을 경로명

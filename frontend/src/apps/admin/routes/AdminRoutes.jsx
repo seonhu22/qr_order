@@ -14,9 +14,9 @@
  */
 
 import { Navigate } from 'react-router-dom';
-import { AdminLayout } from '../layout/AdminLayout';
-import { MainPage } from '../pages/MainPage';
-import AdminPlaceholderPage from '../components/AdminPlaceholderPage';
+import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
+import { MainPage } from '@/apps/admin/pages/MainPage';
+import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 
 export const adminRoutes = [
   {

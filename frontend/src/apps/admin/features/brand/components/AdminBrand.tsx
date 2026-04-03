@@ -1,4 +1,4 @@
-import './AdminBrand.css';
+import '@/apps/admin/features/brand/styles/AdminBrand.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 
 /**

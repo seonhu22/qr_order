@@ -7,11 +7,11 @@
 
 .admin-sidebar {
   --sb-text-active: #ffffff;
-  --sb-text-normal: #cad5e2;               /* slate-30 */
-  --sb-text-muted:  rgba(144, 161, 185, 0.9);
-  --sb-text-dim:    #62748e;               /* slate-50 */
-  --sb-overlay:     rgba(255, 255, 255, 0.1);
-  --sb-border:      rgba(255, 255, 255, 0.1);
+  --sb-text-normal: #cad5e2; /* slate-30 */
+  --sb-text-muted: rgba(144, 161, 185, 0.9);
+  --sb-text-dim: #62748e; /* slate-50 */
+  --sb-overlay: rgba(255, 255, 255, 0.1);
+  --sb-border: rgba(255, 255, 255, 0.1);
 
   display: flex;
   flex-direction: column;

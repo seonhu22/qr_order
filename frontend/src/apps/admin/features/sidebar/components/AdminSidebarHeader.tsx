@@ -1,9 +1,9 @@
-// src/apps/admin/layout/AdminSidebarHeader.tsx
+// src/apps/admin/features/sidebar/components/AdminSidebarHeader.tsx
 
-import './AdminSidebarHeader.css';
-import { AdminBrand } from '../components/AdminBrand';
+import '@/apps/admin/features/sidebar/styles/AdminSidebarHeader.css';
+import { AdminBrand } from '@/apps/admin/features/brand/components/AdminBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { useAdminLayoutStore } from '../stores/adminLayoutStore';
+import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 
 /**
  * 관리자 사이드바 브랜드 헤더
