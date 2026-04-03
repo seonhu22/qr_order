@@ -28,6 +28,18 @@ export const handlers = [
         message: '로그인 성공',
         data: currentUser,
       });
+    } else if (body.userId === 'a' && body.userPassword === '1') {
+      currentUser = {
+        userId: '1',
+        userName: '관리자2',
+        role: 'ADMIN',
+      };
+
+      return HttpResponse.json({
+        success: true,
+        message: '로그인 성공',
+        data: currentUser,
+      });
     }
 
     currentUser = null;
