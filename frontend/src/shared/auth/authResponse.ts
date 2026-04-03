@@ -21,5 +21,7 @@ export function resolveAuthUser(payload: AuthPayload | null | undefined): unknow
     return null;
   }
 
-  return payload.user ?? payload.data ?? null;
+  // TODO: 백엔드 /api/auth/me 응답이 실제 사용자 객체를 data로 내려주도록 수정되면
+  // success만으로 인증 상태를 판단하는 임시 처리를 제거한다.
+  return payload.user ?? payload.data ?? { authenticated: true };
 }
