@@ -12,13 +12,12 @@ function cloneDetailRowsByMaster() {
 }
 
 export function useCommonCodePageState() {
-  const [selectedMasterId, setSelectedMasterId] = useState<string>(MASTER_ROWS[0]?.id ?? '');
+  const [selectedMasterId, setSelectedMasterId] = useState<string>('');
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
   const [detailRowsByMaster, setDetailRowsByMaster] =
     useState<Record<string, DetailCode[]>>(cloneDetailRowsByMaster);
 
-  const selectedMaster =
-    MASTER_ROWS.find((row) => row.id === selectedMasterId) ?? MASTER_ROWS[0] ?? null;
+  const selectedMaster = MASTER_ROWS.find((row) => row.id === selectedMasterId) ?? null;
   const detailRows = selectedMaster ? (detailRowsByMaster[selectedMaster.id] ?? []) : [];
   const checkedDetailIds = detailRows.filter((row) => row.checked).map((row) => row.id);
   const isAllMastersChecked =
