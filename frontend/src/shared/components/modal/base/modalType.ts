@@ -54,6 +54,7 @@ export type ConfirmSecondaryAction = Omit<ModalSecondaryAction, 'label' | 'varia
 
 export interface WrapperModalProps extends ModalCommonProps {
   icon?: ReactNode;
+  noticeMeta?: ReactNode;
   children?: ReactNode;
   buttonSize?: 'sm' | 'md' | 'lg';
   primaryAction?: ModalPrimaryAction;
@@ -76,6 +77,16 @@ export interface NoticeModalProps extends Pick<
 > {
   description?: string;
   tone?: ConfirmModalTone;
+  primaryAction?: ModalPrimaryAction;
+  secondaryAction?: ConfirmSecondaryAction;
+}
+
+export interface SimpleDefaultModalProps extends Pick<
+  ModalCommonProps,
+  'open' | 'size' | 'title' | 'onClose'
+> {
+  description?: string;
+  helperText?: string;
   primaryAction?: ModalPrimaryAction;
   secondaryAction?: ConfirmSecondaryAction;
 }

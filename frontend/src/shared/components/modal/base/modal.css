@@ -125,6 +125,22 @@
   text-align: center;
 }
 
+.base-modal__notice-meta {
+  display: flex;
+  width: 100%;
+  color: var(--color-text-tertiary);
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-ui);
+  font-style: normal;
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  letter-spacing: var(--tracking-tight);
+}
+
+.base-modal--notice .base-modal__notice-meta {
+  justify-content: center;
+}
+
 .base-modal__content {
   width: 100%;
 }

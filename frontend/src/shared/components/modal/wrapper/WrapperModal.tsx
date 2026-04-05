@@ -65,6 +65,7 @@ export function WrapperModal({
   title,
   subtitle,
   icon,
+  noticeMeta,
   children,
   closeOnOverlayClick = true,
   buttonSize = 'md',
@@ -183,11 +184,15 @@ export function WrapperModal({
                   {subtitle}
                 </p>
               ) : null}
+              {noticeMeta ? <div className="base-modal__notice-meta">{noticeMeta}</div> : null}
             </div>
           )}
 
           {!isNoticeLayout && shouldRenderDescriptionBlock && (
-            <p className="base-modal__description">{subtitle}</p>
+            <>
+              <p className="base-modal__description">{subtitle}</p>
+              {noticeMeta ? <div className="base-modal__notice-meta">{noticeMeta}</div> : null}
+            </>
           )}
 
           {children ? <div className="base-modal__content">{children}</div> : null}
