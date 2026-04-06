@@ -67,6 +67,12 @@ export function PlantSearchTable({
         <td className="plant-search-page__muted">{row.phoneNumber}</td>
         <td>{row.useYn}</td>
         <td>
+          {/* TODO: 실제 접속 플로우 연결
+              1. 접속 대상 사업장 식별자(sysId/plantCode) 확정
+              2. 권한/접속 가능 여부 검증
+              3. 필요 시 확인 모달 또는 안내 모달 표시
+              4. 세션/토큰 준비 후 클라이언트 시스템으로 이동
+              5. 실패 시 에러 메시지 또는 안내 모달 처리 */}
           <Button
             type="button"
             variant="primary"
