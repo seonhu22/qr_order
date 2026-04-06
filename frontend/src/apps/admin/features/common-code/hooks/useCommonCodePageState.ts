@@ -14,8 +14,8 @@ import type { DetailCode } from '../types';
 import {
   buildCommonDetailRequest,
   hasCommonDetailChanges,
-  mapCommonDetailToRow,
-  mapCommonMasterToRow,
+  mapToCommonDetailModel,
+  mapToCommonMasterModel,
   useCommonCodeDetailsQuery,
   useCommonCodeMastersQuery,
   useDeleteCommonMastersMutation,
@@ -64,7 +64,7 @@ export function useCommonCodePageState() {
   const saveDetailsMutation = useSaveCommonDetailsMutation();
 
   const masterRows = useMemo(
-    () => (mastersQuery.data ?? []).map(mapCommonMasterToRow),
+    () => (mastersQuery.data ?? []).map(mapToCommonMasterModel),
     [mastersQuery.data],
   );
   const selectedMaster = masterRows.find((row) => row.id === selectedMasterId) ?? null;
@@ -90,7 +90,7 @@ export function useCommonCodePageState() {
       return;
     }
 
-    const mappedRows = detailQuery.data.map(mapCommonDetailToRow);
+    const mappedRows = detailQuery.data.map(mapToCommonDetailModel);
 
     setDetailRowsByMaster((prev) => ({
       ...prev,

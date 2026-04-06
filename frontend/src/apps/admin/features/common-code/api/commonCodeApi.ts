@@ -22,9 +22,9 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode, MasterCode } from '../types';
 
 /**
- * 서버의 공통코드 마스터 DTO를 화면에서 쓰는 행 모델로 변환한다.
+ * 서버의 공통코드 마스터 DTO를 화면용 모델로 변환한다.
  */
-export function mapCommonMasterToRow(master: CommonMaster): MasterCode {
+export function mapToCommonMasterModel(master: CommonMaster): MasterCode {
   return {
     id: master.sysId ?? master.commonCd,
     sysId: master.sysId,
@@ -35,9 +35,9 @@ export function mapCommonMasterToRow(master: CommonMaster): MasterCode {
 }
 
 /**
- * 서버의 공통코드 상세 DTO를 화면에서 쓰는 행 모델로 변환한다.
+ * 서버의 공통코드 상세 DTO를 화면용 모델로 변환한다.
  */
-export function mapCommonDetailToRow(detail: CommonDetail): DetailCode {
+export function mapToCommonDetailModel(detail: CommonDetail): DetailCode {
   return {
     id: detail.sysId ?? `detail-${detail.linkSysId}-${detail.commonCd ?? detail.commonNm}`,
     sysId: detail.sysId,
@@ -52,9 +52,9 @@ export function mapCommonDetailToRow(detail: CommonDetail): DetailCode {
 }
 
 /**
- * 화면용 마스터 draft를 서버 저장용 payload로 변환한다.
+ * 화면용 마스터 모델을 서버 저장용 payload로 변환한다.
  */
-export function toCommonMasterPayload(master: MasterCode): CommonMaster {
+export function mapToCommonMasterPayload(master: MasterCode): CommonMaster {
   return {
     sysId: master.sysId,
     commonCd: master.code,
@@ -64,9 +64,9 @@ export function toCommonMasterPayload(master: MasterCode): CommonMaster {
 }
 
 /**
- * 화면용 상세 draft를 서버 저장용 payload로 변환한다.
+ * 화면용 상세 모델을 서버 저장용 payload로 변환한다.
  */
-function toCommonDetailPayload(detail: DetailCode): CommonDetail {
+function mapToCommonDetailPayload(detail: DetailCode): CommonDetail {
   return {
     sysId: detail.sysId,
     linkSysId: detail.linkSysId,
@@ -126,17 +126,17 @@ export function buildCommonDetailRequest(
     currentRows.filter((row) => row.sysId).map((row) => [row.sysId as string, row]),
   );
 
-  const newItems = currentRows.filter((row) => row.isNew).map(toCommonDetailPayload);
+  const newItems = currentRows.filter((row) => row.isNew).map(mapToCommonDetailPayload);
   const updateItems = currentRows
     .filter((row) => row.sysId && !row.isNew)
     .filter((row) => {
       const originalRow = originalBySysId.get(row.sysId as string);
       return originalRow ? !isSameDetail(row, originalRow) : false;
     })
-    .map(toCommonDetailPayload);
+    .map(mapToCommonDetailPayload);
   const deleteItems = originalRows
     .filter((row) => row.sysId && !currentBySysId.has(row.sysId as string))
-    .map(toCommonDetailPayload);
+    .map(mapToCommonDetailPayload);
 
   return {
     linkSysId,
@@ -207,7 +207,7 @@ export function useSaveCommonMasterMutation() {
   const updateMutation = useUpdateCommonMaster();
 
   const mutateAsync = async (master: MasterCode, isCreateMode: boolean) => {
-    const payload = toCommonMasterPayload(master);
+    const payload = mapToCommonMasterPayload(master);
 
     if (isCreateMode) {
       return createMutation.mutateAsync({ data: payload });
@@ -230,7 +230,7 @@ export function useDeleteCommonMastersMutation() {
 
   return {
     mutateAsync: async (masters: MasterCode[]) =>
-      mutation.mutateAsync({ data: masters.map(toCommonMasterPayload) }),
+      mutation.mutateAsync({ data: masters.map(mapToCommonMasterPayload) }),
     isPending: mutation.isPending,
   };
 }

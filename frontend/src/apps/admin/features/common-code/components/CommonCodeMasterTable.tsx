@@ -14,9 +14,9 @@ import { InputBase, SelectInput } from '@/shared/components/input';
 import { DeleteConfirmModal } from '@/shared/components/modal/template/DeleteConfirmModal';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
-import { useState } from 'react';
 import type { MasterCode } from '../types';
 import { SimpleDefaultModal } from '@/shared/components/modal';
+import { useCommonCodeMasterModalFlow } from '../hooks/useCommonCodeMasterModalFlow';
 
 type CommonCodeMasterTableProps = {
   rows: MasterCode[];
@@ -53,175 +53,31 @@ export function CommonCodeMasterTable({
   onSaveMaster,
   onDeleteMasters,
 }: CommonCodeMasterTableProps) {
-  const [editingRow, setEditingRow] = useState<MasterCode | null>(null);
-  const [isCreateMode, setIsCreateMode] = useState(false);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
-  const [editorErrors, setEditorErrors] = useState<{
-    code: boolean;
-    name: boolean;
-    useYn: boolean;
-  }>({
-    code: false,
-    name: false,
-    useYn: false,
+  const {
+    editingRow,
+    isCreateMode,
+    isCodeReadonly,
+    isEditorOpen,
+    isSaveConfirmOpen,
+    isDeleteConfirmOpen,
+    editorErrors,
+    noticeState,
+    openCreateModal,
+    openEditModal,
+    closeEditorModal,
+    changeEditingField,
+    requestSave,
+    confirmSave,
+    requestDelete,
+    confirmDelete,
+    closeSaveConfirm,
+    closeDeleteConfirm,
+    closeNotice,
+  } = useCommonCodeMasterModalFlow({
+    checkedMasterIds,
+    onSaveMaster,
+    onDeleteMasters,
   });
-  const [wrapperNoticeState, setWrapperNoticeState] = useState<{
-    title: string;
-    description: string;
-    helperText?: string;
-  } | null>(null);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [reopenEditorAfterNoticeClose, setReopenEditorAfterNoticeClose] = useState(false);
-  const selectedDeleteCount = checkedMasterIds.length;
-  const isCodeReadonly = !isCreateMode;
-  /**
-   * 모달 폼의 필드 에러 상태를 초기화한다.
-   */
-  const resetEditorErrors = () => {
-    setEditorErrors({
-      code: false,
-      name: false,
-      useYn: false,
-    });
-  };
-
-  /**
-   * 신규 등록용 빈 draft를 만들고 편집 모달을 연다.
-   */
-  const openCreateModal = () => {
-    setEditingRow({
-      id: '',
-      code: '',
-      name: '',
-      useYn: 'Y',
-    });
-    setIsCreateMode(true);
-    resetEditorErrors();
-    setIsEditorOpen(true);
-  };
-
-  /**
-   * 기존 마스터 행을 복사해 수정 모달을 연다.
-   */
-  const openEditModal = (row: MasterCode) => {
-    setEditingRow({ ...row });
-    setIsCreateMode(false);
-    resetEditorErrors();
-    setIsEditorOpen(true);
-  };
-
-  /**
-   * 편집 모달과 관련 상태를 닫고 초기화한다.
-   */
-  const closeEditorModal = () => {
-    setIsEditorOpen(false);
-    setEditingRow(null);
-    setIsCreateMode(false);
-    resetEditorErrors();
-  };
-
-  /**
-   * 저장 버튼 클릭 시 프론트 필수값 검증을 수행한다.
-   *
-   * @description
-   * - 검증 실패 시 입력 컴포넌트의 error 상태만 표시한다.
-   * - 검증을 통과한 경우에만 저장 확인 모달을 연다.
-   */
-  const handleSaveRequest = () => {
-    const nextErrors = {
-      code: !editingRow?.code.trim(),
-      name: !editingRow?.name.trim(),
-      useYn: editingRow?.useYn !== 'Y' && editingRow?.useYn !== 'N',
-    };
-
-    setEditorErrors(nextErrors);
-
-    if (nextErrors.code || nextErrors.name || nextErrors.useYn) {
-      return;
-    }
-
-    setIsEditorOpen(false);
-    setIsSaveConfirmOpen(true);
-  };
-
-  /**
-   * 저장 확인 모달 이후 실제 저장 mutation을 수행한다.
-   */
-  const handleSaveConfirm = async () => {
-    if (!editingRow) {
-      return;
-    }
-
-    try {
-      await onSaveMaster(editingRow, isCreateMode);
-      setIsSaveConfirmOpen(false);
-      setWrapperNoticeState({
-        title: '알림',
-        description: '저장되었습니다.',
-      });
-      setEditingRow(null);
-      setIsCreateMode(false);
-      resetEditorErrors();
-    } catch (error) {
-      setIsSaveConfirmOpen(false);
-      setReopenEditorAfterNoticeClose(true);
-      setWrapperNoticeState({
-        title: '오류',
-        description:
-          error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
-      });
-    }
-  };
-
-  /**
-   * 삭제 버튼 클릭 시 체크 상태를 확인해
-   * 안내 모달 또는 삭제 확인 모달로 분기한다.
-   */
-  const handleDeleteRequest = () => {
-    if (selectedDeleteCount === 0) {
-      setWrapperNoticeState({
-        title: '안내',
-        description: '항목을 먼저 선택해주세요.',
-        helperText: '삭제할 행을 선택 및 체크박스로 선택 후 진행하세요.',
-      });
-      return;
-    }
-
-    setIsDeleteConfirmOpen(true);
-  };
-
-  /**
-   * 삭제 확인 모달 이후 실제 삭제 mutation을 수행한다.
-   */
-  const handleDeleteConfirm = async () => {
-    try {
-      const deletedCount = await onDeleteMasters();
-      setIsDeleteConfirmOpen(false);
-      setWrapperNoticeState({
-        title: deletedCount > 1 ? `${deletedCount}건이 삭제되었습니다.` : '삭제되었습니다.',
-        description: '삭제된 데이터는 복구할 수 없습니다.',
-      });
-    } catch (error) {
-      setIsDeleteConfirmOpen(false);
-      setWrapperNoticeState({
-        title: '오류',
-        description:
-          error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.',
-      });
-    }
-  };
-
-  /**
-   * 편집 중인 draft 값을 갱신하고 해당 필드 에러를 해제한다.
-   */
-  const changeEditingField = (key: 'code' | 'name' | 'useYn', value: string) => {
-    setEditorErrors((prev) => ({
-      ...prev,
-      [key]: false,
-    }));
-    setEditingRow((prev) => (prev ? { ...prev, [key]: value } : prev));
-  };
 
   return (
     <>
@@ -239,7 +95,7 @@ export function CommonCodeMasterTable({
               신규
             </Button>
             {/* 삭제버튼 :체크박스가 표시된 행이 없으면, notice 모달("항목을 먼저 선택해주세요", "삭제할 행을 선택 및 체크박스로 선택 후 진행하세요.") / 체크박스가 표시된 행이 있으면, 체크박스에 표시된 행을 삭제하는 모달 표시(삭제 모달) -> 단건 다건 알림 따로 있음 ("삭제되었습니다.","n건이 삭제되었습니다." 서브타이틀은 "삭제된 데이터는 복구할 수 없습니다" )*/}
-            <Button type="button" variant="outline" size="sm" onClick={handleDeleteRequest}>
+            <Button type="button" variant="outline" size="sm" onClick={requestDelete}>
               삭제
             </Button>
           </div>
@@ -329,7 +185,7 @@ export function CommonCodeMasterTable({
         subtitle="공통코드 정보를 입력하세요."
         primaryAction={{
           label: '확인',
-          onClick: handleSaveRequest,
+          onClick: requestSave,
         }}
         secondaryAction={{
           label: '닫기',
@@ -407,13 +263,13 @@ export function CommonCodeMasterTable({
         primaryAction={{
           label: '확인',
           loading: isSaving,
-          onClick: handleSaveConfirm,
+          onClick: confirmSave,
         }}
         secondaryAction={{
           disabled: isSaving,
-          onClick: () => setIsSaveConfirmOpen(false),
+          onClick: closeSaveConfirm,
         }}
-        onClose={() => setIsSaveConfirmOpen(false)}
+        onClose={closeSaveConfirm}
       />
 
       {/* 삭제 확인 모달 */}
@@ -424,28 +280,22 @@ export function CommonCodeMasterTable({
         primaryAction={{
           label: '삭제',
           loading: isDeleting,
-          onClick: handleDeleteConfirm,
+          onClick: confirmDelete,
         }}
         secondaryAction={{
           disabled: isDeleting,
-          onClick: () => setIsDeleteConfirmOpen(false),
+          onClick: closeDeleteConfirm,
         }}
-        onClose={() => setIsDeleteConfirmOpen(false)}
+        onClose={closeDeleteConfirm}
       />
 
       {/* 기본 알림 모달 */}
       <SimpleDefaultModal
-        open={!!wrapperNoticeState}
-        title={wrapperNoticeState?.title ?? '안내'}
-        description={wrapperNoticeState?.description}
-        helperText={wrapperNoticeState?.helperText}
-        onClose={() => {
-          setWrapperNoticeState(null);
-          if (reopenEditorAfterNoticeClose) {
-            setIsEditorOpen(true);
-            setReopenEditorAfterNoticeClose(false);
-          }
-        }}
+        open={!!noticeState}
+        title={noticeState?.title ?? '안내'}
+        description={noticeState?.description}
+        helperText={noticeState?.helperText}
+        onClose={closeNotice}
       />
     </>
   );

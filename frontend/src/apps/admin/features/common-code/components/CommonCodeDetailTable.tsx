@@ -14,8 +14,8 @@ import { Icon } from '@/shared/assets/icons/Icon';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { CommonCodeFeedback } from '@/apps/admin/features/common-code/components/CommonCodeFeedback';
-import { useState } from 'react';
 import type { DetailCode, MasterCode } from '../types';
+import { useCommonCodeDetailTableFlow } from '../hooks/useCommonCodeDetailTableFlow';
 
 type CommonCodeDetailTableProps = {
   selectedMaster: MasterCode | null;
@@ -62,131 +62,19 @@ export function CommonCodeDetailTable({
   isSaving,
   onSaveRows,
 }: CommonCodeDetailTableProps) {
-  const [notice, setNotice] = useState<{ title: string; description: string } | null>(null);
-  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
-  /**
-   * 행 단위 입력 에러 상태
-   *
-   * @description
-   * - 키는 detail row id
-   * - 값은 code / name 필드별 에러 여부
-   * - 프론트 필수값 검증 실패와 서버 validation 메시지 매핑 결과를 같이 담는다.
-   */
-  const [rowErrors, setRowErrors] = useState<
-    Record<string, { code?: boolean; name?: boolean }>
-  >({});
-
-  /**
-   * 특정 행/필드의 에러 표시를 해제한다.
-   */
-  const clearRowError = (detailId: string, key: 'code' | 'name') => {
-    setRowErrors((prev) => ({
-      ...prev,
-      [detailId]: {
-        ...prev[detailId],
-        [key]: false,
-      },
-    }));
-  };
-
-  /**
-   * 서버 에러 메시지를 보고 공통코드/공통코드명 필드 에러로 매핑한다.
-   *
-   * @description
-   * - 현재는 메시지 키워드 기반의 보수적 매핑이다.
-   * - 추후 백엔드가 필드 단위 validation 응답 구조를 주면 그 형식으로 교체할 수 있다.
-   *
-   * @example
-   * "common_cd가 중복되었습니다" -> 모든 행의 code error 표시
-   * "공통코드명은 필수입니다" -> 모든 행의 name error 표시
-   */
-  const applyServerValidationErrors = (message: string) => {
-    const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
-    const normalized = message.toLowerCase();
-
-    if (normalized.includes('common_cd') || message.includes('공통코드')) {
-      rows.forEach((row) => {
-        nextErrors[row.id] = {
-          ...nextErrors[row.id],
-          code: true,
-        };
-      });
-    }
-
-    if (normalized.includes('common_nm') || message.includes('공통코드명')) {
-      rows.forEach((row) => {
-        nextErrors[row.id] = {
-          ...nextErrors[row.id],
-          name: true,
-        };
-      });
-    }
-
-    if (Object.keys(nextErrors).length > 0) {
-      setRowErrors(nextErrors);
-    }
-  };
-
-  /**
-   * 저장 버튼 클릭 시점의 프론트 필수값 검증을 수행한다.
-   *
-   * @description
-   * - 필수값 누락이 있으면 저장 확인 모달을 띄우지 않는다.
-   * - 검증을 통과한 경우에만 SaveConfirmModal을 연다.
-   * - 현재는 code, name 두 필드만 프론트 필수값 검증 대상으로 본다.
-   */
-  const handleSaveRequest = () => {
-    const nextErrors = Object.fromEntries(
-      rows.map((row) => [
-        row.id,
-        {
-          code: !row.code.trim(),
-          name: !row.name.trim(),
-        },
-      ]),
-    ) as Record<string, { code?: boolean; name?: boolean }>;
-
-    setRowErrors(nextErrors);
-
-    const hasErrors = Object.values(nextErrors).some((error) => error.code || error.name);
-
-    if (hasErrors) {
-      return;
-    }
-
-    setIsSaveConfirmOpen(true);
-  };
-
-  /**
-   * 저장 확인 모달의 확인 버튼 이후 실제 저장을 수행한다.
-   *
-   * @description
-   * - 성공 시 query invalidate는 상위 훅(onSaveRows)에서 수행한다.
-   * - 이 컴포넌트는 결과 안내와 필드 에러 표시만 담당한다.
-   */
-  const handleSaveConfirm = async () => {
-    try {
-      const hasChanges = await onSaveRows();
-      setIsSaveConfirmOpen(false);
-      setRowErrors({});
-
-      setNotice({
-        title: '알림',
-        description: hasChanges ? '저장되었습니다.' : '변경된 내용이 없습니다.',
-      });
-    } catch (error) {
-      setIsSaveConfirmOpen(false);
-
-      if (error instanceof Error) {
-        applyServerValidationErrors(error.message);
-      }
-
-      setNotice({
-        title: '오류',
-        description: error instanceof Error ? error.message : '상세 저장 중 오류가 발생했습니다.',
-      });
-    }
-  };
+  const {
+    rowErrors,
+    notice,
+    isSaveConfirmOpen,
+    clearRowError,
+    requestSave,
+    confirmSave,
+    closeSaveConfirm,
+    closeNotice,
+  } = useCommonCodeDetailTableFlow({
+    rows,
+    onSaveRows,
+  });
 
   return !selectedMaster ? (
     <CommonCodeFeedback />
@@ -238,7 +126,7 @@ export function CommonCodeDetailTable({
               variant="outline"
               size="sm"
               loading={isSaving}
-              onClick={handleSaveRequest}
+              onClick={requestSave}
             >
               저장
             </Button>
@@ -336,7 +224,7 @@ export function CommonCodeDetailTable({
         open={!!notice}
         title={notice?.title ?? '안내'}
         description={notice?.description}
-        onClose={() => setNotice(null)}
+        onClose={closeNotice}
       />
 
       <SaveConfirmModal
@@ -346,13 +234,13 @@ export function CommonCodeDetailTable({
         primaryAction={{
           label: '확인',
           loading: isSaving,
-          onClick: handleSaveConfirm,
+          onClick: confirmSave,
         }}
         secondaryAction={{
           disabled: isSaving,
-          onClick: () => setIsSaveConfirmOpen(false),
+          onClick: closeSaveConfirm,
         }}
-        onClose={() => setIsSaveConfirmOpen(false)}
+        onClose={closeSaveConfirm}
       />
     </>
   );
