@@ -21,6 +21,7 @@ import {
   NoticeModal,
   NoticeConfirmModal,
   SaveConfirmModal,
+  SimpleDefaultModal,
   WrapperModal,
 } from '@/shared/components/modal';
 import type { ModalSize, WrapperModalLayout } from '@/shared/components/modal';
@@ -298,6 +299,36 @@ function DeleteConfirmModalSection() {
   );
 }
 
+function SimpleDefaultModalSection() {
+  const [simpleDefaultOpen, setSimpleDefaultOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">SimpleDefaultModal (기본 안내)</p>
+        <p className="modal-guide__card-description">
+          default 레이아웃 · 1버튼 안내 · description 아래 helperText 추가
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setSimpleDefaultOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <SimpleDefaultModal
+        open={simpleDefaultOpen}
+        title="안내"
+        description="항목을 먼저 선택해주세요."
+        helperText="삭제할 행을 선택 및 체크박스로 선택 후 진행하세요."
+        onClose={() => setSimpleDefaultOpen(false)}
+      />
+    </>
+  );
+}
+
 /**
  * 가이드 카드 UI를 렌더링한다.
  *
@@ -394,6 +425,17 @@ export default function ModalGuide() {
           <div className="modal-guide__grid">
             <NoticeModalSection />
             <NoticeConfirmModalSection />
+          </div>
+        </section>
+
+        <section className="modal-guide__section">
+          <h2 className="modal-guide__section-title">SimpleDefaultModal</h2>
+          <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
+            <code>SimpleDefaultModal</code>은 WrapperModal <code>layout=&quot;default&quot;</code>{' '}
+            기반의 1버튼 안내 모달로, description 아래에 helperText 한 줄을 추가할 수 있습니다.
+          </p>
+          <div className="modal-guide__grid">
+            <SimpleDefaultModalSection />
           </div>
         </section>
 
