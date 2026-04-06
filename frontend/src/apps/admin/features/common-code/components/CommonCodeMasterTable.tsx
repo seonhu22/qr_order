@@ -17,6 +17,10 @@ type CommonCodeMasterTableProps = {
   onSelectRow: (masterId: string) => void;
   onToggleRow: (masterId: string) => void;
   onToggleAllRows: () => void;
+  isSaving: boolean;
+  isDeleting: boolean;
+  onSaveMaster: (master: MasterCode, isCreateMode: boolean) => Promise<void>;
+  onDeleteMasters: () => Promise<number>;
 };
 
 export function CommonCodeMasterTable({
@@ -27,6 +31,10 @@ export function CommonCodeMasterTable({
   onSelectRow,
   onToggleRow,
   onToggleAllRows,
+  isSaving,
+  isDeleting,
+  onSaveMaster,
+  onDeleteMasters,
 }: CommonCodeMasterTableProps) {
   const [editingRow, setEditingRow] = useState<MasterCode | null>(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
@@ -47,6 +55,7 @@ export function CommonCodeMasterTable({
     helperText?: string;
   } | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [reopenEditorAfterNoticeClose, setReopenEditorAfterNoticeClose] = useState(false);
   const selectedDeleteCount = checkedMasterIds.length;
   const isCodeReadonly = !isCreateMode;
   const resetEditorErrors = () => {
@@ -100,17 +109,30 @@ export function CommonCodeMasterTable({
     setIsSaveConfirmOpen(true);
   };
 
-  const handleSaveConfirm = () => {
-    setIsSaveConfirmOpen(false);
-    setWrapperNoticeState({
-      title: '저장되었습니다.',
-      description: isCreateMode
-        ? '공통코드 마스터가 등록되었습니다.'
-        : '공통코드 마스터가 수정되었습니다.',
-    });
-    setEditingRow(null);
-    setIsCreateMode(false);
-    resetEditorErrors();
+  const handleSaveConfirm = async () => {
+    if (!editingRow) {
+      return;
+    }
+
+    try {
+      await onSaveMaster(editingRow, isCreateMode);
+      setIsSaveConfirmOpen(false);
+      setWrapperNoticeState({
+        title: '알림',
+        description: '저장되었습니다.',
+      });
+      setEditingRow(null);
+      setIsCreateMode(false);
+      resetEditorErrors();
+    } catch (error) {
+      setIsSaveConfirmOpen(false);
+      setReopenEditorAfterNoticeClose(true);
+      setWrapperNoticeState({
+        title: '오류',
+        description:
+          error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
+      });
+    }
   };
 
   const handleDeleteRequest = () => {
@@ -126,13 +148,22 @@ export function CommonCodeMasterTable({
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    setIsDeleteConfirmOpen(false);
-    setWrapperNoticeState({
-      title:
-        selectedDeleteCount > 1 ? `${selectedDeleteCount}건이 삭제되었습니다.` : '삭제되었습니다.',
-      description: '삭제된 데이터는 복구할 수 없습니다.',
-    });
+  const handleDeleteConfirm = async () => {
+    try {
+      const deletedCount = await onDeleteMasters();
+      setIsDeleteConfirmOpen(false);
+      setWrapperNoticeState({
+        title: deletedCount > 1 ? `${deletedCount}건이 삭제되었습니다.` : '삭제되었습니다.',
+        description: '삭제된 데이터는 복구할 수 없습니다.',
+      });
+    } catch (error) {
+      setIsDeleteConfirmOpen(false);
+      setWrapperNoticeState({
+        title: '오류',
+        description:
+          error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.',
+      });
+    }
   };
 
   const changeEditingField = (key: 'code' | 'name' | 'useYn', value: string) => {
@@ -326,15 +357,11 @@ export function CommonCodeMasterTable({
         }
         primaryAction={{
           label: '확인',
-          onClick: () => {
-            setIsSaveConfirmOpen(false);
-            setWrapperNoticeState({
-              title: '알림',
-              description: '저장되었습니다.',
-            });
-          },
+          loading: isSaving,
+          onClick: handleSaveConfirm,
         }}
         secondaryAction={{
+          disabled: isSaving,
           onClick: () => setIsSaveConfirmOpen(false),
         }}
         onClose={() => setIsSaveConfirmOpen(false)}
@@ -347,9 +374,11 @@ export function CommonCodeMasterTable({
         description="선택한 공통코드 마스터를 삭제하시겠습니까?"
         primaryAction={{
           label: '삭제',
+          loading: isDeleting,
           onClick: handleDeleteConfirm,
         }}
         secondaryAction={{
+          disabled: isDeleting,
           onClick: () => setIsDeleteConfirmOpen(false),
         }}
         onClose={() => setIsDeleteConfirmOpen(false)}
@@ -361,7 +390,13 @@ export function CommonCodeMasterTable({
         title={wrapperNoticeState?.title ?? '안내'}
         description={wrapperNoticeState?.description}
         helperText={wrapperNoticeState?.helperText}
-        onClose={() => setWrapperNoticeState(null)}
+        onClose={() => {
+          setWrapperNoticeState(null);
+          if (reopenEditorAfterNoticeClose) {
+            setIsEditorOpen(true);
+            setReopenEditorAfterNoticeClose(false);
+          }
+        }}
       />
     </>
   );

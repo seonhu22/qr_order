@@ -14,6 +14,8 @@ export const CommonCodePage = () => {
     isAllMastersChecked,
     isAllDetailsChecked,
     checkedDetailIds,
+    canMoveDetailRowsUp,
+    canMoveDetailRowsDown,
     selectMaster,
     toggleMasterChecked,
     toggleAllMasters,
@@ -23,6 +25,14 @@ export const CommonCodePage = () => {
     changeDetailUseYn,
     addDetailRow,
     removeCheckedDetailRows,
+    moveCheckedDetailRowsUp,
+    moveCheckedDetailRowsDown,
+    isSavingMaster,
+    isDeletingMasters,
+    isSavingDetails,
+    saveMaster,
+    deleteCheckedMasters,
+    saveDetailRows,
   } = useCommonCodePageState();
 
   return (
@@ -35,6 +45,10 @@ export const CommonCodePage = () => {
         onSelectRow={selectMaster}
         onToggleRow={toggleMasterChecked}
         onToggleAllRows={toggleAllMasters}
+        isSaving={isSavingMaster}
+        isDeleting={isDeletingMasters}
+        onSaveMaster={saveMaster}
+        onDeleteMasters={deleteCheckedMasters}
       />
 
       {/* 마스터에서 선택사항이 없으면 detail 테이블 대신 feedback을 표시 */}
@@ -49,6 +63,12 @@ export const CommonCodePage = () => {
         onUseYnChange={changeDetailUseYn}
         onAddRow={addDetailRow}
         onDeleteRows={removeCheckedDetailRows}
+        canMoveUp={canMoveDetailRowsUp}
+        canMoveDown={canMoveDetailRowsDown}
+        onMoveUp={moveCheckedDetailRowsUp}
+        onMoveDown={moveCheckedDetailRowsDown}
+        isSaving={isSavingDetails}
+        onSaveRows={saveDetailRows}
       />
     </AdminMainLayout>
   );

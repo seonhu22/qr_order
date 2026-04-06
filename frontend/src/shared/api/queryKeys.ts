@@ -17,4 +17,9 @@ export const queryKeys = {
   dashboard: {
     info: ['dashboard', 'info'] as const,
   },
+  commonCode: {
+    masters: (searchKeyword = '') => ['settings', 'common', 'masters', { searchKeyword }] as const,
+    details: (masterId = '', searchKeyword = '') =>
+      ['settings', 'common', 'details', masterId, { searchKeyword }] as const,
+  },
 } as const;
