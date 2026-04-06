@@ -413,65 +413,65 @@ padding: 10px;
 
 **텍스트**
 
-| 토큰 | 용도 |
-|---|---|
-| `--color-text-primary` | 제목·본문 기본 텍스트 |
-| `--color-text-secondary` | 부제목·설명 텍스트 |
-| `--color-text-tertiary` | 힌트·폼 레이블·캡션 |
-| `--color-text-disabled` | 비활성 텍스트 |
-| `--color-text-placeholder` | 인풋 placeholder |
-| `--color-text-inverse` | 어두운 배경(사이드바 등) 위 텍스트 |
+| 토큰                       | 용도                               |
+| -------------------------- | ---------------------------------- |
+| `--color-text-primary`     | 제목·본문 기본 텍스트              |
+| `--color-text-secondary`   | 부제목·설명 텍스트                 |
+| `--color-text-tertiary`    | 힌트·폼 레이블·캡션                |
+| `--color-text-disabled`    | 비활성 텍스트                      |
+| `--color-text-placeholder` | 인풋 placeholder                   |
+| `--color-text-inverse`     | 어두운 배경(사이드바 등) 위 텍스트 |
 
 **배경**
 
-| 토큰 | 용도 |
-|---|---|
-| `--color-bg-app` | 페이지 전체 배경 |
-| `--color-bg-surface` | 카드·패널·컨테이너 배경 |
-| `--color-bg-muted` | 비활성 인풋·읽기 전용 배경 |
-| `--color-bg-hover` | 리스트 아이템 호버 배경 |
+| 토큰                  | 용도                       |
+| --------------------- | -------------------------- |
+| `--color-bg-app`      | 페이지 전체 배경           |
+| `--color-bg-surface`  | 카드·패널·컨테이너 배경    |
+| `--color-bg-muted`    | 비활성 인풋·읽기 전용 배경 |
+| `--color-bg-hover`    | 리스트 아이템 호버 배경    |
 | `--color-bg-selected` | 선택된 행·메뉴 아이템 배경 |
 
 **보더**
 
-| 토큰 | 용도 |
-|---|---|
+| 토큰                     | 용도                         |
+| ------------------------ | ---------------------------- |
 | `--color-border-default` | 카드·인풋·구분선 기본 테두리 |
-| `--color-border-hover` | 인풋·카드 호버 시 테두리 |
-| `--color-border-focus` | 인풋 포커스 시 테두리 |
-| `--color-border-error` | 유효성 검사 실패 테두리 |
-| `--color-border-success` | 유효성 검사 성공 테두리 |
+| `--color-border-hover`   | 인풋·카드 호버 시 테두리     |
+| `--color-border-focus`   | 인풋 포커스 시 테두리        |
+| `--color-border-error`   | 유효성 검사 실패 테두리      |
+| `--color-border-success` | 유효성 검사 성공 테두리      |
 
 **브랜드**
 
-| 토큰 | 용도 |
-|---|---|
+| 토큰                    | 용도                            |
+| ----------------------- | ------------------------------- |
 | `--color-brand-default` | 주요 버튼·활성 상태 (`#FF6B2B`) |
-| `--color-brand-hover` | 버튼 호버 |
-| `--color-brand-active` | 버튼 클릭(pressed) |
-| `--color-brand-subtle` | 배지·태그·하이라이트 배경 |
+| `--color-brand-hover`   | 버튼 호버                       |
+| `--color-brand-active`  | 버튼 클릭(pressed)              |
+| `--color-brand-subtle`  | 배지·태그·하이라이트 배경       |
 
 **상태**
 
-| 토큰 | 용도 |
-|---|---|
-| `--color-status-error-default` | 에러 아이콘·강조 |
-| `--color-status-error-bg` | 에러 배경 |
-| `--color-status-error-text` | 에러 텍스트 (`#E7000B`) |
-| `--color-status-success-*` | 성공 상태 (동일 패턴) |
-| `--color-status-warning-*` | 경고 상태 (동일 패턴) |
-| `--color-status-info-*` | 안내 상태 (동일 패턴) |
+| 토큰                           | 용도                    |
+| ------------------------------ | ----------------------- |
+| `--color-status-error-default` | 에러 아이콘·강조        |
+| `--color-status-error-bg`      | 에러 배경               |
+| `--color-status-error-text`    | 에러 텍스트 (`#E7000B`) |
+| `--color-status-success-*`     | 성공 상태 (동일 패턴)   |
+| `--color-status-warning-*`     | 경고 상태 (동일 패턴)   |
+| `--color-status-info-*`        | 안내 상태 (동일 패턴)   |
 
 **사이드바** (다크 배경 전용)
 
-| 토큰 | 용도 |
-|---|---|
-| `--color-sidebar-bg` | 사이드바 배경 (`#0F172A`) |
-| `--color-sidebar-text` | 사이드바 기본 텍스트 |
-| `--color-sidebar-text-active` | 활성 메뉴 텍스트 |
-| `--color-sidebar-item-active` | 활성 메뉴 아이템 배경 |
-| `--color-sidebar-item-hover` | 호버 메뉴 아이템 배경 |
-| `--color-sidebar-border` | 사이드바 구분선 |
+| 토큰                          | 용도                      |
+| ----------------------------- | ------------------------- |
+| `--color-sidebar-bg`          | 사이드바 배경 (`#0F172A`) |
+| `--color-sidebar-text`        | 사이드바 기본 텍스트      |
+| `--color-sidebar-text-active` | 활성 메뉴 텍스트          |
+| `--color-sidebar-item-active` | 활성 메뉴 아이템 배경     |
+| `--color-sidebar-item-hover`  | 호버 메뉴 아이템 배경     |
+| `--color-sidebar-border`      | 사이드바 구분선           |
 
 ### 7.6 타이포그래피 토큰 참고
 
@@ -479,32 +479,32 @@ padding: 10px;
 
 **폰트 크기**
 
-| 토큰 | 크기 | 용도 |
-|---|---|---|
-| `--typography-size-caption` | 12px | 라벨·힌트·캡션 |
-| `--typography-size-ui` | 14px | 버튼·인풋 텍스트 |
-| `--typography-size-body` | 16px | 본문 기본 |
-| `--typography-size-h3` | 18px | 서브 헤딩 |
-| `--typography-size-h2` | 20px | 중간 헤딩 |
-| `--typography-size-h1` | 24px | 주요 헤딩 |
+| 토큰                        | 크기 | 용도               |
+| --------------------------- | ---- | ------------------ |
+| `--typography-size-caption` | 12px | 라벨·힌트·캡션     |
+| `--typography-size-ui`      | 14px | 버튼·인풋 텍스트   |
+| `--typography-size-body`    | 16px | 본문 기본          |
+| `--typography-size-h3`      | 18px | 서브 헤딩          |
+| `--typography-size-h2`      | 20px | 중간 헤딩          |
+| `--typography-size-h1`      | 24px | 주요 헤딩          |
 | `--typography-size-display` | 36px | 대형 헤딩·KPI 숫자 |
 
 **폰트 굵기**
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--typography-weight-body` | 400 | 본문 |
-| `--typography-weight-ui` | 500 | 버튼·레이블·네비게이션 |
-| `--typography-weight-heading` | 600 | 헤딩·강조 |
-| `--typography-weight-strong` | 700 | 핵심 강조 |
+| 토큰                          | 값  | 용도                   |
+| ----------------------------- | --- | ---------------------- |
+| `--typography-weight-body`    | 400 | 본문                   |
+| `--typography-weight-ui`      | 500 | 버튼·레이블·네비게이션 |
+| `--typography-weight-heading` | 600 | 헤딩·강조              |
+| `--typography-weight-strong`  | 700 | 핵심 강조              |
 
 **줄 높이**
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--typography-leading-heading` | 1.25 | 헤딩·짧은 타이틀 |
-| `--typography-leading-ui` | 1.375 | 인풋·버튼 레이블 |
-| `--typography-leading-body` | 1.5 | 본문 기본 |
+| 토큰                           | 값    | 용도             |
+| ------------------------------ | ----- | ---------------- |
+| `--typography-leading-heading` | 1.25  | 헤딩·짧은 타이틀 |
+| `--typography-leading-ui`      | 1.375 | 인풋·버튼 레이블 |
+| `--typography-leading-body`    | 1.5   | 본문 기본        |
 
 ---
 
@@ -941,9 +941,9 @@ npm run generate
 예시:
 
 ```ts
-queryKeys.auth.me
-queryKeys.dashboard.info
-queryKeys.menu.admin
+queryKeys.auth.me;
+queryKeys.dashboard.info;
+queryKeys.menu.admin;
 ```
 
 운영 메모:
@@ -1300,6 +1300,59 @@ login mutation 성공
 
 현재 프론트 목표 문서 기준으로 `window.alert`, `window.confirm`, `window.prompt`는 사용하지 않는다.  
 반드시 커스텀 모달 구조로 통일해야 한다.
+
+### 17.4 기능 리팩토링 규칙
+
+공통코드 관리 화면부터는 기능 리팩토링 시 아래 순서를 기본 원칙으로 사용한다.
+
+1. 페이지는 조립만 담당한다
+
+- `pages/*`는 레이아웃과 feature 컴포넌트 조합만 맡는다.
+- 서버 조회, draft 편집, 저장/삭제 흐름은 feature hook으로 위임한다.
+
+2. 서버 상태와 UI 상태를 분리한다
+
+- 서버 조회/재조회: `TanStack Query`
+- 선택 상태, 모달 열림, 입력 draft, 체크 상태: 로컬 state 또는 feature hook
+
+3. generated API는 화면에서 직접 호출하지 않는다
+
+- `generated/*`는 feature 전용 API wrapper에서만 사용한다.
+- DTO -> 화면 모델 변환, payload 조합, query key 지정은 feature `api/*` 계층에서 처리한다.
+
+4. 리팩토링은 feature 내부 분리부터 시작한다
+
+- 바로 `shared`로 올리지 않는다.
+- 한 기능에서 2회 이상 반복되거나, 다른 기능에도 같은 흐름이 확인되면 그때 shared 승격을 검토한다.
+
+5. `normalize`, `map`, `buildRequest` 같은 유틸은 feature 가까이에 둔다
+
+- 예: `normalizeOrdNo`, `mapCommonDetailToRow`, `buildCommonDetailRequest`
+- 이런 함수는 도메인 의미가 강하므로 우선 `features/<domain>/api` 또는 `features/<domain>/hooks`에 둔다.
+- 여러 기능에서 같은 입력/출력 계약으로 반복될 때만 공용 유틸로 뺀다.
+
+6. API wrapper의 변환 함수 이름은 방향이 드러나게 통일한다
+
+- DTO -> 화면 모델: `mapTo[Entity]Model`
+- 화면 모델 -> 저장 payload: `mapTo[Entity]Payload`
+- 예:
+  - `mapToCommonMasterModel`
+  - `mapToCommonDetailModel`
+  - `mapToCommonMasterPayload`
+- 이 규칙은 `features/<domain>/api/*` 계층에서 우선 적용한다.
+
+7. 모달 재사용은 "컴포넌트"보다 "흐름"을 먼저 본다
+
+- `SaveConfirmModal`, `DeleteConfirmModal`, `SimpleDefaultModal` 같은 표시 컴포넌트는 이미 공용이다.
+- 앞으로 재사용 대상은 `저장 요청 -> 저장 확인 -> 결과 안내` 같은 CRUD 흐름 상태 훅이다.
+
+8. 리팩토링 요약
+
+- 페이지 조립
+- feature hook
+- API wrapper
+- 모달 흐름 상태
+  순서로 정리한다.
 
 ### 14.4 네이밍 규칙을 통일한다
 
