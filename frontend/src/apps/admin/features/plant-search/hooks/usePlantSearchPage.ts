@@ -11,6 +11,11 @@ import { mapToPlantSearchModel, usePlantSearchQuery } from '../api/plantSearchAp
 
 /**
  * 사업장 조회 화면에서 사용하는 상태와 액션을 조합한다.
+ *
+ * @description
+ * - draftKeyword는 사용자가 입력 중인 값이다.
+ * - appliedKeyword는 실제 query key와 서버 요청에 반영된 값이다.
+ * - 조회 버튼을 눌렀을 때만 appliedKeyword를 바꿔, 입력 중 타이핑마다 서버 호출이 일어나지 않게 한다.
  */
 export function usePlantSearchPage() {
   const [draftKeyword, setDraftKeyword] = useState('');
@@ -30,12 +35,18 @@ export function usePlantSearchPage() {
     setDraftKeyword(value);
   };
 
+  /**
+   * 현재 입력값을 실제 조회 조건으로 반영한다.
+   */
   const handleSearch = () => {
     startTransition(() => {
       setAppliedKeyword(draftKeyword);
     });
   };
 
+  /**
+   * 입력값과 적용된 검색 조건을 모두 초기화한다.
+   */
   const handleReset = () => {
     startTransition(() => {
       setDraftKeyword('');

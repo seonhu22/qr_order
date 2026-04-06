@@ -10,8 +10,15 @@ type PlantSearchTableProps = {
 
 /**
  * 사업장 조회 결과 테이블
+ *
+ * @description
+ * - 목록 렌더링과 상태별 메시지(로딩/에러/빈 결과)만 담당한다.
+ * - 데이터 조회와 검색 조건 관리는 상위 hook에서 처리한다.
  */
 export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableProps) {
+  /**
+   * 서버 상태에 따라 테이블 body를 분기 렌더링한다.
+   */
   const renderBody = () => {
     if (isLoading) {
       return (

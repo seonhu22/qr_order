@@ -11,6 +11,10 @@ type PlantSearchFiltersProps = {
 
 /**
  * 사업장 조회 검색 영역
+ *
+ * @description
+ * - 입력값 관리 자체는 상위 hook이 담당하고,
+ *   이 컴포넌트는 검색 UI와 사용자 이벤트만 렌더링한다.
  */
 export function PlantSearchFilters({
   draftKeyword,
