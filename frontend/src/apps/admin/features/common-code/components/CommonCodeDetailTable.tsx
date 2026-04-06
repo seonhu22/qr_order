@@ -1,3 +1,12 @@
+/**
+ * @fileoverview 공통코드 상세 테이블 UI
+ *
+ * @description
+ * - 선택된 마스터의 상세 행 목록을 편집 가능한 테이블로 렌더링한다.
+ * - 입력 검증, 저장 확인 모달, 저장 결과 안내 모달은 이 컴포넌트에서 처리한다.
+ * - 실제 저장/순번 이동/삭제/체크 상태의 원본 데이터 관리는 상위 훅에 위임한다.
+ */
+
 import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase } from '@/shared/components/input';
@@ -27,6 +36,14 @@ type CommonCodeDetailTableProps = {
   onSaveRows: () => Promise<boolean>;
 };
 
+/**
+ * 공통코드 상세 테이블을 렌더링한다.
+ *
+ * @description
+ * - 선택된 마스터가 없으면 feedback만 보여준다.
+ * - 저장 버튼은 즉시 서버 전송하지 않고 SaveConfirmModal을 거친다.
+ * - 필수값 누락과 서버 validation 오류는 각 행 인풋의 error 상태로 표시한다.
+ */
 export function CommonCodeDetailTable({
   selectedMaster,
   rows,
@@ -51,6 +68,9 @@ export function CommonCodeDetailTable({
     Record<string, { code?: boolean; name?: boolean }>
   >({});
 
+  /**
+   * 특정 행/필드의 에러 표시를 해제한다.
+   */
   const clearRowError = (detailId: string, key: 'code' | 'name') => {
     setRowErrors((prev) => ({
       ...prev,
@@ -61,6 +81,13 @@ export function CommonCodeDetailTable({
     }));
   };
 
+  /**
+   * 서버 에러 메시지를 보고 공통코드/공통코드명 필드 에러로 매핑한다.
+   *
+   * @description
+   * - 현재는 메시지 키워드 기반의 보수적 매핑이다.
+   * - 추후 백엔드가 필드 단위 validation 응답 구조를 주면 그 형식으로 교체할 수 있다.
+   */
   const applyServerValidationErrors = (message: string) => {
     const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
     const normalized = message.toLowerCase();
@@ -88,6 +115,13 @@ export function CommonCodeDetailTable({
     }
   };
 
+  /**
+   * 저장 버튼 클릭 시점의 프론트 필수값 검증을 수행한다.
+   *
+   * @description
+   * - 필수값 누락이 있으면 저장 확인 모달을 띄우지 않는다.
+   * - 검증을 통과한 경우에만 SaveConfirmModal을 연다.
+   */
   const handleSaveRequest = () => {
     const nextErrors = Object.fromEntries(
       rows.map((row) => [
@@ -110,6 +144,9 @@ export function CommonCodeDetailTable({
     setIsSaveConfirmOpen(true);
   };
 
+  /**
+   * 저장 확인 모달의 확인 버튼 이후 실제 저장을 수행한다.
+   */
   const handleSaveConfirm = async () => {
     try {
       const hasChanges = await onSaveRows();

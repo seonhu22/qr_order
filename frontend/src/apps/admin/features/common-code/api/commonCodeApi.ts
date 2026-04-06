@@ -1,3 +1,12 @@
+/**
+ * @fileoverview 공통코드 feature의 서버 연동 계층
+ *
+ * @description
+ * - generated API를 화면에서 바로 쓰지 않고, feature 전용 변환 함수와 wrapper hook으로 감싼다.
+ * - 서버 응답 DTO를 화면용 row 모델로 변환하고, 반대로 저장 payload도 여기서 만든다.
+ * - 상세 저장 시에는 현재 draft와 최초 조회 데이터를 비교해 new/update/delete 요청을 조합한다.
+ */
+
 import {
   useDelCommonMaster,
   useNewCommonMaster,
@@ -12,6 +21,9 @@ import type { CommonMaster } from '@/generated/types/commonMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode, MasterCode } from '../types';
 
+/**
+ * 서버의 공통코드 마스터 DTO를 화면에서 쓰는 행 모델로 변환한다.
+ */
 export function mapCommonMasterToRow(master: CommonMaster): MasterCode {
   return {
     id: master.sysId ?? master.commonCd,
@@ -22,6 +34,9 @@ export function mapCommonMasterToRow(master: CommonMaster): MasterCode {
   };
 }
 
+/**
+ * 서버의 공통코드 상세 DTO를 화면에서 쓰는 행 모델로 변환한다.
+ */
 export function mapCommonDetailToRow(detail: CommonDetail): DetailCode {
   return {
     id: detail.sysId ?? `detail-${detail.linkSysId}-${detail.commonCd ?? detail.commonNm}`,
@@ -36,6 +51,9 @@ export function mapCommonDetailToRow(detail: CommonDetail): DetailCode {
   };
 }
 
+/**
+ * 화면용 마스터 draft를 서버 저장용 payload로 변환한다.
+ */
 export function toCommonMasterPayload(master: MasterCode): CommonMaster {
   return {
     sysId: master.sysId,
@@ -45,6 +63,9 @@ export function toCommonMasterPayload(master: MasterCode): CommonMaster {
   };
 }
 
+/**
+ * 화면용 상세 draft를 서버 저장용 payload로 변환한다.
+ */
 function toCommonDetailPayload(detail: DetailCode): CommonDetail {
   return {
     sysId: detail.sysId,
@@ -56,6 +77,13 @@ function toCommonDetailPayload(detail: DetailCode): CommonDetail {
   };
 }
 
+/**
+ * 상세 행 두 개가 실제 저장 관점에서 같은 값인지 비교한다.
+ *
+ * @description
+ * - checked, isNew 같은 UI 전용 상태는 비교에서 제외한다.
+ * - 실제 서버에 저장되는 값이 달라졌을 때만 update 대상으로 본다.
+ */
 function isSameDetail(a: DetailCode, b: DetailCode) {
   return (
     a.linkSysId === b.linkSysId &&
@@ -66,6 +94,15 @@ function isSameDetail(a: DetailCode, b: DetailCode) {
   );
 }
 
+/**
+ * 상세 draft와 최초 조회 데이터를 비교해 저장 요청 본문을 만든다.
+ *
+ * @description
+ * - isNew 행은 newItems
+ * - 기존 행 중 값이 바뀐 것은 updateItems
+ * - 최초에는 있었지만 현재는 없는 행은 deleteItems
+ * 로 분류한다.
+ */
 export function buildCommonDetailRequest(
   linkSysId: string,
   currentRows: DetailCode[],
@@ -98,12 +135,21 @@ export function buildCommonDetailRequest(
   };
 }
 
+/**
+ * 상세 저장 요청에 실제 변경사항이 있는지 확인한다.
+ */
 export function hasCommonDetailChanges(request: CommonDetailRequest) {
   return Boolean(
     request.newItems?.length || request.updateItems?.length || request.deleteItems?.length,
   );
 }
 
+/**
+ * 공통코드 마스터 목록 조회 wrapper hook
+ *
+ * @description
+ * - generated query hook에 feature 표준 query key를 강제로 부여한다.
+ */
 export function useCommonCodeMastersQuery(searchKeyword = '') {
   return useSearchCommon(
     searchKeyword ? { searchKeyword } : undefined,
@@ -115,6 +161,9 @@ export function useCommonCodeMastersQuery(searchKeyword = '') {
   );
 }
 
+/**
+ * 선택된 마스터 기준 공통코드 상세 목록 조회 wrapper hook
+ */
 export function useCommonCodeDetailsQuery(masterId: string, searchKeyword = '') {
   return useSearchCommonDetail(
     masterId,
@@ -128,6 +177,12 @@ export function useCommonCodeDetailsQuery(masterId: string, searchKeyword = '') 
   );
 }
 
+/**
+ * 공통코드 마스터 저장 wrapper mutation
+ *
+ * @description
+ * - 신규/수정을 호출부에서 분기하지 않도록 하나의 mutation 인터페이스로 감싼다.
+ */
 export function useSaveCommonMasterMutation() {
   const createMutation = useNewCommonMaster();
   const updateMutation = useUpdateCommonMaster();
@@ -148,6 +203,9 @@ export function useSaveCommonMasterMutation() {
   };
 }
 
+/**
+ * 체크된 마스터 삭제 wrapper mutation
+ */
 export function useDeleteCommonMastersMutation() {
   const mutation = useDelCommonMaster();
 
@@ -158,6 +216,9 @@ export function useDeleteCommonMastersMutation() {
   };
 }
 
+/**
+ * 상세 저장 wrapper mutation
+ */
 export function useSaveCommonDetailsMutation() {
   const mutation = useSaveCommonDetail();
 

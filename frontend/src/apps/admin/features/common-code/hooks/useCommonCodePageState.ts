@@ -1,3 +1,12 @@
+/**
+ * @fileoverview 공통코드 페이지 상태 조합 훅
+ *
+ * @description
+ * - 서버 조회(Query)와 화면 편집 상태(draft)를 한 곳에서 조합한다.
+ * - 페이지/테이블 컴포넌트는 이 훅이 제공하는 값과 액션만 사용한다.
+ * - 마스터/상세 선택, 체크 상태, 상세 draft 편집, 저장/삭제, 순번 이동까지 담당한다.
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
@@ -18,6 +27,12 @@ function cloneRows(rows: DetailCode[]) {
   return rows.map((row) => ({ ...row }));
 }
 
+/**
+ * 현재 배열 순서를 기준으로 ordNo를 1부터 다시 부여한다.
+ *
+ * @description
+ * - 행 추가/삭제/이동 후 저장 payload가 실제 화면 순서를 반영하도록 유지한다.
+ */
 function normalizeOrdNo(rows: DetailCode[]) {
   return rows.map((row, index) => ({
     ...row,
@@ -25,6 +40,14 @@ function normalizeOrdNo(rows: DetailCode[]) {
   }));
 }
 
+/**
+ * 공통코드 화면에서 사용하는 모든 상태와 액션을 조합한다.
+ *
+ * @description
+ * - masterRows, detailRows는 서버 응답을 화면용 모델로 바꾼 결과다.
+ * - detailRowsByMaster는 사용자가 편집 중인 로컬 draft다.
+ * - initialDetailRowsByMaster는 최초 조회 시점 스냅샷으로, 상세 저장 diff 계산에 사용한다.
+ */
 export function useCommonCodePageState() {
   const queryClient = useQueryClient();
   const [selectedMasterId, setSelectedMasterId] = useState<string>('');
@@ -79,6 +102,9 @@ export function useCommonCodePageState() {
     }));
   }, [selectedMasterId, detailQuery.data]);
 
+  /**
+   * 현재 선택된 마스터의 상세 draft만 안전하게 갱신한다.
+   */
   const updateSelectedDetailRows = (updater: (rows: DetailCode[]) => DetailCode[]) => {
     if (!selectedMaster) {
       return;
@@ -187,11 +213,21 @@ export function useCommonCodePageState() {
     });
   };
 
+  /**
+   * 마스터 저장 후 목록 query를 다시 조회한다.
+   *
+   * @description
+   * - 낙관적 업데이트 대신 invalidate 후 재조회 방식을 사용한다.
+   * - 업무 화면에서 서버 정합성을 우선하기 위한 선택이다.
+   */
   const saveMaster = async (master: { id: string; sysId?: string; code: string; name: string; useYn: 'Y' | 'N' }, isCreateMode: boolean) => {
     await saveMasterMutation.mutateAsync(master, isCreateMode);
     await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
   };
 
+  /**
+   * 체크된 마스터를 삭제하고 목록/선택 상태를 정리한다.
+   */
   const deleteCheckedMasters = async () => {
     const targets = masterRows.filter((row) => checkedMasterIds.includes(row.id));
 
@@ -211,6 +247,11 @@ export function useCommonCodePageState() {
     return targets.length;
   };
 
+  /**
+   * 상세 draft를 저장 요청으로 변환해 서버에 전송한다.
+   *
+   * @returns {Promise<boolean>} 실제 변경이 있어 저장을 수행했으면 true, 아니면 false
+   */
   const saveDetailRows = async () => {
     if (!selectedMaster) {
       return false;

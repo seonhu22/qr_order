@@ -1,9 +1,20 @@
+/**
+ * @fileoverview 공통코드 관리 페이지 컨테이너
+ *
+ * @description
+ * - 화면 레이아웃과 feature 컴포넌트를 조립하는 역할만 맡는다.
+ * - 실제 상태 조합과 서버 연동은 useCommonCodePageState로 위임한다.
+ */
+
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/CommonCodePage.css';
 import { useCommonCodePageState } from '@/apps/admin/features/common-code/hooks/useCommonCodePageState';
 import { CommonCodeMasterTable } from '@/apps/admin/features/common-code/components/CommonCodeMasterTable';
 import { CommonCodeDetailTable } from '@/apps/admin/features/common-code/components/CommonCodeDetailTable';
 
+/**
+ * 공통코드 관리 페이지를 렌더링한다.
+ */
 export const CommonCodePage = () => {
   const {
     masterRows,
