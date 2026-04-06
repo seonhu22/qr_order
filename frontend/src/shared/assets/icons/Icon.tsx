@@ -26,16 +26,12 @@ export interface IconProps {
 }
 
 export function Icon({ id, size = 16, className, label }: IconProps) {
+  const symbolHref = `${spriteUrl}#${id}`;
+  const a11yProps = label ? { 'aria-label': label } : { 'aria-hidden': true };
+
   return (
-    <svg
-      width={size}
-      height={size}
-      className={className}
-      aria-hidden={label ? undefined : true}
-      aria-label={label}
-      focusable="false"
-    >
-      <use href={`${spriteUrl}#${id}`} />
+    <svg width={size} height={size} className={className} focusable="false" {...a11yProps}>
+      <use href={symbolHref} xlinkHref={symbolHref} width="100%" height="100%" />
     </svg>
   );
 }

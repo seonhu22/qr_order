@@ -18,6 +18,7 @@ import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
 import { MainPage } from '@/apps/admin/pages/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
+import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
 
 export const adminRoutes = [
   {
@@ -38,7 +39,7 @@ export const adminRoutes = [
       },
       {
         path: 'system/plant',
-        element: <AdminPlaceholderPage title="사업장 조회" />,
+        element: <PlantSearchPage />,
       },
       {
         path: 'system/admin-user',
