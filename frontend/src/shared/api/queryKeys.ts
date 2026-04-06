@@ -22,4 +22,7 @@ export const queryKeys = {
     details: (masterId = '', searchKeyword = '') =>
       ['settings', 'common', 'details', masterId, { searchKeyword }] as const,
   },
+  plant: {
+    list: (searchKeyword = '') => ['settings', 'plant', 'list', { searchKeyword }] as const,
+  },
 } as const;
