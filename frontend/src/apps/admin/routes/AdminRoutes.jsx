@@ -19,6 +19,7 @@ import { MainPage } from '@/apps/admin/pages/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
 import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
+import { AdminUserPage } from '@/apps/admin/pages/AdminUserPage';
 
 export const adminRoutes = [
   {
@@ -43,7 +44,7 @@ export const adminRoutes = [
       },
       {
         path: 'system/admin-user',
-        element: <AdminPlaceholderPage title="관리자 관리" />,
+        element: <AdminUserPage />,
       },
       {
         path: 'system/menu',

@@ -25,4 +25,7 @@ export const queryKeys = {
   plant: {
     list: (searchKeyword = '') => ['settings', 'plant', 'list', { searchKeyword }] as const,
   },
+  adminUser: {
+    list: (searchKeyword = '') => ['settings', 'adminUser', 'list', { searchKeyword }] as const,
+  },
 } as const;
