@@ -144,6 +144,10 @@
   color: var(--color-text-placeholder);
 }
 
+.common-table__input--readonly-code {
+  background-color: var(--slate-20);
+}
+
 .common-table--detail tbody tr {
   cursor: default;
 }

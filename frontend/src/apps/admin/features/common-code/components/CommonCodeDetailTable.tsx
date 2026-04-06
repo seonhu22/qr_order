@@ -284,8 +284,11 @@ export function CommonCodeDetailTable({
                   <td>
                     <InputBase
                       size="sm"
-                      className="common-table__input"
-                      controlState={rowErrors[row.id]?.code ? 'error' : ''}
+                      className={`common-table__input${row.isNew ? '' : ' common-table__input--readonly-code'}`}
+                      controlState={
+                        rowErrors[row.id]?.code ? 'error' : row.isNew ? '' : 'readonly'
+                      }
+                      readOnly={!row.isNew}
                       value={row.code}
                       onChange={(event) => {
                         clearRowError(row.id, 'code');
