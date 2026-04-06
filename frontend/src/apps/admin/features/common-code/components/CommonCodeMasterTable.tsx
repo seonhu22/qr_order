@@ -1,3 +1,12 @@
+/**
+ * @fileoverview 공통코드 마스터 테이블 UI
+ *
+ * @description
+ * - 마스터 목록 조회 결과를 테이블로 렌더링한다.
+ * - 신규/수정 모달, 저장 확인 모달, 삭제 확인 모달, 안내 모달 흐름을 관리한다.
+ * - 실제 서버 저장/삭제는 상위 훅에서 내려온 action에 위임한다.
+ */
+
 import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -23,6 +32,14 @@ type CommonCodeMasterTableProps = {
   onDeleteMasters: () => Promise<number>;
 };
 
+/**
+ * 공통코드 마스터 테이블을 렌더링한다.
+ *
+ * @description
+ * - 입력 검증은 모달 내부에서 처리하고, 검증을 통과하면 저장 확인 모달을 연다.
+ * - 저장/삭제 성공 후에는 기본 안내 모달을 통해 결과를 알려준다.
+ * - 저장 실패 시에는 에러 안내 후 편집 모달을 다시 열어 사용자가 수정할 수 있게 한다.
+ */
 export function CommonCodeMasterTable({
   rows,
   selectedMasterId,
@@ -58,6 +75,9 @@ export function CommonCodeMasterTable({
   const [reopenEditorAfterNoticeClose, setReopenEditorAfterNoticeClose] = useState(false);
   const selectedDeleteCount = checkedMasterIds.length;
   const isCodeReadonly = !isCreateMode;
+  /**
+   * 모달 폼의 필드 에러 상태를 초기화한다.
+   */
   const resetEditorErrors = () => {
     setEditorErrors({
       code: false,
@@ -66,6 +86,9 @@ export function CommonCodeMasterTable({
     });
   };
 
+  /**
+   * 신규 등록용 빈 draft를 만들고 편집 모달을 연다.
+   */
   const openCreateModal = () => {
     setEditingRow({
       id: '',
@@ -78,6 +101,9 @@ export function CommonCodeMasterTable({
     setIsEditorOpen(true);
   };
 
+  /**
+   * 기존 마스터 행을 복사해 수정 모달을 연다.
+   */
   const openEditModal = (row: MasterCode) => {
     setEditingRow({ ...row });
     setIsCreateMode(false);
@@ -85,6 +111,9 @@ export function CommonCodeMasterTable({
     setIsEditorOpen(true);
   };
 
+  /**
+   * 편집 모달과 관련 상태를 닫고 초기화한다.
+   */
   const closeEditorModal = () => {
     setIsEditorOpen(false);
     setEditingRow(null);
@@ -92,6 +121,13 @@ export function CommonCodeMasterTable({
     resetEditorErrors();
   };
 
+  /**
+   * 저장 버튼 클릭 시 프론트 필수값 검증을 수행한다.
+   *
+   * @description
+   * - 검증 실패 시 입력 컴포넌트의 error 상태만 표시한다.
+   * - 검증을 통과한 경우에만 저장 확인 모달을 연다.
+   */
   const handleSaveRequest = () => {
     const nextErrors = {
       code: !editingRow?.code.trim(),
@@ -109,6 +145,9 @@ export function CommonCodeMasterTable({
     setIsSaveConfirmOpen(true);
   };
 
+  /**
+   * 저장 확인 모달 이후 실제 저장 mutation을 수행한다.
+   */
   const handleSaveConfirm = async () => {
     if (!editingRow) {
       return;
@@ -135,6 +174,10 @@ export function CommonCodeMasterTable({
     }
   };
 
+  /**
+   * 삭제 버튼 클릭 시 체크 상태를 확인해
+   * 안내 모달 또는 삭제 확인 모달로 분기한다.
+   */
   const handleDeleteRequest = () => {
     if (selectedDeleteCount === 0) {
       setWrapperNoticeState({
@@ -148,6 +191,9 @@ export function CommonCodeMasterTable({
     setIsDeleteConfirmOpen(true);
   };
 
+  /**
+   * 삭제 확인 모달 이후 실제 삭제 mutation을 수행한다.
+   */
   const handleDeleteConfirm = async () => {
     try {
       const deletedCount = await onDeleteMasters();
@@ -166,6 +212,9 @@ export function CommonCodeMasterTable({
     }
   };
 
+  /**
+   * 편집 중인 draft 값을 갱신하고 해당 필드 에러를 해제한다.
+   */
   const changeEditingField = (key: 'code' | 'name' | 'useYn', value: string) => {
     setEditorErrors((prev) => ({
       ...prev,

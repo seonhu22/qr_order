@@ -64,6 +64,14 @@ export function CommonCodeDetailTable({
 }: CommonCodeDetailTableProps) {
   const [notice, setNotice] = useState<{ title: string; description: string } | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  /**
+   * 행 단위 입력 에러 상태
+   *
+   * @description
+   * - 키는 detail row id
+   * - 값은 code / name 필드별 에러 여부
+   * - 프론트 필수값 검증 실패와 서버 validation 메시지 매핑 결과를 같이 담는다.
+   */
   const [rowErrors, setRowErrors] = useState<
     Record<string, { code?: boolean; name?: boolean }>
   >({});
@@ -87,6 +95,10 @@ export function CommonCodeDetailTable({
    * @description
    * - 현재는 메시지 키워드 기반의 보수적 매핑이다.
    * - 추후 백엔드가 필드 단위 validation 응답 구조를 주면 그 형식으로 교체할 수 있다.
+   *
+   * @example
+   * "common_cd가 중복되었습니다" -> 모든 행의 code error 표시
+   * "공통코드명은 필수입니다" -> 모든 행의 name error 표시
    */
   const applyServerValidationErrors = (message: string) => {
     const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
@@ -121,6 +133,7 @@ export function CommonCodeDetailTable({
    * @description
    * - 필수값 누락이 있으면 저장 확인 모달을 띄우지 않는다.
    * - 검증을 통과한 경우에만 SaveConfirmModal을 연다.
+   * - 현재는 code, name 두 필드만 프론트 필수값 검증 대상으로 본다.
    */
   const handleSaveRequest = () => {
     const nextErrors = Object.fromEntries(
@@ -146,6 +159,10 @@ export function CommonCodeDetailTable({
 
   /**
    * 저장 확인 모달의 확인 버튼 이후 실제 저장을 수행한다.
+   *
+   * @description
+   * - 성공 시 query invalidate는 상위 훅(onSaveRows)에서 수행한다.
+   * - 이 컴포넌트는 결과 안내와 필드 에러 표시만 담당한다.
    */
   const handleSaveConfirm = async () => {
     try {

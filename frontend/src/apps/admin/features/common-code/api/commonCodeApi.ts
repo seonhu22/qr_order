@@ -102,6 +102,17 @@ function isSameDetail(a: DetailCode, b: DetailCode) {
  * - 기존 행 중 값이 바뀐 것은 updateItems
  * - 최초에는 있었지만 현재는 없는 행은 deleteItems
  * 로 분류한다.
+ *
+ * @example
+ * // 최초 조회
+ * // A, B
+ * // 현재 draft
+ * // A(이름 수정), C(신규)
+ * //
+ * // 결과
+ * // updateItems = [A]
+ * // newItems    = [C]
+ * // deleteItems = [B]
  */
 export function buildCommonDetailRequest(
   linkSysId: string,
@@ -137,6 +148,10 @@ export function buildCommonDetailRequest(
 
 /**
  * 상세 저장 요청에 실제 변경사항이 있는지 확인한다.
+ *
+ * @description
+ * - 저장 버튼을 눌렀더라도 new/update/delete가 모두 비어 있으면
+ *   서버를 호출하지 않고 "변경된 내용이 없습니다." 흐름으로 보낸다.
  */
 export function hasCommonDetailChanges(request: CommonDetailRequest) {
   return Boolean(
@@ -163,6 +178,10 @@ export function useCommonCodeMastersQuery(searchKeyword = '') {
 
 /**
  * 선택된 마스터 기준 공통코드 상세 목록 조회 wrapper hook
+ *
+ * @description
+ * - 마스터가 선택되지 않은 상태에서는 enabled=false로 동작한다.
+ * - 선택된 마스터가 바뀌면 detail query key도 함께 바뀐다.
  */
 export function useCommonCodeDetailsQuery(masterId: string, searchKeyword = '') {
   return useSearchCommonDetail(
