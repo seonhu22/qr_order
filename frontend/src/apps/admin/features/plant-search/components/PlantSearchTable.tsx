@@ -6,6 +6,7 @@ type PlantSearchTableProps = {
   rows: PlantSearchRow[];
   isLoading: boolean;
   isError: boolean;
+  onAccessClick?: (row: PlantSearchRow) => void;
 };
 
 /**
@@ -15,7 +16,12 @@ type PlantSearchTableProps = {
  * - 목록 렌더링과 상태별 메시지(로딩/에러/빈 결과)만 담당한다.
  * - 데이터 조회와 검색 조건 관리는 상위 hook에서 처리한다.
  */
-export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableProps) {
+export function PlantSearchTable({
+  rows,
+  isLoading,
+  isError,
+  onAccessClick,
+}: PlantSearchTableProps) {
   /**
    * 서버 상태에 따라 테이블 body를 분기 렌더링한다.
    */
@@ -67,6 +73,7 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
             size="sm"
             className="plant-search-page__access-button"
             rightIcon={<Icon id="i-plant-access" size={11} />}
+            onClick={() => onAccessClick?.(row)}
           >
             접속
           </Button>
