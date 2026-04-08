@@ -177,7 +177,7 @@
 }
 
 .common-table--detail tbody tr {
-  cursor: default;
+  cursor: pointer;
 }
 
 .common-code-card__footnote {

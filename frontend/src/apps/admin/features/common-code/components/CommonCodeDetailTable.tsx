@@ -7,6 +7,7 @@
  * - 실제 저장/순번 이동/삭제/체크 상태의 원본 데이터 관리는 상위 훅에 위임한다.
  */
 
+import { useState } from 'react';
 import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase } from '@/shared/components/input';
@@ -27,11 +28,11 @@ type CommonCodeDetailTableProps = {
   onFieldChange: (detailId: string, key: 'code' | 'name', value: string) => void;
   onUseYnChange: (detailId: string, checked: boolean) => void;
   onAddRow: () => void;
-  onDeleteRows: () => void;
+  onDeleteRows: (selectedId?: string) => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
+  onMoveUp: (selectedId?: string) => void;
+  onMoveDown: (selectedId?: string) => void;
   isSaving: boolean;
   onSaveRows: () => Promise<boolean>;
 };
@@ -62,6 +63,15 @@ export function CommonCodeDetailTable({
   isSaving,
   onSaveRows,
 }: CommonCodeDetailTableProps) {
+  /* 행 클릭 선택 상태 — 체크박스(row.checked)와 완전히 분리된 별도 state */
+  const [selectedDetailId, setSelectedDetailId] = useState<string>('');
+
+  /* 클릭 선택된 행의 인덱스 — 이동 가능 여부 계산에 사용 */
+  const selectedIndex = rows.findIndex((row) => row.id === selectedDetailId);
+  const effectiveCanMoveUp = canMoveUp || (selectedDetailId !== '' && selectedIndex > 0);
+  const effectiveCanMoveDown =
+    canMoveDown || (selectedDetailId !== '' && selectedIndex < rows.length - 1);
+
   const {
     rowErrors,
     notice,
@@ -90,16 +100,16 @@ export function CommonCodeDetailTable({
               size="sm"
               iconOnly={<Icon id="i-chevron-up" size={12} />}
               aria-label="위로 이동"
-              disabled={!canMoveUp || isSaving}
-              onClick={onMoveUp}
+              disabled={!effectiveCanMoveUp || isSaving}
+              onClick={() => onMoveUp(selectedDetailId || undefined)}
             />
             <Button
               variant="icon"
               size="sm"
               iconOnly={<Icon id="i-chevron-down" size={12} />}
               aria-label="아래로 이동"
-              disabled={!canMoveDown || isSaving}
-              onClick={onMoveDown}
+              disabled={!effectiveCanMoveDown || isSaving}
+              onClick={() => onMoveDown(selectedDetailId || undefined)}
             />
             <Button
               type="button"
@@ -115,8 +125,11 @@ export function CommonCodeDetailTable({
               type="button"
               variant="text"
               size="sm"
-              onClick={onDeleteRows}
-              disabled={checkedCount === 0 || isSaving}
+              onClick={() => {
+                onDeleteRows(selectedDetailId || undefined);
+                setSelectedDetailId('');
+              }}
+              disabled={(checkedCount === 0 && !selectedDetailId) || isSaving}
               style={{ padding: '0 var(--spacing-button-x-sm)' }}
             >
               - 행삭제
@@ -159,7 +172,13 @@ export function CommonCodeDetailTable({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className={row.checked ? 'is-selected' : undefined}>
+                /* 행 클릭으로 체크박스 토글 */
+                <tr
+                  key={row.id}
+                  className={selectedDetailId === row.id ? 'is-selected' : undefined}
+                  onClick={() => setSelectedDetailId(row.id)}
+                >
+                  {/* 선택 체크박스: tr onClick(행 선택)과 독립 — onChange만으로 처리 */}
                   <td>
                     <CheckboxInput
                       checked={row.checked}
@@ -198,7 +217,8 @@ export function CommonCodeDetailTable({
                       aria-label={`${row.code} 코드명`}
                     />
                   </td>
-                  <td>
+                  {/* 사용여부: tr onClick(행 선택)과 독립 — stopPropagation으로 분리 */}
+                  <td onClick={(e) => e.stopPropagation()}>
                     <CheckboxInput
                       checked={row.useYn}
                       onChange={(checked) => onUseYnChange(row.id, checked)}

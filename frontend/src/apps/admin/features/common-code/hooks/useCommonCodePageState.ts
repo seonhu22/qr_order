@@ -176,8 +176,10 @@ export function useCommonCodePageState() {
     updateSelectedDetailRows((rows) => normalizeOrdNo([...rows, nextRow]));
   };
 
-  const removeCheckedDetailRows = () => {
-    updateSelectedDetailRows((rows) => normalizeOrdNo(rows.filter((row) => !row.checked)));
+  const removeCheckedDetailRows = (selectedId?: string) => {
+    updateSelectedDetailRows((rows) =>
+      normalizeOrdNo(rows.filter((row) => !row.checked && row.id !== selectedId)),
+    );
   };
 
   const canMoveDetailRowsUp = detailRows.some((row, index) => row.checked && index > 0);
@@ -185,12 +187,13 @@ export function useCommonCodePageState() {
     (row, index) => row.checked && index < detailRows.length - 1,
   );
 
-  const moveCheckedDetailRowsUp = () => {
+  const moveCheckedDetailRowsUp = (selectedId?: string) => {
     updateSelectedDetailRows((rows) => {
       const nextRows = [...rows];
+      const shouldMove = (row: DetailCode) => row.checked || row.id === selectedId;
 
       for (let index = 1; index < nextRows.length; index += 1) {
-        if (nextRows[index].checked && !nextRows[index - 1].checked) {
+        if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index - 1])) {
           [nextRows[index - 1], nextRows[index]] = [nextRows[index], nextRows[index - 1]];
         }
       }
@@ -199,12 +202,13 @@ export function useCommonCodePageState() {
     });
   };
 
-  const moveCheckedDetailRowsDown = () => {
+  const moveCheckedDetailRowsDown = (selectedId?: string) => {
     updateSelectedDetailRows((rows) => {
       const nextRows = [...rows];
+      const shouldMove = (row: DetailCode) => row.checked || row.id === selectedId;
 
       for (let index = nextRows.length - 2; index >= 0; index -= 1) {
-        if (nextRows[index].checked && !nextRows[index + 1].checked) {
+        if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index + 1])) {
           [nextRows[index], nextRows[index + 1]] = [nextRows[index + 1], nextRows[index]];
         }
       }
