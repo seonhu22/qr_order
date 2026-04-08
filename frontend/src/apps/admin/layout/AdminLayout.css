@@ -70,3 +70,13 @@
   background-color: var(--color-bg-app);
   padding: var(--spacing-page-x);
 }
+
+/*
+  fixed 레이아웃 페이지를 포함할 때:
+  overflow-y: auto → hidden으로 전환하여 자식의 height: 100%가
+  뷰포트 기준으로 정확히 계산되도록 고정.
+  일반 페이지(overflow-y: auto)에는 영향 없음.
+*/
+.admin-layout__main:has(.admin-main-layout-page--fixed) {
+  overflow: hidden;
+}

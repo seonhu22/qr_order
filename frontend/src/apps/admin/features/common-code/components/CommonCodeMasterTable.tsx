@@ -121,8 +121,8 @@ export function CommonCodeMasterTable({
                     className="common-table__checkbox"
                   />
                 </th>
-                <th>공통코드</th>
-                <th>공통코드명</th>
+                <th className="common-table__cell--left">공통코드</th>
+                <th className="common-table__cell--left">공통코드명</th>
                 <th>사용여부</th>
                 <th aria-label="수정" />
               </tr>
@@ -147,8 +147,8 @@ export function CommonCodeMasterTable({
                         className="common-table__checkbox"
                       />
                     </td>
-                    <td className="common-table__mono">{row.code}</td>
-                    <td>{row.name}</td>
+                    <td className="common-table__mono common-table__cell--left">{row.code}</td>
+                    <td className="common-table__cell--left">{row.name}</td>
                     <td>
                       <span
                         className={`status-badge ${row.useYn === 'Y' ? 'status-badge--yes' : 'status-badge--no'}`}

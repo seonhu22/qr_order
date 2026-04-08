@@ -1,6 +1,8 @@
 .common-code-card {
   display: flex;
   flex-direction: column;
+  /* flex 부모(content wrapper) 안에서 높이를 완전히 채우기 위해 min-height 제한 */
+  min-height: 0;
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-surface);
@@ -11,6 +13,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* 헤더는 테이블 행수와 무관하게 항상 고정 높이 유지 */
+  flex-shrink: 0;
   min-height: 3rem;
   padding: 0 var(--spacing-8);
   border-bottom: var(--border-1) solid var(--color-border-divider);
@@ -53,8 +57,32 @@
 }
 
 .common-table-wrap {
-  overflow-x: auto;
+  /* 헤더·푸터를 제외한 나머지 카드 높이를 채우고, 행이 넘치면 내부 스크롤 */
+  flex: 1;
+  overflow: auto;
 }
+
+/* 테이블 헤더 고정: common-table-wrap 내부 스크롤 시 thead가 상단에 고정 */
+.common-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* 좌정렬 컬럼 커스텀 클래스
+   .common-table th/td가 (0,1,1)이므로 앞에 .common-table를 붙여 (0,2,0)으로 우선순위 확보 */
+.common-table .common-table__cell--left {
+  text-align: left;
+}
+
+/*
+  피드백의 min-height: 18rem이 flex 분배를 방해하지 않도록 고정 레이아웃에서 초기화
+  → 상세 카드(.common-code-card)와 동일하게 flex: 1 50:50 유지
+*/
+.admin-main-layout-page--fixed .common-code-feedback {
+  min-height: 0;
+}
+
 
 .common-table__checkbox {
   display: inline-flex;
@@ -153,6 +181,8 @@
 }
 
 .common-code-card__footnote {
+  /* 하단 안내 텍스트도 고정 높이로 유지해야 테이블 스크롤 영역이 정확하게 계산됨 */
+  flex-shrink: 0;
   margin: 0;
   padding: var(--spacing-4) var(--spacing-8) var(--spacing-6);
   font-size: var(--typography-size-caption);

@@ -152,8 +152,8 @@ export function CommonCodeDetailTable({
                     className="common-table__checkbox"
                   />
                 </th>
-                <th>공통코드</th>
-                <th>공통코드명</th>
+                <th className="common-table__cell--left">공통코드</th>
+                <th className="common-table__cell--left">공통코드명</th>
                 <th>사용여부</th>
               </tr>
             </thead>

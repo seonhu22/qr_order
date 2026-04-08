@@ -47,7 +47,13 @@ export const CommonCodePage = () => {
   } = useCommonCodePageState();
 
   return (
-    <AdminMainLayout adminMainTitle="공통코드 관리" depth1="시스템" depth2="시스템 관리">
+    /* 공통코드 페이지: 두 테이블이 나란히 배치되고 각 테이블 내부에서 스크롤 */
+    <AdminMainLayout
+      adminMainTitle="공통코드 관리"
+      depth1="시스템"
+      depth2="시스템 관리"
+      className="admin-main-layout-page--fixed"
+    >
       <CommonCodeMasterTable
         rows={masterRows}
         selectedMasterId={selectedMasterId}

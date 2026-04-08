@@ -15,3 +15,53 @@
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+
+/*
+  콘텐츠 wrapper: flex column으로 children을 위아래로 배치
+  - 1개 → 풀 높이 / 2개 → 동일 비율 (50:50) / 3개 → 동일 비율 (33:33:33)
+  - > * 로 직접 자식(카드·피드백 등)에 동일 flex 비율 적용
+*/
+.admin-main-layout-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.admin-main-layout-page__content > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+  --fixed 변형: 뷰포트 높이에 맞게 페이지를 고정
+  - min-height: 100%가 base에 있으므로 unset으로 덮어써야
+    내용이 늘어나도 페이지가 따라 커지지 않음
+  - admin-layout__main:has() 에서 overflow: hidden으로 부모를 고정하므로
+    height: 100%가 뷰포트 기준으로 정확히 계산됨
+*/
+.admin-main-layout-page--fixed {
+  height: 100%;
+  min-height: unset;
+}
+
+.admin-main-layout-page--fixed .admin-main-layout-page__content {
+  /*
+    flex 대신 grid 사용:
+    1fr 1fr로 트랙을 먼저 고정 분할한 뒤 내용을 채우므로
+    children 컴포넌트가 교체되어도 높이가 변하지 않음
+  */
+  /*
+    grid-auto-rows: 1fr → 아이템 수에 따라 자동으로 균등 분배
+    1개 → 100% / 2개 → 50:50 / 3개 → 33:33:33
+  */
+  display: grid;
+  grid-auto-rows: 1fr;
+  grid-template-columns: 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* grid item도 min-height: 0으로 내용이 트랙 밖으로 나가지 않도록 제한 */
+.admin-main-layout-page--fixed .admin-main-layout-page__content > * {
+  min-height: 0;
+}
