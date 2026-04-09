@@ -1,8 +1,13 @@
 /**
  * @fileoverview 관리자 관리 페이지 상태 조합 훅
+ *
+ * @description
+ * - query 결과를 화면 모델로 변환한다.
+ * - 목록 편집 상태(useAdminUserListState)와 공통 flow(useAdminUserFlow)를 조합한다.
+ * - 페이지 컴포넌트는 이 훅의 반환값을 그대로 조립만 하도록 만드는 것이 목표다.
  */
 
-import { startTransition, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import {
@@ -15,277 +20,109 @@ import {
   useResetAdminUserPasswordMutation,
   useSaveAdminUsersMutation,
 } from '../api/adminUserApi';
-import type { AdminUserRow } from '../types';
-
-type SimpleModalState = {
-  description: string;
-  helperText?: string;
-  onConfirm?: () => void | Promise<void>;
-} | null;
-
-type WrapperModalState = {
-  title: string;
-  description: string;
-} | null;
-
-type RowErrors = Record<string, { userId: boolean; userName: boolean; plantCd: boolean }>;
+import { useAdminUserListState } from './useAdminUserListState';
+import { useAdminUserFlow } from './useAdminUserFlow';
+import type { AdminUserPageViewModel } from '../types';
 
 /**
  * 관리자 관리 화면 상태/액션 조합
+ *
+ * @returns
+ * `data / status / actions / uiProps` 형태의 뷰모델.
+ *
+ * @remarks
+ * - `data`: 렌더링에 필요한 화면 데이터
+ * - `status`: query / mutation 진행 상태
+ * - `actions`: 이벤트 핸들러
+ * - `uiProps`: 화면 전용 상태(draft keyword, selected row, flow state)
  */
-export function useAdminUserPage() {
+export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
   const [draftKeyword, setDraftKeyword] = useState('');
   const [appliedKeyword, setAppliedKeyword] = useState('');
-  const [draftRows, setDraftRows] = useState<AdminUserRow[] | null>(null);
-  const [rowErrors, setRowErrors] = useState<RowErrors>({});
-  const [selectedRowId, setSelectedRowId] = useState('');
-  const [simpleModalState, setSimpleModalState] = useState<SimpleModalState>(null);
-  const [wrapperModalState, setWrapperModalState] = useState<WrapperModalState>(null);
-  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const userQuery = useAdminUserQuery(appliedKeyword.trim());
   const plantComboQuery = usePlantComboOptionsQuery();
   const saveUsersMutation = useSaveAdminUsersMutation();
   const resetPasswordMutation = useResetAdminUserPasswordMutation();
 
+  /**
+   * 사업장 combo API 응답을 searchable select가 바로 사용할 수 있는 옵션으로 변환한다.
+   */
   const plantOptions = useMemo(
     () => (plantComboQuery.data ?? []).map(mapToPlantSelectOption),
     [plantComboQuery.data],
   );
 
+  /**
+   * 관리자 조회 DTO를 화면용 row 모델로 변환한다.
+   *
+   * @remarks
+   * 이후 편집은 baseRows를 직접 수정하지 않고 useAdminUserListState의 draftRows에서 관리한다.
+   */
   const baseRows = useMemo(
     () => (userQuery.data ?? []).map(mapToAdminUserModel),
     [userQuery.data],
   );
-  const rows = draftRows ?? baseRows;
-  const normalizedSelectedRowId = rows.some((row) => row.id === selectedRowId) ? selectedRowId : '';
-
-  const isDirty = useMemo(() => {
-    const request = buildAdminUserRequest(rows, baseRows);
-    return hasAdminUserChanges(request);
-  }, [rows, baseRows]);
-
-  const updateRows = (updater: (rows: AdminUserRow[]) => AdminUserRow[]) => {
-    setDraftRows((prev) => updater(prev ?? baseRows));
-  };
-
-  const clearRowError = (rowId: string, key: 'userId' | 'userName' | 'plantCd') => {
-    setRowErrors((prev) => ({
-      ...prev,
-      [rowId]: {
-        userId: key === 'userId' ? false : prev[rowId]?.userId ?? false,
-        userName: key === 'userName' ? false : prev[rowId]?.userName ?? false,
-        plantCd: key === 'plantCd' ? false : prev[rowId]?.plantCd ?? false,
-      },
-    }));
-  };
+  const {
+    rows,
+    rowErrors,
+    selectedRowId,
+    isDirty,
+    selectRow,
+    changeRowField,
+    changeRowPlant,
+    addRow,
+    deleteSelectedRow,
+    validateRequiredFields,
+    resetToBaseRows,
+  } = useAdminUserListState({
+    baseRows,
+    plantOptions,
+  });
 
   const handleKeywordChange = (value: string) => {
     setDraftKeyword(value);
   };
 
-  const handleSearch = () => {
-    if (isDirty) {
-      setSimpleModalState({
-        description: '조회하시겠습니까?',
-        helperText: '저장되지 않은 내용이 있습니다.',
-        onConfirm: () => {
-          startTransition(() => {
-            setAppliedKeyword(draftKeyword);
-          });
-          setDraftRows(null);
-          setSelectedRowId('');
-          setSimpleModalState(null);
-        },
-      });
-      return;
-    }
-
-    startTransition(() => {
-      setAppliedKeyword(draftKeyword);
-    });
-    setDraftRows(null);
-    setSelectedRowId('');
-  };
-
-  const handleReset = () => {
-    startTransition(() => {
-      setDraftKeyword('');
-      setAppliedKeyword('');
-    });
-    setDraftRows(null);
-    setSelectedRowId('');
-  };
-
-  const handleSelectRow = (rowId: string) => {
-    setSelectedRowId(rowId);
-  };
-
-  const handleChangeRowField = (rowId: string, key: 'userId' | 'userName', value: string) => {
-    clearRowError(rowId, key);
-    updateRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
-  };
-
-  const handleChangeRowPlant = (rowId: string, plantCd: string) => {
-    const matchedOption = plantOptions.find((option) => option.value === plantCd);
-    clearRowError(rowId, 'plantCd');
-
-    updateRows((prev) =>
-      prev.map((row) =>
-        row.id === rowId
-          ? {
-              ...row,
-              plantCd,
-              plantName: matchedOption?.label ?? '',
-            }
-          : row,
-      ),
-    );
-  };
-
-  const handleAddRow = () => {
-    const newRow: AdminUserRow = {
-      id: `new-${Date.now()}`,
-      userId: '',
-      userName: '',
-      plantCd: '',
-      plantName: '',
-      isNew: true,
-    };
-
-    updateRows((prev) => [...prev, newRow]);
-    setSelectedRowId(newRow.id);
-  };
-
-  const handleDeleteRow = () => {
-    if (!normalizedSelectedRowId) {
-      setSimpleModalState({
-        description: '항목을 먼저 선택해주세요.',
-        helperText: '삭제할 행을 클릭 후 진행하세요.',
-      });
-      return;
-    }
-
-    updateRows((prev) => prev.filter((row) => row.id !== normalizedSelectedRowId));
-    setSelectedRowId('');
-  };
-
-  const nextRowErrors = rows.reduce<RowErrors>((acc, row) => {
-    acc[row.id] = {
-      userId: !row.userId.trim(),
-      userName: !row.userName.trim(),
-      plantCd: !row.plantCd.trim(),
-    };
-    return acc;
-  }, {});
-
-  const hasMissingRequired = Object.values(nextRowErrors).some(
-    (rowError) => rowError.userId || rowError.userName || rowError.plantCd,
-  );
-
-  const handleSave = () => {
-    if (hasMissingRequired) {
-      setRowErrors(nextRowErrors);
-      setWrapperModalState({
-        title: '안내',
-        description: '필수 항목을 모두 입력해주세요.',
-      });
-      return;
-    }
-
-    setIsSaveConfirmOpen(true);
-  };
-
-  const confirmSave = async () => {
+  /**
+   * 현재 rows를 기준으로 저장 request를 만들고 mutation을 실행한다.
+   *
+   * @returns
+   * - `saved`: 실제 저장이 발생한 경우
+   * - `unchanged`: diff가 없어 저장할 내용이 없는 경우
+   */
+  const saveChanges = async (): Promise<'saved' | 'unchanged'> => {
     const request = buildAdminUserRequest(rows, baseRows);
 
     if (!hasAdminUserChanges(request)) {
-      setIsSaveConfirmOpen(false);
-      setSimpleModalState({
-        description: '변경된 내용이 없습니다.',
-      });
-      return;
+      return 'unchanged';
     }
 
-    try {
-      await saveUsersMutation.mutateAsync(request);
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.adminUser.list(appliedKeyword.trim()),
-      });
-      setDraftRows(null);
-      setIsSaveConfirmOpen(false);
-      setSimpleModalState({
-        description: '저장되었습니다.',
-        helperText: '초기 비밀번호는 SN111111 입니다.',
-      });
-    } catch (error) {
-      setIsSaveConfirmOpen(false);
-      setSimpleModalState({
-        description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
-      });
-    }
-  };
-
-  const openPasswordResetConfirm = (userId: string) => {
-    setSimpleModalState({
-      description: '초기화하겠습니까?',
-      helperText: '비밀번호가 초기화됩니다.',
-      onConfirm: async () => {
-        if (!userId) {
-          setSimpleModalState({
-            description: '초기화할 사용자 아이디가 없습니다.',
-          });
-          return;
-        }
-
-        try {
-          await resetPasswordMutation.mutateAsync(userId);
-          setSimpleModalState({
-            description: '저장되었습니다.',
-            helperText: '초기 비밀번호는 SN111111 입니다.',
-          });
-        } catch (error) {
-          setSimpleModalState({
-            description:
-              error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
-          });
-        }
-      },
+    await saveUsersMutation.mutateAsync(request);
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.adminUser.list(appliedKeyword.trim()),
     });
+    resetToBaseRows();
+    return 'saved';
   };
 
-  const handleResetPassword = (userId: string) => {
-    if (isDirty) {
-      setSimpleModalState({
-        description: '초기화하겠습니까?',
-        helperText: '저장되지 않은 내용이 있습니다.',
-        onConfirm: async () => {
-          if (!userId) {
-            setSimpleModalState({
-              description: '초기화할 사용자 아이디가 없습니다.',
-            });
-            return;
-          }
-
-          try {
-            await resetPasswordMutation.mutateAsync(userId);
-            setSimpleModalState({
-              description: '저장되었습니다.',
-              helperText: '초기 비밀번호는 SN111111 입니다.',
-            });
-          } catch (error) {
-            setSimpleModalState({
-              description:
-                error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
-            });
-          }
-        },
-      });
-      return;
-    }
-
-    openPasswordResetConfirm(userId);
-  };
+  const flow = useAdminUserFlow({
+    draftKeyword,
+    isDirty,
+    selectedRowId,
+    onApplySearch: (keyword) => setAppliedKeyword(keyword),
+    onResetFilters: () => {
+      setDraftKeyword('');
+      setAppliedKeyword('');
+    },
+    onResetDraftRows: resetToBaseRows,
+    onDeleteSelectedRow: deleteSelectedRow,
+    onValidateRequiredFields: validateRequiredFields,
+    onSaveChanges: saveChanges,
+    onResetPassword: async (userId) => {
+      await resetPasswordMutation.mutateAsync(userId);
+    },
+  });
 
   return {
     data: {
@@ -303,31 +140,27 @@ export function useAdminUserPage() {
     },
     actions: {
       handleKeywordChange,
-      handleSearch,
-      handleReset,
-      handleSelectRow,
-      handleChangeRowField,
-      handleChangeRowPlant,
-      handleAddRow,
-      handleDeleteRow,
-      handleSave,
-      confirmSave,
-      handleResetPassword,
-      closeSimpleModal: () => setSimpleModalState(null),
-      closeWrapperModal: () => setWrapperModalState(null),
-      closeSaveConfirm: () => setIsSaveConfirmOpen(false),
-      confirmSimpleModal: async () => {
-        await simpleModalState?.onConfirm?.();
-      },
+      handleSearch: flow.requestSearch,
+      handleReset: flow.requestResetFilters,
+      handleSelectRow: selectRow,
+      handleChangeRowField: changeRowField,
+      handleChangeRowPlant: changeRowPlant,
+      handleAddRow: addRow,
+      handleDeleteRow: flow.requestDeleteRow,
+      handleSave: flow.requestSave,
+      confirmSave: flow.confirmSave,
+      handleResetPassword: flow.requestResetPassword,
+      closeSimpleModal: flow.closeSimpleModal,
+      closeWrapperModal: flow.closeWrapperModal,
+      closeSaveConfirm: flow.closeSaveConfirm,
+      confirmSimpleModal: flow.confirmSimpleModal,
     },
     uiProps: {
       draftKeyword,
       appliedKeyword,
-      selectedRowId: normalizedSelectedRowId,
+      selectedRowId,
       isDirty,
-      simpleModalState,
-      wrapperModalState,
-      isSaveConfirmOpen,
+      flowState: flow.state,
     },
   };
 }
