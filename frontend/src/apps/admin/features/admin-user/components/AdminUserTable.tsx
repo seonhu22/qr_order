@@ -1,11 +1,21 @@
 import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
+import { InputBase, SelectInput } from '@/shared/components/input';
+import type { SelectOption } from '@/shared/components/input';
 import type { AdminUserRow } from '../types';
 
 type AdminUserTableProps = {
   rows: AdminUserRow[];
+  selectedRowId: string;
+  plantOptions: SelectOption[];
+  rowErrors: Record<string, { userId: boolean; userName: boolean; plantCd: boolean }>;
   isLoading: boolean;
   isError: boolean;
+  isSaving: boolean;
+  isResettingPassword: boolean;
+  onSelectRow: (rowId: string) => void;
+  onChangeRowField: (rowId: string, key: 'userId' | 'userName', value: string) => void;
+  onChangeRowPlant: (rowId: string, plantCd: string) => void;
   onAddRow: () => void;
   onDeleteRow: () => void;
   onSave: () => void;
@@ -17,8 +27,16 @@ type AdminUserTableProps = {
  */
 export function AdminUserTable({
   rows,
+  selectedRowId,
+  plantOptions,
+  rowErrors,
   isLoading,
   isError,
+  isSaving,
+  isResettingPassword,
+  onSelectRow,
+  onChangeRowField,
+  onChangeRowPlant,
   onAddRow,
   onDeleteRow,
   onSave,
@@ -56,16 +74,51 @@ export function AdminUserTable({
     }
 
     return rows.map((row) => (
-      <tr key={row.id}>
-        <td className="admin-user-page__mono">{row.userId}</td>
-        <td>{row.userName}</td>
-        <td>{row.plantName}</td>
+      <tr
+        key={row.id}
+        className={selectedRowId === row.id ? 'is-selected' : undefined}
+        onClick={() => onSelectRow(row.id)}
+      >
+        <td>
+          <InputBase
+            size="sm"
+            value={row.userId}
+            readOnly={!row.isNew}
+            controlState={rowErrors[row.id]?.userId ? 'error' : !row.isNew ? 'readonly' : ''}
+            className={!row.isNew ? 'admin-user-page__input admin-user-page__input--readonly' : 'admin-user-page__input'}
+            placeholder={row.isNew ? '아이디를 입력하세요' : ''}
+            onChange={(event) => onChangeRowField(row.id, 'userId', event.target.value)}
+          />
+        </td>
+        <td>
+          <InputBase
+            size="sm"
+            value={row.userName}
+            controlState={rowErrors[row.id]?.userName ? 'error' : ''}
+            className="admin-user-page__input"
+            placeholder="사용자 명을 입력하세요"
+            onChange={(event) => onChangeRowField(row.id, 'userName', event.target.value)}
+          />
+        </td>
+        <td>
+          <SelectInput
+            size="sm"
+            searchable
+            options={plantOptions}
+            value={row.plantCd}
+            placeholder="사업장을 선택하세요"
+            className="admin-user-page__select"
+            isError={rowErrors[row.id]?.plantCd}
+            onChange={(value) => onChangeRowPlant(row.id, value)}
+          />
+        </td>
         <td>
           <Button
             type="button"
             variant="outline"
             size="sm"
             className="admin-user-page__password-button"
+            disabled={isResettingPassword || !row.userId.trim()}
             onClick={() => onResetPassword(row.userId)}
           >
             초기화
@@ -86,6 +139,7 @@ export function AdminUserTable({
             variant="outline"
             size="sm"
             leftIcon={<Icon id="i-plus" size={13} />}
+            disabled={isSaving || isResettingPassword}
             onClick={onAddRow}
           >
             행추가
@@ -95,11 +149,12 @@ export function AdminUserTable({
             variant="outline"
             size="sm"
             leftIcon={<Icon id="i-minus" size={13} />}
+            disabled={isSaving || isResettingPassword}
             onClick={onDeleteRow}
           >
             행삭제
           </Button>
-          <Button type="button" variant="primary" size="sm" onClick={onSave}>
+          <Button type="button" variant="primary" size="sm" loading={isSaving} onClick={onSave}>
             저장
           </Button>
         </div>

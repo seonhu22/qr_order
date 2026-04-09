@@ -97,13 +97,27 @@
 }
 
 .admin-user-page__required {
-  color: var(--color-status-danger-text);
+  color: var(--color-status-error-default);
 }
 
 .admin-user-page__mono {
   color: var(--color-text-secondary);
   font-family: var(--typography-font-mono);
   font-size: var(--typography-size-caption);
+}
+
+.admin-user-page__table tbody tr.is-selected {
+  background-color: rgba(255, 107, 43, 0.06);
+  box-shadow: inset 2px 0 0 var(--color-brand-default);
+}
+
+.admin-user-page__input .input-control__input,
+.admin-user-page__select {
+  width: 100%;
+}
+
+.admin-user-page__input--readonly .input-control__input {
+  background-color: var(--slate-20);
 }
 
 .admin-user-page__password-button {

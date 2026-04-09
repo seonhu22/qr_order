@@ -4,7 +4,10 @@
 
 export type AdminUserRow = {
   id: string;
+  sysId?: string;
   userId: string;
   userName: string;
+  plantCd: string;
   plantName: string;
+  isNew: boolean;
 };
