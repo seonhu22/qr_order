@@ -1346,13 +1346,68 @@ login mutation 성공
 - `SaveConfirmModal`, `DeleteConfirmModal`, `SimpleDefaultModal` 같은 표시 컴포넌트는 이미 공용이다.
 - 앞으로 재사용 대상은 `저장 요청 -> 저장 확인 -> 결과 안내` 같은 CRUD 흐름 상태 훅이다.
 
-8. 리팩토링 요약
+8. 목록 상태와 공통 flow를 나눌 수 있으면 분리한다
+
+- 특히 업무형 CRUD 화면은 아래 두 층으로 분리하는 편이 유지보수에 유리하다.
+  - `use<Feature>ListState`
+    - 조회 결과(baseRows)
+    - 로컬 draftRows
+    - 선택 행
+    - 행 추가/삭제
+    - 필드 수정
+    - 필수값 검증과 rowErrors
+  - `use<Feature>Flow`
+    - 조회 전 dirty 확인
+    - 저장 확인
+    - 저장 완료/오류 안내
+    - 삭제 전 안내/확인
+    - 초기화/부가 액션 모달 흐름
+- 이 패턴은 `AdminUser`에서 먼저 적용했다.
+
+9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
+
+- 현재 권장 형태:
+
+```ts
+const {
+  data,
+  status,
+  actions,
+  uiProps,
+} = useSomeFeaturePage();
+```
+
+- 의미:
+  - `data`: 화면 렌더링에 필요한 서버/화면 모델
+  - `status`: query/mutation 진행 상태
+  - `actions`: 사용자 이벤트 핸들러
+  - `uiProps`: draft, selectedId, modal state 같은 화면 전용 상태
+- 이 구조는 `PlantSearch`, `AdminUser`에서 적용 중이다.
+
+10. 리팩토링 후 테스트도 레이어에 맞춰 나눈다
+
+- `list state` 훅: draft/dirty/검증/행 추가삭제 테스트
+- `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
+- UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
+- 즉, 화면 전체 E2E처럼 한 파일에 몰지 않고 "상태 전이"와 "렌더 계약"을 나눠 검증한다.
+
+11. 리팩토링 요약
 
 - 페이지 조립
+- 목록 상태 훅 (`use<Feature>ListState`)
 - feature hook
 - API wrapper
-- 모달 흐름 상태
+- 모달 흐름 상태 (`use<Feature>Flow`)
   순서로 정리한다.
+
+적용 예시:
+
+- `CommonCode`
+  - 페이지 조립 + 상태 훅 + 마스터/디테일 flow 훅
+- `PlantSearch`
+  - 페이지 조립 + feature hook + API wrapper
+- `AdminUser`
+  - 페이지 조립 + `useAdminUserListState` + `useAdminUserFlow`
 
 ### 14.4 네이밍 규칙을 통일한다
 
