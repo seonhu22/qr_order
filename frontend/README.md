@@ -1346,13 +1346,114 @@ login mutation 성공
 - `SaveConfirmModal`, `DeleteConfirmModal`, `SimpleDefaultModal` 같은 표시 컴포넌트는 이미 공용이다.
 - 앞으로 재사용 대상은 `저장 요청 -> 저장 확인 -> 결과 안내` 같은 CRUD 흐름 상태 훅이다.
 
-8. 리팩토링 요약
+8. 목록 상태와 공통 flow를 나눌 수 있으면 분리한다
+
+- 특히 업무형 CRUD 화면은 아래 두 층으로 분리하는 편이 유지보수에 유리하다.
+  - `use<Feature>ListState`
+    - 조회 결과(baseRows)
+    - 로컬 draftRows
+    - 선택 행
+    - 행 추가/삭제
+    - 필드 수정
+    - 필수값 검증과 rowErrors
+  - `use<Feature>Flow`
+    - 조회 전 dirty 확인
+    - 저장 확인
+    - 저장 완료/오류 안내
+    - 삭제 전 안내/확인
+    - 초기화/부가 액션 모달 흐름
+- 이 패턴은 `AdminUser`에서 먼저 적용했다.
+
+9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
+
+- 현재 권장 형태:
+
+```ts
+const {
+  data,
+  status,
+  actions,
+  uiProps,
+} = useSomeFeaturePage();
+```
+
+- 의미:
+  - `data`: 화면 렌더링에 필요한 서버/화면 모델
+  - `status`: query/mutation 진행 상태
+  - `actions`: 사용자 이벤트 핸들러
+  - `uiProps`: draft, selectedId, modal state 같은 화면 전용 상태
+- 이 구조는 `PlantSearch`, `AdminUser`에서 적용 중이다.
+
+10. 리팩토링 후 테스트도 레이어에 맞춰 나눈다
+
+- `list state` 훅: draft/dirty/검증/행 추가삭제 테스트
+- `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
+- UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
+- 즉, 화면 전체 E2E처럼 한 파일에 몰지 않고 "상태 전이"와 "렌더 계약"을 나눠 검증한다.
+
+11. 리팩토링 요약
 
 - 페이지 조립
+- 목록 상태 훅 (`use<Feature>ListState`)
 - feature hook
 - API wrapper
-- 모달 흐름 상태
+- 모달 흐름 상태 (`use<Feature>Flow`)
   순서로 정리한다.
+
+적용 예시:
+
+- `CommonCode`
+  - 페이지 조립 + 상태 훅 + 마스터/디테일 flow 훅
+- `PlantSearch`
+  - 페이지 조립 + feature hook + API wrapper
+- `AdminUser`
+  - 페이지 조립 + `useAdminUserListState` + `useAdminUserFlow`
+
+### 17.5 Filter 페이지 추천 표준
+
+필터(조회) 컴포넌트가 들어가는 페이지는 아래 표준을 기본으로 사용한다.
+
+1. 조회 전용 화면 표준
+
+- 대상: `PlantSearch` 같은 read-only 목록
+- 권장 구성:
+  - `pages/<Feature>Page.tsx` -> 조립만 담당
+  - `features/<feature>/hooks/use<Feature>Page.ts` -> `data/status/actions/uiProps`
+  - `features/<feature>/api/*` -> generated wrapper + mapper
+  - `features/<feature>/components/<Feature>Filters.tsx`
+  - `features/<feature>/components/<Feature>Table.tsx`
+
+2. 편집형(CRUD) 화면 표준
+
+- 대상: `CommonCode`, `AdminUser` 같은 draft/저장/삭제가 있는 목록
+- 권장 구성:
+  - `use<Feature>ListState`
+    - baseRows, draftRows, selectedRowId, rowErrors, isDirty
+    - 행 추가/삭제, 필드 변경, 필수 검증
+  - `use<Feature>Flow`
+    - 조회 전 dirty 확인
+    - 저장 확인/완료
+    - 삭제 확인/완료
+    - 초기화/부가 액션 모달 흐름
+  - `use<Feature>Page`
+    - list state + flow + API wrapper 조합
+
+3. 공통 명명 규칙
+
+- mapper:
+  - DTO -> 화면 모델: `mapTo[Entity]Model`
+  - 화면 모델 -> payload: `mapTo[Entity]Payload`
+- hook 반환:
+  - `data`, `status`, `actions`, `uiProps` 유지
+
+4. 신규 화면 구현 체크리스트
+
+- `Filters`가 draft/applied 상태를 분리하는가
+- 페이지가 조립만 담당하는가
+- generated API를 wrapper를 통해서만 사용하는가
+- 필수값 검증이 row error 상태와 함께 표시되는가
+- 저장/삭제/초기화 흐름이 `Flow` 훅으로 분리됐는가
+- 레이어별 단위 테스트(list state / flow / UI)가 있는가
 
 ### 14.4 네이밍 규칙을 통일한다
 

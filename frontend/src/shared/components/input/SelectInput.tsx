@@ -11,7 +11,7 @@
  */
 
 import './Input.css';
-import { useState, useId, useRef, useEffect } from 'react';
+import { useState, useId, useRef, useEffect, useMemo } from 'react';
 import { InputWrapper } from './InputWrapper';
 import { Icon } from '@/shared/assets/icons/Icon';
 import type { SelectInputProps, SelectOption, InputControlState, InputSize } from './types';
@@ -131,6 +131,7 @@ export function SelectInput({
 }: SelectInputProps) {
   /** 접근성용 고유 id — label htmlFor 과 trigger button id 를 연결 */
   const triggerId = useId();
+  const listboxId = `${triggerId}-listbox`;
 
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -140,9 +141,41 @@ export function SelectInput({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  const { normalizedOptions, droppedEmptyValues, droppedDuplicateValues } = useMemo(() => {
+    const seen = new Set<string>();
+    const normalized: SelectOption[] = [];
+    let emptyCount = 0;
+    let duplicateCount = 0;
+
+    for (const option of options) {
+      const value = option.value?.trim();
+
+      if (!value) {
+        emptyCount += 1;
+        continue;
+      }
+
+      if (seen.has(value)) {
+        duplicateCount += 1;
+        continue;
+      }
+
+      seen.add(value);
+      normalized.push({ ...option, value });
+    }
+
+    return {
+      normalizedOptions: normalized,
+      droppedEmptyValues: emptyCount,
+      droppedDuplicateValues: duplicateCount,
+    };
+  }, [options]);
+
   /** 제어/비제어 통합 선택값 */
   const selectedValue = controlledValue !== undefined ? controlledValue : internalValue;
-  const selectedOption = options.find((o) => o.value === selectedValue);
+  const selectedOption = normalizedOptions.find((o) => o.value === selectedValue);
+  const triggerAriaLabel =
+    label?.trim() || selectedOption?.label?.trim() || placeholder?.trim() || '항목 선택';
 
   const iconSize = ICON_SIZE[size];
 
@@ -191,6 +224,15 @@ export function SelectInput({
     setDropUp(() => spaceBelow < 260 && spaceAbove > spaceBelow);
   }, [open]);
 
+  useEffect(() => {
+    if (import.meta.env.DEV && (droppedEmptyValues > 0 || droppedDuplicateValues > 0)) {
+      console.warn('[SelectInput] Invalid options were ignored.', {
+        droppedEmptyValues,
+        droppedDuplicateValues,
+      });
+    }
+  }, [droppedDuplicateValues, droppedEmptyValues]);
+
   /* =====================================================
    * 이벤트 핸들러
    * ===================================================== */
@@ -221,12 +263,12 @@ export function SelectInput({
    * 옵션 필터링 및 그룹 분류
    * ===================================================== */
 
-  const filtered = options.filter(
+  const filtered = normalizedOptions.filter(
     (o) => !search || o.label.toLowerCase().includes(search.toLowerCase()),
   );
 
   const groupKeys = Array.from(
-    new Set(options.filter((o) => o.group).map((o) => o.group as string)),
+    new Set(normalizedOptions.filter((o) => o.group).map((o) => o.group as string)),
   );
   const ungrouped = filtered.filter((o) => !o.group);
   const grouped = groupKeys.map((g) => ({
@@ -262,13 +304,15 @@ export function SelectInput({
         <button
           type="button"
           id={triggerId}
+          role="combobox"
           className="select-control__trigger"
           onClick={handleToggle}
           disabled={disabled}
           aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-invalid={errorText ? true : undefined}
-          aria-readonly={readOnly ? true : undefined}
+          aria-controls={listboxId}
+          aria-expanded={open ? true : false}
+          aria-invalid={errorText || isError ? true : undefined}
+          aria-label={triggerAriaLabel}
           aria-describedby={
             errorText ? `${triggerId}-error` : hint ? `${triggerId}-hint` : undefined
           }
@@ -315,7 +359,12 @@ export function SelectInput({
             )}
 
             {/* 옵션 목록 */}
-            <ul className="select-dropdown__list" role="listbox" aria-label={label ?? placeholder}>
+            <ul
+              id={listboxId}
+              className="select-dropdown__list"
+              role="listbox"
+              aria-label={label ?? placeholder}
+            >
               {/* 그룹 없는 옵션 */}
               {ungrouped.map((opt) => (
                 <OptionItem
@@ -352,7 +401,12 @@ export function SelectInput({
 
               {/* 검색 결과 없음 */}
               {filtered.length === 0 && (
-                <li className="select-dropdown__empty" role="presentation">
+                <li
+                  className="select-dropdown__empty"
+                  role="option"
+                  aria-selected="false"
+                  aria-disabled="true"
+                >
                   검색 결과 없음
                 </li>
               )}
