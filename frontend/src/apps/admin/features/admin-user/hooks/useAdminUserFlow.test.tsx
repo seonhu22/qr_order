@@ -14,7 +14,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { useAdminUserFlow } from './useAdminUserFlow';
 
 const createParams = (overrides?: Partial<Parameters<typeof useAdminUserFlow>[0]>) => ({
-  draftKeyword: '판교',
   isDirty: false,
   selectedRowId: 'row-1',
   onApplySearch: vi.fn(),
@@ -43,7 +42,7 @@ describe('useAdminUserFlow', () => {
       await result.current.confirmSimpleModal();
     });
 
-    expect(params.onApplySearch).toHaveBeenCalledWith('판교');
+    expect(params.onApplySearch).toHaveBeenCalledTimes(1);
     expect(params.onResetDraftRows).toHaveBeenCalledTimes(1);
   });
 
