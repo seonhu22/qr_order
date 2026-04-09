@@ -14,7 +14,7 @@ import { InputBase } from '@/shared/components/input';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
-import { CommonCodeFeedback } from '@/apps/admin/features/common-code/components/CommonCodeFeedback';
+import { EmptyState } from '@/shared/components/feedback';
 import type { DetailCode, MasterCode } from '../types';
 import { useCommonCodeDetailTableFlow } from '../hooks/useCommonCodeDetailTableFlow';
 
@@ -90,7 +90,12 @@ export function CommonCodeDetailTable({
     <>
       <article className="common-code-card" aria-label="공통코드 상세">
         {!selectedMaster ? (
-          <CommonCodeFeedback />
+          <EmptyState
+            icon={<Icon id="i-feedback-pointer" size={22} />}
+            title="목록을 선택해주세요"
+            description="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
+            className="common-code-card__empty"
+          />
         ) : (
           <>
             <header className="common-code-card__header">

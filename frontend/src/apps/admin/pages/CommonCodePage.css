@@ -81,10 +81,10 @@
 }
 
 /*
-  feedback이 카드 안에 포함될 때: 카드가 border/bg를 이미 제공하므로 덮어씀
+  EmptyState가 카드 안에 포함될 때: 카드가 border/bg를 이미 제공하므로 덮어씀
   flex: 1로 카드 높이를 채우고, min-height 제한 해제
 */
-.common-code-card > .common-code-feedback {
+.common-code-card > .common-code-card__empty {
   flex: 1;
   min-height: 0;
   border: none;
@@ -205,43 +205,6 @@
   color: var(--color-text-tertiary);
 }
 
-.common-code-feedback {
-  display: flex;
-  min-height: 18rem;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  border: var(--border-1) dashed var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  padding: var(--spacing-8);
-  text-align: center;
-}
-
-.common-code-feedback__icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  background-color: var(--color-brand-subtle);
-  color: var(--color-brand-default);
-}
-
-.common-code-feedback__title {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: var(--typography-size-body);
-  font-weight: var(--typography-weight-ui);
-}
-
-.common-code-feedback__description {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--typography-size-ui);
-}
 
 .common-code-modal-form {
   display: flex;
@@ -291,47 +254,3 @@
   box-shadow: var(--focus-ring-brand);
 }
 
-.common-code-feedback {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  min-height: 18rem;
-  /* padding: var(--spacing-14) var(--spacing-6); */
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  text-align: center;
-}
-
-.common-code-feedback__icon-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 9999px;
-  background-color: var(--color-bg-muted);
-  color: var(--color-text-tertiary);
-}
-
-.common-code-feedback__icon {
-  color: currentColor;
-}
-
-.common-code-feedback__title {
-  margin: 0;
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-ui);
-  line-height: var(--typography-leading-ui);
-  color: var(--color-text-secondary);
-}
-
-.common-code-feedback__description {
-  margin: 0;
-  font-size: var(--typography-size-caption);
-  font-weight: var(--typography-weight-body);
-  line-height: var(--typography-leading-body);
-  color: var(--color-text-tertiary);
-}
