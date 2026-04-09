@@ -1,5 +1,6 @@
 import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
+import { LoadingState } from '@/shared/components/feedback';
 import type { AdminUserRow } from '../types';
 
 type AdminUserTableProps = {
@@ -28,8 +29,8 @@ export function AdminUserTable({
     if (isLoading) {
       return (
         <tr>
-          <td className="admin-user-page__empty" colSpan={4}>
-            관리자 목록을 불러오는 중입니다.
+          <td colSpan={4}>
+            <LoadingState message="관리자 목록을 불러오는 중입니다." />
           </td>
         </tr>
       );

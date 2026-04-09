@@ -15,6 +15,7 @@
 
 import '@/apps/admin/pages/MainPage.css';
 import { useDashboardInfo } from '@/apps/admin/hooks/useDashboardInfo';
+import { LoadingState } from '@/shared/components/feedback';
 
 export function MainPage() {
   const { data, isLoading, isError } = useDashboardInfo();
@@ -35,9 +36,7 @@ export function MainPage() {
           <strong className="admin-main-page__placeholder-title">/admin/main</strong>
           {isLoading ? (
             // 로딩 피드백
-            <p className="admin-main-page__placeholder-copy">
-              대시보드 데이터를 불러오는 중입니다.
-            </p>
+            <LoadingState message="대시보드 데이터를 불러오는 중입니다." />
           ) : null}
           {isError ? (
             // 에러 피드백

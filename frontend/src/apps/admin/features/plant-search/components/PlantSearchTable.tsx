@@ -1,5 +1,6 @@
 import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { LoadingState } from '@/shared/components/feedback';
 import type { PlantSearchRow } from '../types';
 
 type PlantSearchTableProps = {
@@ -29,8 +30,8 @@ export function PlantSearchTable({
     if (isLoading) {
       return (
         <tr>
-          <td className="plant-search-page__empty" colSpan={9}>
-            사업장 목록을 불러오는 중입니다.
+          <td colSpan={9}>
+            <LoadingState message="사업장 목록을 불러오는 중입니다." />
           </td>
         </tr>
       );
