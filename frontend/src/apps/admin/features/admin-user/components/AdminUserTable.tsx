@@ -39,30 +39,6 @@ type AdminUserTableProps = {
 
 /**
  * 관리자 목록 테이블
- *
- * @param {AdminUserTableProps} props
- * @returns {JSX.Element}
- *
- * @example
- * ```tsx
- * <AdminUserTable
- *   rows={data.rows}
- *   rowErrors={data.rowErrors}
- *   selectedRowId={uiProps.selectedRowId}
- *   plantOptions={data.plantOptions}
- *   isLoading={status.isLoading || status.isFetching}
- *   isError={status.isError}
- *   isSaving={status.isSaving}
- *   isResettingPassword={status.isResettingPassword}
- *   onSelectRow={actions.handleSelectRow}
- *   onChangeRowField={actions.handleChangeRowField}
- *   onChangeRowPlant={actions.handleChangeRowPlant}
- *   onAddRow={actions.handleAddRow}
- *   onDeleteRow={actions.handleDeleteRow}
- *   onSave={actions.handleSave}
- *   onResetPassword={actions.handleResetPassword}
- * />
- * ```
  */
 export function AdminUserTable({
   rows,
@@ -132,7 +108,11 @@ export function AdminUserTable({
             value={row.userId}
             readOnly={!row.isNew}
             controlState={rowErrors[row.id]?.userId ? 'error' : !row.isNew ? 'readonly' : ''}
-            className={!row.isNew ? 'admin-user-page__input admin-user-page__input--readonly' : 'admin-user-page__input'}
+            className={
+              !row.isNew
+                ? 'admin-user-page__input admin-user-page__input--readonly'
+                : 'admin-user-page__input'
+            }
             placeholder={row.isNew ? '아이디를 입력하세요' : ''}
             onChange={(event) => onChangeRowField(row.id, 'userId', event.target.value)}
           />
