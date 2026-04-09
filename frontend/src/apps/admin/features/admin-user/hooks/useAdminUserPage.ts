@@ -5,11 +5,19 @@
  * - query 결과를 화면 모델로 변환한다.
  * - 목록 편집 상태(useAdminUserListState)와 공통 flow(useAdminUserFlow)를 조합한다.
  * - 페이지 컴포넌트는 이 훅의 반환값을 그대로 조립만 하도록 만드는 것이 목표다.
+ *
+ * @remarks
+ * 레이어 역할:
+ * - API wrapper: DTO <-> 화면 모델 변환
+ * - ListState: draft, rowErrors, dirty, 선택행
+ * - Flow: 저장/조회/초기화/안내 모달 분기
+ * - Page Hook(현재 파일): 위 세 레이어를 합쳐 화면에서 쓰기 쉬운 인터페이스 제공
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
   buildAdminUserRequest,
   hasAdminUserChanges,
@@ -35,11 +43,40 @@ import type { AdminUserPageViewModel } from '../types';
  * - `status`: query / mutation 진행 상태
  * - `actions`: 이벤트 핸들러
  * - `uiProps`: 화면 전용 상태(draft keyword, selected row, flow state)
+ *
+ * @example
+ * ```tsx
+ * const { data, status, actions, uiProps } = useAdminUserPage();
+ *
+ * <AdminUserFilters
+ *   draftKeyword={uiProps.draftKeyword}
+ *   onKeywordChange={actions.handleKeywordChange}
+ *   onSearch={actions.handleSearch}
+ *   onReset={actions.handleReset}
+ * />
+ *
+ * <AdminUserTable
+ *   rows={data.rows}
+ *   rowErrors={data.rowErrors}
+ *   selectedRowId={uiProps.selectedRowId}
+ *   onSave={actions.handleSave}
+ * />
+ *
+ * <AdminUserFlowModals
+ *   state={uiProps.flowState}
+ *   onConfirmSave={actions.confirmSave}
+ * />
+ * ```
  */
 export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
-  const [draftKeyword, setDraftKeyword] = useState('');
-  const [appliedKeyword, setAppliedKeyword] = useState('');
+  const {
+    draftKeyword,
+    appliedKeyword,
+    setDraftKeyword,
+    applyDraftKeyword,
+    resetKeywords,
+  } = useFilterKeywordState('');
   const userQuery = useAdminUserQuery(appliedKeyword.trim());
   const plantComboQuery = usePlantComboOptionsQuery();
   const saveUsersMutation = useSaveAdminUsersMutation();
@@ -107,13 +144,11 @@ export function useAdminUserPage(): AdminUserPageViewModel {
   };
 
   const flow = useAdminUserFlow({
-    draftKeyword,
     isDirty,
     selectedRowId,
-    onApplySearch: (keyword) => setAppliedKeyword(keyword),
+    onApplySearch: applyDraftKeyword,
     onResetFilters: () => {
-      setDraftKeyword('');
-      setAppliedKeyword('');
+      resetKeywords();
     },
     onResetDraftRows: resetToBaseRows,
     onDeleteSelectedRow: deleteSelectedRow,

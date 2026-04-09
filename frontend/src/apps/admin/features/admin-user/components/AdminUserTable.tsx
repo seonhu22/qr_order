@@ -1,3 +1,18 @@
+/**
+ * @fileoverview 관리자 관리 목록 테이블 컴포넌트
+ *
+ * @description
+ * - 이 컴포넌트는 "표시 + 입력 이벤트 전달"만 담당한다.
+ * - 저장/조회/삭제/초기화 모달 흐름은 상위 훅(useAdminUserFlow)에서 담당한다.
+ *
+ * @remarks
+ * 핵심 렌더링 규칙:
+ * - 기존 행(isNew=false)의 사용자 아이디는 readonly
+ * - 신규 행(isNew=true)의 사용자 아이디는 editable
+ * - rowErrors에 따라 input/select를 error 상태로 렌더링
+ * - selectedRowId와 일치하는 행은 is-selected 스타일 적용
+ */
+
 import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
 import { InputBase, SelectInput } from '@/shared/components/input';
@@ -24,6 +39,30 @@ type AdminUserTableProps = {
 
 /**
  * 관리자 목록 테이블
+ *
+ * @param {AdminUserTableProps} props
+ * @returns {JSX.Element}
+ *
+ * @example
+ * ```tsx
+ * <AdminUserTable
+ *   rows={data.rows}
+ *   rowErrors={data.rowErrors}
+ *   selectedRowId={uiProps.selectedRowId}
+ *   plantOptions={data.plantOptions}
+ *   isLoading={status.isLoading || status.isFetching}
+ *   isError={status.isError}
+ *   isSaving={status.isSaving}
+ *   isResettingPassword={status.isResettingPassword}
+ *   onSelectRow={actions.handleSelectRow}
+ *   onChangeRowField={actions.handleChangeRowField}
+ *   onChangeRowPlant={actions.handleChangeRowPlant}
+ *   onAddRow={actions.handleAddRow}
+ *   onDeleteRow={actions.handleDeleteRow}
+ *   onSave={actions.handleSave}
+ *   onResetPassword={actions.handleResetPassword}
+ * />
+ * ```
  */
 export function AdminUserTable({
   rows,
@@ -42,6 +81,13 @@ export function AdminUserTable({
   onSave,
   onResetPassword,
 }: AdminUserTableProps) {
+  /**
+   * tbody 렌더 분기.
+   *
+   * @description
+   * 조회 상태/오류/빈 상태/정상 목록을 한 함수에서 관리해
+   * return JSX 본문을 단순화한다.
+   */
   const renderBody = () => {
     if (isLoading) {
       return (
@@ -80,6 +126,7 @@ export function AdminUserTable({
         onClick={() => onSelectRow(row.id)}
       >
         <td>
+          {/* 기존 행은 readonly, 신규 행만 사용자 아이디 수정 가능 */}
           <InputBase
             size="sm"
             value={row.userId}
@@ -91,6 +138,7 @@ export function AdminUserTable({
           />
         </td>
         <td>
+          {/* 필수값 누락 시 userName error 상태 표시 */}
           <InputBase
             size="sm"
             value={row.userName}
@@ -101,6 +149,7 @@ export function AdminUserTable({
           />
         </td>
         <td>
+          {/* 필수값 누락 시 plantCd error 상태 표시 */}
           <SelectInput
             size="sm"
             searchable

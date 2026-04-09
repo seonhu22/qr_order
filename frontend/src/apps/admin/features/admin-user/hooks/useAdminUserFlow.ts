@@ -7,9 +7,17 @@
  *   이 훅은 그 상태를 사용해 어떤 모달을 띄우고 어떤 후처리를 할지 결정한다.
  * - 즉, "무엇을 검증할지"는 list state 훅이 알고,
  *   "검증 결과에 따라 어떤 UX 플로우를 밟을지"는 이 훅이 결정한다.
+ *
+ * @remarks
+ * 이 훅은 "흐름 오케스트레이션" 레이어다.
+ * 도메인 데이터 수정 자체는 수행하지 않고, 아래만 담당한다.
+ * - 사용자 확인이 필요한 시점 결정
+ * - 어떤 모달을 먼저 띄울지 결정
+ * - confirm 이후 어떤 콜백을 실행할지 결정
  */
 
 import { startTransition, useState } from 'react';
+import { useDirtyConfirmExecutor } from '@/shared/hooks/useDirtyConfirmExecutor';
 import type {
   AdminUserFlowState,
   AdminUserSimpleModalState,
@@ -17,10 +25,9 @@ import type {
 } from '../types';
 
 type UseAdminUserFlowParams = {
-  draftKeyword: string;
   isDirty: boolean;
   selectedRowId: string;
-  onApplySearch: (keyword: string) => void;
+  onApplySearch: () => void;
   onResetFilters: () => void;
   onResetDraftRows: () => void;
   onDeleteSelectedRow: () => void;
@@ -42,9 +49,27 @@ type UseAdminUserFlowParams = {
  * @remarks
  * 실제 목록 데이터 변경, row error 생성, active row 선택은
  * useAdminUserListState가 담당한다.
+ *
+ * @example
+ * ```ts
+ * const flow = useAdminUserFlow({
+ *   isDirty,
+ *   selectedRowId,
+ *   onApplySearch,
+ *   onResetFilters,
+ *   onResetDraftRows,
+ *   onDeleteSelectedRow,
+ *   onValidateRequiredFields,
+ *   onSaveChanges,
+ *   onResetPassword,
+ * });
+ *
+ * // 페이지에서는 액션을 이벤트에 연결만 한다.
+ * <AdminUserFilters onSearch={flow.requestSearch} onReset={flow.requestResetFilters} />
+ * <Button onClick={flow.requestSave}>저장</Button>
+ * ```
  */
 export function useAdminUserFlow({
-  draftKeyword,
   isDirty,
   selectedRowId,
   onApplySearch,
@@ -58,6 +83,10 @@ export function useAdminUserFlow({
   const [simpleModalState, setSimpleModalState] = useState<AdminUserSimpleModalState>(null);
   const [wrapperModalState, setWrapperModalState] = useState<AdminUserWrapperModalState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
+    isDirty,
+    openDirtyConfirm: (state) => setSimpleModalState(state),
+  });
 
   /**
    * 조회 버튼 흐름.
@@ -65,27 +94,29 @@ export function useAdminUserFlow({
    * @description
    * 저장되지 않은 편집 내용이 있으면 즉시 조회하지 않고 확인 모달을 띄운다.
    * 사용자가 확인한 경우에만 검색어를 반영하고 draft를 버린다.
+   *
+   * @example
+   * ```text
+   * dirty=false -> 즉시 조회 실행
+   * dirty=true  -> "조회하시겠습니까?" 모달 -> 확인 시 조회 실행
+   * ```
    */
   const requestSearch = () => {
-    if (isDirty) {
-      setSimpleModalState({
-        description: '조회하시겠습니까?',
-        helperText: '저장되지 않은 내용이 있습니다.',
-        onConfirm: () => {
-          startTransition(() => {
-            onApplySearch(draftKeyword);
-          });
-          onResetDraftRows();
-          setSimpleModalState(null);
-        },
-      });
+    const handledByDirtyConfirm = runWithDirtyConfirm({
+      description: '조회하시겠습니까?',
+      helperText: '저장되지 않은 내용이 있습니다.',
+      onProceed: () => {
+        startTransition(() => {
+          onApplySearch();
+        });
+        onResetDraftRows();
+        setSimpleModalState(null);
+      },
+    });
+
+    if (handledByDirtyConfirm) {
       return;
     }
-
-    startTransition(() => {
-      onApplySearch(draftKeyword);
-    });
-    onResetDraftRows();
   };
 
   /**
@@ -126,6 +157,12 @@ export function useAdminUserFlow({
    * @description
    * 필수값 검증은 list state 훅에 위임하고,
    * 실패 시 안내 모달, 성공 시 저장 확인 모달로 분기한다.
+   *
+   * @example
+   * ```text
+   * validate fail -> WrapperModal("필수 항목...")
+   * validate pass -> SaveConfirmModal 오픈
+   * ```
    */
   const requestSave = () => {
     if (!onValidateRequiredFields()) {
@@ -207,34 +244,41 @@ export function useAdminUserFlow({
    * @description
    * dirty 상태라면 먼저 "저장되지 않은 내용" 경고를 띄우고,
    * 아니면 즉시 비밀번호 초기화 확인 플로우로 들어간다.
+   *
+   * @example
+   * ```text
+   * dirty=true  -> "저장되지 않은 내용" 확인 -> 초기화 API -> 결과 안내
+   * dirty=false -> "비밀번호가 초기화됩니다" 확인 -> 초기화 API -> 결과 안내
+   * ```
    */
   const requestResetPassword = (userId: string) => {
-    if (isDirty) {
-      setSimpleModalState({
-        description: '초기화하겠습니까?',
-        helperText: '저장되지 않은 내용이 있습니다.',
-        onConfirm: async () => {
-          if (!userId) {
-            setSimpleModalState({
-              description: '초기화할 사용자 아이디가 없습니다.',
-            });
-            return;
-          }
+    const handledByDirtyConfirm = runWithDirtyConfirm({
+      description: '초기화하겠습니까?',
+      helperText: '저장되지 않은 내용이 있습니다.',
+      onProceed: async () => {
+        if (!userId) {
+          setSimpleModalState({
+            description: '초기화할 사용자 아이디가 없습니다.',
+          });
+          return;
+        }
 
-          try {
-            await onResetPassword(userId);
-            setSimpleModalState({
-              description: '저장되었습니다.',
-              helperText: '초기 비밀번호는 SN111111 입니다.',
-            });
-          } catch (error) {
-            setSimpleModalState({
-              description:
-                error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
-            });
-          }
-        },
-      });
+        try {
+          await onResetPassword(userId);
+          setSimpleModalState({
+            description: '저장되었습니다.',
+            helperText: '초기 비밀번호는 SN111111 입니다.',
+          });
+        } catch (error) {
+          setSimpleModalState({
+            description:
+              error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
+          });
+        }
+      },
+    });
+
+    if (handledByDirtyConfirm) {
       return;
     }
 
