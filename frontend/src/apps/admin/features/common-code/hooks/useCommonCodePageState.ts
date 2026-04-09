@@ -57,7 +57,11 @@ export function useCommonCodePageState() {
     Record<string, DetailCode[]>
   >({});
 
-  const mastersQuery = useCommonCodeMastersQuery();
+  /* 검색 키워드: draft는 입력 중인 값, masterKeyword는 조회에 실제 사용되는 값 */
+  const [draftMasterKeyword, setDraftMasterKeyword] = useState('');
+  const [masterKeyword, setMasterKeyword] = useState('');
+
+  const mastersQuery = useCommonCodeMastersQuery(masterKeyword);
   const saveMasterMutation = useSaveCommonMasterMutation();
   const deleteMastersMutation = useDeleteCommonMastersMutation();
   const detailQuery = useCommonCodeDetailsQuery(selectedMasterId);
@@ -114,6 +118,19 @@ export function useCommonCodePageState() {
       ...prev,
       [selectedMaster.id]: updater(prev[selectedMaster.id] ?? []),
     }));
+  };
+
+  const handleMasterKeywordChange = (value: string) => {
+    setDraftMasterKeyword(value);
+  };
+
+  const handleMasterSearch = () => {
+    setMasterKeyword(draftMasterKeyword);
+  };
+
+  const handleMasterReset = () => {
+    setDraftMasterKeyword('');
+    setMasterKeyword('');
   };
 
   const selectMaster = (masterId: string) => {
@@ -280,6 +297,10 @@ export function useCommonCodePageState() {
     selectedMaster,
     selectedMasterId,
     checkedMasterIds,
+    draftMasterKeyword,
+    onMasterKeywordChange: handleMasterKeywordChange,
+    onMasterSearch: handleMasterSearch,
+    onMasterReset: handleMasterReset,
     detailRows,
     isAllMastersChecked,
     isAllDetailsChecked,

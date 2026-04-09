@@ -1,3 +1,7 @@
+/* =====================================================
+ * 공통코드 카드
+ * ===================================================== */
+
 .common-code-card {
   display: flex;
   flex-direction: column;
@@ -92,10 +96,17 @@
 .common-table__checkbox {
   display: inline-flex;
   justify-content: center;
+  vertical-align: middle;
 }
 
 .common-table__checkbox .checkbox-control__row {
   justify-content: center;
+  align-items: center;
+}
+
+/* 테이블 셀 안에는 레이블이 없으므로 베이스라인 보정 margin 제거 */
+.common-table__checkbox .checkbox-control__box {
+  margin-top: 0;
 }
 
 .common-table {

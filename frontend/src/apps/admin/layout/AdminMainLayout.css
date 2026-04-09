@@ -52,8 +52,9 @@
   overflow: hidden;
 }
 
-/* nav(브레드크럼)가 높이 제약을 받아 찌그러지지 않도록 고정 */
-.admin-main-layout-page--fixed > .admin-main-navigation {
+/* nav(브레드크럼)와 필터 슬롯이 높이 제약을 받아 찌그러지지 않도록 고정 */
+.admin-main-layout-page--fixed > .admin-main-navigation,
+.admin-main-layout-page--fixed > .admin-main-layout-page__filter {
   flex-shrink: 0;
 }
 
