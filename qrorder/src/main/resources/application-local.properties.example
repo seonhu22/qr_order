@@ -28,3 +28,9 @@ spring.datasource.hikari.max-lifetime=600000
 spring.datasource.hikari.validation-timeout=5000
 spring.datasource.hikari.leak-detection-threshold=60000
 spring.datasource.hikari.connection-test-query=SELECT 1
+
+# FileIO 저장경로
+file.upload.path=/your_dir/qr_order/uploads
+
+# PDF 컨버트 라이브러리 경로
+jodconverter.local.office-home=libre_program_path
