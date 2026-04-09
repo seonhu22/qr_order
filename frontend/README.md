@@ -1409,6 +1409,52 @@ const {
 - `AdminUser`
   - 페이지 조립 + `useAdminUserListState` + `useAdminUserFlow`
 
+### 17.5 Filter 페이지 추천 표준
+
+필터(조회) 컴포넌트가 들어가는 페이지는 아래 표준을 기본으로 사용한다.
+
+1. 조회 전용 화면 표준
+
+- 대상: `PlantSearch` 같은 read-only 목록
+- 권장 구성:
+  - `pages/<Feature>Page.tsx` -> 조립만 담당
+  - `features/<feature>/hooks/use<Feature>Page.ts` -> `data/status/actions/uiProps`
+  - `features/<feature>/api/*` -> generated wrapper + mapper
+  - `features/<feature>/components/<Feature>Filters.tsx`
+  - `features/<feature>/components/<Feature>Table.tsx`
+
+2. 편집형(CRUD) 화면 표준
+
+- 대상: `CommonCode`, `AdminUser` 같은 draft/저장/삭제가 있는 목록
+- 권장 구성:
+  - `use<Feature>ListState`
+    - baseRows, draftRows, selectedRowId, rowErrors, isDirty
+    - 행 추가/삭제, 필드 변경, 필수 검증
+  - `use<Feature>Flow`
+    - 조회 전 dirty 확인
+    - 저장 확인/완료
+    - 삭제 확인/완료
+    - 초기화/부가 액션 모달 흐름
+  - `use<Feature>Page`
+    - list state + flow + API wrapper 조합
+
+3. 공통 명명 규칙
+
+- mapper:
+  - DTO -> 화면 모델: `mapTo[Entity]Model`
+  - 화면 모델 -> payload: `mapTo[Entity]Payload`
+- hook 반환:
+  - `data`, `status`, `actions`, `uiProps` 유지
+
+4. 신규 화면 구현 체크리스트
+
+- `Filters`가 draft/applied 상태를 분리하는가
+- 페이지가 조립만 담당하는가
+- generated API를 wrapper를 통해서만 사용하는가
+- 필수값 검증이 row error 상태와 함께 표시되는가
+- 저장/삭제/초기화 흐름이 `Flow` 훅으로 분리됐는가
+- 레이어별 단위 테스트(list state / flow / UI)가 있는가
+
 ### 14.4 네이밍 규칙을 통일한다
 
 - `className`은 BEM(Block\_\_Element--Modifier) 규칙을 사용한다.
