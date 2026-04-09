@@ -80,16 +80,10 @@
   text-align: left;
 }
 
-/*
-  EmptyState가 카드 안에 포함될 때: 카드가 border/bg를 이미 제공하므로 덮어씀
-  flex: 1로 카드 높이를 채우고, min-height 제한 해제
-*/
+/* FeedbackState가 카드 직속 자식일 때 카드 높이를 채운다 */
 .common-code-card > .common-code-card__empty {
   flex: 1;
   min-height: 0;
-  border: none;
-  border-radius: 0;
-  background-color: transparent;
 }
 
 

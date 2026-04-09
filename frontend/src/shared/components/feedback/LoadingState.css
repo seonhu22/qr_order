@@ -4,7 +4,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-8);
+  /* flex 컨테이너 안에서 남은 공간을 모두 채운다 */
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: var(--spacing-8) 0;
 }
 
 .loading-state__spinner {

@@ -1,0 +1,58 @@
+.feedback-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  /* flex 컨테이너 안에서 남은 공간을 채운다 */
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: var(--spacing-8) 0;
+  text-align: center;
+}
+
+/* ── 스피너 (loading) ── */
+.feedback-state__spinner {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-top-color: var(--color-brand-default);
+  border-radius: var(--radius-pill);
+  animation: ui-spin 0.7s linear infinite;
+}
+
+/* ── 아이콘 래퍼 (error · empty · unauthorized) ── */
+.feedback-state__icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-tertiary);
+}
+
+.feedback-state--error .feedback-state__icon-wrap {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-default);
+}
+
+/* ── 텍스트 ── */
+.feedback-state__title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-secondary);
+}
+
+.feedback-state__description {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-body);
+  color: var(--color-text-tertiary);
+}

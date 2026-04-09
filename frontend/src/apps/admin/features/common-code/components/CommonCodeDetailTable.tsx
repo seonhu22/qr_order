@@ -14,12 +14,13 @@ import { InputBase } from '@/shared/components/input';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
-import { EmptyState } from '@/shared/components/feedback';
+import { FeedbackState } from '@/shared/components/feedback';
 import type { DetailCode, MasterCode } from '../types';
 import { useCommonCodeDetailTableFlow } from '../hooks/useCommonCodeDetailTableFlow';
 
 type CommonCodeDetailTableProps = {
   selectedMaster: MasterCode | null;
+  isLoading: boolean;
   rows: DetailCode[];
   isAllChecked: boolean;
   checkedCount: number;
@@ -47,6 +48,7 @@ type CommonCodeDetailTableProps = {
  */
 export function CommonCodeDetailTable({
   selectedMaster,
+  isLoading,
   rows,
   isAllChecked,
   checkedCount,
@@ -90,8 +92,8 @@ export function CommonCodeDetailTable({
     <>
       <article className="common-code-card" aria-label="공통코드 상세">
         {!selectedMaster ? (
-          <EmptyState
-            icon={<Icon id="i-feedback-pointer" size={22} />}
+          <FeedbackState
+            variant="empty"
             title="목록을 선택해주세요"
             description="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
             className="common-code-card__empty"
@@ -153,6 +155,9 @@ export function CommonCodeDetailTable({
               </div>
             </header>
 
+            {isLoading ? (
+              <FeedbackState variant="loading" title="상세 코드를 불러오는 중입니다." />
+            ) : (
             <div className="common-table-wrap">
               <table className="common-table common-table--detail" aria-label="공통코드 상세 테이블">
                 <colgroup>
@@ -237,10 +242,13 @@ export function CommonCodeDetailTable({
                 </tbody>
               </table>
             </div>
+            )}
 
-            <p className="common-code-card__footnote">
-              {`${selectedMaster.name} 상세 코드를 편집 중입니다.`}
-            </p>
+            {!isLoading && (
+              <p className="common-code-card__footnote">
+                {`${selectedMaster.name} 상세 코드를 편집 중입니다.`}
+              </p>
+            )}
           </>
         )}
       </article>

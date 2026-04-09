@@ -43,6 +43,8 @@ export const CommonCodePage = () => {
     removeCheckedDetailRows,
     moveCheckedDetailRowsUp,
     moveCheckedDetailRowsDown,
+    isLoadingMasters,
+    isLoadingDetails,
     isSavingMaster,
     isDeletingMasters,
     isSavingDetails,
@@ -68,6 +70,7 @@ export const CommonCodePage = () => {
     >
       <CommonCodeMasterTable
         rows={masterRows}
+        isLoading={isLoadingMasters}
         selectedMasterId={selectedMasterId}
         checkedMasterIds={checkedMasterIds}
         isAllChecked={isAllMastersChecked}
@@ -83,6 +86,7 @@ export const CommonCodePage = () => {
       {/* 마스터에서 선택사항이 없으면 detail 테이블 대신 feedback을 표시 */}
       <CommonCodeDetailTable
         selectedMaster={selectedMaster}
+        isLoading={isLoadingDetails}
         rows={detailRows}
         isAllChecked={isAllDetailsChecked}
         checkedCount={checkedDetailIds.length}

@@ -16,10 +16,12 @@ import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirm
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import type { MasterCode } from '../types';
 import { SimpleDefaultModal } from '@/shared/components/modal';
+import { FeedbackState } from '@/shared/components/feedback';
 import { useCommonCodeMasterModalFlow } from '../hooks/useCommonCodeMasterModalFlow';
 
 type CommonCodeMasterTableProps = {
   rows: MasterCode[];
+  isLoading: boolean;
   selectedMasterId: string;
   checkedMasterIds: string[];
   isAllChecked: boolean;
@@ -42,6 +44,7 @@ type CommonCodeMasterTableProps = {
  */
 export function CommonCodeMasterTable({
   rows,
+  isLoading,
   selectedMasterId,
   checkedMasterIds,
   isAllChecked,
@@ -101,6 +104,9 @@ export function CommonCodeMasterTable({
           </div>
         </header>
 
+        {isLoading ? (
+          <FeedbackState variant="loading" title="공통코드 목록을 불러오는 중입니다." />
+        ) : (
         <div className="common-table-wrap">
           <table className="common-table" aria-label="공통코드 마스터 테이블">
             <colgroup>
@@ -175,6 +181,7 @@ export function CommonCodeMasterTable({
             </tbody>
           </table>
         </div>
+        )}
       </article>
 
       {/* 모달 파트 */}

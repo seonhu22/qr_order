@@ -1,5 +1,2 @@
-<<<<<<< Updated upstream
-=======
-export { EmptyState } from './EmptyState';
-export { LoadingState } from './LoadingState';
->>>>>>> Stashed changes
+export { FeedbackState } from './FeedbackState';
+export type { FeedbackVariant } from './FeedbackState';
