@@ -1,0 +1,72 @@
+/* =====================================================
+ * AdminLayout — 관리자 메인 레이아웃
+ * Header + Sidebar + 콘텐츠 영역 3단 구조
+ * ===================================================== */
+
+/* ---- 전체 뷰포트 채우기 ---- */
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-bg-app);
+}
+
+/* =====================================================
+ * 사이드바
+ * ===================================================== */
+.admin-layout__sidebar {
+  width: var(--width-sidebar);
+  flex-shrink: 0;
+  background-color: var(--color-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  border-right: var(--border-1) solid var(--color-sidebar-border);
+  overflow: hidden;
+  transition: width var(--transition-panel), border-color var(--transition-panel);
+}
+
+.admin-layout__sidebar--closed {
+  width: 0;
+  border-right-color: transparent;
+}
+
+/* 브랜드 로고 영역 */
+.admin-layout__sidebar-brand {
+  padding: var(--spacing-10) var(--spacing-9);
+  border-bottom: var(--border-1) solid var(--color-sidebar-border);
+  flex-shrink: 0;
+}
+
+/* 네비게이션 메뉴 영역 */
+.admin-layout__nav {
+  flex: 1;
+  padding: var(--spacing-6) 0;
+  overflow-y: auto;
+}
+
+/* =====================================================
+ * 오른쪽 (헤더 + 메인 콘텐츠)
+ * ===================================================== */
+.admin-layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ---- 상단 헤더 바 ---- */
+.admin-layout__header {
+  height: var(--height-12);
+  flex-shrink: 0;
+  background-color: var(--color-bg-surface);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+}
+
+/* ---- 메인 콘텐츠 스크롤 영역 ---- */
+.admin-layout__main {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--color-bg-app);
+  padding: var(--spacing-page-x);
+}

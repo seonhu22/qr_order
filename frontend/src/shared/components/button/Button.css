@@ -1,0 +1,311 @@
+/* =====================================================
+ * Button 컴포넌트 공통 스타일
+ * - Button / LinkButton 에서 공유
+ * - semantic-tokens.css 변수만 참조 (primitive 직접 참조 금지)
+ * - Tailwind 미사용, 순수 CSS + BEM
+ * ===================================================== */
+
+
+/* =====================================================
+ * .btn — 베이스
+ * ===================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-decoration: none;
+  font-family: var(--typography-font-base);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--transition-ui),
+    color            var(--transition-ui),
+    border-color     var(--transition-ui),
+    box-shadow       var(--transition-ui),
+    opacity          var(--transition-ui);
+}
+
+.btn:focus-visible {
+  outline: none;
+}
+
+/* disabled */
+.btn:disabled,
+.btn--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* loading */
+.btn--loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+
+/* =====================================================
+ * 사이즈 변형
+ * ===================================================== */
+
+/* Small (30px) */
+.btn--sm {
+  height: var(--height-component-sm);
+  padding: 0 var(--spacing-button-x-sm);
+  gap: var(--spacing-2);           /* 4px */
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-tag); /* 3px */
+}
+
+/* Medium (36px) — 기본값 */
+.btn--md {
+  height: var(--height-component-md);
+  padding: 0 var(--spacing-button-x-md);
+  gap: var(--spacing-3);             /* 6px */
+  font-size: var(--typography-size-ui);
+  border-radius: var(--radius-button); /* 4px */
+}
+
+/* Large (44px) */
+.btn--lg {
+  height: var(--height-component-lg);
+  padding: 0 var(--spacing-button-x-lg);
+  gap: var(--spacing-3);             /* 6px */
+  font-size: var(--typography-size-ui);
+  border-radius: var(--radius-button); /* 4px */
+}
+
+
+/* =====================================================
+ * 아이콘 전용 버튼 — 정사각형
+ * .btn--icon 과 함께 사용
+ * ===================================================== */
+
+.btn--icon-square {
+  padding: 0;
+}
+
+.btn--sm.btn--icon-square {
+  width: var(--height-component-sm);
+}
+
+.btn--md.btn--icon-square {
+  width: var(--height-component-md);
+}
+
+.btn--lg.btn--icon-square {
+  width: var(--height-component-lg);
+}
+
+
+/* =====================================================
+ * text / link 변형 — 패딩 제거
+ * ===================================================== */
+
+.btn--text,
+.btn--link {
+  padding: 0;
+  height: auto;
+}
+
+
+/* =====================================================
+ * 변형별 색상
+ * ===================================================== */
+
+/* primary */
+.btn--primary {
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+}
+.btn--primary:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-hover);
+}
+.btn--primary:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-active);
+}
+.btn--primary:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* secondary */
+.btn--secondary {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+.btn--secondary:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-hover);
+}
+.btn--secondary:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-border-divider);
+}
+.btn--secondary:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* outline */
+.btn--outline {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: var(--border-1) solid var(--color-border-default);
+}
+.btn--outline:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-hover);
+}
+.btn--outline:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-hover);
+}
+.btn--outline:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+  border-color: var(--color-border-focus);
+}
+
+/* ghost */
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+.btn--ghost:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+.btn--ghost:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-selected);
+}
+.btn--ghost:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* danger */
+.btn--danger {
+  background-color: var(--color-status-error-default);
+  color: var(--color-text-inverse);
+}
+.btn--danger:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-status-error-text);
+}
+.btn--danger:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  filter: brightness(0.85);
+}
+.btn--danger:focus-visible {
+  box-shadow: var(--focus-ring-error);
+}
+
+/* text */
+.btn--text {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+.btn--text:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  color: var(--color-text-primary);
+}
+.btn--text:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* link */
+.btn--link {
+  background-color: transparent;
+  color: var(--color-brand-default);
+}
+.btn--link:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  text-decoration: underline;
+}
+.btn--link:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* icon */
+.btn--icon {
+  background-color: transparent;
+  color: var(--color-text-tertiary);
+}
+.btn--icon:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+.btn--icon:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-selected);
+}
+.btn--icon:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* icon-text */
+.btn--icon-text {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+.btn--icon-text:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-bg-hover);
+}
+.btn--icon-text:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-border-divider);
+}
+.btn--icon-text:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* toggle — 기본 (미선택) */
+.btn--toggle {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: var(--border-1) solid var(--color-border-default);
+}
+.btn--toggle:hover:not(:disabled):not(.btn--disabled):not(.btn--loading):not(.btn--selected) {
+  background-color: var(--color-bg-hover);
+}
+.btn--toggle:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* toggle — 선택됨 */
+.btn--toggle.btn--selected {
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+  border-color: var(--color-brand-default);
+}
+.btn--toggle.btn--selected:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-hover);
+  border-color: var(--color-brand-hover);
+}
+
+
+/* =====================================================
+ * 내부 요소 (.btn__*)
+ * ===================================================== */
+
+.btn__icon-left,
+.btn__icon-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn__text {
+  /* overflow 방지 — 텍스트가 길어질 경우 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+ * 로딩 스피너
+ * ===================================================== */
+
+.btn__spinner {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  will-change: transform;
+  animation: ui-spin 0.75s linear infinite;
+}

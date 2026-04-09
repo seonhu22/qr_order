@@ -1,0 +1,73 @@
+/* =====================================================
+ * AdminSidebarUser — 사이드바 하단 사용자 정보
+ * 부모 .admin-sidebar 의 --sb-* 로컬 변수를 공유
+ * ===================================================== */
+
+.admin-sidebar-user {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-6) var(--spacing-8);
+  border-top: var(--border-1) solid var(--sb-border);
+  flex-shrink: 0;
+}
+
+/* 아바타 박스 */
+.admin-sidebar-user__avatar {
+  width: var(--width-5);
+  height: var(--height-6);
+  background-color: var(--color-brand-default);
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-inverse);
+}
+
+/* 이름 + 역할 */
+.admin-sidebar-user__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--spacing-6);
+  overflow: hidden;
+}
+
+.admin-sidebar-user__name {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  letter-spacing: var(--tracking-tight);
+  color: var(--sb-text-active);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-sidebar-user__role {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  color: var(--sb-text-dim);
+  white-space: nowrap;
+}
+
+/* 로그아웃 버튼 */
+.admin-sidebar-user__logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--width-3);
+  height: var(--height-3);
+  border: none;
+  background: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+  transition: color var(--transition-ui);
+}
+
+.admin-sidebar-user__logout:hover {
+  color: var(--red-40); /* #F87171 — GitHub: hover:text-red-400 */
+}

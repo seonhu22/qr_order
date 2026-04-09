@@ -1,0 +1,203 @@
+/* =====================================================
+ * Toggle 컴포넌트 스타일
+ * - ToggleInput 에서 사용
+ * - semantic-tokens.css 변수 우선 참조
+ * - 토글 전용 크기는 semantic 토큰(--size-toggle-*) 참조
+ * - Tailwind 미사용, 순수 CSS
+ * ===================================================== */
+
+
+/* =====================================================
+ * 스피너 애니메이션
+ * ===================================================== */
+@keyframes toggle-spin {
+  to { rotate: 360deg; }
+}
+
+
+/* =====================================================
+ * ToggleInput — .toggle-control
+ * ===================================================== */
+
+/* ── 최상위 래퍼 ── */
+.toggle-control {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-4); /* 8px */
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.toggle-control--disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-60);
+}
+
+/* ── 레이블이 없을 때 래퍼는 단순 span ── */
+.toggle-control--track-only {
+  display: inline-flex;
+}
+
+
+/* =====================================================
+ * 트랙 (button)
+ * ===================================================== */
+
+.toggle-control__track {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-border-default);
+  transition:
+    background-color var(--transition-ui),
+    box-shadow       var(--transition-ui);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  outline: none;
+  /* 크기는 modifier 에서 결정 */
+}
+
+/* ── 크기 변형 — 시맨틱 토큰 참조 ── */
+.toggle-control--sm .toggle-control__track {
+  width:  var(--size-toggle-sm-w); /* 32px */
+  height: var(--size-toggle-sm-h); /* 24px */
+}
+.toggle-control--md .toggle-control__track {
+  width:  var(--size-toggle-md-w); /* 40px */
+  height: var(--size-toggle-md-h); /* 28px */
+}
+.toggle-control--lg .toggle-control__track {
+  width:  var(--size-toggle-lg-w); /* 44px */
+  height: var(--size-toggle-lg-h); /* 30px */
+}
+
+/* ── 상태: ON ── */
+.toggle-control__track--on {
+  background-color: var(--color-brand-default);
+}
+
+/* ── 상태: 호버 (OFF · disabled 제외) ── */
+.toggle-control:not(.toggle-control--disabled)
+  .toggle-control__track:not(.toggle-control__track--on):hover {
+  background-color: var(--color-border-hover);
+}
+
+/* ── 상태: 포커스 ── */
+.toggle-control__track:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* ── 상태: disabled ── */
+.toggle-control--disabled .toggle-control__track {
+  cursor: not-allowed;
+}
+
+/* ── 상태: ON + disabled ── */
+.toggle-control--disabled .toggle-control__track--on {
+  background-color: var(--color-brand-disabled);
+}
+
+
+/* =====================================================
+ * 썸 (동그라미)
+ * ===================================================== */
+
+.toggle-control__thumb {
+  position: absolute;
+  left: 2px;
+  border-radius: 50%;
+  background-color: var(--white);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-ui);
+}
+
+/* ── 크기 변형 ── */
+.toggle-control--sm .toggle-control__thumb {
+  width:  1.25rem;   /* 20px */
+  height: 1.25rem;
+}
+.toggle-control--md .toggle-control__thumb {
+  width:  1.5rem;    /* 24px */
+  height: 1.5rem;
+}
+.toggle-control--lg .toggle-control__thumb {
+  width:  1.625rem;  /* 26px */
+  height: 1.625rem;
+}
+
+/* ── 위치: ON ── */
+.toggle-control--sm .toggle-control__thumb--on {
+  transform: translateX(0.5rem);   /* 8px  = 32-20-4 */
+}
+.toggle-control--md .toggle-control__thumb--on {
+  transform: translateX(0.75rem);  /* 12px = 40-24-4 */
+}
+.toggle-control--lg .toggle-control__thumb--on {
+  transform: translateX(0.875rem); /* 14px = 44-26-4 */
+}
+
+
+/* =====================================================
+ * 스피너 (loading)
+ * ===================================================== */
+
+.toggle-control__spinner {
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--color-text-tertiary);
+  animation: toggle-spin 0.7s linear infinite;
+}
+
+.toggle-control--sm .toggle-control__spinner {
+  width:  0.625rem; /* 10px */
+  height: 0.625rem;
+}
+.toggle-control--md .toggle-control__spinner {
+  width:  0.75rem;  /* 12px */
+  height: 0.75rem;
+}
+.toggle-control--lg .toggle-control__spinner {
+  width:  0.875rem; /* 14px */
+  height: 0.875rem;
+}
+
+
+/* =====================================================
+ * 레이블 영역
+ * ===================================================== */
+
+.toggle-control__label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+  /* 트랙 세로 중앙 정렬 */
+  justify-content: center;
+}
+
+.toggle-control__label {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-snug);
+}
+
+.toggle-control--disabled .toggle-control__label {
+  color: var(--color-text-disabled);
+}
+
+.toggle-control__hint {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--typography-leading-normal);
+}
+
+.toggle-control--disabled .toggle-control__hint {
+  color: var(--color-text-disabled);
+}

@@ -1,0 +1,17 @@
+.admin-main-layout-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 100%;
+}
+
+.admin-main-layout-page__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

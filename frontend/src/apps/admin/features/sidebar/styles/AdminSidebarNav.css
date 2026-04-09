@@ -1,0 +1,189 @@
+/* =====================================================
+ * AdminSidebarNav — 사이드바 트리 내비게이션 Wrapper
+ * 3계층: Depth1(카테고리) > Depth2(그룹) > Depth3(페이지)
+ * --sb-* 변수는 부모 .admin-sidebar 에서 상속
+ * ===================================================== */
+
+/* nav 컨테이너 */
+.admin-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4) var(--spacing-1);
+}
+
+/* Depth 1 최상위 목록 */
+.admin-sidebar-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem; /* 3px — 토큰 없음 */
+}
+
+/* =====================================================
+ * Depth 1
+ * ===================================================== */
+
+.admin-sidebar-nav__d1-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem; /* 2px */
+}
+
+.admin-sidebar-nav__d1 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  height: var(--height-8);
+  padding: 0 var(--spacing-8);
+  border: none;
+  background: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  color: var(--sb-text-normal);
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
+}
+
+.admin-sidebar-nav__d1:hover {
+  background-color: var(--sb-overlay);
+}
+
+.admin-sidebar-nav__d1--active {
+  background-color: var(--sb-overlay);
+}
+
+.admin-sidebar-nav__d1-label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  letter-spacing: var(--tracking-tight);
+  color: var(--sb-text-active);
+  white-space: nowrap;
+}
+
+.admin-sidebar-nav__d1-label--inactive {
+  color: var(--sb-text-normal);
+}
+
+/* =====================================================
+ * Depth 2
+ * ===================================================== */
+
+.admin-sidebar-nav__d2-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem; /* 2px */
+  border-left: var(--border-1) solid var(--sb-border);
+  margin-left: var(--spacing-8);
+  padding: 0 0.1875rem; /* 3px */
+}
+
+.admin-sidebar-nav__d2-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar-nav__d2 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  width: 100%;
+  height: var(--height-7);
+  padding: 0 var(--spacing-6);
+  border: none;
+  background: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  color: var(--sb-text-muted);
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
+}
+
+.admin-sidebar-nav__d2:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
+
+.admin-sidebar-nav__d2--expanded {
+  background-color: var(--sb-overlay);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-sidebar-nav__d2-label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--typography-size-sidebar);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.admin-sidebar-nav__d2-label--muted {
+  color: var(--sb-text-muted);
+}
+
+/* =====================================================
+ * Depth 3
+ * ===================================================== */
+
+.admin-sidebar-nav__d3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem; /* 2px */
+  border-left: var(--border-1) solid var(--sb-border);
+  margin-left: var(--spacing-6);
+  padding: var(--spacing-1) var(--spacing-2) var(--spacing-1) 0.8125rem; /* 2px 4px 2px 13px */
+}
+
+.admin-sidebar-nav__d3 {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--height-4);
+  padding: 0 var(--spacing-6);
+  border: none;
+  background: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: var(--typography-size-sidebar);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  color: var(--sb-text-muted);
+  text-align: left;
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
+}
+
+.admin-sidebar-nav__d3:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
+
+.admin-sidebar-nav__d3--active {
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+}
+
+.admin-sidebar-nav__d3--active:hover {
+  background-color: var(--color-brand-hover);
+}
+
+/* ---- 공통 chevron ---- */
+.admin-sidebar-nav__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: inherit;
+  opacity: 0.6;
+  transition: transform var(--transition-panel);
+}
+
+/* 펼침 상태: 180° 회전 → 아래 방향 */
+.admin-sidebar-nav__chevron--open {
+  transform: rotate(180deg);
+}

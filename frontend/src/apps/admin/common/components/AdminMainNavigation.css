@@ -1,0 +1,20 @@
+.admin-main-navigation {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-height: var(--height-1);
+}
+
+.admin-main-navigation__item,
+.admin-main-navigation__separator {
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-tertiary);
+}
+
+.admin-main-navigation__current {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-secondary);
+}

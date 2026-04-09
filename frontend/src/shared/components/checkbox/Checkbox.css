@@ -1,0 +1,239 @@
+/* =====================================================
+ * Checkbox 컴포넌트 스타일
+ * - CheckboxInput / CheckboxGroup 에서 공유
+ * - semantic-tokens.css 변수 우선 참조
+ * - border 두께·내부 간격은 primitive-tokens.css 참조 (semantic 미정의)
+ * - Tailwind 미사용, 순수 CSS
+ * ===================================================== */
+
+
+/* =====================================================
+ * CheckboxInput — .checkbox-control
+ * ===================================================== */
+
+/* ── 최상위 래퍼 ── */
+.checkbox-control {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 4px */
+}
+
+/* ── 체크박스 행 (박스 + 레이블) ── */
+.checkbox-control__row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-4); /* 8px */
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-control--disabled .checkbox-control__row {
+  cursor: not-allowed;
+}
+
+/* ── 히든 네이티브 input ── */
+.checkbox-control__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 커스텀 체크박스 박스 ── */
+.checkbox-control__box {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px; /* 첫 줄 텍스트 베이스라인 정렬 */
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-tag); /* 3px */
+  background-color: var(--color-bg-surface);
+  color: transparent; /* 기본: 아이콘 미표시 */
+  transition:
+    background-color var(--transition-ui),
+    border-color     var(--transition-ui),
+    box-shadow       var(--transition-ui);
+}
+
+/* ─── 크기 변형 ── */
+.checkbox-control--sm .checkbox-control__box {
+  width: var(--size-checkbox-sm);   /* 16px */
+  height: var(--size-checkbox-sm);
+}
+.checkbox-control--md .checkbox-control__box {
+  width: var(--size-checkbox-md);   /* 20px */
+  height: var(--size-checkbox-md);
+}
+.checkbox-control--lg .checkbox-control__box {
+  width: var(--size-checkbox-lg);   /* 24px */
+  height: var(--size-checkbox-lg);
+}
+
+/* ── 상태: 호버 (disabled 제외) ── */
+.checkbox-control:not(.checkbox-control--disabled)
+  .checkbox-control__row:hover
+  .checkbox-control__box {
+  border-color: var(--color-border-hover);
+}
+
+/* ── 상태: 포커스 ── */
+.checkbox-control__native:focus-visible + .checkbox-control__box {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+  outline: none;
+}
+
+/* ── 상태: 체크됨 ── */
+.checkbox-control__native:checked + .checkbox-control__box {
+  background-color: var(--color-brand-default);
+  border-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+}
+.checkbox-control__native:checked:focus-visible + .checkbox-control__box {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* ── 상태: indeterminate ── */
+.checkbox-control__native:indeterminate + .checkbox-control__box {
+  background-color: var(--color-brand-default);
+  border-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+}
+
+/* ── 상태: 에러 ── */
+.checkbox-control--error .checkbox-control__box {
+  border-color: var(--color-border-error);
+}
+.checkbox-control--error
+  .checkbox-control__native:focus-visible
+  + .checkbox-control__box {
+  box-shadow: var(--focus-ring-error);
+  border-color: var(--color-border-error);
+}
+.checkbox-control--error
+  .checkbox-control__native:checked
+  + .checkbox-control__box,
+.checkbox-control--error
+  .checkbox-control__native:indeterminate
+  + .checkbox-control__box {
+  background-color: var(--color-status-error-default);
+  border-color: var(--color-status-error-default);
+  color: var(--color-brand-text);
+}
+
+/* ── 상태: 비활성(disabled) ── */
+.checkbox-control--disabled .checkbox-control__box {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-default);
+}
+.checkbox-control--disabled
+  .checkbox-control__native:checked
+  + .checkbox-control__box,
+.checkbox-control--disabled
+  .checkbox-control__native:indeterminate
+  + .checkbox-control__box {
+  background-color: var(--color-brand-disabled);
+  border-color: var(--color-brand-disabled);
+  color: var(--color-brand-text);
+}
+
+
+/* ── 레이블 영역 ── */
+.checkbox-control__label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+}
+
+.checkbox-control__label {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-snug);
+}
+
+.checkbox-control--disabled .checkbox-control__label {
+  color: var(--color-text-disabled);
+}
+
+.checkbox-control__desc {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--typography-leading-normal);
+}
+
+.checkbox-control--disabled .checkbox-control__desc {
+  color: var(--color-text-disabled);
+}
+
+
+/* ── 도움말 영역 ── */
+.checkbox-control__helper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1); /* 2px */
+}
+
+/* 박스 너비 + row gap 만큼 들여쓰기 → 레이블 텍스트와 정렬 */
+.checkbox-control--sm .checkbox-control__helper {
+  padding-left: calc(var(--size-checkbox-sm) + var(--spacing-4));
+}
+.checkbox-control--md .checkbox-control__helper {
+  padding-left: calc(var(--size-checkbox-md) + var(--spacing-4));
+}
+.checkbox-control--lg .checkbox-control__helper {
+  padding-left: calc(var(--size-checkbox-lg) + var(--spacing-4));
+}
+
+.checkbox-control__hint {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.checkbox-control__error {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-text);
+}
+
+.checkbox-control__success {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-success-text);
+}
+
+
+/* =====================================================
+ * CheckboxGroup — .checkbox-group
+ * ===================================================== */
+
+.checkbox-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 4px */
+}
+
+.checkbox-group__label {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2); /* 4px */
+}
+
+.checkbox-group__list {
+  display: flex;
+}
+
+.checkbox-group__list--col {
+  flex-direction: column;
+  gap: var(--spacing-5); /* 10px */
+}
+
+.checkbox-group__list--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-8); /* 16px */
+}

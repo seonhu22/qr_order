@@ -1,0 +1,31 @@
+@charset "utf-8";
+
+/* =====================================================
+ * QR Order — Global Styles
+ * - 앱 전체에 공통으로 적용되는 스타일 진입점
+ * - main.jsx 에서 최초 1회 import
+ * ===================================================== */
+
+@import './reset.css';
+@import './fonts.css';
+@import './primitive-tokens.css';
+@import './semantic-tokens.css';
+
+/* =====================================================
+ * 공통 컴포넌트 애니메이션
+ * - 버튼·인풋·셀렉트 등 스피너에서 공유
+ * ===================================================== */
+@keyframes ui-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* =====================================================
+ * 기본 body 폰트·색상
+ * ===================================================== */
+body {
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-app);
+}

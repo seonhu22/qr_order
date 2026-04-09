@@ -1,0 +1,407 @@
+/* =====================================================
+ * QR Order — Semantic Tokens
+ * - Primitive Token(qr-order-primitive-tokens.css) 을 참조해
+ *   "용도와 의미" 기준으로 이름을 붙인 토큰 모음
+ * - 백오피스·고객앱·관리자 등 프로젝트 전체에서 공통으로 사용
+ * - 컴포넌트에서는 반드시 이 파일의 변수만 사용한다
+ * - Primitive 를 직접 참조하지 않는다
+ *
+ * @사용예시
+ *   color: var(--color-text-primary);       올바른 사용
+ *   color: var(--slate-90);                 Primitive 직접 사용 금지
+ *
+ * @의존파일
+ *   qr-order-primitive-tokens.css 가 반드시 먼저 로드되어야 한다
+ * ===================================================== */
+
+:root {
+
+  /* =====================================================
+   * COLOR · BRAND — 브랜드 컬러
+   * - 주요 버튼·링크·포커스 등 브랜드 아이덴티티를 표현하는 색상
+   * ===================================================== */
+
+  /* 기본 브랜드 컬러 — 주요 버튼·활성 상태 */
+  --color-brand-default:    var(--orange-60);
+
+  /* 호버 상태 — 마우스 올렸을 때 */
+  --color-brand-hover:      var(--orange-70);
+
+  /* 액티브/pressed 상태 — 클릭 중 */
+  --color-brand-active:     var(--orange-80);
+
+  /* 포커스 링 — 키보드 포커스 시 외곽선 (브랜드) */
+  --color-brand-focus-ring: rgba(255, 107, 43, 0.2);
+
+  /* 포커스 링 — 에러 상태 */
+  --color-error-focus-ring:   rgba(239, 68, 68, 0.2);
+
+  /* 포커스 링 — 성공 상태 */
+  --color-success-focus-ring: rgba(16, 185, 129, 0.2);
+
+  /* 비활성 상태 — disabled 버튼·요소 */
+  --color-brand-disabled:   rgba(255, 107, 43, 0.4);
+
+  /* 브랜드 컬러 배경 위 텍스트 — 항상 흰색 유지 */
+  --color-brand-text:       var(--white);
+
+  /* 브랜드 연한 배경 — 뱃지·태그·하이라이트 배경 */
+  --color-brand-subtle:     var(--orange-10);
+
+
+  /* =====================================================
+   * COLOR · BACKGROUND — 배경 컬러
+   * - 앱 전체 배경부터 카드·모달·오버레이까지 계층별 배경색
+   * ===================================================== */
+
+  /* 앱 전체 배경 — 페이지 최하위 배경 */
+  --color-bg-app:      var(--slate-20);
+
+  /* 카드·패널·컨테이너 배경 */
+  --color-bg-surface:  var(--white);
+
+  /* 비활성 인풋·읽기 전용 영역 배경 */
+  --color-bg-muted:    var(--slate-10);
+
+  /* 모달·다이얼로그 오버레이 */
+  --color-bg-overlay:  rgba(0, 0, 0, 0.5);
+
+  /* 호버 배경 — 리스트 아이템·행 호버 시 */
+  --color-bg-hover:    var(--slate-10);
+
+  /* 선택·활성 배경 — 선택된 행·메뉴 아이템 */
+  --color-bg-selected: var(--orange-10);
+
+
+  /* =====================================================
+   * COLOR · TEXT — 텍스트 컬러
+   * - 텍스트 계층별 색상. primary → secondary → tertiary 순으로 연해진다
+   * ===================================================== */
+
+  /* 기본 텍스트 — 제목·본문·중요 정보 */
+  --color-text-primary:     var(--slate-90);
+
+  /* 보조 텍스트 — 설명·부제목 */
+  --color-text-secondary:   var(--slate-70);
+
+  /* 힌트·레이블 — 폼 레이블·캡션 */
+  --color-text-tertiary:    var(--slate-60);
+
+  /* 비활성 텍스트 — disabled 상태 */
+  --color-text-disabled:    var(--slate-50);
+
+  /* 플레이스홀더 — 인풋 placeholder */
+  --color-text-placeholder: var(--slate-40);
+
+  /* 브랜드 컬러 위 텍스트 — 주황 배경 위 텍스트 */
+  --color-text-on-brand:    var(--white);
+
+  /* 반전 텍스트 — 어두운 배경(사이드바 등) 위 텍스트 */
+  --color-text-inverse:     var(--white);
+
+
+  /* =====================================================
+   * COLOR · BORDER — 보더 컬러
+   * ===================================================== */
+
+  /* 기본 보더 — 카드·인풋·구분선 */
+  --color-border-default:  var(--slate-30);
+
+  /* 호버 보더 — 인풋·카드 호버 시 */
+  --color-border-hover:    var(--slate-50);
+
+  /* 포커스 보더 — 인풋·셀렉트 포커스 시 */
+  --color-border-focus:    var(--orange-60);
+
+  /* 에러 보더 — 유효성 검사 실패 */
+  --color-border-error:    var(--red-40);
+
+  /* 성공 보더 — 유효성 검사 성공 */
+  --color-border-success:  var(--emerald-40);
+
+  /* 구분선 — 섹션·리스트 구분 */
+  --color-border-divider:  var(--slate-20);
+
+
+  /* =====================================================
+   * COLOR · STATUS — 상태 컬러
+   * - error / success / warning / info 4가지 상태
+   * - 각 상태별 default(아이콘·강조) · bg(배경) · text(텍스트) 3단계
+   * ===================================================== */
+
+  /* Error — 에러·삭제·위험 */
+  --color-status-error-default:       var(--red-50);
+  --color-status-error-bg:            var(--red-20);   /* 배지·강조 배경 */
+  --color-status-error-bg-subtle:     var(--red-10);   /* 인라인 알림 등 연한 배경 */
+  --color-status-error-border-subtle: var(--red-30);   /* 인라인 알림 연한 보더 */
+  --color-status-error-text:          #E7000B;
+
+  /* Success — 성공·완료·활성 */
+  --color-status-success-default:       var(--emerald-50);
+  --color-status-success-bg:            var(--emerald-20);
+  --color-status-success-bg-subtle:     var(--emerald-10);
+  --color-status-success-border-subtle: var(--emerald-30);
+  --color-status-success-text:          var(--emerald-80);
+
+  /* Warning — 경고·주의·임박 */
+  --color-status-warning-default:       var(--amber-50);
+  --color-status-warning-bg:            var(--amber-20);
+  --color-status-warning-bg-subtle:     var(--amber-10);
+  --color-status-warning-border-subtle: var(--amber-30);
+  --color-status-warning-text:          var(--amber-80);
+
+  /* Info — 안내·정보·참고 */
+  --color-status-info-default:       var(--blue-50);
+  --color-status-info-bg:            var(--blue-20);
+  --color-status-info-bg-subtle:     var(--blue-10);
+  --color-status-info-border-subtle: var(--blue-30);
+  --color-status-info-text:          var(--blue-80);
+
+
+  /* =====================================================
+   * COLOR · SIDEBAR — 사이드바 전용 컬러
+   * - 사이드바는 다크 배경이므로 별도 토큰으로 분리
+   * ===================================================== */
+
+  /* 사이드바 배경 */
+  --color-sidebar-bg:          var(--slate-100);
+
+  /* 사이드바 구분선 */
+  --color-sidebar-border:      rgba(255, 255, 255, 0.1);
+
+  /* 활성 메뉴 아이템 배경 */
+  --color-sidebar-item-active: rgba(255, 255, 255, 0.1);
+
+  /* 호버 메뉴 아이템 배경 */
+  --color-sidebar-item-hover:  rgba(255, 255, 255, 0.05);
+
+  /* 사이드바 기본 텍스트 */
+  --color-sidebar-text:        var(--slate-40);
+
+  /* 사이드바 활성 텍스트 */
+  --color-sidebar-text-active: var(--white);
+
+
+  /* =====================================================
+   * TYPOGRAPHY — 타이포그래피
+   * ===================================================== */
+
+  /* Font Family */
+  --typography-font-base: var(--font-family-base);
+  --typography-font-mono: var(--font-family-mono);
+
+  /* 본문 기본 폰트 사이즈 */
+  --typography-size-body:    var(--font-size-base);
+
+  /* 라벨·힌트·캡션 */
+  --typography-size-caption: var(--font-size-xs);
+
+  /* 사이드바 메뉴 텍스트 (2depth · 3depth 공용) */
+  --typography-size-sidebar: var(--font-size-2xs);
+
+  /* 버튼·인풋 텍스트 */
+  --typography-size-ui:      var(--font-size-sm);
+
+  /* h3·서브 헤딩 */
+  --typography-size-h3:      var(--font-size-lg);
+
+  /* h2 */
+  --typography-size-h2:      var(--font-size-xl);
+
+  /* h1 */
+  --typography-size-h1:      var(--font-size-2xl);
+
+  /* 대형 헤딩·KPI 숫자 */
+  --typography-size-display:  var(--font-size-4xl);
+
+  /* 폰트 굵기 */
+  --typography-weight-body:    var(--font-weight-normal);
+  --typography-weight-ui:      var(--font-weight-medium);
+  --typography-weight-heading: var(--font-weight-semibold);
+  --typography-weight-strong:  var(--font-weight-bold);
+
+  /* 줄 높이 */
+  --typography-leading-body:    var(--leading-normal);
+  --typography-leading-heading: var(--leading-tight);
+  --typography-leading-ui:      var(--leading-snug);
+
+
+  /* =====================================================
+   * COMPONENT · HEIGHT — 컴포넌트 높이
+   * - 버튼·인풋·셀렉트 등 인터랙티브 요소의 높이
+   * - sm / md / lg 3단계로 통일
+   * ===================================================== */
+
+  /* 소형 — 인라인 버튼·태그·배지 */
+  --height-component-sm: var(--height-5);   /* 30px */
+
+  /* 중형 — 기본 버튼·인풋 (가장 많이 사용) */
+  --height-component-md: var(--height-7);   /* 36px */
+
+  /* 대형 — 주요 CTA 버튼·검색 인풋 */
+  --height-component-lg: var(--height-9);   /* 44px */
+
+
+  /* =====================================================
+   * COMPONENT · CHECKBOX & RADIO — 체크박스·라디오 크기
+   * ===================================================== */
+  --size-checkbox-sm: var(--width-1);   /* 16px */
+  --size-checkbox-md: var(--width-2);   /* 20px */
+  --size-checkbox-lg: var(--width-3);   /* 24px */
+
+
+  /* =====================================================
+   * COMPONENT · TOGGLE — 토글 스위치 크기
+   * ===================================================== */
+
+  /* SM 트랙 */
+  --size-toggle-sm-w: var(--width-5);   /* 32px */
+  --size-toggle-sm-h: var(--height-3);  /* 24px */
+
+  /* MD 트랙 */
+  --size-toggle-md-w: var(--width-6);   /* 40px */
+  --size-toggle-md-h: var(--height-4);  /* 28px */
+
+  /* LG 트랙 */
+  --size-toggle-lg-w: var(--width-7);   /* 44px */
+  --size-toggle-lg-h: var(--height-5);  /* 30px */
+
+
+  /* =====================================================
+   * COMPONENT · MODAL — 모달 너비
+   * - sm : Alert·Confirm 등 단순 확인 팝업
+   * - md : 로그인·비밀번호 변경 등 단일 폼
+   * - lg : 등록·수정 폼
+   * - xl : 상세 조회·복잡한 편집 화면
+   * ===================================================== */
+  --width-modal-sm: var(--width-14);  /* 360px */
+  --width-modal-md: var(--width-15);  /* 480px */
+  --width-modal-lg: var(--width-16);  /* 640px */
+  --width-modal-xl: var(--width-17);  /* 900px */
+
+
+  /* =====================================================
+   * LAYOUT — 레이아웃
+   * ===================================================== */
+
+  /* 사이드바 고정 너비 */
+  --width-sidebar: var(--width-12);  /* 240px */
+
+  /* 페이지 좌우 여백 */
+  --spacing-page-x: var(--spacing-10);  /* 24px */
+
+  /* 페이지 상하 여백 */
+  --spacing-page-y: var(--spacing-10);  /* 24px */
+
+  /* 카드 좌우 패딩 */
+  --spacing-card-x: var(--spacing-9);   /* 20px */
+
+  /* 카드 상하 패딩 */
+  --spacing-card-y: var(--spacing-8);   /* 16px */
+
+  /* 섹션 간 간격 */
+  --spacing-section: var(--spacing-12); /* 32px */
+
+
+  /* =====================================================
+   * SPACING · COMPONENT — 컴포넌트 내부 간격
+   * ===================================================== */
+
+  /* 버튼 SM 좌우 패딩 */
+  --spacing-button-x-sm: var(--spacing-5);  /* 10px */
+
+  /* 버튼 MD 좌우 패딩 */
+  --spacing-button-x-md: var(--spacing-7);  /* 14px */
+
+  /* 버튼 LG 좌우 패딩 */
+  --spacing-button-x-lg: var(--spacing-9);  /* 20px */
+
+  /* 인풋 SM 좌우 패딩 */
+  --spacing-input-x-sm:  var(--spacing-4);  /* 8px  */
+
+  /* 인풋 MD 좌우 패딩 */
+  --spacing-input-x-md:  var(--spacing-6);  /* 12px */
+
+  /* 인풋 LG 좌우 패딩 */
+  --spacing-input-x-lg:  var(--spacing-8);  /* 16px */
+
+  /* 모달 좌우 패딩 */
+  --spacing-modal-x:     var(--spacing-9);  /* 20px */
+
+  /* 모달 상하 패딩 */
+  --spacing-modal-y:     var(--spacing-8);  /* 16px */
+
+  /* 사이드바 아이템 좌우 패딩 */
+  --spacing-sidebar-x:   var(--spacing-8);  /* 16px */
+
+  /* 사이드바 1depth 상하 패딩 */
+  --spacing-sidebar-y-1: var(--spacing-5);  /* 10px */
+
+  /* 사이드바 2depth 상하 패딩 */
+  --spacing-sidebar-y-2: var(--spacing-3);  /* 6px  */
+
+
+  /* =====================================================
+   * BORDER RADIUS · COMPONENT — 컴포넌트별 반경
+   * ===================================================== */
+
+  /* 태그·배지·작은 버튼 */
+  --radius-tag:    var(--radius-xs);   /* 3px   */
+
+  /* 기본 버튼·인풋·셀렉트 */
+  --radius-button: var(--radius-sm);   /* 4px   */
+
+  /* 카드·패널·드롭다운 */
+  --radius-card:   var(--radius-md);   /* 6px   */
+
+  /* 모달·다이얼로그 */
+  --radius-modal:  var(--radius-lg);   /* 8px   */
+
+  /* 토글·아바타·칩 */
+  --radius-pill:   var(--radius-full); /* 9999px */
+
+
+  /* =====================================================
+   * SHADOW · COMPONENT — 컴포넌트별 그림자
+   * ===================================================== */
+
+  /* 카드·인풋 기본 */
+  --shadow-card:     var(--shadow-sm);
+
+  /* 드롭다운·툴팁·팝오버 */
+  --shadow-dropdown: var(--shadow-md);
+
+  /* 모달·사이드패널 */
+  --shadow-modal:    var(--shadow-xl);
+
+
+  /* =====================================================
+   * COMPONENT · FOCUS RING — 컴포넌트 포커스 링
+   * - 인풋·셀렉트·버튼·체크박스 등 포커스 시 box-shadow 를 한 곳에서 관리
+   * - 링 두께·투명도를 바꿀 때 이 토큰만 수정하면 전체 적용
+   * ===================================================== */
+
+  /* 기본 브랜드 포커스 링 */
+  --focus-ring-brand:   0 0 0 3px var(--color-brand-focus-ring);
+
+  /* 에러 상태 포커스 링 */
+  --focus-ring-error:   0 0 0 3px var(--color-error-focus-ring);
+
+  /* 성공 상태 포커스 링 */
+  --focus-ring-success: 0 0 0 3px var(--color-success-focus-ring);
+
+
+  /* =====================================================
+   * TRANSITION · COMPONENT — 컴포넌트별 전환
+   * ===================================================== */
+
+  /* 버튼·인풋·색상 변화 등 즉각적 피드백 */
+  --transition-ui:     var(--transition-fast);
+
+  /* 드롭다운·툴팁 등 일반 UI 전환 */
+  --transition-panel:  var(--transition-normal);
+
+  /* 사이드바·모달 등 큰 레이아웃 전환 */
+  --transition-layout: var(--transition-slow);
+
+}
