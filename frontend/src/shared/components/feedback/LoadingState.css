@@ -1,0 +1,26 @@
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8);
+}
+
+.loading-state__spinner {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-top-color: var(--color-brand-default);
+  border-radius: var(--radius-pill);
+  animation: ui-spin 0.7s linear infinite;
+}
+
+.loading-state__message {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-tertiary);
+}
