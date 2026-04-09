@@ -59,6 +59,7 @@
 .common-table-wrap {
   /* 헤더·푸터를 제외한 나머지 카드 높이를 채우고, 행이 넘치면 내부 스크롤 */
   flex: 1;
+  min-height: 0; /* flex 컨테이너 안에서 높이가 콘텐츠 기준으로 늘어나지 않도록 제한 */
   overflow: auto;
 }
 
@@ -76,11 +77,15 @@
 }
 
 /*
-  피드백의 min-height: 18rem이 flex 분배를 방해하지 않도록 고정 레이아웃에서 초기화
-  → 상세 카드(.common-code-card)와 동일하게 flex: 1 50:50 유지
+  feedback이 카드 안에 포함될 때: 카드가 border/bg를 이미 제공하므로 덮어씀
+  flex: 1로 카드 높이를 채우고, min-height 제한 해제
 */
-.admin-main-layout-page--fixed .common-code-feedback {
+.common-code-card > .common-code-feedback {
+  flex: 1;
   min-height: 0;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
 }
 
 
@@ -282,7 +287,7 @@
   justify-content: center;
   gap: var(--spacing-3);
   min-height: 18rem;
-  padding: var(--spacing-14) var(--spacing-6);
+  /* padding: var(--spacing-14) var(--spacing-6); */
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-surface);

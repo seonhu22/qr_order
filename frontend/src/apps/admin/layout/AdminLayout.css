@@ -64,19 +64,16 @@
 }
 
 /* ---- 메인 콘텐츠 스크롤 영역 ---- */
+/*
+  항상 overflow: hidden — 스크롤은 각 page section 내부에서 담당한다.
+  일반 페이지: section에 overflow-y: auto / fixed 페이지: section에 overflow: hidden
+*/
 .admin-layout__main {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: var(--color-bg-app);
   padding: var(--spacing-page-x);
-}
-
-/*
-  fixed 레이아웃 페이지를 포함할 때:
-  overflow-y: auto → hidden으로 전환하여 자식의 height: 100%가
-  뷰포트 기준으로 정확히 계산되도록 고정.
-  일반 페이지(overflow-y: auto)에는 영향 없음.
-*/
-.admin-layout__main:has(.admin-main-layout-page--fixed) {
-  overflow: hidden;
 }

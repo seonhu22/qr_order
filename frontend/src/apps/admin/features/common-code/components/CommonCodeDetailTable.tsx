@@ -41,7 +41,7 @@ type CommonCodeDetailTableProps = {
  * 공통코드 상세 테이블을 렌더링한다.
  *
  * @description
- * - 선택된 마스터가 없으면 feedback만 보여준다.
+ * - 선택된 마스터가 없으면 카드 안에 feedback을 보여준다.
  * - 저장 버튼은 즉시 서버 전송하지 않고 SaveConfirmModal을 거친다.
  * - 필수값 누락과 서버 validation 오류는 각 행 인풋의 error 상태로 표시한다.
  */
@@ -86,158 +86,158 @@ export function CommonCodeDetailTable({
     onSaveRows,
   });
 
-  return !selectedMaster ? (
-    <CommonCodeFeedback />
-  ) : (
+  return (
     <>
       <article className="common-code-card" aria-label="공통코드 상세">
-        <header className="common-code-card__header">
-          <h2 className="common-code-card__title">공통코드 상세</h2>
-          <div className="common-code-card__actions common-code-card__actions--detail">
-            {/* 위 아래 이동 버튼 : 디테일의 순서 변경, 현재 클릭된(다수 포함)을 위 아래로 이동시킴*/}
-            <Button
-              variant="icon"
-              size="sm"
-              iconOnly={<Icon id="i-chevron-up" size={12} />}
-              aria-label="위로 이동"
-              disabled={!effectiveCanMoveUp || isSaving}
-              onClick={() => onMoveUp(selectedDetailId || undefined)}
-            />
-            <Button
-              variant="icon"
-              size="sm"
-              iconOnly={<Icon id="i-chevron-down" size={12} />}
-              aria-label="아래로 이동"
-              disabled={!effectiveCanMoveDown || isSaving}
-              onClick={() => onMoveDown(selectedDetailId || undefined)}
-            />
-            <Button
-              type="button"
-              variant="text"
-              size="sm"
-              onClick={onAddRow}
-              disabled={isSaving}
-              style={{ padding: '0 var(--spacing-button-x-sm)' }}
-            >
-              + 행추가
-            </Button>
-            <Button
-              type="button"
-              variant="text"
-              size="sm"
-              onClick={() => {
-                onDeleteRows(selectedDetailId || undefined);
-                setSelectedDetailId('');
-              }}
-              disabled={(checkedCount === 0 && !selectedDetailId) || isSaving}
-              style={{ padding: '0 var(--spacing-button-x-sm)' }}
-            >
-              - 행삭제
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              loading={isSaving}
-              onClick={requestSave}
-            >
-              저장
-            </Button>
-          </div>
-        </header>
-
-        <div className="common-table-wrap">
-          <table className="common-table common-table--detail" aria-label="공통코드 상세 테이블">
-            <colgroup>
-              <col style={{ width: '3rem' }} />
-              <col />
-              <col />
-              <col style={{ width: '8rem' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>
-                  <CheckboxInput
-                    checked={isAllChecked}
-                    onChange={onToggleAllRows}
-                    aria-label="공통코드 상세 전체 선택"
-                    size="sm"
-                    className="common-table__checkbox"
-                  />
-                </th>
-                <th className="common-table__cell--left">공통코드</th>
-                <th className="common-table__cell--left">공통코드명</th>
-                <th>사용여부</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                /* 행 클릭으로 체크박스 토글 */
-                <tr
-                  key={row.id}
-                  className={selectedDetailId === row.id ? 'is-selected' : undefined}
-                  onClick={() => setSelectedDetailId(row.id)}
+        {!selectedMaster ? (
+          <CommonCodeFeedback />
+        ) : (
+          <>
+            <header className="common-code-card__header">
+              <h2 className="common-code-card__title">공통코드 상세</h2>
+              <div className="common-code-card__actions common-code-card__actions--detail">
+                {/* 위 아래 이동 버튼 : 디테일의 순서 변경, 현재 클릭된(다수 포함)을 위 아래로 이동시킴*/}
+                <Button
+                  variant="icon"
+                  size="sm"
+                  iconOnly={<Icon id="i-chevron-up" size={12} />}
+                  aria-label="위로 이동"
+                  disabled={!effectiveCanMoveUp || isSaving}
+                  onClick={() => onMoveUp(selectedDetailId || undefined)}
+                />
+                <Button
+                  variant="icon"
+                  size="sm"
+                  iconOnly={<Icon id="i-chevron-down" size={12} />}
+                  aria-label="아래로 이동"
+                  disabled={!effectiveCanMoveDown || isSaving}
+                  onClick={() => onMoveDown(selectedDetailId || undefined)}
+                />
+                <Button
+                  type="button"
+                  variant="text"
+                  size="sm"
+                  onClick={onAddRow}
+                  disabled={isSaving}
+                  style={{ padding: '0 var(--spacing-button-x-sm)' }}
                 >
-                  {/* 선택 체크박스: tr onClick(행 선택)과 독립 — onChange만으로 처리 */}
-                  <td>
-                    <CheckboxInput
-                      checked={row.checked}
-                      onChange={() => onToggleRow(row.id)}
-                      aria-label={`${row.code} 선택`}
-                      size="sm"
-                      className="common-table__checkbox"
-                    />
-                  </td>
-                  <td>
-                    <InputBase
-                      size="sm"
-                      className={`common-table__input${row.isNew ? '' : ' common-table__input--readonly-code'}`}
-                      controlState={
-                        rowErrors[row.id]?.code ? 'error' : row.isNew ? '' : 'readonly'
-                      }
-                      readOnly={!row.isNew}
-                      value={row.code}
-                      onChange={(event) => {
-                        clearRowError(row.id, 'code');
-                        onFieldChange(row.id, 'code', event.target.value);
-                      }}
-                      aria-label={`${row.code} 코드`}
-                    />
-                  </td>
-                  <td>
-                    <InputBase
-                      size="sm"
-                      className="common-table__input"
-                      controlState={rowErrors[row.id]?.name ? 'error' : ''}
-                      value={row.name}
-                      onChange={(event) => {
-                        clearRowError(row.id, 'name');
-                        onFieldChange(row.id, 'name', event.target.value);
-                      }}
-                      aria-label={`${row.code} 코드명`}
-                    />
-                  </td>
-                  {/* 사용여부: tr onClick(행 선택)과 독립 — stopPropagation으로 분리 */}
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <CheckboxInput
-                      checked={row.useYn}
-                      onChange={(checked) => onUseYnChange(row.id, checked)}
-                      aria-label={`${row.code} 사용 여부`}
-                      size="sm"
-                      className="common-table__checkbox"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  + 행추가
+                </Button>
+                <Button
+                  type="button"
+                  variant="text"
+                  size="sm"
+                  onClick={() => {
+                    onDeleteRows(selectedDetailId || undefined);
+                    setSelectedDetailId('');
+                  }}
+                  disabled={(checkedCount === 0 && !selectedDetailId) || isSaving}
+                  style={{ padding: '0 var(--spacing-button-x-sm)' }}
+                >
+                  - 행삭제
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  loading={isSaving}
+                  onClick={requestSave}
+                >
+                  저장
+                </Button>
+              </div>
+            </header>
 
-        <p className="common-code-card__footnote">
-          {selectedMaster
-            ? `${selectedMaster.name} 상세 코드를 편집 중입니다.`
-            : '선택된 공통코드가 없습니다.'}
-        </p>
+            <div className="common-table-wrap">
+              <table className="common-table common-table--detail" aria-label="공통코드 상세 테이블">
+                <colgroup>
+                  <col style={{ width: '3rem' }} />
+                  <col />
+                  <col />
+                  <col style={{ width: '8rem' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>
+                      <CheckboxInput
+                        checked={isAllChecked}
+                        onChange={onToggleAllRows}
+                        aria-label="공통코드 상세 전체 선택"
+                        size="sm"
+                        className="common-table__checkbox"
+                      />
+                    </th>
+                    <th className="common-table__cell--left">공통코드</th>
+                    <th className="common-table__cell--left">공통코드명</th>
+                    <th>사용여부</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    /* 행 클릭으로 체크박스 토글 */
+                    <tr
+                      key={row.id}
+                      className={selectedDetailId === row.id ? 'is-selected' : undefined}
+                      onClick={() => setSelectedDetailId(row.id)}
+                    >
+                      {/* 선택 체크박스: tr onClick(행 선택)과 독립 — onChange만으로 처리 */}
+                      <td>
+                        <CheckboxInput
+                          checked={row.checked}
+                          onChange={() => onToggleRow(row.id)}
+                          aria-label={`${row.code} 선택`}
+                          size="sm"
+                          className="common-table__checkbox"
+                        />
+                      </td>
+                      <td>
+                        <InputBase
+                          size="sm"
+                          className={`common-table__input${row.isNew ? '' : ' common-table__input--readonly-code'}`}
+                          controlState={!row.isNew ? 'readonly' : rowErrors[row.id]?.code ? 'error' : ''}
+                          readOnly={!row.isNew}
+                          value={row.code}
+                          onChange={(event) => {
+                            clearRowError(row.id, 'code');
+                            onFieldChange(row.id, 'code', event.target.value);
+                          }}
+                          aria-label={`${row.code} 코드`}
+                        />
+                      </td>
+                      <td>
+                        <InputBase
+                          size="sm"
+                          className="common-table__input"
+                          controlState={rowErrors[row.id]?.name ? 'error' : ''}
+                          value={row.name}
+                          onChange={(event) => {
+                            clearRowError(row.id, 'name');
+                            onFieldChange(row.id, 'name', event.target.value);
+                          }}
+                          aria-label={`${row.code} 코드명`}
+                        />
+                      </td>
+                      {/* 사용여부: tr onClick(행 선택)과 독립 — stopPropagation으로 분리 */}
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <CheckboxInput
+                          checked={row.useYn}
+                          onChange={(checked) => onUseYnChange(row.id, checked)}
+                          aria-label={`${row.code} 사용 여부`}
+                          size="sm"
+                          className="common-table__checkbox"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="common-code-card__footnote">
+              {`${selectedMaster.name} 상세 코드를 편집 중입니다.`}
+            </p>
+          </>
+        )}
       </article>
 
       <SimpleDefaultModal

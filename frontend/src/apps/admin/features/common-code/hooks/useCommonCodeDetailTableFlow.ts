@@ -92,7 +92,7 @@ export function useCommonCodeDetailTableFlow({
       rows.map((row) => [
         row.id,
         {
-          code: !row.code.trim(),
+          code: row.isNew ? !row.code.trim() : false,
           name: !row.name.trim(),
         },
       ]),
