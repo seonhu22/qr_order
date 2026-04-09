@@ -6,7 +6,7 @@
 # SSH Tunnel Configuration
 ssh.enabled=true
 ssh.host=your-ssh-server.com
-ssh.port=22
+ssh.port=225
 ssh.user=your-username
 ssh.private-key.local=/Users/your-name/.ssh/id_ed25519
 ssh.remote.host=localhost
