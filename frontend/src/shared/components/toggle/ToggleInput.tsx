@@ -56,6 +56,7 @@ export function ToggleInput({
   const isOn = controlledChecked !== undefined ? controlledChecked : internalChecked;
 
   const isDisabled = disabled || loading;
+  const switchAriaLabel = label?.trim() || hint?.trim() || '토글';
 
   const handleClick = () => {
     if (isDisabled) return;
@@ -70,6 +71,7 @@ export function ToggleInput({
       type="button"
       role="switch"
       aria-checked={isOn ? 'true' : 'false'}
+      aria-label={switchAriaLabel}
       disabled={isDisabled}
       onClick={handleClick}
       className={[
@@ -115,7 +117,7 @@ export function ToggleInput({
 
   /* ── 레이블 포함 ── */
   const labelWrap = (
-    <span className="toggle-control__label-wrap" aria-hidden="true">
+    <span className="toggle-control__label-wrap">
       {label && <span className="toggle-control__label">{label}</span>}
       {hint  && <span className="toggle-control__hint">{hint}</span>}
     </span>

@@ -131,6 +131,7 @@ export function SelectInput({
 }: SelectInputProps) {
   /** 접근성용 고유 id — label htmlFor 과 trigger button id 를 연결 */
   const triggerId = useId();
+  const listboxId = `${triggerId}-listbox`;
 
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -173,6 +174,8 @@ export function SelectInput({
   /** 제어/비제어 통합 선택값 */
   const selectedValue = controlledValue !== undefined ? controlledValue : internalValue;
   const selectedOption = normalizedOptions.find((o) => o.value === selectedValue);
+  const triggerAriaLabel =
+    label?.trim() || selectedOption?.label?.trim() || placeholder?.trim() || '항목 선택';
 
   const iconSize = ICON_SIZE[size];
 
@@ -301,13 +304,15 @@ export function SelectInput({
         <button
           type="button"
           id={triggerId}
+          role="combobox"
           className="select-control__trigger"
           onClick={handleToggle}
           disabled={disabled}
           aria-haspopup="listbox"
-          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-expanded={open ? true : false}
           aria-invalid={errorText || isError ? true : undefined}
-          aria-readonly={readOnly ? true : undefined}
+          aria-label={triggerAriaLabel}
           aria-describedby={
             errorText ? `${triggerId}-error` : hint ? `${triggerId}-hint` : undefined
           }
@@ -354,7 +359,12 @@ export function SelectInput({
             )}
 
             {/* 옵션 목록 */}
-            <ul className="select-dropdown__list" role="listbox" aria-label={label ?? placeholder}>
+            <ul
+              id={listboxId}
+              className="select-dropdown__list"
+              role="listbox"
+              aria-label={label ?? placeholder}
+            >
               {/* 그룹 없는 옵션 */}
               {ungrouped.map((opt) => (
                 <OptionItem
@@ -391,7 +401,12 @@ export function SelectInput({
 
               {/* 검색 결과 없음 */}
               {filtered.length === 0 && (
-                <li className="select-dropdown__empty" role="presentation">
+                <li
+                  className="select-dropdown__empty"
+                  role="option"
+                  aria-selected="false"
+                  aria-disabled="true"
+                >
                   검색 결과 없음
                 </li>
               )}
