@@ -9,6 +9,7 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/CommonCodePage.css';
 import { useCommonCodePageState } from '@/apps/admin/features/common-code/hooks/useCommonCodePageState';
+import { CommonCodeFilters } from '@/apps/admin/features/common-code/components/CommonCodeFilters';
 import { CommonCodeMasterTable } from '@/apps/admin/features/common-code/components/CommonCodeMasterTable';
 import { CommonCodeDetailTable } from '@/apps/admin/features/common-code/components/CommonCodeDetailTable';
 
@@ -27,6 +28,10 @@ export const CommonCodePage = () => {
     checkedDetailIds,
     canMoveDetailRowsUp,
     canMoveDetailRowsDown,
+    draftMasterKeyword,
+    onMasterKeywordChange,
+    onMasterSearch,
+    onMasterReset,
     selectMaster,
     toggleMasterChecked,
     toggleAllMasters,
@@ -47,7 +52,20 @@ export const CommonCodePage = () => {
   } = useCommonCodePageState();
 
   return (
-    <AdminMainLayout adminMainTitle="공통코드 관리" depth1="시스템" depth2="시스템 관리">
+    <AdminMainLayout
+      adminMainTitle="공통코드 관리"
+      depth1="시스템"
+      depth2="시스템 관리"
+      className="admin-main-layout-page--fixed"
+      filterSlot={
+        <CommonCodeFilters
+          draftKeyword={draftMasterKeyword}
+          onKeywordChange={onMasterKeywordChange}
+          onSearch={onMasterSearch}
+          onReset={onMasterReset}
+        />
+      }
+    >
       <CommonCodeMasterTable
         rows={masterRows}
         selectedMasterId={selectedMasterId}

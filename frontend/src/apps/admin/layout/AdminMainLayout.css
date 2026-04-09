@@ -2,7 +2,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
-  min-height: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+  일반 페이지(fixed 아닌 경우)만 section 내부 스크롤 허용
+  - :not()으로 분리해 --fixed의 overflow: hidden과 충돌 없이 적용
+  - 특이성 (0,2,0) > (0,1,0) 이므로 cascade 역전 없음
+*/
+.admin-main-layout-page:not(.admin-main-layout-page--fixed) {
+  overflow-y: auto;
 }
 
 .admin-main-layout-page__sr-only {
@@ -14,4 +24,52 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
+}
+
+/*
+  콘텐츠 wrapper: flex column으로 children을 위아래로 배치
+  - 1개 → 풀 높이 / 2개 → 동일 비율 (50:50) / 3개 → 동일 비율 (33:33:33)
+  - > * 로 직접 자식(카드·피드백 등)에 동일 flex 비율 적용
+*/
+.admin-main-layout-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.admin-main-layout-page__content > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+  --fixed 변형: 뷰포트 높이에 맞게 페이지를 고정
+  - flex: 1; min-height: 0; overflow: hidden 패턴으로 높이 확정
+*/
+.admin-main-layout-page--fixed {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* nav(브레드크럼)와 필터 슬롯이 높이 제약을 받아 찌그러지지 않도록 고정 */
+.admin-main-layout-page--fixed > .admin-main-navigation,
+.admin-main-layout-page--fixed > .admin-main-layout-page__filter {
+  flex-shrink: 0;
+}
+
+/* 콘텐츠 wrapper: 남은 높이를 채우고 내용이 넘쳐도 밖으로 나가지 않음 */
+.admin-main-layout-page--fixed .admin-main-layout-page__content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+  카드(article)만 타겟 — > * 는 모달 div에도 적용돼 height가 0이 되는 문제가 있어 article로 한정
+*/
+.admin-main-layout-page--fixed .admin-main-layout-page__content > article {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }

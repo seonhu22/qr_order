@@ -21,6 +21,42 @@
 
 
 /* =====================================================
+ * SPA 뷰포트 고정
+ * html → body → #root 높이 체인을 확정해 viewport 스크롤을 원천 차단한다.
+ * 각 페이지 내부의 스크롤은 해당 레이아웃의 overflow-y: auto 에서 처리한다.
+ * ===================================================== */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* =====================================================
+ * 스크롤바 스타일
+ * ===================================================== */
+::-webkit-scrollbar {
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-hover);
+}
+
+/* =====================================================
  * 기본 body 폰트·색상
  * ===================================================== */
 body {

@@ -64,9 +64,16 @@
 }
 
 /* ---- 메인 콘텐츠 스크롤 영역 ---- */
+/*
+  항상 overflow: hidden — 스크롤은 각 page section 내부에서 담당한다.
+  일반 페이지: section에 overflow-y: auto / fixed 페이지: section에 overflow: hidden
+*/
 .admin-layout__main {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background-color: var(--color-bg-app);
   padding: var(--spacing-page-x);
 }
