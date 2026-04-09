@@ -36,6 +36,27 @@ body {
 }
 
 /* =====================================================
+ * 스크롤바 스타일
+ * ===================================================== */
+::-webkit-scrollbar {
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-hover);
+}
+
+/* =====================================================
  * 기본 body 폰트·색상
  * ===================================================== */
 body {
