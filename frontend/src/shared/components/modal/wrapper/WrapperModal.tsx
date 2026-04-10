@@ -92,7 +92,7 @@ export function WrapperModal({
     if (!open) return undefined;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isDirty) {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
@@ -189,7 +189,7 @@ export function WrapperModal({
     <div
       className="base-modal-overlay"
       role="presentation"
-      onClick={closeOnOverlayClick && !isDirty ? onClose : undefined}
+      onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <section
         ref={dialogRef}

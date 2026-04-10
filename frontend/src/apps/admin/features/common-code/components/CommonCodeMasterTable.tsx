@@ -64,11 +64,13 @@ export function CommonCodeMasterTable({
     isEditorOpen,
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
+    isDirtyWarningOpen,
     editorErrors,
     noticeState,
     openCreateModal,
     openEditModal,
     closeEditorModal,
+    forceCloseEditorModal,
     changeEditingField,
     requestSave,
     confirmSave,
@@ -76,6 +78,7 @@ export function CommonCodeMasterTable({
     confirmDelete,
     closeSaveConfirm,
     closeDeleteConfirm,
+    closeDirtyWarning,
     closeNotice,
   } = useCommonCodeMasterModalFlow({
     checkedMasterIds,
@@ -265,10 +268,8 @@ export function CommonCodeMasterTable({
       {/* 저장 확인 모달 */}
       <SaveConfirmModal
         open={isSaveConfirmOpen}
-        title="저장 확인"
-        description={
-          isCreateMode ? '작성된 내용을 저장합니다.' : '수정된 공통코드 마스터를 저장하시겠습니까?'
-        }
+        title="저장하시겠습니까?"
+        description='작성된 내용을 저장합니다.'
         primaryAction={{
           label: '확인',
           loading: isSaving,
@@ -284,10 +285,12 @@ export function CommonCodeMasterTable({
       {/* 삭제 확인 모달 */}
       <DeleteConfirmModal
         open={isDeleteConfirmOpen}
-        title="삭제 확인"
-        description="선택한 공통코드 마스터를 삭제하시겠습니까?"
+        title="삭제하시겠습니까?"
+        description={
+          isCreateMode ? '선택한 항목을 삭제하면 복구할 수 없습니다. ' : '정말 삭제하시겠습니까?'
+        }
         primaryAction={{
-          label: '삭제',
+          label: '확인',
           loading: isDeleting,
           onClick: confirmDelete,
         }}
@@ -298,10 +301,27 @@ export function CommonCodeMasterTable({
         onClose={closeDeleteConfirm}
       />
 
+      {/* 미저장 경고 모달 */}
+      <SimpleDefaultModal
+        open={isDirtyWarningOpen}
+        title="알림"
+        description="페이지를 나가시겠습니까?"
+        helperText="수정하신 내용이 저장되지 않았습니다."
+        primaryAction={{
+          label: '확인',
+          onClick: forceCloseEditorModal,
+        }}
+        secondaryAction={{
+          label: '닫기',
+          onClick: closeDirtyWarning,
+        }}
+        onClose={closeDirtyWarning}
+      />
+
       {/* 기본 알림 모달 */}
       <SimpleDefaultModal
         open={!!noticeState}
-        title={noticeState?.title ?? '안내'}
+        title={noticeState?.title ?? '알림'}
         description={noticeState?.description}
         helperText={noticeState?.helperText}
         onClose={closeNotice}

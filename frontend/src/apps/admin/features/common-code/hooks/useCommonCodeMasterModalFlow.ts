@@ -54,7 +54,7 @@ export function useCommonCodeMasterModalFlow({
   });
   const [noticeState, setNoticeState] = useState<NoticeState>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [reopenEditorAfterNoticeClose, setReopenEditorAfterNoticeClose] = useState(false);
+  const [isDirtyWarningOpen, setIsDirtyWarningOpen] = useState(false);
   const selectedDeleteCount = checkedMasterIds.length;
   const isCodeReadonly = !isCreateMode;
 
@@ -84,6 +84,15 @@ export function useCommonCodeMasterModalFlow({
   };
 
   const closeEditorModal = () => {
+    if (isDirty) {
+      setIsDirtyWarningOpen(true);
+      return;
+    }
+    forceCloseEditorModal();
+  };
+
+  const forceCloseEditorModal = () => {
+    setIsDirtyWarningOpen(false);
     setIsEditorOpen(false);
     setEditingRow(null);
     setOriginalRow(null);
@@ -109,7 +118,6 @@ export function useCommonCodeMasterModalFlow({
       return;
     }
 
-    setIsEditorOpen(false);
     setIsSaveConfirmOpen(true);
   };
 
@@ -121,6 +129,7 @@ export function useCommonCodeMasterModalFlow({
     try {
       await onSaveMaster(editingRow, isCreateMode);
       setIsSaveConfirmOpen(false);
+      setIsEditorOpen(false);
       setNoticeState({ title: '알림', description: '저장되었습니다.' });
       setEditingRow(null);
       setOriginalRow(null);
@@ -128,7 +137,6 @@ export function useCommonCodeMasterModalFlow({
       resetEditorErrors();
     } catch (error) {
       setIsSaveConfirmOpen(false);
-      setReopenEditorAfterNoticeClose(true);
       setNoticeState({
         title: '오류',
         description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
@@ -168,10 +176,6 @@ export function useCommonCodeMasterModalFlow({
 
   const closeNotice = () => {
     setNoticeState(null);
-    if (reopenEditorAfterNoticeClose) {
-      setIsEditorOpen(true);
-      setReopenEditorAfterNoticeClose(false);
-    }
   };
 
   const isDirty =
@@ -189,11 +193,13 @@ export function useCommonCodeMasterModalFlow({
     isEditorOpen,
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
+    isDirtyWarningOpen,
     editorErrors,
     noticeState,
     openCreateModal,
     openEditModal,
     closeEditorModal,
+    forceCloseEditorModal,
     changeEditingField,
     requestSave,
     confirmSave,
@@ -201,6 +207,7 @@ export function useCommonCodeMasterModalFlow({
     confirmDelete,
     closeSaveConfirm: () => setIsSaveConfirmOpen(false),
     closeDeleteConfirm: () => setIsDeleteConfirmOpen(false),
+    closeDirtyWarning: () => setIsDirtyWarningOpen(false),
     closeNotice,
   };
 }
