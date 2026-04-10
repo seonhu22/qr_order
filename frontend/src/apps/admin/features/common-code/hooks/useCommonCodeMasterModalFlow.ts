@@ -170,8 +170,8 @@ export function useCommonCodeMasterModalFlow({
       const deletedCount = await onDeleteMasters();
       setIsDeleteConfirmOpen(false);
       setNoticeState({
-        title: deletedCount > 1 ? `${deletedCount}건이 삭제되었습니다.` : '삭제되었습니다.',
-        description: '삭제된 데이터는 복구할 수 없습니다.',
+        title: '알림',
+        description: deletedCount > 1 ? `${deletedCount}건이 삭제되었습니다.` : '삭제되었습니다.',
       });
     } catch (error) {
       setIsDeleteConfirmOpen(false);

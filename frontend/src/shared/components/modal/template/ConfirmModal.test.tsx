@@ -21,7 +21,7 @@ describe('ConfirmModal', () => {
       <ConfirmModal
         open
         tone="danger"
-        title="삭제 확인"
+        title="알림"
         description="선택한 항목을 삭제하시겠습니까?"
         primaryAction={{ onClick: vi.fn() }}
         onClose={() => {}}
@@ -40,7 +40,7 @@ describe('ConfirmModal', () => {
     render(
       <ConfirmModal
         open
-        title="확인"
+        title="알림"
         description="정말 진행하시겠습니까?"
         primaryAction={{ onClick: vi.fn() }}
         onClose={onClose}
