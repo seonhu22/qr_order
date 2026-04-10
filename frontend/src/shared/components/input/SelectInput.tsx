@@ -376,140 +376,163 @@ export function SelectInput({
    * 렌더링
    * ===================================================== */
   return (
-    <InputWrapper
-      inputId={triggerId}
-      label={label}
-      required={required}
-      labelPosition={labelPosition}
-      labelWidth={labelWidth}
-      hint={hint}
-      infoText={infoText}
-      errorText={errorText}
-      successText={successText}
-      className={className}
-    >
-      {/* ── 컨트롤 박스 ── */}
-      <div
-        ref={containerRef}
-        className={`select-control select-control--${size}`}
-        data-state={controlState || undefined}
-        data-open={open ? 'true' : undefined}
-        onKeyDown={handleKeyDown}
+    <>
+      <InputWrapper
+        inputId={triggerId}
+        label={label}
+        required={required}
+        labelPosition={labelPosition}
+        labelWidth={labelWidth}
+        hint={hint}
+        infoText={infoText}
+        errorText={errorText}
+        successText={successText}
+        className={className}
       >
-        {/* 트리거 버튼 */}
-        <button
-          type="button"
-          id={triggerId}
-          role="combobox"
-          className="select-control__trigger"
-          onClick={handleToggle}
-          disabled={disabled}
-          aria-haspopup="listbox"
-          aria-controls={listboxId}
-          aria-expanded={open ? true : false}
-          aria-invalid={errorText || isError ? true : undefined}
-          aria-label={triggerAriaLabel}
-          aria-describedby={
-            errorText ? `${triggerId}-error` : hint ? `${triggerId}-hint` : undefined
-          }
+        {/* ── 컨트롤 박스 ── */}
+        <div
+          ref={containerRef}
+          className={`select-control select-control--${size}`}
+          data-state={controlState || undefined}
+          data-open={open ? 'true' : undefined}
+          onKeyDown={handleKeyDown}
         >
-          {selectedOption ? (
-            <span className="select-control__value">{selectedOption.label}</span>
-          ) : (
-            <span className="select-control__placeholder">{placeholder}</span>
-          )}
-        </button>
-
-        {/* 오른쪽 슬롯 — 로딩 스피너 또는 chevron */}
-        <span className="select-control__slot-right" aria-hidden="true">
-          {loading ? (
-            <Icon id="i-loading" size={iconSize} className="select-spinner" />
-          ) : (
-            <Icon id="i-chevron-down" size={iconSize} className="select-control__chevron" />
-          )}
-        </span>
-
-        {/* ── 드롭다운 패널 ── */}
-        {open && (
-          <div
-            className={`select-dropdown ${dropUp ? 'select-dropdown--above' : 'select-dropdown--below'}`}
+          {/* 트리거 버튼 */}
+          <button
+            type="button"
+            id={triggerId}
+            role="combobox"
+            className="select-control__trigger"
+            onClick={handleToggle}
+            disabled={disabled}
+            aria-haspopup="listbox"
+            aria-controls={listboxId}
+            aria-expanded={open}
+            aria-invalid={errorText || isError ? true : undefined}
+            aria-label={triggerAriaLabel}
+            aria-activedescendant={
+              open && highlightedIndex >= 0 && allDisplayed[highlightedIndex]
+                ? `${listboxId}-${allDisplayed[highlightedIndex].value}`
+                : undefined
+            }
+            aria-describedby={
+              errorText ? `${triggerId}-error` : hint ? `${triggerId}-hint` : undefined
+            }
           >
-            {/* 검색 인풋 */}
-            {searchable && (
-              <div className="select-dropdown__search">
-                <div className="select-dropdown__search-box">
-                  <span className="select-dropdown__search-icon">
-                    <Icon id="i-search" size={13} />
-                  </span>
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    placeholder="검색..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="select-dropdown__search-input"
-                    aria-label="옵션 검색"
-                  />
-                </div>
+            {selectedOption ? (
+              <span className="select-control__value">{selectedOption.label}</span>
+            ) : (
+              <span className="select-control__placeholder">{placeholder}</span>
+            )}
+          </button>
+
+          {/* 오른쪽 슬롯 — 로딩 스피너 또는 chevron */}
+          <span className="select-control__slot-right" aria-hidden="true">
+            {loading ? (
+              <Icon id="i-loading" size={iconSize} className="select-spinner" />
+            ) : (
+              <Icon id="i-chevron-down" size={iconSize} className="select-control__chevron" />
+            )}
+          </span>
+        </div>
+      </InputWrapper>
+
+      {/* ── 드롭다운 패널 (Portal) — 모달 overflow에 잘리지 않도록 body에 렌더 ── */}
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          className={`select-dropdown ${dropUp ? 'select-dropdown--above' : 'select-dropdown--below'}`}
+          style={{
+            position: 'fixed',
+            left: anchorRect.left,
+            right: 'auto',
+            width: anchorRect.width,
+            zIndex: 1100,
+            ...(dropUp
+              ? { bottom: window.innerHeight - anchorRect.top, top: 'auto' }
+              : { top: anchorRect.bottom, bottom: 'auto' }),
+          }}
+          onKeyDown={handleKeyDown}
+        >
+          {/* 검색 인풋 */}
+          {searchable && (
+            <div className="select-dropdown__search">
+              <div className="select-dropdown__search-box">
+                <span className="select-dropdown__search-icon">
+                  <Icon id="i-search" size={13} />
+                </span>
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="검색..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="select-dropdown__search-input"
+                  aria-label="옵션 검색"
+                />
               </div>
+            </div>
+          )}
+
+          {/* 옵션 목록 */}
+          <ul
+            ref={listRef}
+            id={listboxId}
+            className="select-dropdown__list"
+            role="listbox"
+            aria-label={label ?? placeholder}
+          >
+            {/* 그룹 없는 옵션 */}
+            {ungrouped.map((opt) => (
+              <OptionItem
+                key={opt.value}
+                opt={opt}
+                selected={selectedValue === opt.value}
+                highlighted={allDisplayed[highlightedIndex]?.value === opt.value}
+                onSelect={handleSelect}
+              />
+            ))}
+
+            {/* 그룹별 옵션 */}
+            {grouped.map(
+              ({ group, items }) =>
+                items.length > 0 && (
+                  <li key={group} role="presentation">
+                    <div className="select-option-group__label">{group}</div>
+                    <ul
+                      role="group"
+                      aria-label={group}
+                      style={{ listStyle: 'none', margin: 0, padding: 0 }}
+                    >
+                      {items.map((opt) => (
+                        <OptionItem
+                          key={opt.value}
+                          opt={opt}
+                          selected={selectedValue === opt.value}
+                          highlighted={allDisplayed[highlightedIndex]?.value === opt.value}
+                          onSelect={handleSelect}
+                        />
+                      ))}
+                    </ul>
+                  </li>
+                ),
             )}
 
-            {/* 옵션 목록 */}
-            <ul
-              id={listboxId}
-              className="select-dropdown__list"
-              role="listbox"
-              aria-label={label ?? placeholder}
-            >
-              {/* 그룹 없는 옵션 */}
-              {ungrouped.map((opt) => (
-                <OptionItem
-                  key={opt.value}
-                  opt={opt}
-                  selected={selectedValue === opt.value}
-                  onSelect={handleSelect}
-                />
-              ))}
-
-              {/* 그룹별 옵션 */}
-              {grouped.map(
-                ({ group, items }) =>
-                  items.length > 0 && (
-                    <li key={group} role="presentation">
-                      <div className="select-option-group__label">{group}</div>
-                      <ul
-                        role="group"
-                        aria-label={group}
-                        style={{ listStyle: 'none', margin: 0, padding: 0 }}
-                      >
-                        {items.map((opt) => (
-                          <OptionItem
-                            key={opt.value}
-                            opt={opt}
-                            selected={selectedValue === opt.value}
-                            onSelect={handleSelect}
-                          />
-                        ))}
-                      </ul>
-                    </li>
-                  ),
-              )}
-
-              {/* 검색 결과 없음 */}
-              {filtered.length === 0 && (
-                <li
-                  className="select-dropdown__empty"
-                  role="option"
-                  aria-selected="false"
-                  aria-disabled="true"
-                >
-                  검색 결과 없음
-                </li>
-              )}
-            </ul>
-          </div>
-        )}
-      </div>
-    </InputWrapper>
+            {/* 검색 결과 없음 */}
+            {filtered.length === 0 && (
+              <li
+                className="select-dropdown__empty"
+                role="option"
+                aria-selected="false"
+                aria-disabled="true"
+              >
+                검색 결과 없음
+              </li>
+            )}
+          </ul>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }

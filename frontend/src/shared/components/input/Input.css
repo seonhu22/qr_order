@@ -308,6 +308,10 @@
   cursor: not-allowed;
 }
 
+.select-control__trigger:focus {
+  outline: none;
+}
+
 /* 크기별 폰트 크기 */
 .select-control--sm .select-control__trigger {
   font-size: var(--font-size-xs);
@@ -509,6 +513,10 @@
 
 .select-option--selected:hover {
   background-color: var(--color-bg-selected);
+}
+
+.select-option--highlighted:not(.select-option--selected) {
+  background-color: var(--color-bg-hover);
 }
 
 .select-option--disabled {

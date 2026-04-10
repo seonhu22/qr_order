@@ -25,6 +25,8 @@ export type ConfirmModalTone = 'info' | 'success' | 'danger' | 'edit';
 
 export interface ModalCommonProps {
   open: boolean;
+  /** 폼에 입력값이 있으면 true — overlay 클릭·ESC 닫기를 막는다 */
+  isDirty?: boolean;
   size?: ModalSize;
   layout?: WrapperModalLayout;
   title?: string;
