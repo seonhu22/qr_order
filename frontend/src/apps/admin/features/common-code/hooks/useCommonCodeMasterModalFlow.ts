@@ -55,6 +55,7 @@ export function useCommonCodeMasterModalFlow({
   const [noticeState, setNoticeState] = useState<NoticeState>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDirtyWarningOpen, setIsDirtyWarningOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const selectedDeleteCount = checkedMasterIds.length;
   const isCodeReadonly = !isCreateMode;
 
@@ -126,6 +127,7 @@ export function useCommonCodeMasterModalFlow({
       return;
     }
 
+    setIsConfirming(true);
     try {
       await onSaveMaster(editingRow, isCreateMode);
       setIsSaveConfirmOpen(false);
@@ -141,6 +143,8 @@ export function useCommonCodeMasterModalFlow({
         title: '오류',
         description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
       });
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -194,6 +198,7 @@ export function useCommonCodeMasterModalFlow({
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
     isDirtyWarningOpen,
+    isConfirming,
     editorErrors,
     noticeState,
     openCreateModal,

@@ -28,7 +28,6 @@ type CommonCodeMasterTableProps = {
   onSelectRow: (masterId: string) => void;
   onToggleRow: (masterId: string) => void;
   onToggleAllRows: () => void;
-  isSaving: boolean;
   isDeleting: boolean;
   onSaveMaster: (master: MasterCode, isCreateMode: boolean) => Promise<void>;
   onDeleteMasters: () => Promise<number>;
@@ -51,7 +50,6 @@ export function CommonCodeMasterTable({
   onSelectRow,
   onToggleRow,
   onToggleAllRows,
-  isSaving,
   isDeleting,
   onSaveMaster,
   onDeleteMasters,
@@ -65,6 +63,7 @@ export function CommonCodeMasterTable({
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
     isDirtyWarningOpen,
+    isConfirming,
     editorErrors,
     noticeState,
     openCreateModal,
@@ -272,11 +271,11 @@ export function CommonCodeMasterTable({
         description='작성된 내용을 저장합니다.'
         primaryAction={{
           label: '확인',
-          loading: isSaving,
+          loading: isConfirming,
           onClick: confirmSave,
         }}
         secondaryAction={{
-          disabled: isSaving,
+          disabled: isConfirming,
           onClick: closeSaveConfirm,
         }}
         onClose={closeSaveConfirm}
