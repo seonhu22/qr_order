@@ -210,10 +210,6 @@ export function SelectInput({
         !containerRef.current?.contains(e.target as Node) &&
         !dropdownRef.current?.contains(e.target as Node)
       ) {
-      if (
-        !containerRef.current?.contains(e.target as Node) &&
-        !dropdownRef.current?.contains(e.target as Node)
-      ) {
         setOpen(false);
         setSearch('');
       }
@@ -230,7 +226,6 @@ export function SelectInput({
   }, [open, searchable]);
 
   /* =====================================================
-   * 화면 하단 여백 부족 시 드롭다운을 위로 열기 + 포털 위치 계산
    * 화면 하단 여백 부족 시 드롭다운을 위로 열기 + 포털 위치 계산
    * ===================================================== */
   useEffect(() => {
