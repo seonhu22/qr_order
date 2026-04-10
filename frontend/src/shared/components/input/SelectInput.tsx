@@ -12,6 +12,7 @@
 
 import './Input.css';
 import { useState, useId, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { InputWrapper } from './InputWrapper';
 import { Icon } from '@/shared/assets/icons/Icon';
 import type { SelectInputProps, SelectOption, InputControlState, InputSize } from './types';
@@ -29,10 +30,12 @@ const ICON_SIZE: Record<InputSize, number> = { sm: 12, md: 14, lg: 16 };
 function OptionItem({
   opt,
   selected,
+  highlighted,
   onSelect,
 }: {
   opt: SelectOption;
   selected: boolean;
+  highlighted: boolean;
   onSelect: (opt: SelectOption) => void;
 }) {
   return (
@@ -40,10 +43,12 @@ function OptionItem({
       role="option"
       aria-selected={selected}
       aria-disabled={opt.disabled}
+      data-highlighted={highlighted || undefined}
       onClick={() => onSelect(opt)}
       className={[
         'select-option',
         selected ? 'select-option--selected' : '',
+        highlighted ? 'select-option--highlighted' : '',
         opt.disabled ? 'select-option--disabled' : '',
       ]
         .filter(Boolean)
@@ -139,7 +144,11 @@ export function SelectInput({
   const [dropUp, setDropUp] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const [anchorRect, setAnchorRect] = useState({ top: 0, bottom: 0, left: 0, width: 0 });
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const { normalizedOptions, droppedEmptyValues, droppedDuplicateValues } = useMemo(() => {
     const seen = new Set<string>();
@@ -193,11 +202,14 @@ export function SelectInput({
   })();
 
   /* =====================================================
-   * 외부 클릭 시 드롭다운 닫기
+   * 외부 클릭 시 드롭다운 닫기 (portal dropdownRef 포함)
    * ===================================================== */
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) {
+      if (
+        !containerRef.current?.contains(e.target as Node) &&
+        !dropdownRef.current?.contains(e.target as Node)
+      ) {
         setOpen(false);
         setSearch('');
       }
@@ -214,15 +226,52 @@ export function SelectInput({
   }, [open, searchable]);
 
   /* =====================================================
-   * 화면 하단 여백 부족 시 드롭다운을 위로 열기
+   * 화면 하단 여백 부족 시 드롭다운을 위로 열기 + 포털 위치 계산
    * ===================================================== */
   useEffect(() => {
     if (!open || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
-    setDropUp(() => spaceBelow < 260 && spaceAbove > spaceBelow);
+    setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
+    setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
   }, [open]);
+
+  /* =====================================================
+   * 스크롤 시 드롭다운 닫기
+   * ===================================================== */
+  useEffect(() => {
+    if (!open) return;
+    const close = () => { setOpen(false); setSearch(''); };
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
+  }, [open]);
+
+  /* =====================================================
+   * 키보드 네비게이션 — 하이라이트 인덱스 관리
+   * ===================================================== */
+
+  // 드롭다운 닫힐 때 초기화
+  useEffect(() => {
+    if (!open) setHighlightedIndex(-1);
+  }, [open]);
+
+  // 드롭다운 열릴 때 선택된 항목으로 초기화
+  useEffect(() => {
+    if (!open) return;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // 검색어 변경 시 첫 번째 항목으로 초기화
+  useEffect(() => {
+    if (open) setHighlightedIndex(0);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 하이라이트된 항목 스크롤
+  useEffect(() => {
+    if (!open || highlightedIndex < 0) return;
+    listRef.current?.querySelector('[data-highlighted]')?.scrollIntoView({ block: 'nearest' });
+  }, [highlightedIndex, open]);
 
   useEffect(() => {
     if (import.meta.env.DEV && (droppedEmptyValues > 0 || droppedDuplicateValues > 0)) {
@@ -250,12 +299,53 @@ export function SelectInput({
     setSearch('');
   };
 
-  /** Escape 키로 드롭다운 닫기 */
+  /** 드롭다운 키보드 네비게이션 */
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setOpen(false);
-      setSearch('');
-      containerRef.current?.querySelector('button')?.focus();
+    // 닫혀있을 때: ArrowDown·Enter·Space 로 열기
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (!disabled && !readOnly && !loading) setOpen(true);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.min(prev + 1, allDisplayed.length - 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.max(prev - 1, 0));
+        break;
+      case 'Home':
+        e.preventDefault();
+        setHighlightedIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setHighlightedIndex(allDisplayed.length - 1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && allDisplayed[highlightedIndex] && !allDisplayed[highlightedIndex].disabled) {
+          handleSelect(allDisplayed[highlightedIndex]);
+        }
+        break;
+      case ' ':
+        // 검색 인풋에서 Space는 타이핑 허용
+        if (document.activeElement === searchRef.current) break;
+        e.preventDefault();
+        if (highlightedIndex >= 0 && allDisplayed[highlightedIndex] && !allDisplayed[highlightedIndex].disabled) {
+          handleSelect(allDisplayed[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setOpen(false);
+        setSearch('');
+        containerRef.current?.querySelector('button')?.focus();
+        break;
     }
   };
 
@@ -275,6 +365,12 @@ export function SelectInput({
     group: g,
     items: filtered.filter((o) => o.group === g),
   }));
+
+  // 화면 표시 순서와 동일한 flat 배열 — 키보드 네비게이션 인덱스 기준
+  const allDisplayed = useMemo(
+    () => [...ungrouped, ...grouped.flatMap(({ items }) => items)],
+    [ungrouped, grouped],
+  );
 
   /* =====================================================
    * 렌더링
