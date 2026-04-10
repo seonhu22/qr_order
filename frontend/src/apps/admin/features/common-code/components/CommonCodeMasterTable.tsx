@@ -63,6 +63,7 @@ export function CommonCodeMasterTable({
     isDirtyWarningOpen,
     isConfirming,
     isConfirmingDelete,
+    selectedDeleteCount,
     editorErrors,
     noticeState,
     openCreateModal,
@@ -285,7 +286,7 @@ export function CommonCodeMasterTable({
       <DeleteConfirmModal
         open={isDeleteConfirmOpen}
         title="삭제하시겠습니까?"
-        description="선택한 항목을 삭제하면 복구할 수 없습니다."
+        description={`선택한 ${selectedDeleteCount}건의 항목을 삭제하면 복구할 수 없습니다.`}
         helperText="정말 삭제하시겠습니까?"
         primaryAction={{
           label: '확인',
@@ -310,7 +311,6 @@ export function CommonCodeMasterTable({
           onClick: forceCloseEditorModal,
         }}
         secondaryAction={{
-          label: '닫기',
           onClick: closeDirtyWarning,
         }}
         onClose={closeDirtyWarning}

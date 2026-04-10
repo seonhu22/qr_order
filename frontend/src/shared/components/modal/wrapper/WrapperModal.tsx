@@ -11,7 +11,7 @@
  * - `layout="notice"`일 때는 닫기 버튼을 숨기고 icon, title, subtitle을 가운데 정렬한다.
  * - footer는 액션 객체 존재 여부에 따라 버튼을 렌더링한다.
  * - 버튼의 외형은 공용 Button이 담당하고, modal은 배치용 스타일만 유지한다.
- * - `isDirty=true`이면 ESC·overlay 클릭으로 닫히지 않는다.
+ * - ESC·overlay 클릭은 항상 `onClose`를 호출한다. dirty 판단과 경고 모달 표시는 호출부가 담당한다.
  *
  * @example
  * <WrapperModal
@@ -87,7 +87,7 @@ export function WrapperModal({
 }: WrapperModalProps) {
   const dialogRef = useRef<HTMLElement>(null);
 
-  /* ─── ESC 닫기 — isDirty 시 차단 ─── */
+  /* ─── ESC 닫기 ─── */
   useEffect(() => {
     if (!open) return undefined;
 
@@ -99,7 +99,7 @@ export function WrapperModal({
 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [open, isDirty, onClose]);
+  }, [open, onClose]);
 
   /* ─── 포커스 트랩 + 첫 입력 필드 자동 포커스 ─── */
   useEffect(() => {

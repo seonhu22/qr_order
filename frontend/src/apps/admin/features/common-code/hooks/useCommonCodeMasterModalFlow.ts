@@ -74,7 +74,7 @@ export function useCommonCodeMasterModalFlow({
   };
 
   const openCreateModal = () => {
-    const blank = { id: '', code: '', name: '', useYn: 'Y' };
+    const blank: MasterCode = { id: '', code: '', name: '', useYn: 'Y' };
     setEditingRow(blank);
     setOriginalRow(blank);
     setIsCreateMode(true);
@@ -159,7 +159,7 @@ export function useCommonCodeMasterModalFlow({
       setNoticeState({
         title: '안내',
         description: '항목을 먼저 선택해주세요.',
-        helperText: '삭제할 행을 선택 및 체크박스로 선택 후 진행하세요.',
+        helperText: '삭제할 행을 클릭하거나 체크박스로 선택 후 진행하세요.',
       });
       return;
     }
@@ -209,6 +209,7 @@ export function useCommonCodeMasterModalFlow({
     isDirtyWarningOpen,
     isConfirming,
     isConfirmingDelete,
+    selectedDeleteCount,
     editorErrors,
     noticeState,
     openCreateModal,
