@@ -45,7 +45,6 @@ export const CommonCodePage = () => {
     moveCheckedDetailRowsDown,
     isLoadingMasters,
     isLoadingDetails,
-    isDeletingMasters,
     isSavingDetails,
     saveMaster,
     deleteCheckedMasters,
@@ -76,7 +75,6 @@ export const CommonCodePage = () => {
         onSelectRow={selectMaster}
         onToggleRow={toggleMasterChecked}
         onToggleAllRows={toggleAllMasters}
-        isDeleting={isDeletingMasters}
         onSaveMaster={saveMaster}
         onDeleteMasters={deleteCheckedMasters}
       />

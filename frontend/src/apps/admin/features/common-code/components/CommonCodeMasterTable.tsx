@@ -28,7 +28,6 @@ type CommonCodeMasterTableProps = {
   onSelectRow: (masterId: string) => void;
   onToggleRow: (masterId: string) => void;
   onToggleAllRows: () => void;
-  isDeleting: boolean;
   onSaveMaster: (master: MasterCode, isCreateMode: boolean) => Promise<void>;
   onDeleteMasters: () => Promise<number>;
 };
@@ -50,7 +49,6 @@ export function CommonCodeMasterTable({
   onSelectRow,
   onToggleRow,
   onToggleAllRows,
-  isDeleting,
   onSaveMaster,
   onDeleteMasters,
 }: CommonCodeMasterTableProps) {
@@ -64,6 +62,7 @@ export function CommonCodeMasterTable({
     isDeleteConfirmOpen,
     isDirtyWarningOpen,
     isConfirming,
+    isConfirmingDelete,
     editorErrors,
     noticeState,
     openCreateModal,
@@ -289,11 +288,11 @@ export function CommonCodeMasterTable({
         helperText="정말 삭제하시겠습니까?"
         primaryAction={{
           label: '확인',
-          loading: isDeleting,
+          loading: isConfirmingDelete,
           onClick: confirmDelete,
         }}
         secondaryAction={{
-          disabled: isDeleting,
+          disabled: isConfirmingDelete,
           onClick: closeDeleteConfirm,
         }}
         onClose={closeDeleteConfirm}
