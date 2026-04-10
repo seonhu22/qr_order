@@ -12,6 +12,7 @@
 
 import './Input.css';
 import { useState, useId, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { InputWrapper } from './InputWrapper';
 import { Icon } from '@/shared/assets/icons/Icon';
 import type { SelectInputProps, SelectOption, InputControlState, InputSize } from './types';
@@ -139,7 +140,9 @@ export function SelectInput({
   const [dropUp, setDropUp] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [anchorRect, setAnchorRect] = useState({ top: 0, bottom: 0, left: 0, width: 0 });
 
   const { normalizedOptions, droppedEmptyValues, droppedDuplicateValues } = useMemo(() => {
     const seen = new Set<string>();
@@ -197,7 +200,10 @@ export function SelectInput({
    * ===================================================== */
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) {
+      if (
+        !containerRef.current?.contains(e.target as Node) &&
+        !dropdownRef.current?.contains(e.target as Node)
+      ) {
         setOpen(false);
         setSearch('');
       }
@@ -214,14 +220,25 @@ export function SelectInput({
   }, [open, searchable]);
 
   /* =====================================================
-   * 화면 하단 여백 부족 시 드롭다운을 위로 열기
+   * 화면 하단 여백 부족 시 드롭다운을 위로 열기 + 포털 위치 계산
    * ===================================================== */
   useEffect(() => {
     if (!open || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
-    setDropUp(() => spaceBelow < 260 && spaceAbove > spaceBelow);
+    setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
+    setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
+  }, [open]);
+
+  /* =====================================================
+   * 스크롤 시 드롭다운 닫기
+   * ===================================================== */
+  useEffect(() => {
+    if (!open) return;
+    const close = () => { setOpen(false); setSearch(''); };
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
   }, [open]);
 
   useEffect(() => {
@@ -280,6 +297,7 @@ export function SelectInput({
    * 렌더링
    * ===================================================== */
   return (
+    <>
     <InputWrapper
       inputId={triggerId}
       label={label}
@@ -333,87 +351,102 @@ export function SelectInput({
           )}
         </span>
 
-        {/* ── 드롭다운 패널 ── */}
-        {open && (
-          <div
-            className={`select-dropdown ${dropUp ? 'select-dropdown--above' : 'select-dropdown--below'}`}
-          >
-            {/* 검색 인풋 */}
-            {searchable && (
-              <div className="select-dropdown__search">
-                <div className="select-dropdown__search-box">
-                  <span className="select-dropdown__search-icon">
-                    <Icon id="i-search" size={13} />
-                  </span>
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    placeholder="검색..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="select-dropdown__search-input"
-                    aria-label="옵션 검색"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* 옵션 목록 */}
-            <ul
-              id={listboxId}
-              className="select-dropdown__list"
-              role="listbox"
-              aria-label={label ?? placeholder}
-            >
-              {/* 그룹 없는 옵션 */}
-              {ungrouped.map((opt) => (
-                <OptionItem
-                  key={opt.value}
-                  opt={opt}
-                  selected={selectedValue === opt.value}
-                  onSelect={handleSelect}
-                />
-              ))}
-
-              {/* 그룹별 옵션 */}
-              {grouped.map(
-                ({ group, items }) =>
-                  items.length > 0 && (
-                    <li key={group} role="presentation">
-                      <div className="select-option-group__label">{group}</div>
-                      <ul
-                        role="group"
-                        aria-label={group}
-                        style={{ listStyle: 'none', margin: 0, padding: 0 }}
-                      >
-                        {items.map((opt) => (
-                          <OptionItem
-                            key={opt.value}
-                            opt={opt}
-                            selected={selectedValue === opt.value}
-                            onSelect={handleSelect}
-                          />
-                        ))}
-                      </ul>
-                    </li>
-                  ),
-              )}
-
-              {/* 검색 결과 없음 */}
-              {filtered.length === 0 && (
-                <li
-                  className="select-dropdown__empty"
-                  role="option"
-                  aria-selected="false"
-                  aria-disabled="true"
-                >
-                  검색 결과 없음
-                </li>
-              )}
-            </ul>
-          </div>
-        )}
       </div>
     </InputWrapper>
+
+    {/* ── 드롭다운 패널 (Portal) — 모달 overflow 에 잘리지 않도록 body에 렌더 ── */}
+    {open && createPortal(
+      <div
+        ref={dropdownRef}
+        className={`select-dropdown ${dropUp ? 'select-dropdown--above' : 'select-dropdown--below'}`}
+        style={{
+          position: 'fixed',
+          left: anchorRect.left,
+          right: 'auto',
+          width: anchorRect.width,
+          zIndex: 1100,
+          ...(dropUp
+            ? { bottom: window.innerHeight - anchorRect.top, top: 'auto' }
+            : { top: anchorRect.bottom, bottom: 'auto' }),
+        }}
+        onKeyDown={handleKeyDown}
+      >
+        {/* 검색 인풋 */}
+        {searchable && (
+          <div className="select-dropdown__search">
+            <div className="select-dropdown__search-box">
+              <span className="select-dropdown__search-icon">
+                <Icon id="i-search" size={13} />
+              </span>
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder="검색..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="select-dropdown__search-input"
+                aria-label="옵션 검색"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 옵션 목록 */}
+        <ul
+          id={listboxId}
+          className="select-dropdown__list"
+          role="listbox"
+          aria-label={label ?? placeholder}
+        >
+          {/* 그룹 없는 옵션 */}
+          {ungrouped.map((opt) => (
+            <OptionItem
+              key={opt.value}
+              opt={opt}
+              selected={selectedValue === opt.value}
+              onSelect={handleSelect}
+            />
+          ))}
+
+          {/* 그룹별 옵션 */}
+          {grouped.map(
+            ({ group, items }) =>
+              items.length > 0 && (
+                <li key={group} role="presentation">
+                  <div className="select-option-group__label">{group}</div>
+                  <ul
+                    role="group"
+                    aria-label={group}
+                    style={{ listStyle: 'none', margin: 0, padding: 0 }}
+                  >
+                    {items.map((opt) => (
+                      <OptionItem
+                        key={opt.value}
+                        opt={opt}
+                        selected={selectedValue === opt.value}
+                        onSelect={handleSelect}
+                      />
+                    ))}
+                  </ul>
+                </li>
+              ),
+          )}
+
+          {/* 검색 결과 없음 */}
+          {filtered.length === 0 && (
+            <li
+              className="select-dropdown__empty"
+              role="option"
+              aria-selected="false"
+              aria-disabled="true"
+            >
+              검색 결과 없음
+            </li>
+          )}
+        </ul>
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }
