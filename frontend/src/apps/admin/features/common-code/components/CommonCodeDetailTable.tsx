@@ -65,6 +65,7 @@ export function CommonCodeDetailTable({
     rowErrors,
     notice,
     isSaveConfirmOpen,
+    isConfirming,
     clearRowError,
     requestSave,
     confirmSave,
@@ -231,11 +232,11 @@ export function CommonCodeDetailTable({
         description="작성된 공통코드 상세를 저장하시겠습니까?"
         primaryAction={{
           label: '확인',
-          loading: isSaving,
+          loading: isConfirming,
           onClick: confirmSave,
         }}
         secondaryAction={{
-          disabled: isSaving,
+          disabled: isConfirming,
           onClick: closeSaveConfirm,
         }}
         onClose={closeSaveConfirm}
