@@ -202,6 +202,9 @@
   /* 버튼·인풋 텍스트 */
   --typography-size-ui:      var(--font-size-sm);
 
+  /* h4·모달 타이틀 등 소형 헤딩 (1rem / 16px) */
+  --typography-size-h4:      var(--font-size-base);
+
   /* h3·서브 헤딩 */
   --typography-size-h3:      var(--font-size-lg);
 
