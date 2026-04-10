@@ -60,6 +60,7 @@ export function CommonCodeMasterTable({
     editingRow,
     isCreateMode,
     isCodeReadonly,
+    isDirty,
     isEditorOpen,
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
@@ -188,6 +189,7 @@ export function CommonCodeMasterTable({
       <WrapperModal
         size="md"
         open={isEditorOpen}
+        isDirty={isDirty}
         title="공통코드 마스터 수정/등록"
         subtitle="공통코드 정보를 입력하세요."
         primaryAction={{

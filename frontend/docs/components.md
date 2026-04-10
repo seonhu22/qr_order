@@ -290,6 +290,9 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
 7. 모달 폼 안의 Input·Select 크기는 `md`로 통일한다.
 8. `SelectInput` 드롭다운은 `createPortal`로 `document.body`에 렌더되므로 모달 안에서도 `overflow: hidden`에 잘리지 않는다.
+9. `SelectInput` 드롭다운은 `ArrowDown/Up`, `Home/End`, `Enter/Space`, `Escape` 키보드 네비게이션을 지원한다.
+10. 폼이 있는 모달은 `isDirty` prop을 전달하면 입력값이 있는 동안 ESC·overlay 클릭으로 닫히지 않는다.
+11. 모달이 열릴 때 닫기 버튼을 제외한 첫 번째 입력 필드에 자동으로 포커스가 이동하며, Tab/Shift+Tab은 모달 내부에서만 순환한다.
 
 ---
 

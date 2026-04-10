@@ -11,6 +11,7 @@
  * - `layout="notice"`일 때는 닫기 버튼을 숨기고 icon, title, subtitle을 가운데 정렬한다.
  * - footer는 액션 객체 존재 여부에 따라 버튼을 렌더링한다.
  * - 버튼의 외형은 공용 Button이 담당하고, modal은 배치용 스타일만 유지한다.
+ * - `isDirty=true`이면 ESC·overlay 클릭으로 닫히지 않는다.
  *
  * @example
  * <WrapperModal
@@ -24,6 +25,7 @@
  * @example
  * <WrapperModal
  *   open={open}
+ *   isDirty={isDirty}
  *   layout="notice"
  *   icon={<span>!</span>}
  *   title="삭제 확인"
@@ -34,18 +36,27 @@
  * />
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/components/button';
 import { MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
 import '../base/modal.css';
 
 import type { WrapperModalProps } from '../base/modalType';
 
+const FOCUSABLE_SELECTOR = [
+  'input:not([disabled]):not([readonly])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'button:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
 /**
  * 공용 모달 래퍼를 렌더링한다.
  *
  * @param {WrapperModalProps} props 모달 렌더링에 필요한 속성
  * @param {boolean} props.open 모달 노출 여부
+ * @param {boolean} [props.isDirty=false] 폼에 입력값이 있으면 true — ESC·overlay 닫기를 막는다
  * @param {'default' | 'notice'} [props.layout='default'] 상단 레이아웃 방식
  * @param {'sm' | 'md' | 'lg' | 'xl'} [props.size='sm'] 모달 폭 크기
  * @param {string} [props.title] 모달 제목
@@ -60,6 +71,7 @@ import type { WrapperModalProps } from '../base/modalType';
  */
 export function WrapperModal({
   open,
+  isDirty = false,
   layout = 'default',
   size = 'sm',
   title,
@@ -73,29 +85,64 @@ export function WrapperModal({
   secondaryAction,
   onClose,
 }: WrapperModalProps) {
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
+  const dialogRef = useRef<HTMLElement>(null);
 
-    /**
-     * ESC 입력 시 모달을 닫는다.
-     *
-     * @param {KeyboardEvent} event 키보드 이벤트 객체
-     * @returns {void}
-     */
+  /* ─── ESC 닫기 — isDirty 시 차단 ─── */
+  useEffect(() => {
+    if (!open) return undefined;
+
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !isDirty) {
         onClose();
       }
     };
 
     window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open, isDirty, onClose]);
 
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
+  /* ─── 포커스 트랩 + 첫 입력 필드 자동 포커스 ─── */
+  useEffect(() => {
+    if (!open || !dialogRef.current) return undefined;
+
+    const allFocusable = Array.from(
+      dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    );
+
+    // 닫기 버튼 제외한 첫 번째 입력 필드에 포커스
+    const firstInput = allFocusable.find(
+      (el) => !el.classList.contains('base-modal__close'),
+    );
+    firstInput?.focus();
+
+    // Tab / Shift+Tab 포커스 트랩
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
-  }, [open, onClose]);
+
+    window.addEventListener('keydown', handleTab);
+    return () => window.removeEventListener('keydown', handleTab);
+  }, [open]);
 
   if (!open) {
     return null;
@@ -104,30 +151,24 @@ export function WrapperModal({
   /**
    * 기본 버튼 클릭 시 primaryAction.onClick이 있으면 호출하고,
    * 없으면 onClose를 fallback으로 사용한다.
-   *
-   * @returns {void}
    */
   const handlePrimaryAction = () => {
     if (primaryAction?.onClick) {
       primaryAction.onClick();
       return;
     }
-
     onClose();
   };
 
   /**
    * 보조 버튼 클릭 시 secondaryAction.onClick이 있으면 호출하고,
    * 없으면 onClose를 fallback으로 사용한다.
-   *
-   * @returns {void}
    */
   const handleSecondaryAction = () => {
     if (secondaryAction?.onClick) {
       secondaryAction.onClick();
       return;
     }
-
     onClose();
   };
 
@@ -148,9 +189,10 @@ export function WrapperModal({
     <div
       className="base-modal-overlay"
       role="presentation"
-      onClick={closeOnOverlayClick ? onClose : undefined}
+      onClick={closeOnOverlayClick && !isDirty ? onClose : undefined}
     >
       <section
+        ref={dialogRef}
         aria-label={title || subtitle || '모달'}
         aria-modal="true"
         className={`base-modal ${MODAL_SIZE_CLASS_MAP[size]}${isNoticeLayout ? ' base-modal--notice' : ''}`}

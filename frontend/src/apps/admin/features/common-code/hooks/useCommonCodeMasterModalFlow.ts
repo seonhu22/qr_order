@@ -39,6 +39,7 @@ export function useCommonCodeMasterModalFlow({
   onDeleteMasters,
 }: UseCommonCodeMasterModalFlowParams) {
   const [editingRow, setEditingRow] = useState<MasterCode | null>(null);
+  const [originalRow, setOriginalRow] = useState<MasterCode | null>(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
@@ -66,12 +67,9 @@ export function useCommonCodeMasterModalFlow({
   };
 
   const openCreateModal = () => {
-    setEditingRow({
-      id: '',
-      code: '',
-      name: '',
-      useYn: 'Y',
-    });
+    const blank = { id: '', code: '', name: '', useYn: 'Y' };
+    setEditingRow(blank);
+    setOriginalRow(blank);
     setIsCreateMode(true);
     resetEditorErrors();
     setIsEditorOpen(true);
@@ -79,6 +77,7 @@ export function useCommonCodeMasterModalFlow({
 
   const openEditModal = (row: MasterCode) => {
     setEditingRow({ ...row });
+    setOriginalRow({ ...row });
     setIsCreateMode(false);
     resetEditorErrors();
     setIsEditorOpen(true);
@@ -87,15 +86,13 @@ export function useCommonCodeMasterModalFlow({
   const closeEditorModal = () => {
     setIsEditorOpen(false);
     setEditingRow(null);
+    setOriginalRow(null);
     setIsCreateMode(false);
     resetEditorErrors();
   };
 
   const changeEditingField = (key: 'code' | 'name' | 'useYn', value: string) => {
-    setEditorErrors((prev) => ({
-      ...prev,
-      [key]: false,
-    }));
+    setEditorErrors((prev) => ({ ...prev, [key]: false }));
     setEditingRow((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
@@ -124,11 +121,9 @@ export function useCommonCodeMasterModalFlow({
     try {
       await onSaveMaster(editingRow, isCreateMode);
       setIsSaveConfirmOpen(false);
-      setNoticeState({
-        title: '알림',
-        description: '저장되었습니다.',
-      });
+      setNoticeState({ title: '알림', description: '저장되었습니다.' });
       setEditingRow(null);
+      setOriginalRow(null);
       setIsCreateMode(false);
       resetEditorErrors();
     } catch (error) {
@@ -179,10 +174,18 @@ export function useCommonCodeMasterModalFlow({
     }
   };
 
+  const isDirty =
+    editingRow !== null &&
+    originalRow !== null &&
+    (editingRow.code !== originalRow.code ||
+      editingRow.name !== originalRow.name ||
+      editingRow.useYn !== originalRow.useYn);
+
   return {
     editingRow,
     isCreateMode,
     isCodeReadonly,
+    isDirty,
     isEditorOpen,
     isSaveConfirmOpen,
     isDeleteConfirmOpen,
