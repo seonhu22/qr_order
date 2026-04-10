@@ -1,5 +1,7 @@
 # 운영 원칙
 
+> 개발·설계 운영 원칙, 기능 리팩토링 규칙, Filter 페이지 표준, CSS 레이아웃 원칙을 다룬다.
+
 현재 단계에서 반드시 이해해야 할 개발·설계 원칙을 정리한다.
 
 ## 목차
@@ -65,8 +67,7 @@
 
 ### 2. 서버 상태와 UI 상태를 분리한다
 
-- 서버 조회/재조회: `TanStack Query`
-- 선택 상태, 모달 열림, 입력 draft, 체크 상태: 로컬 state 또는 feature hook
+→ [섹션 1](#1-서버-상태와-ui-상태를-분리한다) 원칙과 동일하다. 서버 조회는 TanStack Query, 선택 상태·모달 열림·입력 draft는 로컬 state 또는 feature hook으로 처리한다.
 
 ### 3. generated API는 화면에서 직접 호출하지 않는다
 
@@ -177,13 +178,6 @@ const {
 - `use<Feature>Flow`: 조회 전 dirty 확인, 저장 확인/완료, 삭제 확인/완료, 초기화/부가 액션 모달 흐름
 - `use<Feature>Page`: list state + flow + API wrapper 조합
 
-### 공통 명명 규칙
-
-- mapper:
-  - DTO → 화면 모델: `mapTo[Entity]Model`
-  - 화면 모델 → payload: `mapTo[Entity]Payload`
-- hook 반환: `data`, `status`, `actions`, `uiProps` 유지
-
 ### 신규 화면 구현 체크리스트
 
 - `Filters`가 draft/applied 상태를 분리하는가
@@ -192,3 +186,58 @@ const {
 - 필수값 검증이 row error 상태와 함께 표시되는가
 - 저장/삭제/초기화 흐름이 `Flow` 훅으로 분리됐는가
 - 레이어별 단위 테스트(list state / flow / UI)가 있는가
+
+---
+
+## 7. CSS 레이아웃 원칙 — Flex 스크롤 버블링 방지
+
+> 추가일: 2026-04-09
+
+### 문제: Flex 자식의 `min-height: auto`
+
+Flex 자식 요소는 기본적으로 `min-height: auto`를 가진다.
+이 때문에 내부 콘텐츠(테이블 행 추가 등)가 늘어나면 할당된 높이를 무시하고 부모를 밀어내며, 스크롤이 의도치 않게 바깥 요소(`body` 등)까지 전파된다.
+
+**해결: flex 자식에 `min-height: 0` 명시**
+
+```css
+/* 스크롤을 내부에서 끊어야 하는 flex 자식 */
+.admin-layout__main {
+  flex: 1;
+  min-height: 0;      /* ← 이게 없으면 콘텐츠 높이로 늘어남 */
+  overflow: hidden;
+}
+```
+
+전체 flex 높이 체인의 **모든 중간 노드**에 `min-height: 0`이 필요하다.
+하나라도 빠지면 스크롤이 다시 바깥으로 새어나온다.
+
+```
+html/body/root
+  └ admin-layout          (height: 100%; overflow: hidden)
+      └ admin-layout__main  (flex: 1; min-height: 0)
+          └ section
+              └ content-div
+                  └ article
+                      └ table-wrap  (flex: 1; min-height: 0; overflow: auto)  ← 실제 스크롤
+```
+
+### SPA 뷰포트 고정 패턴
+
+Flex `min-height` 문제와 별도로, SPA에서는 `body` 자체가 늘어나 뷰포트 레벨 스크롤이 생기는 경우가 있다.
+아래를 `global.css`에 추가해 뷰포트 스크롤을 원천 차단한다.
+
+```css
+/* global.css */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+```
+
+`overflow: hidden`만으로는 높이를 줄이지 못하므로 `height: 100%`가 반드시 함께 있어야 한다.

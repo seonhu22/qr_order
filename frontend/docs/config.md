@@ -1,5 +1,7 @@
 # 주요 설정 파일 설명
 
+> 주요 설정 파일(vite.config.js · tsconfig.json · ESLint · Prettier 등) 역할과 인증 구조를 다룬다.
+
 ## 목차
 
 - [1. `vite.config.js`](#1-viteconfigjs)
@@ -88,9 +90,9 @@
 
 ## 8. `src/shared/components/*/index.ts`
 
-- 공용 컴포넌트 폴더의 export 진입점
-- 컴포넌트 구현이 들어오면 이 파일이 import 단순화 역할을 맡는다
-- 폴더 외부에서는 이 파일을 통해서만 import한다
+공용 컴포넌트 폴더의 외부 공개 API 진입점. 폴더 외부에서는 이 파일을 통해서만 import한다.
+
+→ 상세 역할·export 패턴은 [`components.md` §4 타입 규칙](./components.md#4-타입-규칙) 참고
 
 ---
 
@@ -110,6 +112,8 @@
 |---|---|
 | `mockServiceWorker.js` | 브라우저 MSW 동작에 필요한 worker 스크립트 |
 | `static/fonts/*` | Pretendard 폰트 정적 파일 |
+
+→ 상세 구조·사용 방식은 [`components.md` §1 폴더 구조](./components.md#1-폴더-구조) 참고
 
 ---
 

@@ -1,5 +1,7 @@
 # TanStack Query 학습 가이드
 
+> 서버/UI 상태 분리 개념, MSW 기초, useQuery·useMutation 단계별 실습을 다룬다. TanStack Query가 처음인 팀원을 위한 학습 문서이다.
+
 ## 목차
 
 - [1. 문서 목적](#1-문서-목적)
