@@ -210,7 +210,7 @@ export function CommonCodeMasterTable({
             </label>
             <InputBase
               id="common-master-code"
-              size="sm"
+              size="md"
               value={editingRow?.code ?? ''}
               readOnly={isCodeReadonly}
               required
@@ -229,7 +229,7 @@ export function CommonCodeMasterTable({
             </label>
             <InputBase
               id="common-master-name"
-              size="sm"
+              size="md"
               value={editingRow?.name ?? ''}
               required
               controlState={editorErrors.name ? 'error' : ''}
@@ -245,7 +245,7 @@ export function CommonCodeMasterTable({
               </span>
             </label>
             <SelectInput
-              size="sm"
+              size="md"
               className="common-code-modal-form__select-input"
               value={editingRow?.useYn ?? 'Y'}
               options={[
