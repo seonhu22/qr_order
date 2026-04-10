@@ -228,7 +228,7 @@ export function CommonCodeDetailTable({
 
       <SaveConfirmModal
         open={isSaveConfirmOpen}
-        title="저장 확인"
+        title="저장하시겠습니까?"
         description="작성된 공통코드 상세를 저장하시겠습니까?"
         primaryAction={{
           label: '확인',
