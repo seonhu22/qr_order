@@ -200,6 +200,12 @@
 }
 
 
+/* 테이블 수정 아이콘 버튼 — 호버 시 brand 계열 색상 */
+.common-table .btn--icon:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: color-mix(in srgb, var(--color-brand-default) 10%, transparent);
+  color: var(--color-brand-default);
+}
+
 .common-code-modal-form {
   display: flex;
   flex-direction: column;
