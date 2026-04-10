@@ -289,6 +289,7 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 5. 폼을 포함한 모달은 `BaseFormModal`처럼 별도 베이스를 두고 검증/전송 규칙을 공통화한다.
 6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
 7. 모달 폼 안의 Input·Select 크기는 `md`로 통일한다.
+8. `SelectInput` 드롭다운은 `createPortal`로 `document.body`에 렌더되므로 모달 안에서도 `overflow: hidden`에 잘리지 않는다.
 
 ---
 

@@ -5,6 +5,7 @@
  * - 외부에서는 이 파일만 통해 import 한다
  * - InputBase / InputWrapper 는 고급 조합용으로도 공개
  * - types.ts 의 타입도 함께 재내보내기
+ * - SelectInput 드롭다운은 Portal(body)로 렌더되어 모달 안에서도 잘리지 않는다
  *
  * @example
  * // 일반 사용
