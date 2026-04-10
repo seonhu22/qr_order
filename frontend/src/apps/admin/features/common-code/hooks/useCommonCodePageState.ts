@@ -250,7 +250,9 @@ export function useCommonCodePageState() {
    * 체크된 마스터를 삭제하고 목록/선택 상태를 정리한다.
    */
   const deleteCheckedMasters = async () => {
-    const targets = masterRows.filter((row) => checkedMasterIds.includes(row.id));
+    const targetIds = new Set(checkedMasterIds);
+    if (selectedMasterId) targetIds.add(selectedMasterId);
+    const targets = masterRows.filter((row) => targetIds.has(row.id));
 
     if (!targets.length) {
       return 0;

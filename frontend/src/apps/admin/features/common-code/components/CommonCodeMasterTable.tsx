@@ -79,6 +79,7 @@ export function CommonCodeMasterTable({
     closeDirtyWarning,
     closeNotice,
   } = useCommonCodeMasterModalFlow({
+    selectedMasterId,
     checkedMasterIds,
     onSaveMaster,
     onDeleteMasters,
