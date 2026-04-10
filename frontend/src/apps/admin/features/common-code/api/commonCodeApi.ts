@@ -46,7 +46,6 @@ export function mapToCommonDetailModel(detail: CommonDetail): DetailCode {
     name: detail.commonNm,
     useYn: detail.useYn === 'Y',
     ordNo: detail.ordNo,
-    checked: false,
     isNew: false,
   };
 }

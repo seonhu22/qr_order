@@ -73,11 +73,8 @@ export function useCommonCodePageState() {
   );
   const selectedMaster = masterRows.find((row) => row.id === selectedMasterId) ?? null;
   const detailRows = selectedMaster ? (detailRowsByMaster[selectedMaster.id] ?? []) : [];
-  const checkedDetailIds = detailRows.filter((row) => row.checked).map((row) => row.id);
   const isAllMastersChecked =
     masterRows.length > 0 && checkedMasterIds.length === masterRows.length;
-  const isAllDetailsChecked =
-    detailRows.length > 0 && checkedDetailIds.length === detailRows.length;
 
   useEffect(() => {
     if (selectedMasterId && !masterRows.some((row) => row.id === selectedMasterId)) {
@@ -147,21 +144,6 @@ export function useCommonCodePageState() {
     setCheckedMasterIds(isAllMastersChecked ? [] : masterRows.map((row) => row.id));
   };
 
-  const toggleDetailChecked = (detailId: string) => {
-    updateSelectedDetailRows((rows) =>
-      rows.map((row) => (row.id === detailId ? { ...row, checked: !row.checked } : row)),
-    );
-  };
-
-  const toggleAllDetails = () => {
-    updateSelectedDetailRows((rows) =>
-      rows.map((row) => ({
-        ...row,
-        checked: !isAllDetailsChecked,
-      })),
-    );
-  };
-
   const changeDetailField = (detailId: string, key: 'code' | 'name', value: string) => {
     updateSelectedDetailRows((rows) =>
       rows.map((row) => (row.id === detailId ? { ...row, [key]: value } : row)),
@@ -186,7 +168,6 @@ export function useCommonCodePageState() {
       name: '',
       useYn: true,
       ordNo: detailRows.length + 1,
-      checked: false,
       isNew: true,
     };
 
@@ -195,19 +176,14 @@ export function useCommonCodePageState() {
 
   const removeCheckedDetailRows = (selectedId?: string) => {
     updateSelectedDetailRows((rows) =>
-      normalizeOrdNo(rows.filter((row) => !row.checked && row.id !== selectedId)),
+      normalizeOrdNo(rows.filter((row) => row.id !== selectedId)),
     );
   };
-
-  const canMoveDetailRowsUp = detailRows.some((row, index) => row.checked && index > 0);
-  const canMoveDetailRowsDown = detailRows.some(
-    (row, index) => row.checked && index < detailRows.length - 1,
-  );
 
   const moveCheckedDetailRowsUp = (selectedId?: string) => {
     updateSelectedDetailRows((rows) => {
       const nextRows = [...rows];
-      const shouldMove = (row: DetailCode) => row.checked || row.id === selectedId;
+      const shouldMove = (row: DetailCode) => row.id === selectedId;
 
       for (let index = 1; index < nextRows.length; index += 1) {
         if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index - 1])) {
@@ -222,7 +198,7 @@ export function useCommonCodePageState() {
   const moveCheckedDetailRowsDown = (selectedId?: string) => {
     updateSelectedDetailRows((rows) => {
       const nextRows = [...rows];
-      const shouldMove = (row: DetailCode) => row.checked || row.id === selectedId;
+      const shouldMove = (row: DetailCode) => row.id === selectedId;
 
       for (let index = nextRows.length - 2; index >= 0; index -= 1) {
         if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index + 1])) {
@@ -250,9 +226,7 @@ export function useCommonCodePageState() {
    * 체크된 마스터를 삭제하고 목록/선택 상태를 정리한다.
    */
   const deleteCheckedMasters = async () => {
-    const targetIds = new Set(checkedMasterIds);
-    if (selectedMasterId) targetIds.add(selectedMasterId);
-    const targets = masterRows.filter((row) => targetIds.has(row.id));
+    const targets = masterRows.filter((row) => checkedMasterIds.includes(row.id));
 
     if (!targets.length) {
       return 0;
@@ -305,10 +279,6 @@ export function useCommonCodePageState() {
     onMasterReset: handleMasterReset,
     detailRows,
     isAllMastersChecked,
-    isAllDetailsChecked,
-    checkedDetailIds,
-    canMoveDetailRowsUp,
-    canMoveDetailRowsDown,
     isLoadingMasters: mastersQuery.isLoading,
     isLoadingDetails: detailQuery.isLoading,
     isSavingMaster: saveMasterMutation.isPending,
@@ -317,8 +287,6 @@ export function useCommonCodePageState() {
     selectMaster,
     toggleMasterChecked,
     toggleAllMasters,
-    toggleDetailChecked,
-    toggleAllDetails,
     changeDetailField,
     changeDetailUseYn,
     addDetailRow,

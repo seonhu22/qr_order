@@ -22,7 +22,7 @@ export type MasterCode = {
  *
  * @description
  * - ordNo는 화면 순서이자 저장 payload의 순번이다.
- * - checked, isNew는 화면 전용 상태이며 서버 DTO에는 없다.
+ * - isNew는 화면 전용 상태이며 서버 DTO에는 없다.
  */
 export type DetailCode = {
   id: string;
@@ -32,6 +32,5 @@ export type DetailCode = {
   name: string;
   useYn: boolean;
   ordNo: number;
-  checked: boolean;
   isNew?: boolean;
 };

@@ -24,10 +24,6 @@ export const CommonCodePage = () => {
     checkedMasterIds,
     detailRows,
     isAllMastersChecked,
-    isAllDetailsChecked,
-    checkedDetailIds,
-    canMoveDetailRowsUp,
-    canMoveDetailRowsDown,
     draftMasterKeyword,
     onMasterKeywordChange,
     onMasterSearch,
@@ -35,8 +31,6 @@ export const CommonCodePage = () => {
     selectMaster,
     toggleMasterChecked,
     toggleAllMasters,
-    toggleDetailChecked,
-    toggleAllDetails,
     changeDetailField,
     changeDetailUseYn,
     addDetailRow,
@@ -84,16 +78,10 @@ export const CommonCodePage = () => {
         selectedMaster={selectedMaster}
         isLoading={isLoadingDetails}
         rows={detailRows}
-        isAllChecked={isAllDetailsChecked}
-        checkedCount={checkedDetailIds.length}
-        onToggleRow={toggleDetailChecked}
-        onToggleAllRows={toggleAllDetails}
         onFieldChange={changeDetailField}
         onUseYnChange={changeDetailUseYn}
         onAddRow={addDetailRow}
         onDeleteRows={removeCheckedDetailRows}
-        canMoveUp={canMoveDetailRowsUp}
-        canMoveDown={canMoveDetailRowsDown}
         onMoveUp={moveCheckedDetailRowsUp}
         onMoveDown={moveCheckedDetailRowsDown}
         isSaving={isSavingDetails}

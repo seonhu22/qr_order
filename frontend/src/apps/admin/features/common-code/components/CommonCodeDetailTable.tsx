@@ -22,16 +22,10 @@ type CommonCodeDetailTableProps = {
   selectedMaster: MasterCode | null;
   isLoading: boolean;
   rows: DetailCode[];
-  isAllChecked: boolean;
-  checkedCount: number;
-  onToggleRow: (detailId: string) => void;
-  onToggleAllRows: () => void;
   onFieldChange: (detailId: string, key: 'code' | 'name', value: string) => void;
   onUseYnChange: (detailId: string, checked: boolean) => void;
   onAddRow: () => void;
   onDeleteRows: (selectedId?: string) => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
   onMoveUp: (selectedId?: string) => void;
   onMoveDown: (selectedId?: string) => void;
   isSaving: boolean;
@@ -50,29 +44,22 @@ export function CommonCodeDetailTable({
   selectedMaster,
   isLoading,
   rows,
-  isAllChecked,
-  checkedCount,
-  onToggleRow,
-  onToggleAllRows,
   onFieldChange,
   onUseYnChange,
   onAddRow,
   onDeleteRows,
-  canMoveUp,
-  canMoveDown,
   onMoveUp,
   onMoveDown,
   isSaving,
   onSaveRows,
 }: CommonCodeDetailTableProps) {
-  /* 행 클릭 선택 상태 — 체크박스(row.checked)와 완전히 분리된 별도 state */
+  /* 행 클릭 선택 상태 */
   const [selectedDetailId, setSelectedDetailId] = useState<string>('');
 
   /* 클릭 선택된 행의 인덱스 — 이동 가능 여부 계산에 사용 */
   const selectedIndex = rows.findIndex((row) => row.id === selectedDetailId);
-  const effectiveCanMoveUp = canMoveUp || (selectedDetailId !== '' && selectedIndex > 0);
-  const effectiveCanMoveDown =
-    canMoveDown || (selectedDetailId !== '' && selectedIndex < rows.length - 1);
+  const effectiveCanMoveUp = selectedDetailId !== '' && selectedIndex > 0;
+  const effectiveCanMoveDown = selectedDetailId !== '' && selectedIndex < rows.length - 1;
 
   const {
     rowErrors,
@@ -103,7 +90,6 @@ export function CommonCodeDetailTable({
             <header className="common-code-card__header">
               <h2 className="common-code-card__title">공통코드 상세</h2>
               <div className="common-code-card__actions common-code-card__actions--detail">
-                {/* 위 아래 이동 버튼 : 디테일의 순서 변경, 현재 클릭된(다수 포함)을 위 아래로 이동시킴*/}
                 <Button
                   variant="icon"
                   size="sm"
@@ -138,7 +124,7 @@ export function CommonCodeDetailTable({
                     onDeleteRows(selectedDetailId || undefined);
                     setSelectedDetailId('');
                   }}
-                  disabled={(checkedCount === 0 && !selectedDetailId) || isSaving}
+                  disabled={!selectedDetailId || isSaving}
                   style={{ padding: '0 var(--spacing-button-x-sm)' }}
                 >
                   - 행삭제
@@ -161,22 +147,12 @@ export function CommonCodeDetailTable({
             <div className="common-table-wrap">
               <table className="common-table common-table--detail" aria-label="공통코드 상세 테이블">
                 <colgroup>
-                  <col style={{ width: '3rem' }} />
                   <col />
                   <col />
                   <col style={{ width: '8rem' }} />
                 </colgroup>
                 <thead>
                   <tr>
-                    <th>
-                      <CheckboxInput
-                        checked={isAllChecked}
-                        onChange={onToggleAllRows}
-                        aria-label="공통코드 상세 전체 선택"
-                        size="sm"
-                        className="common-table__checkbox"
-                      />
-                    </th>
                     <th className="common-table__cell--left">공통코드</th>
                     <th className="common-table__cell--left">공통코드명</th>
                     <th>사용여부</th>
@@ -184,22 +160,11 @@ export function CommonCodeDetailTable({
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    /* 행 클릭으로 체크박스 토글 */
                     <tr
                       key={row.id}
                       className={selectedDetailId === row.id ? 'is-selected' : undefined}
                       onClick={() => setSelectedDetailId(row.id)}
                     >
-                      {/* 선택 체크박스: tr onClick(행 선택)과 독립 — onChange만으로 처리 */}
-                      <td>
-                        <CheckboxInput
-                          checked={row.checked}
-                          onChange={() => onToggleRow(row.id)}
-                          aria-label={`${row.code} 선택`}
-                          size="sm"
-                          className="common-table__checkbox"
-                        />
-                      </td>
                       <td>
                         <InputBase
                           size="sm"

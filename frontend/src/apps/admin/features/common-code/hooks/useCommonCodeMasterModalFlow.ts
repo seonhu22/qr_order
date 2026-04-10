@@ -18,7 +18,6 @@ type NoticeState = {
 } | null;
 
 type UseCommonCodeMasterModalFlowParams = {
-  selectedMasterId: string;
   checkedMasterIds: string[];
   onSaveMaster: (master: MasterCode, isCreateMode: boolean) => Promise<void>;
   onDeleteMasters: () => Promise<number>;
@@ -35,7 +34,6 @@ type UseCommonCodeMasterModalFlowParams = {
  * 을 한 흐름으로 묶는다.
  */
 export function useCommonCodeMasterModalFlow({
-  selectedMasterId,
   checkedMasterIds,
   onSaveMaster,
   onDeleteMasters,
@@ -59,10 +57,9 @@ export function useCommonCodeMasterModalFlow({
   const [isDirtyWarningOpen, setIsDirtyWarningOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const effectiveDeleteIds = new Set(checkedMasterIds);
-  if (selectedMasterId) effectiveDeleteIds.add(selectedMasterId);
-  if (editingRow) effectiveDeleteIds.delete(editingRow.id);
-  const selectedDeleteCount = effectiveDeleteIds.size;
+  const selectedDeleteCount = editingRow && checkedMasterIds.includes(editingRow.id)
+    ? checkedMasterIds.length - 1
+    : checkedMasterIds.length;
   const isCodeReadonly = !isCreateMode;
 
   const resetEditorErrors = () => {
