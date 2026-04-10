@@ -1,41 +1,29 @@
-# QR Order Frontend 설정 가이드
+# QR Order Frontend
 
 ## 목차
 
 - [1. 문서 목적](#1-문서-목적)
-- [2. 팀원 작업 시작 순서 권장안](#2-팀원-작업-시작-순서-권장안)
+- [2. 팀원 작업 시작 순서](#2-팀원-작업-시작-순서)
 - [3. 프로젝트 개요](#3-프로젝트-개요)
 - [4. 권장 개발 사이클](#4-권장-개발-사이클)
-- [5. 동작 구조](#5-동작-구조)
-- [6. 현재 폴더 구조와 주요 파일 설명](#6-현재-폴더-구조와-주요-파일-설명)
-- [7. 사전 준비 사항](#7-사전-준비-사항)
-- [8. 설치 절차](#8-설치-절차)
-- [9. 실행 절차](#9-실행-절차)
-- [10. 사용 가능한 스크립트](#10-사용-가능한-스크립트)
-- [11. 주요 설정 파일 및 경로 설명](#11-주요-설정-파일-및-경로-설명)
-- [12. 테스트 도구 구성 설명](#12-테스트-도구-구성-설명)
-- [13. 라이브러리 선정 이유](#13-라이브러리-선정-이유)
-- [14. 현재 단계에서 반드시 이해해야 할 운영 원칙](#14-현재-단계에서-반드시-이해해야-할-운영-원칙)
-- [15. 자주 발생하는 문제와 점검 방법](#15-자주-발생하는-문제와-점검-방법)
-- [16. 결론](#16-결론)
-
-## 1. 문서 목적
-
-본 문서는 `frontend` 프로젝트를 처음 전달받은 팀원이 개발 환경을 스스로 구성하고, 실행, 점검, 테스트까지 수행할 수 있도록 작성한 설정 가이드이다.  
-대상 독자는 React, Vite, 테스트 도구에 익숙하지 않은 초보 개발자까지 포함한다.
-
-본 문서는 다음 내용을 순서대로 설명한다.
-
-1. 팀원이 처음 작업을 시작할 때 어떤 순서로 진행해야 하는지
-2. 프로젝트가 어떤 방식으로 동작하는지
-3. 실행 전에 무엇을 준비해야 하는지
-4. 설치와 실행은 어떤 순서로 해야 하는지
-5. 개발 중 어떤 사이클로 점검해야 하는지
-6. 현재 채택한 라이브러리는 왜 선택했는지
+- [5. 사전 준비 사항](#5-사전-준비-사항)
+- [6. 설치 및 실행](#6-설치-및-실행)
+- [7. 사용 가능한 스크립트](#7-사용-가능한-스크립트)
+- [8. MSW 모드 전환](#8-msw-모드-전환)
+- [9. 자주 발생하는 문제](#9-자주-발생하는-문제)
+- [10. 참고 문서](#10-참고-문서)
 
 ---
 
-## 2. 팀원 작업 시작 순서 권장안
+## 1. 문서 목적
+
+본 문서는 `frontend` 프로젝트를 처음 전달받은 팀원이 개발 환경을 스스로 구성하고, 실행·점검·테스트까지 수행할 수 있도록 작성한 설정 가이드이다.
+
+상세한 내용은 [`docs/`](./docs/) 하위 문서를 참고한다.
+
+---
+
+## 2. 팀원 작업 시작 순서
 
 신규 팀원은 아래 순서대로 시작하는 것을 권장한다.
 
@@ -47,1488 +35,170 @@
 6. `npm run typecheck`
 7. `npm test`
 8. `npm run dev`
-9. 브라우저에서 기본 화면 확인
+9. 브라우저에서 기본 화면 확인 (`http://localhost:3000`)
 10. 이후 담당 화면 개발 시작
-
-이 순서를 앞에 둔 이유는, 초보자에게 가장 필요한 정보가 "무엇부터 해야 하는가"이기 때문이다.  
-설정 문서를 처음 읽는 사람이 뒤쪽까지 내려가지 않아도 바로 작업을 시작할 수 있도록 구성하였다.
 
 ---
 
 ## 3. 프로젝트 개요
 
-본 프론트엔드는 QR Order 프로젝트의 사용자 화면 및 관리자 화면 개발을 위한 프론트엔드 작업 공간이다.  
-기본 개발 서버는 `Vite`, UI 라이브러리는 `React 19`, 상태 관리는 `TanStack Query`와 `Zustand`, 언어 기준은 `TypeScript`를 채택하였다.
+본 프론트엔드는 QR Order 프로젝트의 사용자 화면 및 관리자 화면 개발을 위한 작업 공간이다.
 
-현재 소스는 일부 `js/jsx` 파일이 남아 있으나, 설정 기준은 TypeScript 전환을 전제로 구성되어 있다.  
-즉, 현재는 "점진적 전환 상태"이며, 신규 코드부터는 TypeScript 기준으로 작성하는 것을 권장한다.
+| 항목 | 내용 |
+|---|---|
+| 개발 서버 | Vite |
+| UI 라이브러리 | React 19 |
+| 상태 관리 | TanStack Query + Zustand |
+| 언어 | TypeScript (JS/JSX 점진적 전환 중) |
+| 스타일 | CSS 커스텀 프로퍼티 (2단계 토큰 구조) |
+| 테스트 | Vitest + Testing Library + MSW |
+
+- 프론트엔드 개발 서버: `http://localhost:3000`
+- 백엔드(Spring Boot): `http://localhost:8080`
+- 프록시: `/api → http://localhost:8080`
 
 ---
 
 ## 4. 권장 개발 사이클
 
-개발은 단순히 화면만 수정하고 브라우저에서 확인하는 방식으로 끝내지 않는다.  
-아래 사이클을 반복하는 것을 권장한다.
-
-1. 기능 구현 또는 수정
-2. 백엔드 API가 변경된 경우 `npm run generate` 재실행
-3. `npm run lint`
-4. `npm run typecheck`
-5. `npm test`
-6. 필요 시 특정 테스트를 감시 모드로 실행
-7. 브라우저에서 실제 동작 확인
-8. 커밋 전 다시 `lint`, `typecheck`, `test` 수행
-
-대표 명령어는 아래와 같다.
-
 ```powershell
+# 기능 구현 또는 수정
 npm run lint
 npm run typecheck
 npm test
-```
 
-테스트를 반복적으로 확인해야 하는 경우에는 아래 명령을 사용한다.
+# 백엔드 API가 변경된 경우
+npm run generate:schema   # 백엔드 켜야 함
+npm run generate
 
-```powershell
+# 감시 모드 (테스트 작성 중)
 npm run test:watch
 ```
 
-이 명령은 파일 변경을 감시하면서 관련 테스트를 다시 실행하므로, 단위 테스트를 작성하거나 수정할 때 유용하다.
-
 ---
 
-## 5. 동작 구조
+## 5. 사전 준비 사항
 
-본 프로젝트는 프론트엔드와 백엔드가 분리된 상태로 개발된다.
+### 필수 설치 도구
 
-- 프론트엔드 개발 서버 포트: `3000`
-- 백엔드(Spring Boot) 포트: `8080`
-- 프록시 경로: `/api -> http://localhost:8080`
+- `Node.js` 20 이상
+- `npm`
+- `Java 17` 이상 (백엔드 실행용)
 
-즉, 브라우저는 `http://localhost:3000`으로 접속하지만, 실제 API 요청은 `Vite proxy`를 통해 백엔드 `8080`으로 전달된다.
+### 백엔드 기동 확인 방법
 
-이 구조를 사용하는 이유는 다음과 같다.
-
-- 프론트와 백엔드를 동시에 개발할 수 있다.
-- 로컬 개발 중 CORS 설정 부담을 줄일 수 있다.
-- 실제 운영 경로와 유사하게 `/api` 기준으로 코드를 유지할 수 있다.
-
-### 5.1 관리자 라우트 기준
-
-관리자 화면은 `/admin` prefix를 기준으로 통일한다.
-
-- 공개 경로: `/admin/login`
-- 보호 경로: `/admin/*`
-- 기본 진입:
-  - 비로그인 상태에서 `/` 접근 시 `/admin/login`
-  - 로그인 상태에서 `/` 접근 시 `/admin/main`
-  - `/admin` 접근 시 `/admin/main`
-
-관리자 화면은 child route 구조를 사용한다.  
-즉 `AdminLayout(Header + Sidebar + Container)`는 고정하고, URL에 따라 컨테이너 내부 페이지만 교체한다.
-
-예시:
-
-- `/admin/main`
-- `/admin/system/plant`
-
-현재 초기 구현 목표는 `/admin/main`의 빈 메인 컨테이너 화면까지이다.
-
----
-
-## 6. 현재 폴더 구조와 주요 파일 설명
-
-현재 프론트엔드는 README 초안 단계의 단순 구조에서 한 번 더 정리되었으며, 아래 구조를 기준으로 이해하는 편이 좋다.
-
-```text
-frontend/
-  docs/
-    decisions.md      ← 기술 의사결정 기록 (ADR)
-    api-codegen.md    ← API 코드 생성 가이드
-  openapi.json        ← OpenAPI 명세 원본 (git 커밋, generate:schema로 갱신)
-  orval.config.ts     ← Orval 코드 생성 설정
-  public/
-    mockServiceWorker.js
-    static/
-      fonts/
-  src/
-    generated/        ← Orval 자동 생성 영역 (직접 수정 금지)
-      types/          ← openapi-typescript + Orval 생성 DTO 타입
-        schema.d.ts
-      {컨트롤러}/
-        {컨트롤러}.ts       ← API fetch 함수 + TanStack Query 훅
-        {컨트롤러}.msw.ts   ← MSW 핸들러
-    apps/
-      admin/
-        hooks/
-        pages/
-        routes/
-      client/
-        features/
-        pages/
-        routes/
-      consumer/
-        features/
-        pages/
-        routes/
-    mocks/
-      browser.ts      ← MSW 브라우저 worker
-      handlers.ts     ← 생성된 핸들러 통합 등록
-    shared/
-      api/
-      assets/
-        icons/        ← sprite.svg (SVG 스프라이트) + Icon.tsx (아이콘 컴포넌트)
-      auth/
-      components/
-        input/        ← TextInput 계열 (InputBase / InputWrapper / TextInput)
-        button/       ← Button / LinkButton (10가지 변형 × 3가지 크기)
-        checkbox/     ← CheckboxInput / CheckboxGroup
-        radio/        ← RadioInput / RadioGroup
-        toggle/       ← ToggleInput (sm/md/lg × ON/OFF/disabled/loading)
-        form-alert/   ← FormAlert / DismissibleFormAlert (error/info/guide/success)
-        modal/
-        table/
-        feedback/
-      dev/            ← 개발 전용 컴포넌트 가이드 페이지 (/dev/*)
-      lib/            ← httpClient.ts, queryClient.ts 등 공용 인프라
-      stores/
-      styles/         ← 디자인 토큰 및 전역 CSS
-      utils/
-    test/
-```
-
-### 6.1 앱 계층
-
-- `apps/*/pages`: 실제 라우트 단위 화면
-- `apps/*/features`: 화면 내부에서 재사용되는 기능 단위 코드
-- `apps/*/routes`: 앱별 라우터 정의
-- `shared/components`: 공통 UI 컴포넌트 (컴포넌트 종류별 하위 폴더로 분리)
-- `shared/dev`: 개발 전용 가이드 페이지 (프로덕션 빌드와 무관)
-- `shared/hooks`: 공통 훅
-- `shared/lib`: Query Client, fetch 래퍼, 포맷 유틸 같은 공용 인프라 코드
-- `shared/api`: API 함수 또는 API 클라이언트 계층
-- `shared/stores`: Zustand 전역 스토어
-- `shared/styles`: 디자인 토큰 CSS 및 전역 스타일
-- `shared/utils`: 날짜, 문자열, 정렬 등 공용 유틸리티
-- `mocks`: MSW 브라우저 mock 구성
-- `test`: 테스트 설정 및 공통 테스트 유틸
-
-이 설계안을 사용하는 이유는 다음과 같다.
-
-- 페이지 단위 코드와 기능 단위 코드를 분리하기 쉽다.
-- 앱별 분리가 가능해진다.
-- 공통 코드가 어느 위치에 있어야 하는지 빠르게 판단할 수 있다.
-- 초기에는 단순 구조로 시작하더라도, 나중에 멀티앱 구조로 확장하기 쉽다.
-
-즉, 이 설계안은 "지금 당장 강제 규칙"이 아니라 "증설 시 기준점"으로 이해하면 된다.
-
-- `src/apps/admin/pages`: 관리자 라우트에서 직접 보여주는 페이지 컴포넌트
-- `src/apps/admin/features`: 관리자 화면 내부에서 재사용되는 기능 단위 컴포넌트
-- `src/apps/admin/routes`: 관리자 앱 라우팅 정의
-- `src/apps/client`, `src/apps/consumer`: 추후 확장을 위한 골격 디렉터리
-
-현재 구현된 예시는 아래와 같다.
-
-- `src/apps/admin/pages/LoginPage.tsx`: 관리자 로그인 화면
-- `src/apps/admin/pages/MainPage.tsx`: 관리자 메인 페이지
-- `src/apps/admin/routes/AdminRoutes.jsx`: 관리자 앱 라우트 목록
-- `src/apps/admin/layout/adminSidebarMenu.ts`: 관리자 메뉴 메타데이터
-- `src/apps/admin/hooks/useDashboardInfo.ts`: 대시보드 Query wrapper 예시
-- `src/shared/auth/hooks/useCurrentUser.ts`: auth/me Query wrapper
-- `src/shared/auth/hooks/useAuthLoginMutation.ts`: 로그인 mutation wrapper
-- `src/shared/auth/hooks/useAuthLogoutMutation.ts`: 로그아웃 mutation wrapper
-
-참고:
-
-- `PlantPage.tsx`, `usePlantList.ts`는 Query 구조 검증용 시범 연결 상태이며, 현재 우선 구현 대상으로 확정된 화면은 아니다.
-- 즉 사업장 조회는 구조 예시로 남아 있으나, 실제 테이블 UX와 기능 범위는 추후 다시 정리될 수 있다.
-
-### 6.2 shared 계층
-
-- `src/shared/api`: 공용 API 함수 및 query key
-  - 예: `queryKeys.ts`
-- `src/shared/auth`: 인증 컨텍스트와 Provider
-  - 예: `AuthContext.tsx`, `AuthProvider.jsx`
-- `src/shared/lib`: Query Client 등 공용 인프라
-- `src/shared/routes`: 앱 공통 라우트 엔트리
-- `src/shared/styles`: reset, fonts, design token, global style 진입점
-- `src/shared/assets`: 공용 정적 리소스
-  - `src/shared/assets/icons/sprite.svg` : SVG 스프라이트 (전체 아이콘을 `<symbol>` 로 관리)
-  - `src/shared/assets/icons/Icon.tsx` : `<svg><use>` 기반 아이콘 컴포넌트
-- `src/shared/components`: 공용 UI 컴포넌트 계층
-  - `input/` : TextInput 계열 (InputBase / InputWrapper / TextInput / SelectInput)
-  - `button/` : Button / LinkButton (10가지 변형 × 3가지 크기, `Button.tsx` / `Button.css` / `types.ts` / `index.ts`)
-  - `checkbox/` : CheckboxInput / CheckboxGroup (sm 16px / md 20px / lg 24px, indeterminate 지원)
-  - `radio/` : RadioInput / RadioGroup (sm 14px / md 16px / lg 18px, options 배열 기반 그룹)
-  - `toggle/` : ToggleInput (sm 32×24px / md 40×28px / lg 44×30px, 제어·비제어·loading 지원)
-  - `form-alert/` : FormAlert / DismissibleFormAlert (error·info·guide·success 4가지 유형, 에러 목록·닫기 버튼 지원)
-  - `modal/` : wrapper / base / template 계층을 갖는 공용 모달 체계
-
-### 6.3 모달 폴더 구조 원칙
-
-모달은 `frontend.md`의 공용 컴포넌트 원칙을 따르며, 아래와 같은 3계층 구조를 기준으로 설계한다.
-
-```text
-src/shared/components/modal/
-  wrapper/
-    ModalWrapper.tsx      ← 최하위 공통 껍데기 (Portal, Dimmed, Overlay)
-  base/
-    BaseModal.tsx         ← Header, Body, Footer 공통 골격
-    BaseFormModal.tsx     ← 폼 전용 베이스 (유효성 검사, 전송 로직)
-  template/
-    SaveModal.tsx         ← 저장용 완성형
-    UpdateModal.tsx       ← 수정용 완성형
-    DetailModal.tsx       ← 상세 보기 완성형
-```
-
-현재 저장소의 실제 파일명은 과도기 구조일 수 있다.  
-그러나 신규 모달을 설계할 때는 위와 같은 `wrapper -> base -> template` 책임 분리를 공통 원칙으로 적용한다.
-
-### 6.4 모달 계층별 역할 (예시)
-
-- `wrapper`
-  - React `createPortal` 적용
-  - overlay, dimmed, 배경 클릭 닫기 같은 기계적 동작 담당
-- `base`
-  - Title, close button, footer button 배치 같은 공통 시각 골격 담당
-  - 디자인 시스템 일관성을 유지하는 레이어
-- `template`
-  - 저장, 수정, 상세, 삭제 같은 실제 비즈니스 용도의 완성형 모달
-  - DTO와 연결되는 실제 화면 계층
-  - 저장/수정 시 Audit Trail을 위한 변경 전/후 데이터 비교는 이 레이어에서 처리
-
-### 6.5 `index.ts` 파일의 의미
-
-`src/shared/components/input/index.ts` 같은 파일은 현재 구현체를 담고 있는 파일이라기보다, **배럴 파일(barrel file)** 또는 **공용 export 진입점**으로 사용하기 위한 자리이다.
-
-예를 들어 나중에 아래처럼 구성할 수 있다.
-
-```text
-src/shared/components/input/
-  BaseInput.tsx
-  SearchInput.tsx
-  index.ts
-```
-
-그리고 `index.ts`에서는 다음처럼 export를 모을 수 있다.
-
-```ts
-export { BaseInput } from './BaseInput';
-export { SearchInput } from './SearchInput';
-```
-
-이 방식을 쓰면 import가 단순해진다.
-
-```ts
-import { BaseInput } from '@/shared/components/input';
-```
-
-즉, `index.ts`는 “해당 폴더의 public API 입구” 역할을 한다.
-
-### 6.6 public 디렉터리의 의미
-
-`public` 디렉터리는 Vite가 정적 파일로 그대로 제공하는 경로이다.
-
-현재 포함된 주요 파일은 다음과 같다.
-
-- `public/mockServiceWorker.js`
-  - MSW 브라우저 모킹을 위해 필요한 Service Worker 파일
-- `public/static/fonts/*`
-  - Pretendard 폰트 파일
-
-이 파일들은 import 없이도 고정 경로로 접근할 수 있다.
-
-예시:
-
-- `/mockServiceWorker.js`
-- `/static/fonts/Pretendard-Regular.woff2`
-
-### 6.7 assets 디렉터리의 의미
-
-`src/shared/assets`는 React 코드 안에서 import 하거나 조합해서 사용할 공용 리소스를 두는 위치이다.
-
-현재는 아래 파일이 존재한다.
-
-- `src/shared/assets/icons/sprite.svg`
-
-즉, `public`은 “그대로 제공되는 정적 파일”, `src/shared/assets`는 “코드와 함께 관리되는 에셋”으로 구분하면 된다.
-
----
-
-## 7. 디자인 토큰 시스템
-
-본 프로젝트는 Tailwind CSS를 사용하지 않는다.
-대신 CSS 커스텀 프로퍼티(변수) 기반의 2단계 토큰 구조를 채택하였다.
-
-### 7.1 파일 구조
-
-```text
-shared/styles/
-  primitive-tokens.css   ← 원시값 정의 (색상 팔레트, 간격, 폰트 등)
-  semantic-tokens.css    ← 용도 기반 이름 (컴포넌트에서 이 파일만 참조)
-  global.css             ← 앱 진입점 (reset + fonts + tokens 통합 import)
-  reset.css              ← 브라우저 기본 스타일 초기화
-  fonts.css              ← 폰트 선언
-```
-
-### 7.2 사용 원칙
-
-컴포넌트에서 CSS 변수를 사용할 때는 반드시 `semantic-tokens.css`의 변수만 참조한다.
-`primitive-tokens.css`의 변수는 컴포넌트에서 직접 사용하지 않는다.
-
-```css
-/* 올바른 사용 */
-color: var(--color-text-primary);
-
-/* 금지 — primitive 직접 참조 */
-color: var(--slate-90);
-```
-
-### 7.3 토큰 계층 요약
-
-| 파일                   | 역할           | 예시                                            |
-| ---------------------- | -------------- | ----------------------------------------------- |
-| `primitive-tokens.css` | 원시값 정의    | `--slate-90`, `--orange-60`, `--spacing-8`      |
-| `semantic-tokens.css`  | 용도 기반 매핑 | `--color-text-primary`, `--color-brand-default` |
-
-### 7.4 단위 규칙 (rem)
-
-스타일 값은 `px` 대신 `rem`을 사용한다. 기준은 브라우저 기본값인 **1rem = 16px**이며, 변환식은 `px ÷ 16 = rem`이다.
-간격·폰트·반지름 등 대부분의 수치는 `semantic-tokens.css`의 변수로 제공되므로, 직접 계산 없이 변수를 참조한다.
-변수에 없는 값을 추가할 때만 rem으로 변환하여 작성한다.
-
-```css
-/* 올바른 사용 */
-padding: var(--spacing-5); /* 토큰 우선 */
-margin-top: 0.125rem; /* 2px — 토큰 없을 때만 rem 직접 작성 */
-
-/* 금지 */
-padding: 10px;
-```
-
-### 7.5 컬러 토큰 참고
-
-> 전체 목록: [`src/shared/styles/semantic-tokens.css`](src/shared/styles/semantic-tokens.css)  
-> 원시값 팔레트: [`src/shared/styles/primitive-tokens.css`](src/shared/styles/primitive-tokens.css)
-
-**텍스트**
-
-| 토큰                       | 용도                               |
-| -------------------------- | ---------------------------------- |
-| `--color-text-primary`     | 제목·본문 기본 텍스트              |
-| `--color-text-secondary`   | 부제목·설명 텍스트                 |
-| `--color-text-tertiary`    | 힌트·폼 레이블·캡션                |
-| `--color-text-disabled`    | 비활성 텍스트                      |
-| `--color-text-placeholder` | 인풋 placeholder                   |
-| `--color-text-inverse`     | 어두운 배경(사이드바 등) 위 텍스트 |
-
-**배경**
-
-| 토큰                  | 용도                       |
-| --------------------- | -------------------------- |
-| `--color-bg-app`      | 페이지 전체 배경           |
-| `--color-bg-surface`  | 카드·패널·컨테이너 배경    |
-| `--color-bg-muted`    | 비활성 인풋·읽기 전용 배경 |
-| `--color-bg-hover`    | 리스트 아이템 호버 배경    |
-| `--color-bg-selected` | 선택된 행·메뉴 아이템 배경 |
-
-**보더**
-
-| 토큰                     | 용도                         |
-| ------------------------ | ---------------------------- |
-| `--color-border-default` | 카드·인풋·구분선 기본 테두리 |
-| `--color-border-hover`   | 인풋·카드 호버 시 테두리     |
-| `--color-border-focus`   | 인풋 포커스 시 테두리        |
-| `--color-border-error`   | 유효성 검사 실패 테두리      |
-| `--color-border-success` | 유효성 검사 성공 테두리      |
-
-**브랜드**
-
-| 토큰                    | 용도                            |
-| ----------------------- | ------------------------------- |
-| `--color-brand-default` | 주요 버튼·활성 상태 (`#FF6B2B`) |
-| `--color-brand-hover`   | 버튼 호버                       |
-| `--color-brand-active`  | 버튼 클릭(pressed)              |
-| `--color-brand-subtle`  | 배지·태그·하이라이트 배경       |
-
-**상태**
-
-| 토큰                           | 용도                    |
-| ------------------------------ | ----------------------- |
-| `--color-status-error-default` | 에러 아이콘·강조        |
-| `--color-status-error-bg`      | 에러 배경               |
-| `--color-status-error-text`    | 에러 텍스트 (`#E7000B`) |
-| `--color-status-success-*`     | 성공 상태 (동일 패턴)   |
-| `--color-status-warning-*`     | 경고 상태 (동일 패턴)   |
-| `--color-status-info-*`        | 안내 상태 (동일 패턴)   |
-
-**사이드바** (다크 배경 전용)
-
-| 토큰                          | 용도                      |
-| ----------------------------- | ------------------------- |
-| `--color-sidebar-bg`          | 사이드바 배경 (`#0F172A`) |
-| `--color-sidebar-text`        | 사이드바 기본 텍스트      |
-| `--color-sidebar-text-active` | 활성 메뉴 텍스트          |
-| `--color-sidebar-item-active` | 활성 메뉴 아이템 배경     |
-| `--color-sidebar-item-hover`  | 호버 메뉴 아이템 배경     |
-| `--color-sidebar-border`      | 사이드바 구분선           |
-
-### 7.6 타이포그래피 토큰 참고
-
-> 전체 목록: [`src/shared/styles/semantic-tokens.css`](src/shared/styles/semantic-tokens.css)
-
-**폰트 크기**
-
-| 토큰                        | 크기 | 용도               |
-| --------------------------- | ---- | ------------------ |
-| `--typography-size-caption` | 12px | 라벨·힌트·캡션     |
-| `--typography-size-ui`      | 14px | 버튼·인풋 텍스트   |
-| `--typography-size-body`    | 16px | 본문 기본          |
-| `--typography-size-h3`      | 18px | 서브 헤딩          |
-| `--typography-size-h2`      | 20px | 중간 헤딩          |
-| `--typography-size-h1`      | 24px | 주요 헤딩          |
-| `--typography-size-display` | 36px | 대형 헤딩·KPI 숫자 |
-
-**폰트 굵기**
-
-| 토큰                          | 값  | 용도                   |
-| ----------------------------- | --- | ---------------------- |
-| `--typography-weight-body`    | 400 | 본문                   |
-| `--typography-weight-ui`      | 500 | 버튼·레이블·네비게이션 |
-| `--typography-weight-heading` | 600 | 헤딩·강조              |
-| `--typography-weight-strong`  | 700 | 핵심 강조              |
-
-**줄 높이**
-
-| 토큰                           | 값    | 용도             |
-| ------------------------------ | ----- | ---------------- |
-| `--typography-leading-heading` | 1.25  | 헤딩·짧은 타이틀 |
-| `--typography-leading-ui`      | 1.375 | 인풋·버튼 레이블 |
-| `--typography-leading-body`    | 1.5   | 본문 기본        |
-
----
-
-## 8. 공용 컴포넌트 작성 규칙
-
-`shared/components` 하위 컴포넌트는 아래 규칙을 따른다.
-
-### 8.1 3-레이어 패턴
-
-공용 컴포넌트는 역할에 따라 3개 레이어로 분리한다.
-
-| 레이어      | 역할                                | 예시           |
-| ----------- | ----------------------------------- | -------------- |
-| **Base**    | 순수 컨트롤 박스 (테두리·배경·슬롯) | `InputBase`    |
-| **Wrapper** | 레이블·도움말·레이아웃              | `InputWrapper` |
-| **완성형**  | Base + Wrapper + 기능 조합          | `TextInput`    |
-
-Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립적으로 설계한다.
-예를 들어 `Select`, `Checkbox` 등 신규 컴포넌트 작성 시 `InputWrapper`를 그대로 재사용한다.
-
-모달은 이 원칙을 더 엄격하게 적용한다.
-
-| 레이어      | 역할                                                         | 모달 예시                                 |
-| ----------- | ------------------------------------------------------------ | ----------------------------------------- |
-| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `ModalWrapper`                            |
-| **Base**    | Header, Body, Footer 구조와 버튼 배치 규칙 정의              | `BaseModal`, `BaseFormModal`              |
-| **완성형**  | DTO 연결, 저장/수정/상세 같은 비즈니스 처리                  | `SaveModal`, `UpdateModal`, `DetailModal` |
-
-즉 모달은 단순 시각 컴포넌트가 아니라, 공통 인프라와 공통 골격, 비즈니스 목적을 분리해서 관리해야 한다.
-
-### 8.2 스타일 규칙
-
-- Tailwind CSS를 사용하지 않는다.
-- `semantic-tokens.css`의 CSS 변수만 참조한다.
-- 각 컴포넌트 폴더 내부에 전용 CSS 파일을 작성한다 (예: `Input.css`).
-- 클래스 네이밍은 BEM 방식을 따른다 (예: `.input-control__slot-left`).
-
-### 8.3 타입 규칙
-
-- 신규 컴포넌트는 TypeScript(`.tsx`)로 작성한다.
-- 공통 타입은 컴포넌트 폴더 내 `types.ts`에 정의한다.
-- 폴더 외부에서는 `index.ts` 배럴 파일을 통해서만 import한다.
-
-```ts
-// 올바른 import
-import { TextInput } from '@/shared/components/input';
-import { Button, LinkButton } from '@/shared/components/button';
-import { CheckboxInput, CheckboxGroup } from '@/shared/components/checkbox';
-import { RadioInput, RadioGroup } from '@/shared/components/radio';
-import { ToggleInput } from '@/shared/components/toggle';
-import { FormAlert, DismissibleFormAlert } from '@/shared/components/form-alert';
-import { Icon } from '@/shared/assets/icons/Icon';
-
-// 금지 — 내부 파일 직접 참조
-import { TextInput } from '@/shared/components/input/TextInput';
-import { Button } from '@/shared/components/button/Button';
-```
-
-### 8.4 신규 컴포넌트 추가 절차
-
-1. `shared/components/{컴포넌트명}/` 폴더 생성
-2. `types.ts` → CSS 파일 → Base/Wrapper → 완성형 순서로 작성
-3. `index.ts` 배럴 파일에 공개 API 등록
-4. `shared/dev/{컴포넌트명}Guide.tsx` 가이드 페이지 작성
-5. `DevRoutes.tsx` 및 `DevLayout.tsx` 에 라우트·메뉴 등록
-
-### 8.5 모달 작성 시 추가 원칙
-
-모달은 공용 컴포넌트 중에서도 구조 규칙을 강하게 따른다.
-
-1. `wrapper`는 DOM 분리와 overlay 동작만 담당한다.
-2. `base`는 시각적 골격만 담당한다.
-3. `template`는 실제 DTO와 연결되는 비즈니스 목적 모달만 담당한다.
-4. 저장/수정/삭제 흐름은 가능하면 template 계층에서 명확히 분리한다.
-5. 폼을 포함한 모달은 `BaseFormModal`처럼 별도 베이스를 두고 검증/전송 규칙을 공통화한다.
-6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
-
----
-
-## 9. 개발 전용 가이드 페이지
-
-공용 컴포넌트의 시각적 동작을 확인하기 위한 개발 전용 페이지가 있다.
-
-### 9.1 접근 방법
-
-개발 서버 실행 후 아래 주소로 접속한다.
-
-```text
-http://localhost:3000/dev/input
-```
-
-- 로그인 인증이 필요 없다.
-- 로컬 개발 환경 전용이며 프로덕션 배포와 무관하다.
-
-### 9.2 현재 등록된 가이드
-
-| 경로              | 내용                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| `/dev/input`      | TextInput 크기·상태·레이블 위치·기능 전체 예시                                       |
-| `/dev/select`     | SelectInput 크기·상태·검색·그룹핑·레이블 위치·기능 전체 예시                         |
-| `/dev/modal`      | Modal 크기·상태·레이아웃 전체 예시                                                   |
-| `/dev/button`     | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태·토글·실사용 조합 예시          |
-| `/dev/checkbox`   | CheckboxInput 크기·상태·indeterminate·그룹·약관 동의 실사용 예시                     |
-| `/dev/radio`      | RadioInput / RadioGroup 크기·상태·설명·그룹(col/row)·controlled·실사용 조합 예시     |
-| `/dev/toggle`     | ToggleInput 크기·상태(ON/OFF/disabled/loading)·레이블 위치·controlled·설정 화면 예시 |
-| `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기·DismissibleFormAlert·로그인 폼 실사용 예시     |
-
-### 9.3 신규 가이드 추가 방법
-
-1. `shared/dev/{컴포넌트명}Guide.tsx` 파일 생성
-2. `shared/dev/DevRoutes.tsx`에 라우트 추가
-
-```ts
-// DevRoutes.tsx
-import ButtonGuide from './ButtonGuide';
-
-{ path: 'button', element: <ButtonGuide /> },
-```
-
-3. `shared/dev/DevLayout.tsx`의 `NAV_ITEMS` 배열에 메뉴 등록
-
-```ts
-const NAV_ITEMS = [
-  { path: '/dev/input', label: 'TextInput' },
-  { path: '/dev/button', label: 'Button' }, // 추가
-];
-```
-
----
-
-## 10. 사전 준비 사항
-
-프로젝트 실행 전 아래 항목이 준비되어 있어야 한다.
-
-### 10.1 필수 설치 도구
-
-- `Node.js` 20 이상 권장
-- `npm` 사용
-- `Java 17` 이상
-- 백엔드 서버 실행 환경
-
-### 10.2 확인해야 할 사항
-
-- 백엔드 서버가 `8080` 포트에서 정상 기동 중인지 확인한다.
-- 프론트엔드 디렉터리는 `frontend`인지 확인한다.
-- 명령어는 반드시 `frontend` 디렉터리에서 실행한다.
-
-예시:
-
-```powershell
-cd C:\Users\user\Desktop\k-digital\DEV\qr_order\frontend
-```
-
-### 10.3 백엔드가 `8080`에서 정상 기동 중인지 확인하는 방법
-
-가장 확실한 방법은 로그 확인이다.  
-Spring Boot 실행 로그에 아래와 유사한 문구가 보이면 정상 기동으로 판단할 수 있다.
+Spring Boot 실행 로그에 아래 문구가 보이면 정상이다.
 
 ```text
 Tomcat started on port 8080 (http) with context path '/'
 Started QROrderApplication
 ```
 
-추가로 아래 방법으로도 확인할 수 있다.
-
-1. VS Code의 Java Extension 또는 Spring Boot Dashboard에서 애플리케이션이 `Running` 상태인지 본다.
-2. 브라우저에서 `http://localhost:8080`에 접속해본다.
-3. PowerShell에서 포트 사용 여부를 확인한다.
-
-예시:
+PowerShell에서 포트 확인:
 
 ```powershell
 netstat -ano | findstr :8080
-tasklist /FI "PID eq <Listening 옆 번호 - PiD>"
 ```
-
-여기서 중요한 점은 다음과 같다.
-
-- 브라우저에서 `http://localhost:8080`을 입력했을 때 화면이 반드시 예쁘게 보여야 하는 것은 아니다.
-- 로그인 페이지가 바로 뜨지 않아도, 404 또는 Spring Security 응답이 나오면 "서버는 떠 있다"는 뜻일 수 있다.
-- 즉, 브라우저 확인은 "정상 서비스 확인"이 아니라 "포트에서 서버 응답이 오는지 확인"하는 용도이다.
-
-따라서 질문한 방식처럼 VS Code에서 Spring Boot를 실행하고, 크롬에서 `http://localhost:8080`을 입력해보는 것은 유효한 확인 방법이다.  
-다만 가장 정확한 기준은 여전히 서버 로그의 `Tomcat started on port 8080` 문구이다.
 
 ---
 
-## 11. 설치 절차
-
-### 11.1 의존성 설치
-
-아래 명령어를 실행한다.
+## 6. 설치 및 실행
 
 ```powershell
+# 의존성 설치
 npm install
-```
 
-설치가 완료되면 `node_modules`와 `frontend/package-lock.json`이 생성 또는 갱신된다.
-
-### 11.2 설치 후 확인 포인트
-
-설치가 끝났다고 바로 개발을 시작하지 말고, 아래 3가지를 먼저 확인한다.
-
-```powershell
+# 설치 후 확인
 npm run lint
 npm run typecheck
 npm test
-```
 
-위 명령이 모두 통과하면 현재 개발 환경은 정상으로 판단할 수 있다.
-
----
-
-## 12. 실행 절차
-
-### 12.1 프론트 개발 서버 실행
-
-```powershell
+# 개발 서버 실행
 npm run dev
 ```
 
-실행 후 브라우저에서 아래 주소로 접속한다.
-
-```text
-http://localhost:3000
-```
-
-### 12.2 백엔드와 함께 사용할 때
-
-프론트는 `/api` 요청을 자동으로 `http://localhost:8080`으로 전달한다.  
-따라서 백엔드가 켜져 있어야 로그인, 세션 확인, 데이터 조회 같은 기능이 정상 작동한다.
-
-백엔드가 꺼져 있으면 다음과 같은 현상이 발생할 수 있다.
-
-- 로그인 실패
-- 사용자 정보 조회 실패
-- 목록 조회 실패
-- 네트워크 오류 메시지 발생
-
-### 12.3 개발 모킹(MSW) 모드와 실제 백엔드 모드
-
-초보 개발자가 가장 많이 헷갈리는 부분은 "지금 API가 실제 백엔드로 가는지, MSW가 응답하는지"이다.  
-아래 기준으로 구분하면 된다.
-
-#### 12.3.1 개발 모킹(MSW) 모드
-
-- 권장 명령: `npm run dev:mock`
-- 동작: 브라우저에서 MSW가 요청을 가로챈다.
-- 인증 관련(`/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)은 `src/test/handlers.js`의 커스텀 응답을 우선 사용한다.
-- 그 외 다수 API는 `src/generated/*.msw.ts`에서 생성된 핸들러를 `src/mocks/handlers.ts`에서 통합 등록한다.
-- 장점: 백엔드가 없어도 로딩/성공/실패 UI를 안정적으로 확인할 수 있다.
-- 참고: `npm run dev`도 사용할 수 있으며, 기본값은 MSW 활성 상태다.
-
-관련 파일:
-
-- `src/main.jsx`: 개발 환경(`import.meta.env.DEV`)에서만 worker 시작
-- `src/mocks/browser.js`: 브라우저 worker 설정
-- `public/mockServiceWorker.js`: Service Worker 스크립트
-
-#### 12.3.2 실제 백엔드 모드
-
-방법 A. 개발 서버 유지 (`npm run dev:real`)
-
-- `VITE_ENABLE_MSW=false`로 실행되므로 MSW가 시작되지 않는다.
-- `/api` 요청은 Vite proxy를 통해 `http://localhost:8080`으로 전달된다.
-
-방법 A-2. 기존 명령 유지 (`npm run dev`)
-
-- 기존 `npm run dev`도 계속 사용 가능하다.
-- 다만 이 경우 기본값이 MSW 활성 상태이므로, 실제 백엔드 확인 목적이면 `npm run dev:real`을 권장한다.
-
-방법 B. 빌드 결과 확인
+빌드 결과는 백엔드 정적 리소스 경로로 출력된다.
 
 ```powershell
 npm run build
-npm run preview
+# → ../qrorder/src/main/resources/static
 ```
-
-- `preview`는 개발 모드가 아니므로 MSW가 시작되지 않는다.
-- 따라서 실제 백엔드 연동 상태를 확인하기 쉽다.
-
-주의:
-
-- 현재 `package.json`에는 `npm run start` 스크립트가 없다.
-- 빌드 결과를 로컬에서 확인할 때는 `npm run preview`를 사용한다.
-
-#### 12.3.3 빠른 체크리스트
-
-1. 브라우저 콘솔에 MSW 활성 로그가 보이는가
-2. 목록 조회 화면에서 데이터가 표시되는가
-3. 백엔드 실행 후 네트워크 탭에서 `localhost:8080` 호출이 보이는가
-4. 실패 핸들러를 적용했을 때 에러 UI가 표시되는가
 
 ---
 
-## 13. 사용 가능한 스크립트
+## 7. 사용 가능한 스크립트
 
-`package.json`에는 아래 스크립트가 정의되어 있다.
+| 스크립트 | 설명 |
+|---|---|
+| `npm run dev` | Vite 개발 서버 실행 (포트 3000, MSW 기본 활성) |
+| `npm run dev:mock` | MSW 활성화 개발 서버 |
+| `npm run dev:real` | MSW 비활성화 개발 서버 (실제 백엔드 연동) |
+| `npm run lint` | ESLint 검사 |
+| `npm run typecheck` | TypeScript 타입 검사 |
+| `npm test` | Vitest 1회 실행 |
+| `npm run test:watch` | 테스트 감시 모드 |
+| `npm run test:coverage` | 커버리지 보고서 생성 (`coverage/` 디렉터리) |
+| `npm run build` | 프로덕션 빌드 |
+| `npm run preview` | 빌드 결과 로컬 미리보기 |
+| `npm run generate:schema` | 백엔드에서 OpenAPI 명세 저장 (백엔드 필요) |
+| `npm run generate` | `openapi.json` 기반 코드 재생성 |
 
-### 13.1 개발 서버
-
-```powershell
-npm run dev
-```
-
-- Vite 개발 서버를 실행한다.
-- 기본 포트는 `3000`이다.
-
-```powershell
-npm run dev:mock
-```
-
-- MSW를 활성화한 개발 서버를 실행한다.
-- 백엔드 없이도 화면 흐름을 점검할 수 있다.
-
-```powershell
-npm run dev:real
-```
-
-- MSW를 비활성화한 개발 서버를 실행한다.
-- 실제 백엔드 연동 상태를 확인할 때 사용한다.
-
-### 13.2 린트 검사
-
-```powershell
-npm run lint
-```
-
-- ESLint 규칙 위반 여부를 검사한다.
-- 코드 스타일과 잠재적 실수를 빠르게 확인할 수 있다.
-
-### 13.3 타입 검사
-
-```powershell
-npm run typecheck
-```
-
-- TypeScript 타입 검사를 수행한다.
-- 현재는 `allowJs` 기반으로 동작하므로 JS/JSX 프로젝트에서도 점진적으로 타입 기준을 강화할 수 있다.
-
-### 13.4 테스트 실행
-
-```powershell
-npm test
-```
-
-- Vitest 테스트를 1회 실행한다.
-
-```powershell
-npm run test:watch
-```
-
-- 테스트를 감시 모드로 실행한다.
-
-```powershell
-npm run test:coverage
-```
-
-- 커버리지 보고서를 생성한다.
-- 결과는 `coverage` 디렉터리에 생성된다.
-- 이 보고서는 "테스트가 몇 개 있나"를 보는 용도가 아니라, 어떤 파일과 분기문이 테스트되지 않았는지를 확인하는 용도로 사용한다.
-- 일반적으로 기능 추가 후 테스트 누락 영역을 찾거나, 리팩터링 전에 위험 구간을 파악할 때 확인한다.
-- 사용 방법은 coverage 파일의 html을 실행시키면 된다(live server나 다른 브라우저로)
-
-### 13.5 빌드
-
-```powershell
-npm run build
-```
-
-- 프론트엔드 결과물을 빌드한다.
-- 빌드 결과는 현재 설정 기준으로 백엔드 정적 리소스 경로인 아래 위치로 출력된다.
+### API 코드 생성 흐름
 
 ```text
-../qrorder/src/main/resources/static
+Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW 핸들러)
 ```
 
-즉, 프론트 단독 배포가 아니라 백엔드 정적 리소스와 연결하는 방식에 맞춘 설정이다.
-
-### 13.6 API 코드 생성
-
-본 프로젝트는 Orval을 사용해 OpenAPI 명세로부터 API 함수, TanStack Query 훅, MSW 핸들러를 자동 생성한다.
-
-**전체 흐름:**
-
-```text
-Spring Boot Swagger → openapi.json → src/generated/types/schema.d.ts + src/generated/ (API 함수·훅·MSW 핸들러)
-```
-
-**명령어:**
-
-```powershell
-# 백엔드 기동 후 — OpenAPI 명세를 openapi.json으로 저장
-npm run generate:schema
-
-# 백엔드 불필요 — openapi.json 기반으로 전체 코드 재생성
-npm run generate
-```
-
-**사용 시점:**
-
-1. 프로젝트 최초 세팅 시: `npm run generate` 1회 실행
-2. 백엔드 API(DTO, 엔드포인트)가 변경된 경우:
-   ```powershell
-   npm run generate:schema  # 명세 갱신 (백엔드 켜야 함)
-   npm run generate         # 코드 재생성
-   ```
-
-**CI 검증 방식:**
-
-- CI는 `generate:schema`를 실행하지 않는다.
-- 저장소에 커밋된 `openapi.json`을 기준으로 `npm run generate`만 다시 실행한다.
-- 이때 `src/generated/`에 diff가 생기면 codegen drift로 판단하고 CI를 실패시킨다.
-- 실패 시 "`npm run generate` 후 `frontend/src/generated`를 커밋하라"는 안내 메시지를 출력한다.
-
-**주의:**
-
-- `src/generated/` 하위 파일은 직접 수정하지 않는다. 다음 `generate` 실행 시 덮어씌워진다.
-- `openapi.json`은 git에 커밋한다. 팀원 전체가 동일한 명세 기준으로 작업할 수 있다.
-- (중요) CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema` 후 `npm run generate` 결과를 함께 커밋해야 한다.
-- 상세 내용은 `docs/api-codegen.md`를 참고한다.
-
-### 13.7 현재 Query 구조
-
-현재는 generated 훅을 페이지에서 직접 사용하지 않고, 필요한 곳부터 wrapper 훅으로 감싸는 방식으로 정리 중이다.
-
-- `auth/me` → `src/shared/auth/hooks/useCurrentUser.ts`
-- `login` → `src/shared/auth/hooks/useAuthLoginMutation.ts`
-- `logout` → `src/shared/auth/hooks/useAuthLogoutMutation.ts`
-- `dashboard/info` → `src/apps/admin/hooks/useDashboardInfo.ts`
-
-공통 query key는 `src/shared/api/queryKeys.ts`에서 관리한다.
-
-예시:
-
-```ts
-queryKeys.auth.me;
-queryKeys.dashboard.info;
-queryKeys.menu.admin;
-```
-
-운영 메모:
-
-- 위 세 key가 현재 합의된 표준 key의 시작점이다.
-- 기능별 `list/detail/search` key는 실제 화면 연결이 확정될 때 추가한다.
-- 사업장 조회용 key는 현재 화면 방향이 보류 상태이므로 표준 규칙에 포함하지 않는다.
+- `src/generated/` 하위 파일은 직접 수정하지 않는다.
+- `openapi.json`은 git에 커밋한다.
+- 상세 내용: [`docs/api-codegen.md`](./docs/api-codegen.md)
 
 ---
 
-## 14. 주요 설정 파일 설명
+## 8. MSW 모드 전환
 
-### 14.1 `vite.config.js`
+| 모드 | 명령 | 설명 |
+|---|---|---|
+| MSW 활성 (기본) | `npm run dev` | 브라우저에서 MSW가 요청을 가로챔 |
+| MSW 활성 | `npm run dev:mock` | 위와 동일, 명시적 |
+| 실제 백엔드 | `npm run dev:real` | MSW 비활성, Vite proxy → 8080 |
+| 실제 백엔드 | `npm run build && npm run preview` | 프로덕션 빌드 확인 |
 
-역할은 다음과 같다.
-
-- React 플러그인 활성화
-- `@` 별칭을 `src` 루트에 연결
-- 개발 서버 포트 `3000` 지정
-- `/api` 요청을 `8080` 백엔드로 프록시
-- Vitest 테스트 환경 설정
-- 빌드 결과물 출력 위치 지정
-
-### 14.2 `tsconfig.json`
-
-- TypeScript 컴파일 기준 정의
-- `@/* -> src/*` 경로 별칭 정의
-- JSX를 React 기준으로 해석
-- 현재 JS/JSX 코드도 점진적으로 수용
-- 타입 검사만 수행하고 실제 파일 출력은 하지 않음
-
-### 14.3 `eslint.config.js`
-
-- 코드 품질 검사 규칙 정의
-- React Hooks 규칙 검사
-- React Fast Refresh 관련 규칙 검사
-- TypeScript ESLint 규칙 적용
-- Prettier와 충돌하는 포맷 규칙 제거
-
-### 14.4 `.prettierrc.json`
-
-- 세미콜론 사용
-- 작은따옴표 사용
-- trailing comma 유지
-- 줄 길이 기준 설정
-
-즉, 코드 포맷을 팀 기준으로 통일하기 위한 파일이다.
-
-### 14.5 `src/main.jsx`
-
-- React 앱 진입점
-- `import.meta.env`를 기준으로 MSW 활성화 여부를 판단
-- `@/shared/styles/global.css`를 먼저 로드하고 앱을 렌더링
-
-### 14.6 `src/App.jsx`
-
-- `BrowserRouter`, `QueryClientProvider`, `AuthProvider`를 앱 최상단에 연결
-- 라우팅, 서버 상태 관리, 인증 컨텍스트의 시작점 역할
-- `AuthProvider`는 `auth/me` Query 캐시를 기반으로 인증 상태를 계산한다
-
-### 14.7 `src/shared/styles/*`
-
-현재 스타일 구조는 아래 파일들로 나뉜다.
-
-- `reset.css`: 브라우저 기본 스타일 초기화
-- `fonts.css`: `public/static/fonts`의 Pretendard 폰트 선언
-- `primitive-tokens.css`: 원시 디자인 토큰
-- `semantic-tokens.css`: 의미 기반 토큰
-- `global.css`: 위 파일들을 한 번에 로드하는 진입점
-
-### 14.8 `src/shared/components/*/index.ts`
-
-- 공용 컴포넌트 폴더의 export 진입점으로 사용하기 위한 파일
-- 현재는 골격 수준이지만, 이후 컴포넌트 구현이 들어오면 이 파일이 import 단순화 역할을 맡게 된다
-
-### 14.9 `src/test/*`
-
-역할은 다음과 같다.
-
-- `setup.js`: 테스트 시작 전 공통 초기화
-- `server.js`: Node 테스트 환경에서 MSW 서버 설정
-- `handlers.js`: 테스트용 API 응답 정의
-
-### 14.10 `public/*`
-
-- `mockServiceWorker.js`: 브라우저 MSW 동작에 필요한 worker 스크립트
-- `static/fonts/*`: Pretendard 폰트 정적 파일
-
-### 14.11 인증 구조
-
-현재 인증 구조는 아래 흐름을 따른다.
-
-```text
-login mutation 성공
--> auth/me 캐시 갱신
--> AuthProvider가 Query 캐시를 읽어 인증 상태 계산
--> 보호 라우트가 /admin/* 접근 허용
-```
-
-관련 파일:
-
-- `src/shared/auth/AuthProvider.jsx`
-- `src/shared/auth/hooks/useCurrentUser.ts`
-- `src/shared/auth/hooks/useAuthLoginMutation.ts`
-- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+**브라우저 콘솔에 MSW 활성 로그가 보이면 mock 모드로 동작 중이다.**
 
 ---
 
-## 15. 테스트 도구 구성 설명
+## 9. 자주 발생하는 문제
 
-현재 테스트는 `Vitest + Testing Library + MSW` 조합으로 구성하였다.
+### `npm install` 중 의존성 충돌
 
-### 15.1 왜 Jest 대신 Vitest를 사용하는가
-
-본 프로젝트는 Vite 기반 프로젝트이므로 테스트 도구도 Vite 생태계와 잘 맞는 구성이 유리하다.  
-이 때문에 `Jest` 대신 `Vitest`를 채택하였다.
-
-선정 이유는 다음과 같다.
-
-- Vite 프로젝트와 통합이 자연스럽다.
-- 설정량이 비교적 적다.
-- 실행 속도가 빠르다.
-- 별도 변환 체계 구성이 단순하다.
-- 기본적으로 개발 서버 구조와 철학이 유사해 유지보수 부담이 낮다.
-
-정리하면, 본 프로젝트에서는 `Jest`보다 `Vitest`가 초기 설정 비용과 운영 부담이 더 낮다고 판단하였다.
-
-### 15.2 왜 Testing Library를 사용하는가
-
-`Testing Library`는 테스트 실행기가 아니다.  
-이 도구는 "무엇을 어떻게 찾고 검증할 것인가"를 담당하는 테스트 보조 라이브러리이다.
-
-즉, 두 도구의 역할은 다음과 같이 다르다.
-
-- `Vitest`: 테스트를 실행하는 도구
-- `Testing Library`: 화면 요소를 사용자 관점에서 찾고 검증하는 도구
-
-따라서 `Vitest`와 `Testing Library`는 서로 경쟁 관계가 아니라 함께 사용하는 조합이다.
-
-선정 이유는 다음과 같다.
-
-- 사용자가 실제로 보는 텍스트, 버튼, 입력 요소 중심으로 테스트하게 만든다.
-- 구현 상세보다 화면 동작을 기준으로 테스트하게 만들어 불필요한 결합을 줄인다.
-- 화면 내부 구현이 바뀌어도 사용자 동작이 유지되면 테스트를 계속 활용할 수 있다.
-
-### 15.3 왜 MSW를 사용하는가
-
-`MSW(Mock Service Worker)`는 실제 네트워크 요청을 가로채서 가짜 응답을 반환할 수 있게 해준다.
-
-선정 이유는 다음과 같다.
-
-- 현재 백엔드가 존재하더라도, 프론트 테스트는 백엔드 기동 여부와 분리해서 빠르게 실행하는 편이 유리하다.
-- 백엔드 API가 아직 완전히 확정되지 않아도 프론트 테스트를 진행할 수 있다.
-- 테스트에서 `fetch`를 직접 mock 처리하는 것보다 구조가 실제 사용 환경과 가깝다.
-- 로그인 성공/실패, 인증 만료, 조회 실패 같은 시나리오를 쉽게 재현할 수 있다.
-
-즉, API 명세가 변동될 가능성이 있는 프로젝트에서 프론트 개발과 테스트를 분리하기에 적합하다.
-
----
-
-## 16. 라이브러리 선정 이유
-
-본 절에서는 현재 채택한 주요 라이브러리와 그 이유를 정리한다.
-
-### 16.1 React
-
-사용 목적:
-
-- 화면 렌더링
-- 컴포넌트 기반 UI 구성
-- 상태와 이벤트 처리
-
-선정 이유:
-
-- 팀 단위 개발에서 가장 일반적인 선택지 중 하나이다.
-- 컴포넌트 단위 재사용 구조를 만들기 쉽다.
-- 관리자/사업자/소비자 앱으로 확장할 때 구조적 이점이 크다.
-
-### 16.2 React Router DOM
-
-사용 목적:
-
-- 페이지 라우팅
-- 보호 라우트 처리
-- 중첩 라우트 처리
-
-선정 이유:
-
-- React 기반 웹 애플리케이션에서 사실상 표준적인 선택지이다.
-- 로그인 페이지, 대시보드, 시스템 관리 화면처럼 URL 단위 분리가 필요한 현재 구조와 잘 맞는다.
-
-### 16.3 TypeScript
-
-사용 목적:
-
-- 타입 안정성 확보
-- API 응답 구조 명시
-- 컴포넌트 Props 검증
-
-선정 이유:
-
-- 화면이 늘어날수록 JS 단독 운영은 유지보수 비용이 빠르게 증가한다.
-- 백엔드 API 명세와 프론트 모델을 연결할 때 실수를 줄일 수 있다.
-- 팀 협업 시 코드 의도를 더 명확하게 전달할 수 있다.
-
-### 16.4 TanStack Query
-
-사용 목적:
-
-- 서버 조회 데이터 캐싱
-- 로딩/에러/재조회 상태 관리
-- 비동기 API 호출 표준화
-
-선정 이유:
-
-- 서버 상태와 UI 상태를 분리한다는 현재 프론트 규칙과 잘 맞는다.
-- 단순 조회 화면이 많은 관리자 프로젝트에서 반복 코드를 줄이는 효과가 크다.
-- 캐싱과 재요청 제어를 수동 구현하지 않아도 된다.
-
-### 16.5 Zustand
-
-사용 목적:
-
-- 전역 UI 상태 관리
-- 사이드바 열림/닫힘, 메뉴 펼침 상태, 모달 상태 등 공용 UI 상태 관리
-
-선정 이유:
-
-- Redux보다 초기 진입 장벽이 낮다.
-- 보일러플레이트가 적다.
-- 서버 상태는 TanStack Query, UI 전역 상태는 Zustand로 역할을 분리하기 좋다.
-
-주의:
-
-- 사용자 정보와 세션 확인은 현재 Query 캐시로 관리한다.
-- 관리자 메뉴 데이터는 현재 정적 상수로 관리한다.
-- 따라서 Zustand는 메뉴 원본 데이터가 아니라 메뉴 표시 상태만 관리한다.
-
-### 16.6 Zod
-
-사용 목적:
-
-- API 응답 검증
-- 입력값 검증
-- DTO 형태 검증
-
-선정 이유:
-
-- 백엔드 응답 계약이 변경되거나 흔들릴 때 프론트에서 빠르게 감지할 수 있다.
-- TypeScript 타입 선언만으로는 막을 수 없는 런타임 데이터 오류를 보완할 수 있다.
-
-### 16.7 Day.js
-
-사용 목적:
-
-- 날짜 포맷팅
-- 기간 계산
-- 조회 조건 날짜 처리
-
-선정 이유:
-
-- 접속이력, 변경이력, 쿠폰 기간 등 날짜 처리 요구가 명세에 많다.
-- 사용법이 비교적 단순하고 번들 부담이 크지 않다.
-
-### 16.8 ESLint
-
-사용 목적:
-
-- 코드 품질 점검
-- 위험한 패턴 사전 방지
-
-선정 이유:
-
-- 팀원이 늘어날수록 스타일 차이보다 "실수 방지"가 더 중요해진다.
-- React Hooks 규칙 위반, 사용하지 않는 변수, 구조적 문제를 빠르게 찾을 수 있다.
-
-### 16.9 Prettier
-
-사용 목적:
-
-- 코드 포맷 자동 정리
-
-선정 이유:
-
-- 코드 리뷰에서 포맷 논쟁을 줄일 수 있다.
-- 사람이 직접 맞추는 스타일 규칙을 도구가 대신 처리해준다.
-
-### 16.10 Vitest
-
-사용 목적:
-
-- 단위 테스트 및 컴포넌트 테스트 실행
-
-선정 이유:
-
-- Vite와 결합이 자연스럽다.
-- Jest 대비 초기 설정 비용이 낮다.
-- `jsdom` 환경과 커버리지 구성도 비교적 간단하다.
-
-### 16.11 Testing Library
-
-사용 목적:
-
-- 실제 사용자 관점의 컴포넌트 테스트 작성
-
-선정 이유:
-
-- 화면 텍스트, 버튼, 입력 요소 중심으로 테스트하게 만들어 유지보수성이 좋다.
-- 구현 세부사항이 바뀌어도 사용자 동작이 유지되면 테스트를 계속 활용할 수 있다.
-
-### 16.12 MSW
-
-사용 목적:
-
-- API mock
-- 테스트 환경 네트워크 응답 제어
-- 백엔드 미완성 구간 대응
-
-선정 이유:
-
-- 실제 네트워크 호출 흐름에 가까운 테스트가 가능하다.
-- 로그인 성공/실패, 인증 만료, 조회 실패 같은 시나리오를 쉽게 재현할 수 있다.
-
----
-
-## 17. 현재 단계에서 반드시 이해해야 할 운영 원칙
-
-### 17.1 서버 상태와 UI 상태를 분리한다
-
-- 서버 데이터 조회: `TanStack Query`
-- 전역 UI 상태: `Zustand`
-
-이 원칙을 지키지 않으면 상태가 서로 섞여 화면이 복잡해지고 유지보수성이 크게 떨어진다.
-
-### 17.2 저장/수정/삭제 응답은 공통 응답 구조를 따른다
-
-명세 기준으로 저장성 API는 `CommonResponse` 구조를 반환한다.
-
-예시:
-
-```json
-{ "success": true, "message": "성공 메시지" }
-```
-
-또는
-
-```json
-{ "success": false, "message": "에러 메시지", "error": "상세 오류" }
-```
-
-프론트에서는 이 구조를 공통 처리해야 한다.
-
-### 17.3 브라우저 기본 alert 사용을 지양한다
-
-현재 프론트 목표 문서 기준으로 `window.alert`, `window.confirm`, `window.prompt`는 사용하지 않는다.  
-반드시 커스텀 모달 구조로 통일해야 한다.
-
-### 17.4 기능 리팩토링 규칙
-
-공통코드 관리 화면부터는 기능 리팩토링 시 아래 순서를 기본 원칙으로 사용한다.
-
-1. 페이지는 조립만 담당한다
-
-- `pages/*`는 레이아웃과 feature 컴포넌트 조합만 맡는다.
-- 서버 조회, draft 편집, 저장/삭제 흐름은 feature hook으로 위임한다.
-
-2. 서버 상태와 UI 상태를 분리한다
-
-- 서버 조회/재조회: `TanStack Query`
-- 선택 상태, 모달 열림, 입력 draft, 체크 상태: 로컬 state 또는 feature hook
-
-3. generated API는 화면에서 직접 호출하지 않는다
-
-- `generated/*`는 feature 전용 API wrapper에서만 사용한다.
-- DTO -> 화면 모델 변환, payload 조합, query key 지정은 feature `api/*` 계층에서 처리한다.
-
-4. 리팩토링은 feature 내부 분리부터 시작한다
-
-- 바로 `shared`로 올리지 않는다.
-- 한 기능에서 2회 이상 반복되거나, 다른 기능에도 같은 흐름이 확인되면 그때 shared 승격을 검토한다.
-
-5. `normalize`, `map`, `buildRequest` 같은 유틸은 feature 가까이에 둔다
-
-- 예: `normalizeOrdNo`, `mapCommonDetailToRow`, `buildCommonDetailRequest`
-- 이런 함수는 도메인 의미가 강하므로 우선 `features/<domain>/api` 또는 `features/<domain>/hooks`에 둔다.
-- 여러 기능에서 같은 입력/출력 계약으로 반복될 때만 공용 유틸로 뺀다.
-
-6. API wrapper의 변환 함수 이름은 방향이 드러나게 통일한다
-
-- DTO -> 화면 모델: `mapTo[Entity]Model`
-- 화면 모델 -> 저장 payload: `mapTo[Entity]Payload`
-- 예:
-  - `mapToCommonMasterModel`
-  - `mapToCommonDetailModel`
-  - `mapToCommonMasterPayload`
-- 이 규칙은 `features/<domain>/api/*` 계층에서 우선 적용한다.
-
-7. 모달 재사용은 "컴포넌트"보다 "흐름"을 먼저 본다
-
-- `SaveConfirmModal`, `DeleteConfirmModal`, `SimpleDefaultModal` 같은 표시 컴포넌트는 이미 공용이다.
-- 앞으로 재사용 대상은 `저장 요청 -> 저장 확인 -> 결과 안내` 같은 CRUD 흐름 상태 훅이다.
-
-8. 목록 상태와 공통 flow를 나눌 수 있으면 분리한다
-
-- 특히 업무형 CRUD 화면은 아래 두 층으로 분리하는 편이 유지보수에 유리하다.
-  - `use<Feature>ListState`
-    - 조회 결과(baseRows)
-    - 로컬 draftRows
-    - 선택 행
-    - 행 추가/삭제
-    - 필드 수정
-    - 필수값 검증과 rowErrors
-  - `use<Feature>Flow`
-    - 조회 전 dirty 확인
-    - 저장 확인
-    - 저장 완료/오류 안내
-    - 삭제 전 안내/확인
-    - 초기화/부가 액션 모달 흐름
-- 이 패턴은 `AdminUser`에서 먼저 적용했다.
-
-9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
-
-- 현재 권장 형태:
-
-```ts
-const {
-  data,
-  status,
-  actions,
-  uiProps,
-} = useSomeFeaturePage();
-```
-
-- 의미:
-  - `data`: 화면 렌더링에 필요한 서버/화면 모델
-  - `status`: query/mutation 진행 상태
-  - `actions`: 사용자 이벤트 핸들러
-  - `uiProps`: draft, selectedId, modal state 같은 화면 전용 상태
-- 이 구조는 `PlantSearch`, `AdminUser`에서 적용 중이다.
-
-10. 리팩토링 후 테스트도 레이어에 맞춰 나눈다
-
-- `list state` 훅: draft/dirty/검증/행 추가삭제 테스트
-- `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
-- UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
-- 즉, 화면 전체 E2E처럼 한 파일에 몰지 않고 "상태 전이"와 "렌더 계약"을 나눠 검증한다.
-
-11. 리팩토링 요약
-
-- 페이지 조립
-- 목록 상태 훅 (`use<Feature>ListState`)
-- feature hook
-- API wrapper
-- 모달 흐름 상태 (`use<Feature>Flow`)
-  순서로 정리한다.
-
-적용 예시:
-
-- `CommonCode`
-  - 페이지 조립 + 상태 훅 + 마스터/디테일 flow 훅
-- `PlantSearch`
-  - 페이지 조립 + feature hook + API wrapper
-- `AdminUser`
-  - 페이지 조립 + `useAdminUserListState` + `useAdminUserFlow`
-
-### 17.5 Filter 페이지 추천 표준
-
-필터(조회) 컴포넌트가 들어가는 페이지는 아래 표준을 기본으로 사용한다.
-
-1. 조회 전용 화면 표준
-
-- 대상: `PlantSearch` 같은 read-only 목록
-- 권장 구성:
-  - `pages/<Feature>Page.tsx` -> 조립만 담당
-  - `features/<feature>/hooks/use<Feature>Page.ts` -> `data/status/actions/uiProps`
-  - `features/<feature>/api/*` -> generated wrapper + mapper
-  - `features/<feature>/components/<Feature>Filters.tsx`
-  - `features/<feature>/components/<Feature>Table.tsx`
-
-2. 편집형(CRUD) 화면 표준
-
-- 대상: `CommonCode`, `AdminUser` 같은 draft/저장/삭제가 있는 목록
-- 권장 구성:
-  - `use<Feature>ListState`
-    - baseRows, draftRows, selectedRowId, rowErrors, isDirty
-    - 행 추가/삭제, 필드 변경, 필수 검증
-  - `use<Feature>Flow`
-    - 조회 전 dirty 확인
-    - 저장 확인/완료
-    - 삭제 확인/완료
-    - 초기화/부가 액션 모달 흐름
-  - `use<Feature>Page`
-    - list state + flow + API wrapper 조합
-
-3. 공통 명명 규칙
-
-- mapper:
-  - DTO -> 화면 모델: `mapTo[Entity]Model`
-  - 화면 모델 -> payload: `mapTo[Entity]Payload`
-- hook 반환:
-  - `data`, `status`, `actions`, `uiProps` 유지
-
-4. 신규 화면 구현 체크리스트
-
-- `Filters`가 draft/applied 상태를 분리하는가
-- 페이지가 조립만 담당하는가
-- generated API를 wrapper를 통해서만 사용하는가
-- 필수값 검증이 row error 상태와 함께 표시되는가
-- 저장/삭제/초기화 흐름이 `Flow` 훅으로 분리됐는가
-- 레이어별 단위 테스트(list state / flow / UI)가 있는가
-
-### 14.4 네이밍 규칙을 통일한다
-
-- `className`은 BEM(Block\_\_Element--Modifier) 규칙을 사용한다.
-- JS/TS에서 사용하는 변수·함수·상수 기반 클래스 문자열은 camelCase를 사용한다.
-- 즉, CSS 셀렉터 체계는 BEM으로 유지하고, JS에서 동적으로 조합하는 클래스 키는 camelCase로 관리한다.
-
----
-
-## 18. 자주 발생하는 문제와 점검 방법
-
-### 18.1 `npm install` 중 의존성 충돌이 발생하는 경우
-
-- 패키지 버전 충돌 가능성이 높다.
 - `package.json`을 임의로 수정했다면 peer dependency 범위를 먼저 확인한다.
 
-### 18.2 화면은 열리는데 API가 실패하는 경우
-
-아래를 순서대로 확인한다.
+### 화면은 열리는데 API가 실패하는 경우
 
 1. 백엔드가 `8080`에서 실행 중인지 확인
 2. `vite.config.js`의 proxy 설정 확인
 3. 백엔드 인증 설정 확인
-4. 브라우저 개발자 도구의 Network 탭 확인
+4. 브라우저 개발자 도구 Network 탭 확인
 
-### 18.3 테스트가 실패하는 경우
+### 테스트가 실패하는 경우
 
-아래를 확인한다.
-
-1. `src/test/setup.js`가 정상 로드되는지
-2. MSW 핸들러가 현재 API 경로와 일치하는지
-3. 테스트가 실제 화면 기준으로 작성되었는지
+1. `src/test/setup.js`가 정상 로드되는지 확인
+2. MSW 핸들러가 현재 API 경로와 일치하는지 확인
+3. 테스트가 실제 화면 기준으로 작성되었는지 확인
 
 ---
 
-## 19. 결론
+## 10. 참고 문서
 
-현재 프론트엔드 환경은 다음 목표를 기준으로 구성되어 있다.
-
-- React 19 기반 UI 개발
-- TypeScript 기준의 점진 전환
-- 서버 상태와 UI 상태의 분리
-- OpenAPI 명세 기반 자동 코드 생성 (Orval)
-- 빠른 테스트 실행 환경 구축
-- 초기에 품질 도구를 함께 도입하여 기술 부채를 늦추는 구조
-
-실무적으로 가장 중요한 점은 다음 세 가지이다.
-
-- 개발 서버만 띄우는 것으로 끝내지 말고 `lint`, `typecheck`, `test`까지 항상 함께 확인할 것
-- 서버 상태와 UI 상태를 섞지 말고, 선택한 라이브러리의 역할을 명확히 구분할 것
-- 백엔드 API가 변경되면 `npm run generate`를 반드시 재실행하고 커밋할 것
-
-현재 구현 기준으로는 아래 항목이 이미 반영되어 있다.
-
-- OpenAPI 기반 DTO/API/MSW 자동 생성
-- codegen drift CI 검증
-- auth/me Query 기반 인증 상태 관리
-- 로그인/로그아웃 wrapper 훅
-- 관리자 메뉴 상수화 및 보호 라우트 연결
-- 대시보드 Query wrapper 연결
-
-아직 후속 정리가 필요한 항목은 아래와 같다.
-
-- 권한 기준 접근 처리
-- 실제 기능 화면별 Query key 확장
-- 관리자 실화면 테이블/폼 UX 정리
-- `dev:mock`, `dev:real` 기준 기능별 실검증 확대
-
-이 원칙을 지키면 프로젝트가 커져도 구조가 무너지지 않고 유지될 가능성이 높다.
-
----
-
-## 참고 문서
-
-| 문서                  | 내용                                                              |
-| --------------------- | ----------------------------------------------------------------- |
-| `docs/api-codegen.md` | API 코드 자동 생성 전체 가이드, 명령어, 파일 구조, 모드 전환 방법 |
-| `docs/decisions.md`   | 기술 의사결정 기록 (Orval 선택, 로컬 파일 방식, 통합 config 등)   |
+| 문서 | 내용 |
+|---|---|
+| [`docs/architecture.md`](./docs/architecture.md) | 동작 구조, 폴더 구조, 라우트, 모달 계층 |
+| [`docs/design-tokens.md`](./docs/design-tokens.md) | 디자인 토큰 시스템, 컬러·타이포그래피 참고표 |
+| [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, FeedbackState |
+| [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
+| [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
+| [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
+| [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
+| [`docs/Tanstack-Query-Guide.md`](./docs/Tanstack-Query-Guide.md) | TanStack Query 학습 가이드 — 서버/UI 상태 분리, MSW 기초, useQuery·useMutation 단계별 실습 |
+| [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
