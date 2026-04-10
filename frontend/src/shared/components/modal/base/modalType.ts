@@ -68,6 +68,7 @@ export interface ConfirmModalProps extends Pick<
   'open' | 'size' | 'title' | 'onClose'
 > {
   description?: string;
+  helperText?: string;
   tone?: ConfirmModalTone;
   primaryAction?: ConfirmPrimaryAction;
   secondaryAction?: ConfirmSecondaryAction;

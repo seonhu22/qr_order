@@ -285,9 +285,8 @@ export function CommonCodeMasterTable({
       <DeleteConfirmModal
         open={isDeleteConfirmOpen}
         title="삭제하시겠습니까?"
-        description={
-          isCreateMode ? '선택한 항목을 삭제하면 복구할 수 없습니다. ' : '정말 삭제하시겠습니까?'
-        }
+        description="선택한 항목을 삭제하면 복구할 수 없습니다."
+        helperText="정말 삭제하시겠습니까?"
         primaryAction={{
           label: '확인',
           loading: isDeleting,

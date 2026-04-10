@@ -41,6 +41,7 @@ export function ConfirmModal({
   open,
   title = '안내',
   description,
+  helperText,
   tone = 'info',
   size = 'sm',
   primaryAction,
@@ -76,6 +77,7 @@ export function ConfirmModal({
       onClose={onClose}
     >
       {description ? <p className="confirm-modal__description">{description}</p> : null}
+      {helperText ? <p className="confirm-modal__helper">{helperText}</p> : null}
     </WrapperModal>
   );
 }
