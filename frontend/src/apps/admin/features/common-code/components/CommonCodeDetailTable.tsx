@@ -227,8 +227,8 @@ export function CommonCodeDetailTable({
                           aria-label={`${row.code} 코드명`}
                         />
                       </td>
-                      {/* 사용여부: tr onClick(행 선택)과 독립 — stopPropagation으로 분리 */}
-                      <td onClick={(e) => e.stopPropagation()}>
+                      {/* 사용여부: tr onClick(행 선택)과 공존 — onChange로 useYn 토글, 클릭은 tr까지 버블링 */}
+                      <td>
                         <CheckboxInput
                           checked={row.useYn}
                           onChange={(checked) => onUseYnChange(row.id, checked)}
