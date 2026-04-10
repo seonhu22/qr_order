@@ -12,6 +12,7 @@ import { CheckboxInput } from '@/shared/components/checkbox';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { InputBase, SelectInput } from '@/shared/components/input';
 import { DeleteConfirmModal } from '@/shared/components/modal/template/DeleteConfirmModal';
+import { EditConfirmModal } from '@/shared/components/modal/template/EditConfirmModal';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import type { MasterCode } from '../types';
@@ -264,22 +265,43 @@ export function CommonCodeMasterTable({
         </div>
       </WrapperModal>
 
-      {/* 저장 확인 모달 */}
-      <SaveConfirmModal
-        open={isSaveConfirmOpen}
-        title="저장하시겠습니까?"
-        description='작성된 내용을 저장합니다.'
-        primaryAction={{
-          label: '확인',
-          loading: isConfirming,
-          onClick: confirmSave,
-        }}
-        secondaryAction={{
-          disabled: isConfirming,
-          onClick: closeSaveConfirm,
-        }}
-        onClose={closeSaveConfirm}
-      />
+      {/* 저장 확인 모달 — 신규 등록 */}
+      {isCreateMode && (
+        <SaveConfirmModal
+          open={isSaveConfirmOpen}
+          title="저장하시겠습니까?"
+          description="작성된 내용을 저장합니다."
+          primaryAction={{
+            label: '확인',
+            loading: isConfirming,
+            onClick: confirmSave,
+          }}
+          secondaryAction={{
+            disabled: isConfirming,
+            onClick: closeSaveConfirm,
+          }}
+          onClose={closeSaveConfirm}
+        />
+      )}
+
+      {/* 수정 확인 모달 — 기존 항목 수정 */}
+      {!isCreateMode && (
+        <EditConfirmModal
+          open={isSaveConfirmOpen}
+          title="수정된 내용을 저장하시겠습니까?"
+          description="변경된 내용이 저장됩니다."
+          primaryAction={{
+            label: '확인',
+            loading: isConfirming,
+            onClick: confirmSave,
+          }}
+          secondaryAction={{
+            disabled: isConfirming,
+            onClick: closeSaveConfirm,
+          }}
+          onClose={closeSaveConfirm}
+        />
+      )}
 
       {/* 삭제 확인 모달 */}
       <DeleteConfirmModal
