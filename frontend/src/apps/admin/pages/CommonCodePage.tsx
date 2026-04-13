@@ -7,7 +7,6 @@
  */
 
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import '@/shared/components/table/TableCard.css';
 import '@/apps/admin/pages/CommonCodePage.css';
 import { useCommonCodePageState } from '@/apps/admin/features/common-code/hooks/useCommonCodePageState';
 import { CommonCodeFilters } from '@/apps/admin/features/common-code/components/CommonCodeFilters';

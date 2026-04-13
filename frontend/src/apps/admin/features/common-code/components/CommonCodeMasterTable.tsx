@@ -18,6 +18,7 @@ import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import type { MasterCode } from '../types';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { FeedbackState } from '@/shared/components/feedback';
+import { TableCard } from '@/shared/components/table';
 import { useCommonCodeMasterModalFlow } from '../hooks/useCommonCodeMasterModalFlow';
 
 type CommonCodeMasterTableProps = {
@@ -86,28 +87,27 @@ export function CommonCodeMasterTable({
     onDeleteMasters,
   });
 
+  const headerActions = (
+    <>
+      <Button
+        type="button"
+        variant="primary"
+        size="sm"
+        leftIcon={<Icon id="i-plus" size={13} />}
+        onClick={openCreateModal}
+      >
+        신규
+      </Button>
+      {/* 삭제버튼 :체크박스가 표시된 행이 없으면, notice 모달("항목을 먼저 선택해주세요", "삭제할 행을 선택 및 체크박스로 선택 후 진행하세요.") / 체크박스가 표시된 행이 있으면, 체크박스에 표시된 행을 삭제하는 모달 표시(삭제 모달) -> 단건 다건 알림 따로 있음 ("삭제되었습니다.","n건이 삭제되었습니다." 서브타이틀은 "삭제된 데이터는 복구할 수 없습니다" )*/}
+      <Button type="button" variant="outline" size="sm" onClick={requestDelete}>
+        삭제
+      </Button>
+    </>
+  );
+
   return (
     <>
-      <article className="common-code-card" aria-label="공통코드 마스터">
-        <header className="common-code-card__header">
-          <h2 className="common-code-card__title">공통코드 마스터</h2>
-          <div className="common-code-card__actions">
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              leftIcon={<Icon id="i-plus" size={13} />}
-              onClick={openCreateModal}
-            >
-              신규
-            </Button>
-            {/* 삭제버튼 :체크박스가 표시된 행이 없으면, notice 모달("항목을 먼저 선택해주세요", "삭제할 행을 선택 및 체크박스로 선택 후 진행하세요.") / 체크박스가 표시된 행이 있으면, 체크박스에 표시된 행을 삭제하는 모달 표시(삭제 모달) -> 단건 다건 알림 따로 있음 ("삭제되었습니다.","n건이 삭제되었습니다." 서브타이틀은 "삭제된 데이터는 복구할 수 없습니다" )*/}
-            <Button type="button" variant="outline" size="sm" onClick={requestDelete}>
-              삭제
-            </Button>
-          </div>
-        </header>
-
+      <TableCard title="공통코드 마스터" ariaLabel="공통코드 마스터" actions={headerActions}>
         {isLoading ? (
           <FeedbackState variant="loading" title="공통코드 목록을 불러오는 중입니다." />
         ) : (
@@ -186,7 +186,7 @@ export function CommonCodeMasterTable({
           </table>
         </div>
         )}
-      </article>
+      </TableCard>
 
       {/* 모달 파트 */}
       <WrapperModal

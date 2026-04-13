@@ -15,6 +15,7 @@ import { Icon } from '@/shared/assets/icons/Icon';
 import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { FeedbackState } from '@/shared/components/feedback';
+import { TableCard } from '@/shared/components/table';
 import type { DetailCode, MasterCode } from '../types';
 import { useCommonCodeDetailTableFlow } from '../hooks/useCommonCodeDetailTableFlow';
 
@@ -76,9 +77,67 @@ export function CommonCodeDetailTable({
     onSaveRows,
   });
 
+  const detailActions = selectedMaster ? (
+    <>
+      <Button
+        variant="icon"
+        size="sm"
+        iconOnly={<Icon id="i-chevron-up" size={12} />}
+        aria-label="위로 이동"
+        disabled={!effectiveCanMoveUp || isSaving}
+        onClick={() => onMoveUp(selectedDetailId || undefined)}
+      />
+      <Button
+        variant="icon"
+        size="sm"
+        iconOnly={<Icon id="i-chevron-down" size={12} />}
+        aria-label="아래로 이동"
+        disabled={!effectiveCanMoveDown || isSaving}
+        onClick={() => onMoveDown(selectedDetailId || undefined)}
+      />
+      <Button
+        type="button"
+        variant="text"
+        size="sm"
+        onClick={onAddRow}
+        disabled={isSaving}
+        className="common-code-card__text-action"
+      >
+        + 행추가
+      </Button>
+      <Button
+        type="button"
+        variant="text"
+        size="sm"
+        onClick={() => {
+          onDeleteRows(selectedDetailId || undefined);
+          setSelectedDetailId('');
+        }}
+        disabled={!selectedDetailId || isSaving}
+        className="common-code-card__text-action"
+      >
+        - 행삭제
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        loading={isSaving}
+        onClick={requestSave}
+      >
+        저장
+      </Button>
+    </>
+  ) : undefined;
+
   return (
     <>
-      <article className="common-code-card" aria-label="공통코드 상세">
+      <TableCard
+        title={selectedMaster ? '공통코드 상세' : undefined}
+        ariaLabel="공통코드 상세"
+        actions={detailActions}
+        actionsClassName="common-code-card__actions--detail"
+      >
         {!selectedMaster ? (
           <FeedbackState
             variant="empty"
@@ -88,60 +147,6 @@ export function CommonCodeDetailTable({
           />
         ) : (
           <>
-            <header className="common-code-card__header">
-              <h2 className="common-code-card__title">공통코드 상세</h2>
-              <div className="common-code-card__actions common-code-card__actions--detail">
-                <Button
-                  variant="icon"
-                  size="sm"
-                  iconOnly={<Icon id="i-chevron-up" size={12} />}
-                  aria-label="위로 이동"
-                  disabled={!effectiveCanMoveUp || isSaving}
-                  onClick={() => onMoveUp(selectedDetailId || undefined)}
-                />
-                <Button
-                  variant="icon"
-                  size="sm"
-                  iconOnly={<Icon id="i-chevron-down" size={12} />}
-                  aria-label="아래로 이동"
-                  disabled={!effectiveCanMoveDown || isSaving}
-                  onClick={() => onMoveDown(selectedDetailId || undefined)}
-                />
-                <Button
-                  type="button"
-                  variant="text"
-                  size="sm"
-                  onClick={onAddRow}
-                  disabled={isSaving}
-                  style={{ padding: '0 var(--spacing-button-x-sm)' }}
-                >
-                  + 행추가
-                </Button>
-                <Button
-                  type="button"
-                  variant="text"
-                  size="sm"
-                  onClick={() => {
-                    onDeleteRows(selectedDetailId || undefined);
-                    setSelectedDetailId('');
-                  }}
-                  disabled={!selectedDetailId || isSaving}
-                  style={{ padding: '0 var(--spacing-button-x-sm)' }}
-                >
-                  - 행삭제
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  loading={isSaving}
-                  onClick={requestSave}
-                >
-                  저장
-                </Button>
-              </div>
-            </header>
-
             {isLoading ? (
               <FeedbackState variant="loading" title="상세 코드를 불러오는 중입니다." />
             ) : (
@@ -217,7 +222,7 @@ export function CommonCodeDetailTable({
             )}
           </>
         )}
-      </article>
+      </TableCard>
 
       <SimpleDefaultModal
         open={!!notice}

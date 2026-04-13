@@ -1,5 +1,4 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import '@/shared/components/table/TableCard.css';
 import '@/apps/admin/pages/PlantSearchPage.css';
 import { PlantSearchFilters } from '@/apps/admin/features/plant-search/components/PlantSearchFilters';
 import { PlantSearchTable } from '@/apps/admin/features/plant-search/components/PlantSearchTable';
