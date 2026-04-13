@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export default function DevLayout() {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--typography-font-base)' }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'var(--typography-font-base)' }}>
       {/* ── 사이드 내비게이션 ────────────────────────── */}
       <nav
         style={{
