@@ -160,7 +160,10 @@ shared/components/
       NoticeConfirmModal.tsx  ← 안내 + 확인/취소 모달
       SimpleDefaultModal.tsx  ← 빈 슬롯형 범용 모달
   table/
-    index.ts
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts
+    TableCard.css         ← 공통 테이블 카드 스타일 (common-code-card, common-table 등)
+    TableCard.tsx         ← 카드 레이아웃 컴포넌트
   feedback/
     index.ts
     FeedbackState.tsx
@@ -327,6 +330,8 @@ http://localhost:3000/dev/input
 | `/dev/radio` | RadioInput / RadioGroup 크기·상태·그룹(col/row) 예시 |
 | `/dev/toggle` | ToggleInput 크기·상태(ON/OFF/disabled/loading) 예시 |
 | `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기 예시 |
+| `/dev/table` | TableCard 읽기 전용·행 클릭 선택·인라인 행 편집·로딩·빈 상태 예시 |
+| `/dev/table` | TableCard 읽기 전용·행 클릭 선택·인라인 행 편집·로딩·빈 상태 예시 |
 
 ### 신규 가이드 추가 방법
 
@@ -349,7 +354,14 @@ const NAV_ITEMS = [
 
 ---
 
-## 8. 피드백 컴포넌트 (FeedbackState)
+## 8. 테이블 카드 컴포넌트 (TableCard)
+
+테이블을 감싸는 카드 레이아웃과 공통 테이블 스타일을 제공하는 컴포넌트.
+상세 사용법·Props·CSS 클래스 레퍼런스는 [docs/components/TableCard.md](./components/TableCard.md) 참고.
+
+---
+
+## 9. 피드백 컴포넌트 (FeedbackState)
 
 `src/shared/components/feedback/FeedbackState.tsx`
 
