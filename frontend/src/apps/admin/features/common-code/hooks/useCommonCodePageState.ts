@@ -141,6 +141,10 @@ export function useCommonCodePageState() {
   const handleMasterReset = () => {
     setDraftMasterKeyword('');
     setMasterKeyword('');
+    setSelectedMasterId('');
+    setCheckedMasterIds([]);
+    setDetailRowsByMaster({});
+    setInitialDetailRowsByMaster({});
   };
 
   const handleSearchClick = () => {
