@@ -18,6 +18,7 @@ import { Button } from '@/shared/components/button';
 import { InputBase, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
 import { FeedbackState } from '@/shared/components/feedback';
+import { TableCard } from '@/shared/components/table';
 import type { AdminUserRow } from '../types';
 
 type AdminUserTableProps = {
@@ -158,38 +159,36 @@ export function AdminUserTable({
     ));
   };
 
+  const headerActions = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        leftIcon={<Icon id="i-plus" size={13} />}
+        disabled={isSaving || isResettingPassword}
+        onClick={onAddRow}
+      >
+        행추가
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        leftIcon={<Icon id="i-minus" size={13} />}
+        disabled={isSaving || isResettingPassword}
+        onClick={onDeleteRow}
+      >
+        행삭제
+      </Button>
+      <Button type="button" variant="primary" size="sm" loading={isSaving} onClick={onSave}>
+        저장
+      </Button>
+    </>
+  );
+
   return (
-    <article className="common-code-card" aria-label="관리자 목록">
-      <header className="common-code-card__header">
-        <h2 className="common-code-card__title">관리자 목록</h2>
-
-        <div className="common-code-card__actions">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            leftIcon={<Icon id="i-plus" size={13} />}
-            disabled={isSaving || isResettingPassword}
-            onClick={onAddRow}
-          >
-            행추가
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            leftIcon={<Icon id="i-minus" size={13} />}
-            disabled={isSaving || isResettingPassword}
-            onClick={onDeleteRow}
-          >
-            행삭제
-          </Button>
-          <Button type="button" variant="primary" size="sm" loading={isSaving} onClick={onSave}>
-            저장
-          </Button>
-        </div>
-      </header>
-
+    <TableCard title="관리자 목록" ariaLabel="관리자 목록" actions={headerActions}>
       <div className="common-table-wrap">
         <table className="common-table">
           <thead>
@@ -209,6 +208,6 @@ export function AdminUserTable({
           <tbody>{renderBody()}</tbody>
         </table>
       </div>
-    </article>
+    </TableCard>
   );
 }
