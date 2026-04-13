@@ -23,6 +23,7 @@ import {
   useSaveCommonMasterMutation,
 } from '../api/commonCodeApi';
 
+
 function cloneRows(rows: DetailCode[]) {
   return rows.map((row) => ({ ...row }));
 }
@@ -61,6 +62,9 @@ export function useCommonCodePageState() {
   const [draftMasterKeyword, setDraftMasterKeyword] = useState('');
   const [masterKeyword, setMasterKeyword] = useState('');
 
+  /* 조회·초기화 dirty guard: 미저장 상태에서 버튼 클릭 시 확인 모달 */
+  const [pendingFilterAction, setPendingFilterAction] = useState<'search' | 'reset' | null>(null);
+
   const mastersQuery = useCommonCodeMastersQuery(masterKeyword);
   const saveMasterMutation = useSaveCommonMasterMutation();
   const deleteMastersMutation = useDeleteCommonMastersMutation();
@@ -75,6 +79,15 @@ export function useCommonCodePageState() {
   const detailRows = selectedMaster ? (detailRowsByMaster[selectedMaster.id] ?? []) : [];
   const isAllMastersChecked =
     masterRows.length > 0 && checkedMasterIds.length === masterRows.length;
+
+  /** 현재 선택된 마스터의 상세에 저장되지 않은 변경이 있으면 true */
+  const isDetailDirty = useMemo(() => {
+    if (!selectedMaster) return false;
+    const currentRows = detailRowsByMaster[selectedMaster.id] ?? [];
+    const originalRows = initialDetailRowsByMaster[selectedMaster.id] ?? [];
+    const request = buildCommonDetailRequest(selectedMaster.id, currentRows, originalRows);
+    return hasCommonDetailChanges(request);
+  }, [selectedMaster, detailRowsByMaster, initialDetailRowsByMaster]);
 
   useEffect(() => {
     if (selectedMasterId && !masterRows.some((row) => row.id === selectedMasterId)) {
@@ -129,6 +142,30 @@ export function useCommonCodePageState() {
     setDraftMasterKeyword('');
     setMasterKeyword('');
   };
+
+  const handleSearchClick = () => {
+    if (isDetailDirty) {
+      setPendingFilterAction('search');
+    } else {
+      handleMasterSearch();
+    }
+  };
+
+  const handleResetClick = () => {
+    if (isDetailDirty) {
+      setPendingFilterAction('reset');
+    } else {
+      handleMasterReset();
+    }
+  };
+
+  const confirmFilterAction = () => {
+    if (pendingFilterAction === 'search') handleMasterSearch();
+    if (pendingFilterAction === 'reset') handleMasterReset();
+    setPendingFilterAction(null);
+  };
+
+  const cancelFilterAction = () => setPendingFilterAction(null);
 
   const selectMaster = (masterId: string) => {
     setSelectedMasterId(masterId);
@@ -293,6 +330,12 @@ export function useCommonCodePageState() {
     removeCheckedDetailRows,
     moveCheckedDetailRowsUp,
     moveCheckedDetailRowsDown,
+    isDetailDirty,
+    pendingFilterAction,
+    onSearchClick: handleSearchClick,
+    onResetClick: handleResetClick,
+    confirmFilterAction,
+    cancelFilterAction,
     saveMaster,
     deleteCheckedMasters,
     saveDetailRows,

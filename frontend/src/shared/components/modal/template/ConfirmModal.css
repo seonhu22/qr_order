@@ -23,7 +23,8 @@
   border-radius: 9999px;
 }
 
-.notice-modal__icon-wrapper--info {
+.notice-modal__icon-wrapper--info,
+.confirm-modal__icon-wrapper--info {
   background: color-mix(in srgb, var(--color-brand-default) 12%, white);
   color: var(--color-brand-default);
 }

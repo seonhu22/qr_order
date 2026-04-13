@@ -12,6 +12,7 @@ import { useCommonCodePageState } from '@/apps/admin/features/common-code/hooks/
 import { CommonCodeFilters } from '@/apps/admin/features/common-code/components/CommonCodeFilters';
 import { CommonCodeMasterTable } from '@/apps/admin/features/common-code/components/CommonCodeMasterTable';
 import { CommonCodeDetailTable } from '@/apps/admin/features/common-code/components/CommonCodeDetailTable';
+import { ConfirmModal } from '@/shared/components/modal';
 
 /**
  * 공통코드 관리 페이지를 렌더링한다.
@@ -26,8 +27,11 @@ export const CommonCodePage = () => {
     isAllMastersChecked,
     draftMasterKeyword,
     onMasterKeywordChange,
-    onMasterSearch,
-    onMasterReset,
+    onSearchClick,
+    onResetClick,
+    pendingFilterAction,
+    confirmFilterAction,
+    cancelFilterAction,
     selectMaster,
     toggleMasterChecked,
     toggleAllMasters,
@@ -46,47 +50,59 @@ export const CommonCodePage = () => {
   } = useCommonCodePageState();
 
   return (
-    <AdminMainLayout
-      adminMainTitle="공통코드 관리"
-      depth1="시스템"
-      depth2="시스템 관리"
-      className="admin-main-layout-page--fixed"
-      filterSlot={
-        <CommonCodeFilters
-          draftKeyword={draftMasterKeyword}
-          onKeywordChange={onMasterKeywordChange}
-          onSearch={onMasterSearch}
-          onReset={onMasterReset}
+    <>
+      <AdminMainLayout
+        adminMainTitle="공통코드 관리"
+        depth1="시스템"
+        depth2="시스템 관리"
+        className="admin-main-layout-page--fixed"
+        filterSlot={
+          <CommonCodeFilters
+            draftKeyword={draftMasterKeyword}
+            onKeywordChange={onMasterKeywordChange}
+            onSearch={onSearchClick}
+            onReset={onResetClick}
+          />
+        }
+      >
+        <CommonCodeMasterTable
+          rows={masterRows}
+          isLoading={isLoadingMasters}
+          selectedMasterId={selectedMasterId}
+          checkedMasterIds={checkedMasterIds}
+          isAllChecked={isAllMastersChecked}
+          onSelectRow={selectMaster}
+          onToggleRow={toggleMasterChecked}
+          onToggleAllRows={toggleAllMasters}
+          onSaveMaster={saveMaster}
+          onDeleteMasters={deleteCheckedMasters}
         />
-      }
-    >
-      <CommonCodeMasterTable
-        rows={masterRows}
-        isLoading={isLoadingMasters}
-        selectedMasterId={selectedMasterId}
-        checkedMasterIds={checkedMasterIds}
-        isAllChecked={isAllMastersChecked}
-        onSelectRow={selectMaster}
-        onToggleRow={toggleMasterChecked}
-        onToggleAllRows={toggleAllMasters}
-        onSaveMaster={saveMaster}
-        onDeleteMasters={deleteCheckedMasters}
-      />
 
-      {/* 마스터에서 선택사항이 없으면 detail 테이블 대신 feedback을 표시 */}
-      <CommonCodeDetailTable
-        selectedMaster={selectedMaster}
-        isLoading={isLoadingDetails}
-        rows={detailRows}
-        onFieldChange={changeDetailField}
-        onUseYnChange={changeDetailUseYn}
-        onAddRow={addDetailRow}
-        onDeleteRows={removeCheckedDetailRows}
-        onMoveUp={moveCheckedDetailRowsUp}
-        onMoveDown={moveCheckedDetailRowsDown}
-        isSaving={isSavingDetails}
-        onSaveRows={saveDetailRows}
+        {/* 마스터에서 선택사항이 없으면 detail 테이블 대신 feedback을 표시 */}
+        <CommonCodeDetailTable
+          selectedMaster={selectedMaster}
+          isLoading={isLoadingDetails}
+          rows={detailRows}
+          onFieldChange={changeDetailField}
+          onUseYnChange={changeDetailUseYn}
+          onAddRow={addDetailRow}
+          onDeleteRows={removeCheckedDetailRows}
+          onMoveUp={moveCheckedDetailRowsUp}
+          onMoveDown={moveCheckedDetailRowsDown}
+          isSaving={isSavingDetails}
+          onSaveRows={saveDetailRows}
+        />
+      </AdminMainLayout>
+
+      <ConfirmModal
+        open={pendingFilterAction !== null}
+        tone="info"
+        title={pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
+        description="저장되지 않은 내용이 있습니다."
+        onClose={cancelFilterAction}
+        primaryAction={{ onClick: confirmFilterAction }}
+        secondaryAction={{ onClick: cancelFilterAction }}
       />
-    </AdminMainLayout>
+    </>
   );
 };
