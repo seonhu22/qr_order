@@ -4,18 +4,18 @@
   gap: var(--spacing-4);
 }
 
-.plant-search-page__filter-card,
-.plant-search-page__table-card {
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-}
+/* =====================================================
+ * 검색 필터 카드
+ * ===================================================== */
 
 .plant-search-page__filter-card {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
   padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
 }
 
 .plant-search-page__search-field {
@@ -33,72 +33,27 @@
   gap: var(--spacing-2);
 }
 
-.plant-search-page__table-header {
-  display: flex;
-  align-items: center;
-  min-height: 3.0625rem;
-  padding: 0 var(--spacing-4);
-  border-bottom: var(--border-1) solid var(--color-bg-muted);
-}
+/* =====================================================
+ * 테이블 feature 오버라이드
+ * ===================================================== */
 
-.plant-search-page__table-title {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-ui);
-  line-height: var(--typography-leading-ui);
-}
-
-.plant-search-page__table-wrap {
-  overflow-x: auto;
-}
-
-.plant-search-page__table {
-  width: 100%;
+/* 컬럼이 많아 가로 스크롤이 필요한 최소 너비 */
+.plant-search-page .common-table {
   min-width: 76rem;
-  border-collapse: collapse;
 }
 
-.plant-search-page__table th,
-.plant-search-page__table td {
-  height: 3rem;
-  padding: 0 var(--spacing-4);
-  border-bottom: var(--border-1) solid var(--color-border-divider);
-  vertical-align: middle;
-  text-align: left;
+/* 읽기 전용 테이블 — 행 선택 커서 불필요 */
+.plant-search-page .common-table tbody tr {
+  cursor: default;
 }
 
-.plant-search-page__table th {
-  background-color: var(--color-bg-muted);
-  color: var(--color-text-tertiary);
-  font-size: var(--typography-size-caption);
-  font-weight: var(--typography-weight-ui);
-  line-height: var(--typography-leading-ui);
-  white-space: nowrap;
-}
-
-.plant-search-page__table td {
-  color: var(--color-text-primary);
-  font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-body);
-  line-height: var(--typography-leading-ui);
-}
-
-.plant-search-page__table tbody tr:hover {
-  background-color: var(--color-bg-hover);
-}
-
-.plant-search-page__mono {
-  color: var(--color-text-secondary);
-  font-family: var(--typography-font-mono);
-  font-size: var(--typography-size-caption);
-}
-
+/* 보조 정보 셀 (이메일, 우편번호, 주소, 전화번호) */
 .plant-search-page__muted {
   color: var(--color-text-secondary);
   font-size: var(--typography-size-caption);
 }
 
+/* 접속 버튼 */
 .plant-search-page__access-button {
   min-width: 4.25rem;
   padding-inline: 0.625rem;
@@ -111,10 +66,9 @@
   opacity: 0.92;
 }
 
-.plant-search-page__empty {
-  color: var(--color-text-tertiary);
-  text-align: center !important;
-}
+/* =====================================================
+ * 반응형
+ * ===================================================== */
 
 @media (max-width: 900px) {
   .plant-search-page__filter-card {

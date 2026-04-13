@@ -40,7 +40,7 @@ export function PlantSearchTable({
     if (isError) {
       return (
         <tr>
-          <td className="plant-search-page__empty" colSpan={9}>
+          <td className="common-table__empty" colSpan={9}>
             사업장 목록을 불러오지 못했습니다.
           </td>
         </tr>
@@ -50,7 +50,7 @@ export function PlantSearchTable({
     if (!rows.length) {
       return (
         <tr>
-          <td className="plant-search-page__empty" colSpan={9}>
+          <td className="common-table__empty" colSpan={9}>
             검색 결과가 없습니다.
           </td>
         </tr>
@@ -59,12 +59,12 @@ export function PlantSearchTable({
 
     return rows.map((row) => (
       <tr key={row.id}>
-        <td className="plant-search-page__mono">{row.plantCode}</td>
-        <td>{row.plantName}</td>
-        <td>{row.storeName}</td>
-        <td className="plant-search-page__muted">{row.email}</td>
+        <td className="common-table__mono common-table__cell--left">{row.plantCode}</td>
+        <td className="common-table__cell--left">{row.plantName}</td>
+        <td className="common-table__cell--left">{row.storeName}</td>
+        <td className="plant-search-page__muted common-table__cell--left">{row.email}</td>
         <td className="plant-search-page__muted">{row.postalCode}</td>
-        <td className="plant-search-page__muted">{row.address}</td>
+        <td className="plant-search-page__muted common-table__cell--left">{row.address}</td>
         <td className="plant-search-page__muted">{row.phoneNumber}</td>
         <td>{row.useYn}</td>
         <td>
@@ -90,21 +90,21 @@ export function PlantSearchTable({
   };
 
   return (
-    <article className="plant-search-page__table-card" aria-label="사업장 목록">
-      <header className="plant-search-page__table-header">
-        <h2 className="plant-search-page__table-title">사업장 목록</h2>
+    <article className="common-code-card" aria-label="사업장 목록">
+      <header className="common-code-card__header">
+        <h2 className="common-code-card__title">사업장 목록</h2>
       </header>
 
-      <div className="plant-search-page__table-wrap">
-        <table className="plant-search-page__table">
+      <div className="common-table-wrap">
+        <table className="common-table">
           <thead>
             <tr>
-              <th>사업장 코드</th>
-              <th>사업장 명</th>
-              <th>매장명</th>
-              <th>이메일주소</th>
+              <th className="common-table__cell--left">사업장 코드</th>
+              <th className="common-table__cell--left">사업장 명</th>
+              <th className="common-table__cell--left">매장명</th>
+              <th className="common-table__cell--left">이메일주소</th>
               <th>우편번호</th>
-              <th>주소</th>
+              <th className="common-table__cell--left">주소</th>
               <th>전화번호</th>
               <th>사용여부</th>
               <th>클라이언트 접속</th>
