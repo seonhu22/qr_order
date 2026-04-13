@@ -22,7 +22,7 @@ import CheckboxGuide from './CheckboxGuide';
 import RadioGuide from './RadioGuide';
 import ToggleGuide from './ToggleGuide';
 import FormAlertGuide from './FormAlertGuide';
-// import TableGuide    from './TableGuide';
+import TableGuide    from './TableGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
 export const devRoutes = [
@@ -41,7 +41,7 @@ export const devRoutes = [
       { path: 'radio',    element: <RadioGuide /> },
       { path: 'toggle',     element: <ToggleGuide /> },
       { path: 'form-alert', element: <FormAlertGuide /> },
-      // { path: 'table',    element: <TableGuide /> },
+      { path: 'table',    element: <TableGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],
   },
