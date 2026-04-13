@@ -79,7 +79,7 @@ export function AdminUserTable({
     if (isError) {
       return (
         <tr>
-          <td className="admin-user-page__empty" colSpan={4}>
+          <td className="common-table__empty" colSpan={4}>
             관리자 목록을 불러오지 못했습니다.
           </td>
         </tr>
@@ -89,7 +89,7 @@ export function AdminUserTable({
     if (!rows.length) {
       return (
         <tr>
-          <td className="admin-user-page__empty" colSpan={4}>
+          <td className="common-table__empty" colSpan={4}>
             검색 결과가 없습니다.
           </td>
         </tr>
@@ -111,8 +111,8 @@ export function AdminUserTable({
             controlState={rowErrors[row.id]?.userId ? 'error' : !row.isNew ? 'readonly' : ''}
             className={
               !row.isNew
-                ? 'admin-user-page__input admin-user-page__input--readonly'
-                : 'admin-user-page__input'
+                ? 'common-table__input common-table__input--readonly'
+                : 'common-table__input'
             }
             placeholder={row.isNew ? '아이디를 입력하세요' : ''}
             onChange={(event) => onChangeRowField(row.id, 'userId', event.target.value)}
@@ -124,7 +124,7 @@ export function AdminUserTable({
             size="sm"
             value={row.userName}
             controlState={rowErrors[row.id]?.userName ? 'error' : ''}
-            className="admin-user-page__input"
+            className="common-table__input"
             placeholder="사용자 명을 입력하세요"
             onChange={(event) => onChangeRowField(row.id, 'userName', event.target.value)}
           />
@@ -137,7 +137,7 @@ export function AdminUserTable({
             options={plantOptions}
             value={row.plantCd}
             placeholder="사업장을 선택하세요"
-            className="admin-user-page__select"
+            className="common-table__select"
             isError={rowErrors[row.id]?.plantCd}
             onChange={(value) => onChangeRowPlant(row.id, value)}
           />
@@ -159,11 +159,11 @@ export function AdminUserTable({
   };
 
   return (
-    <article className="admin-user-page__table-card" aria-label="관리자 목록">
-      <header className="admin-user-page__table-header">
-        <h2 className="admin-user-page__table-title">관리자 목록</h2>
+    <article className="common-code-card" aria-label="관리자 목록">
+      <header className="common-code-card__header">
+        <h2 className="common-code-card__title">관리자 목록</h2>
 
-        <div className="admin-user-page__table-actions">
+        <div className="common-code-card__actions">
           <Button
             type="button"
             variant="outline"
@@ -190,17 +190,17 @@ export function AdminUserTable({
         </div>
       </header>
 
-      <div className="admin-user-page__table-wrap">
-        <table className="admin-user-page__table">
+      <div className="common-table-wrap">
+        <table className="common-table">
           <thead>
             <tr>
-              <th>
+              <th className="common-table__cell--left">
                 사용자 아이디 <span className="admin-user-page__required">*</span>
               </th>
-              <th>
+              <th className="common-table__cell--left">
                 사용자 명 <span className="admin-user-page__required">*</span>
               </th>
-              <th>
+              <th className="common-table__cell--left">
                 사업장 <span className="admin-user-page__required">*</span>
               </th>
               <th>비밀번호 초기화</th>

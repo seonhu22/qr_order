@@ -8,6 +8,7 @@
  */
 
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
+import '@/shared/components/table/TableCard.css';
 import '@/apps/admin/pages/AdminUserPage.css';
 import { AdminUserFilters } from '@/apps/admin/features/admin-user/components/AdminUserFilters';
 import { AdminUserFlowModals } from '@/apps/admin/features/admin-user/components/AdminUserFlowModals';
