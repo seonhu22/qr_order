@@ -1,6 +1,7 @@
 import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { FeedbackState } from '@/shared/components/feedback';
+import { TableCard } from '@/shared/components/table';
 import type { PlantSearchRow } from '../types';
 
 type PlantSearchTableProps = {
@@ -90,11 +91,7 @@ export function PlantSearchTable({
   };
 
   return (
-    <article className="common-code-card" aria-label="사업장 목록">
-      <header className="common-code-card__header">
-        <h2 className="common-code-card__title">사업장 목록</h2>
-      </header>
-
+    <TableCard title="사업장 목록" ariaLabel="사업장 목록">
       <div className="common-table-wrap">
         <table className="common-table">
           <thead>
@@ -113,6 +110,6 @@ export function PlantSearchTable({
           <tbody>{renderBody()}</tbody>
         </table>
       </div>
-    </article>
+    </TableCard>
   );
 }
