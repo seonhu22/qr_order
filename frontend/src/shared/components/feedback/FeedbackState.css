@@ -3,13 +3,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
   /* flex 컨테이너 안에서 남은 공간을 채운다 */
   flex: 1;
   min-height: 0;
   width: 100%;
   padding: var(--spacing-8) 0;
   text-align: center;
+}
+
+/* 텍스트 그룹 — title·description·children 사이 간격 */
+.feedback-state__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ── 스피너 (loading) ── */
@@ -35,10 +42,6 @@
   color: var(--color-text-tertiary);
 }
 
-.feedback-state--error .feedback-state__icon-wrap {
-  background-color: var(--color-status-error-bg);
-  color: var(--color-status-error-default);
-}
 
 /* ── 텍스트 ── */
 .feedback-state__title {

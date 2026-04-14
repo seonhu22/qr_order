@@ -20,16 +20,6 @@ type PlantSearchTableProps = {
  */
 export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableProps) {
   const renderBody = () => {
-    if (isError) {
-      return (
-        <tr>
-          <td className="common-table__empty" colSpan={10}>
-            사업장 목록을 불러오지 못했습니다.
-          </td>
-        </tr>
-      );
-    }
-
     if (!rows.length) {
       return (
         <tr>
@@ -76,6 +66,8 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
     <TableCard title="사업장 목록" ariaLabel="사업장 목록">
       {isLoading ? (
         <FeedbackState variant="loading" title="사업장 목록을 불러오는 중입니다." />
+      ) : isError ? (
+        <FeedbackState variant="error" description="다시 한번 시도해주세요." />
       ) : (
         <div className="common-table-wrap">
           <table className="common-table">
