@@ -34,15 +34,15 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
       const hasClientUrl = row.clientUrl && row.clientUrl !== '-';
       return (
         <tr key={row.id}>
-          <td className="common-table__mono common-table__cell--left">{row.plantCode}</td>
+          <td className="common-table__mono common-table__cell--left" title={row.plantCode}>{row.plantCode}</td>
           <td className="common-table__cell--left common-table__cell--truncate" title={row.plantName}>{row.plantName}</td>
           <td className="common-table__cell--left common-table__cell--truncate" title={row.storeName}>{row.storeName}</td>
           <td className="plant-search-page__muted common-table__cell--truncate" title={row.ownerName}>{row.ownerName}</td>
           <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.email}>{row.email}</td>
           <td className="plant-search-page__muted common-table__cell--truncate" title={row.managerName}>{row.managerName}</td>
-          <td className="plant-search-page__muted">{row.postalCode}</td>
+          <td className="plant-search-page__muted" title={row.postalCode}>{row.postalCode}</td>
           <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.address}>{row.address}</td>
-          <td className="common-table__cell--left common-table__cell--truncate plant-search-page__muted">{row.phoneNumber}</td>
+          <td className="common-table__cell--left common-table__cell--truncate plant-search-page__muted" title={row.phoneNumber}>{row.phoneNumber}</td>
           <td>
             {/* TODO: clientUrl 백엔드 필드 확정 후 실제 URL 연결 */}
             <Button
@@ -73,7 +73,7 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
           <table className="common-table">
             <thead>
               <tr>
-                <th className="common-table__cell--left">사업자 코드</th>
+                <th className="common-table__cell--left" style={{ width: '12rem' }}>사업자 코드</th>
                 <th className="common-table__cell--left">사업자 명</th>
                 <th className="common-table__cell--left">상호명</th>
                 <th>대표자명</th>
