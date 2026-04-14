@@ -84,6 +84,7 @@
 .common-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 /* 셀 기본 */
