@@ -139,7 +139,42 @@ const {
 - `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
 - UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
 
-### 11. 리팩토링 요약 순서
+### 11. 조회/초기화 dirty guard는 `useFilterDirtyCheck`를 사용한다
+
+> 추가일: 2026-04-14
+
+편집 상태(dirty)에서 조회·초기화 버튼을 눌렀을 때 ConfirmModal을 거치는 흐름은 `shared/hooks/useFilterDirtyCheck`로 통일한다.
+
+```ts
+const {
+  pendingFilterAction,
+  requestSearch,
+  requestReset,
+  confirmFilterAction,
+  cancelFilterAction,
+} = useFilterDirtyCheck({ isDirty, onSearch, onReset });
+```
+
+- `onSearch` / `onReset` 콜백에 실제 실행 로직을 넣는다. `startTransition`이 필요하면 콜백 내부에 적용한다.
+- 페이지에서는 `ConfirmModal`을 `AdminMainLayout` 외부에 두고, `pendingFilterAction !== null`을 open 조건으로 사용한다.
+
+```tsx
+<ConfirmModal
+  open={pendingFilterAction !== null}
+  tone="info"
+  title={pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
+  description="저장되지 않은 내용이 있습니다."
+  onClose={cancelFilterAction}
+  primaryAction={{ onClick: confirmFilterAction }}
+  secondaryAction={{ onClick: cancelFilterAction }}
+/>
+```
+
+적용 위치: `useCommonCodePageState`, `useAdminUserFlow`
+
+---
+
+### 12. 리팩토링 요약 순서
 
 1. 페이지 조립
 2. 목록 상태 훅 (`use<Feature>ListState`)

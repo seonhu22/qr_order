@@ -18,6 +18,7 @@
 
 import { startTransition, useState } from 'react';
 import { useDirtyConfirmExecutor } from '@/shared/hooks/useDirtyConfirmExecutor';
+import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import type {
   AdminUserFlowState,
   AdminUserSimpleModalState,
@@ -81,71 +82,38 @@ export function useAdminUserFlow({
 }: UseAdminUserFlowParams) {
   const [simpleModalState, setSimpleModalState] = useState<AdminUserSimpleModalState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
-  const [pendingFilterAction, setPendingFilterAction] = useState<'search' | 'reset' | null>(null);
   const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
     isDirty,
     openDirtyConfirm: (state) => setSimpleModalState(state),
   });
 
   /**
-   * 조회 버튼 흐름.
+   * 조회/초기화 dirty guard.
    *
    * @description
-   * 저장되지 않은 편집 내용이 있으면 즉시 조회하지 않고 확인 모달을 띄운다.
-   * 사용자가 확인한 경우에만 검색어를 반영하고 draft를 버린다.
-   *
-   * @example
-   * ```text
-   * dirty=false -> 즉시 조회 실행
-   * dirty=true  -> "조회하시겠습니까?" 모달 -> 확인 시 조회 실행
-   * ```
+   * startTransition으로 감싸야 하는 부분은 onSearch/onReset 콜백에 인라인 처리한다.
    */
-  const requestSearch = () => {
-    if (isDirty) {
-      setPendingFilterAction('search');
-      return;
-    }
-    startTransition(() => {
-      onApplySearch();
-    });
-    onResetDraftRows();
-  };
-
-  /**
-   * 검색 필터 초기화 흐름.
-   *
-   * @description
-   * 관리자 관리 화면에서는 초기화 시 검색어와 draft rows를 함께 되돌린다.
-   */
-  const requestResetFilters = () => {
-    if (isDirty) {
-      setPendingFilterAction('reset');
-      return;
-    }
-    startTransition(() => {
-      onResetFilters();
-    });
-    onResetDraftRows();
-  };
-
-  const confirmFilterAction = () => {
-    if (pendingFilterAction === 'search') {
+  const {
+    pendingFilterAction,
+    requestSearch,
+    requestReset: requestResetFilters,
+    confirmFilterAction,
+    cancelFilterAction,
+  } = useFilterDirtyCheck({
+    isDirty,
+    onSearch: () => {
       startTransition(() => {
         onApplySearch();
       });
       onResetDraftRows();
-    } else if (pendingFilterAction === 'reset') {
+    },
+    onReset: () => {
       startTransition(() => {
         onResetFilters();
       });
       onResetDraftRows();
-    }
-    setPendingFilterAction(null);
-  };
-
-  const cancelFilterAction = () => {
-    setPendingFilterAction(null);
-  };
+    },
+  });
 
   /**
    * 행 삭제 흐름의 진입점.
@@ -171,11 +139,11 @@ export function useAdminUserFlow({
    *
    * @description
    * 필수값 검증은 list state 훅에 위임하고,
-   * 실패 시 안내 모달, 성공 시 저장 확인 모달로 분기한다.
+   * 실패 시 input error 스타일만 표시하고, 성공 시 저장 확인 모달로 분기한다.
    *
    * @example
    * ```text
-   * validate fail -> WrapperModal("필수 항목...")
+   * validate fail -> input error 스타일만 표시 (모달 없음)
    * validate pass -> SaveConfirmModal 오픈
    * ```
    */

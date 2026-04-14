@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode } from '../types';
@@ -62,8 +63,7 @@ export function useCommonCodePageState() {
   const [draftMasterKeyword, setDraftMasterKeyword] = useState('');
   const [masterKeyword, setMasterKeyword] = useState('');
 
-  /* 조회·초기화 dirty guard: 미저장 상태에서 버튼 클릭 시 확인 모달 */
-  const [pendingFilterAction, setPendingFilterAction] = useState<'search' | 'reset' | null>(null);
+  /* 조회·초기화 dirty guard: useFilterDirtyCheck로 관리 */
 
   const mastersQuery = useCommonCodeMastersQuery(masterKeyword);
   const saveMasterMutation = useSaveCommonMasterMutation();
@@ -147,29 +147,17 @@ export function useCommonCodePageState() {
     setInitialDetailRowsByMaster({});
   };
 
-  const handleSearchClick = () => {
-    if (isDetailDirty) {
-      setPendingFilterAction('search');
-    } else {
-      handleMasterSearch();
-    }
-  };
-
-  const handleResetClick = () => {
-    if (isDetailDirty) {
-      setPendingFilterAction('reset');
-    } else {
-      handleMasterReset();
-    }
-  };
-
-  const confirmFilterAction = () => {
-    if (pendingFilterAction === 'search') handleMasterSearch();
-    if (pendingFilterAction === 'reset') handleMasterReset();
-    setPendingFilterAction(null);
-  };
-
-  const cancelFilterAction = () => setPendingFilterAction(null);
+  const {
+    pendingFilterAction,
+    requestSearch,
+    requestReset,
+    confirmFilterAction,
+    cancelFilterAction,
+  } = useFilterDirtyCheck({
+    isDirty: isDetailDirty,
+    onSearch: handleMasterSearch,
+    onReset: handleMasterReset,
+  });
 
   const selectMaster = (masterId: string) => {
     setSelectedMasterId(masterId);
@@ -316,8 +304,6 @@ export function useCommonCodePageState() {
     checkedMasterIds,
     draftMasterKeyword,
     onMasterKeywordChange: handleMasterKeywordChange,
-    onMasterSearch: handleMasterSearch,
-    onMasterReset: handleMasterReset,
     detailRows,
     isAllMastersChecked,
     isLoadingMasters: mastersQuery.isLoading,
@@ -336,8 +322,8 @@ export function useCommonCodePageState() {
     moveCheckedDetailRowsDown,
     isDetailDirty,
     pendingFilterAction,
-    onSearchClick: handleSearchClick,
-    onResetClick: handleResetClick,
+    onSearchClick: requestSearch,
+    onResetClick: requestReset,
     confirmFilterAction,
     cancelFilterAction,
     saveMaster,
