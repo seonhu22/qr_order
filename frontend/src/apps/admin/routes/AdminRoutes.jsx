@@ -21,6 +21,7 @@ import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
 import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
 import { AdminUserPage } from '@/apps/admin/pages/AdminUserPage';
 import { MessageManagementPage } from '@/apps/admin/pages/MessageManagementPage';
+import { RuleManagementPage } from '@/apps/admin/pages/RuleManagementPage';
 
 export const adminRoutes = [
   {
@@ -33,19 +34,19 @@ export const adminRoutes = [
       },
       {
         path: 'main',
-        element: <MainPage title="메인 페이지" />,
+        element: <MainPage/>,
       },
       {
         path: 'system/common-code',
-        element: <CommonCodePage title="공통 코드 관리" />,
+        element: <CommonCodePage/>,
       },
       {
         path: 'system/plant',
-        element: <PlantSearchPage title="사업장 검색" />,
+        element: <PlantSearchPage/>,
       },
       {
         path: 'system/admin-user',
-        element: <AdminUserPage title="관리자 관리" />,
+        element: <AdminUserPage/>,
       },
       {
         path: 'system/menu',
@@ -53,11 +54,11 @@ export const adminRoutes = [
       },
       {
         path: 'system/message',
-        element: <MessageManagementPage title="메시지 관리" />,
+        element: <MessageManagementPage/>,
       },
       {
         path: 'system/rule',
-        element: <AdminPlaceholderPage title="규칙 관리" />,
+        element: <RuleManagementPage/>,
       },
       {
         path: 'payment/rate',
