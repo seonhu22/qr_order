@@ -8,19 +8,19 @@ import { getMainControllerMock } from '../generated/main-controller/main-control
 import { getPopupControllerMock } from '../generated/popup-controller/popup-controller.msw';
 
 // 사업장 조회 에러 확인용 — 확인 후 제거하거나 주석 처리
-const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
-  HttpResponse.json({ message: '서버 오류' }, { status: 500 }),
-);
+// const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
+//   HttpResponse.json({ message: '서버 오류' }, { status: 500 }),
+// );
 
-const devOverrideHandlers = [
-  plantSearchErrorHandler,
-];
+// const devOverrideHandlers = [
+//   plantSearchErrorHandler,
+// ];
 
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
   ...authHandlers,
-  ...devOverrideHandlers,
+  // ...devOverrideHandlers,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),
   ...getFileControllerMock(),
