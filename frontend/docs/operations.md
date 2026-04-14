@@ -152,6 +152,18 @@ const flow = useEditablePageFlow({
 - feature 고유 로직(예: `AdminUser`의 비밀번호 초기화, 삭제 버튼 안내 문구)은 feature 훅 또는 feature flow 훅에 남긴다.
 - 즉, "여러 화면에서 동일한 UX 전이"만 shared로 올리고, "도메인 의미가 강한 분기"는 feature 내부에 둔다.
 
+### 8-2. 마스터 모달/상세 행 편집 규칙도 반복되면 `shared`로 승격한다
+
+> 추가일: 2026-04-15
+
+`CommonCode`, `RuleManagement`처럼 마스터-상세 CRUD 화면이 반복되면 아래 규칙도 shared 훅으로 통일한다.
+
+- 마스터 신규/수정/삭제 모달 흐름: `shared/hooks/useCodeMasterModalFlow.ts`
+- 상세 행 순번 정리/위아래 이동/행 추가삭제: `shared/hooks/useOrderedRowEditor.ts`
+- 상세 저장 확인/행 단위 에러/결과 안내: `shared/hooks/useDetailTableSaveFlow.ts`
+
+이때 도메인 라벨(예: `공통코드`, `규칙`)과 실제 저장 함수만 feature에서 주입하고, 상태 전이 규칙은 shared 훅이 담당한다.
+
 ### 9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
 
 ```ts
@@ -250,6 +262,7 @@ const flow = useEditablePageFlow({
 - `AdminUser`: 페이지 조립 + `useAdminUserListState` + `useEditablePageFlow` + `useAdminUserFlow`
 - `MessageManagement`(현재): 페이지 조립 + feature hook + `useEditablePageFlow`
 - `MessageManagement`(목표): 페이지 조립 + `useMessageListState` + `useEditablePageFlow` + `useMessageFlow`
+- `RuleManagement`: 페이지 조립 + feature hook + `useCodeMasterModalFlow` + `useOrderedRowEditor` + `useDetailTableSaveFlow`
 
 ---
 

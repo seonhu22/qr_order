@@ -108,12 +108,16 @@ pages/<Feature>Page.tsx
       -> features/<feature>/hooks/use<Feature>ListState.ts (feature 전용)
       -> shared/hooks/useEditablePageFlow.ts (공통 저장/조회 flow)
       -> features/<feature>/hooks/use<Feature>Flow.ts (feature 고유 flow만)
+      -> shared/hooks/useCodeMasterModalFlow.ts (마스터 CRUD 모달 공통)
+      -> shared/hooks/useOrderedRowEditor.ts (상세 행 순서 공통)
+      -> shared/hooks/useDetailTableSaveFlow.ts (상세 저장/에러 공통)
 ```
 
 - page는 필터, 테이블, 모달을 조립만 담당한다.
 - `useEditablePageFlow`는 조회/초기화 dirty guard와 저장 확인/완료 안내를 공통으로 처리한다.
+- `useCodeMasterModalFlow`, `useOrderedRowEditor`, `useDetailTableSaveFlow`는 `CommonCode`, `RuleManagement` 같은 마스터-상세 CRUD 화면의 반복 규칙을 공통 처리한다.
 - feature 훅은 API wrapper, 목록 상태, 공통 flow를 합쳐 `data / status / actions / uiProps` 형태로 page에 전달한다.
-- 예시: `AdminUser`는 위 구조를 우선 적용했고, `MessageManagement`는 현재 `useMessagePage + useEditablePageFlow` 중심의 과도기 구조를 사용한다.
+- 예시: `AdminUser`는 조회/저장 flow 공통화를 우선 적용했고, `CommonCode`/`RuleManagement`는 마스터 모달/상세 행 편집 규칙도 shared 훅으로 재사용한다.
 
 ---
 
