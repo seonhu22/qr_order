@@ -31,6 +31,7 @@ export function RuleManagementPage() {
       />
 
       <RuleDetailTable
+        key={data.selectedMaster?.id ?? 'rule-detail-empty'}
         selectedMaster={data.selectedMaster}
         isLoading={status.isLoadingDetails}
         isSaving={status.isSavingDetails}

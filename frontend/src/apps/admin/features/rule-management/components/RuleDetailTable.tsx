@@ -61,11 +61,13 @@ export function RuleDetailTable({
   onSaveRows,
 }: RuleDetailTableProps) {
   const [selectedDetailId, setSelectedDetailId] = useState('');
-
-  const selectedIndex = rows.findIndex((row) => row.id === selectedDetailId);
-  const canMoveUp = !!selectedMaster && selectedDetailId !== '' && selectedIndex > 0;
+  const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
+    ? selectedDetailId
+    : '';
+  const selectedIndex = rows.findIndex((row) => row.id === effectiveSelectedDetailId);
+  const canMoveUp = !!selectedMaster && effectiveSelectedDetailId !== '' && selectedIndex > 0;
   const canMoveDown =
-    !!selectedMaster && selectedDetailId !== '' && selectedIndex < rows.length - 1;
+    !!selectedMaster && effectiveSelectedDetailId !== '' && selectedIndex < rows.length - 1;
   const detailColSpan = Math.max(columns.length, 1);
 
   /**
@@ -118,7 +120,7 @@ export function RuleDetailTable({
               iconOnly={<Icon id="i-chevron-up" size={12} />}
               aria-label="위로 이동"
               disabled={!canMoveUp || isSaving}
-              onClick={() => onMoveUp(selectedDetailId || undefined)}
+              onClick={() => onMoveUp(effectiveSelectedDetailId || undefined)}
             />
             <Button
               variant="icon"
@@ -126,7 +128,7 @@ export function RuleDetailTable({
               iconOnly={<Icon id="i-chevron-down" size={12} />}
               aria-label="아래로 이동"
               disabled={!canMoveDown || isSaving}
-              onClick={() => onMoveDown(selectedDetailId || undefined)}
+              onClick={() => onMoveDown(effectiveSelectedDetailId || undefined)}
             />
             <Button
               type="button"
@@ -143,9 +145,9 @@ export function RuleDetailTable({
               variant="text"
               size="sm"
               className="common-code-card__text-action"
-              disabled={!selectedMaster || !selectedDetailId || isSaving}
+              disabled={!selectedMaster || !effectiveSelectedDetailId || isSaving}
               onClick={() => {
-                onDeleteRow(selectedDetailId || undefined);
+                onDeleteRow(effectiveSelectedDetailId || undefined);
                 setSelectedDetailId('');
               }}
             >
@@ -201,7 +203,7 @@ export function RuleDetailTable({
                     rows.map((row) => (
                       <tr
                         key={row.id}
-                        className={selectedDetailId === row.id ? 'is-selected' : undefined}
+                        className={effectiveSelectedDetailId === row.id ? 'is-selected' : undefined}
                         onMouseDown={() => setSelectedDetailId(row.id)}
                       >
                         {columns.map((column) => {
