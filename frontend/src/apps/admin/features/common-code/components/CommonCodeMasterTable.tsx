@@ -10,6 +10,7 @@
 import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { InputWrapper } from '@/shared/components/input';
 import { InputBase, SelectInput } from '@/shared/components/input';
 import { DeleteConfirmModal } from '@/shared/components/modal/template/DeleteConfirmModal';
 import { EditConfirmModal } from '@/shared/components/modal/template/EditConfirmModal';
@@ -197,7 +198,7 @@ export function CommonCodeMasterTable({
         size="md"
         open={isEditorOpen}
         isDirty={isDirty}
-        title="공통코드 마스터 수정/등록"
+        title={isCreateMode ? '공통코드 마스터 등록' : '공통코드 마스터 수정'}
         subtitle="공통코드 정보를 입력하세요."
         primaryAction={{
           label: '확인',
@@ -210,50 +211,46 @@ export function CommonCodeMasterTable({
         onClose={closeEditorModal}
       >
         <div className="common-code-modal-form">
-          <div className="common-code-modal-form__field">
-            <label className="common-code-modal-form__label" htmlFor="common-master-code">
-              공통코드
-              <span className="common-code-modal-form__required" aria-hidden="true">
-                *
-              </span>
-            </label>
-            <InputBase
+          <InputWrapper
+            label="공통코드"
+            inputId='common-master-code'
+            required={true}
+            errorText={editorErrors.code ? '공통코드를 채워주세요.' : undefined}
+            children={<InputBase
               id="common-master-code"
               size="md"
               value={editingRow?.code ?? ''}
               readOnly={isCodeReadonly}
               required
               controlState={editorErrors.code ? 'error' : isCodeReadonly ? 'readonly' : ''}
-              className={isCodeReadonly ? 'common-code-modal-form__readonly' : undefined}
               placeholder={isCreateMode ? '공통코드를 입력하세요' : ''}
               onChange={(event) => changeEditingField('code', event.target.value)}
-            />
-          </div>
-          <div className="common-code-modal-form__field">
-            <label className="common-code-modal-form__label" htmlFor="common-master-name">
-              공통코드명
-              <span className="common-code-modal-form__required" aria-hidden="true">
-                *
-              </span>
-            </label>
-            <InputBase
+            />}
+          >
+          </InputWrapper>
+          <InputWrapper
+            label="공통코드명"
+            inputId='common-master-name'
+            required={true}
+            errorText={editorErrors.name ? '공통코드명을 채워주세요.' : undefined}
+            children={<InputBase
               id="common-master-name"
               size="md"
               value={editingRow?.name ?? ''}
               required
               controlState={editorErrors.name ? 'error' : ''}
-              placeholder={isCreateMode ? '공통코드명을 입력하세요' : (editingRow?.name ?? '')}
+              placeholder={isCreateMode ? '공통코드명을 입력하세요' : ''}
               onChange={(event) => changeEditingField('name', event.target.value)}
-            />
-          </div>
-          <div className="common-code-modal-form__field">
-            <label className="common-code-modal-form__label" htmlFor="common-master-use-yn">
-              사용여부
-              <span className="common-code-modal-form__required" aria-hidden="true">
-                *
-              </span>
-            </label>
-            <SelectInput
+            />}
+          >
+          </InputWrapper>
+          <InputWrapper
+            label="사용여부"
+            inputId='common-master-use-yn'
+            required={true}
+            errorText={editorErrors.useYn ? '사용여부를 선택해주세요.' : undefined}
+            children={
+              <SelectInput
               size="md"
               className="common-code-modal-form__select-input"
               value={editingRow?.useYn ?? 'Y'}
@@ -265,7 +262,9 @@ export function CommonCodeMasterTable({
               isError={editorErrors.useYn}
               onChange={(value) => changeEditingField('useYn', value)}
             />
-          </div>
+            }
+          >
+          </InputWrapper>
         </div>
       </WrapperModal>
 
