@@ -232,7 +232,7 @@ const detailActions = (
   {isLoading ? (
     <FeedbackState variant="loading" title="목록을 불러오는 중입니다." />
   ) : isError ? (
-    <FeedbackState variant="error" />
+    <FeedbackState variant="error" description="다시 한번 시도해주세요." />
   ) : (
     <div className="common-table-wrap">...</div>
   )}
@@ -326,4 +326,5 @@ http://localhost:3000/dev/table
 | 행 클릭 선택 | is-selected 강조 + 체크박스 + 수정 아이콘 (CommonCodeMasterTable / AdminUserTable 패턴) |
 | 인라인 행 편집 | 행추가/삭제 + 위아래 이동 + InputBase·CheckboxInput 편집 (CommonCodeDetailTable 패턴) |
 | 로딩 상태 | FeedbackState(variant="loading") children 전달 예시 |
+| 에러 상태 | FeedbackState(variant="error") children 전달 예시 |
 | header 없는 빈 상태 | title 생략 + FeedbackState(variant="empty") 예시 |

@@ -377,7 +377,16 @@ export default function TableGuide() {
         </div>
       </Section>
 
-      {/* 5. header 없는 빈 상태 */}
+      {/* 5. 에러 상태 */}
+      <Section title="에러 상태" desc="isError 시 FeedbackState를 children으로 전달">
+        <div className="table-guide__preview-box">
+          <TableCard title="공통코드 목록" ariaLabel="에러 예시">
+            <FeedbackState variant="error" description="다시 한번 시도해주세요." />
+          </TableCard>
+        </div>
+      </Section>
+
+      {/* 6. header 없는 빈 상태 */}
       <Section
         title="header 없는 빈 상태"
         desc="title을 생략하면 header가 렌더링되지 않음 — 마스터 미선택 시 상세 카드 패턴"

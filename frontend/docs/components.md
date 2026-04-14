@@ -367,11 +367,19 @@ const NAV_ITEMS = [
 
 로딩·에러·빈 결과·권한 없음 등 다양한 상태를 `variant` 하나로 표현하는 공용 피드백 컴포넌트.
 
-| variant | 기본 문구 |
-|---|---|
-| `loading` | 불러오는 중입니다. |
-| `error` | 불러오는데 실패했습니다. |
-| `empty` | 데이터가 없습니다. |
-| `unauthorized` | 접근 권한이 없습니다. |
+| variant | 기본 문구 | 아이콘 |
+|---|---|---|
+| `loading` | 불러오는 중입니다. | 스피너 |
+| `error` | 불러오는데 실패했습니다 | `i-error` (muted 배경·tertiary 색상) |
+| `empty` | 데이터가 없습니다. | `i-feedback-pointer` |
+| `unauthorized` | 접근 권한이 없습니다. | `i-lock` |
+
+**레이아웃 구조**
+
+아이콘/스피너와 텍스트 그룹 사이 간격은 `--spacing-4`, 텍스트끼리(`title` ↔ `description`)는 `--spacing-2`.
+
+```tsx
+<FeedbackState variant="error" description="다시 한번 시도해주세요." />
+```
 
 Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc 및 `/dev/feedback` 참고
