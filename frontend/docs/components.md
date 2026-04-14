@@ -294,12 +294,13 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 7. 모달 폼 안의 Input·Select 크기는 `md`로 통일한다.
 8. `SelectInput` 드롭다운은 `createPortal`로 `document.body`에 렌더되므로 모달 안에서도 `overflow: hidden`에 잘리지 않는다.
 9. `SelectInput` 드롭다운은 `ArrowDown/Up`, `Home/End`, `Enter/Space`, `Escape` 키보드 네비게이션을 지원한다. 트리거 버튼의 기본 포커스 아웃라인(파란 테두리)은 `.select-control__trigger:focus { outline: none }`으로 제거되어 있다.
-10. 입력값이 원본과 달라진 상태(dirty)에서 ESC·overlay 클릭·닫기 버튼을 누르면 경고 모달("페이지를 나가시겠습니까?")을 먼저 표시한다. `WrapperModal`은 항상 `onClose`를 호출하고, dirty 판단과 경고 모달 표시는 호출부(`closeEditorModal`)가 담당한다.
-11. 모달이 열릴 때 닫기 버튼을 제외한 첫 번째 입력 필드에 자동으로 포커스가 이동하며, Tab/Shift+Tab은 모달 내부에서만 순환한다.
-12. 저장·삭제 확인 모달은 편집 모달 위에 쌓이는 방식(stack)으로 동작한다. 확인 클릭 시 작업이 완료된 후 두 모달이 함께 닫힌다. 취소 클릭 시 확인 모달만 닫히고 편집 모달은 유지된다.
-13. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
-14. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
-15. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
+10. `SelectInput` 드롭다운 위치는 트리거 클릭(`handleToggle`) 시점에 동기적으로 미리 계산된다. 첫 클릭에 드롭다운이 올바른 위치에 즉시 표시되며, 테이블 행 클릭 선택과 SelectInput 클릭이 겹치는 상황에서도 한 번의 클릭으로 정상 동작한다.
+11. 입력값이 원본과 달라진 상태(dirty)에서 ESC·overlay 클릭·닫기 버튼을 누르면 경고 모달("페이지를 나가시겠습니까?")을 먼저 표시한다. `WrapperModal`은 항상 `onClose`를 호출하고, dirty 판단과 경고 모달 표시는 호출부(`closeEditorModal`)가 담당한다.
+12. 모달이 열릴 때 닫기 버튼을 제외한 첫 번째 입력 필드에 자동으로 포커스가 이동하며, Tab/Shift+Tab은 모달 내부에서만 순환한다.
+13. 저장·삭제 확인 모달은 편집 모달 위에 쌓이는 방식(stack)으로 동작한다. 확인 클릭 시 작업이 완료된 후 두 모달이 함께 닫힌다. 취소 클릭 시 확인 모달만 닫히고 편집 모달은 유지된다.
+14. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
+15. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
+16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
 
 ---
 

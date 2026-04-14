@@ -261,7 +261,7 @@ const detailActions = (
 | 클래스 | 적용 요소 | 설명 |
 |---|---|---|
 | `.common-table-wrap` | `div` | 수평 스크롤 래퍼. `flex: 1`로 카드 높이를 채움 |
-| `.common-table` | `table` | 테이블 기본 스타일. thead sticky, 행 hover, is-selected |
+| `.common-table` | `table` | 테이블 기본 스타일. thead sticky, 행 hover, is-selected. `table-layout: fixed` 기본 적용 — 셀 내용(SelectInput 선택값 등)이 바뀌어도 컬럼 너비가 고정됨 |
 | `.common-table--detail` | modifier | 인라인 편집 전용. 행 높이 축소 |
 | `.common-table__cell--left` | `th`, `td` | 텍스트 좌정렬 셀 |
 | `.common-table__mono` | `td` | 코드값 고정폭 폰트 (font-mono) |
@@ -300,15 +300,38 @@ const detailActions = (
 
 ```css
 /* PlantSearchPage.css */
-.plant-search-page .common-table { min-width: 90rem; }
+.plant-search-table .common-table { min-width: 90rem; }
 /* 읽기 전용 테이블 — 행 클릭 커서 제거 */
-.plant-search-page .common-table tbody tr { cursor: default; }
+.plant-search-table .common-table tbody tr { cursor: default; }
 /* 말줄임 셀 max-width 오버라이드 */
-.plant-search-page .common-table__cell--truncate { max-width: 10rem; }
+.plant-search-table .common-table__cell--truncate { max-width: 10rem; }
 
 /* AdminUserPage.css */
-.admin-user-page .common-table { min-width: 58rem; }
+.admin-user-table .common-table { min-width: 58rem; }
 ```
+
+### table-layout: fixed 와 컬럼 너비
+
+> 추가일: 2026-04-14
+
+`.common-table`은 `table-layout: fixed`를 기본으로 사용한다.
+너비가 지정되지 않은 컬럼은 브라우저가 균등 분배한다.
+특정 컬럼에 비율이 필요하면 `<th>` 또는 `<colgroup>`으로 지정한다.
+
+```tsx
+// th width 지정 예시 — 4컬럼 테이블에서 마지막 컬럼만 고정
+<thead>
+  <tr>
+    <th>사용자 아이디</th>
+    <th>사용자 명</th>
+    <th>사업장</th>
+    <th style={{ width: '10rem' }}>비밀번호 초기화</th>
+  </tr>
+</thead>
+```
+
+- 인라인 편집 테이블(`SelectInput`, `InputBase` 포함)에서 선택값 변경 시 컬럼이 밀리는 현상을 방지하기 위해 도입했다.
+- 페이지별 `nth-child` CSS로 컬럼 너비를 지정하지 않아도 된다.
 
 ---
 
