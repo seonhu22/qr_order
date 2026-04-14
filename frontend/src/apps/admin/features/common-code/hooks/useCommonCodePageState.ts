@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
+import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode } from '../types';
@@ -24,22 +25,8 @@ import {
   useSaveCommonMasterMutation,
 } from '../api/commonCodeApi';
 
-
 function cloneRows(rows: DetailCode[]) {
   return rows.map((row) => ({ ...row }));
-}
-
-/**
- * 현재 배열 순서를 기준으로 ordNo를 1부터 다시 부여한다.
- *
- * @description
- * - 행 추가/삭제/이동 후 저장 payload가 실제 화면 순서를 반영하도록 유지한다.
- */
-function normalizeOrdNo(rows: DetailCode[]) {
-  return rows.map((row, index) => ({
-    ...row,
-    ordNo: index + 1,
-  }));
 }
 
 /**
@@ -52,6 +39,7 @@ function normalizeOrdNo(rows: DetailCode[]) {
  */
 export function useCommonCodePageState() {
   const queryClient = useQueryClient();
+  const orderedRowEditor = useOrderedRowEditor<DetailCode>();
   const [selectedMasterId, setSelectedMasterId] = useState<string>('');
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
   const [detailRowsByMaster, setDetailRowsByMaster] = useState<Record<string, DetailCode[]>>({});
@@ -200,43 +188,19 @@ export function useCommonCodePageState() {
       isNew: true,
     };
 
-    updateSelectedDetailRows((rows) => normalizeOrdNo([...rows, nextRow]));
+    updateSelectedDetailRows((rows) => orderedRowEditor.appendRow(rows, nextRow));
   };
 
   const removeCheckedDetailRows = (selectedId?: string) => {
-    updateSelectedDetailRows((rows) =>
-      normalizeOrdNo(rows.filter((row) => row.id !== selectedId)),
-    );
+    updateSelectedDetailRows((rows) => orderedRowEditor.removeRow(rows, selectedId));
   };
 
   const moveCheckedDetailRowsUp = (selectedId?: string) => {
-    updateSelectedDetailRows((rows) => {
-      const nextRows = [...rows];
-      const shouldMove = (row: DetailCode) => row.id === selectedId;
-
-      for (let index = 1; index < nextRows.length; index += 1) {
-        if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index - 1])) {
-          [nextRows[index - 1], nextRows[index]] = [nextRows[index], nextRows[index - 1]];
-        }
-      }
-
-      return normalizeOrdNo(nextRows);
-    });
+    updateSelectedDetailRows((rows) => orderedRowEditor.moveRowUp(rows, selectedId));
   };
 
   const moveCheckedDetailRowsDown = (selectedId?: string) => {
-    updateSelectedDetailRows((rows) => {
-      const nextRows = [...rows];
-      const shouldMove = (row: DetailCode) => row.id === selectedId;
-
-      for (let index = nextRows.length - 2; index >= 0; index -= 1) {
-        if (shouldMove(nextRows[index]) && !shouldMove(nextRows[index + 1])) {
-          [nextRows[index], nextRows[index + 1]] = [nextRows[index + 1], nextRows[index]];
-        }
-      }
-
-      return normalizeOrdNo(nextRows);
-    });
+    updateSelectedDetailRows((rows) => orderedRowEditor.moveRowDown(rows, selectedId));
   };
 
   /**

@@ -20,7 +20,7 @@ import type { MasterCode } from '../types';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TableCard } from '@/shared/components/table';
-import { useCommonCodeMasterModalFlow } from '../hooks/useCommonCodeMasterModalFlow';
+import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 
 type CommonCodeMasterTableProps = {
   rows: MasterCode[];
@@ -84,10 +84,11 @@ export function CommonCodeMasterTable({
     closeDeleteConfirm,
     closeDirtyWarning,
     closeNotice,
-  } = useCommonCodeMasterModalFlow({
-    checkedMasterIds,
-    onSaveMaster,
-    onDeleteMasters,
+  } = useCodeMasterModalFlow({
+    checkedRowIds: checkedMasterIds,
+    createEmptyRow: (): MasterCode => ({ id: '', code: '', name: '', useYn: 'Y' }),
+    onSaveRow: onSaveMaster,
+    onDeleteRows: onDeleteMasters,
   });
 
   const headerActions = (

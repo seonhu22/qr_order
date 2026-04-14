@@ -1,66 +1,68 @@
-/**
- * @fileoverview 공통코드 마스터 모달 흐름 상태 훅
- *
- * @description
- * - 마스터 테이블에서 사용하는 편집/저장/삭제/안내 모달 상태를 한 곳에 모은다.
- * - 테이블 컴포넌트는 UI 렌더링에 집중하고, 상태 전이는 이 훅이 담당한다.
- * - 현재는 common-code feature 전용 훅으로 유지하고, 다른 화면에서 같은 패턴이
- *   반복될 때 shared 계층 승격을 검토한다.
- */
+import { useMemo, useState } from 'react';
 
-import { useState } from 'react';
-import type { MasterCode } from '../types';
+export type CodeMasterRow = {
+  id: string;
+  code: string;
+  name: string;
+  useYn: 'Y' | 'N';
+};
 
-type NoticeState = {
+export type CodeMasterNoticeState = {
   title: string;
   description: string;
   helperText?: string;
 } | null;
 
-type UseCommonCodeMasterModalFlowParams = {
-  checkedMasterIds: string[];
-  onSaveMaster: (master: MasterCode, isCreateMode: boolean) => Promise<void>;
-  onDeleteMasters: () => Promise<number>;
+type UseCodeMasterModalFlowParams<T extends CodeMasterRow> = {
+  checkedRowIds: string[];
+  createEmptyRow: () => T;
+  onSaveRow: (row: T, isCreateMode: boolean) => Promise<void>;
+  onDeleteRows: () => Promise<number>;
+  saveErrorMessage?: string;
+  deleteErrorMessage?: string;
 };
 
 /**
- * 공통코드 마스터 CRUD 모달 흐름을 관리한다.
+ * 코드/이름/사용여부 구조를 가진 마스터 테이블의 공통 CRUD 모달 흐름을 관리한다.
  *
  * @description
- * - 신규/수정 모달 draft
+ * - 신규/수정용 editor draft
  * - 저장 확인 모달
  * - 삭제 확인 모달
  * - 기본 안내 모달
- * 을 한 흐름으로 묶는다.
+ * 을 한곳에 모아 feature 테이블 컴포넌트는 렌더링에만 집중하게 만든다.
  */
-export function useCommonCodeMasterModalFlow({
-  checkedMasterIds,
-  onSaveMaster,
-  onDeleteMasters,
-}: UseCommonCodeMasterModalFlowParams) {
-  const [editingRow, setEditingRow] = useState<MasterCode | null>(null);
-  const [originalRow, setOriginalRow] = useState<MasterCode | null>(null);
+export function useCodeMasterModalFlow<T extends CodeMasterRow>({
+  checkedRowIds,
+  createEmptyRow,
+  onSaveRow,
+  onDeleteRows,
+  saveErrorMessage = '저장 중 오류가 발생했습니다.',
+  deleteErrorMessage = '삭제 중 오류가 발생했습니다.',
+}: UseCodeMasterModalFlowParams<T>) {
+  const [editingRow, setEditingRow] = useState<T | null>(null);
+  const [originalRow, setOriginalRow] = useState<T | null>(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
-  const [editorErrors, setEditorErrors] = useState<{
-    code: boolean;
-    name: boolean;
-    useYn: boolean;
-  }>({
-    code: false,
-    name: false,
-    useYn: false,
-  });
-  const [noticeState, setNoticeState] = useState<NoticeState>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDirtyWarningOpen, setIsDirtyWarningOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const selectedDeleteCount = editingRow && checkedMasterIds.includes(editingRow.id)
-    ? checkedMasterIds.length - 1
-    : checkedMasterIds.length;
-  const isCodeReadonly = !isCreateMode;
+  const [noticeState, setNoticeState] = useState<CodeMasterNoticeState>(null);
+  const [editorErrors, setEditorErrors] = useState({
+    code: false,
+    name: false,
+    useYn: false,
+  });
+
+  const selectedDeleteCount = useMemo(() => {
+    if (!editingRow || !checkedRowIds.includes(editingRow.id)) {
+      return checkedRowIds.length;
+    }
+
+    return checkedRowIds.length - 1;
+  }, [checkedRowIds, editingRow]);
 
   const resetEditorErrors = () => {
     setEditorErrors({
@@ -71,15 +73,15 @@ export function useCommonCodeMasterModalFlow({
   };
 
   const openCreateModal = () => {
-    const blank: MasterCode = { id: '', code: '', name: '', useYn: 'Y' };
-    setEditingRow(blank);
-    setOriginalRow(blank);
+    const blankRow = createEmptyRow();
+    setEditingRow(blankRow);
+    setOriginalRow(blankRow);
     setIsCreateMode(true);
     resetEditorErrors();
     setIsEditorOpen(true);
   };
 
-  const openEditModal = (row: MasterCode) => {
+  const openEditModal = (row: T) => {
     setEditingRow({ ...row });
     setOriginalRow({ ...row });
     setIsCreateMode(false);
@@ -87,13 +89,12 @@ export function useCommonCodeMasterModalFlow({
     setIsEditorOpen(true);
   };
 
-  const closeEditorModal = () => {
-    if (isDirty) {
-      setIsDirtyWarningOpen(true);
-      return;
-    }
-    forceCloseEditorModal();
-  };
+  const isDirty =
+    editingRow !== null &&
+    originalRow !== null &&
+    (editingRow.code !== originalRow.code ||
+      editingRow.name !== originalRow.name ||
+      editingRow.useYn !== originalRow.useYn);
 
   const forceCloseEditorModal = () => {
     setIsDirtyWarningOpen(false);
@@ -102,6 +103,15 @@ export function useCommonCodeMasterModalFlow({
     setOriginalRow(null);
     setIsCreateMode(false);
     resetEditorErrors();
+  };
+
+  const closeEditorModal = () => {
+    if (isDirty) {
+      setIsDirtyWarningOpen(true);
+      return;
+    }
+
+    forceCloseEditorModal();
   };
 
   const changeEditingField = (key: 'code' | 'name' | 'useYn', value: string) => {
@@ -132,7 +142,7 @@ export function useCommonCodeMasterModalFlow({
 
     setIsConfirming(true);
     try {
-      await onSaveMaster(editingRow, isCreateMode);
+      await onSaveRow(editingRow, isCreateMode);
       setIsSaveConfirmOpen(false);
       setIsEditorOpen(false);
       setNoticeState({ title: '알림', description: '저장되었습니다.' });
@@ -144,7 +154,7 @@ export function useCommonCodeMasterModalFlow({
       setIsSaveConfirmOpen(false);
       setNoticeState({
         title: '오류',
-        description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : saveErrorMessage,
       });
     } finally {
       setIsConfirming(false);
@@ -167,7 +177,7 @@ export function useCommonCodeMasterModalFlow({
   const confirmDelete = async () => {
     setIsConfirmingDelete(true);
     try {
-      const deletedCount = await onDeleteMasters();
+      const deletedCount = await onDeleteRows();
       setIsDeleteConfirmOpen(false);
       setNoticeState({
         title: '알림',
@@ -177,28 +187,17 @@ export function useCommonCodeMasterModalFlow({
       setIsDeleteConfirmOpen(false);
       setNoticeState({
         title: '오류',
-        description: error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.',
+        description: error instanceof Error ? error.message : deleteErrorMessage,
       });
     } finally {
       setIsConfirmingDelete(false);
     }
   };
 
-  const closeNotice = () => {
-    setNoticeState(null);
-  };
-
-  const isDirty =
-    editingRow !== null &&
-    originalRow !== null &&
-    (editingRow.code !== originalRow.code ||
-      editingRow.name !== originalRow.name ||
-      editingRow.useYn !== originalRow.useYn);
-
   return {
     editingRow,
     isCreateMode,
-    isCodeReadonly,
+    isCodeReadonly: !isCreateMode,
     isDirty,
     isEditorOpen,
     isSaveConfirmOpen,
@@ -221,6 +220,6 @@ export function useCommonCodeMasterModalFlow({
     closeSaveConfirm: () => setIsSaveConfirmOpen(false),
     closeDeleteConfirm: () => setIsDeleteConfirmOpen(false),
     closeDirtyWarning: () => setIsDirtyWarningOpen(false),
-    closeNotice,
+    closeNotice: () => setNoticeState(null),
   };
 }

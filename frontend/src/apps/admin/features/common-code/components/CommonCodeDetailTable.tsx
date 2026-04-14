@@ -16,8 +16,9 @@ import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirm
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TableCard } from '@/shared/components/table';
+import { InputWrapper } from '@/shared/components/input';
+import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import type { DetailCode, MasterCode } from '../types';
-import { useCommonCodeDetailTableFlow } from '../hooks/useCommonCodeDetailTableFlow';
 
 type CommonCodeDetailTableProps = {
   selectedMaster: MasterCode | null;
@@ -72,9 +73,42 @@ export function CommonCodeDetailTable({
     confirmSave,
     closeSaveConfirm,
     closeNotice,
-  } = useCommonCodeDetailTableFlow({
-    rows,
+  } = useDetailTableSaveFlow({
+    validateRows: () =>
+      Object.fromEntries(
+        rows.map((row) => [
+          row.id,
+          {
+            code: row.isNew ? !row.code.trim() : false,
+            name: !row.name.trim(),
+          },
+        ]),
+      ),
     onSaveRows,
+    applyServerValidationErrors: (message) => {
+      const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
+      const normalized = message.toLowerCase();
+
+      if (normalized.includes('common_cd') || message.includes('공통코드')) {
+        rows.forEach((row) => {
+          nextErrors[row.id] = {
+            ...nextErrors[row.id],
+            code: true,
+          };
+        });
+      }
+
+      if (normalized.includes('common_nm') || message.includes('공통코드명')) {
+        rows.forEach((row) => {
+          nextErrors[row.id] = {
+            ...nextErrors[row.id],
+            name: true,
+          };
+        });
+      }
+
+      return nextErrors;
+    },
   });
 
   const detailActions = selectedMaster ? (
@@ -172,31 +206,37 @@ export function CommonCodeDetailTable({
                       onClick={() => setSelectedDetailId(row.id)}
                     >
                       <td>
-                        <InputBase
-                          size="sm"
-                          className={`common-table__input${row.isNew ? '' : ' common-table__input--readonly-code'}`}
-                          controlState={!row.isNew ? 'readonly' : rowErrors[row.id]?.code ? 'error' : ''}
-                          readOnly={!row.isNew}
-                          value={row.code}
-                          onChange={(event) => {
-                            clearRowError(row.id, 'code');
-                            onFieldChange(row.id, 'code', event.target.value);
-                          }}
-                          aria-label={`${row.code} 코드`}
-                        />
+                        <InputWrapper inputId={`${row.id}-common-detail-code`}>
+                          <InputBase
+                            id={`${row.id}-common-detail-code`}
+                            size="sm"
+                            className={`common-table__input${row.isNew ? '' : ' common-table__input--readonly-code'}`}
+                            controlState={!row.isNew ? 'readonly' : rowErrors[row.id]?.code ? 'error' : ''}
+                            readOnly={!row.isNew}
+                            value={row.code}
+                            onChange={(event) => {
+                              clearRowError(row.id, 'code');
+                              onFieldChange(row.id, 'code', event.target.value);
+                            }}
+                            aria-label={`${row.code} 코드`}
+                          />
+                        </InputWrapper>
                       </td>
                       <td>
-                        <InputBase
-                          size="sm"
-                          className="common-table__input"
-                          controlState={rowErrors[row.id]?.name ? 'error' : ''}
-                          value={row.name}
-                          onChange={(event) => {
-                            clearRowError(row.id, 'name');
-                            onFieldChange(row.id, 'name', event.target.value);
-                          }}
-                          aria-label={`${row.code} 코드명`}
-                        />
+                        <InputWrapper inputId={`${row.id}-common-detail-name`}>
+                          <InputBase
+                            id={`${row.id}-common-detail-name`}
+                            size="sm"
+                            className="common-table__input"
+                            controlState={rowErrors[row.id]?.name ? 'error' : ''}
+                            value={row.name}
+                            onChange={(event) => {
+                              clearRowError(row.id, 'name');
+                              onFieldChange(row.id, 'name', event.target.value);
+                            }}
+                            aria-label={`${row.code} 코드명`}
+                          />
+                        </InputWrapper>
                       </td>
                       {/* 사용여부: tr onClick(행 선택)과 공존 — onChange로 useYn 토글, 클릭은 tr까지 버블링 */}
                       <td>
