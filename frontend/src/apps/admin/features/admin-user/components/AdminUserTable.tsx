@@ -80,7 +80,7 @@ export function AdminUserTable({
       <tr
         key={row.id}
         className={selectedRowId === row.id ? 'is-selected' : undefined}
-        onClick={() => onSelectRow(row.id)}
+        onMouseDown={() => onSelectRow(row.id)}
       >
         <td>
           {/* 기존 행은 readonly, 신규 행만 사용자 아이디 수정 가능 */}

@@ -288,6 +288,15 @@ export function SelectInput({
 
   const handleToggle = () => {
     if (disabled || readOnly || loading) return;
+    // 열기 직전에 위치를 동기적으로 미리 계산해 두어,
+    // 드롭다운 첫 렌더부터 올바른 위치에 표시되도록 한다.
+    if (!open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
+      setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
+    }
     setOpen((prev) => !prev);
   };
 
