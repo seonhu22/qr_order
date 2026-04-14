@@ -270,6 +270,7 @@ const detailActions = (
 | `.common-table__input--readonly` | modifier | 읽기 전용 input (배경색 적용) |
 | `.common-table__select` | `SelectInput` | 인라인 편집 select (전체 너비) |
 | `.common-table__empty` | 빈 상태 셀 | `colspan` 전체 차지, 중앙 정렬 |
+| `.common-table__cell--truncate` | `td` | 텍스트 말줄임 셀. 페이지 CSS에서 `max-width` 지정 필요, `title` 속성으로 전체 내용 제공 |
 
 ### 상태 배지
 
@@ -299,9 +300,11 @@ const detailActions = (
 
 ```css
 /* PlantSearchPage.css */
-.plant-search-page .common-table { min-width: 76rem; }
+.plant-search-page .common-table { min-width: 90rem; }
 /* 읽기 전용 테이블 — 행 클릭 커서 제거 */
 .plant-search-page .common-table tbody tr { cursor: default; }
+/* 말줄임 셀 max-width 오버라이드 */
+.plant-search-page .common-table__cell--truncate { max-width: 10rem; }
 
 /* AdminUserPage.css */
 .admin-user-page .common-table { min-width: 58rem; }

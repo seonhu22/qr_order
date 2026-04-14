@@ -12,9 +12,14 @@ export type PlantSearchRow = {
   plantCode: string;
   plantName: string;
   storeName: string;
+  /** DB: emp_nm — generated Plant 타입 누락, 백엔드 openapi 반영 후 정식 매핑 필요 */
+  ownerName: string;
   email: string;
+  /** DB 미존재 — 추후 백엔드 컬럼 확정 시 교체 */
+  managerName: string;
   postalCode: string;
   address: string;
   phoneNumber: string;
-  useYn: 'Y' | 'N';
+  /** DB 미존재 — 추후 백엔드 컬럼 확정 시 교체 */
+  clientUrl: string;
 };

@@ -153,6 +153,13 @@
   text-align: center !important;
 }
 
+/* 긴 텍스트 셀 말줄임 — 페이지에서 max-width 지정 필요, title 속성으로 전체 내용 제공 */
+.common-table__cell--truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* 사용여부 배지 */
 .status-badge {
   display: inline-flex;

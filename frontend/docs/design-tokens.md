@@ -155,6 +155,7 @@ padding: 10px;
 | `--typography-size-caption` | 12px | 라벨·힌트·캡션 |
 | `--typography-size-ui` | 14px | 버튼·인풋 텍스트 |
 | `--typography-size-body` | 16px | 본문 기본 |
+| `--typography-size-h4` | 16px | 소형 헤딩 (모달 타이틀 등) |
 | `--typography-size-h3` | 18px | 서브 헤딩 |
 | `--typography-size-h2` | 20px | 중간 헤딩 |
 | `--typography-size-h1` | 24px | 주요 헤딩 |
