@@ -164,6 +164,10 @@ const flow = useEditablePageFlow({
 
 이때 도메인 라벨(예: `공통코드`, `규칙`)과 실제 저장 함수만 feature에서 주입하고, 상태 전이 규칙은 shared 훅이 담당한다.
 
+`RuleManagement`는 이 구조를 기준으로,
+- mock 저장/삭제 로직은 feature `api/*` adapter에 두고
+- page는 모달 조립과 화면 배치만 담당하는 page-level orchestration 예시로 구현한다.
+
 ### 9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
 
 ```ts
@@ -183,6 +187,7 @@ const {
 - `list state` 훅: draft/dirty/검증/행 추가삭제 테스트
 - `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
 - UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
+- page 통합 테스트: 저장 확인, 삭제 확인, dirty 경고처럼 화면 조립 기준의 핵심 사용자 흐름 테스트
 
 ### 11. 조회/초기화 dirty guard는 `useFilterDirtyCheck`를 사용한다
 

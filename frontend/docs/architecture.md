@@ -118,6 +118,7 @@ pages/<Feature>Page.tsx
 - `useCodeMasterModalFlow`, `useOrderedRowEditor`, `useDetailTableSaveFlow`는 `CommonCode`, `RuleManagement` 같은 마스터-상세 CRUD 화면의 반복 규칙을 공통 처리한다.
 - feature 훅은 API wrapper, 목록 상태, 공통 flow를 합쳐 `data / status / actions / uiProps` 형태로 page에 전달한다.
 - 예시: `AdminUser`는 조회/저장 flow 공통화를 우선 적용했고, `CommonCode`/`RuleManagement`는 마스터 모달/상세 행 편집 규칙도 shared 훅으로 재사용한다.
+- `RuleManagementPage`는 page-level orchestration 예시로, page가 모달을 조립하고 `useRuleManagementPage`가 마스터/상세 상태와 shared flow를 합쳐 전달한다.
 
 ---
 
