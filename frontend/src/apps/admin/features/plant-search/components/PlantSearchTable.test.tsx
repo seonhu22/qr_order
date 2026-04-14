@@ -6,8 +6,12 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PlantSearchTable } from './PlantSearchTable';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('PlantSearchTable', () => {
   it('renders loading message when loading', () => {
@@ -21,13 +25,14 @@ describe('PlantSearchTable', () => {
 
     // 분기 우선순위 회귀 방지: 로딩 중에는 에러 문구보다 로딩 문구가 우선되어야 한다.
     expect(screen.getByText('사업장 목록을 불러오는 중입니다.')).toBeInTheDocument();
-    expect(screen.queryByText('사업장 목록을 불러오지 못했습니다.')).not.toBeInTheDocument();
+    expect(screen.queryByText('불러오는데 실패했습니다')).not.toBeInTheDocument();
   });
 
   it('renders error message when query fails', () => {
     render(<PlantSearchTable rows={[]} isLoading={false} isError />);
 
-    expect(screen.getByText('사업장 목록을 불러오지 못했습니다.')).toBeInTheDocument();
+    expect(screen.getByText('불러오는데 실패했습니다')).toBeInTheDocument();
+    expect(screen.getByText('다시 한번 시도해주세요.')).toBeInTheDocument();
   });
 
   it('renders empty message when rows are empty', () => {
@@ -45,11 +50,13 @@ describe('PlantSearchTable', () => {
             plantCode: 'PLANT-001',
             plantName: '강남점',
             storeName: '강남 매장',
+            ownerName: '홍길동',
             email: 'gangnam@example.com',
+            managerName: '담당자 1',
             postalCode: '06123',
             address: '서울 강남구',
             phoneNumber: '02-1234-5678',
-            useYn: 'Y',
+            clientUrl: 'https://client.example.com',
           },
         ]}
         isLoading={false}
@@ -63,18 +70,20 @@ describe('PlantSearchTable', () => {
     expect(screen.getByRole('button', { name: '접속' })).toBeInTheDocument();
   });
 
-  it('calls onAccessClick with the selected row when access button is clicked', () => {
-    const onAccessClick = vi.fn();
+  it('opens client url in new window when access button is clicked', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     const row = {
       id: 'plant-1',
       plantCode: 'PLANT-001',
       plantName: '강남점',
       storeName: '강남 매장',
+      ownerName: '홍길동',
       email: 'gangnam@example.com',
+      managerName: '담당자 1',
       postalCode: '06123',
       address: '서울 강남구',
       phoneNumber: '02-1234-5678',
-      useYn: 'Y' as const,
+      clientUrl: 'https://client.example.com',
     };
 
     render(
@@ -82,13 +91,12 @@ describe('PlantSearchTable', () => {
         rows={[row]}
         isLoading={false}
         isError={false}
-        onAccessClick={onAccessClick}
       />,
     );
 
-    // 테이블 액션 계약 회귀 방지: 어떤 행에서 클릭했는지 콜백으로 전달되어야 한다.
+    // 현재 계약: 접속 버튼은 clientUrl을 새 창으로 연다.
     fireEvent.click(screen.getByRole('button', { name: '접속' }));
 
-    expect(onAccessClick).toHaveBeenCalledWith(row);
+    expect(openSpy).toHaveBeenCalledWith(row.clientUrl, '_blank');
   });
 });

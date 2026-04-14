@@ -85,14 +85,14 @@ describe('AdminUserTable', () => {
 
     const newRowUserIdInput = screen.getByPlaceholderText('아이디를 입력하세요');
     const [, newRowUserNameInput] = screen.getAllByPlaceholderText('사용자 명을 입력하세요');
-    const selectTrigger = screen.getByRole('button', { name: '사업장을 선택하세요' });
+    const selectTrigger = screen.getByRole('combobox', { name: '사업장을 선택하세요' });
 
     expect(newRowUserIdInput.closest('.input-control')).toHaveAttribute('data-state', 'error');
     expect(newRowUserNameInput.closest('.input-control')).toHaveAttribute('data-state', 'error');
     expect(selectTrigger.closest('.select-control')).toHaveAttribute('data-state', 'error');
 
     const rowsInBody = container.querySelectorAll('tbody tr');
-    fireEvent.click(rowsInBody[1]);
+    fireEvent.mouseDown(rowsInBody[1]);
 
     expect(props.onSelectRow).toHaveBeenCalledWith('row-2');
   });
