@@ -121,7 +121,7 @@
 
 .common-table tbody tr.is-selected {
   background-color: rgba(255, 107, 43, 0.06);
-  box-shadow: inset 2px 0 0 var(--color-brand-default);
+  box-shadow: inset var(--border-2) 0 0 var(--color-brand-default);
 }
 
 /* 체크박스 셀 중앙 정렬 보조 */

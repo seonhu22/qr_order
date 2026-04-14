@@ -10,8 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 63px;
-  padding: 0 16px;
+  height: 3.9375rem; /* 63px — 토큰 없음 */
+  padding: 0 var(--spacing-8); /* 16px */
   /* border-bottom: 1px solid var(--sb-border); */
   flex-shrink: 0;
 }
@@ -19,17 +19,17 @@
 /* ---- AdminBrand 사이즈 오버라이드 (사이드바 전용) ---- */
 /* 기본 AdminBrand는 로그인 카드용(38×38, 24px)이므로 재정의 */
 .admin-sidebar-header .admin-brand {
-  gap: 10px;
+  gap: var(--spacing-5); /* 10px */
 }
 
 .admin-sidebar-header .admin-brand__icon-box {
-  width: 30px;
-  height: 30px;
+  width: var(--height-component-sm);  /* 30px */
+  height: var(--height-component-sm);
 }
 
 .admin-sidebar-header .admin-brand__name {
   font-size: var(--font-size-lg); /* 18px */
-  line-height: 28px;
+  line-height: 1.75rem; /* 28px */
 }
 
 /* ---- 닫기 버튼 ---- */
@@ -37,9 +37,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 4px;
+  width: var(--icon-lg);   /* 24px */
+  height: var(--icon-lg);
+  padding: var(--spacing-2); /* 4px */
   border: none;
   background: none;
   border-radius: var(--radius-sm);
@@ -47,8 +47,8 @@
   color: var(--sb-text-dim);
   flex-shrink: 0;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--transition-ui),
+    color var(--transition-ui);
 }
 
 .admin-sidebar-header__close:hover {

@@ -18,9 +18,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 9999px;
+  width: var(--spacing-15);  /* 56px */
+  height: var(--spacing-15);
+  border-radius: var(--radius-pill);
 }
 
 .notice-modal__icon-wrapper--info,
