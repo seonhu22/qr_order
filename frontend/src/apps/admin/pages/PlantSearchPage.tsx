@@ -16,21 +16,25 @@ export function PlantSearchPage() {
   const { data, status, actions, uiProps } = usePlantSearchPage();
 
   return (
-    <AdminMainLayout adminMainTitle="사업장 조회" depth1="시스템" depth2="시스템 관리">
-      <section className="plant-search-page" aria-label="사업장 조회 화면">
+    <AdminMainLayout
+      adminMainTitle="사업장 조회"
+      depth1="시스템"
+      depth2="시스템 관리"
+      className="admin-main-layout-page--fixed"
+      filterSlot={
         <PlantSearchFilters
           draftKeyword={uiProps.draftKeyword}
           onKeywordChange={actions.handleKeywordChange}
           onSearch={actions.handleSearch}
           onReset={actions.handleReset}
         />
-
-        <PlantSearchTable
-          rows={data.rows}
-          isLoading={status.isLoading || status.isFetching}
-          isError={status.isError}
-        />
-      </section>
+      }
+    >
+      <PlantSearchTable
+        rows={data.rows}
+        isLoading={status.isLoading || status.isFetching}
+        isError={status.isError}
+      />
     </AdminMainLayout>
   );
 }

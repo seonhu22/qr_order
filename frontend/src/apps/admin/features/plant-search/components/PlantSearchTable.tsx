@@ -63,7 +63,7 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
   };
 
   return (
-    <TableCard title="사업장 목록" ariaLabel="사업장 목록">
+    <TableCard title="사업장 목록" ariaLabel="사업장 목록" className="plant-search-table">
       {isLoading ? (
         <FeedbackState variant="loading" title="사업장 목록을 불러오는 중입니다." />
       ) : isError ? (

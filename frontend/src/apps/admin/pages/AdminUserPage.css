@@ -1,9 +1,3 @@
-.admin-user-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
 /* =====================================================
  * 검색 필터 카드
  * ===================================================== */
@@ -38,7 +32,7 @@
  * ===================================================== */
 
 /* 컬럼이 많아 가로 스크롤이 필요한 최소 너비 */
-.admin-user-page .common-table {
+.admin-user-table .common-table {
   min-width: 58rem;
 }
 

@@ -167,7 +167,7 @@ export function AdminUserTable({
   );
 
   return (
-    <TableCard title="관리자 목록" ariaLabel="관리자 목록" actions={headerActions}>
+    <TableCard title="관리자 목록" ariaLabel="관리자 목록" actions={headerActions} className="admin-user-table">
       {isLoading ? (
         <FeedbackState variant="loading" title="관리자 목록을 불러오는 중입니다." />
       ) : isError ? (

@@ -21,33 +21,37 @@ export function AdminUserPage() {
 
   return (
     <>
-      <AdminMainLayout adminMainTitle="관리자 관리" depth1="시스템" depth2="시스템 관리">
-        <section className="admin-user-page" aria-label="관리자 관리 화면">
+      <AdminMainLayout
+        adminMainTitle="관리자 관리"
+        depth1="시스템"
+        depth2="시스템 관리"
+        className="admin-main-layout-page--fixed"
+        filterSlot={
           <AdminUserFilters
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}
             onReset={actions.handleReset}
           />
-
-          <AdminUserTable
-            rows={data.rows}
-            selectedRowId={uiProps.selectedRowId}
-            plantOptions={data.plantOptions}
-            rowErrors={data.rowErrors}
-            isLoading={status.isLoading || status.isFetching}
-            isError={status.isError}
-            isSaving={status.isSaving}
-            isResettingPassword={status.isResettingPassword}
-            onSelectRow={actions.handleSelectRow}
-            onChangeRowField={actions.handleChangeRowField}
-            onChangeRowPlant={actions.handleChangeRowPlant}
-            onAddRow={actions.handleAddRow}
-            onDeleteRow={actions.handleDeleteRow}
-            onSave={actions.handleSave}
-            onResetPassword={actions.handleResetPassword}
-          />
-        </section>
+        }
+      >
+        <AdminUserTable
+          rows={data.rows}
+          selectedRowId={uiProps.selectedRowId}
+          plantOptions={data.plantOptions}
+          rowErrors={data.rowErrors}
+          isLoading={status.isLoading || status.isFetching}
+          isError={status.isError}
+          isSaving={status.isSaving}
+          isResettingPassword={status.isResettingPassword}
+          onSelectRow={actions.handleSelectRow}
+          onChangeRowField={actions.handleChangeRowField}
+          onChangeRowPlant={actions.handleChangeRowPlant}
+          onAddRow={actions.handleAddRow}
+          onDeleteRow={actions.handleDeleteRow}
+          onSave={actions.handleSave}
+          onResetPassword={actions.handleResetPassword}
+        />
 
         <AdminUserFlowModals
           state={flowState}
