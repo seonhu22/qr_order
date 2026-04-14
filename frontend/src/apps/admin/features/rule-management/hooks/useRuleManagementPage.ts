@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
+import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import type { RuleDetailRow, RuleDetailSchema, RuleMasterRow } from '../types';
 import {
@@ -44,9 +46,6 @@ export function useRuleManagementPage() {
   const isAllMastersChecked =
     masterRows.length > 0 && checkedMasterIds.length === masterRows.length;
 
-  /**
-   * 현재 선택된 마스터의 상세 행 배열만 안전하게 갱신한다.
-   */
   const setSelectedDetailRows = (updater: (rows: RuleDetailRow[]) => RuleDetailRow[]) => {
     if (!selectedMaster) {
       return;
@@ -92,7 +91,7 @@ export function useRuleManagementPage() {
    * 마스터 행을 생성 또는 수정 저장한다.
    * 생성 시 상세 스키마 저장소도 함께 초기화한다.
    */
-  const handleSaveMaster = async (row: RuleMasterRow, isCreateMode: boolean) => {
+  const saveMaster = async (row: RuleMasterRow, isCreateMode: boolean) => {
     const { nextMasterRows, savedRow, created } = await saveRuleMasterMock(
       masterRows,
       row,
@@ -116,7 +115,7 @@ export function useRuleManagementPage() {
   /**
    * 체크된 마스터를 삭제하고, 연결된 상세 상태를 정리한다.
    */
-  const handleDeleteMasters = async () => {
+  const deleteMasters = async () => {
     const { nextMasterRows, deletedIds, deletedCount } = await deleteRuleMastersMock(
       masterRows,
       checkedMasterIds,
@@ -206,7 +205,7 @@ export function useRuleManagementPage() {
    * 상세 변경사항이 있을 때만 저장을 수행한다.
    * @returns 저장이 수행되면 true, 저장할 변경이 없거나 대상이 없으면 false
    */
-  const handleSaveDetailRows = async () => {
+  const saveDetailRows = async () => {
     if (!selectedMaster || !selectedDetailSchema || !baseSelectedDetailSchema) {
       return false;
     }
@@ -229,6 +228,130 @@ export function useRuleManagementPage() {
     return true;
   };
 
+  /**
+   * 상세 저장 전 필수값 검증기.
+   *
+   * @description
+   * page-level orchestration 구조에서는
+   * "버튼 클릭 -> 검증 -> 저장 확인 모달 -> 실제 저장"
+   * 순서가 페이지 훅에서 관리된다.
+   *
+   * 이 함수는 그중 첫 단계인 "검증용 에러 맵 생성"만 담당한다.
+   */
+  const validateDetailRows = useMemo(
+    () => () =>
+      Object.fromEntries(
+        (selectedDetailSchema?.rows ?? []).map((row) => [
+          row.id,
+          Object.fromEntries(
+            (selectedDetailSchema?.columns ?? [])
+              .filter((column) => column.type === 'text' && column.required)
+              .map((column) => {
+                const value = row.values[column.key];
+
+                return [column.key, typeof value === 'string' ? !value.trim() : true];
+              }),
+          ),
+        ]),
+      ),
+    [selectedDetailSchema],
+  );
+
+  /**
+   * 마스터 영역 모달 흐름.
+   *
+   * @description
+   * 신규/수정 editor, 저장 확인, 삭제 확인, 완료 안내를 한 곳에서 관리한다.
+   * 페이지는 이 상태를 받아 실제 모달 컴포넌트를 렌더링만 한다.
+   */
+  const masterFlow = useCodeMasterModalFlow({
+    checkedRowIds: checkedMasterIds,
+    createEmptyRow: (): RuleMasterRow => ({ id: '', code: '', name: '', useYn: 'Y' }),
+    onSaveRow: saveMaster,
+    onDeleteRows: deleteMasters,
+  });
+
+  /**
+   * 상세 영역 저장 흐름.
+   *
+   * @description
+   * 상세는 별도 editor 모달이 없고
+   * "검증 -> 저장 확인 -> 완료 안내"만 필요하므로
+   * useDetailTableSaveFlow를 사용한다.
+   */
+  const detailFlow = useDetailTableSaveFlow({
+    validateRows: validateDetailRows,
+    onSaveRows: saveDetailRows,
+  });
+
+  /**
+   * 상세 저장 확인 모달에서 실제 저장이 진행 중인 상태.
+   *
+   * @description
+   * 단순 "상세 영역 전체가 저장 중"이 아니라,
+   * 사용자가 확인 버튼을 누른 뒤 저장 요청이 진행 중인 상태를 뜻한다.
+   */
+  const isConfirmingDetailSave = detailFlow.isConfirming;
+
+  /**
+   * page가 직접 shared flow 내부 구조를 알지 않도록,
+   * 실제 렌더링에 필요한 모달 전용 값만 가공해 전달한다.
+   */
+  const masterModalProps = {
+    editor: {
+      open: masterFlow.isEditorOpen,
+      isDirty: masterFlow.isDirty,
+      isCreateMode: masterFlow.isCreateMode,
+      isCodeReadonly: masterFlow.isCodeReadonly,
+      editingRow: masterFlow.editingRow,
+      editorErrors: masterFlow.editorErrors,
+    },
+    saveConfirm: {
+      open: masterFlow.isSaveConfirmOpen,
+      isCreateMode: masterFlow.isCreateMode,
+      isLoading: masterFlow.isConfirming,
+      selectedDeleteCount: masterFlow.selectedDeleteCount,
+    },
+    deleteConfirm: {
+      open: masterFlow.isDeleteConfirmOpen,
+      isLoading: masterFlow.isConfirmingDelete,
+      selectedDeleteCount: masterFlow.selectedDeleteCount,
+    },
+    dirtyWarning: {
+      open: masterFlow.isDirtyWarningOpen,
+    },
+    notice: {
+      open: !!masterFlow.noticeState,
+      title: masterFlow.noticeState?.title ?? '알림',
+      description: masterFlow.noticeState?.description,
+      helperText: masterFlow.noticeState?.helperText,
+    },
+  };
+
+  const detailModalProps = {
+    saveConfirm: {
+      open: detailFlow.isSaveConfirmOpen,
+      isLoading: isConfirmingDetailSave,
+    },
+    notice: {
+      open: !!detailFlow.notice,
+      title: detailFlow.notice?.title ?? '알림',
+      description: detailFlow.notice?.description,
+    },
+  };
+
+  /**
+   * page 컴포넌트가 소비할 최종 반환 구조.
+   *
+   * @description
+   * - data: 화면 표시 데이터
+   * - status: 로딩/저장 상태
+   * - actions: 이벤트 핸들러
+   * - uiProps: 선택 상태와 모달 flow 상태
+   *
+   * page는 이 구조만 받아 조립하고,
+   * 내부 구현 세부사항은 feature hook 안에 숨기는 것이 목적이다.
+   */
   return {
     data: {
       masterRows,
@@ -240,25 +363,43 @@ export function useRuleManagementPage() {
       isLoadingMasters: false,
       isErrorMasters: false,
       isLoadingDetails: false,
-      isSavingDetails: false,
+      isConfirmingDetailSave,
     },
     actions: {
       handleSelectMaster,
       handleToggleMaster,
       handleToggleAllMasters,
-      handleSaveMaster,
-      handleDeleteMasters,
       handleChangeDetailValue,
       handleAddDetailRow,
       handleDeleteDetailRow,
       handleMoveDetailRowUp,
       handleMoveDetailRowDown,
-      handleSaveDetailRows,
+      openCreateMasterModal: masterFlow.openCreateModal,
+      openEditMasterModal: masterFlow.openEditModal,
+      closeMasterEditorModal: masterFlow.closeEditorModal,
+      forceCloseMasterEditorModal: masterFlow.forceCloseEditorModal,
+      changeMasterEditingField: masterFlow.changeEditingField,
+      requestSaveMaster: masterFlow.requestSave,
+      confirmSaveMaster: masterFlow.confirmSave,
+      requestDeleteMasters: masterFlow.requestDelete,
+      confirmDeleteMasters: masterFlow.confirmDelete,
+      closeMasterSaveConfirm: masterFlow.closeSaveConfirm,
+      closeMasterDeleteConfirm: masterFlow.closeDeleteConfirm,
+      closeMasterDirtyWarning: masterFlow.closeDirtyWarning,
+      closeMasterNotice: masterFlow.closeNotice,
+      clearDetailRowError: detailFlow.clearRowError,
+      requestSaveDetailRows: detailFlow.requestSave,
+      confirmSaveDetailRows: detailFlow.confirmSave,
+      closeDetailSaveConfirm: detailFlow.closeSaveConfirm,
+      closeDetailNotice: detailFlow.closeNotice,
     },
     uiProps: {
       selectedMasterId,
       checkedMasterIds,
       isAllMastersChecked,
+      masterModalProps,
+      detailModalProps,
+      detailRowErrors: detailFlow.rowErrors,
     },
   };
 }
