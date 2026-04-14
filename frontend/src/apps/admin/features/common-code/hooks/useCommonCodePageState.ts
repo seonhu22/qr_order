@@ -307,6 +307,7 @@ export function useCommonCodePageState() {
     detailRows,
     isAllMastersChecked,
     isLoadingMasters: mastersQuery.isLoading,
+    isErrorMasters: mastersQuery.isError,
     isLoadingDetails: detailQuery.isLoading,
     isSavingMaster: saveMasterMutation.isPending,
     isDeletingMasters: deleteMastersMutation.isPending,

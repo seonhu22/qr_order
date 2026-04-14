@@ -42,6 +42,7 @@ export const CommonCodePage = () => {
     moveCheckedDetailRowsUp,
     moveCheckedDetailRowsDown,
     isLoadingMasters,
+    isErrorMasters,
     isLoadingDetails,
     isSavingDetails,
     saveMaster,
@@ -68,6 +69,7 @@ export const CommonCodePage = () => {
         <CommonCodeMasterTable
           rows={masterRows}
           isLoading={isLoadingMasters}
+          isError={isErrorMasters}
           selectedMasterId={selectedMasterId}
           checkedMasterIds={checkedMasterIds}
           isAllChecked={isAllMastersChecked}

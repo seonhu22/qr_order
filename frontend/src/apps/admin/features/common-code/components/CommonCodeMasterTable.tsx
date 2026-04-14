@@ -24,6 +24,7 @@ import { useCommonCodeMasterModalFlow } from '../hooks/useCommonCodeMasterModalF
 type CommonCodeMasterTableProps = {
   rows: MasterCode[];
   isLoading: boolean;
+  isError: boolean;
   selectedMasterId: string;
   checkedMasterIds: string[];
   isAllChecked: boolean;
@@ -45,6 +46,7 @@ type CommonCodeMasterTableProps = {
 export function CommonCodeMasterTable({
   rows,
   isLoading,
+  isError,
   selectedMasterId,
   checkedMasterIds,
   isAllChecked,
@@ -110,6 +112,8 @@ export function CommonCodeMasterTable({
       <TableCard title="공통코드 마스터" ariaLabel="공통코드 마스터" actions={headerActions}>
         {isLoading ? (
           <FeedbackState variant="loading" title="공통코드 목록을 불러오는 중입니다." />
+        ) : isError ? (
+          <FeedbackState variant="error" title="불러오는데 실패했습니다." description="다시 한번 시도해주세요." />
         ) : (
         <div className="common-table-wrap">
           <table className="common-table" aria-label="공통코드 마스터 테이블">
