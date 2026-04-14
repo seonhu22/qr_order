@@ -72,7 +72,7 @@ describe('AdminUserTable', () => {
     const newUserIdInput = screen.getByPlaceholderText('아이디를 입력하세요') as HTMLInputElement;
 
     expect(existingUserIdInput).toHaveAttribute('readonly');
-    expect(existingUserIdInput.closest('.admin-user-page__input--readonly')).toBeInTheDocument();
+    expect(existingUserIdInput.closest('.common-table__input--readonly')).toBeInTheDocument();
     expect(newUserIdInput).not.toHaveAttribute('readonly');
 
     const selectedRow = container.querySelector('tbody tr.is-selected');

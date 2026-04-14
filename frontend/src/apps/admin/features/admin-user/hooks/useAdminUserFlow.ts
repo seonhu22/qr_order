@@ -21,7 +21,6 @@ import { useDirtyConfirmExecutor } from '@/shared/hooks/useDirtyConfirmExecutor'
 import type {
   AdminUserFlowState,
   AdminUserSimpleModalState,
-  AdminUserWrapperModalState,
 } from '../types';
 
 type UseAdminUserFlowParams = {
@@ -81,7 +80,6 @@ export function useAdminUserFlow({
   onResetPassword,
 }: UseAdminUserFlowParams) {
   const [simpleModalState, setSimpleModalState] = useState<AdminUserSimpleModalState>(null);
-  const [wrapperModalState, setWrapperModalState] = useState<AdminUserWrapperModalState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
     isDirty,
@@ -165,13 +163,8 @@ export function useAdminUserFlow({
    * ```
    */
   const requestSave = () => {
-    if (!onValidateRequiredFields()) {
-      setWrapperModalState({
-        title: '안내',
-        description: '필수 항목을 모두 입력해주세요.',
-      });
-      return;
-    }
+    // 필수값 미입력 시 해당 input의 error 스타일만 표시 — 모달 불필요
+    if (!onValidateRequiredFields()) return;
 
     setIsSaveConfirmOpen(true);
   };
@@ -287,7 +280,6 @@ export function useAdminUserFlow({
 
   const state: AdminUserFlowState = {
     simpleModalState,
-    wrapperModalState,
     isSaveConfirmOpen,
   };
 
@@ -300,7 +292,6 @@ export function useAdminUserFlow({
     confirmSave,
     requestResetPassword,
     closeSimpleModal: () => setSimpleModalState(null),
-    closeWrapperModal: () => setWrapperModalState(null),
     closeSaveConfirm: () => setIsSaveConfirmOpen(false),
     confirmSimpleModal: async () => {
       await simpleModalState?.onConfirm?.();

@@ -28,14 +28,8 @@ export type AdminUserSimpleModalState = {
   onConfirm?: () => void | Promise<void>;
 } | null;
 
-export type AdminUserWrapperModalState = {
-  title: string;
-  description: string;
-} | null;
-
 export type AdminUserFlowState = {
   simpleModalState: AdminUserSimpleModalState;
-  wrapperModalState: AdminUserWrapperModalState;
   isSaveConfirmOpen: boolean;
 };
 
@@ -67,7 +61,6 @@ export type AdminUserPageActions = {
   confirmSave: () => void | Promise<void>;
   handleResetPassword: (userId: string) => void;
   closeSimpleModal: () => void;
-  closeWrapperModal: () => void;
   closeSaveConfirm: () => void;
   confirmSimpleModal: () => void | Promise<void>;
 };

@@ -162,6 +162,8 @@ export function useAdminUserListState({
 
   const getRequiredFieldErrors = (): AdminUserRowErrors =>
     rows.reduce<AdminUserRowErrors>((acc, row) => {
+      // 기존 로드된 행(isNew=false)은 검증 제외 — readonly 처리된 필드에 에러가 걸리지 않도록
+      if (!row.isNew) return acc;
       acc[row.id] = {
         userId: !row.userId.trim(),
         userName: !row.userName.trim(),

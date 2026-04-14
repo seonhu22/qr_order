@@ -52,7 +52,6 @@ export function AdminUserPage() {
         onConfirmSave={actions.confirmSave}
         onCloseSaveConfirm={actions.closeSaveConfirm}
         onCloseSimpleModal={actions.closeSimpleModal}
-        onCloseWrapperModal={actions.closeWrapperModal}
         onConfirmSimpleModal={actions.confirmSimpleModal}
       />
     </AdminMainLayout>

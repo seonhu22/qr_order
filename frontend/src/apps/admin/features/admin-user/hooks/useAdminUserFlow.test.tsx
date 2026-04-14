@@ -46,7 +46,7 @@ describe('useAdminUserFlow', () => {
     expect(params.onResetDraftRows).toHaveBeenCalledTimes(1);
   });
 
-  it('opens wrapper modal when required field validation fails on save', () => {
+  it('does not open save confirm when required field validation fails', () => {
     const params = createParams({
       onValidateRequiredFields: vi.fn(() => false),
     });
@@ -56,11 +56,9 @@ describe('useAdminUserFlow', () => {
       result.current.requestSave();
     });
 
-    expect(result.current.state.wrapperModalState).toEqual({
-      title: '안내',
-      description: '필수 항목을 모두 입력해주세요.',
-    });
+    // 필수값 미입력 시 모달 없이 input error 스타일만 표시
     expect(result.current.state.isSaveConfirmOpen).toBe(false);
+    expect(result.current.state.simpleModalState).toBeNull();
   });
 
   it('opens save confirm first and shows success notice after confirm', async () => {

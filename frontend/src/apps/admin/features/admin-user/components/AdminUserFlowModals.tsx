@@ -7,12 +7,8 @@
  * 비즈니스 판단은 훅으로 남긴다.
  */
 
-import { SaveConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
-import type {
-  AdminUserFlowState,
-  AdminUserSimpleModalState,
-  AdminUserWrapperModalState,
-} from '../types';
+import { SaveConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
+import type { AdminUserFlowState, AdminUserSimpleModalState } from '../types';
 
 type AdminUserFlowModalsProps = {
   state: AdminUserFlowState;
@@ -20,7 +16,6 @@ type AdminUserFlowModalsProps = {
   onConfirmSave: () => void | Promise<void>;
   onCloseSaveConfirm: () => void;
   onCloseSimpleModal: () => void;
-  onCloseWrapperModal: () => void;
   onConfirmSimpleModal: () => void | Promise<void>;
 };
 
@@ -29,7 +24,6 @@ type AdminUserFlowModalsProps = {
  *
  * @remarks
  * - SaveConfirmModal: 저장 확인
- * - WrapperModal: 필수값 누락 등 강한 안내
  * - SimpleDefaultModal: 조회/초기화/저장 완료 등 단순 확인
  */
 export function AdminUserFlowModals({
@@ -38,11 +32,9 @@ export function AdminUserFlowModals({
   onConfirmSave,
   onCloseSaveConfirm,
   onCloseSimpleModal,
-  onCloseWrapperModal,
   onConfirmSimpleModal,
 }: AdminUserFlowModalsProps) {
   const simpleModalState: AdminUserSimpleModalState = state.simpleModalState;
-  const wrapperModalState: AdminUserWrapperModalState = state.wrapperModalState;
 
   return (
     <>
@@ -59,17 +51,6 @@ export function AdminUserFlowModals({
           onClick: onCloseSaveConfirm,
         }}
         onClose={onCloseSaveConfirm}
-      />
-
-      <WrapperModal
-        open={!!wrapperModalState}
-        title={wrapperModalState?.title}
-        subtitle={wrapperModalState?.description}
-        primaryAction={{
-          label: '확인',
-          onClick: onCloseWrapperModal,
-        }}
-        onClose={onCloseWrapperModal}
       />
 
       <SimpleDefaultModal

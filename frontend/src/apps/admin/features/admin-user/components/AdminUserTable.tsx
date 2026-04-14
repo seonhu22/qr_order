@@ -13,7 +13,6 @@
  * - selectedRowId와 일치하는 행은 is-selected 스타일 적용
  */
 
-import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
 import { InputBase, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
@@ -67,26 +66,6 @@ export function AdminUserTable({
    * return JSX 본문을 단순화한다.
    */
   const renderBody = () => {
-    if (isLoading) {
-      return (
-        <tr>
-          <td colSpan={4}>
-            <FeedbackState variant="loading" title="관리자 목록을 불러오는 중입니다." />
-          </td>
-        </tr>
-      );
-    }
-
-    if (isError) {
-      return (
-        <tr>
-          <td className="common-table__empty" colSpan={4}>
-            관리자 목록을 불러오지 못했습니다.
-          </td>
-        </tr>
-      );
-    }
-
     if (!rows.length) {
       return (
         <tr>
@@ -109,7 +88,7 @@ export function AdminUserTable({
             size="sm"
             value={row.userId}
             readOnly={!row.isNew}
-            controlState={rowErrors[row.id]?.userId ? 'error' : !row.isNew ? 'readonly' : ''}
+            controlState={!row.isNew ? 'readonly' : rowErrors[row.id]?.userId ? 'error' : ''}
             className={
               !row.isNew
                 ? 'common-table__input common-table__input--readonly'
@@ -163,25 +142,25 @@ export function AdminUserTable({
     <>
       <Button
         type="button"
-        variant="outline"
+        variant="text"
         size="sm"
-        leftIcon={<Icon id="i-plus" size={13} />}
-        disabled={isSaving || isResettingPassword}
+        className="common-code-card__text-action"
+        disabled={isSaving}
         onClick={onAddRow}
       >
-        행추가
+        + 행추가
       </Button>
       <Button
         type="button"
-        variant="outline"
+        variant="text"
         size="sm"
-        leftIcon={<Icon id="i-minus" size={13} />}
-        disabled={isSaving || isResettingPassword}
+        className="common-code-card__text-action"
+        disabled={!selectedRowId || isSaving}
         onClick={onDeleteRow}
       >
-        행삭제
+        - 행삭제
       </Button>
-      <Button type="button" variant="primary" size="sm" loading={isSaving} onClick={onSave}>
+      <Button type="button" variant="outline" size="sm" loading={isSaving} onClick={onSave}>
         저장
       </Button>
     </>
@@ -189,25 +168,31 @@ export function AdminUserTable({
 
   return (
     <TableCard title="관리자 목록" ariaLabel="관리자 목록" actions={headerActions}>
-      <div className="common-table-wrap">
-        <table className="common-table">
-          <thead>
-            <tr>
-              <th className="common-table__cell--left">
-                사용자 아이디 <span className="admin-user-page__required">*</span>
-              </th>
-              <th className="common-table__cell--left">
-                사용자 명 <span className="admin-user-page__required">*</span>
-              </th>
-              <th className="common-table__cell--left">
-                사업장 <span className="admin-user-page__required">*</span>
-              </th>
-              <th>비밀번호 초기화</th>
-            </tr>
-          </thead>
-          <tbody>{renderBody()}</tbody>
-        </table>
-      </div>
+      {isLoading ? (
+        <FeedbackState variant="loading" title="관리자 목록을 불러오는 중입니다." />
+      ) : isError ? (
+        <FeedbackState variant="error" description="다시 한번 시도해주세요." />
+      ) : (
+        <div className="common-table-wrap">
+          <table className="common-table">
+            <thead>
+              <tr>
+                <th className="common-table__cell--left">
+                  사용자 아이디 <span className="admin-user-page__required">*</span>
+                </th>
+                <th className="common-table__cell--left">
+                  사용자 명 <span className="admin-user-page__required">*</span>
+                </th>
+                <th className="common-table__cell--left">
+                  사업장 <span className="admin-user-page__required">*</span>
+                </th>
+                <th>비밀번호 초기화</th>
+              </tr>
+            </thead>
+            <tbody>{renderBody()}</tbody>
+          </table>
+        </div>
+      )}
     </TableCard>
   );
 }
