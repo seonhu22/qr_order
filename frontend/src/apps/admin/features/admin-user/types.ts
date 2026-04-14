@@ -31,6 +31,7 @@ export type AdminUserSimpleModalState = {
 export type AdminUserFlowState = {
   simpleModalState: AdminUserSimpleModalState;
   isSaveConfirmOpen: boolean;
+  pendingFilterAction: 'search' | 'reset' | null;
 };
 
 export type AdminUserPageData = {
@@ -63,6 +64,8 @@ export type AdminUserPageActions = {
   closeSimpleModal: () => void;
   closeSaveConfirm: () => void;
   confirmSimpleModal: () => void | Promise<void>;
+  confirmFilterAction: () => void;
+  cancelFilterAction: () => void;
 };
 
 export type AdminUserPageUiProps = {

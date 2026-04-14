@@ -13,47 +13,61 @@ import { AdminUserFilters } from '@/apps/admin/features/admin-user/components/Ad
 import { AdminUserFlowModals } from '@/apps/admin/features/admin-user/components/AdminUserFlowModals';
 import { AdminUserTable } from '@/apps/admin/features/admin-user/components/AdminUserTable';
 import { useAdminUserPage } from '@/apps/admin/features/admin-user/hooks/useAdminUserPage';
+import { ConfirmModal } from '@/shared/components/modal';
 
 export function AdminUserPage() {
   const { data, status, actions, uiProps } = useAdminUserPage();
+  const { flowState } = uiProps;
 
   return (
-    <AdminMainLayout adminMainTitle="관리자 관리" depth1="시스템" depth2="시스템 관리">
-      <section className="admin-user-page" aria-label="관리자 관리 화면">
-        <AdminUserFilters
-          draftKeyword={uiProps.draftKeyword}
-          onKeywordChange={actions.handleKeywordChange}
-          onSearch={actions.handleSearch}
-          onReset={actions.handleReset}
-        />
+    <>
+      <AdminMainLayout adminMainTitle="관리자 관리" depth1="시스템" depth2="시스템 관리">
+        <section className="admin-user-page" aria-label="관리자 관리 화면">
+          <AdminUserFilters
+            draftKeyword={uiProps.draftKeyword}
+            onKeywordChange={actions.handleKeywordChange}
+            onSearch={actions.handleSearch}
+            onReset={actions.handleReset}
+          />
 
-        <AdminUserTable
-          rows={data.rows}
-          selectedRowId={uiProps.selectedRowId}
-          plantOptions={data.plantOptions}
-          rowErrors={data.rowErrors}
-          isLoading={status.isLoading || status.isFetching}
-          isError={status.isError}
+          <AdminUserTable
+            rows={data.rows}
+            selectedRowId={uiProps.selectedRowId}
+            plantOptions={data.plantOptions}
+            rowErrors={data.rowErrors}
+            isLoading={status.isLoading || status.isFetching}
+            isError={status.isError}
+            isSaving={status.isSaving}
+            isResettingPassword={status.isResettingPassword}
+            onSelectRow={actions.handleSelectRow}
+            onChangeRowField={actions.handleChangeRowField}
+            onChangeRowPlant={actions.handleChangeRowPlant}
+            onAddRow={actions.handleAddRow}
+            onDeleteRow={actions.handleDeleteRow}
+            onSave={actions.handleSave}
+            onResetPassword={actions.handleResetPassword}
+          />
+        </section>
+
+        <AdminUserFlowModals
+          state={flowState}
           isSaving={status.isSaving}
-          isResettingPassword={status.isResettingPassword}
-          onSelectRow={actions.handleSelectRow}
-          onChangeRowField={actions.handleChangeRowField}
-          onChangeRowPlant={actions.handleChangeRowPlant}
-          onAddRow={actions.handleAddRow}
-          onDeleteRow={actions.handleDeleteRow}
-          onSave={actions.handleSave}
-          onResetPassword={actions.handleResetPassword}
+          onConfirmSave={actions.confirmSave}
+          onCloseSaveConfirm={actions.closeSaveConfirm}
+          onCloseSimpleModal={actions.closeSimpleModal}
+          onConfirmSimpleModal={actions.confirmSimpleModal}
         />
-      </section>
+      </AdminMainLayout>
 
-      <AdminUserFlowModals
-        state={uiProps.flowState}
-        isSaving={status.isSaving}
-        onConfirmSave={actions.confirmSave}
-        onCloseSaveConfirm={actions.closeSaveConfirm}
-        onCloseSimpleModal={actions.closeSimpleModal}
-        onConfirmSimpleModal={actions.confirmSimpleModal}
+      <ConfirmModal
+        open={flowState.pendingFilterAction !== null}
+        tone="info"
+        title={flowState.pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
+        description="저장되지 않은 내용이 있습니다."
+        onClose={actions.cancelFilterAction}
+        primaryAction={{ onClick: actions.confirmFilterAction }}
+        secondaryAction={{ onClick: actions.cancelFilterAction }}
       />
-    </AdminMainLayout>
+    </>
   );
 }

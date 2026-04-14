@@ -186,9 +186,10 @@ export function useAdminUserPage(): AdminUserPageViewModel {
       confirmSave: flow.confirmSave,
       handleResetPassword: flow.requestResetPassword,
       closeSimpleModal: flow.closeSimpleModal,
-      closeWrapperModal: flow.closeWrapperModal,
       closeSaveConfirm: flow.closeSaveConfirm,
       confirmSimpleModal: flow.confirmSimpleModal,
+      confirmFilterAction: flow.confirmFilterAction,
+      cancelFilterAction: flow.cancelFilterAction,
     },
     uiProps: {
       draftKeyword,

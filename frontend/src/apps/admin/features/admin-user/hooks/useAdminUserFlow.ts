@@ -81,6 +81,7 @@ export function useAdminUserFlow({
 }: UseAdminUserFlowParams) {
   const [simpleModalState, setSimpleModalState] = useState<AdminUserSimpleModalState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const [pendingFilterAction, setPendingFilterAction] = useState<'search' | 'reset' | null>(null);
   const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
     isDirty,
     openDirtyConfirm: (state) => setSimpleModalState(state),
@@ -100,21 +101,14 @@ export function useAdminUserFlow({
    * ```
    */
   const requestSearch = () => {
-    const handledByDirtyConfirm = runWithDirtyConfirm({
-      description: '조회하시겠습니까?',
-      helperText: '저장되지 않은 내용이 있습니다.',
-      onProceed: () => {
-        startTransition(() => {
-          onApplySearch();
-        });
-        onResetDraftRows();
-        setSimpleModalState(null);
-      },
-    });
-
-    if (handledByDirtyConfirm) {
+    if (isDirty) {
+      setPendingFilterAction('search');
       return;
     }
+    startTransition(() => {
+      onApplySearch();
+    });
+    onResetDraftRows();
   };
 
   /**
@@ -124,10 +118,33 @@ export function useAdminUserFlow({
    * 관리자 관리 화면에서는 초기화 시 검색어와 draft rows를 함께 되돌린다.
    */
   const requestResetFilters = () => {
+    if (isDirty) {
+      setPendingFilterAction('reset');
+      return;
+    }
     startTransition(() => {
       onResetFilters();
     });
     onResetDraftRows();
+  };
+
+  const confirmFilterAction = () => {
+    if (pendingFilterAction === 'search') {
+      startTransition(() => {
+        onApplySearch();
+      });
+      onResetDraftRows();
+    } else if (pendingFilterAction === 'reset') {
+      startTransition(() => {
+        onResetFilters();
+      });
+      onResetDraftRows();
+    }
+    setPendingFilterAction(null);
+  };
+
+  const cancelFilterAction = () => {
+    setPendingFilterAction(null);
   };
 
   /**
@@ -281,6 +298,7 @@ export function useAdminUserFlow({
   const state: AdminUserFlowState = {
     simpleModalState,
     isSaveConfirmOpen,
+    pendingFilterAction,
   };
 
   return {
@@ -291,6 +309,8 @@ export function useAdminUserFlow({
     requestSave,
     confirmSave,
     requestResetPassword,
+    confirmFilterAction,
+    cancelFilterAction,
     closeSimpleModal: () => setSimpleModalState(null),
     closeSaveConfirm: () => setIsSaveConfirmOpen(false),
     confirmSimpleModal: async () => {

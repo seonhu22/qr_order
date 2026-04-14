@@ -27,7 +27,7 @@ const createParams = (overrides?: Partial<Parameters<typeof useAdminUserFlow>[0]
 });
 
 describe('useAdminUserFlow', () => {
-  it('shows a dirty confirmation modal before search and applies search after confirm', async () => {
+  it('sets pendingFilterAction to search when dirty and applies search after confirm', () => {
     const params = createParams({ isDirty: true });
     const { result } = renderHook(() => useAdminUserFlow(params));
 
@@ -35,15 +35,15 @@ describe('useAdminUserFlow', () => {
       result.current.requestSearch();
     });
 
-    expect(result.current.state.simpleModalState?.description).toBe('조회하시겠습니까?');
-    expect(result.current.state.simpleModalState?.helperText).toBe('저장되지 않은 내용이 있습니다.');
+    expect(result.current.state.pendingFilterAction).toBe('search');
 
-    await act(async () => {
-      await result.current.confirmSimpleModal();
+    act(() => {
+      result.current.confirmFilterAction();
     });
 
     expect(params.onApplySearch).toHaveBeenCalledTimes(1);
     expect(params.onResetDraftRows).toHaveBeenCalledTimes(1);
+    expect(result.current.state.pendingFilterAction).toBeNull();
   });
 
   it('does not open save confirm when required field validation fails', () => {
