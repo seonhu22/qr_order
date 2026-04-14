@@ -20,6 +20,7 @@ import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminP
 import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
 import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
 import { AdminUserPage } from '@/apps/admin/pages/AdminUserPage';
+import { MessageManagementPage } from '@/apps/admin/pages/MessageManagementPage';
 
 export const adminRoutes = [
   {
@@ -32,19 +33,19 @@ export const adminRoutes = [
       },
       {
         path: 'main',
-        element: <MainPage />,
+        element: <MainPage title="메인 페이지" />,
       },
       {
         path: 'system/common-code',
-        element: <CommonCodePage />,
+        element: <CommonCodePage title="공통 코드 관리" />,
       },
       {
         path: 'system/plant',
-        element: <PlantSearchPage />,
+        element: <PlantSearchPage title="사업장 검색" />,
       },
       {
         path: 'system/admin-user',
-        element: <AdminUserPage />,
+        element: <AdminUserPage title="관리자 관리" />,
       },
       {
         path: 'system/menu',
@@ -52,7 +53,7 @@ export const adminRoutes = [
       },
       {
         path: 'system/message',
-        element: <AdminPlaceholderPage title="메시지 관리" />,
+        element: <MessageManagementPage title="메시지 관리" />,
       },
       {
         path: 'system/rule',
