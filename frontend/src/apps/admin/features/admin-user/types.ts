@@ -3,6 +3,7 @@
  */
 
 import type { SelectOption } from '@/shared/components/input';
+import type { EditablePageFlowState, EditablePageSimpleModalState } from '@/shared/hooks/useEditablePageFlow';
 
 export type AdminUserRow = {
   id: string;
@@ -22,17 +23,9 @@ export type AdminUserRowError = {
 
 export type AdminUserRowErrors = Record<string, AdminUserRowError>;
 
-export type AdminUserSimpleModalState = {
-  description: string;
-  helperText?: string;
-  onConfirm?: () => void | Promise<void>;
-} | null;
+export type AdminUserSimpleModalState = EditablePageSimpleModalState;
 
-export type AdminUserFlowState = {
-  simpleModalState: AdminUserSimpleModalState;
-  isSaveConfirmOpen: boolean;
-  pendingFilterAction: 'search' | 'reset' | null;
-};
+export type AdminUserFlowState = EditablePageFlowState;
 
 export type AdminUserPageData = {
   rows: AdminUserRow[];

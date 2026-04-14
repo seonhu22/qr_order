@@ -16,12 +16,10 @@
  * - confirm 이후 어떤 콜백을 실행할지 결정
  */
 
-import { startTransition, useState } from 'react';
 import { useDirtyConfirmExecutor } from '@/shared/hooks/useDirtyConfirmExecutor';
-import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
+import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import type {
   AdminUserFlowState,
-  AdminUserSimpleModalState,
 } from '../types';
 
 type UseAdminUserFlowParams = {
@@ -80,39 +78,21 @@ export function useAdminUserFlow({
   onSaveChanges,
   onResetPassword,
 }: UseAdminUserFlowParams) {
-  const [simpleModalState, setSimpleModalState] = useState<AdminUserSimpleModalState>(null);
-  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const editableFlow = useEditablePageFlow({
+    isDirty,
+    onApplySearch,
+    onResetFilters,
+    onResetDraftRows,
+    onValidateRequiredFields,
+    onSaveChanges,
+    savedNotice: {
+      description: '저장되었습니다.',
+      helperText: '초기 비밀번호는 SN111111 입니다.',
+    },
+  });
   const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
     isDirty,
-    openDirtyConfirm: (state) => setSimpleModalState(state),
-  });
-
-  /**
-   * 조회/초기화 dirty guard.
-   *
-   * @description
-   * startTransition으로 감싸야 하는 부분은 onSearch/onReset 콜백에 인라인 처리한다.
-   */
-  const {
-    pendingFilterAction,
-    requestSearch,
-    requestReset: requestResetFilters,
-    confirmFilterAction,
-    cancelFilterAction,
-  } = useFilterDirtyCheck({
-    isDirty,
-    onSearch: () => {
-      startTransition(() => {
-        onApplySearch();
-      });
-      onResetDraftRows();
-    },
-    onReset: () => {
-      startTransition(() => {
-        onResetFilters();
-      });
-      onResetDraftRows();
-    },
+    openDirtyConfirm: (state) => editableFlow.setSimpleModalState(state),
   });
 
   /**
@@ -124,7 +104,7 @@ export function useAdminUserFlow({
    */
   const requestDeleteRow = () => {
     if (!selectedRowId) {
-      setSimpleModalState({
+      editableFlow.setSimpleModalState({
         description: '항목을 먼저 선택해주세요.',
         helperText: '삭제할 행을 클릭 후 진행하세요.',
       });
@@ -135,66 +115,15 @@ export function useAdminUserFlow({
   };
 
   /**
-   * 저장 요청 흐름의 진입점.
-   *
-   * @description
-   * 필수값 검증은 list state 훅에 위임하고,
-   * 실패 시 input error 스타일만 표시하고, 성공 시 저장 확인 모달로 분기한다.
-   *
-   * @example
-   * ```text
-   * validate fail -> input error 스타일만 표시 (모달 없음)
-   * validate pass -> SaveConfirmModal 오픈
-   * ```
-   */
-  const requestSave = () => {
-    // 필수값 미입력 시 해당 input의 error 스타일만 표시 — 모달 불필요
-    if (!onValidateRequiredFields()) return;
-
-    setIsSaveConfirmOpen(true);
-  };
-
-  /**
-   * 저장 확인 모달의 확인 버튼 후처리.
-   *
-   * @description
-   * 실제 mutation은 외부 콜백(onSaveChanges)에 위임한다.
-   * 이 훅은 결과값(saved/unchanged/throw)에 따라 사용자 안내만 담당한다.
-   */
-  const confirmSave = async () => {
-    try {
-      const result = await onSaveChanges();
-      setIsSaveConfirmOpen(false);
-
-      if (result === 'unchanged') {
-        setSimpleModalState({
-          description: '변경된 내용이 없습니다.',
-        });
-        return;
-      }
-
-      setSimpleModalState({
-        description: '저장되었습니다.',
-        helperText: '초기 비밀번호는 SN111111 입니다.',
-      });
-    } catch (error) {
-      setIsSaveConfirmOpen(false);
-      setSimpleModalState({
-        description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
-      });
-    }
-  };
-
-  /**
    * 저장되지 않은 draft가 없는 경우의 비밀번호 초기화 확인 흐름.
    */
   const openPasswordResetConfirm = (userId: string) => {
-    setSimpleModalState({
+    editableFlow.setSimpleModalState({
       description: '초기화하겠습니까?',
       helperText: '비밀번호가 초기화됩니다.',
       onConfirm: async () => {
         if (!userId) {
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description: '초기화할 사용자 아이디가 없습니다.',
           });
           return;
@@ -202,12 +131,12 @@ export function useAdminUserFlow({
 
         try {
           await onResetPassword(userId);
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description: '저장되었습니다.',
             helperText: '초기 비밀번호는 SN111111 입니다.',
           });
         } catch (error) {
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description:
               error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
           });
@@ -235,7 +164,7 @@ export function useAdminUserFlow({
       helperText: '저장되지 않은 내용이 있습니다.',
       onProceed: async () => {
         if (!userId) {
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description: '초기화할 사용자 아이디가 없습니다.',
           });
           return;
@@ -243,12 +172,12 @@ export function useAdminUserFlow({
 
         try {
           await onResetPassword(userId);
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description: '저장되었습니다.',
             helperText: '초기 비밀번호는 SN111111 입니다.',
           });
         } catch (error) {
-          setSimpleModalState({
+          editableFlow.setSimpleModalState({
             description:
               error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
           });
@@ -263,26 +192,20 @@ export function useAdminUserFlow({
     openPasswordResetConfirm(userId);
   };
 
-  const state: AdminUserFlowState = {
-    simpleModalState,
-    isSaveConfirmOpen,
-    pendingFilterAction,
-  };
+  const state: AdminUserFlowState = editableFlow.state;
 
   return {
     state,
-    requestSearch,
-    requestResetFilters,
+    requestSearch: editableFlow.requestSearch,
+    requestResetFilters: editableFlow.requestResetFilters,
     requestDeleteRow,
-    requestSave,
-    confirmSave,
+    requestSave: editableFlow.requestSave,
+    confirmSave: editableFlow.confirmSave,
     requestResetPassword,
-    confirmFilterAction,
-    cancelFilterAction,
-    closeSimpleModal: () => setSimpleModalState(null),
-    closeSaveConfirm: () => setIsSaveConfirmOpen(false),
-    confirmSimpleModal: async () => {
-      await simpleModalState?.onConfirm?.();
-    },
+    confirmFilterAction: editableFlow.confirmFilterAction,
+    cancelFilterAction: editableFlow.cancelFilterAction,
+    closeSimpleModal: editableFlow.closeSimpleModal,
+    closeSaveConfirm: editableFlow.closeSaveConfirm,
+    confirmSimpleModal: editableFlow.confirmSimpleModal,
   };
 }

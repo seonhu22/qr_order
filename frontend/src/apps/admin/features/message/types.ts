@@ -1,6 +1,7 @@
 /**
  * @fileoverview 메시지 관리 feature 화면 모델 타입
  */
+import type { EditablePageFlowState, EditablePageSimpleModalState } from '@/shared/hooks/useEditablePageFlow';
 
 /**
  * 테이블 한 줄에 표시되는 메시지 행 데이터.
@@ -38,10 +39,7 @@ export type MessagePageStatus = {
   isSaving: boolean;
 };
 
-export type MessageSimpleModalState = {
-  description: string;
-  helperText?: string;
-} | null;
+export type MessageSimpleModalState = EditablePageSimpleModalState;
 
 /**
  * 화면에서 버튼 클릭, 입력 변경 시 호출하는 액션 모음.
@@ -68,9 +66,7 @@ export type MessagePageActions = {
 export type MessagePageUiProps = {
   draftKeyword: string;
   selectedRowId: string;
-  pendingFilterAction: 'search' | 'reset' | null;
-  isSaveConfirmOpen: boolean;
-  simpleModalState: MessageSimpleModalState;
+  flowState: EditablePageFlowState;
 };
 
 /**

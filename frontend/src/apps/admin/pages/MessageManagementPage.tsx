@@ -47,9 +47,9 @@ export function MessageManagementPage() {
 
       {/* dirty 상태에서 조회/초기화 시 먼저 확인받는다. */}
       <ConfirmModal
-        open={uiProps.pendingFilterAction !== null}
+        open={uiProps.flowState.pendingFilterAction !== null}
         tone="info"
-        title={uiProps.pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
+        title={uiProps.flowState.pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
         description="저장되지 않은 내용이 있습니다."
         onClose={actions.cancelFilterAction}
         primaryAction={{ onClick: actions.confirmFilterAction }}
@@ -57,7 +57,7 @@ export function MessageManagementPage() {
       />
 
       <SaveConfirmModal
-        open={uiProps.isSaveConfirmOpen}
+        open={uiProps.flowState.isSaveConfirmOpen}
         description="저장하시겠습니까?"
         primaryAction={{
           label: '확인',
@@ -72,9 +72,9 @@ export function MessageManagementPage() {
       />
 
       <SimpleDefaultModal
-        open={!!uiProps.simpleModalState}
-        description={uiProps.simpleModalState?.description}
-        helperText={uiProps.simpleModalState?.helperText}
+        open={!!uiProps.flowState.simpleModalState}
+        description={uiProps.flowState.simpleModalState?.description}
+        helperText={uiProps.flowState.simpleModalState?.helperText}
         onClose={actions.closeSimpleModal}
       />
     </>

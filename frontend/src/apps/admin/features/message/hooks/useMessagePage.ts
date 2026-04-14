@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
+import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
-import type { MessagePageViewModel, MessageRow, MessageSimpleModalState } from '../types';
+import type { MessagePageViewModel, MessageRow } from '../types';
 
 /**
  * Figma 시안을 바로 확인할 수 있도록 넣어둔 초기 메시지 목록.
@@ -72,8 +72,6 @@ export function useMessagePage(): MessagePageViewModel {
   const [baseRows, setBaseRows] = useState<MessageRow[]>(() => cloneRows(INITIAL_ROWS));
   const [draftRows, setDraftRows] = useState<MessageRow[]>(() => cloneRows(INITIAL_ROWS));
   const [selectedRowId, setSelectedRowId] = useState('message-row-4');
-  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
-  const [simpleModalState, setSimpleModalState] = useState<MessageSimpleModalState>(null);
 
   /* 저장 전후 비교 기준. true면 "저장되지 않은 내용"이 있다는 뜻이다. */
   const isDirty = useMemo(() => hasMessageChanges(baseRows, draftRows), [baseRows, draftRows]);
@@ -102,17 +100,18 @@ export function useMessagePage(): MessagePageViewModel {
     setSelectedRowId('message-row-4');
   };
 
-  /* dirty 상태에서 조회/초기화를 누르면 먼저 확인 모달을 띄운다. */
-  const {
-    pendingFilterAction,
-    requestSearch,
-    requestReset,
-    confirmFilterAction,
-    cancelFilterAction,
-  } = useFilterDirtyCheck({
+  const editableFlow = useEditablePageFlow({
     isDirty,
-    onSearch: applyDraftKeyword,
-    onReset: resetMessageState,
+    onApplySearch: applyDraftKeyword,
+    onResetFilters: resetMessageState,
+    onSaveChanges: async () => {
+      if (!isDirty) {
+        return 'unchanged';
+      }
+
+      setBaseRows(cloneRows(draftRows));
+      return 'saved';
+    },
   });
 
   /**
@@ -175,35 +174,10 @@ export function useMessagePage(): MessagePageViewModel {
   };
 
   /**
-   * 현재 draftRows를 저장 완료 상태로 확정한다.
-   *
-   * 지금은 서버 호출 대신 baseRows만 갱신한다.
-   * 나중에 API 연동 시 이 함수 안에서 mutation을 호출하면 된다.
+   * 저장 버튼 클릭 시 공통 저장 플로우로 진입한다.
    */
   const handleSave = () => {
-    setIsSaveConfirmOpen(true);
-  };
-
-  /**
-   * 저장 확인 모달에서 실제 저장을 확정한다.
-   *
-   * 변경된 내용이 없으면 안내만 보여주고,
-   * 변경이 있으면 현재 draft를 저장 완료 상태로 바꾼다.
-   */
-  const confirmSave = () => {
-    setIsSaveConfirmOpen(false);
-
-    if (!isDirty) {
-      setSimpleModalState({
-        description: '변경된 내용이 없습니다.',
-      });
-      return;
-    }
-
-    setBaseRows(cloneRows(draftRows));
-    setSimpleModalState({
-      description: '저장되었습니다.',
-    });
+    editableFlow.requestSave();
   };
 
   return {
@@ -217,25 +191,23 @@ export function useMessagePage(): MessagePageViewModel {
     },
     actions: {
       handleKeywordChange,
-      handleSearch: requestSearch,
-      handleReset: requestReset,
+      handleSearch: editableFlow.requestSearch,
+      handleReset: editableFlow.requestResetFilters,
       handleSelectRow,
       handleChangeRowField,
       handleAddRow,
       handleDeleteRow,
       handleSave,
-      confirmSave,
-      closeSaveConfirm: () => setIsSaveConfirmOpen(false),
-      closeSimpleModal: () => setSimpleModalState(null),
-      confirmFilterAction,
-      cancelFilterAction,
+      confirmSave: editableFlow.confirmSave,
+      closeSaveConfirm: editableFlow.closeSaveConfirm,
+      closeSimpleModal: editableFlow.closeSimpleModal,
+      confirmFilterAction: editableFlow.confirmFilterAction,
+      cancelFilterAction: editableFlow.cancelFilterAction,
     },
     uiProps: {
       draftKeyword,
       selectedRowId,
-      pendingFilterAction,
-      isSaveConfirmOpen,
-      simpleModalState,
+      flowState: editableFlow.state,
     },
   };
 }
