@@ -28,12 +28,12 @@
 
 관리자 화면은 `/admin` prefix 기준으로 통일한다.
 
-| 경로 | 설명 |
-|---|---|
-| `/admin/login` | 공개 경로 |
-| `/admin/*` | 보호 경로 (로그인 필요) |
+| 경로                | 설명                      |
+| ------------------- | ------------------------- |
+| `/admin/login`      | 공개 경로                 |
+| `/admin/*`          | 보호 경로 (로그인 필요)   |
 | `/` 접근 (비로그인) | `/admin/login` 리다이렉트 |
-| `/` 접근 (로그인) | `/admin/main` 리다이렉트 |
+| `/` 접근 (로그인)   | `/admin/main` 리다이렉트  |
 
 `AdminLayout(Header + Sidebar + Container)`는 고정하고, URL에 따라 컨테이너 내부 페이지만 교체하는 child route 구조를 사용한다.
 
@@ -66,6 +66,7 @@ frontend/
       auth/               ← AuthProvider, 인증 훅
       components/         ← 공용 UI 컴포넌트
       dev/                ← 개발 전용 컴포넌트 가이드 (/dev/*)
+      hooks/              ← 여러 feature가 함께 쓰는 공용 UX/state 훅
       lib/                ← httpClient.ts, queryClient.ts
       stores/             ← Zustand 전역 스토어
       styles/             ← 디자인 토큰, 전역 CSS
@@ -80,18 +81,39 @@ frontend/
 
 ## 4. 앱 계층 역할 요약
 
-| 폴더 | 역할 |
-|---|---|
-| `apps/*/pages` | 라우트 단위 화면 — 조립만 담당 |
-| `apps/*/features` | 화면 내부 재사용 기능 단위 (hook, component, api) |
-| `apps/*/routes` | 앱별 라우터 정의 |
-| `shared/components` | 공통 UI 컴포넌트 |
-| `shared/lib` | Query Client, fetch 래퍼 등 공용 인프라 |
-| `shared/api` | query key, 공용 API 계층 |
-| `shared/stores` | Zustand 전역 UI 상태 |
-| `shared/styles` | 디자인 토큰 CSS 및 전역 스타일 |
-| `mocks` | MSW 브라우저 mock 구성 |
-| `test` | 테스트 설정 및 공통 테스트 유틸 |
+| 폴더                | 역할                                              |
+| ------------------- | ------------------------------------------------- |
+| `apps/*/pages`      | 라우트 단위 화면 — 조립만 담당                    |
+| `apps/*/features`   | 화면 내부 재사용 기능 단위 (hook, component, api) |
+| `apps/*/routes`     | 앱별 라우터 정의                                  |
+| `shared/components` | 공통 UI 컴포넌트                                  |
+| `shared/hooks`      | 여러 feature가 재사용하는 공통 UX/state 훅        |
+| `shared/lib`        | Query Client, fetch 래퍼 등 공용 인프라           |
+| `shared/api`        | query key, 공용 API 계층                          |
+| `shared/stores`     | Zustand 전역 UI 상태                              |
+| `shared/styles`     | 디자인 토큰 CSS 및 전역 스타일                    |
+| `mocks`             | MSW 브라우저 mock 구성                            |
+| `test`              | 테스트 설정 및 공통 테스트 유틸                   |
+
+### 편집형 페이지 레이어 예시
+
+> 추가일: 2026-04-14
+
+편집형 목록 화면의 **권장(목표) 구조**는 아래와 같다.
+현재 코드베이스에는 과도기 구조가 공존할 수 있으며, 리팩토링 시 이 구조를 기준으로 수렴한다.
+
+```text
+pages/<Feature>Page.tsx
+  -> features/<feature>/hooks/use<Feature>Page.ts
+      -> features/<feature>/hooks/use<Feature>ListState.ts (feature 전용)
+      -> shared/hooks/useEditablePageFlow.ts (공통 저장/조회 flow)
+      -> features/<feature>/hooks/use<Feature>Flow.ts (feature 고유 flow만)
+```
+
+- page는 필터, 테이블, 모달을 조립만 담당한다.
+- `useEditablePageFlow`는 조회/초기화 dirty guard와 저장 확인/완료 안내를 공통으로 처리한다.
+- feature 훅은 API wrapper, 목록 상태, 공통 flow를 합쳐 `data / status / actions / uiProps` 형태로 page에 전달한다.
+- 예시: `AdminUser`는 위 구조를 우선 적용했고, `MessageManagement`는 현재 `useMessagePage + useEditablePageFlow` 중심의 과도기 구조를 사용한다.
 
 ---
 
@@ -105,10 +127,7 @@ frontend/
 **렌더 순서:** 브레드크럼 → filterSlot → 콘텐츠
 
 ```tsx
-<AdminMainLayout
-  className="admin-main-layout-page--fixed"
-  filterSlot={<SomeFilters />}
->
+<AdminMainLayout className="admin-main-layout-page--fixed" filterSlot={<SomeFilters />}>
   <테이블 />
 </AdminMainLayout>
 ```

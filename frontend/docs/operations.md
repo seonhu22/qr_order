@@ -92,9 +92,9 @@
 
 ```ts
 // 예시
-mapToCommonMasterModel
-mapToCommonDetailModel
-mapToCommonMasterPayload
+mapToCommonMasterModel;
+mapToCommonDetailModel;
+mapToCommonMasterPayload;
 ```
 
 이 규칙은 `features/<domain>/api/*` 계층에서 우선 적용한다.
@@ -109,29 +109,62 @@ mapToCommonMasterPayload
 업무형 CRUD 화면은 아래 두 층으로 분리하는 편이 유지보수에 유리하다.
 
 **`use<Feature>ListState`**
+
 - baseRows, draftRows, selectedRowId, rowErrors, isDirty
 - 행 추가/삭제, 필드 변경, 필수 검증
 
 **`use<Feature>Flow`**
+
 - 조회 전 dirty 확인
 - 저장 확인/완료
 - 삭제 확인/완료
 - 초기화/부가 액션 모달 흐름
 
 이 패턴은 `AdminUser`에서 먼저 적용했다.
+`MessageManagement`는 현재 `useMessagePage + useEditablePageFlow` 중심의 과도기 구조를 사용하며,
+추후 `useMessageListState` + `useMessageFlow`로 분리해 동일 기준으로 수렴한다.
+
+### 8-1. 반복되는 편집형 flow는 `shared`로 승격한다
+
+> 추가일: 2026-04-14
+
+편집형 목록 화면에서 아래 흐름이 두 기능 이상에서 반복되면 feature 훅 안에 복사하지 말고 `shared/hooks`로 승격한다.
+
+- 조회 전 dirty 확인
+- 초기화 전 dirty 확인
+- 저장 확인 모달
+- 저장 완료 / 변경 없음 안내 모달
+
+현재 이 공통 패턴은 `shared/hooks/useEditablePageFlow.ts`로 관리한다.
+
+```ts
+const flow = useEditablePageFlow({
+  isDirty,
+  onApplySearch,
+  onResetFilters,
+  onResetDraftRows,
+  onValidateRequiredFields,
+  onSaveChanges,
+});
+```
+
+- feature 훅은 `flow.requestSearch`, `flow.requestResetFilters`, `flow.requestSave`, `flow.confirmSave` 같은 공통 액션을 page에 전달한다.
+- feature 고유 로직(예: `AdminUser`의 비밀번호 초기화, 삭제 버튼 안내 문구)은 feature 훅 또는 feature flow 훅에 남긴다.
+- 즉, "여러 화면에서 동일한 UX 전이"만 shared로 올리고, "도메인 의미가 강한 분기"는 feature 내부에 둔다.
 
 ### 9. Feature Hook 반환 구조는 가능한 한 일관되게 유지한다
 
 ```ts
 const {
-  data,      // 화면 렌더링에 필요한 서버/화면 모델
-  status,    // query/mutation 진행 상태
-  actions,   // 사용자 이벤트 핸들러
-  uiProps,   // draft, selectedId, modal state 같은 화면 전용 상태
+  data, // 화면 렌더링에 필요한 서버/화면 모델
+  status, // query/mutation 진행 상태
+  actions, // 사용자 이벤트 핸들러
+  uiProps, // draft, selectedId, modal state 같은 화면 전용 상태
 } = useSomeFeaturePage();
 ```
 
 이 구조는 `PlantSearch`, `AdminUser`에서 적용 중이다.
+편집형 페이지의 모달 상태는 `uiProps.flowState` 아래에 두는 방식을 우선한다.
 
 ### 10. 리팩토링 후 테스트도 레이어에 맞춰 나눈다
 
@@ -170,22 +203,53 @@ const {
 />
 ```
 
-적용 위치: `useCommonCodePageState`, `useAdminUserFlow`
+적용 위치: `useCommonCodePageState`, `shared/hooks/useEditablePageFlow`
+
+### 12. 저장 확인/완료 공통 흐름은 `useEditablePageFlow`를 사용한다
+
+> 추가일: 2026-04-14
+
+편집형 목록 화면에서 저장 버튼을 눌렀을 때 아래 흐름은 `shared/hooks/useEditablePageFlow`로 통일한다.
+
+```text
+저장 클릭
+-> 필수값 검증(선택)
+-> SaveConfirmModal 오픈
+-> 저장 실행
+-> "저장되었습니다." 또는 "변경된 내용이 없습니다." 안내
+```
+
+```ts
+const flow = useEditablePageFlow({
+  isDirty,
+  onApplySearch,
+  onResetFilters,
+  onSaveChanges,
+});
+```
+
+- 필수값 검증이 필요한 화면만 `onValidateRequiredFields`를 전달한다.
+- 저장 성공/변경 없음 문구가 다르면 `savedNotice`, `unchangedNotice`로 화면별 오버라이드한다.
+- 페이지에서는 `uiProps.flowState`를 사용해 `ConfirmModal`, `SaveConfirmModal`, `SimpleDefaultModal`을 조립한다.
 
 ---
 
-### 12. 리팩토링 요약 순서
+### 13. 리팩토링 요약 순서
 
 1. 페이지 조립
 2. 목록 상태 훅 (`use<Feature>ListState`)
-3. feature hook
-4. API wrapper
-5. 모달 흐름 상태 (`use<Feature>Flow`)
+3. 공통 flow 훅 (`useEditablePageFlow`)
+4. feature hook
+5. API wrapper
+6. feature 전용 모달 흐름 (`use<Feature>Flow`, 필요 시)
 
 **적용 예시:**
+
 - `CommonCode`: 페이지 조립 + 상태 훅 + 마스터/디테일 flow 훅
 - `PlantSearch`: 페이지 조립 + feature hook + API wrapper
-- `AdminUser`: 페이지 조립 + `useAdminUserListState` + `useAdminUserFlow`
+- `AdminUser`: 페이지 조립 + `useAdminUserListState` + `useEditablePageFlow` + `useAdminUserFlow`
+- `MessageManagement`(현재): 페이지 조립 + feature hook + `useEditablePageFlow`
+- `MessageManagement`(목표): 페이지 조립 + `useMessageListState` + `useEditablePageFlow` + `useMessageFlow`
 
 ---
 
@@ -198,6 +262,7 @@ const {
 대상: `PlantSearch` 같은 read-only 목록
 
 권장 구성:
+
 - `pages/<Feature>Page.tsx` → 조립만 담당
 - `features/<feature>/hooks/use<Feature>Page.ts` → `data/status/actions/uiProps`
 - `features/<feature>/api/*` → generated wrapper + mapper
@@ -209,9 +274,11 @@ const {
 대상: `CommonCode`, `AdminUser` 같은 draft/저장/삭제가 있는 목록
 
 권장 구성:
+
 - `use<Feature>ListState`: baseRows, draftRows, selectedRowId, rowErrors, isDirty, 행 추가/삭제, 필드 변경, 필수 검증
-- `use<Feature>Flow`: 조회 전 dirty 확인, 저장 확인/완료, 삭제 확인/완료, 초기화/부가 액션 모달 흐름
-- `use<Feature>Page`: list state + flow + API wrapper 조합
+- `useEditablePageFlow`: 조회/초기화 dirty guard, 저장 확인/완료 같은 shared flow 담당
+- `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달처럼 feature 고유 흐름만 담당
+- `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
 
 ### 신규 화면 구현 체크리스트
 
@@ -219,7 +286,8 @@ const {
 - 페이지가 조립만 담당하는가
 - generated API를 wrapper를 통해서만 사용하는가
 - 필수값 검증이 row error 상태와 함께 표시되는가
-- 저장/삭제/초기화 흐름이 `Flow` 훅으로 분리됐는가
+- 저장/초기화 공통 흐름이 `useEditablePageFlow`로 분리됐는가
+- 삭제/부가 액션처럼 도메인 전용 흐름만 `use<Feature>Flow`에 남아 있는가
 - 레이어별 단위 테스트(list state / flow / UI)가 있는가
 
 ---
@@ -239,7 +307,7 @@ Flex 자식 요소는 기본적으로 `min-height: auto`를 가진다.
 /* 스크롤을 내부에서 끊어야 하는 flex 자식 */
 .admin-layout__main {
   flex: 1;
-  min-height: 0;      /* ← 이게 없으면 콘텐츠 높이로 늘어남 */
+  min-height: 0; /* ← 이게 없으면 콘텐츠 높이로 늘어남 */
   overflow: hidden;
 }
 ```
