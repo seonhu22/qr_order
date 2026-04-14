@@ -47,12 +47,13 @@
   color: var(--color-status-error-default);
 }
 
-/* 비밀번호 초기화 버튼 */
+/* 비밀번호 초기화 버튼 — 활성 시 흰색 배경으로 행과 구분 */
 .admin-user-page__password-button {
   min-width: 4.25rem;
   padding-inline: 0.625rem;
   border-radius: var(--radius-button);
   font-weight: var(--typography-weight-ui);
+  background-color: var(--color-bg-surface);
 }
 
 /* =====================================================
