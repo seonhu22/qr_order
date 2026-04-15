@@ -1,7 +1,4 @@
-import '@/apps/admin/pages/PlantSearchPage.css';
-import { Icon } from '@/shared/assets/icons/Icon';
-import { Button } from '@/shared/components/button';
-import { InputBase } from '@/shared/components/input';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 
 type CommonCodeFiltersProps = {
   draftKeyword: string;
@@ -24,36 +21,15 @@ export function CommonCodeFilters({
   onReset,
 }: CommonCodeFiltersProps) {
   return (
-    <article className="plant-search-page__filter-card" aria-label="공통코드 검색">
-      <div className="plant-search-page__search-field">
-        <InputBase
-          size="md"
-          value={draftKeyword}
-          className="plant-search-page__search-input"
-          placeholder="공통코드, 공통코드명으로 검색"
-          leftSlot={<Icon id="i-search" size={14} />}
-          onChange={(e) => onKeywordChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onSearch();
-          }}
-          aria-label="공통코드 검색어"
-        />
-      </div>
-
-      <div className="plant-search-page__filter-actions">
-        <Button type="button" variant="outline" size="md" onClick={onReset}>
-          초기화
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          leftIcon={<Icon id="i-search" size={15} />}
-          onClick={onSearch}
-        >
-          조회
-        </Button>
-      </div>
-    </article>
+    <SearchFilterCard
+      ariaLabel="공통코드 검색"
+      inputId="common-code-search-keyword"
+      inputAriaLabel="공통코드 검색어"
+      placeholder="공통코드, 공통코드명으로 검색"
+      draftKeyword={draftKeyword}
+      onKeywordChange={onKeywordChange}
+      onSearch={onSearch}
+      onReset={onReset}
+    />
   );
 }

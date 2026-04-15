@@ -1,7 +1,4 @@
-import '@/apps/admin/pages/PlantSearchPage.css';
-import { Icon } from '@/shared/assets/icons/Icon';
-import { Button } from '@/shared/components/button';
-import { InputBase, InputWrapper } from '@/shared/components/input';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 
 type MessageFiltersProps = {
   draftKeyword: string;
@@ -24,40 +21,15 @@ export function MessageFilters({
   onReset,
 }: MessageFiltersProps) {
   return (
-    <article className="plant-search-page__filter-card" aria-label="메시지 검색">
-      <div className="plant-search-page__search-field">
-        <InputWrapper inputId="message-search-keyword">
-          <InputBase
-            id="message-search-keyword"
-            size="md"
-            value={draftKeyword}
-            className="plant-search-page__search-input"
-            placeholder="메시지 코드, 메시지 명, 내용으로 검색"
-            leftSlot={<Icon id="i-search" size={14} />}
-            onChange={(event) => onKeywordChange(event.target.value)}
-            onKeyDown={(event) => {
-              /* Enter 키로도 조회할 수 있게 처리 */
-              if (event.key === 'Enter') onSearch();
-            }}
-            aria-label="메시지 검색어"
-          />
-        </InputWrapper>
-      </div>
-
-      <div className="plant-search-page__filter-actions">
-        <Button type="button" variant="outline" size="md" onClick={onReset}>
-          초기화
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          leftIcon={<Icon id="i-search" size={15} />}
-          onClick={onSearch}
-        >
-          조회
-        </Button>
-      </div>
-    </article>
+    <SearchFilterCard
+      ariaLabel="메시지 검색"
+      inputId="message-search-keyword"
+      inputAriaLabel="메시지 검색어"
+      placeholder="메시지 코드, 메시지 명, 내용으로 검색"
+      draftKeyword={draftKeyword}
+      onKeywordChange={onKeywordChange}
+      onSearch={onSearch}
+      onReset={onReset}
+    />
   );
 }

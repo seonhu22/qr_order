@@ -1,6 +1,6 @@
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 
-type PlantSearchFiltersProps = {
+type RuleManagementFiltersProps = {
   draftKeyword: string;
   onKeywordChange: (value: string) => void;
   onSearch: () => void;
@@ -8,24 +8,24 @@ type PlantSearchFiltersProps = {
 };
 
 /**
- * 사업장 조회 검색 영역
+ * 규칙 관리 검색 영역.
  *
  * @description
- * - 입력값 관리 자체는 상위 hook이 담당하고,
- *   이 컴포넌트는 검색 UI와 사용자 이벤트만 렌더링한다.
+ * 공통코드와 같은 필터 레이아웃을 재사용하되,
+ * 규칙 화면에 맞는 placeholder/접근성 라벨만 설정한다.
  */
-export function PlantSearchFilters({
+export function RuleManagementFilters({
   draftKeyword,
   onKeywordChange,
   onSearch,
   onReset,
-}: PlantSearchFiltersProps) {
+}: RuleManagementFiltersProps) {
   return (
     <SearchFilterCard
-      ariaLabel="사업장 검색"
-      inputId="plant-search-keyword"
-      inputAriaLabel="사업장 검색어"
-      placeholder="사업장명, 매장명으로 검색"
+      ariaLabel="규칙 검색"
+      inputId="rule-search-keyword"
+      inputAriaLabel="규칙 검색어"
+      placeholder="규칙코드, 규칙명으로 검색"
       draftKeyword={draftKeyword}
       onKeywordChange={onKeywordChange}
       onSearch={onSearch}
