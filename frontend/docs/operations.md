@@ -79,6 +79,19 @@
 - 바로 `shared`로 올리지 않는다.
 - 한 기능에서 2회 이상 반복되거나, 다른 기능에도 같은 흐름이 확인되면 그때 shared 승격을 검토한다.
 
+### 4-1. 반복이 확인되면 shared로 승격한다
+
+> 추가일: 2026-04-16
+
+- 동일한 JSX 구조가 2개 이상 페이지/feature에서 반복되면 shared 추출을 우선 검토한다.
+- 특히 아래는 반복이 확인되면 개별 화면에 복사하지 않는다.
+  - filter 카드 레이아웃
+  - 테이블 액션 버튼
+  - badge 표현
+  - 테이블 셀 조각(input, checkbox, button 등)
+- 단, shared로 올릴 때도 기존 CSS 클래스와 동작 계약은 유지해야 한다.
+- 즉 "새 추상화"보다 "기존 UI를 깨지 않는 반복 제거"를 우선한다.
+
 ### 5. `normalize`, `map`, `buildRequest` 같은 유틸은 feature 가까이에 둔다
 
 - 예: `normalizeOrdNo`, `mapCommonDetailToRow`, `buildCommonDetailRequest`

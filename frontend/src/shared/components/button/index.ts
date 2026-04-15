@@ -7,4 +7,17 @@
  */
 
 export { Button, LinkButton } from './Button';
+export {
+  AddRowTableButton,
+  CreateTableButton,
+  DeleteRowTableButton,
+  DeleteTableButton,
+  EditTableButton,
+  MoveDownTableButton,
+  MoveUpTableButton,
+  PasswordResetButton,
+  ResetFilterButton,
+  SaveTableButton,
+  SearchFilterButton,
+} from './ActionButtons';
 export type { ButtonVariant, ButtonSize, ButtonProps, LinkButtonProps } from './types';

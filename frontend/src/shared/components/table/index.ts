@@ -7,5 +7,7 @@
  */
 
 export { TableCard } from './TableCard';
+export { TableBodyRenderer } from './TableBodyRenderer';
 
 export type { TableCardProps } from './types';
+export type { SharedTableCell, SharedTableColumn, SharedTableRow } from './tableModelTypes';
