@@ -7,7 +7,9 @@
  */
 
 export { TableCard } from './TableCard';
+export { TableCardContentState } from './TableCardContentState';
 export { TableBodyRenderer } from './TableBodyRenderer';
+export { DetailTableActions, EditableTableActions, MasterTableActions } from './TableActionGroups';
 
 export type { TableCardProps } from './types';
 export type { SharedTableCell, SharedTableColumn, SharedTableRow } from './tableModelTypes';
