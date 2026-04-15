@@ -9,6 +9,10 @@ type SearchFilterCardProps = {
   inputAriaLabel: string;
   placeholder: string;
   draftKeyword: string;
+  cardClassName?: string;
+  searchFieldClassName?: string;
+  inputClassName?: string;
+  actionsClassName?: string;
   onKeywordChange: (value: string) => void;
   onSearch: () => void;
   onReset: () => void;
@@ -27,19 +31,23 @@ export function SearchFilterCard({
   inputAriaLabel,
   placeholder,
   draftKeyword,
+  cardClassName = 'plant-search-page__filter-card',
+  searchFieldClassName = 'plant-search-page__search-field',
+  inputClassName = 'plant-search-page__search-input',
+  actionsClassName = 'plant-search-page__filter-actions',
   onKeywordChange,
   onSearch,
   onReset,
 }: SearchFilterCardProps) {
   return (
-    <article className="plant-search-page__filter-card" aria-label={ariaLabel}>
-      <div className="plant-search-page__search-field">
+    <article className={cardClassName} aria-label={ariaLabel}>
+      <div className={searchFieldClassName}>
         <InputWrapper inputId={inputId}>
           <InputBase
             id={inputId}
             size="md"
             value={draftKeyword}
-            className="plant-search-page__search-input"
+            className={inputClassName}
             placeholder={placeholder}
             leftSlot={<Icon id="i-search" size={14} />}
             onChange={(event) => onKeywordChange(event.target.value)}
@@ -53,7 +61,7 @@ export function SearchFilterCard({
         </InputWrapper>
       </div>
 
-      <div className="plant-search-page__filter-actions">
+      <div className={actionsClassName}>
         <ResetFilterButton onClick={onReset} />
         <SearchFilterButton onClick={onSearch} />
       </div>

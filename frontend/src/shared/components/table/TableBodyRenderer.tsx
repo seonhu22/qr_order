@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import {
   EmptyTableRow,
-  RequiredHeaderLabel,
   SelectableTableRow,
   TableHeaderCell,
 } from '@/shared/components/table/TableBodyParts';
@@ -17,10 +16,21 @@ import {
   TableCellUseYnBadge,
 } from '@/shared/components/table/TableCells';
 import type {
+  ChangeTypeBadgeCellModel,
+  CheckboxCellModel,
+  CustomCellModel,
+  EditButtonCellModel,
+  ExpirationStatusBadgeCellModel,
+  InputCellModel,
+  LicensePeriodBadgeCellModel,
+  PasswordResetButtonCellModel,
+  SelectCellModel,
   SharedTableCell,
   SharedTableColumn,
   SharedTableRow,
   TableColumnAlign,
+  TextCellModel,
+  UseYnBadgeCellModel,
 } from '@/shared/components/table/tableModelTypes';
 
 type TableBodyRendererProps = {
@@ -45,74 +55,78 @@ function getAlignClassName(align?: TableColumnAlign) {
   return undefined;
 }
 
+type BuiltInSharedTableCell = Exclude<SharedTableCell, CustomCellModel>;
+
+type CellRendererMap = {
+  [K in BuiltInSharedTableCell['type']]: (
+    cell: Extract<BuiltInSharedTableCell, { type: K }>,
+  ) => ReactNode;
+};
+
+const cellRenderers: CellRendererMap = {
+  text: (cell: TextCellModel) => (
+    <span className={cell.className} title={cell.title}>
+      {cell.value}
+    </span>
+  ),
+  input: (cell: InputCellModel) => (
+    <TableCellInput
+      inputId={cell.inputId}
+      value={cell.value}
+      ariaLabel={cell.ariaLabel}
+      placeholder={cell.placeholder}
+      className={cell.className}
+      controlState={cell.controlState}
+      readOnly={cell.readOnly}
+      onChange={cell.onChange}
+      onClearError={cell.onClearError}
+    />
+  ),
+  checkbox: (cell: CheckboxCellModel) => (
+    <TableCellCheckbox
+      checked={cell.checked}
+      ariaLabel={cell.ariaLabel}
+      className={cell.className}
+      onChange={cell.onChange}
+    />
+  ),
+  select: (cell: SelectCellModel) => (
+    <TableCellSelect
+      value={cell.value}
+      options={cell.options}
+      placeholder={cell.placeholder}
+      className={cell.className}
+      isError={cell.isError}
+      searchable={cell.searchable}
+      onChange={cell.onChange}
+    />
+  ),
+  editButton: (cell: EditButtonCellModel) => (
+    <TableCellEditButton ariaLabel={cell.ariaLabel} onClick={cell.onClick} />
+  ),
+  passwordResetButton: (cell: PasswordResetButtonCellModel) => (
+    <TableCellPasswordResetButton disabled={cell.disabled} onClick={cell.onClick} />
+  ),
+  useYnBadge: (cell: UseYnBadgeCellModel) => <TableCellUseYnBadge value={cell.value} />,
+  changeTypeBadge: (cell: ChangeTypeBadgeCellModel) => (
+    <TableCellChangeTypeBadge value={cell.value} />
+  ),
+  expirationStatusBadge: (cell: ExpirationStatusBadgeCellModel) => (
+    <TableCellExpirationStatusBadge value={cell.value} />
+  ),
+  licensePeriodBadge: (cell: LicensePeriodBadgeCellModel) => (
+    <TableCellLicensePeriodBadge value={cell.value} />
+  ),
+};
+
 function renderCell(cell: SharedTableCell) {
-  switch (cell.type) {
-    case 'text':
-      return (
-        <span className={cell.className} title={cell.title}>
-          {cell.value}
-        </span>
-      );
-
-    case 'input':
-      return (
-        <TableCellInput
-          inputId={cell.inputId}
-          value={cell.value}
-          ariaLabel={cell.ariaLabel}
-          placeholder={cell.placeholder}
-          className={cell.className}
-          controlState={cell.controlState}
-          readOnly={cell.readOnly}
-          onChange={cell.onChange}
-          onClearError={cell.onClearError}
-        />
-      );
-
-    case 'checkbox':
-      return (
-        <TableCellCheckbox
-          checked={cell.checked}
-          ariaLabel={cell.ariaLabel}
-          className={cell.className}
-          onChange={cell.onChange}
-        />
-      );
-
-    case 'select':
-      return (
-        <TableCellSelect
-          value={cell.value}
-          options={cell.options}
-          placeholder={cell.placeholder}
-          className={cell.className}
-          isError={cell.isError}
-          searchable={cell.searchable}
-          onChange={cell.onChange}
-        />
-      );
-
-    case 'editButton':
-      return <TableCellEditButton ariaLabel={cell.ariaLabel} onClick={cell.onClick} />;
-
-    case 'passwordResetButton':
-      return <TableCellPasswordResetButton disabled={cell.disabled} onClick={cell.onClick} />;
-
-    case 'useYnBadge':
-      return <TableCellUseYnBadge value={cell.value} />;
-
-    case 'changeTypeBadge':
-      return <TableCellChangeTypeBadge value={cell.value} />;
-
-    case 'expirationStatusBadge':
-      return <TableCellExpirationStatusBadge value={cell.value} />;
-
-    case 'licensePeriodBadge':
-      return <TableCellLicensePeriodBadge value={cell.value} />;
-
-    case 'custom':
-      return cell.render();
+  if (cell.type === 'custom') {
+    return cell.render();
   }
+
+  const renderer = cellRenderers[cell.type] as (cell: BuiltInSharedTableCell) => ReactNode;
+
+  return renderer(cell);
 }
 
 /**
