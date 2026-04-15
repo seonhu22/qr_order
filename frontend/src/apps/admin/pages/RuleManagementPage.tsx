@@ -28,7 +28,12 @@ export function RuleManagementPage() {
     <>
       {/* 페이지 본문은 테이블 2개를 조립하고,
          실제 모달은 아래에서 한 번에 관리한다. */}
-      <AdminMainLayout adminMainTitle="규칙 관리" depth1="시스템" depth2="시스템 관리">
+      <AdminMainLayout
+        adminMainTitle="규칙 관리"
+        depth1="시스템"
+        depth2="시스템 관리"
+        className="admin-main-layout-page--fixed"
+      >
         <RuleMasterTable
           rows={data.masterRows}
           isLoading={status.isLoadingMasters}
