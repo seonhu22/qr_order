@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
+import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import type { RuleDetailRow, RuleDetailSchema, RuleMasterRow } from '../types';
 import {
@@ -26,6 +27,8 @@ export function useRuleManagementPage() {
   const [masterRows, setMasterRows] = useState<RuleMasterRow[]>(createInitialRuleMasterRows);
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
   const [selectedMasterId, setSelectedMasterId] = useState('');
+  const [draftMasterKeyword, setDraftMasterKeyword] = useState('');
+  const [masterKeyword, setMasterKeyword] = useState('');
   const [baseDetailSchemasByMaster, setBaseDetailSchemasByMaster] = useState<
     Record<string, RuleDetailSchema>
   >(createInitialRuleDetailSchemaMap);
@@ -33,9 +36,29 @@ export function useRuleManagementPage() {
     Record<string, RuleDetailSchema>
   >(createInitialRuleDetailSchemaMap);
 
+  const filteredMasterRows = useMemo(() => {
+    const normalizedKeyword = masterKeyword.trim().toLowerCase();
+
+    if (!normalizedKeyword) {
+      return masterRows;
+    }
+
+    return masterRows.filter((row) => {
+      const code = row.code.toLowerCase();
+      const name = row.name.toLowerCase();
+      return code.includes(normalizedKeyword) || name.includes(normalizedKeyword);
+    });
+  }, [masterRows, masterKeyword]);
+  const effectiveSelectedMasterId =
+    selectedMasterId && filteredMasterRows.some((row) => row.id === selectedMasterId)
+      ? selectedMasterId
+      : '';
+  const effectiveCheckedMasterIds = checkedMasterIds.filter((id) =>
+    filteredMasterRows.some((row) => row.id === id),
+  );
   const selectedMaster = useMemo(
-    () => masterRows.find((row) => row.id === selectedMasterId) ?? null,
-    [masterRows, selectedMasterId],
+    () => filteredMasterRows.find((row) => row.id === effectiveSelectedMasterId) ?? null,
+    [filteredMasterRows, effectiveSelectedMasterId],
   );
   const selectedDetailSchema = selectedMaster
     ? (draftDetailSchemasByMaster[selectedMaster.id] ?? createEmptyRuleDetailSchema())
@@ -44,7 +67,7 @@ export function useRuleManagementPage() {
     ? (baseDetailSchemasByMaster[selectedMaster.id] ?? createEmptyRuleDetailSchema())
     : null;
   const isAllMastersChecked =
-    masterRows.length > 0 && checkedMasterIds.length === masterRows.length;
+    filteredMasterRows.length > 0 && effectiveCheckedMasterIds.length === filteredMasterRows.length;
 
   const setSelectedDetailRows = (updater: (rows: RuleDetailRow[]) => RuleDetailRow[]) => {
     if (!selectedMaster) {
@@ -72,6 +95,30 @@ export function useRuleManagementPage() {
   };
 
   /**
+   * 검색 input의 draft 값을 갱신한다.
+   */
+  const handleMasterKeywordChange = (value: string) => {
+    setDraftMasterKeyword(value);
+  };
+
+  /**
+   * 현재 draft 검색어를 실제 조회 키워드로 적용한다.
+   */
+  const handleMasterSearch = () => {
+    setMasterKeyword(draftMasterKeyword);
+  };
+
+  /**
+   * 검색 조건과 선택 상태를 초기 상태로 되돌린다.
+   */
+  const handleMasterReset = () => {
+    setDraftMasterKeyword('');
+    setMasterKeyword('');
+    setSelectedMasterId('');
+    setCheckedMasterIds([]);
+  };
+
+  /**
    * 마스터 행 체크박스를 토글한다.
    */
   const handleToggleMaster = (masterId: string) => {
@@ -84,7 +131,7 @@ export function useRuleManagementPage() {
    * 마스터 전체 선택/해제를 전환한다.
    */
   const handleToggleAllMasters = () => {
-    setCheckedMasterIds(isAllMastersChecked ? [] : masterRows.map((row) => row.id));
+    setCheckedMasterIds(isAllMastersChecked ? [] : filteredMasterRows.map((row) => row.id));
   };
 
   /**
@@ -229,6 +276,17 @@ export function useRuleManagementPage() {
   };
 
   /**
+   * 현재 선택된 마스터의 상세에 저장되지 않은 변경이 있으면 true다.
+   */
+  const isDetailDirty = useMemo(() => {
+    if (!selectedMaster || !selectedDetailSchema || !baseSelectedDetailSchema) {
+      return false;
+    }
+
+    return hasRuleDetailChanges(baseSelectedDetailSchema, selectedDetailSchema);
+  }, [selectedMaster, selectedDetailSchema, baseSelectedDetailSchema]);
+
+  /**
    * 상세 저장 전 필수값 검증기.
    *
    * @description
@@ -265,10 +323,22 @@ export function useRuleManagementPage() {
    * 페이지는 이 상태를 받아 실제 모달 컴포넌트를 렌더링만 한다.
    */
   const masterFlow = useCodeMasterModalFlow({
-    checkedRowIds: checkedMasterIds,
+    checkedRowIds: effectiveCheckedMasterIds,
     createEmptyRow: (): RuleMasterRow => ({ id: '', code: '', name: '', useYn: 'Y' }),
     onSaveRow: saveMaster,
     onDeleteRows: deleteMasters,
+  });
+
+  const {
+    pendingFilterAction,
+    requestSearch,
+    requestReset,
+    confirmFilterAction,
+    cancelFilterAction,
+  } = useFilterDirtyCheck({
+    isDirty: isDetailDirty,
+    onSearch: handleMasterSearch,
+    onReset: handleMasterReset,
   });
 
   /**
@@ -354,7 +424,7 @@ export function useRuleManagementPage() {
    */
   return {
     data: {
-      masterRows,
+      masterRows: filteredMasterRows,
       selectedMaster,
       detailColumns: selectedDetailSchema?.columns ?? [],
       detailRows: selectedDetailSchema?.rows ?? [],
@@ -366,6 +436,11 @@ export function useRuleManagementPage() {
       isConfirmingDetailSave,
     },
     actions: {
+      handleMasterKeywordChange,
+      handleSearch: requestSearch,
+      handleReset: requestReset,
+      confirmFilterAction,
+      cancelFilterAction,
       handleSelectMaster,
       handleToggleMaster,
       handleToggleAllMasters,
@@ -394,9 +469,11 @@ export function useRuleManagementPage() {
       closeDetailNotice: detailFlow.closeNotice,
     },
     uiProps: {
-      selectedMasterId,
-      checkedMasterIds,
+      selectedMasterId: effectiveSelectedMasterId,
+      checkedMasterIds: effectiveCheckedMasterIds,
+      draftMasterKeyword,
       isAllMastersChecked,
+      pendingFilterAction,
       masterModalProps,
       detailModalProps,
       detailRowErrors: detailFlow.rowErrors,

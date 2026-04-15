@@ -1,10 +1,12 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/CommonCodePage.css';
 import { RuleDetailTable } from '@/apps/admin/features/rule-management/components/RuleDetailTable';
+import { RuleManagementFilters } from '@/apps/admin/features/rule-management/components/RuleManagementFilters';
 import { RuleMasterTable } from '@/apps/admin/features/rule-management/components/RuleMasterTable';
 import { useRuleManagementPage } from '@/apps/admin/features/rule-management/hooks/useRuleManagementPage';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import {
+  ConfirmModal,
   DeleteConfirmModal,
   EditConfirmModal,
   SaveConfirmModal,
@@ -16,7 +18,7 @@ import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
  * 규칙 관리 페이지 컨테이너.
  *
  * @description
- * 검색 영역 없이 마스터/상세 테이블을 조립하고,
+ * 공통코드와 같은 검색 영역 + 마스터/상세 테이블을 조립하고,
  * 저장/삭제/알림 모달 흐름은 이 페이지에서 한 번에 조율한다.
  */
 export function RuleManagementPage() {
@@ -33,6 +35,14 @@ export function RuleManagementPage() {
         depth1="시스템"
         depth2="시스템 관리"
         className="admin-main-layout-page--fixed"
+        filterSlot={
+          <RuleManagementFilters
+            draftKeyword={uiProps.draftMasterKeyword}
+            onKeywordChange={actions.handleMasterKeywordChange}
+            onSearch={actions.handleSearch}
+            onReset={actions.handleReset}
+          />
+        }
       >
         <RuleMasterTable
           rows={data.masterRows}
@@ -66,6 +76,16 @@ export function RuleManagementPage() {
           onSave={actions.requestSaveDetailRows}
         />
       </AdminMainLayout>
+
+      <ConfirmModal
+        open={uiProps.pendingFilterAction !== null}
+        tone="info"
+        title={uiProps.pendingFilterAction === 'reset' ? '초기화하시겠습니까?' : '조회하시겠습니까?'}
+        description="저장되지 않은 내용이 있습니다."
+        onClose={actions.cancelFilterAction}
+        primaryAction={{ onClick: actions.confirmFilterAction }}
+        secondaryAction={{ onClick: actions.cancelFilterAction }}
+      />
 
       {/* 마스터 수정/등록 editor 모달 */}
       <WrapperModal
