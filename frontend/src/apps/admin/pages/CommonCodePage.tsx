@@ -24,6 +24,12 @@ import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 
 /**
  * 공통코드 관리 페이지를 렌더링한다.
+ *
+ * @description
+ * page-level orchestration 구조를 따르며,
+ * - 훅에서 data/status/actions/uiProps를 받고
+ * - 테이블과 필터를 배치하고
+ * - 실제 모달은 이 페이지에서 한 번에 조립한다.
  */
 export const CommonCodePage = () => {
   const { data, status, actions, uiProps } = useCommonCodePageState();
@@ -38,6 +44,7 @@ export const CommonCodePage = () => {
         depth2="시스템 관리"
         className="admin-main-layout-page--fixed"
         filterSlot={
+          /* filterSlot에는 입력 UI만 두고, 실제 조회/초기화 흐름은 page hook action을 연결한다. */
           <CommonCodeFilters
             draftKeyword={uiProps.draftMasterKeyword}
             onKeywordChange={actions.handleMasterKeywordChange}

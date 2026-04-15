@@ -55,10 +55,22 @@ export function CommonCodeDetailTable({
   onClearRowError,
   onSave,
 }: CommonCodeDetailTableProps) {
-  /* 행 클릭 선택 상태 */
+  /**
+   * 행 클릭 선택 상태.
+   *
+   * @description
+   * 이 값은 "현재 상세 테이블에서 어떤 행을 조작 대상으로 볼 것인가"를 의미한다.
+   * 위/아래 이동, 행삭제 버튼은 이 선택값을 기준으로 동작한다.
+   */
   const [selectedDetailId, setSelectedDetailId] = useState<string>('');
 
-  /* 클릭 선택된 행의 인덱스 — 이동 가능 여부 계산에 사용 */
+  /**
+   * 클릭 선택된 행의 인덱스.
+   *
+   * @description
+   * 첫 번째 행이면 위로 이동할 수 없고,
+   * 마지막 행이면 아래로 이동할 수 없으므로 버튼 활성화 계산에 사용한다.
+   */
   const selectedIndex = rows.findIndex((row) => row.id === selectedDetailId);
   const effectiveCanMoveUp = selectedDetailId !== '' && selectedIndex > 0;
   const effectiveCanMoveDown = selectedDetailId !== '' && selectedIndex < rows.length - 1;
@@ -96,6 +108,7 @@ export function CommonCodeDetailTable({
         variant="text"
         size="sm"
         onClick={() => {
+          // 행 삭제 후에는 방금 삭제한 선택값이 남지 않도록 즉시 비운다.
           onDeleteRows(selectedDetailId || undefined);
           setSelectedDetailId('');
         }}
