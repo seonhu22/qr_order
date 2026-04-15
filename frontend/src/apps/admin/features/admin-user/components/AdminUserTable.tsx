@@ -13,12 +13,18 @@
  * - selectedRowId와 일치하는 행은 is-selected 스타일 적용
  */
 
-import { Button } from '@/shared/components/button';
-import { InputBase, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
-import { FeedbackState } from '@/shared/components/feedback';
-import { TableCard } from '@/shared/components/table';
+import {
+  EditableTableActions,
+  TableBodyRenderer,
+  TableCard,
+  TableCardContentState,
+} from '@/shared/components/table';
 import type { AdminUserRow } from '../types';
+import {
+  createAdminUserTableColumns,
+  createAdminUserTableRows,
+} from './adminUserTableModel';
 
 type AdminUserTableProps = {
   rows: AdminUserRow[];
@@ -58,141 +64,41 @@ export function AdminUserTable({
   onSave,
   onResetPassword,
 }: AdminUserTableProps) {
-  /**
-   * tbody 렌더 분기.
-   *
-   * @description
-   * 조회 상태/오류/빈 상태/정상 목록을 한 함수에서 관리해
-   * return JSX 본문을 단순화한다.
-   */
-  const renderBody = () => {
-    if (!rows.length) {
-      return (
-        <tr>
-          <td className="common-table__empty" colSpan={4}>
-            검색 결과가 없습니다.
-          </td>
-        </tr>
-      );
-    }
-
-    return rows.map((row) => (
-      <tr
-        key={row.id}
-        className={selectedRowId === row.id ? 'is-selected' : undefined}
-        onMouseDown={() => onSelectRow(row.id)}
-      >
-        <td>
-          {/* 기존 행은 readonly, 신규 행만 사용자 아이디 수정 가능 */}
-          <InputBase
-            size="sm"
-            value={row.userId}
-            readOnly={!row.isNew}
-            controlState={!row.isNew ? 'readonly' : rowErrors[row.id]?.userId ? 'error' : ''}
-            className={
-              !row.isNew
-                ? 'common-table__input common-table__input--readonly'
-                : 'common-table__input'
-            }
-            placeholder={row.isNew ? '아이디를 입력하세요' : ''}
-            onChange={(event) => onChangeRowField(row.id, 'userId', event.target.value)}
-          />
-        </td>
-        <td>
-          {/* 필수값 누락 시 userName error 상태 표시 */}
-          <InputBase
-            size="sm"
-            value={row.userName}
-            controlState={rowErrors[row.id]?.userName ? 'error' : ''}
-            className="common-table__input"
-            placeholder="사용자 명을 입력하세요"
-            onChange={(event) => onChangeRowField(row.id, 'userName', event.target.value)}
-          />
-        </td>
-        <td>
-          {/* 필수값 누락 시 plantCd error 상태 표시 */}
-          <SelectInput
-            size="sm"
-            searchable
-            options={plantOptions}
-            value={row.plantCd}
-            placeholder="사업장을 선택하세요"
-            className="common-table__select"
-            isError={rowErrors[row.id]?.plantCd}
-            onChange={(value) => onChangeRowPlant(row.id, value)}
-          />
-        </td>
-        <td>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="admin-user-page__password-button"
-            disabled={isResettingPassword || !row.userId.trim()}
-            onClick={() => onResetPassword(row.userId)}
-          >
-            초기화
-          </Button>
-        </td>
-      </tr>
-    ));
-  };
-
-  const headerActions = (
-    <>
-      <Button
-        type="button"
-        variant="text"
-        size="sm"
-        className="common-code-card__text-action"
-        disabled={isSaving}
-        onClick={onAddRow}
-      >
-        + 행추가
-      </Button>
-      <Button
-        type="button"
-        variant="text"
-        size="sm"
-        className="common-code-card__text-action"
-        disabled={!selectedRowId || isSaving}
-        onClick={onDeleteRow}
-      >
-        - 행삭제
-      </Button>
-      <Button type="button" variant="outline" size="sm" loading={isSaving} onClick={onSave}>
-        저장
-      </Button>
-    </>
-  );
+  const columns = createAdminUserTableColumns();
+  const tableRows = createAdminUserTableRows({
+    rows,
+    selectedRowId,
+    plantOptions,
+    rowErrors,
+    isResettingPassword,
+    onSelectRow,
+    onChangeRowField,
+    onChangeRowPlant,
+    onResetPassword,
+  });
 
   return (
-    <TableCard title="관리자 목록" ariaLabel="관리자 목록" actions={headerActions} className="admin-user-table">
-      {isLoading ? (
-        <FeedbackState variant="loading" title="관리자 목록을 불러오는 중입니다." />
-      ) : isError ? (
-        <FeedbackState variant="error" description="다시 한번 시도해주세요." />
-      ) : (
-        <div className="common-table-wrap">
-          <table className="common-table">
-            <thead>
-              <tr>
-                <th className="common-table__cell--left">
-                  사용자 아이디 <span className="admin-user-page__required">*</span>
-                </th>
-                <th className="common-table__cell--left">
-                  사용자 명 <span className="admin-user-page__required">*</span>
-                </th>
-                <th className="common-table__cell--left">
-                  사업장 <span className="admin-user-page__required">*</span>
-                </th>
-                <th>비밀번호 초기화</th>
-              </tr>
-            </thead>
-            <tbody>{renderBody()}</tbody>
-          </table>
-        </div>
-      )}
+    <TableCard
+      title="관리자 목록"
+      ariaLabel="관리자 목록"
+      actions={
+        <EditableTableActions
+          isSaving={isSaving}
+          canDelete={!!selectedRowId}
+          onAddRow={onAddRow}
+          onDeleteRow={onDeleteRow}
+          onSave={onSave}
+        />
+      }
+      className="admin-user-table"
+    >
+      <TableCardContentState
+        isLoading={isLoading}
+        isError={isError}
+        loadingTitle="관리자 목록을 불러오는 중입니다."
+      >
+        <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} />
+      </TableCardContentState>
     </TableCard>
   );
 }
