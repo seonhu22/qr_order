@@ -3,8 +3,7 @@
  *
  * @description
  * - 선택된 마스터의 상세 행 목록을 편집 가능한 테이블로 렌더링한다.
- * - 입력 검증, 저장 확인 모달, 저장 결과 안내 모달은 이 컴포넌트에서 처리한다.
- * - 실제 저장/순번 이동/삭제/체크 상태의 원본 데이터 관리는 상위 훅에 위임한다.
+ * - 실제 저장 흐름과 모달은 page hook에 위임하고, 이 컴포넌트는 편집 UI만 담당한다.
  */
 
 import { useState } from 'react';
@@ -12,12 +11,10 @@ import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase } from '@/shared/components/input';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { SaveConfirmModal } from '@/shared/components/modal/template/SaveConfirmModal';
-import { SimpleDefaultModal } from '@/shared/components/modal';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TableCard } from '@/shared/components/table';
 import { InputWrapper } from '@/shared/components/input';
-import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
+import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import type { DetailCode, MasterCode } from '../types';
 
 type CommonCodeDetailTableProps = {
@@ -31,7 +28,9 @@ type CommonCodeDetailTableProps = {
   onMoveUp: (selectedId?: string) => void;
   onMoveDown: (selectedId?: string) => void;
   isSaving: boolean;
-  onSaveRows: () => Promise<boolean>;
+  rowErrors: DetailRowErrorState;
+  onClearRowError: (rowId: string, key: string) => void;
+  onSave: () => void;
 };
 
 /**
@@ -39,8 +38,7 @@ type CommonCodeDetailTableProps = {
  *
  * @description
  * - 선택된 마스터가 없으면 카드 안에 feedback을 보여준다.
- * - 저장 버튼은 즉시 서버 전송하지 않고 SaveConfirmModal을 거친다.
- * - 필수값 누락과 서버 validation 오류는 각 행 인풋의 error 상태로 표시한다.
+ * - 저장 확인 모달은 page가 조립하고, 필수값/서버 validation 오류는 rowErrors로 전달받는다.
  */
 export function CommonCodeDetailTable({
   selectedMaster,
@@ -53,7 +51,9 @@ export function CommonCodeDetailTable({
   onMoveUp,
   onMoveDown,
   isSaving,
-  onSaveRows,
+  rowErrors,
+  onClearRowError,
+  onSave,
 }: CommonCodeDetailTableProps) {
   /* 행 클릭 선택 상태 */
   const [selectedDetailId, setSelectedDetailId] = useState<string>('');
@@ -62,54 +62,6 @@ export function CommonCodeDetailTable({
   const selectedIndex = rows.findIndex((row) => row.id === selectedDetailId);
   const effectiveCanMoveUp = selectedDetailId !== '' && selectedIndex > 0;
   const effectiveCanMoveDown = selectedDetailId !== '' && selectedIndex < rows.length - 1;
-
-  const {
-    rowErrors,
-    notice,
-    isSaveConfirmOpen,
-    isConfirming,
-    clearRowError,
-    requestSave,
-    confirmSave,
-    closeSaveConfirm,
-    closeNotice,
-  } = useDetailTableSaveFlow({
-    validateRows: () =>
-      Object.fromEntries(
-        rows.map((row) => [
-          row.id,
-          {
-            code: row.isNew ? !row.code.trim() : false,
-            name: !row.name.trim(),
-          },
-        ]),
-      ),
-    onSaveRows,
-    applyServerValidationErrors: (message) => {
-      const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
-      const normalized = message.toLowerCase();
-
-      if (normalized.includes('common_cd') || message.includes('공통코드')) {
-        rows.forEach((row) => {
-          nextErrors[row.id] = {
-            ...nextErrors[row.id],
-            code: true,
-          };
-        });
-      }
-
-      if (normalized.includes('common_nm') || message.includes('공통코드명')) {
-        rows.forEach((row) => {
-          nextErrors[row.id] = {
-            ...nextErrors[row.id],
-            name: true,
-          };
-        });
-      }
-
-      return nextErrors;
-    },
-  });
 
   const detailActions = selectedMaster ? (
     <>
@@ -157,7 +109,7 @@ export function CommonCodeDetailTable({
         variant="outline"
         size="sm"
         loading={isSaving}
-        onClick={requestSave}
+        onClick={onSave}
       >
         저장
       </Button>
@@ -215,7 +167,7 @@ export function CommonCodeDetailTable({
                             readOnly={!row.isNew}
                             value={row.code}
                             onChange={(event) => {
-                              clearRowError(row.id, 'code');
+                              onClearRowError(row.id, 'code');
                               onFieldChange(row.id, 'code', event.target.value);
                             }}
                             aria-label={`${row.code} 코드`}
@@ -231,7 +183,7 @@ export function CommonCodeDetailTable({
                             controlState={rowErrors[row.id]?.name ? 'error' : ''}
                             value={row.name}
                             onChange={(event) => {
-                              clearRowError(row.id, 'name');
+                              onClearRowError(row.id, 'name');
                               onFieldChange(row.id, 'name', event.target.value);
                             }}
                             aria-label={`${row.code} 코드명`}
@@ -263,29 +215,6 @@ export function CommonCodeDetailTable({
           </>
         )}
       </TableCard>
-
-      <SimpleDefaultModal
-        open={!!notice}
-        title={notice?.title ?? '안내'}
-        description={notice?.description}
-        onClose={closeNotice}
-      />
-
-      <SaveConfirmModal
-        open={isSaveConfirmOpen}
-        title="저장하시겠습니까?"
-        description="작성된 공통코드 상세를 저장하시겠습니까?"
-        primaryAction={{
-          label: '확인',
-          loading: isConfirming,
-          onClick: confirmSave,
-        }}
-        secondaryAction={{
-          disabled: isConfirming,
-          onClick: closeSaveConfirm,
-        }}
-        onClose={closeSaveConfirm}
-      />
     </>
   );
 }

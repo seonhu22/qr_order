@@ -8,11 +8,13 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
+import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
-import type { DetailCode } from '../types';
+import type { DetailCode, MasterCode } from '../types';
 import {
   buildCommonDetailRequest,
   hasCommonDetailChanges,
@@ -261,38 +263,148 @@ export function useCommonCodePageState() {
     return true;
   };
 
+  const detailFlow = useDetailTableSaveFlow({
+    validateRows: () =>
+      Object.fromEntries(
+        detailRows.map((row) => [
+          row.id,
+          {
+            code: row.isNew ? !row.code.trim() : false,
+            name: !row.name.trim(),
+          },
+        ]),
+      ),
+    onSaveRows: saveDetailRows,
+    applyServerValidationErrors: (message) => {
+      const nextErrors: Record<string, { code?: boolean; name?: boolean }> = {};
+      const normalized = message.toLowerCase();
+
+      if (normalized.includes('common_cd') || message.includes('공통코드')) {
+        detailRows.forEach((row) => {
+          nextErrors[row.id] = {
+            ...nextErrors[row.id],
+            code: true,
+          };
+        });
+      }
+
+      if (normalized.includes('common_nm') || message.includes('공통코드명')) {
+        detailRows.forEach((row) => {
+          nextErrors[row.id] = {
+            ...nextErrors[row.id],
+            name: true,
+          };
+        });
+      }
+
+      return nextErrors;
+    },
+  });
+
+  const masterFlow = useCodeMasterModalFlow({
+    checkedRowIds: checkedMasterIds,
+    createEmptyRow: (): MasterCode => ({ id: '', code: '', name: '', useYn: 'Y' }),
+    onSaveRow: saveMaster,
+    onDeleteRows: deleteCheckedMasters,
+  });
+
+  const masterModalProps = {
+    editor: {
+      open: masterFlow.isEditorOpen,
+      isDirty: masterFlow.isDirty,
+      isCreateMode: masterFlow.isCreateMode,
+      isCodeReadonly: masterFlow.isCodeReadonly,
+      editingRow: masterFlow.editingRow,
+      editorErrors: masterFlow.editorErrors,
+    },
+    saveConfirm: {
+      open: masterFlow.isSaveConfirmOpen,
+      isCreateMode: masterFlow.isCreateMode,
+      isLoading: masterFlow.isConfirming,
+    },
+    deleteConfirm: {
+      open: masterFlow.isDeleteConfirmOpen,
+      isLoading: masterFlow.isConfirmingDelete,
+      selectedDeleteCount: masterFlow.selectedDeleteCount,
+    },
+    dirtyWarning: {
+      open: masterFlow.isDirtyWarningOpen,
+    },
+    notice: {
+      open: !!masterFlow.noticeState,
+      title: masterFlow.noticeState?.title ?? '알림',
+      description: masterFlow.noticeState?.description,
+      helperText: masterFlow.noticeState?.helperText,
+    },
+  };
+
+  const detailModalProps = {
+    saveConfirm: {
+      open: detailFlow.isSaveConfirmOpen,
+      isLoading: detailFlow.isConfirming,
+    },
+    notice: {
+      open: !!detailFlow.notice,
+      title: detailFlow.notice?.title ?? '안내',
+      description: detailFlow.notice?.description,
+    },
+  };
+
   return {
-    masterRows,
-    selectedMaster,
-    selectedMasterId,
-    checkedMasterIds,
-    draftMasterKeyword,
-    onMasterKeywordChange: handleMasterKeywordChange,
-    detailRows,
-    isAllMastersChecked,
-    isLoadingMasters: mastersQuery.isLoading,
-    isErrorMasters: mastersQuery.isError,
-    isLoadingDetails: detailQuery.isLoading,
-    isSavingMaster: saveMasterMutation.isPending,
-    isDeletingMasters: deleteMastersMutation.isPending,
-    isSavingDetails: saveDetailsMutation.isPending,
-    selectMaster,
-    toggleMasterChecked,
-    toggleAllMasters,
-    changeDetailField,
-    changeDetailUseYn,
-    addDetailRow,
-    removeCheckedDetailRows,
-    moveCheckedDetailRowsUp,
-    moveCheckedDetailRowsDown,
-    isDetailDirty,
-    pendingFilterAction,
-    onSearchClick: requestSearch,
-    onResetClick: requestReset,
-    confirmFilterAction,
-    cancelFilterAction,
-    saveMaster,
-    deleteCheckedMasters,
-    saveDetailRows,
+    data: {
+      masterRows,
+      selectedMaster,
+      detailRows,
+    },
+    status: {
+      isLoadingMasters: mastersQuery.isLoading,
+      isErrorMasters: mastersQuery.isError,
+      isLoadingDetails: detailQuery.isLoading,
+      isSavingDetails: saveDetailsMutation.isPending,
+    },
+    actions: {
+      handleMasterKeywordChange,
+      handleSearch: requestSearch,
+      handleReset: requestReset,
+      confirmFilterAction,
+      cancelFilterAction,
+      handleSelectMaster: selectMaster,
+      handleToggleMaster: toggleMasterChecked,
+      handleToggleAllMasters: toggleAllMasters,
+      handleChangeDetailField: changeDetailField,
+      handleChangeDetailUseYn: changeDetailUseYn,
+      handleAddDetailRow: addDetailRow,
+      handleDeleteDetailRow: removeCheckedDetailRows,
+      handleMoveDetailRowUp: moveCheckedDetailRowsUp,
+      handleMoveDetailRowDown: moveCheckedDetailRowsDown,
+      openCreateMasterModal: masterFlow.openCreateModal,
+      openEditMasterModal: masterFlow.openEditModal,
+      closeMasterEditorModal: masterFlow.closeEditorModal,
+      forceCloseMasterEditorModal: masterFlow.forceCloseEditorModal,
+      changeMasterEditingField: masterFlow.changeEditingField,
+      requestSaveMaster: masterFlow.requestSave,
+      confirmSaveMaster: masterFlow.confirmSave,
+      requestDeleteMasters: masterFlow.requestDelete,
+      confirmDeleteMasters: masterFlow.confirmDelete,
+      closeMasterSaveConfirm: masterFlow.closeSaveConfirm,
+      closeMasterDeleteConfirm: masterFlow.closeDeleteConfirm,
+      closeMasterDirtyWarning: masterFlow.closeDirtyWarning,
+      closeMasterNotice: masterFlow.closeNotice,
+      clearDetailRowError: detailFlow.clearRowError,
+      requestSaveDetailRows: detailFlow.requestSave,
+      confirmSaveDetailRows: detailFlow.confirmSave,
+      closeDetailSaveConfirm: detailFlow.closeSaveConfirm,
+      closeDetailNotice: detailFlow.closeNotice,
+    },
+    uiProps: {
+      selectedMasterId,
+      checkedMasterIds,
+      draftMasterKeyword,
+      isAllMastersChecked,
+      pendingFilterAction,
+      masterModalProps,
+      detailModalProps,
+      detailRowErrors: detailFlow.rowErrors,
+    },
   };
 }
