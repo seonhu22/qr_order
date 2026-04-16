@@ -23,6 +23,7 @@ import RadioGuide from './RadioGuide';
 import ToggleGuide from './ToggleGuide';
 import FormAlertGuide from './FormAlertGuide';
 import TableGuide    from './TableGuide';
+import TreeMenuGuide from './TreeMenuGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
 export const devRoutes = [
@@ -41,7 +42,8 @@ export const devRoutes = [
       { path: 'radio',    element: <RadioGuide /> },
       { path: 'toggle',     element: <ToggleGuide /> },
       { path: 'form-alert', element: <FormAlertGuide /> },
-      { path: 'table',    element: <TableGuide /> },
+      { path: 'table',     element: <TableGuide /> },
+      { path: 'tree-menu', element: <TreeMenuGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],
   },

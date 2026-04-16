@@ -23,7 +23,8 @@ const NAV_ITEMS = [
   { path: '/dev/radio',    label: 'RadioInput' },
   { path: '/dev/toggle',     label: 'ToggleInput' },
   { path: '/dev/form-alert', label: 'FormAlert' },
-  { path: '/dev/table',    label: 'TableCard' },
+  { path: '/dev/table',     label: 'TableCard' },
+  { path: '/dev/tree-menu', label: 'TreeMenu' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;
 
