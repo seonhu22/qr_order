@@ -34,8 +34,8 @@ export type DeleteListConfirmModalProps = {
 
 export function DeleteListConfirmModal({
   open,
-  title = '저장',
-  description = '저장 시 다음 메뉴가 삭제됩니다. 계속 저장하시겠습니까?',
+  title = '알림',
+  description = '저장 시 다음 항목이 삭제됩니다.\n계속 저장하시겠습니까?',
   items,
   primaryAction,
   secondaryAction,
@@ -43,7 +43,7 @@ export function DeleteListConfirmModal({
 }: DeleteListConfirmModalProps) {
   const resolvedPrimaryAction = {
     label: '확인',
-    variant: 'danger' as const,
+    variant: 'primary' as const,
     ...primaryAction,
   };
 
@@ -63,10 +63,10 @@ export function DeleteListConfirmModal({
       onClose={onClose}
     >
       <div className="delete-list-confirm-modal__body">
-        <p className="delete-list-confirm-modal__description">
-          {description}
+        <p className="delete-list-confirm-modal__description">{description}</p>
+        <div className="delete-list-confirm-modal__list-header">
           <span className="delete-list-confirm-modal__count">총 {items.length}건</span>
-        </p>
+        </div>
         <ul className="delete-list-confirm-modal__list">
           {items.map((item, i) => (
             <li
