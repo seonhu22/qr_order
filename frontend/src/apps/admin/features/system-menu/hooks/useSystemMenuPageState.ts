@@ -5,9 +5,11 @@
  * - 서버 조회(useQuery)와 화면 편집 상태(nodes)를 한 곳에서 조합한다.
  * - 트리 조작 helper는 모듈 상단에 순수 함수로 분리한다.
  * - 저장 확인 흐름(requestSave → confirmSave)과 안내 모달(notice)을 관리한다.
+ * - 초기화 dirty guard: 편집 중인 내용이 있으면 확인 후 초기화한다.
+ * - 저장 전 삭제 항목 확인: 서버 로드된 노드가 삭제된 경우 목록을 보여주고 확인한다.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 import { fetchMenuTree, saveMenuTree } from '../api/systemMenuApi';
@@ -211,6 +213,36 @@ const emptyErrors = (): NodeFieldErrors => ({
   path: new Set<string>(),
 });
 
+/**
+ * originalNodes 중 서버에서 로드된 노드(sysId 있음)가
+ * current 트리에 없으면 삭제된 것으로 판단해 목록을 반환한다.
+ */
+function collectDeletedServerNodes(
+  original: MenuNode[],
+  current: MenuNode[],
+): { code: string; name: string }[] {
+  const currentIds = new Set<string>();
+  function collectIds(nodes: MenuNode[]) {
+    for (const node of nodes) {
+      currentIds.add(node.id);
+      if (node.children?.length) collectIds(node.children);
+    }
+  }
+  collectIds(current);
+
+  const deleted: { code: string; name: string }[] = [];
+  function traverse(nodes: MenuNode[]) {
+    for (const node of nodes) {
+      if (node.data?.sysId && !currentIds.has(node.id)) {
+        deleted.push({ code: node.data.code ?? '', name: node.data.name ?? '' });
+      }
+      if (node.children?.length) traverse(node.children);
+    }
+  }
+  traverse(original);
+  return deleted;
+}
+
 
 /* =====================================================
  * useSystemMenuPageState
@@ -235,6 +267,15 @@ export function useSystemMenuPageState() {
   const [notice, setNotice] = useState<{ title: string; description?: string } | null>(null);
   const [nodeErrors, setNodeErrors] = useState<NodeFieldErrors>(emptyErrors);
 
+  /** 초기화 dirty guard 확인 모달 */
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
+  /** 저장 전 삭제 목록 확인 모달 */
+  const [deleteListConfirm, setDeleteListConfirm] = useState<{
+    open: boolean;
+    items: { code: string; name: string }[];
+  }>({ open: false, items: [] });
+
   const hasInitialized = useRef(false);
 
   const menuQuery = useQuery({
@@ -252,6 +293,12 @@ export function useSystemMenuPageState() {
       setDefaultExpandedIds(collectExpandedIds(menuQuery.data));
     }
   }, [menuQuery.data]);
+
+  /** 현재 편집 중인 내용이 originalNodes와 다르면 true */
+  const isDirty = useMemo(
+    () => JSON.stringify(nodes) !== JSON.stringify(originalNodes),
+    [nodes, originalNodes],
+  );
 
   const selectedNode = selectedId ? findNode(nodes, selectedId) : undefined;
   const selectedDepth = selectedId ? getNodeDepth(nodes, selectedId) : -1;
@@ -364,17 +411,32 @@ export function useSystemMenuPageState() {
     setNodes((prev) => moveNodeDown(prev, selectedId));
   };
 
-  /**
-   * 초기화: 최초 로드(또는 마지막 저장 성공) 시점의 데이터로 되돌린다.
-   * treeKey 증가로 TreeMenu를 강제 리마운트해 확장 상태도 초기화한다.
-   */
-  const handleReset = () => {
+  /** 실제 초기화 로직 — dirty 확인 후 호출된다. */
+  const doReset = () => {
     setNodes(structuredClone(originalNodes));
     setSelectedId('');
     setNodeErrors(emptyErrors());
     setDefaultExpandedIds(collectExpandedIds(originalNodes));
     setTreeKey((prev) => prev + 1);
   };
+
+  /**
+   * 초기화 요청: 편집 중인 내용이 있으면 확인 모달을 열고, 없으면 즉시 초기화한다.
+   */
+  const requestReset = () => {
+    if (isDirty) {
+      setIsResetConfirmOpen(true);
+    } else {
+      doReset();
+    }
+  };
+
+  const confirmReset = () => {
+    setIsResetConfirmOpen(false);
+    doReset();
+  };
+
+  const closeResetConfirm = () => setIsResetConfirmOpen(false);
 
   const requestSave = () => {
     const errors = collectNodeErrors(nodes);
@@ -386,12 +448,30 @@ export function useSystemMenuPageState() {
       const messages: string[] = [];
       if (hasEmpty) messages.push('메뉴코드와 메뉴 명은 필수 입력 항목입니다.');
       if (hasPathConflict) messages.push('하위 메뉴가 있는 항목에는 메뉴주소를 입력할 수 없습니다.');
-      setNotice({ title: '입력 오류', description: messages.join('\n') });
+      setNotice({ title: '알림', description: messages.join('\n') });
       return;
     }
 
     setNodeErrors(emptyErrors());
+
+    // 서버에서 로드된 노드 중 삭제된 항목이 있으면 먼저 목록 확인
+    const deletedItems = collectDeletedServerNodes(originalNodes, nodes);
+    if (deletedItems.length > 0) {
+      setDeleteListConfirm({ open: true, items: deletedItems });
+      return;
+    }
+
     setIsSaveConfirmOpen(true);
+  };
+
+  /** 삭제 목록 확인 모달에서 확인 → 저장 확인 모달으로 진행 */
+  const confirmDeleteListAndProceed = () => {
+    setDeleteListConfirm({ open: false, items: [] });
+    setIsSaveConfirmOpen(true);
+  };
+
+  const closeDeleteListConfirm = () => {
+    setDeleteListConfirm({ open: false, items: [] });
   };
 
   const confirmSave = async () => {
@@ -401,10 +481,10 @@ export function useSystemMenuPageState() {
       // 저장 성공 시 원본 데이터를 현재 상태로 갱신한다 (초기화 기준점 업데이트).
       setOriginalNodes(structuredClone(nodes));
       setIsSaveConfirmOpen(false);
-      setNotice({ title: '저장 완료', description: '메뉴 정보가 저장되었습니다.' });
+      setNotice({ title: '알림', description: '저장되었습니다.' });
     } catch {
       setIsSaveConfirmOpen(false);
-      setNotice({ title: '저장 실패', description: '저장 중 오류가 발생했습니다. 다시 시도해주세요.' });
+      setNotice({ title: '알림', description: '저장 중 오류가 발생했습니다. 다시 시도해주세요.' });
     } finally {
       setIsConfirming(false);
     }
@@ -428,8 +508,12 @@ export function useSystemMenuPageState() {
       handleDelete,
       handleMoveUp,
       handleMoveDown,
-      handleReset,
+      handleReset: requestReset,
+      confirmReset,
+      closeResetConfirm,
       requestSave,
+      confirmDeleteListAndProceed,
+      closeDeleteListConfirm,
       confirmSave,
       closeSaveConfirm,
       closeNotice,
@@ -447,6 +531,8 @@ export function useSystemMenuPageState() {
       expandTrigger,
       nodeErrors,
       treeKey,
+      isResetConfirmOpen,
+      deleteListConfirm,
     },
   };
 }
