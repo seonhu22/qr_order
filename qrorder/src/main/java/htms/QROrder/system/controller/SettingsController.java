@@ -2,6 +2,7 @@ package htms.QROrder.system.controller;
 
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
+import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.system.domain.*;
 import htms.QROrder.system.domain.Menu;
 import htms.QROrder.system.dto.*;
@@ -38,6 +39,8 @@ public class SettingsController {
     private final PaymentCouponService paymentCouponService;
     private final SysAccessLogService sysAccessLogService;
     private final AuditTrailService auditTrailService;
+    private final NoticeService noticeService;
+    private final QnaService qnaService;
 
     // 공통코드 조회
     @GetMapping("/common/search")
@@ -442,5 +445,93 @@ public class SettingsController {
                                             @RequestParam Date endDate) {
 
         return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
+    }
+
+    @GetMapping("/board/notice/search")
+    public List<NoticeResponse> getNotice(@RequestParam(required = false) String searchKeyword,
+                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return noticeService.getNotice(searchKeyword, loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/board/notice/new")
+    public ResponseEntity<CommonResponse> newNotice(@ModelAttribute NoticeRequest noticeRequest,
+                                                        @ModelAttribute FileRequest fileRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        noticeService.newNotice(noticeRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/board/notice/update")
+    public ResponseEntity<CommonResponse> updateNotice(@ModelAttribute NoticeRequest noticeRequest,
+                                                        @ModelAttribute FileRequest fileRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        noticeService.updateNotice(noticeRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/board/notice/del")
+    public ResponseEntity<CommonResponse> delNotice(@RequestBody List<NoticeRequest> noticeRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        noticeService.delNotice(noticeRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/board/qna/search")
+    public List<QnaResponse> getQna(@RequestParam(required = false) String searchKeyword,
+                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return qnaService.getQna(searchKeyword, loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/board/qna/update")
+    public ResponseEntity<CommonResponse> updateQna(@RequestBody QnaRequest qnaRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        qnaService.updateQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
     }
 }

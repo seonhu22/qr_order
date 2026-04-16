@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.NoticeMapper">
+
+    <select id="getNotice" resultType="htms.QROrder.system.dto.NoticeResponse">
+        select
+            bn.notice_title,
+            bn.notice_description,
+            bn.start_date
+        from brd_notice bn
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+        and (bn.notice_title like concat('%', #{searchKeyword}, '%')
+                or bn.notice_description like concat('%', #{searchKeyword}, '%'))
+        </if>
+        and bn.sys_plant_cd = #{sysPlantCd}
+        and bn.delete_yn = 'N'
+    </select>
+
+    <insert id="newNotice">
+        insert into brd_notice (
+            sys_id,
+            notice_title,
+            notice_description,
+            start_date,
+            delete_yn,
+            use_yn,
+            file_uuid,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values (
+            #{noticeRequest.sysId},
+            #{noticeRequest.noticeTitle},
+            #{noticeRequest.startDate},
+            'N',
+            #{noticeRequest.useYn},
+            #{noticeRequest.fileUuid},
+            #{userId},
+            now(),
+            #{sysPlantCd}
+        )
+    </insert>
+
+    <update id="updateNotice">
+        update brd_notice set
+            notice_title = #{noticeRequest.noticeTitle},
+            notice_description = #{noticeRequest.noticeDescription},
+            start_date = #{noticeRequest.startDate},
+            use_yn = #{noticeRequest.useYn},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{noticeRequest.sysId}
+    </update>
+
+    <delete id="delNotice">
+        update brd_notice set
+            delete_yn = 'Y'
+        where 1=1
+        and sys_id in
+    </delete>
+</mapper>
