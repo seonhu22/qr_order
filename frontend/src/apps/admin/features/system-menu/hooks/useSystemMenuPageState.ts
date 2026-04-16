@@ -461,6 +461,11 @@ export function useSystemMenuPageState() {
       return;
     }
 
+    if (!isDirty) {
+      setNotice({ title: '알림', description: '변경된 내용이 없습니다.' });
+      return;
+    }
+
     setIsSaveConfirmOpen(true);
   };
 
