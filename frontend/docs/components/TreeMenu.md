@@ -55,6 +55,10 @@ type TreeMenuProps<T> = {
   selectedId?: string;               // 현재 선택된 노드 ID
   onSelect?: (id: string) => void;   // 노드 클릭 콜백
   defaultExpandedIds?: string[];     // 초기 펼침 상태 노드 ID 목록
+  expandTrigger?: { id: string; n: number } | null;
+                                     // 특정 노드 하나만 강제로 펼치는 신호.
+                                     // n 카운터가 바뀔 때마다 동일 id라도 재발동.
+                                     // 하위추가 후 부모 노드를 자동 펼칠 때 사용.
   className?: string;                // 루트 div에 추가할 CSS 클래스
   ariaLabel?: string;                // 컨테이너 aria-label
 };
@@ -275,7 +279,7 @@ const nodes: TreeMenuNode[] = [
 
 | 클래스 | 적용 요소 | 설명 |
 |---|---|---|
-| `.tree-item__row` | `tr` | 기본 행. hover·focus-visible·is-selected·is-disabled 상태 포함 |
+| `.tree-item__row` | `tr` | 기본 행. hover·focus-visible·is-selected·is-disabled 상태 포함. 마지막 행에 하단 보더 자동 적용 |
 | `.tree-item__label-cell` | 레이블 열 `td` | `height: 0.0625rem` 트릭으로 자식 flex 요소가 `height: 100%` 참조 가능 |
 | `.tree-item__label-wrap` | `div` | 연결선 세그먼트 + 토글 + 레이블 콘텐츠를 가로로 배치하는 flex 컨테이너 |
 | `.tree-item__label-inner` | `div` | 레이블 콘텐츠 영역. `flex: 1`, 패딩 포함 |
@@ -299,7 +303,7 @@ const nodes: TreeMenuNode[] = [
 |---|---|
 | `.tree-toggle` | 펼치기/접기 버튼. `btn--icon` 패턴 (hover·active·focus-visible 포함) |
 | `.tree-toggle--expanded` | 펼침 상태 — chevron 90도 회전, 브랜드 컬러 |
-| `.tree-toggle--placeholder` | 리프 노드용 placeholder — 공간 확보, 이벤트 없음 |
+| `.tree-toggle--placeholder` | 리프 노드용 placeholder — 공간 확보, 이벤트 없음. depth 1 리프는 ├/└ 커넥터로 계층이 구분되므로 placeholder를 생략한다 |
 
 ### 행 상태 클래스
 
