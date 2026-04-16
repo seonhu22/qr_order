@@ -63,7 +63,10 @@ export function DeleteListConfirmModal({
       onClose={onClose}
     >
       <div className="delete-list-confirm-modal__body">
-        <p className="delete-list-confirm-modal__description">{description}</p>
+        <p className="delete-list-confirm-modal__description">
+          {description}
+          <span className="delete-list-confirm-modal__count">총 {items.length}건</span>
+        </p>
         <ul className="delete-list-confirm-modal__list">
           {items.map((item, i) => (
             <li
