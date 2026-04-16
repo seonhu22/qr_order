@@ -90,10 +90,12 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
               />
             )}
 
-            {/* 펼치기/접기 토글 또는 리프 노드 placeholder */}
+            {/* 펼치기/접기 토글 또는 리프 노드 placeholder
+                depth 1은 ├/└ 커넥터로 계층이 구분되므로 placeholder 생략.
+                depth 0과 depth 2+는 형제 간 정렬을 위해 placeholder 유지. */}
             {hasChildren ? (
               <TreeToggle expanded={isExpanded} onToggle={handleToggleClick} />
-            ) : (
+            ) : depth !== 1 && (
               <span className="tree-toggle tree-toggle--placeholder" aria-hidden="true" />
             )}
 
