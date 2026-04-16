@@ -73,15 +73,17 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
         {/* 레이블 셀 — 연결선 + 토글 + 레이블 콘텐츠 */}
         <td className="tree-item__label-cell">
           <div className="tree-item__label-wrap">
-            {/* 조상 깊이별 세로 연결선 */}
+            {/* 조상 깊이별 세로 연결선
+                i === 0 (depth-0 조상)은 depth-0 spacer와 동일하게 항상 투명으로 처리한다.
+                i > 0 (depth-1+ 조상)만 hasLine 여부에 따라 │선을 그린다. */}
             {lines.map((hasLine, i) => (
               <span
                 key={i}
-                className={`tree-item__indent${hasLine ? ' tree-item__indent--line' : ''}`}
+                className={`tree-item__indent${(hasLine && i > 0) ? ' tree-item__indent--line' : ''}`}
               />
             ))}
 
-            {/* 현재 노드의 커넥터 (루트 제외) */}
+            {/* 현재 노드의 커넥터 — depth 1+ 에서만 ├ / └ 표시. depth 0은 커넥터 없음 */}
             {depth > 0 && (
               <span
                 className={`tree-item__indent tree-item__indent--${isLastSibling ? 'corner' : 'branch'}`}
