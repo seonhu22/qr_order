@@ -92,7 +92,7 @@ export function RuleManagementPage() {
         size="md"
         open={masterModalProps.editor.open}
         isDirty={masterModalProps.editor.isDirty}
-        title="규칙 수정/등록"
+        title={masterModalProps.editor.isCreateMode ? '규칙 등록' : '규칙 수정'}
         subtitle="규칙 정보를 입력하세요."
         primaryAction={{ label: '확인', onClick: actions.requestSaveMaster }}
         secondaryAction={{ label: '닫기', onClick: actions.closeMasterEditorModal }}
@@ -168,7 +168,7 @@ export function RuleManagementPage() {
         </div>
       </WrapperModal>
 
-      {/* 마스터 저장 확인 모달: 생성/수정은 문구만 다르고 흐름은 동일하다. */}
+      {/* 마스터 저장 확인 모달: 등록/수정은 문구만 다르고 흐름은 동일하다. */}
       {masterModalProps.saveConfirm.isCreateMode ? (
         <SaveConfirmModal
           open={masterModalProps.saveConfirm.open}

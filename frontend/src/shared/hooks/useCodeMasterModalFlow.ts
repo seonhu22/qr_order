@@ -132,6 +132,12 @@ export function useCodeMasterModalFlow<T extends CodeMasterRow>({
       return;
     }
 
+    // 수정 모드에서 기존값과 동일하면 확인 모달 없이 안내
+    if (!isCreateMode && !isDirty) {
+      setNoticeState({ title: '알림', description: '변경된 내용이 없습니다.' });
+      return;
+    }
+
     setIsSaveConfirmOpen(true);
   };
 
