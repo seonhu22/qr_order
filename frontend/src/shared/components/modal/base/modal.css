@@ -107,6 +107,7 @@
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-body);
   line-height: 1.42;
+  white-space: pre-line;
 }
 
 .base-modal__description {
