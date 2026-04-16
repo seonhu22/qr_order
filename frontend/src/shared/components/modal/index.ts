@@ -41,6 +41,8 @@ export { SaveConfirmModal } from './template/SaveConfirmModal';
 export { DeleteConfirmModal } from './template/DeleteConfirmModal';
 export { EditConfirmModal } from './template/EditConfirmModal';
 export { SimpleDefaultModal } from './template/SimpleDefaultModal';
+export { DeleteListConfirmModal } from './template/DeleteListConfirmModal';
+export type { DeleteListConfirmModalProps } from './template/DeleteListConfirmModal';
 export type { NoticeConfirmModalProps } from './template/NoticeConfirmModal';
 export type { SaveConfirmModalProps } from './template/SaveConfirmModal';
 export type { DeleteConfirmModalProps } from './template/DeleteConfirmModal';
