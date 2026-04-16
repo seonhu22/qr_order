@@ -464,30 +464,33 @@ export function useSystemMenuPageState() {
     setIsSaveConfirmOpen(true);
   };
 
-  /** 삭제 목록 확인 모달에서 확인 → 저장 확인 모달으로 진행 */
-  const confirmDeleteListAndProceed = () => {
-    setDeleteListConfirm({ open: false, items: [] });
-    setIsSaveConfirmOpen(true);
-  };
-
   const closeDeleteListConfirm = () => {
     setDeleteListConfirm({ open: false, items: [] });
   };
 
-  const confirmSave = async () => {
+  /** 실제 저장 실행 — SaveConfirmModal과 DeleteListConfirmModal 양쪽에서 공유 */
+  const executeSave = async (closeModal: () => void) => {
     setIsConfirming(true);
     try {
       await saveMenuTree(nodes);
-      // 저장 성공 시 원본 데이터를 현재 상태로 갱신한다 (초기화 기준점 업데이트).
       setOriginalNodes(structuredClone(nodes));
-      setIsSaveConfirmOpen(false);
+      closeModal();
       setNotice({ title: '알림', description: '저장되었습니다.' });
     } catch {
-      setIsSaveConfirmOpen(false);
+      closeModal();
       setNotice({ title: '알림', description: '저장 중 오류가 발생했습니다. 다시 시도해주세요.' });
     } finally {
       setIsConfirming(false);
     }
+  };
+
+  /** 삭제 목록 확인 모달에서 확인 → 바로 저장 (SaveConfirmModal 없이) */
+  const confirmDeleteListAndSave = () => {
+    executeSave(() => setDeleteListConfirm({ open: false, items: [] }));
+  };
+
+  const confirmSave = () => {
+    executeSave(() => setIsSaveConfirmOpen(false));
   };
 
   const closeSaveConfirm = () => setIsSaveConfirmOpen(false);
@@ -512,7 +515,7 @@ export function useSystemMenuPageState() {
       confirmReset,
       closeResetConfirm,
       requestSave,
-      confirmDeleteListAndProceed,
+      confirmDeleteListAndSave,
       closeDeleteListConfirm,
       confirmSave,
       closeSaveConfirm,

@@ -73,7 +73,7 @@ export function SystemMenuPage() {
         items={uiProps.deleteListConfirm.items}
         primaryAction={{
           loading: uiProps.isConfirming,
-          onClick: actions.confirmDeleteListAndProceed,
+          onClick: actions.confirmDeleteListAndSave,
         }}
         secondaryAction={{ onClick: actions.closeDeleteListConfirm }}
         onClose={actions.closeDeleteListConfirm}
