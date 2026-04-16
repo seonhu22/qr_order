@@ -5,22 +5,24 @@
 }
 
 .delete-list-confirm-modal__description {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
   margin: 0;
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-body);
   color: var(--color-text-secondary);
   line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* 총 N건 — 리스트 박스 바로 위, 우측 정렬 */
+.delete-list-confirm-modal__list-header {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .delete-list-confirm-modal__count {
-  flex-shrink: 0;
   font-size: var(--typography-size-sidebar);
   font-weight: var(--typography-weight-ui);
-  color: var(--color-status-danger-text);
+  color: var(--color-text-tertiary);
 }
 
 .delete-list-confirm-modal__list {
