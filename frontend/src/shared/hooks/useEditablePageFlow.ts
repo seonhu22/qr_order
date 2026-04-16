@@ -92,10 +92,16 @@ export function useEditablePageFlow({
    * 저장 요청 진입점.
    *
    * 필수값 검증 함수가 있으면 먼저 검사하고,
+   * 변경 내용이 없으면 확인 모달을 건너뛰고 안내만 표시한다.
    * 성공 시에만 저장 확인 모달을 연다.
    */
   const requestSave = () => {
     if (onValidateRequiredFields && !onValidateRequiredFields()) {
+      return;
+    }
+
+    if (!isDirty) {
+      setSimpleModalState(unchangedNotice);
       return;
     }
 

@@ -350,6 +350,7 @@ export function useRuleManagementPage() {
    * useDetailTableSaveFlow를 사용한다.
    */
   const detailFlow = useDetailTableSaveFlow({
+    isDirty: isDetailDirty,
     validateRows: validateDetailRows,
     onSaveRows: saveDetailRows,
   });

@@ -314,6 +314,7 @@ export function useCommonCodePageState() {
   };
 
   const detailFlow = useDetailTableSaveFlow({
+    isDirty: isDetailDirty,
     validateRows: () =>
       Object.fromEntries(
         detailRows.map((row) => [

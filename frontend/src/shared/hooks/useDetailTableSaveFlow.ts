@@ -10,6 +10,8 @@ export type DetailRowErrorState = Record<string, Record<string, boolean | undefi
 type UseDetailTableSaveFlowParams = {
   validateRows: () => DetailRowErrorState;
   onSaveRows: () => Promise<boolean>;
+  /** 변경 내용이 있는지 여부. false이면 확인 모달 없이 "변경된 내용이 없습니다." 안내를 표시한다. */
+  isDirty?: boolean;
   applyServerValidationErrors?: (message: string) => DetailRowErrorState;
   saveErrorMessage?: string;
 };
@@ -20,6 +22,7 @@ type UseDetailTableSaveFlowParams = {
 export function useDetailTableSaveFlow({
   validateRows,
   onSaveRows,
+  isDirty,
   applyServerValidationErrors,
   saveErrorMessage = '상세 저장 중 오류가 발생했습니다.',
 }: UseDetailTableSaveFlowParams) {
@@ -47,6 +50,11 @@ export function useDetailTableSaveFlow({
     );
 
     if (hasErrors) {
+      return false;
+    }
+
+    if (isDirty === false) {
+      setNotice({ title: '알림', description: '변경된 내용이 없습니다.' });
       return false;
     }
 
