@@ -14,7 +14,7 @@
  */
 
 import './TreeMenu.css';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { TreeMenuNode, TreeMenuColumn } from './types';
 import { TreeMenuContext } from './_context';
@@ -45,6 +45,12 @@ type TreeMenuProps<T> = {
   onSelect?: (id: string) => void;
   /** 초기 펼침 상태 노드 ID 목록 */
   defaultExpandedIds?: string[];
+  /**
+   * 특정 노드 하나를 강제로 펼치는 신호.
+   * id: 펼칠 노드 ID, n: 동일 id를 반복 요청할 때 변경되는 카운터.
+   * 변경될 때마다 해당 노드 하나만 펼치고 다른 노드의 상태는 건드리지 않는다.
+   */
+  expandTrigger?: { id: string; n: number } | null;
   /** 루트 div에 추가할 CSS 클래스 */
   className?: string;
   /** 컨테이너 aria-label */
@@ -86,12 +92,27 @@ export function TreeMenu<T = unknown>({
   selectedId,
   onSelect,
   defaultExpandedIds,
+  expandTrigger,
   className = '',
   ariaLabel,
 }: TreeMenuProps<T>) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set(defaultExpandedIds ?? []),
   );
+
+  /**
+   * 하위추가 신호(expandTrigger)가 바뀔 때마다 해당 노드만 펼친다.
+   * 기존에 열려 있던 다른 노드는 그대로 유지한다.
+   */
+  useEffect(() => {
+    if (!expandTrigger?.id) return;
+    setExpandedIds((prev) => {
+      if (prev.has(expandTrigger.id)) return prev;
+      const next = new Set(prev);
+      next.add(expandTrigger.id);
+      return next;
+    });
+  }, [expandTrigger]);
 
   const handleSelect = (id: string) => {
     onSelect?.(id);
