@@ -20,6 +20,7 @@ import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminP
 import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
 import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
 import { AdminUserPage } from '@/apps/admin/pages/AdminUserPage';
+import { SystemMenuPage } from '@/apps/admin/pages/SystemMenuPage';
 import { MessageManagementPage } from '@/apps/admin/pages/MessageManagementPage';
 import { RuleManagementPage } from '@/apps/admin/pages/RuleManagementPage';
 
@@ -50,7 +51,7 @@ export const adminRoutes = [
       },
       {
         path: 'system/menu',
-        element: <AdminPlaceholderPage title="메뉴 관리" />,
+        element: <SystemMenuPage />,
       },
       {
         path: 'system/message',
