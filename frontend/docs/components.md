@@ -11,7 +11,9 @@
 - [5. 신규 컴포넌트 추가 절차](#5-신규-컴포넌트-추가-절차)
 - [6. 모달 작성 시 추가 원칙](#6-모달-작성-시-추가-원칙)
 - [7. 개발 전용 가이드 페이지](#7-개발-전용-가이드-페이지)
-- [8. 피드백 컴포넌트 (FeedbackState)](#8-피드백-컴포넌트-feedbackstate)
+- [8. 테이블 카드 컴포넌트 (TableCard)](#8-테이블-카드-컴포넌트-tablecard)
+- [9. 트리 메뉴 컴포넌트 (TreeMenu)](#9-트리-메뉴-컴포넌트-treemenu)
+- [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
 
 ---
 
@@ -146,7 +148,7 @@ shared/components/
   modal/
     index.ts              ← WrapperModal + template 계열 컴포넌트·타입 전체 공개
     wrapper/
-      WrapperModal.tsx    ← Overlay, Dimmed, ESC/배경 클릭 닫기
+      WrapperModal.tsx    ← Portal, Overlay, Dimmed, ESC/배경 클릭 닫기
     base/
       modal.css           ← 모달 공통 스타일
       modal.constants.ts  ← 크기·버튼 등 상수
@@ -164,6 +166,14 @@ shared/components/
     types.ts
     TableCard.css         ← 공통 테이블 카드 스타일 (common-code-card, common-table 등)
     TableCard.tsx         ← 카드 레이아웃 컴포넌트
+  treeMenu/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts              ← TreeMenuNode<T>, TreeMenuColumn<T> 타입
+    _context.ts           ← 내부 Context (index.ts 미공개)
+    TreeToggle.tsx        ← 펼치기/접기 버튼
+    TreeItem.tsx          ← 재귀 행 컴포넌트 (연결선 렌더 포함)
+    TreeMenu.tsx          ← 루트 컴포넌트
+    TreeMenu.css
   feedback/
     index.ts
     FeedbackState.tsx
@@ -174,7 +184,7 @@ shared/components/
 
 | 폴더 | 역할 | 수정 빈도 |
 |---|---|---|
-| `wrapper/` | 오버레이, ESC·배경 클릭 닫기 — 인프라만 담당 (Portal은 미적용, TODO) | 거의 없음 |
+| `wrapper/` | DOM 분리(Portal), 오버레이, ESC·배경 클릭 닫기 — 인프라만 담당 | 거의 없음 |
 | `base/` | 타입·상수·스타일 정의 — 골격 계약 | 타입 추가 시 |
 | `template/` | 비즈니스 목적 모달 — DTO 연결, 저장/수정/삭제 흐름 | 화면 추가 시마다 |
 
@@ -213,7 +223,7 @@ Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립�
 
 | 레이어 | 역할 | 예시 |
 |---|---|---|
-| **Wrapper** | Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `ModalWrapper` |
+| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `ModalWrapper` |
 | **Base** | Header, Body, Footer 구조와 버튼 배치 규칙 정의 | `BaseModal`, `BaseFormModal` |
 | **완성형** | DTO 연결, 저장/수정/상세 같은 비즈니스 처리 | `SaveModal`, `UpdateModal`, `DetailModal` |
 
@@ -263,6 +273,7 @@ import { RadioInput } from '@/shared/components/radio';
 import { ToggleInput } from '@/shared/components/toggle';
 import { FormAlert } from '@/shared/components/form-alert';
 import { FeedbackState } from '@/shared/components/feedback';
+import { TreeMenu } from '@/shared/components/treeMenu';
 import { ConfirmModal, WrapperModal } from '@/shared/components/modal';
 import { Icon } from '@/shared/assets/icons/Icon';
 
@@ -332,7 +343,7 @@ http://localhost:3000/dev/input
 | `/dev/toggle` | ToggleInput 크기·상태(ON/OFF/disabled/loading) 예시 |
 | `/dev/form-alert` | FormAlert 4가지 유형·콘텐츠 조합·닫기 예시 |
 | `/dev/table` | TableCard 읽기 전용·행 클릭 선택·인라인 행 편집·로딩·빈 상태 예시 |
-| `/dev/table` | TableCard 읽기 전용·행 클릭 선택·인라인 행 편집·로딩·빈 상태 예시 |
+| `/dev/tree-menu` | TreeMenu 기본(텍스트 레이블)·labelRender+columns(InputBase 인라인 편집)·연결선 예시 |
 
 ### 신규 가이드 추가 방법
 
@@ -362,25 +373,24 @@ const NAV_ITEMS = [
 
 ---
 
-## 9. 피드백 컴포넌트 (FeedbackState)
+## 9. 트리 메뉴 컴포넌트 (TreeMenu)
+
+트리 구조 데이터를 테이블 형태로 표시하고, 펼치기/접기·행 선택·연결선(│ ├ └)을 내장한 컴포넌트.
+상세 사용법·Props·CSS 클래스 레퍼런스는 [docs/components/TreeMenu.md](./components/TreeMenu.md) 참고.
+
+---
+
+## 10. 피드백 컴포넌트 (FeedbackState)
 
 `src/shared/components/feedback/FeedbackState.tsx`
 
 로딩·에러·빈 결과·권한 없음 등 다양한 상태를 `variant` 하나로 표현하는 공용 피드백 컴포넌트.
 
-| variant | 기본 문구 | 아이콘 |
-|---|---|---|
-| `loading` | 불러오는 중입니다. | 스피너 |
-| `error` | 불러오는데 실패했습니다 | `i-error` (muted 배경·tertiary 색상) |
-| `empty` | 데이터가 없습니다. | `i-feedback-pointer` |
-| `unauthorized` | 접근 권한이 없습니다. | `i-lock` |
-
-**레이아웃 구조**
-
-아이콘/스피너와 텍스트 그룹 사이 간격은 `--spacing-4`, 텍스트끼리(`title` ↔ `description`)는 `--spacing-2`.
-
-```tsx
-<FeedbackState variant="error" description="다시 한번 시도해주세요." />
-```
+| variant | 기본 문구 |
+|---|---|
+| `loading` | 불러오는 중입니다. |
+| `error` | 불러오는데 실패했습니다. |
+| `empty` | 데이터가 없습니다. |
+| `unauthorized` | 접근 권한이 없습니다. |
 
 Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc 및 `/dev/feedback` 참고
