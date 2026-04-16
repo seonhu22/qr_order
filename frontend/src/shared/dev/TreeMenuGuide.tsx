@@ -192,6 +192,45 @@ function FullExample() {
 
 
 /* =====================================================
+ * 섹션 3 — disabled 노드
+ * ===================================================== */
+
+const DISABLED_NODES: TreeMenuNode[] = [
+  {
+    id: 'root',
+    label: '루트',
+    children: [
+      { id: 'active-1', label: '활성 노드 A' },
+      { id: 'disabled-1', label: '비활성 노드 (disabled)', disabled: true },
+      {
+        id: 'parent-1',
+        label: '부모 노드 (펼치기 가능)',
+        children: [
+          { id: 'child-1', label: '자식 노드 A' },
+          { id: 'child-2', label: '자식 노드 B (disabled)', disabled: true },
+        ],
+      },
+      { id: 'active-2', label: '활성 노드 B' },
+    ],
+  },
+];
+
+function DisabledExample() {
+  const [selectedId, setSelectedId] = useState('');
+  return (
+    <TreeMenu
+      nodes={DISABLED_NODES}
+      labelHeader="메뉴명"
+      selectedId={selectedId}
+      onSelect={setSelectedId}
+      defaultExpandedIds={['root', 'parent-1']}
+      ariaLabel="disabled 노드 예시"
+    />
+  );
+}
+
+
+/* =====================================================
  * TreeMenuGuide
  * ===================================================== */
 
@@ -203,7 +242,7 @@ export default function TreeMenuGuide() {
       {/* 1. 기본 */}
       <Section
         title="기본"
-        desc="columns 없이 레이블 텍스트만. 클릭 선택·토글·연결선(│ ├ └) 동작 확인"
+        desc="columns 없이 레이블 텍스트만. 클릭 선택·토글·연결선(│ ├ └) 동작 확인. depth 1 리프는 placeholder 생략"
       >
         <BasicExample />
       </Section>
@@ -214,6 +253,14 @@ export default function TreeMenuGuide() {
         desc="레이블 셀에 InputBase(labelRender), 메뉴 명·메뉴주소 컬럼 추가. 연결선은 컴포넌트 자동 렌더"
       >
         <FullExample />
+      </Section>
+
+      {/* 3. disabled 노드 */}
+      <Section
+        title="disabled 노드"
+        desc="disabled=true 노드는 클릭 선택 불가 + opacity dim. 부모 노드의 펼치기/접기는 정상 동작"
+      >
+        <DisabledExample />
       </Section>
     </div>
   );

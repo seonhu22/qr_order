@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
   DeleteConfirmModal,
+  DeleteListConfirmModal,
   EditConfirmModal,
   NoticeModal,
   NoticeConfirmModal,
@@ -299,6 +300,49 @@ function DeleteConfirmModalSection() {
   );
 }
 
+function DeleteListConfirmModalSection() {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setOpen(false);
+    }, 1500);
+  };
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">DeleteListConfirmModal (삭제 목록 저장)</p>
+        <p className="modal-guide__card-description">
+          삭제될 항목 목록 표시 · 총 N건 · 확인 클릭 시 바로 저장
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <DeleteListConfirmModal
+        open={open}
+        items={[
+          { code: 'SYS-BIZ', name: '사업장 관리' },
+          { code: 'SYS-BIZ-LIST', name: '사업장 조회' },
+          { code: 'SYS-BIZ-REG', name: '사업장 등록' },
+        ]}
+        primaryAction={{ loading, onClick: handleConfirm }}
+        secondaryAction={{ onClick: () => setOpen(false) }}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
 function SimpleDefaultModalSection() {
   const [simpleDefaultOpen, setSimpleDefaultOpen] = useState(false);
 
@@ -459,6 +503,7 @@ export default function ModalGuide() {
               </button>
             </div>
             <DeleteConfirmModalSection />
+            <DeleteListConfirmModalSection />
             <SaveConfirmModalSection />
             <EditConfirmModalSection />
           </div>
