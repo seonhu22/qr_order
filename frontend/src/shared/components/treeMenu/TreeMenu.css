@@ -40,14 +40,16 @@
  * ===================================================== */
 
 .tree-menu__header th {
-  padding: var(--spacing-4) var(--spacing-6);
+  padding: 0 var(--spacing-6);
+  height: 2.5rem;
   text-align: left;
-  font-size: var(--typography-size-caption);
+  font-size: var(--typography-size-sidebar);
   font-weight: var(--typography-weight-ui);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-app);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-muted);
   border-bottom: var(--border-1) solid var(--color-border-divider);
   white-space: nowrap;
+  vertical-align: middle;
   position: sticky;
   top: 0;
   z-index: 1;
