@@ -60,6 +60,7 @@ export function AdminSidebar() {
       <AdminSidebarHeader />
       <SidebarNav
         menus={ADMIN_SIDEBAR_MENU}
+        showDepth1={false}
         expandedDepth1Key={expandedDepth1Key}
         expandedDepth2Key={expandedDepth2Key}
         currentPathname={location.pathname}

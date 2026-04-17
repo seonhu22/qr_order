@@ -28,6 +28,12 @@ type SidebarNavProps = {
   onToggleDepth2: (key: string, hasChildren?: boolean) => void;
   /** 페이지 이동 콜백 */
   onNavigate: (path: string) => void;
+  /**
+   * false이면 depth1 버튼을 숨기고 depth2 그룹을 최상위 항목으로 렌더한다.
+   * 헤더 등 다른 영역에서 이미 depth1을 표시하는 경우에 사용.
+   * @default true
+   */
+  showDepth1?: boolean;
 };
 
 /**
@@ -44,6 +50,72 @@ type SidebarNavProps = {
  *   onNavigate={navigate}
  * />
  */
+/** depth2 그룹 + depth3 아이템을 렌더하는 내부 헬퍼 */
+function GroupItems({
+  group,
+  expandedDepth2Key,
+  currentPathname,
+  onToggleDepth2,
+  onNavigate,
+  /* depth1이 숨겨졌을 때 그룹 헤더에 d1 스타일 적용 여부 */
+  useD1Style = false,
+}: {
+  group: SidebarNavDepth1['groups'][number];
+  expandedDepth2Key: string | null;
+  currentPathname: string;
+  onToggleDepth2: (key: string, hasChildren?: boolean) => void;
+  onNavigate: (path: string) => void;
+  useD1Style?: boolean;
+}) {
+  const hasChildren = group.items.length > 0;
+  const isExpanded = expandedDepth2Key === group.key;
+
+  /* depth1이 없을 때 그룹 헤더는 d1 버튼 스타일로 최상위처럼 보이게 한다 */
+  const btnClass = useD1Style
+    ? `sidebar-nav__d1${isExpanded ? ' sidebar-nav__d1--active' : ''}`
+    : `sidebar-nav__d2${isExpanded ? ' sidebar-nav__d2--expanded' : ''}`;
+
+  const labelClass = useD1Style
+    ? `sidebar-nav__d1-label${isExpanded ? '' : ' sidebar-nav__d1-label--inactive'}`
+    : `sidebar-nav__d2-label${isExpanded ? '' : ' sidebar-nav__d2-label--muted'}`;
+
+  return (
+    <li className={useD1Style ? 'sidebar-nav__d1-item' : 'sidebar-nav__d2-item'}>
+      <button
+        type="button"
+        className={btnClass}
+        aria-expanded={hasChildren ? isExpanded : undefined}
+        onClick={() => onToggleDepth2(group.key, hasChildren)}
+      >
+        <span className={labelClass}>{group.label}</span>
+        <span className={`sidebar-nav__chevron${isExpanded ? ' sidebar-nav__chevron--open' : ''}`}>
+          <Icon id={isExpanded ? 'i-chevron-up' : 'i-chevron-right'} size={13} />
+        </span>
+      </button>
+
+      {hasChildren && isExpanded && (
+        <ul className="sidebar-nav__d3-list">
+          {group.items.map((item) => {
+            const isActive = currentPathname === item.path;
+            return (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  className={`sidebar-nav__d3${isActive ? ' sidebar-nav__d3--active' : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => onNavigate(item.path)}
+                >
+                  {item.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </li>
+  );
+}
+
 export function SidebarNav({
   menus,
   expandedDepth1Key,
@@ -52,7 +124,31 @@ export function SidebarNav({
   onToggleDepth1,
   onToggleDepth2,
   onNavigate,
+  showDepth1 = true,
 }: SidebarNavProps) {
+  /* ── showDepth1=false: depth1 버튼 없이 모든 그룹을 최상위로 렌더 ── */
+  if (!showDepth1) {
+    const allGroups = menus.flatMap((d1) => d1.groups);
+    return (
+      <nav className="sidebar-nav" aria-label="사이드 메뉴">
+        <ul className="sidebar-nav__list">
+          {allGroups.map((group) => (
+            <GroupItems
+              key={group.key}
+              group={group}
+              expandedDepth2Key={expandedDepth2Key}
+              currentPathname={currentPathname}
+              onToggleDepth2={onToggleDepth2}
+              onNavigate={onNavigate}
+              useD1Style
+            />
+          ))}
+        </ul>
+      </nav>
+    );
+  }
+
+  /* ── showDepth1=true(기본): 3계층 전체 렌더 ── */
   return (
     <nav className="sidebar-nav" aria-label="사이드 메뉴">
       <ul className="sidebar-nav__list">
@@ -81,60 +177,19 @@ export function SidebarNav({
                 </span>
               </button>
 
-              {/* Depth2 메뉴 */}
+              {/* Depth2 + Depth3 */}
               {hasDepth1Children && isDepth1Expanded && (
                 <ul className="sidebar-nav__d2-list">
-                  {depth1.groups.map((group) => {
-                    const hasDepth2Children = group.items.length > 0;
-                    const isDepth2Expanded = expandedDepth2Key === group.key;
-
-                    return (
-                      <li key={group.key} className="sidebar-nav__d2-item">
-                        <button
-                          type="button"
-                          className={`sidebar-nav__d2${isDepth2Expanded ? ' sidebar-nav__d2--expanded' : ''}`}
-                          aria-expanded={hasDepth2Children ? isDepth2Expanded : undefined}
-                          onClick={() => onToggleDepth2(group.key, hasDepth2Children)}
-                        >
-                          <span
-                            className={`sidebar-nav__d2-label${isDepth2Expanded ? '' : ' sidebar-nav__d2-label--muted'}`}
-                          >
-                            {group.label}
-                          </span>
-                          <span
-                            className={`sidebar-nav__chevron${isDepth2Expanded ? ' sidebar-nav__chevron--open' : ''}`}
-                          >
-                            <Icon
-                              id={isDepth2Expanded ? 'i-chevron-up' : 'i-chevron-right'}
-                              size={11}
-                            />
-                          </span>
-                        </button>
-
-                        {/* Depth3 메뉴 */}
-                        {hasDepth2Children && isDepth2Expanded && (
-                          <ul className="sidebar-nav__d3-list">
-                            {group.items.map((item) => {
-                              const isActive = currentPathname === item.path;
-
-                              return (
-                                <li key={item.key}>
-                                  <button
-                                    type="button"
-                                    className={`sidebar-nav__d3${isActive ? ' sidebar-nav__d3--active' : ''}`}
-                                    aria-current={isActive ? 'page' : undefined}
-                                    onClick={() => onNavigate(item.path)}
-                                  >
-                                    {item.label}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
+                  {depth1.groups.map((group) => (
+                    <GroupItems
+                      key={group.key}
+                      group={group}
+                      expandedDepth2Key={expandedDepth2Key}
+                      currentPathname={currentPathname}
+                      onToggleDepth2={onToggleDepth2}
+                      onNavigate={onNavigate}
+                    />
+                  ))}
                 </ul>
               )}
             </li>
