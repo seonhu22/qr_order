@@ -14,6 +14,7 @@
 - [8. 테이블 카드 컴포넌트 (TableCard)](#8-테이블-카드-컴포넌트-tablecard)
 - [9. 트리 메뉴 컴포넌트 (TreeMenu)](#9-트리-메뉴-컴포넌트-treemenu)
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
+- [11. 사이드바 컴포넌트 (Sidebar)](#11-사이드바-컴포넌트-sidebar)
 
 ---
 
@@ -175,6 +176,15 @@ shared/components/
     TreeItem.tsx          ← 재귀 행 컴포넌트 (연결선 렌더 포함)
     TreeMenu.tsx          ← 루트 컴포넌트
     TreeMenu.css
+  sidebar/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts              ← SidebarNavItem, SidebarNavGroup, SidebarNavDepth1 타입
+    Sidebar.tsx           ← 컨테이너 (--sb-* CSS 변수 제공 + flex 셸)
+    Sidebar.css
+    SidebarNav.tsx        ← 3계층 nav (props 기반, 라우터·스토어 비의존)
+    SidebarNav.css
+    SidebarUser.tsx       ← 사용자 푸터 (props 기반, auth 비의존, 로그아웃 모달 내장)
+    SidebarUser.css
   feedback/
     index.ts
     FeedbackState.tsx
@@ -275,6 +285,7 @@ import { ToggleInput } from '@/shared/components/toggle';
 import { FormAlert } from '@/shared/components/form-alert';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TreeMenu } from '@/shared/components/treeMenu';
+import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { ConfirmModal, WrapperModal } from '@/shared/components/modal';
 import { Icon } from '@/shared/assets/icons/Icon';
 
@@ -397,3 +408,10 @@ const NAV_ITEMS = [
 | `unauthorized` | 접근 권한이 없습니다. |
 
 Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc 및 `/dev/feedback` 참고
+
+---
+
+## 11. 사이드바 컴포넌트 (Sidebar)
+
+라우터·스토어·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음(`Sidebar` / `SidebarNav` / `SidebarUser`).  
+상세 사용법·Props·어드민 어댑터 패턴은 [docs/components/Sidebar.md](./components/Sidebar.md) 참고.
