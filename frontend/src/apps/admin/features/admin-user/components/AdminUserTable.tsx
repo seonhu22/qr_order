@@ -13,6 +13,7 @@
  * - selectedRowId와 일치하는 행은 is-selected 스타일 적용
  */
 
+import { useEffect, useRef } from 'react';
 import type { SelectOption } from '@/shared/components/input';
 import {
   EditableTableActions,
@@ -64,6 +65,25 @@ export function AdminUserTable({
   onSave,
   onResetPassword,
 }: AdminUserTableProps) {
+  /**
+   * 행추가 버튼으로 발생한 선택 변경인지 추적한다.
+   * 클릭 선택과 달리 행추가 직후에만 스크롤해야 하므로 플래그로 구분한다.
+   */
+  const shouldScrollRef = useRef(false);
+  /** 테이블 본문 영역의 DOM 참조. 선택 행 스크롤 대상을 좁히기 위해 사용한다. */
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 행추가로 새 행이 DOM에 반영된 뒤 해당 행이 보이도록 스크롤한다.
+   * shouldScrollRef가 true일 때(행추가 직후)에만 실제로 스크롤한다.
+   */
+  useEffect(() => {
+    if (!shouldScrollRef.current || !selectedRowId || !tableRef.current) return;
+    shouldScrollRef.current = false;
+    const selectedRow = tableRef.current.querySelector('tr.is-selected');
+    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedRowId]);
+
   const columns = createAdminUserTableColumns();
   const tableRows = createAdminUserTableRows({
     rows,
@@ -85,7 +105,10 @@ export function AdminUserTable({
         <EditableTableActions
           isSaving={isSaving}
           canDelete={!!selectedRowId}
-          onAddRow={onAddRow}
+          onAddRow={() => {
+            shouldScrollRef.current = true;
+            onAddRow();
+          }}
           onDeleteRow={onDeleteRow}
           onSave={onSave}
         />
@@ -97,7 +120,9 @@ export function AdminUserTable({
         isError={isError}
         loadingTitle="관리자 목록을 불러오는 중입니다."
       >
-        <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} />
+        <div ref={tableRef} className="layout-contents">
+          <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} />
+        </div>
       </TableCardContentState>
     </TableCard>
   );
