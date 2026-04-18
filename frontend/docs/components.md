@@ -317,10 +317,15 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 ## 5. 신규 컴포넌트 추가 절차
 
 1. `shared/components/{컴포넌트명}/` 폴더 생성
-2. `types.ts` → CSS 파일 → Base/Wrapper → 완성형 순서로 작성
-3. `index.ts` 배럴 파일에 공개 API 등록
-4. `shared/dev/{컴포넌트명}Guide.tsx` 가이드 페이지 작성
-5. `DevRoutes.tsx` 및 `DevLayout.tsx`에 라우트·메뉴 등록
+2. 기본 원칙은 `types.ts` → CSS 파일 → Base/Wrapper → 완성형 순서로 작성한다.
+3. 단, `table`, `treeMenu`처럼 복합 shared 시스템은 아래 분리를 허용한다.
+   - `types.ts` + `*Types.ts`
+   - `parts` 또는 `cells/badges/actions`
+   - `renderer`
+   - 최종 wrapper/shared 본체
+4. `index.ts` 배럴 파일에 공개 API 등록
+5. 필요하면 `shared/dev/{컴포넌트명}Guide.tsx` 가이드 페이지 작성
+6. 개발 가이드를 추가한 경우 `DevRoutes.tsx` 및 `DevLayout.tsx`에 라우트·메뉴 등록
 
 ---
 

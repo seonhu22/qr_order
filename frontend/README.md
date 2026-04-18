@@ -196,7 +196,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 |---|---|
 | [`docs/architecture.md`](./docs/architecture.md) | 동작 구조, 폴더 구조, 라우트, 레이아웃 패턴 |
 | [`docs/design-tokens.md`](./docs/design-tokens.md) | 디자인 토큰 시스템, 컬러·타이포그래피 참고표 |
-| [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, FeedbackState |
+| [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, 타입/배럴 파일 규칙 |
 | [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
@@ -206,6 +206,10 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 학습용 참고 문서:
 - [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)
   사람 학습용 문서이며, 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
+
+공용 테이블/카드 사용 패턴:
+- [`docs/components/TableCard.md`](./docs/components/TableCard.md)
+  `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
 
 ---
 
