@@ -141,6 +141,30 @@ const headerActions = (
 액션 영역이 촘촘하므로 `actionsClassName="common-code-card__actions--detail"` 추가.
 상세 액션(위/아래 이동, 텍스트 행추가/삭제 버튼)은 `common-code-card__text-action` 클래스 적용.
 
+> **`onAddRow` 반환 타입 필수 규칙** — 추가일: 2026-04-18
+>
+> `EditableDetailTable`(또는 패턴 C 직접 구현)에서 행추가 버튼을 연결할 때,
+> `onAddRow`는 반드시 **새로 추가된 행의 `id`를 `string`으로 반환**해야 한다.
+>
+> ```ts
+> // ✅ 올바른 구현
+> const handleAddRow = (): string => {
+>   const newRow = { id: `new-${Date.now()}`, ... };
+>   appendRow(newRow);
+>   return newRow.id;
+> };
+>
+> // ❌ 잘못된 구현 — 행 추가 후 is-selected 스타일이 적용되지 않음
+> const handleAddRow = (): void => {
+>   appendRow({ id: `new-${Date.now()}`, ... });
+> };
+> ```
+>
+> 반환된 id를 `EditableDetailTable` 내부에서 `selectedDetailId`로 설정하기 때문에,
+> `void`로 구현하면 새 행이 추가돼도 `is-selected` 스타일이 활성화되지 않는다.
+> 이 규칙은 `EditableDetailTable`을 감싸는 feature 컴포넌트(`RuleDetailTable`, `CommonCodeDetailTable` 등)와
+> 이를 호출하는 page hook의 `handleAddRow`까지 동일하게 적용된다.
+
 ```tsx
 const detailActions = (
   <>
