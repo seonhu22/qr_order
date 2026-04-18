@@ -1,5 +1,9 @@
 # TanStack Query 학습 가이드
 
+> 이 문서는 신입 개발자 학습용 참고 문서이다.
+> 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
+> 실제 구조와 규칙은 `architecture.md`, `operations.md`, `components.md`를 우선 참고한다.
+
 > 서버/UI 상태 분리 개념, MSW 기초, useQuery·useMutation 단계별 실습을 다룬다. TanStack Query가 처음인 팀원을 위한 학습 문서이다.
 
 ## 목차

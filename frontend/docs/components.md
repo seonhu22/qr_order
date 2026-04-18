@@ -236,8 +236,8 @@ Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립�
 
 | 레이어 | 역할 | 예시 |
 |---|---|---|
-| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `ModalWrapper` |
-| **Base** | Header, Body, Footer 구조와 버튼 배치 규칙 정의 | `BaseModal`, `BaseFormModal` |
+| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `WrapperModal` |
+| **Base** | 타입·상수·스타일 같은 골격 계약 정의 | `modalType.ts`, `modal.constants.ts`, `modal.css` |
 | **완성형** | DTO 연결, 저장/수정/상세 같은 비즈니스 처리 | `SaveModal`, `UpdateModal`, `DetailModal` |
 
 즉 모달은 단순 시각 컴포넌트가 아니라, 공통 인프라와 공통 골격, 비즈니스 목적을 분리해서 관리해야 한다.
@@ -330,7 +330,7 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 2. `base`는 시각적 골격만 담당한다.
 3. `template`는 실제 DTO와 연결되는 비즈니스 목적 모달만 담당한다.
 4. 저장/수정/삭제 흐름은 가능하면 template 계층에서 명확히 분리한다.
-5. 폼을 포함한 모달은 `BaseFormModal`처럼 별도 베이스를 두고 검증/전송 규칙을 공통화한다.
+5. 폼을 포함한 모달은 현재 `wrapper / base / template` 계층을 기준으로 작성하고, 검증/전송 규칙이 반복되면 그때 form 전용 base를 별도 파일로 분리한다.
 6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
 7. 모달 폼 안의 Input·Select 크기는 `md`로 통일한다.
 8. `SelectInput` 드롭다운은 `createPortal`로 `document.body`에 렌더되므로 모달 안에서도 `overflow: hidden`에 잘리지 않는다.
@@ -425,7 +425,8 @@ const NAV_ITEMS = [
 | `empty` | 데이터가 없습니다. |
 | `unauthorized` | 접근 권한이 없습니다. |
 
-Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc 및 `/dev/feedback` 참고
+Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
+테이블의 loading / error / empty 분기는 `@/docs/components/TableCard.md`의 `TableCardContentState` 기준을 우선 참고한다.
 
 ---
 

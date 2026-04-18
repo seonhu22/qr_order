@@ -114,7 +114,8 @@
 
 - 기존 CSS 클래스와 동작은 유지한다.
 - 페이지/feature는 화면 모델과 핸들러를 조립만 한다.
-- shared 본체 props는 `table`, `statusText`, `data`, `actions`처럼 역할 기준 묶음으로 정리한다.
+- shared 본체 props는 가능하면 `table`, `statusText`, `data`, `actions`처럼 역할 기준 묶음으로 정리한다.
+- 단, 실제 계약은 shared 본체 책임에 따라 달라질 수 있으며 모든 테이블 본체가 동일한 props 모양을 가져야 하는 것은 아니다.
 - 화면별 `columns`, `rows` 조립은 모델 팩토리 파일로 분리해 테이블 컴포넌트 본문을 줄인다.
 
 ### 5. `normalize`, `map`, `buildRequest` 같은 유틸은 feature 가까이에 둔다

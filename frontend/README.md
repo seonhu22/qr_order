@@ -201,8 +201,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
 | [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
-| [`docs/Tanstack-Query-Guide.md`](./docs/Tanstack-Query-Guide.md) | TanStack Query 학습 가이드 — 서버/UI 상태 분리, MSW 기초, useQuery·useMutation 단계별 실습 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
+
+학습용 참고 문서:
+- [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)
+  사람 학습용 문서이며, 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
 
 ---
 
