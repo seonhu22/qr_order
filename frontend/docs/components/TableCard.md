@@ -165,6 +165,38 @@ const headerActions = (
 > 이 규칙은 `EditableDetailTable`을 감싸는 feature 컴포넌트(`RuleDetailTable`, `CommonCodeDetailTable` 등)와
 > 이를 호출하는 page hook의 `handleAddRow`까지 동일하게 적용된다.
 
+> **행추가 후 자동 스크롤 규칙** — 추가일: 2026-04-18
+>
+> 행추가 시 새 행이 스크롤 밖에 있으면 자동으로 스크롤되어야 한다.
+> `scrollIntoView({ block: 'nearest' })`는 이미 보이는 요소에는 스크롤하지 않으므로,
+> 중간에 삽입되는 경우에도 필요할 때만 스크롤된다.
+>
+> **`EditableDetailTable` 계열** (`CommonCodeDetailTable`, `RuleDetailTable` 등)
+> `onAddRow: () => string`이 새 행 id를 반환하면 컴포넌트 내부에서 자동 처리된다.
+>
+> **`EditableTableActions` 계열** (`AdminUserTable`, `MessageTable` 등) 및 **트리** (`SystemMenuTree`)
+> `selectedRowId`(또는 `selectedId`)가 외부 훅에서 관리되므로, 컴포넌트 내부에서 아래 패턴을 사용한다.
+>
+> ```tsx
+> const shouldScrollRef = useRef(false);   // 추가 버튼 클릭 시에만 스크롤
+> const tableRef = useRef<HTMLDivElement>(null);
+>
+> useEffect(() => {
+>   if (!shouldScrollRef.current || !selectedRowId || !tableRef.current) return;
+>   shouldScrollRef.current = false;
+>   tableRef.current.querySelector('tr.is-selected')  // 트리는 '.tree-item__row.is-selected'
+>     ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+> }, [selectedRowId]);
+>
+> // 버튼 핸들러:
+> onAddRow={() => { shouldScrollRef.current = true; onAddRow(); }}
+>
+> // TableBodyRenderer / TreeMenu 래퍼:
+> <div ref={tableRef} className="layout-contents">
+>   <TableBodyRenderer ... />
+> </div>
+> ```
+
 ```tsx
 const detailActions = (
   <>
@@ -315,6 +347,24 @@ const detailActions = (
 | 클래스 | 설명 |
 |---|---|
 | `.is-selected` | `tr`에 직접 적용. 브랜드 컬러 좌측 border + 연한 배경 |
+
+### 레이아웃 유틸리티
+
+| 클래스 | 적용 요소 | 설명 |
+|---|---|---|
+| `.layout-contents` | `div` wrapper | `display: contents` — 레이아웃에 투명한 래퍼. DOM 참조(`ref`)는 유지하면서 flex 체인을 끊지 않아야 할 때 사용 |
+
+### common-table--detail 스크롤 구조
+
+> 추가일: 2026-04-18
+
+`.common-table--detail`을 사용하는 인라인 편집 테이블은 `thead`가 고정되고 `tbody`만 세로 스크롤된다.
+이 동작은 CSS에 의해 자동 적용되며 별도 설정이 필요 없다.
+
+- `.common-table-wrap:has(.common-table--detail)` — `overflow-y: hidden`, `display: flex`로 재정의
+- `.common-table--detail thead` — `display: block; flex-shrink: 0` (스크롤 영역 밖 고정)
+- `.common-table--detail tbody` — `display: block; overflow-y: auto; flex: 1` (실제 스크롤 컨테이너)
+- `thead tr`, `tbody tr` — `display: table; width: 100%; table-layout: fixed` (컬럼 너비 동기화)
 
 ---
 
