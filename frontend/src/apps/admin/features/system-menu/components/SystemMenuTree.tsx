@@ -8,6 +8,7 @@
  * - 저장 시 필수 미입력 / 부모+경로 충돌 필드에 error 상태를 표시한다.
  */
 
+import { useEffect, useRef } from 'react';
 import { TreeMenu } from '@/shared/components/treeMenu';
 import type { TreeMenuColumn } from '@/shared/components/treeMenu';
 import { InputBase } from '@/shared/components/input';
@@ -73,6 +74,25 @@ export function SystemMenuTree({
   onReset,
   nodeErrors,
 }: SystemMenuTreeProps) {
+  /**
+   * 행추가/하위추가 버튼으로 발생한 선택 변경인지 추적한다.
+   * 클릭 선택과 달리 추가 직후에만 스크롤해야 하므로 플래그로 구분한다.
+   */
+  const shouldScrollRef = useRef(false);
+  /** 트리 영역의 DOM 참조. 선택 행 스크롤 대상을 이 트리로 좁히기 위해 사용한다. */
+  const treeContainerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 추가된 새 노드가 DOM에 반영된 뒤 보이지 않을 경우에만 스크롤한다.
+   * scrollIntoView({ block: 'nearest' })는 이미 가시 영역 내 요소에는 스크롤하지 않는다.
+   * shouldScrollRef가 true일 때(추가 직후)에만 실제로 스크롤한다.
+   */
+  useEffect(() => {
+    if (!shouldScrollRef.current || !selectedId || !treeContainerRef.current) return;
+    shouldScrollRef.current = false;
+    const selectedRow = treeContainerRef.current.querySelector('.tree-item__row.is-selected');
+    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedId]);
   const columns: TreeMenuColumn<MenuData>[] = [
     {
       key: 'name',
@@ -124,14 +144,23 @@ export function SystemMenuTree({
         disabled={!canMoveDown || isSaving}
         onClick={onMoveDown}
       />
-      <AddRowTableButton disabled={isSaving} onClick={onAddSibling} />
+      <AddRowTableButton
+        disabled={isSaving}
+        onClick={() => {
+          shouldScrollRef.current = true;
+          onAddSibling();
+        }}
+      />
       <Button
         type="button"
         variant="text"
         size="sm"
         className="common-code-card__text-action"
         disabled={!canAddChild || isSaving}
-        onClick={onAddChild}
+        onClick={() => {
+          shouldScrollRef.current = true;
+          onAddChild();
+        }}
       >
         + 하위추가
       </Button>
@@ -171,34 +200,36 @@ export function SystemMenuTree({
           {nodes.length === 0 ? (
             <p className="system-menu-tree__empty-text">등록된 메뉴가 없습니다. 행추가 버튼을 눌러 메뉴를 추가하세요.</p>
           ) : (
-            <TreeMenu
-              nodes={nodes}
-              labelHeader="메뉴코드"
-              labelRender={(node) => (
-                <InputBase
-                  size="sm"
-                  className="common-table__input"
-                  value={node.data?.code ?? ''}
-                  aria-label={`${node.label} 메뉴코드`}
-                  readOnly={!node.data?.isNew}
-                  controlState={
-                    !node.data?.isNew
-                      ? 'readonly'
-                      : nodeErrors.code.has(node.id)
-                      ? 'error'
-                      : ''
-                  }
-                  onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
-                />
-              )}
-              columns={columns}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              defaultExpandedIds={defaultExpandedIds}
-              expandTrigger={expandTrigger}
-              className="system-menu-tree__inner"
-              ariaLabel="메뉴 관리 트리"
-            />
+            <div ref={treeContainerRef} className="layout-contents">
+              <TreeMenu
+                nodes={nodes}
+                labelHeader="메뉴코드"
+                labelRender={(node) => (
+                  <InputBase
+                    size="sm"
+                    className="common-table__input"
+                    value={node.data?.code ?? ''}
+                    aria-label={`${node.label} 메뉴코드`}
+                    readOnly={!node.data?.isNew}
+                    controlState={
+                      !node.data?.isNew
+                        ? 'readonly'
+                        : nodeErrors.code.has(node.id)
+                        ? 'error'
+                        : ''
+                    }
+                    onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
+                  />
+                )}
+                columns={columns}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                defaultExpandedIds={defaultExpandedIds}
+                expandTrigger={expandTrigger}
+                className="system-menu-tree__inner"
+                ariaLabel="메뉴 관리 트리"
+              />
+            </div>
           )}
         </>
       </TableCardContentState>
