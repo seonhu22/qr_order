@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   EditableTableActions,
   TableBodyRenderer,
@@ -42,6 +43,25 @@ export function MessageTable({
   onDeleteRow,
   onSave,
 }: MessageTableProps) {
+  /**
+   * 행추가 버튼으로 발생한 선택 변경인지 추적한다.
+   * 클릭 선택과 달리 행추가 직후에만 스크롤해야 하므로 플래그로 구분한다.
+   */
+  const shouldScrollRef = useRef(false);
+  /** 테이블 본문 영역의 DOM 참조. 선택 행 스크롤 대상을 좁히기 위해 사용한다. */
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 행추가로 새 행이 DOM에 반영된 뒤 해당 행이 보이도록 스크롤한다.
+   * shouldScrollRef가 true일 때(행추가 직후)에만 실제로 스크롤한다.
+   */
+  useEffect(() => {
+    if (!shouldScrollRef.current || !selectedRowId || !tableRef.current) return;
+    shouldScrollRef.current = false;
+    const selectedRow = tableRef.current.querySelector('tr.is-selected');
+    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedRowId]);
+
   const columns = createMessageTableColumns();
   const tableRows = createMessageTableRows({
     rows,
@@ -58,7 +78,10 @@ export function MessageTable({
         <EditableTableActions
           isSaving={isSaving}
           canDelete={!!selectedRowId}
-          onAddRow={onAddRow}
+          onAddRow={() => {
+            shouldScrollRef.current = true;
+            onAddRow();
+          }}
           onDeleteRow={onDeleteRow}
           onSave={onSave}
         />
@@ -69,18 +92,20 @@ export function MessageTable({
         isError={isError}
         loadingTitle="메세지 목록을 불러오는 중입니다."
       >
-        <TableBodyRenderer
-          tableAriaLabel="메세지 관리 테이블"
-          columns={columns}
-          rows={tableRows}
-          colGroup={
-            <colgroup>
-              <col style={{ width: '24%' }} />
-              <col style={{ width: '24%' }} />
-              <col style={{ width: '52%' }} />
-            </colgroup>
-          }
-        />
+        <div ref={tableRef} className="layout-contents">
+          <TableBodyRenderer
+            tableAriaLabel="메세지 관리 테이블"
+            columns={columns}
+            rows={tableRows}
+            colGroup={
+              <colgroup>
+                <col style={{ width: '24%' }} />
+                <col style={{ width: '24%' }} />
+                <col style={{ width: '52%' }} />
+              </colgroup>
+            }
+          />
+        </div>
       </TableCardContentState>
     </TableCard>
   );
