@@ -15,14 +15,14 @@
 
 import { Navigate } from 'react-router-dom';
 import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
-import { MainPage } from '@/apps/admin/pages/MainPage';
+import { MainPage } from '@/apps/admin/pages/main/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
-import { CommonCodePage } from '@/apps/admin/pages/CommonCodePage';
-import { PlantSearchPage } from '@/apps/admin/pages/PlantSearchPage';
-import { AdminUserPage } from '@/apps/admin/pages/AdminUserPage';
-import { SystemMenuPage } from '@/apps/admin/pages/SystemMenuPage';
-import { MessageManagementPage } from '@/apps/admin/pages/MessageManagementPage';
-import { RuleManagementPage } from '@/apps/admin/pages/RuleManagementPage';
+import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
+import { PlantSearchPage } from '@/apps/admin/pages/plant-search/PlantSearchPage';
+import { AdminUserPage } from '@/apps/admin/pages/admin-user/AdminUserPage';
+import { SystemMenuPage } from '@/apps/admin/pages/system-menu/SystemMenuPage';
+import { MessageManagementPage } from '@/apps/admin/pages/message-management/MessageManagementPage';
+import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManagementPage';
 
 export const adminRoutes = [
   {

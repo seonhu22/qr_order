@@ -7,7 +7,7 @@
  */
 
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import '@/apps/admin/pages/CommonCodePage.css';
+import '@/apps/admin/pages/common-code/CommonCodePage.css';
 import { CommonCodeDetailTable } from '@/apps/admin/features/common-code/components/CommonCodeDetailTable';
 import { CommonCodeFilters } from '@/apps/admin/features/common-code/components/CommonCodeFilters';
 import { CommonCodeMasterTable } from '@/apps/admin/features/common-code/components/CommonCodeMasterTable';

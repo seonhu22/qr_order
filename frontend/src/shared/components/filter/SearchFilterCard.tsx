@@ -1,4 +1,4 @@
-import '@/apps/admin/pages/PlantSearchPage.css';
+import '@/apps/admin/pages/plant-search/PlantSearchPage.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { ResetFilterButton, SearchFilterButton } from '@/shared/components/button';
 import { InputBase, InputWrapper } from '@/shared/components/input';

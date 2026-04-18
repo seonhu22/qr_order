@@ -1,5 +1,5 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import '@/apps/admin/pages/CommonCodePage.css';
+import '@/apps/admin/pages/common-code/CommonCodePage.css';
 import { RuleDetailTable } from '@/apps/admin/features/rule-management/components/RuleDetailTable';
 import { RuleManagementFilters } from '@/apps/admin/features/rule-management/components/RuleManagementFilters';
 import { RuleMasterTable } from '@/apps/admin/features/rule-management/components/RuleMasterTable';

@@ -1,6 +1,6 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
-import LoginPage from '@/apps/admin/pages/LoginPage';
+import LoginPage from '@/apps/admin/pages/login/LoginPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';

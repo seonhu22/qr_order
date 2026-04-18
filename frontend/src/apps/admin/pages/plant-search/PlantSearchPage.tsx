@@ -1,5 +1,5 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import '@/apps/admin/pages/PlantSearchPage.css';
+import '@/apps/admin/pages/plant-search/PlantSearchPage.css';
 import { PlantSearchFilters } from '@/apps/admin/features/plant-search/components/PlantSearchFilters';
 import { PlantSearchTable } from '@/apps/admin/features/plant-search/components/PlantSearchTable';
 import { usePlantSearchPage } from '@/apps/admin/features/plant-search/hooks/usePlantSearchPage';

@@ -13,7 +13,7 @@
  * <MainPage />
  */
 
-import '@/apps/admin/pages/MainPage.css';
+import '@/apps/admin/pages/main/MainPage.css';
 import { useDashboardInfo } from '@/apps/admin/hooks/useDashboardInfo';
 import { FeedbackState } from '@/shared/components/feedback';
 
