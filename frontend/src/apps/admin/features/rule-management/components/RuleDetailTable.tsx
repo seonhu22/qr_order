@@ -11,7 +11,7 @@ type RuleDetailTableProps = {
   rowErrors: DetailRowErrorState;
   onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
   onClearRowError: (rowId: string, columnKey: string) => void;
-  onAddRow: () => void;
+  onAddRow: () => string;
   onDeleteRow: (rowId?: string) => void;
   onMoveUp: (rowId?: string) => void;
   onMoveDown: (rowId?: string) => void;

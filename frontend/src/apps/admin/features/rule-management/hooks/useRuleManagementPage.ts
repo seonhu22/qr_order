@@ -211,9 +211,9 @@ export function useRuleManagementPage() {
   /**
    * 선택된 마스터에 신규 상세 행을 추가한다.
    */
-  const handleAddDetailRow = () => {
+  const handleAddDetailRow = (): string => {
     if (!selectedMaster || !selectedDetailSchema) {
-      return;
+      return '';
     }
 
     const nextRow: RuleDetailRow = {
@@ -225,6 +225,8 @@ export function useRuleManagementPage() {
     };
 
     setSelectedDetailRows((rows) => orderedRowEditor.appendRow(rows, nextRow));
+
+    return nextRow.id;
   };
 
   /**
