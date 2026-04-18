@@ -29,7 +29,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
   onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
   onClearRowError: (rowId: string, columnKey: string) => void;
-  onAddRow: () => void;
+  onAddRow: () => string;
   onDeleteRow: (rowId?: string) => void;
   onMoveUp: (rowId?: string) => void;
   onMoveDown: (rowId?: string) => void;
@@ -155,7 +155,7 @@ export function EditableDetailTable<
             isSaving={isSaving}
             onMoveUp={() => onMoveUp(effectiveSelectedDetailId || undefined)}
             onMoveDown={() => onMoveDown(effectiveSelectedDetailId || undefined)}
-            onAddRow={onAddRow}
+            onAddRow={() => setSelectedDetailId(onAddRow())}
             onDeleteRow={() => {
               onDeleteRow(effectiveSelectedDetailId || undefined);
               setSelectedDetailId('');

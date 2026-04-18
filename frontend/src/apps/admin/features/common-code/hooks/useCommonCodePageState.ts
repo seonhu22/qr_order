@@ -206,9 +206,9 @@ export function useCommonCodePageState() {
     );
   };
 
-  const addDetailRow = () => {
+  const addDetailRow = (): string => {
     if (!selectedMaster) {
-      return;
+      return '';
     }
 
     const nextRow: DetailCode = {
@@ -222,6 +222,8 @@ export function useCommonCodePageState() {
     };
 
     updateSelectedDetailRows((rows) => orderedRowEditor.appendRow(rows, nextRow));
+
+    return nextRow.id;
   };
 
   const removeCheckedDetailRows = (selectedId?: string) => {
