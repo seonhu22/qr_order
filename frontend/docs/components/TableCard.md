@@ -99,7 +99,7 @@ import type { TableCardProps } from '@/shared/components/table';
 
 ---
 
-### 패턴 B — 행 클릭 선택 + 체크박스 (CommonCodeMasterTable, AdminUserTable)
+### 패턴 B — 행 클릭 선택 + 체크박스 (마스터 목록형 테이블 패턴)
 
 행 클릭 → `is-selected` 강조. 헤더에 신규/삭제 버튼 포함.
 
@@ -259,11 +259,13 @@ const detailActions = (
 ```tsx
 // selectedMaster가 없을 때
 <TableCard ariaLabel="공통코드 상세">
-  <FeedbackState
-    variant="empty"
-    title="목록을 선택해주세요"
-    description="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
-    className="common-code-card__empty"
+  <TableCardContentState
+    isLoading={false}
+    isError={false}
+    isEmpty
+    emptyTitle="목록을 선택해주세요"
+    emptyDescription="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
+    emptyClassName="common-code-card__empty"
   />
 </TableCard>
 
@@ -273,25 +275,26 @@ const detailActions = (
   ariaLabel="공통코드 상세"
   actions={selectedMaster ? detailActions : undefined}
 >
-  {selectedMaster ? <div className="common-table-wrap">...</div> : <FeedbackState ... />}
+  {selectedMaster ? <div className="common-table-wrap">...</div> : <TableCardContentState ... />}
 </TableCard>
 ```
 
 ---
 
-### 패턴 E — 로딩 / 에러 상태
+### 패턴 E — 로딩 / 에러 / 빈 상태
 
-`FeedbackState`를 children으로 전달한다.
+`TableCardContentState`로 공통 분기를 처리한다.
 
 ```tsx
 <TableCard title="공통코드 목록" ariaLabel="공통코드 목록">
-  {isLoading ? (
-    <FeedbackState variant="loading" title="목록을 불러오는 중입니다." />
-  ) : isError ? (
-    <FeedbackState variant="error" description="다시 한번 시도해주세요." />
-  ) : (
+  <TableCardContentState
+    isLoading={isLoading}
+    isError={isError}
+    loadingTitle="목록을 불러오는 중입니다."
+    errorDescription="다시 한번 시도해주세요."
+  >
     <div className="common-table-wrap">...</div>
-  )}
+  </TableCardContentState>
 </TableCard>
 ```
 
@@ -309,7 +312,7 @@ const detailActions = (
 | `.common-code-card__actions` | `div` | 액션 버튼 묶음 (gap: spacing-3) |
 | `.common-code-card__actions--detail` | modifier | 인라인 편집 액션 영역의 좁은 gap |
 | `.common-code-card__text-action` | `Button(variant="text")` | 행추가/행삭제 텍스트 버튼의 padding 조정 |
-| `.common-code-card__empty` | `FeedbackState` | header 없는 카드에서 빈 상태를 카드 전체 높이에 맞춤 |
+| `.common-code-card__empty` | `TableCardContentState(isEmpty)` | header 없는 카드에서 빈 상태를 카드 전체 높이에 맞춤 |
 | `.common-code-card__footnote` | `p` | 테이블 하단 안내 문구 |
 
 ### 테이블
@@ -420,8 +423,8 @@ http://localhost:3000/dev/table
 | 섹션 | 설명 |
 |---|---|
 | 읽기 전용 | 행 클릭 없음, 타이틀만 (PlantSearchTable 패턴) |
-| 행 클릭 선택 | is-selected 강조 + 체크박스 + 수정 아이콘 (CommonCodeMasterTable / AdminUserTable 패턴) |
-| 인라인 행 편집 | 행추가/삭제 + 위아래 이동 + InputBase·CheckboxInput 편집 (CommonCodeDetailTable 패턴) |
-| 로딩 상태 | FeedbackState(variant="loading") children 전달 예시 |
-| 에러 상태 | FeedbackState(variant="error") children 전달 예시 |
-| header 없는 빈 상태 | title 생략 + FeedbackState(variant="empty") 예시 |
+| 행 클릭 선택 | is-selected 강조 + 체크박스 + 수정 아이콘 (마스터 목록형 테이블 패턴) |
+| 인라인 행 편집 | 행추가/삭제 + 위아래 이동 + InputBase·CheckboxInput 편집 (EditableDetailTable 계열 패턴) |
+| 로딩 상태 | `TableCardContentState`의 `isLoading` 분기 예시 |
+| 에러 상태 | `TableCardContentState`의 `isError` 분기 예시 |
+| header 없는 빈 상태 | title 생략 + `TableCardContentState`의 `isEmpty` 분기 예시 |

@@ -12,43 +12,38 @@ import type {
 import type { SharedTableColumn, SharedTableRow } from './tableModelTypes';
 
 type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends EditableDetailRow> = {
-  title?: string;
-  ariaLabel: string;
-  tableAriaLabel: string;
-  loadingTitle: string;
-  emptyTitle?: string;
-  emptyDescription?: string;
-  emptyRowsText?: string;
-  selectedMaster: TMaster | null;
-  rows: TRow[];
-  columns: EditableDetailColumn[];
-  isLoading: boolean;
-  isSaving: boolean;
-  rowErrors: DetailRowErrorState;
-  footnote?: string;
+  table: {
+    title?: string;
+    ariaLabel: string;
+    tableAriaLabel: string;
+    footnote?: string;
+    emptyRowsText?: string;
+  };
+  statusText: {
+    loadingTitle: string;
+    emptyTitle?: string;
+    emptyDescription?: string;
+  };
+  data: {
+    selectedMaster: TMaster | null;
+    rows: TRow[];
+    columns: EditableDetailColumn[];
+    rowErrors: DetailRowErrorState;
+  };
+  status: {
+    isLoading: boolean;
+    isSaving: boolean;
+  };
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
-  onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
-  onClearRowError: (rowId: string, columnKey: string) => void;
-  onAddRow: () => string;
-  onDeleteRow: (rowId?: string) => void;
-  onMoveUp: (rowId?: string) => void;
-  onMoveDown: (rowId?: string) => void;
-  onSave: () => void;
-};
-
-/**
- * 상세 테이블 액션 영역에서 사용하는 버튼 상태/핸들러 계약.
- */
-type DetailTableActionsProps = {
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  canDelete: boolean;
-  isSaving: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onAddRow: () => void;
-  onDeleteRow: () => void;
-  onSave: () => void;
+  actions: {
+    onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
+    onClearRowError: (rowId: string, columnKey: string) => void;
+    onAddRow: () => string;
+    onDeleteRow: (rowId?: string) => void;
+    onMoveUp: (rowId?: string) => void;
+    onMoveDown: (rowId?: string) => void;
+    onSave: () => void;
+  };
 };
 
 /**
@@ -62,29 +57,36 @@ export function EditableDetailTable<
   TMaster extends EditableMasterRow,
   TRow extends EditableDetailRow,
 >({
-  title,
-  ariaLabel,
-  tableAriaLabel,
-  loadingTitle,
-  emptyTitle = '목록을 선택해주세요',
-  emptyDescription = '위 목록에서 행을 클릭하면 상세 코드가 표시됩니다.',
-  emptyRowsText = '상세 항목이 없습니다.',
-  selectedMaster,
-  rows,
-  columns,
-  isLoading,
-  isSaving,
-  rowErrors,
-  footnote,
+  table,
+  statusText,
+  data,
+  status,
   getInputAriaLabel,
-  onChangeValue,
-  onClearRowError,
-  onAddRow,
-  onDeleteRow,
-  onMoveUp,
-  onMoveDown,
-  onSave,
+  actions,
 }: EditableDetailTableProps<TMaster, TRow>) {
+  const {
+    title,
+    ariaLabel,
+    tableAriaLabel,
+    footnote,
+    emptyRowsText = '상세 항목이 없습니다.',
+  } = table;
+  const {
+    loadingTitle,
+    emptyTitle = '목록을 선택해주세요',
+    emptyDescription = '위 목록에서 행을 클릭하면 상세 코드가 표시됩니다.',
+  } = statusText;
+  const { selectedMaster, rows, columns, rowErrors } = data;
+  const { isLoading, isSaving } = status;
+  const {
+    onChangeValue,
+    onClearRowError,
+    onAddRow,
+    onDeleteRow,
+    onMoveUp,
+    onMoveDown,
+    onSave,
+  } = actions;
   const [selectedDetailId, setSelectedDetailId] = useState('');
   const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
     ? selectedDetailId

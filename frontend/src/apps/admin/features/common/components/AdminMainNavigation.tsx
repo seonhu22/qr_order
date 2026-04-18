@@ -1,4 +1,4 @@
-import '@/apps/admin/common/components/AdminMainNavigation.css';
+import '@/apps/admin/features/common/styles/AdminMainNavigation.css';
 
 type AdminMainNavigationProps = {
   depth1: string;

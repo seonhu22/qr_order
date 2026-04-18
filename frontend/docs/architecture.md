@@ -120,6 +120,37 @@ pages/<Feature>Page.tsx
 - 예시: `AdminUser`는 조회/저장 flow 공통화를 우선 적용했고, `CommonCode`/`RuleManagement`는 마스터 모달/상세 행 편집 규칙도 shared 훅으로 재사용한다.
 - `RuleManagementPage`는 page-level orchestration 예시로, page가 모달을 조립하고 `useRuleManagementPage`가 마스터/상세 상태와 shared flow를 합쳐 전달한다.
 
+### 관리자 공통 UI 위치
+
+> 추가일: 2026-04-18
+
+관리자 앱 여러 화면에서 함께 쓰는 공용 UI는 `apps/admin/common/*` 같은 별도 축보다
+`apps/admin/features/common/*` 아래에 둔다.
+
+- 예: `AdminMainNavigation`
+- 이유:
+  - `Header`, `Sidebar`, `Brand`처럼 feature 단위 공용 UI와 같은 축에 정렬된다.
+  - 오래된 `common/` 디렉터리보다 현재 feature 중심 구조와 맞다.
+
+### shared 테이블 본체 구조
+
+> 추가일: 2026-04-18
+
+마스터/상세 테이블의 shared 본체는 아래처럼 역할을 나눈다.
+
+```text
+shared/components/table/
+  EditableMasterTable.tsx   ← 마스터 목록 공용 본체
+  EditableDetailTable.tsx   ← 상세 편집 공용 본체
+  TableBodyRenderer.tsx     ← columns + rows + cells 렌더링
+  TableCardContentState.tsx ← loading / error / empty 분기 공통화
+```
+
+- `EditableMasterTable`은 공통코드 전용이 아니라 여러 화면이 함께 쓰는 공용 마스터 테이블 본체다.
+- `EditableDetailTable`은 상세 편집 테이블의 공용 본체다.
+- 각 feature wrapper는 제목, 문구, 도메인별 핸들러만 주입한다.
+- 즉, shared 본체를 바꾸면 `CommonCode`, `RuleManagement` 같은 wrapper가 자동으로 같은 개선을 받는다.
+
 ---
 
 ## 5. AdminMainLayout — filterSlot 패턴

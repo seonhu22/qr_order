@@ -8,7 +8,7 @@ describe('RuleManagementPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '신규' }));
 
-    const editorDialog = screen.getByRole('dialog', { name: '규칙 수정/등록' });
+    const editorDialog = screen.getByRole('dialog', { name: '규칙 등록' });
     fireEvent.change(within(editorDialog).getByRole('textbox', { name: /규칙코드/ }), {
       target: { value: 'NEW_RULE' },
     });
@@ -31,7 +31,7 @@ describe('RuleManagementPage', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: /수정$/ })[0]);
 
-    const editorDialog = screen.getByRole('dialog', { name: '규칙 수정/등록' });
+    const editorDialog = screen.getByRole('dialog', { name: '규칙 수정' });
     fireEvent.change(within(editorDialog).getByRole('textbox', { name: /규칙명/ }), {
       target: { value: '주문상태수정' },
     });
@@ -79,7 +79,7 @@ describe('RuleManagementPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '신규' }));
 
-    const editorDialog = screen.getByRole('dialog', { name: '규칙 수정/등록' });
+    const editorDialog = screen.getByRole('dialog', { name: '규칙 등록' });
     fireEvent.change(within(editorDialog).getByRole('textbox', { name: /규칙코드/ }), {
       target: { value: 'DIRTY_RULE' },
     });

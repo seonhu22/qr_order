@@ -9,29 +9,24 @@ import {
 } from '@/shared/components/table/codeMasterTableModel';
 import type { EditableMasterRow } from '@/shared/components/table/editableTableTypes';
 
-/**
- * 이 컴포넌트는 공통코드/규칙관리 같은 마스터 CRUD 화면에서 사용하는 테이블을 공통화한 것이다.
- *
- * @description
- * 코드/이름/사용여부/수정 컬럼과 상단 신규·삭제 액션을 고정 구조로 제공하고,
- * 선택 상태/체크 상태/수정 이벤트는 바깥에서 주입받아 도메인별로 재사용한다.
- */
+type EditableMasterTableLabels = {
+  code: string;
+  name: string;
+};
 
-type CodeMasterTableProps<T extends EditableMasterRow> = {
-  title: string;
-  ariaLabel: string;
-  tableAriaLabel: string;
-  codeLabel: string;
-  nameLabel: string;
-  loadingTitle: string;
+type EditableMasterTableStatusText = {
+  loading: string;
   errorTitle?: string;
   errorDescription?: string;
-  rows: T[];
-  isLoading: boolean;
-  isError: boolean;
-  selectedMasterId: string;
-  checkedMasterIds: string[];
+};
+
+type EditableMasterTableSelectionState = {
+  selectedId: string;
+  checkedIds: string[];
   isAllChecked: boolean;
+};
+
+type EditableMasterTableActions<T extends EditableMasterRow> = {
   onSelectRow: (masterId: string) => void;
   onToggleRow: (masterId: string) => void;
   onToggleAllRows: () => void;
@@ -40,67 +35,70 @@ type CodeMasterTableProps<T extends EditableMasterRow> = {
   onDelete: () => void;
 };
 
+type EditableMasterTableProps<T extends EditableMasterRow> = {
+  title: string;
+  ariaLabel: string;
+  tableAriaLabel: string;
+  labels: EditableMasterTableLabels;
+  statusText: EditableMasterTableStatusText;
+  rows: T[];
+  isLoading: boolean;
+  isError: boolean;
+  selection: EditableMasterTableSelectionState;
+  actions: EditableMasterTableActions<T>;
+};
+
 /**
- * 마스터 CRUD 목록 테이블을 공통 형태로 렌더링하는 조립 컴포넌트.
+ * 공통코드/규칙관리에서 재사용하는 공용 마스터 편집 테이블.
  *
  * @description
- * 코드/이름/사용여부/수정 컬럼과 상단 신규·삭제 액션을 고정 구조로 제공하고,
- * 선택 상태/체크 상태/수정 이벤트는 바깥에서 주입받아 도메인별로 재사용한다.
+ * 코드/이름/사용여부/수정 컬럼과 상단 신규·삭제 액션을 고정 구조로 제공한다.
+ * 선택 상태와 액션 핸들러는 묶음 props로 받아 도메인별 차이만 밖에서 주입한다.
  */
-export function CodeMasterTable<T extends EditableMasterRow>({
+export function EditableMasterTable<T extends EditableMasterRow>({
   title,
   ariaLabel,
   tableAriaLabel,
-  codeLabel,
-  nameLabel,
-  loadingTitle,
-  errorTitle,
-  errorDescription = '다시 한번 시도해주세요.',
+  labels,
+  statusText,
   rows,
   isLoading,
   isError,
-  selectedMasterId,
-  checkedMasterIds,
-  isAllChecked,
-  onSelectRow,
-  onToggleRow,
-  onToggleAllRows,
-  onCreate,
-  onEdit,
-  onDelete,
-}: CodeMasterTableProps<T>) {
+  selection,
+  actions,
+}: EditableMasterTableProps<T>) {
   const columns = createCodeMasterTableColumns({
     title,
-    codeLabel,
-    nameLabel,
+    codeLabel: labels.code,
+    nameLabel: labels.name,
   });
   const tableRows = createCodeMasterTableRows({
     rows,
     title,
-    selectedMasterId,
-    checkedMasterIds,
-    onSelectRow,
-    onToggleRow,
-    onEdit,
+    selectedMasterId: selection.selectedId,
+    checkedMasterIds: selection.checkedIds,
+    onSelectRow: actions.onSelectRow,
+    onToggleRow: actions.onToggleRow,
+    onEdit: actions.onEdit,
   });
   const headerCellOverrides = createCodeMasterHeaderCellOverrides({
     title,
-    isAllChecked,
-    onToggleAllRows,
+    isAllChecked: selection.isAllChecked,
+    onToggleAllRows: actions.onToggleAllRows,
   });
 
   return (
     <TableCard
       title={title}
       ariaLabel={ariaLabel}
-      actions={<MasterTableActions onCreate={onCreate} onDelete={onDelete} />}
+      actions={<MasterTableActions onCreate={actions.onCreate} onDelete={actions.onDelete} />}
     >
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        loadingTitle={loadingTitle}
-        errorTitle={errorTitle}
-        errorDescription={errorDescription}
+        loadingTitle={statusText.loading}
+        errorTitle={statusText.errorTitle}
+        errorDescription={statusText.errorDescription}
       >
         <TableBodyRenderer
           tableAriaLabel={tableAriaLabel}

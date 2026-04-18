@@ -35,25 +35,35 @@ export function RuleDetailTable({
 }: RuleDetailTableProps) {
   return (
     <EditableDetailTable
-      title="규칙 상세"
-      ariaLabel="규칙 상세"
-      tableAriaLabel="규칙 상세 테이블"
-      loadingTitle="규칙 상세를 불러오는 중입니다."
-      emptyRowsText="상세 항목이 없습니다."
-      selectedMaster={selectedMaster}
-      rows={rows}
-      columns={columns}
-      isLoading={isLoading}
-      isSaving={isSaving}
-      rowErrors={rowErrors}
-      footnote={selectedMaster ? `${selectedMaster.name} 상세 규칙을 편집 중입니다.` : undefined}
-      onChangeValue={onChangeValue}
-      onClearRowError={onClearRowError}
-      onAddRow={onAddRow}
-      onDeleteRow={onDeleteRow}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      onSave={onSave}
+      table={{
+        title: '규칙 상세',
+        ariaLabel: '규칙 상세',
+        tableAriaLabel: '규칙 상세 테이블',
+        footnote: selectedMaster ? `${selectedMaster.name} 상세 규칙을 편집 중입니다.` : undefined,
+        emptyRowsText: '상세 항목이 없습니다.',
+      }}
+      statusText={{
+        loadingTitle: '규칙 상세를 불러오는 중입니다.',
+      }}
+      data={{
+        selectedMaster,
+        rows,
+        columns,
+        rowErrors,
+      }}
+      status={{
+        isLoading,
+        isSaving,
+      }}
+      actions={{
+        onChangeValue,
+        onClearRowError,
+        onAddRow,
+        onDeleteRow,
+        onMoveUp,
+        onMoveDown,
+        onSave,
+      }}
     />
   );
 }

@@ -1,5 +1,5 @@
 import '@/apps/admin/layout/AdminMainLayout.css';
-import { AdminMainNavigation } from '@/apps/admin/common/components/AdminMainNavigation';
+import { AdminMainNavigation } from '@/apps/admin/features/common/components/AdminMainNavigation';
 
 export default function AdminMainLayout({
   adminMainTitle,

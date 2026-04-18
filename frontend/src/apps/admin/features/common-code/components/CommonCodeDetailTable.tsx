@@ -55,19 +55,25 @@ export function CommonCodeDetailTable({
 }: CommonCodeDetailTableProps) {
   return (
     <EditableDetailTable
-      title={selectedMaster ? '공통코드 상세' : undefined}
-      ariaLabel="공통코드 상세"
-      tableAriaLabel="공통코드 상세 테이블"
-      loadingTitle="상세 코드를 불러오는 중입니다."
-      selectedMaster={selectedMaster}
-      rows={mapToEditableRows(rows)}
-      columns={COMMON_CODE_DETAIL_COLUMNS}
-      isLoading={isLoading}
-      isSaving={isSaving}
-      rowErrors={rowErrors}
-      footnote={
-        selectedMaster ? `${selectedMaster.name} 상세 코드를 편집 중입니다.` : undefined
-      }
+      table={{
+        title: selectedMaster ? '공통코드 상세' : undefined,
+        ariaLabel: '공통코드 상세',
+        tableAriaLabel: '공통코드 상세 테이블',
+        footnote: selectedMaster ? `${selectedMaster.name} 상세 코드를 편집 중입니다.` : undefined,
+      }}
+      statusText={{
+        loadingTitle: '상세 코드를 불러오는 중입니다.',
+      }}
+      data={{
+        selectedMaster,
+        rows: mapToEditableRows(rows),
+        columns: COMMON_CODE_DETAIL_COLUMNS,
+        rowErrors,
+      }}
+      status={{
+        isLoading,
+        isSaving,
+      }}
       getInputAriaLabel={(row, column) => {
         const code = String(row.values.code ?? row.id);
 
@@ -85,22 +91,24 @@ export function CommonCodeDetailTable({
 
         return `${row.id} ${column.label}`;
       }}
-      onChangeValue={(rowId, columnKey, value) => {
-        if (columnKey === 'useYn') {
-          onUseYnChange(rowId, Boolean(value));
-          return;
-        }
+      actions={{
+        onChangeValue: (rowId, columnKey, value) => {
+          if (columnKey === 'useYn') {
+            onUseYnChange(rowId, Boolean(value));
+            return;
+          }
 
-        if (columnKey === 'code' || columnKey === 'name') {
-          onFieldChange(rowId, columnKey, String(value));
-        }
+          if (columnKey === 'code' || columnKey === 'name') {
+            onFieldChange(rowId, columnKey, String(value));
+          }
+        },
+        onClearRowError,
+        onAddRow,
+        onDeleteRow: onDeleteRows,
+        onMoveUp,
+        onMoveDown,
+        onSave,
       }}
-      onClearRowError={onClearRowError}
-      onAddRow={onAddRow}
-      onDeleteRow={onDeleteRows}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      onSave={onSave}
     />
   );
 }

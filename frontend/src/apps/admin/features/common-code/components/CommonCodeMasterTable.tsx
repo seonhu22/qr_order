@@ -1,4 +1,4 @@
-import { CodeMasterTable } from '@/shared/components/table/CodeMasterTable';
+import { EditableMasterTable } from '@/shared/components/table/EditableMasterTable';
 import type { MasterCode } from '../types';
 
 type CommonCodeMasterTableProps = {
@@ -18,15 +18,34 @@ type CommonCodeMasterTableProps = {
 
 export function CommonCodeMasterTable(props: CommonCodeMasterTableProps) {
   return (
-    <CodeMasterTable
-      {...props}
+    <EditableMasterTable
       title="공통코드 마스터"
       ariaLabel="공통코드 마스터"
       tableAriaLabel="공통코드 마스터 테이블"
-      codeLabel="공통코드"
-      nameLabel="공통코드명"
-      loadingTitle="공통코드 목록을 불러오는 중입니다."
-      errorTitle="불러오는데 실패했습니다."
+      labels={{
+        code: '공통코드',
+        name: '공통코드명',
+      }}
+      statusText={{
+        loading: '공통코드 목록을 불러오는 중입니다.',
+        errorTitle: '불러오는데 실패했습니다.',
+      }}
+      rows={props.rows}
+      isLoading={props.isLoading}
+      isError={props.isError}
+      selection={{
+        selectedId: props.selectedMasterId,
+        checkedIds: props.checkedMasterIds,
+        isAllChecked: props.isAllChecked,
+      }}
+      actions={{
+        onSelectRow: props.onSelectRow,
+        onToggleRow: props.onToggleRow,
+        onToggleAllRows: props.onToggleAllRows,
+        onCreate: props.onCreate,
+        onEdit: props.onEdit,
+        onDelete: props.onDelete,
+      }}
     />
   );
 }

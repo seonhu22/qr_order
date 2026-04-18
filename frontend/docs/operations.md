@@ -92,6 +92,31 @@
 - 단, shared로 올릴 때도 기존 CSS 클래스와 동작 계약은 유지해야 한다.
 - 즉 "새 추상화"보다 "기존 UI를 깨지 않는 반복 제거"를 우선한다.
 
+### 4-2. 편집형 테이블 본체는 shared renderer와 상태 조각으로 수렴한다
+
+> 추가일: 2026-04-18
+
+마스터/상세/조회형 테이블에서 아래 반복이 확인되면 개별 화면 안에 다시 작성하지 않는다.
+
+- `columns + rows + cells` 형태의 본문 렌더링
+- loading / error / empty 피드백 분기
+- 마스터 액션 버튼 묶음
+- 상세 액션 버튼 묶음
+
+현재 공통 기준은 아래 shared 컴포넌트다.
+
+- `EditableMasterTable`
+- `EditableDetailTable`
+- `TableBodyRenderer`
+- `TableCardContentState`
+
+이때 원칙은 다음과 같다.
+
+- 기존 CSS 클래스와 동작은 유지한다.
+- 페이지/feature는 화면 모델과 핸들러를 조립만 한다.
+- shared 본체 props는 `table`, `statusText`, `data`, `actions`처럼 역할 기준 묶음으로 정리한다.
+- 화면별 `columns`, `rows` 조립은 모델 팩토리 파일로 분리해 테이블 컴포넌트 본문을 줄인다.
+
 ### 5. `normalize`, `map`, `buildRequest` 같은 유틸은 feature 가까이에 둔다
 
 - 예: `normalizeOrdNo`, `mapCommonDetailToRow`, `buildCommonDetailRequest`
@@ -201,6 +226,17 @@ const {
 - `flow` 훅: 저장/조회/초기화/안내 모달 분기 테스트
 - UI 컴포넌트: readonly, error, selected 같은 렌더 계약 테스트
 - page 통합 테스트: 저장 확인, 삭제 확인, dirty 경고처럼 화면 조립 기준의 핵심 사용자 흐름 테스트
+
+### 10-1. shared 본체 리팩토링 시 wrapper 테스트 계약도 함께 본다
+
+> 추가일: 2026-04-18
+
+`EditableMasterTable`, `EditableDetailTable` 같은 shared 본체를 바꿀 때는
+wrapper 컴포넌트(`CommonCodeMasterTable`, `RuleMasterTable` 등)와 page 통합 테스트가
+같이 영향을 받는다는 점을 전제로 작업한다.
+
+- shared 본체 변경 후에는 wrapper import 경로와 props 계약을 먼저 확인한다.
+- 그 다음 page 통합 테스트가 현재 문구/모달 이름 계약과 맞는지 확인한다.
 
 ### 11. 조회/초기화 dirty guard는 `useFilterDirtyCheck`를 사용한다
 

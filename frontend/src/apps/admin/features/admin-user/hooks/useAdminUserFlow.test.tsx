@@ -62,7 +62,7 @@ describe('useAdminUserFlow', () => {
   });
 
   it('opens save confirm first and shows success notice after confirm', async () => {
-    const params = createParams();
+    const params = createParams({ isDirty: true });
     const { result } = renderHook(() => useAdminUserFlow(params));
 
     act(() => {
