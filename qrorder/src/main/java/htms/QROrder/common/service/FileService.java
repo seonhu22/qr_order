@@ -122,6 +122,7 @@ public class FileService {
 
         FileInfo req = new FileInfo();
         req.setSysId(UlidCreator.getMonotonicUlid().toString());
+        req.setLinkSysId(ioReq.getLinkSysId());
         req.setOriginalFileNm(originalNameWithoutExt);
         req.setConvertFileNm(convertNmWithoutExt);
         req.setFileExt(ext);
