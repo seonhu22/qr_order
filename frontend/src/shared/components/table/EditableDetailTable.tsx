@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import { DetailTableActions } from './TableActionGroups';
 import { TableBodyRenderer } from './TableBodyRenderer';
@@ -89,6 +89,26 @@ export function EditableDetailTable<
   const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
     ? selectedDetailId
     : '';
+
+  /**
+   * 행추가 버튼으로 발생한 선택 변경인지 추적한다.
+   * 클릭으로 행을 선택할 때는 스크롤하지 않고, 행추가 시에만 스크롤하기 위해 사용한다.
+   */
+  const shouldScrollRef = useRef(false);
+  /** 테이블 본문 영역의 DOM 참조. 선택 행 스크롤 대상을 좁히기 위해 사용한다. */
+  const tableBodyRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 행추가로 새 행이 DOM에 반영된 뒤 해당 행이 보이도록 스크롤한다.
+   * effectiveSelectedDetailId가 바뀔 때만 실행되며,
+   * shouldScrollRef가 true일 때(행추가 직후)에만 실제로 스크롤한다.
+   */
+  useEffect(() => {
+    if (!shouldScrollRef.current || !effectiveSelectedDetailId || !tableBodyRef.current) return;
+    shouldScrollRef.current = false;
+    const selectedRow = tableBodyRef.current.querySelector('tr.is-selected');
+    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [effectiveSelectedDetailId]);
   const selectedIndex = rows.findIndex((row) => row.id === effectiveSelectedDetailId);
   const canMoveUp = !!selectedMaster && effectiveSelectedDetailId !== '' && selectedIndex > 0;
   const canMoveDown =
@@ -155,7 +175,10 @@ export function EditableDetailTable<
             isSaving={isSaving}
             onMoveUp={() => onMoveUp(effectiveSelectedDetailId || undefined)}
             onMoveDown={() => onMoveDown(effectiveSelectedDetailId || undefined)}
-            onAddRow={() => setSelectedDetailId(onAddRow())}
+            onAddRow={() => {
+              shouldScrollRef.current = true;
+              setSelectedDetailId(onAddRow());
+            }}
             onDeleteRow={() => {
               onDeleteRow(effectiveSelectedDetailId || undefined);
               setSelectedDetailId('');
@@ -175,13 +198,16 @@ export function EditableDetailTable<
         emptyClassName="common-code-card__empty"
       >
         <>
-          <TableBodyRenderer
-            tableAriaLabel={tableAriaLabel}
-            tableClassName="common-table common-table--detail"
-            columns={tableColumns}
-            rows={tableRows}
-            emptyMessage={emptyRowsText}
-          />
+          {/* layout-contents: display:contents 로 레이아웃에 투명 — common-table-wrap 이 직접 flex 자식이 된다 */}
+          <div ref={tableBodyRef} className="layout-contents">
+            <TableBodyRenderer
+              tableAriaLabel={tableAriaLabel}
+              tableClassName="common-table common-table--detail"
+              columns={tableColumns}
+              rows={tableRows}
+              emptyMessage={emptyRowsText}
+            />
+          </div>
           {footnote ? <p className="common-code-card__footnote">{footnote}</p> : null}
         </>
       </TableCardContentState>

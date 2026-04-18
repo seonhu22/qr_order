@@ -15,7 +15,7 @@ type CommonCodeDetailTableProps = {
   rows: DetailCode[];
   onFieldChange: (detailId: string, key: 'code' | 'name', value: string) => void;
   onUseYnChange: (detailId: string, checked: boolean) => void;
-  onAddRow: () => void;
+  onAddRow: () => string;
   onDeleteRows: (selectedId?: string) => void;
   onMoveUp: (selectedId?: string) => void;
   onMoveDown: (selectedId?: string) => void;

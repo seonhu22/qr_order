@@ -59,6 +59,11 @@
   gap: var(--spacing-3);
 }
 
+/* 레이아웃에 투명한 래퍼 — 자식이 직접 flex 자식이 되도록 한다 */
+.layout-contents {
+  display: contents;
+}
+
 /* 테이블 스크롤 래퍼 */
 .common-table-wrap {
   /* 헤더·푸터를 제외한 나머지 카드 높이를 채우고, 행이 넘치면 내부 스크롤 */
@@ -67,11 +72,61 @@
   overflow: auto;
 }
 
-/* 테이블 헤더 고정 */
+/* 테이블 헤더 고정 — 기본 테이블은 common-table-wrap 안에서 sticky */
 .common-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+/* =====================================================
+ * 인라인 편집 테이블(common-table--detail) 전용 레이아웃
+ *
+ * thead를 스크롤 영역 밖에 두고 tbody만 세로 스크롤한다.
+ * common-table-wrap의 overflow-y를 hidden으로 재정의하고
+ * tbody가 독립 스크롤 컨테이너가 된다.
+ * ===================================================== */
+
+/* detail 테이블이 있는 wrap은 세로 스크롤을 tbody로 위임 */
+.common-table-wrap:has(.common-table--detail) {
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* detail 테이블 자체를 flex 컨테이너로 전환 */
+.common-table--detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* thead — 스크롤 영역 밖에 고정, sticky 해제 */
+.common-table--detail thead {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.common-table--detail thead th {
+  position: static;
+}
+
+/* tbody — 유일한 세로 스크롤 컨테이너 */
+.common-table--detail tbody {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* thead tr, tbody tr — 독립 table로 렌더링해 컬럼 너비 동기화 */
+.common-table--detail thead tr,
+.common-table--detail tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }
 
 /* 좌정렬 컬럼
