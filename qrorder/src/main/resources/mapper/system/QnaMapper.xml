@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.QnaMapper">
+
+    <select id="getQna" resultType="htms.QROrder.system.dto.QnaResponse">
+        select
+            bq.sys_id,
+            bq.qna_title,
+            bq.qns_description,
+            bq.start_date,
+            bq.file_uuid,
+            bq.answer_yn,
+            bq.answer_datetime,
+            bq.answer_description
+        from brd_qna bq
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+        and (bq.qna_title like concat('%', #{searchKeyword}, '%')
+                or bq.qns_description like concat('%', #{searchKeyword}, '%'))
+        </if>
+        and bq.sys_plant_cd = #{sysPlantCd}
+        and bq.delete_yn = 'N'
+    </select>
+
+    <update id="updateQna">
+        update brd_qna set
+            answer_yn = 'Y',
+            answer_datetime = now(),
+            answer_description = #{qnaRequest.answerDescription},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{noticeRequest.sysId}
+    </update>
+</mapper>
