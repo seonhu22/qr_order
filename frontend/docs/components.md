@@ -165,7 +165,9 @@ shared/components/
       SimpleDefaultModal.tsx      ← 빈 슬롯형 범용 모달
   table/
     index.ts              ← 외부 공개 API (배럴 파일)
-    types.ts
+    types.ts              ← 대표 공개 props/type
+    tableModelTypes.ts    ← columns/rows/cells 같은 하위 렌더 계약 타입
+    tableBadgeTypes.ts    ← badge 값 타입
     TableCard.css         ← 공통 테이블 카드 스타일 (common-code-card, common-table 등)
     TableCard.tsx         ← 카드 레이아웃 컴포넌트
   treeMenu/
@@ -254,8 +256,24 @@ Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립�
 ## 4. 타입 규칙
 
 - 신규 컴포넌트는 TypeScript(`.tsx`)로 작성한다.
-- 공통 타입은 컴포넌트 폴더 내 `types.ts`에 정의한다.
+- 컴포넌트 폴더의 **대표 공개 props/type**은 `types.ts`에 정의한다.
 - 폴더 외부에서는 `index.ts` 배럴 파일을 통해서만 import한다.
+
+### `types.ts`와 `*Types.ts` 구분
+
+현재 shared 컴포넌트는 모든 타입을 단일 `types.ts`로 몰지 않는다.
+타입도 역할에 따라 가까운 위치에 둔다.
+
+| 위치 | 용도 | 예시 |
+|---|---|---|
+| `types.ts` | 폴더의 대표 공개 props/type | `TableCardProps`, `ButtonProps` |
+| `*Types.ts` | 같은 폴더 하위 모듈끼리 공유하는 의미 있는 타입 | `tableModelTypes.ts`, `tableBadgeTypes.ts` |
+| `features/<domain>/types.ts` | 도메인/업무 의미가 강한 feature 타입 | `RuleDetailRow`, `MasterCode` |
+
+- `types.ts`는 "외부에 공개할 대표 타입" 중심으로 유지한다.
+- `columns`, `rows`, `cells` 같은 하위 렌더 계약 타입은 `*Types.ts`로 분리할 수 있다.
+- 배지 값 타입처럼 하위 모듈끼리만 공유하는 타입도 별도 `*Types.ts`로 분리할 수 있다.
+- feature/domain 타입은 `shared/components`로 올리지 않고 feature 내부에 둔다.
 
 ### index.ts (배럴 파일) 역할
 
