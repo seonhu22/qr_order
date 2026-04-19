@@ -26,10 +26,12 @@ import type {
   CommonResponse,
   Menu,
   Message,
+  NoticeResponse,
   PaymentCoupon,
   PaymentResponse,
   Plant,
   PlantStatusResponse,
+  QnaResponse,
   RuleDetail,
   RuleMaster,
   SysAccessLogDetail,
@@ -71,6 +73,14 @@ export const getDelCommonMasterResponseMock = (overrideResponse: Partial< Common
 
 export const getSaveCommonDetailResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
+export const getUpdateQnaResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getUpdateNoticeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getNewNoticeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getDelNoticeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
 export const getSaveAdminUserResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getGetRuleMasterResponseMock = (): RuleMaster[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ruleCd: faker.string.alpha({length: {min: 10, max: 20}}), ruleNm: faker.string.alpha({length: {min: 10, max: 20}}), useYn: faker.string.alpha({length: {min: 10, max: 20}})})))
@@ -98,6 +108,10 @@ export const getGetAuditTrailResponseMock = (): AuditTrail[] => (Array.from({ le
 export const getSearchCommonResponseMock = (): CommonMaster[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), commonCd: faker.string.alpha({length: {min: 10, max: 20}}), commonNm: faker.string.alpha({length: {min: 10, max: 20}}), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
 export const getSearchCommonDetailResponseMock = (): CommonDetail[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.string.alpha({length: {min: 10, max: 20}}), masterCommonCd: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), commonCd: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), commonNm: faker.string.alpha({length: {min: 10, max: 20}}), ordNo: faker.number.int({min: undefined, max: undefined}), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
+
+export const getGetQnaResponseMock = (): QnaResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), qnaTitle: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), qnaDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), startDate: faker.helpers.arrayElement([{NanoSeconds: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Seconds: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Minutes: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Hours: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Day: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Month: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Year: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), IsUTC: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, undefined]), fileUuid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), answerYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), answerDatetime: faker.helpers.arrayElement([{NanoSeconds: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Seconds: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Minutes: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Hours: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Day: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Month: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), Year: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), IsUTC: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, undefined]), answerDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
+
+export const getGetNoticeResponseMock = (): NoticeResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({noticeTitle: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), noticeDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), startDate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileUuid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
 export const getGetAdminUserResponseMock = (): AdminUserResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), userId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), userNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), plantCd: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), plantNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
@@ -306,6 +320,54 @@ export const getSaveCommonDetailMockHandler = (overrideResponse?: CommonResponse
   }, options)
 }
 
+export const getUpdateQnaMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/system/settings/board/qna/update', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateQnaResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getUpdateNoticeMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/system/settings/board/notice/update', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getUpdateNoticeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getNewNoticeMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/system/settings/board/notice/new', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getNewNoticeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getDelNoticeMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/system/settings/board/notice/del', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getDelNoticeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getSaveAdminUserMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
   return http.post('*/api/system/settings/adminuser/save', async (info) => {await delay(1000);
   
@@ -474,6 +536,30 @@ export const getSearchCommonDetailMockHandler = (overrideResponse?: CommonDetail
   }, options)
 }
 
+export const getGetQnaMockHandler = (overrideResponse?: QnaResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QnaResponse[]> | QnaResponse[]), options?: RequestHandlerOptions) => {
+  return http.get('*/api/system/settings/board/qna/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetQnaResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getGetNoticeMockHandler = (overrideResponse?: NoticeResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<NoticeResponse[]> | NoticeResponse[]), options?: RequestHandlerOptions) => {
+  return http.get('*/api/system/settings/board/notice/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetNoticeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getGetAdminUserMockHandler = (overrideResponse?: AdminUserResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AdminUserResponse[]> | AdminUserResponse[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/system/settings/adminuser/search', async (info) => {await delay(1000);
   
@@ -503,6 +589,10 @@ export const getSettingsControllerMock = () => [
   getNewCommonMasterMockHandler(),
   getDelCommonMasterMockHandler(),
   getSaveCommonDetailMockHandler(),
+  getUpdateQnaMockHandler(),
+  getUpdateNoticeMockHandler(),
+  getNewNoticeMockHandler(),
+  getDelNoticeMockHandler(),
   getSaveAdminUserMockHandler(),
   getGetRuleMasterMockHandler(),
   getGetRuleDetailMockHandler(),
@@ -517,5 +607,7 @@ export const getSettingsControllerMock = () => [
   getGetAuditTrailMockHandler(),
   getSearchCommonMockHandler(),
   getSearchCommonDetailMockHandler(),
+  getGetQnaMockHandler(),
+  getGetNoticeMockHandler(),
   getGetAdminUserMockHandler()
 ]
