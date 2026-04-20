@@ -31,4 +31,7 @@ export const queryKeys = {
   payment: {
     list: (searchKeyword = '') => ['settings', 'payment', 'list', { searchKeyword }] as const,
   },
+  plantStatus: {
+    list: (searchKeyword = '') => ['settings', 'plantStatus', 'list', { searchKeyword }] as const,
+  },
 } as const;
