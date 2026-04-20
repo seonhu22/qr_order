@@ -14,6 +14,7 @@ import type { EditablePageFlowState, EditablePageSimpleModalState } from '@/shar
  */
 export type MessageRow = {
   id: string;
+  sysId?: string;
   code: string;
   name: string;
   content: string;
@@ -35,7 +36,9 @@ export type MessagePageData = {
  */
 export type MessagePageStatus = {
   isLoading: boolean;
+  isFetching?: boolean;
   isError: boolean;
+  error?: unknown;
   isSaving: boolean;
 };
 

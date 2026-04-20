@@ -1,43 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/api/queryKeys';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import type { MessagePageViewModel, MessageRow } from '../types';
-
-/**
- * Figma 시안을 바로 확인할 수 있도록 넣어둔 초기 메시지 목록.
- *
- * TODO : 추후 API 연동 시 이 상수는 서버 응답으로 대체된다.
- */
-const INITIAL_ROWS: MessageRow[] = [
-  {
-    id: 'message-row-1',
-    code: 'MSG001',
-    name: '주문 완료',
-    content: '주문이 정상적으로 접수되었습니다.',
-    isNew: false,
-  },
-  {
-    id: 'message-row-2',
-    code: 'MSG002',
-    name: '결제 완료',
-    content: '결제가 완료되었습니다. 감사합니다.',
-    isNew: false,
-  },
-  {
-    id: 'message-row-3',
-    code: '',
-    name: '',
-    content: '',
-    isNew: true,
-  },
-  {
-    id: 'message-row-4',
-    code: '',
-    name: '',
-    content: '',
-    isNew: true,
-  },
-];
+import {
+  buildMessageRequest,
+  hasMessageChanges,
+  mapToMessageModel,
+  useMessageQuery,
+  useSaveMessagesMutation,
+} from '../api/messageApi';
 
 /**
  * 객체 배열을 그대로 재사용하지 않고 복사본으로 만든다.
@@ -50,15 +23,6 @@ function cloneRows(rows: MessageRow[]) {
 }
 
 /**
- * 저장 전 데이터와 현재 편집 데이터를 비교해 변경 여부를 계산한다.
- *
- * @returns {boolean} 하나라도 바뀌었으면 true
- */
-function hasMessageChanges(baseRows: MessageRow[], draftRows: MessageRow[]) {
-  return JSON.stringify(baseRows) !== JSON.stringify(draftRows);
-}
-
-/**
  * 메시지 관리 페이지 상태/액션 조합.
  *
  * @description
@@ -66,15 +30,37 @@ function hasMessageChanges(baseRows: MessageRow[], draftRows: MessageRow[]) {
  * - 검색어 draft/applied 분리, 테이블 편집 상태, dirty guard를 한곳에서 관리한다.
  */
 export function useMessagePage(): MessagePageViewModel {
+  const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
+  const messageQuery = useMessageQuery(appliedKeyword.trim());
+  const saveMessagesMutation = useSaveMessagesMutation();
+  const fetchedRows = useMemo(
+    () => (messageQuery.data ?? []).map(mapToMessageModel),
+    [messageQuery.data],
+  );
   /* baseRows: 마지막 저장 상태, draftRows: 현재 화면에서 수정 중인 상태 */
-  const [baseRows, setBaseRows] = useState<MessageRow[]>(() => cloneRows(INITIAL_ROWS));
-  const [draftRows, setDraftRows] = useState<MessageRow[]>(() => cloneRows(INITIAL_ROWS));
-  const [selectedRowId, setSelectedRowId] = useState('message-row-4');
+  const [baseRows, setBaseRows] = useState<MessageRow[]>([]);
+  const [draftRows, setDraftRows] = useState<MessageRow[]>([]);
+  const [selectedRowId, setSelectedRowId] = useState('');
+
+  useEffect(() => {
+    const nextRows = cloneRows(fetchedRows);
+    setBaseRows(nextRows);
+    setDraftRows(cloneRows(fetchedRows));
+    setSelectedRowId((prev) => {
+      if (prev && nextRows.some((row) => row.id === prev)) {
+        return prev;
+      }
+      return nextRows[0]?.id ?? '';
+    });
+  }, [fetchedRows]);
 
   /* 저장 전후 비교 기준. true면 "저장되지 않은 내용"이 있다는 뜻이다. */
-  const isDirty = useMemo(() => hasMessageChanges(baseRows, draftRows), [baseRows, draftRows]);
+  const isDirty = useMemo(() => {
+    const request = buildMessageRequest(draftRows, baseRows);
+    return hasMessageChanges(request);
+  }, [baseRows, draftRows]);
 
   const rows = useMemo(() => {
     const keyword = appliedKeyword.trim().toLowerCase();
@@ -95,9 +81,9 @@ export function useMessagePage(): MessagePageViewModel {
    */
   const resetMessageState = () => {
     resetKeywords();
-    setBaseRows(cloneRows(INITIAL_ROWS));
-    setDraftRows(cloneRows(INITIAL_ROWS));
-    setSelectedRowId('message-row-4');
+    setBaseRows(cloneRows(fetchedRows));
+    setDraftRows(cloneRows(fetchedRows));
+    setSelectedRowId(fetchedRows[0]?.id ?? '');
   };
 
   const editableFlow = useEditablePageFlow({
@@ -105,11 +91,16 @@ export function useMessagePage(): MessagePageViewModel {
     onApplySearch: applyDraftKeyword,
     onResetFilters: resetMessageState,
     onSaveChanges: async () => {
-      if (!isDirty) {
+      const request = buildMessageRequest(draftRows, baseRows);
+
+      if (!hasMessageChanges(request)) {
         return 'unchanged';
       }
 
-      setBaseRows(cloneRows(draftRows));
+      await saveMessagesMutation.mutateAsync(request);
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.message.list(appliedKeyword.trim()),
+      });
       return 'saved';
     },
   });
@@ -185,9 +176,11 @@ export function useMessagePage(): MessagePageViewModel {
       rows,
     },
     status: {
-      isLoading: false,
-      isError: false,
-      isSaving: false,
+      isLoading: messageQuery.isLoading,
+      isFetching: messageQuery.isFetching,
+      isError: messageQuery.isError,
+      error: messageQuery.error,
+      isSaving: saveMessagesMutation.isPending,
     },
     actions: {
       handleKeywordChange,

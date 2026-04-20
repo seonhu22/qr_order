@@ -34,7 +34,7 @@ export function MessageManagementPage() {
         <MessageTable
           rows={data.rows}
           selectedRowId={uiProps.selectedRowId}
-          isLoading={status.isLoading}
+          isLoading={status.isLoading || !!status.isFetching}
           isError={status.isError}
           isSaving={status.isSaving}
           onSelectRow={actions.handleSelectRow}
