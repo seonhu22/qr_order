@@ -37,10 +37,10 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
           <td className="common-table__mono common-table__cell--left" title={row.plantCode}>{row.plantCode}</td>
           <td className="common-table__cell--left common-table__cell--truncate" title={row.plantName}>{row.plantName}</td>
           <td className="common-table__cell--left common-table__cell--truncate" title={row.storeName}>{row.storeName}</td>
-          <td className="plant-search-page__muted common-table__cell--truncate" title={row.ownerName}>{row.ownerName}</td>
+          <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.ownerName}>{row.ownerName}</td>
           <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.email}>{row.email}</td>
-          <td className="plant-search-page__muted common-table__cell--truncate" title={row.managerName}>{row.managerName}</td>
-          <td className="plant-search-page__muted" title={row.postalCode}>{row.postalCode}</td>
+          <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.managerName}>{row.managerName}</td>
+          <td className="plant-search-page__muted common-table__cell--left" title={row.postalCode}>{row.postalCode}</td>
           <td className="plant-search-page__muted common-table__cell--left common-table__cell--truncate" title={row.address}>{row.address}</td>
           <td className="common-table__cell--left common-table__cell--truncate plant-search-page__muted" title={row.phoneNumber}>{row.phoneNumber}</td>
           <td>
@@ -76,10 +76,10 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
                 <th className="common-table__cell--left" style={{ width: '12rem' }}>사업자 코드</th>
                 <th className="common-table__cell--left">사업자 명</th>
                 <th className="common-table__cell--left">상호명</th>
-                <th>대표자명</th>
+                <th className="common-table__cell--left">대표자명</th>
                 <th className="common-table__cell--left">이메일 주소</th>
-                <th>담당자 명</th>
-                <th>우편번호</th>
+                <th className="common-table__cell--left">담당자 명</th>
+                <th className="common-table__cell--left">우편번호</th>
                 <th className="common-table__cell--left">주소</th>
                 <th className="common-table__cell--left">전화번호</th>
                 <th>클라이언트 접속</th>
