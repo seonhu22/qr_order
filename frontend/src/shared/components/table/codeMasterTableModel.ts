@@ -35,12 +35,10 @@ export function createCodeMasterTableColumns({
     {
       key: 'code',
       label: codeLabel,
-      align: 'left',
     },
     {
       key: 'name',
       label: nameLabel,
-      align: 'left',
     },
     {
       key: 'useYn',
@@ -78,13 +76,12 @@ export function createCodeMasterTableRows<T extends EditableMasterRow>({
       code: {
         type: 'text',
         value: row.code,
-        className: 'common-table__mono common-table__cell--left',
+        className: 'common-table__mono',
         title: row.code,
       },
       name: {
         type: 'text',
         value: row.name,
-        className: 'common-table__cell--left',
         title: row.name,
       },
       useYn: {
