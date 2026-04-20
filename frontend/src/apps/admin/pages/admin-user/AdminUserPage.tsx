@@ -9,10 +9,10 @@
 
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/admin-user/AdminUserPage.css';
-import { AdminUserFilters } from '@/apps/admin/features/admin-user/components/AdminUserFilters';
 import { AdminUserFlowModals } from '@/apps/admin/features/admin-user/components/AdminUserFlowModals';
 import { AdminUserTable } from '@/apps/admin/features/admin-user/components/AdminUserTable';
 import { useAdminUserPage } from '@/apps/admin/features/admin-user/hooks/useAdminUserPage';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { ConfirmModal } from '@/shared/components/modal';
 
 export function AdminUserPage() {
@@ -25,9 +25,13 @@ export function AdminUserPage() {
         adminMainTitle="관리자 관리"
         depth1="시스템"
         depth2="시스템 관리"
-        className="admin-main-layout-page--fixed"
-        filterSlot={
-          <AdminUserFilters
+      className="admin-main-layout-page--fixed"
+      filterSlot={
+          <SearchFilterCard
+            ariaLabel="관리자 검색"
+            inputId="admin-user-search-keyword"
+            inputAriaLabel="관리자 검색어"
+            placeholder="사용자 아이디, 사용자 명으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}

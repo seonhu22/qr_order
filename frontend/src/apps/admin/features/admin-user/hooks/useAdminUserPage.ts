@@ -48,7 +48,7 @@ import type { AdminUserPageViewModel } from '../types';
  * ```tsx
  * const { data, status, actions, uiProps } = useAdminUserPage();
  *
- * <AdminUserFilters
+ * <SearchFilterCard
  *   draftKeyword={uiProps.draftKeyword}
  *   onKeywordChange={actions.handleKeywordChange}
  *   onSearch={actions.handleSearch}
