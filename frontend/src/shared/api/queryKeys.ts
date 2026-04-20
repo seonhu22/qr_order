@@ -34,4 +34,7 @@ export const queryKeys = {
   plantStatus: {
     list: (searchKeyword = '') => ['settings', 'plantStatus', 'list', { searchKeyword }] as const,
   },
+  coupon: {
+    list: (searchKeyword = '') => ['settings', 'coupon', 'list', { searchKeyword }] as const,
+  },
 } as const;
