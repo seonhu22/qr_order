@@ -2,25 +2,16 @@
  * 결제 요금 관리 페이지 — feature 전용 스타일
  * ===================================================== */
 
-.payment-manage-detail__row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-4) 0;
-  border-bottom: var(--border-1) solid var(--color-border-default);
+/* 행 클릭 이벤트 없음 — 커서 기본값, 호버 배경 제거 */
+.payment-manage-table tbody tr {
+  cursor: default;
 }
 
-.payment-manage-detail__row:last-child {
-  border-bottom: none;
-}
 
-.payment-manage-detail__label {
-  font-size: var(--typography-size-caption);
-  font-weight: var(--typography-weight-ui);
-  color: var(--color-text-tertiary);
-}
-
-.payment-manage-detail__value {
-  font-size: var(--typography-size-ui);
-  color: var(--color-text-primary);
-}
+/* 컬럼 너비 */
+.payment-manage-table col:nth-child(1) { width: 3rem; }
+.payment-manage-table col:nth-child(2) { width: 14rem; }
+.payment-manage-table col:nth-child(4) { width: 10rem; }
+.payment-manage-table col:nth-child(5) { width: 10rem; }
+.payment-manage-table col:nth-child(6) { width: 10rem; }
+.payment-manage-table col:nth-child(7) { width: 3.5rem; }
