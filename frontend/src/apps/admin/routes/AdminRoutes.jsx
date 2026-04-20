@@ -19,6 +19,7 @@ import { MainPage } from '@/apps/admin/pages/main/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
 import { PaymentManagePage } from '@/apps/admin/pages/payment-manage/PaymentManagePage';
+import { PlantStatusPage } from '@/apps/admin/pages/plant-status/PlantStatusPage';
 import { PlantSearchPage } from '@/apps/admin/pages/plant-search/PlantSearchPage';
 import { AdminUserPage } from '@/apps/admin/pages/admin-user/AdminUserPage';
 import { SystemMenuPage } from '@/apps/admin/pages/system-menu/SystemMenuPage';
@@ -68,7 +69,7 @@ export const adminRoutes = [
       },
       {
         path: 'payment/plant-status',
-        element: <AdminPlaceholderPage title="사업장 상태 조회" />,
+        element: <PlantStatusPage />,
       },
       {
         path: 'payment/coupon',
