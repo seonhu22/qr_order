@@ -14,7 +14,7 @@ type PlantSearchTableProps = {
  * 사업장 조회 결과 테이블
  *
  * @description
- * - 목록 렌더링과 상태별 메시지(로딩/에러/빈 결과)만 담당한다.
+ * - 목록 렌링과 상태별 메시지(로딩/에러/빈 결과)만 담당한다.
  * - 데이터 조회와 검색 조건 관리는 상위 hook에서 처리한다.
  * - 로딩 상태는 테이블 tbody가 아닌 카드 레벨에서 FeedbackState로 표시한다.
  */
@@ -67,7 +67,11 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
       {isLoading ? (
         <FeedbackState variant="loading" title="사업장 목록을 불러오는 중입니다." />
       ) : isError ? (
-        <FeedbackState variant="error" description="다시 한번 시도해주세요." />
+        <FeedbackState
+          variant="error"
+          title="불러오는데 실패했습니다"
+          description="다시 한번 시도해주세요."
+        />
       ) : (
         <div className="common-table-wrap">
           <table className="common-table">
