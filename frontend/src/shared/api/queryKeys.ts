@@ -28,4 +28,7 @@ export const queryKeys = {
   adminUser: {
     list: (searchKeyword = '') => ['settings', 'adminUser', 'list', { searchKeyword }] as const,
   },
+  payment: {
+    list: (searchKeyword = '') => ['settings', 'payment', 'list', { searchKeyword }] as const,
+  },
 } as const;

@@ -6,6 +6,7 @@ import { getFileControllerMock } from '../generated/file-controller/file-control
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
 import { getMainControllerMock } from '../generated/main-controller/main-controller.msw';
 import { getPopupControllerMock } from '../generated/popup-controller/popup-controller.msw';
+import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 
 // 사업장 조회 에러 확인용 — 확인 후 제거하거나 주석 처리
 // const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
@@ -18,8 +19,22 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
+const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? PAYMENT_MOCK_ROWS.filter(
+        (row) =>
+          row.paymentCd?.toLowerCase().includes(keyword) ||
+          row.paymentNm?.toLowerCase().includes(keyword),
+      )
+    : PAYMENT_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
 export const handlers = [
   ...authHandlers,
+  paymentOverrideHandler,
   // ...devOverrideHandlers,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),
