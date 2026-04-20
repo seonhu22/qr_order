@@ -8,6 +8,7 @@ import { getMainControllerMock } from '../generated/main-controller/main-control
 import { getPopupControllerMock } from '../generated/popup-controller/popup-controller.msw';
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
+import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
 
 // 사업장 조회 에러 확인용 — 확인 후 제거하거나 주석 처리
 // const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
@@ -46,10 +47,24 @@ const plantStatusOverrideHandler = http.get('*/api/system/settings/plant_status/
   return HttpResponse.json(filtered);
 });
 
+const couponOverrideHandler = http.get('*/api/system/settings/payment_coupon/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? COUPON_MOCK_ROWS.filter(
+        (row) =>
+          row.couponCd?.toLowerCase().includes(keyword) ||
+          row.couponNm?.toLowerCase().includes(keyword),
+      )
+    : COUPON_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
 export const handlers = [
   ...authHandlers,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
+  couponOverrideHandler,
   // ...devOverrideHandlers,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),

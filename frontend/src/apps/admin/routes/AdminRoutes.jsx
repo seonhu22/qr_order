@@ -25,6 +25,7 @@ import { AdminUserPage } from '@/apps/admin/pages/admin-user/AdminUserPage';
 import { SystemMenuPage } from '@/apps/admin/pages/system-menu/SystemMenuPage';
 import { MessageManagementPage } from '@/apps/admin/pages/message-management/MessageManagementPage';
 import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManagementPage';
+import { CouponManagePage } from '@/apps/admin/pages/coupon-manage/CouponManagePage';
 
 export const adminRoutes = [
   {
@@ -73,7 +74,7 @@ export const adminRoutes = [
       },
       {
         path: 'payment/coupon',
-        element: <AdminPlaceholderPage title="쿠폰 관리" />,
+        element: <CouponManagePage />,
       },
       {
         path: 'history/access-log',
