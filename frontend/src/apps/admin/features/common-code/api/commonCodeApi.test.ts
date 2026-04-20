@@ -1,8 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { buildCommonDetailRequest, hasCommonDetailChanges } from './commonCodeApi';
-import type { DetailCode } from '../types';
+import {
+  buildCommonDetailRequest,
+  hasCommonDetailChanges,
+  mapToCommonMasterPayload,
+} from './commonCodeApi';
+import type { DetailCode, MasterCode } from '../types';
 
 describe('commonCodeApi', () => {
+  it('maps master useYn as-is for save payloads', () => {
+    const master: MasterCode = {
+      id: 'master-1',
+      sysId: 'master-1',
+      code: 'cmCode3',
+      name: '공통마스터3',
+      useYn: 'N',
+    };
+
+    expect(mapToCommonMasterPayload(master)).toEqual({
+      sysId: 'master-1',
+      commonCd: 'cmCode3',
+      commonNm: '공통마스터3',
+      useYn: 'N',
+    });
+  });
+
   it('builds detail requests with empty arrays instead of undefined', () => {
     const request = buildCommonDetailRequest('master-1', [], []);
 
