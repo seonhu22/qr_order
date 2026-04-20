@@ -1,9 +1,9 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/common-code/CommonCodePage.css';
 import './CouponManagePage.css';
-import { CouponManageFilters } from '@/apps/admin/features/coupon-manage/components/CouponManageFilters';
 import { CouponManageTable } from '@/apps/admin/features/coupon-manage/components/CouponManageTable';
 import { useCouponManagePageState } from '@/apps/admin/features/coupon-manage/hooks/useCouponManagePageState';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import {
   DeleteConfirmModal,
@@ -30,7 +30,11 @@ export function CouponManagePage() {
         depth2="쿠폰 관리"
         className="admin-main-layout-page--fixed"
         filterSlot={
-          <CouponManageFilters
+          <SearchFilterCard
+            ariaLabel="쿠폰 검색"
+            inputId="coupon-manage-search-keyword"
+            inputAriaLabel="쿠폰 검색어"
+            placeholder="쿠폰 코드, 쿠폰명으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}
