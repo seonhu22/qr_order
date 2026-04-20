@@ -64,6 +64,17 @@ public class SettingsController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
+        String logUuid = (String) session.getAttribute("logUuid");
+
+        log.info(
+                "newCommonMaster request commonCd={}, commonNm={}, useYn={}, loginUser={}, menuCd={}, logUuid={}",
+                commonMaster.getCommonCd(),
+                commonMaster.getCommonNm(),
+                commonMaster.getUseYn(),
+                loginUser != null ? loginUser.getUserId() : null,
+                menuCd,
+                logUuid
+        );
 
         commonMasterService.newCommonMaster(commonMaster, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 

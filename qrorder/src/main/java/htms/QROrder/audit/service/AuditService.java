@@ -53,8 +53,18 @@ public class AuditService {
                                             String tableNm) {
 
         List<TableInfo> tableInfo = getTableInfo(tableNm);
+        log.info(
+                "AuditService.convertNewAuditTrailData start tableNm={}, menuCd={}, tableInfoCount={}",
+                tableNm,
+                menuCd,
+                tableInfo != null ? tableInfo.size() : null
+        );
         Map<String, String> columnCommentMap = tableInfo.stream()
                 .collect(Collectors.toMap(TableInfo::getColumnName, TableInfo::getColumnComment));
+        log.info(
+                "AuditService.convertNewAuditTrailData columnCommentMap keys={}",
+                columnCommentMap.keySet()
+        );
         String ULID = UlidCreator.getMonotonicUlid().toString();
 
         Audit audit = new Audit();
@@ -70,6 +80,10 @@ public class AuditService {
         audit.setInsertDatetime(LocalDateTime.now());
 
         Map<String, Object> newDataMap = dataSetToHashMap(newData);
+        log.info(
+                "AuditService.convertNewAuditTrailData newData keys={}",
+                newDataMap.keySet()
+        );
 
         StringBuilder contents = new StringBuilder("신규 데이터\n");
         for (Map.Entry<String, Object> entry : newDataMap.entrySet()) {
