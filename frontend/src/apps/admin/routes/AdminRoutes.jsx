@@ -18,6 +18,7 @@ import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
 import { MainPage } from '@/apps/admin/pages/main/MainPage';
 import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
+import { PaymentManagePage } from '@/apps/admin/pages/payment-manage/PaymentManagePage';
 import { PlantSearchPage } from '@/apps/admin/pages/plant-search/PlantSearchPage';
 import { AdminUserPage } from '@/apps/admin/pages/admin-user/AdminUserPage';
 import { SystemMenuPage } from '@/apps/admin/pages/system-menu/SystemMenuPage';
@@ -63,7 +64,7 @@ export const adminRoutes = [
       },
       {
         path: 'payment/rate',
-        element: <AdminPlaceholderPage title="결제 요금 관리" />,
+        element: <PaymentManagePage />,
       },
       {
         path: 'payment/plant-status',
