@@ -7,13 +7,14 @@
  * - 마스터/상세 선택, 체크 상태, 상세 draft 편집, 저장/삭제, 순번 이동까지 담당한다.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 import type { DetailCode, MasterCode } from '../types';
 import {
   buildCommonDetailRequest,
@@ -44,6 +45,9 @@ export function useCommonCodePageState() {
   const orderedRowEditor = useOrderedRowEditor<DetailCode>();
   const [selectedMasterId, setSelectedMasterId] = useState<string>('');
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
+  // 메뉴 접근 로그 남기는 mutation, 페이지 진입 시 한 번만 실행한다. useRef 가드로 한번만 렌더링하도록 했다.
+  const menuOpenLogMutation = useInsertMenuOpenAccessLog();
+  const hasOpenedMenuLogRef = useRef(false);
   /**
    * 사용자가 실제로 수정하기 시작한 상세 행만 저장하는 draft 저장소.
    *
@@ -59,6 +63,17 @@ export function useCommonCodePageState() {
   const [masterKeyword, setMasterKeyword] = useState('');
 
   /* 조회·초기화 dirty guard: useFilterDirtyCheck로 관리 */
+  useEffect(() => {
+    // 이전에 실행된 적 있으면 REF가 true이므로, 다시 실행하지 않고 그냥 return 한다.
+    if (hasOpenedMenuLogRef.current) {
+      return;
+    }
+    hasOpenedMenuLogRef.current = true;
+
+    // 백엔드 저장 API는 audit 처리에서 session.menuCd를 사용하므로
+    // 페이지 진입 시 현재 메뉴 접근 로그를 먼저 남겨 세션 값을 맞춘다.
+    menuOpenLogMutation.mutate({ params: { menuCd: 'commonCode' } });
+  }, [menuOpenLogMutation]);
 
   const mastersQuery = useCommonCodeMastersQuery(masterKeyword);
   const saveMasterMutation = useSaveCommonMasterMutation();
@@ -77,7 +92,9 @@ export function useCommonCodePageState() {
    * 유효한 경우에만 selected id로 사용한다.
    */
   const effectiveSelectedMasterId =
-    selectedMasterId && masterRows.some((row) => row.id === selectedMasterId) ? selectedMasterId : '';
+    selectedMasterId && masterRows.some((row) => row.id === selectedMasterId)
+      ? selectedMasterId
+      : '';
   /**
    * 체크된 행도 같은 방식으로 현재 목록에 실제로 남아 있는 값만 사용한다.
    *
@@ -245,7 +262,10 @@ export function useCommonCodePageState() {
    * - 낙관적 업데이트 대신 invalidate 후 재조회 방식을 사용한다.
    * - 업무 화면에서 서버 정합성을 우선하기 위한 선택이다.
    */
-  const saveMaster = async (master: { id: string; sysId?: string; code: string; name: string; useYn: 'Y' | 'N' }, isCreateMode: boolean) => {
+  const saveMaster = async (
+    master: { id: string; sysId?: string; code: string; name: string; useYn: 'Y' | 'N' },
+    isCreateMode: boolean,
+  ) => {
     await saveMasterMutation.mutateAsync(master, isCreateMode);
     await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
   };
@@ -305,7 +325,9 @@ export function useCommonCodePageState() {
     }
 
     await saveDetailsMutation.mutateAsync(request);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.details(selectedMaster.id) });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.commonCode.details(selectedMaster.id),
+    });
     setDetailRowsByMaster((prev) => {
       const next = { ...prev };
       delete next[selectedMaster.id];

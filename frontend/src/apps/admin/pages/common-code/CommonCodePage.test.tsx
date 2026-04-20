@@ -41,6 +41,23 @@ describe('CommonCodePage', () => {
       useYn: string;
     }>
   >;
+  let detailSaveRequests: Array<{
+    linkSysId: string;
+    newItems?: Array<{
+      commonCd?: string;
+      commonNm: string;
+      ordNo: number;
+      useYn?: string;
+    }>;
+    updateItems?: Array<{
+      sysId?: string;
+      commonCd?: string;
+      commonNm: string;
+      ordNo: number;
+      useYn?: string;
+    }>;
+    deleteItems?: Array<{ sysId?: string }>;
+  }>;
 
   beforeEach(() => {
     masters = [
@@ -78,8 +95,10 @@ describe('CommonCodePage', () => {
         },
       ],
     };
+    detailSaveRequests = [];
 
     server.use(
+      http.post('/api/log/log/menu_open_access_log', () => new HttpResponse(null, { status: 200 })),
       http.get('/api/system/settings/common/search', () => HttpResponse.json(masters)),
       http.get('/api/system/settings/common/search/:linkSysId', ({ params }) =>
         HttpResponse.json(detailsByMaster[String(params.linkSysId)] ?? []),
@@ -153,6 +172,7 @@ describe('CommonCodePage', () => {
           }>;
           deleteItems?: Array<{ sysId?: string }>;
         };
+        detailSaveRequests.push(body);
 
         let nextRows = [...(detailsByMaster[body.linkSysId] ?? [])];
 
@@ -269,6 +289,41 @@ describe('CommonCodePage', () => {
     expect(await screen.findByRole('dialog', { name: '알림' })).toHaveTextContent(
       '저장되었습니다.',
     );
+  });
+
+  it('sends detail save requests with array fields and mapped values', async () => {
+    renderPage();
+
+    await screen.findByText('ORDER_STATUS');
+    fireEvent.click(screen.getByText('주문상태'));
+
+    const detailInput = await screen.findByLabelText('STATUS_READY 코드명');
+    fireEvent.change(detailInput, {
+      target: { value: '주문접수수정' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    const saveDialog = screen.getByRole('dialog', { name: '저장하시겠습니까?' });
+    fireEvent.click(within(saveDialog).getByRole('button', { name: '확인' }));
+
+    await screen.findByRole('dialog', { name: '알림' });
+
+    expect(detailSaveRequests).toHaveLength(1);
+    expect(detailSaveRequests[0]).toMatchObject({
+      linkSysId: 'master-1',
+      newItems: [],
+      deleteItems: [],
+      updateItems: [
+        {
+          sysId: 'detail-1',
+          commonCd: 'STATUS_READY',
+          commonNm: '주문접수수정',
+          ordNo: 1,
+          useYn: 'Y',
+        },
+      ],
+    });
   });
 
   it('shows dirty warning when closing the master editor with unsaved changes', async () => {

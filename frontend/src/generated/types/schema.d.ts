@@ -276,6 +276,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/system/settings/board/qna/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateQna"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/board/notice/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateNotice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/board/notice/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newNotice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/board/notice/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delNotice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/settings/adminuser/save": {
         parameters: {
             query?: never;
@@ -612,6 +676,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/system/settings/board/qna/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getQna"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/board/notice/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getNotice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/settings/adminuser/search": {
         parameters: {
             query?: never;
@@ -869,6 +965,73 @@ export interface components {
             updateItems?: components["schemas"]["CommonDetail"][];
             deleteItems?: components["schemas"]["CommonDetail"][];
         };
+        DateTime: {
+            /** Format: int32 */
+            NanoSeconds?: number;
+            /** Format: int32 */
+            Seconds?: number;
+            /** Format: int32 */
+            Minutes?: number;
+            /** Format: int32 */
+            Hours?: number;
+            /** Format: int32 */
+            Day?: number;
+            /** Format: int32 */
+            Month?: number;
+            /** Format: int32 */
+            Year?: number;
+            IsUTC?: boolean;
+        };
+        QnaRequest: {
+            sysId?: string;
+            qnaTitle?: string;
+            qnaDescription?: string;
+            startDate?: components["schemas"]["DateTime"];
+            deleteYn?: string;
+            useYn?: string;
+            fileUuid?: string;
+            answerYn?: string;
+            answerDatetime?: components["schemas"]["DateTime"];
+            answerDescription?: string;
+        };
+        NoticeRequest: {
+            sysId?: string;
+            noticeTitle?: string;
+            noticeDescription?: string;
+            startDate?: components["schemas"]["DateTime"];
+            deleteYn?: string;
+            useYn?: string;
+            fileUuid?: string;
+            sysPlantCd?: string;
+        };
+        FileIO: {
+            sysId?: string;
+            linkSysId?: string;
+            /** Format: binary */
+            file?: string;
+            convertFileNm?: string;
+            filePath?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        FileInfo: {
+            sysId?: string;
+            linkSysId?: string;
+            originalFileNm?: string;
+            convertFileNm?: string;
+            fileExt?: string;
+            mimeType?: string;
+            fileSize?: string;
+            filePath?: string;
+            /** Format: int32 */
+            ordNo?: number;
+            pdfYn?: string;
+        };
+        FileRequest: {
+            newItems?: components["schemas"]["FileIO"][];
+            updateItems?: components["schemas"]["FileInfo"][];
+            delItems?: components["schemas"]["FileInfo"][];
+        };
         AdminUser: {
             sysId?: string;
             userId: string;
@@ -895,33 +1058,6 @@ export interface components {
         InitPwdRequest: {
             password: string;
             chkPassword: string;
-        };
-        FileIO: {
-            sysId?: string;
-            /** Format: binary */
-            file?: string;
-            convertFileNm?: string;
-            filePath?: string;
-            /** Format: int32 */
-            ordNo?: number;
-        };
-        FileInfo: {
-            sysId?: string;
-            linkSysId?: string;
-            originalFileNm?: string;
-            convertFileNm?: string;
-            fileExt?: string;
-            mimeType?: string;
-            fileSize?: string;
-            filePath?: string;
-            /** Format: int32 */
-            ordNo?: number;
-            pdfYn?: string;
-        };
-        FileRequest: {
-            newItems?: components["schemas"]["FileIO"][];
-            updateItems?: components["schemas"]["FileInfo"][];
-            delItems?: components["schemas"]["FileInfo"][];
         };
         PlantStatusResponse: {
             sysId?: string;
@@ -970,6 +1106,22 @@ export interface components {
             auditTrailContents?: string;
             /** Format: date-time */
             insertDatetime?: string;
+        };
+        QnaResponse: {
+            sysId?: string;
+            qnaTitle?: string;
+            qnaDescription?: string;
+            startDate?: components["schemas"]["DateTime"];
+            fileUuid?: string;
+            answerYn?: string;
+            answerDatetime?: components["schemas"]["DateTime"];
+            answerDescription?: string;
+        };
+        NoticeResponse: {
+            noticeTitle?: string;
+            noticeDescription?: string;
+            startDate?: string;
+            fileUuid?: string;
         };
         AdminUserResponse: {
             sysId?: string;
@@ -1395,6 +1547,100 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CommonDetailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateQna: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QnaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateNotice: {
+        parameters: {
+            query: {
+                noticeRequest: components["schemas"]["NoticeRequest"];
+                fileRequest: components["schemas"]["FileRequest"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newNotice: {
+        parameters: {
+            query: {
+                noticeRequest: components["schemas"]["NoticeRequest"];
+                fileRequest: components["schemas"]["FileRequest"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delNotice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoticeRequest"][];
             };
         };
         responses: {
@@ -1873,6 +2119,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CommonDetail"][];
+                };
+            };
+        };
+    };
+    getQna: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QnaResponse"][];
+                };
+            };
+        };
+    };
+    getNotice: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NoticeResponse"][];
                 };
             };
         };

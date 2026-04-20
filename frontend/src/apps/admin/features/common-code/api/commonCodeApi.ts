@@ -139,9 +139,10 @@ export function buildCommonDetailRequest(
 
   return {
     linkSysId,
-    newItems: newItems.length ? newItems : undefined,
-    updateItems: updateItems.length ? updateItems : undefined,
-    deleteItems: deleteItems.length ? deleteItems : undefined,
+    // 백엔드가 각 리스트를 바로 순회/검사할 수 있도록 항상 배열 형태를 보낸다.
+    newItems,
+    updateItems,
+    deleteItems,
   };
 }
 
@@ -165,14 +166,11 @@ export function hasCommonDetailChanges(request: CommonDetailRequest) {
  * - generated query hook에 feature 표준 query key를 강제로 부여한다.
  */
 export function useCommonCodeMastersQuery(searchKeyword = '') {
-  return useSearchCommon(
-    searchKeyword ? { searchKeyword } : undefined,
-    {
-      query: {
-        queryKey: queryKeys.commonCode.masters(searchKeyword),
-      },
+  return useSearchCommon(searchKeyword ? { searchKeyword } : undefined, {
+    query: {
+      queryKey: queryKeys.commonCode.masters(searchKeyword),
     },
-  );
+  });
 }
 
 /**
@@ -183,16 +181,12 @@ export function useCommonCodeMastersQuery(searchKeyword = '') {
  * - 선택된 마스터가 바뀌면 detail query key도 함께 바뀐다.
  */
 export function useCommonCodeDetailsQuery(masterId: string, searchKeyword = '') {
-  return useSearchCommonDetail(
-    masterId,
-    searchKeyword ? { searchKeyword } : undefined,
-    {
-      query: {
-        queryKey: queryKeys.commonCode.details(masterId, searchKeyword),
-        enabled: Boolean(masterId),
-      },
+  return useSearchCommonDetail(masterId, searchKeyword ? { searchKeyword } : undefined, {
+    query: {
+      queryKey: queryKeys.commonCode.details(masterId, searchKeyword),
+      enabled: Boolean(masterId),
     },
-  );
+  });
 }
 
 /**
