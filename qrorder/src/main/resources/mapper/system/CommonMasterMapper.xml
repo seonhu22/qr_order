@@ -78,6 +78,7 @@
     <update id="updateCommonMaster">
         update sys_common_master set
             common_nm = #{commonMaster.commonNm},
+            use_yn = #{commonMaster.useYn},
             modify_datetime = now(),
             modify_user_id = #{userId}
         where 1=1
