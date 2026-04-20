@@ -7,10 +7,7 @@ import {
   usePaymentRatesQuery,
   useSavePaymentRateMutation,
 } from '../api/paymentManageApi';
-import {
-  editorRowToPaymentRateRow,
-  usePaymentManageModalFlow,
-} from './usePaymentManageModalFlow';
+import { editorRowToPaymentRateRow, usePaymentManageModalFlow } from './usePaymentManageModalFlow';
 import type { PaymentEditorRow } from './usePaymentManageModalFlow';
 
 export function usePaymentManagePageState() {
@@ -23,10 +20,7 @@ export function usePaymentManagePageState() {
   const saveMutation = useSavePaymentRateMutation();
   const deleteMutation = useDeletePaymentRatesMutation();
 
-  const rows = useMemo(
-    () => (ratesQuery.data ?? []).map(mapToPaymentRateRow),
-    [ratesQuery.data],
-  );
+  const rows = useMemo(() => (ratesQuery.data ?? []).map(mapToPaymentRateRow), [ratesQuery.data]);
 
   const effectiveCheckedIds = checkedIds.filter((id) => rows.some((row) => row.id === id));
   const isAllChecked = rows.length > 0 && effectiveCheckedIds.length === rows.length;
@@ -43,9 +37,7 @@ export function usePaymentManagePageState() {
   };
 
   const handleToggleRow = (id: string) => {
-    setCheckedIds((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
+    setCheckedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
   };
 
   const handleToggleAll = () => {
@@ -55,13 +47,13 @@ export function usePaymentManagePageState() {
   const handleSaveRow = async (editorRow: PaymentEditorRow, isCreateMode: boolean) => {
     const row = editorRowToPaymentRateRow(editorRow);
     await saveMutation.mutateAsync(row, isCreateMode);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list(keyword) });
   };
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
     await deleteMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list(keyword) });
     setCheckedIds([]);
     return targets.length;
   };

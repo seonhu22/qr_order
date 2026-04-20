@@ -4,6 +4,7 @@ import type { PaymentRateRow } from '../types';
 export type PaymentEditorRow = {
   id: string;
   sysId?: string;
+  plantCd?: string;
   rateCode: string;
   rateName: string;
   rateAmount: string;
@@ -48,6 +49,7 @@ function toEditorRow(row: PaymentRateRow): PaymentEditorRow {
   return {
     id: row.id,
     sysId: row.sysId,
+    plantCd: row.plantCd,
     rateCode: row.rateCode,
     rateName: row.rateName,
     rateAmount: String(row.rateAmount),
@@ -60,6 +62,7 @@ export function editorRowToPaymentRateRow(row: PaymentEditorRow): PaymentRateRow
   return {
     id: row.id,
     sysId: row.sysId,
+    plantCd: row.plantCd,
     rateCode: row.rateCode,
     rateName: row.rateName,
     rateAmount: Number(row.rateAmount),
