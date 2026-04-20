@@ -98,6 +98,7 @@ describe('CommonCodePage', () => {
     detailSaveRequests = [];
 
     server.use(
+      http.post('/api/log/log/menu_open_access_log', () => new HttpResponse(null, { status: 200 })),
       http.get('/api/system/settings/common/search', () => HttpResponse.json(masters)),
       http.get('/api/system/settings/common/search/:linkSysId', ({ params }) =>
         HttpResponse.json(detailsByMaster[String(params.linkSysId)] ?? []),
