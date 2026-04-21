@@ -74,6 +74,31 @@
 - `generated/*`는 feature 전용 API wrapper에서만 사용한다.
 - DTO → 화면 모델 변환, payload 조합, query key 지정은 feature `api/*` 계층에서 처리한다.
 
+### 3-1. 새 쿼리를 추가할 때 `queryKeys.ts`에 키를 등록한다
+
+> 추가일: 2026-04-21
+
+`src/shared/api/queryKeys.ts`는 모든 TanStack Query 캐시 키의 단일 출처다.
+새 feature의 조회 API를 추가할 때 반드시 이 파일에 키를 등록하고, feature `api/*` 계층에서만 참조한다.
+
+```ts
+// queryKeys.ts
+export const queryKeys = {
+  myFeature: {
+    list: (searchKeyword = '') =>
+      ['settings', 'myFeature', 'list', { searchKeyword }] as const,
+  },
+};
+
+// features/my-feature/api/myFeatureApi.ts
+return useGetMyFeature(params, {
+  query: { queryKey: queryKeys.myFeature.list(searchKeyword) },
+});
+```
+
+- `queryClient.invalidateQueries`로 캐시를 무효화할 때도 `queryKeys`를 통해 참조한다.
+- 저장/삭제 후 목록을 갱신할 때: `queryClient.invalidateQueries({ queryKey: queryKeys.myFeature.list() })`
+
 ### 4. 리팩토링은 feature 내부 분리부터 시작한다
 
 - 바로 `shared`로 올리지 않는다.
@@ -318,6 +343,7 @@ const flow = useEditablePageFlow({
 - `MessageManagement`(현재): 페이지 조립 + feature hook + `useEditablePageFlow`
 - `MessageManagement`(목표): 페이지 조립 + `useMessageListState` + `useEditablePageFlow` + `useMessageFlow`
 - `RuleManagement`: 페이지 조립 + feature hook + `useCodeMasterModalFlow` + `useOrderedRowEditor` + `useDetailTableSaveFlow`
+- `PaymentManage`: 페이지 조립 + `usePaymentManagePageState` + `usePaymentManageModalFlow` (feature 전용 모달 CRUD)
 
 ---
 
@@ -347,6 +373,45 @@ const flow = useEditablePageFlow({
 - `useEditablePageFlow`: 조회/초기화 dirty guard, 저장 확인/완료 같은 shared flow 담당
 - `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달처럼 feature 고유 흐름만 담당
 - `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
+
+### 모달 CRUD 화면 표준
+
+> 추가일: 2026-04-21
+
+행 직접 편집 없이 **모달을 통해 등록/수정/삭제**하는 목록 화면의 표준이다.
+
+**shared 훅을 쓸 수 있는 경우 — `코드 / 명칭 / 사용여부` 3필드 구조**
+
+- 대상: `CommonCode` 마스터, `RuleManagement` 마스터
+- 모달 흐름: `shared/hooks/useCodeMasterModalFlow.ts` 재사용
+- feature 훅은 API wrapper와 목록 상태만 담당
+
+**feature 전용 훅이 필요한 경우 — 커스텀 필드 구조**
+
+- 대상: `PaymentManage`처럼 숫자·셀렉트 등 고유 필드 구성이 있는 경우
+- `useCodeMasterModalFlow`는 3필드(코드·명칭·사용여부) 구조와 문자열 검증이 하드코딩되어 있어 필드 수나 타입이 다르면 적합하지 않다.
+- `features/<feature>/hooks/use<Feature>ModalFlow.ts` 직접 작성
+- `<Feature>EditorRow` 타입은 폼 입력용 string 필드로 구성 (숫자 필드도 string으로 보관, 저장 시 변환)
+- 코드 필드는 등록 시에만 편집 가능, 수정 시 `readonly` 처리
+
+> **리팩토링 예정:** `useCodeMasterModalFlow`의 하드코딩 구조를 `PaymentManage` 방식처럼 필드 구성을 외부에서 주입할 수 있도록 범용화할 예정이다. 이후에는 모든 모달 CRUD 화면이 동일한 shared 훅을 재사용하게 수렴한다.
+
+두 경우 공통 모달 전이 흐름:
+
+```text
+등록/수정 클릭 → EditorModal 오픈
+  → 필수값 검증 실패 → 필드 오류 표시
+  → 검증 통과 → SaveConfirmModal / EditConfirmModal
+  → 저장 실행 → 결과 안내 (SimpleDefaultModal)
+  → dirty 상태에서 닫기 → DirtyWarningModal
+
+삭제 클릭 → 선택 항목 없음 → 안내 모달
+  → 선택 있음 → DeleteConfirmModal
+  → 삭제 실행 → 결과 안내 (SimpleDefaultModal)
+```
+
+- `use<Feature>PageState`는 `data / status / uiProps / actions` 구조로 page에 전달한다.
+- page는 테이블과 모달 조립만 담당한다.
 
 ### 신규 화면 구현 체크리스트
 
