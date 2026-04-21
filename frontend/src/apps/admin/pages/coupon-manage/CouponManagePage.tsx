@@ -26,8 +26,8 @@ export function CouponManagePage() {
     <>
       <AdminMainLayout
         adminMainTitle="쿠폰 관리"
-        depth1="결제"
-        depth2="쿠폰 관리"
+        depth1="시스템"
+        depth2="결제 관리"
         className="admin-main-layout-page--fixed"
         filterSlot={
           <CouponManageFilters

@@ -10,7 +10,7 @@ export function PlantStatusPage() {
   return (
     <AdminMainLayout
       adminMainTitle="사업장 상태 조회"
-      depth1="결제"
+      depth1="시스템"
       depth2="결제 관리"
       className="admin-main-layout-page--fixed"
       filterSlot={

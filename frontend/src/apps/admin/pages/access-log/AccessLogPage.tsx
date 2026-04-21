@@ -19,7 +19,7 @@ export function AccessLogPage() {
 
   return (
     <AdminMainLayout
-      adminMainTitle="접속정보조회"
+      adminMainTitle="접속 정보 조회"
       depth1="시스템"
       depth2="이력 관리"
       className="admin-main-layout-page--fixed"

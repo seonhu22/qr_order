@@ -19,7 +19,7 @@ export const ADMIN_SIDEBAR_MENU = [
     groups: [
       {
         key: 'systemManagement',
-        label: '시스템',
+        label: '시스템 관리',
         items: [
           { key: 'commonCode', label: '공통코드 관리', path: '/admin/system/common-code' },
           { key: 'plantSearch', label: '사업장 조회', path: '/admin/system/plant' },
