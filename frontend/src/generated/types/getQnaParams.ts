@@ -6,11 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface FileIO {
-  sysId?: string;
-  linkSysId?: string;
-  file?: Blob;
-  convertFileNm?: string;
-  filePath?: string;
-  ordNo?: number;
-}
+export type GetQnaParams = {
+searchKeyword?: string;
+};

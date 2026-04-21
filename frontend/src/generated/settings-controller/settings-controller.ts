@@ -35,9 +35,11 @@ import type {
   GetAdminUserParams,
   GetAuditTrailParams,
   GetMessageParams,
+  GetNoticeParams,
   GetPaymentCouponParams,
   GetPaymentParams,
   GetPlantStatusParams,
+  GetQnaParams,
   GetRuleDetailParams,
   GetRuleMasterParams,
   GetSysAccessLogDetailParams,
@@ -46,12 +48,17 @@ import type {
   MenuRequest,
   Message,
   MessageRequest,
+  NewNoticeParams,
+  NoticeRequest,
+  NoticeResponse,
   Payment,
   PaymentCoupon,
   PaymentCouponRequest,
   PaymentResponse,
   Plant,
   PlantStatusResponse,
+  QnaRequest,
+  QnaResponse,
   RuleDetail,
   RuleDetailRequest,
   RuleMaster,
@@ -59,7 +66,8 @@ import type {
   SearchCommonParams,
   SearchPlantParams,
   SysAccessLogDetail,
-  SysAccessLogMaster
+  SysAccessLogMaster,
+  UpdateNoticeParams
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
@@ -1052,6 +1060,236 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
 
       const mutationOptions = getSaveCommonDetailMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const updateQna = (
+    qnaRequest: QnaRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/system/settings/board/qna/update`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: qnaRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getUpdateQnaMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext> => {
+
+const mutationKey = ['updateQna'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateQna>>, {data: QnaRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateQna(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateQnaMutationResult = NonNullable<Awaited<ReturnType<typeof updateQna>>>
+    export type UpdateQnaMutationBody = QnaRequest
+    export type UpdateQnaMutationError = unknown
+
+    export const useUpdateQna = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateQna>>,
+        TError,
+        {data: QnaRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateQnaMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const updateNotice = (
+    params: UpdateNoticeParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/system/settings/board/notice/update`, method: 'POST',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+export const getUpdateNoticeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNotice>>, TError,{params: UpdateNoticeParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateNotice>>, TError,{params: UpdateNoticeParams}, TContext> => {
+
+const mutationKey = ['updateNotice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateNotice>>, {params: UpdateNoticeParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  updateNotice(params,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateNoticeMutationResult = NonNullable<Awaited<ReturnType<typeof updateNotice>>>
+    
+    export type UpdateNoticeMutationError = unknown
+
+    export const useUpdateNotice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNotice>>, TError,{params: UpdateNoticeParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateNotice>>,
+        TError,
+        {params: UpdateNoticeParams},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateNoticeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const newNotice = (
+    params: NewNoticeParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/system/settings/board/notice/new`, method: 'POST',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+export const getNewNoticeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newNotice>>, TError,{params: NewNoticeParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof newNotice>>, TError,{params: NewNoticeParams}, TContext> => {
+
+const mutationKey = ['newNotice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newNotice>>, {params: NewNoticeParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  newNotice(params,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NewNoticeMutationResult = NonNullable<Awaited<ReturnType<typeof newNotice>>>
+    
+    export type NewNoticeMutationError = unknown
+
+    export const useNewNotice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newNotice>>, TError,{params: NewNoticeParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof newNotice>>,
+        TError,
+        {params: NewNoticeParams},
+        TContext
+      > => {
+
+      const mutationOptions = getNewNoticeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const delNotice = (
+    noticeRequest: NoticeRequest[],
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/system/settings/board/notice/del`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: noticeRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getDelNoticeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delNotice>>, TError,{data: NoticeRequest[]}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof delNotice>>, TError,{data: NoticeRequest[]}, TContext> => {
+
+const mutationKey = ['delNotice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof delNotice>>, {data: NoticeRequest[]}> = (props) => {
+          const {data} = props ?? {};
+
+          return  delNotice(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DelNoticeMutationResult = NonNullable<Awaited<ReturnType<typeof delNotice>>>
+    export type DelNoticeMutationBody = NoticeRequest[]
+    export type DelNoticeMutationError = unknown
+
+    export const useDelNotice = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delNotice>>, TError,{data: NoticeRequest[]}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof delNotice>>,
+        TError,
+        {data: NoticeRequest[]},
+        TContext
+      > => {
+
+      const mutationOptions = getDelNoticeMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -2227,6 +2465,178 @@ export function useSearchCommonDetail<TData = Awaited<ReturnType<typeof searchCo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSearchCommonDetailQueryOptions(linkSysId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getQna = (
+    params?: GetQnaParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<QnaResponse[]>(
+      {url: `/api/system/settings/board/qna/search`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetQnaQueryKey = (params?: GetQnaParams,) => {
+    return [
+    `/api/system/settings/board/qna/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetQnaQueryOptions = <TData = Awaited<ReturnType<typeof getQna>>, TError = unknown>(params?: GetQnaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQnaQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQna>>> = ({ signal }) => getQna(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQnaQueryResult = NonNullable<Awaited<ReturnType<typeof getQna>>>
+export type GetQnaQueryError = unknown
+
+
+export function useGetQna<TData = Awaited<ReturnType<typeof getQna>>, TError = unknown>(
+ params: undefined |  GetQnaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQna>>,
+          TError,
+          Awaited<ReturnType<typeof getQna>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQna<TData = Awaited<ReturnType<typeof getQna>>, TError = unknown>(
+ params?: GetQnaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQna>>,
+          TError,
+          Awaited<ReturnType<typeof getQna>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQna<TData = Awaited<ReturnType<typeof getQna>>, TError = unknown>(
+ params?: GetQnaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQna<TData = Awaited<ReturnType<typeof getQna>>, TError = unknown>(
+ params?: GetQnaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQna>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQnaQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getNotice = (
+    params?: GetNoticeParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<NoticeResponse[]>(
+      {url: `/api/system/settings/board/notice/search`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetNoticeQueryKey = (params?: GetNoticeParams,) => {
+    return [
+    `/api/system/settings/board/notice/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetNoticeQueryOptions = <TData = Awaited<ReturnType<typeof getNotice>>, TError = unknown>(params?: GetNoticeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNoticeQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotice>>> = ({ signal }) => getNotice(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNoticeQueryResult = NonNullable<Awaited<ReturnType<typeof getNotice>>>
+export type GetNoticeQueryError = unknown
+
+
+export function useGetNotice<TData = Awaited<ReturnType<typeof getNotice>>, TError = unknown>(
+ params: undefined |  GetNoticeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNotice>>,
+          TError,
+          Awaited<ReturnType<typeof getNotice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNotice<TData = Awaited<ReturnType<typeof getNotice>>, TError = unknown>(
+ params?: GetNoticeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNotice>>,
+          TError,
+          Awaited<ReturnType<typeof getNotice>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNotice<TData = Awaited<ReturnType<typeof getNotice>>, TError = unknown>(
+ params?: GetNoticeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNotice<TData = Awaited<ReturnType<typeof getNotice>>, TError = unknown>(
+ params?: GetNoticeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotice>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNoticeQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

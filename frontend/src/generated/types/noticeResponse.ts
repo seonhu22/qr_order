@@ -6,11 +6,9 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface FileIO {
-  sysId?: string;
-  linkSysId?: string;
-  file?: Blob;
-  convertFileNm?: string;
-  filePath?: string;
-  ordNo?: number;
+export interface NoticeResponse {
+  noticeTitle?: string;
+  noticeDescription?: string;
+  startDate?: string;
+  fileUuid?: string;
 }
