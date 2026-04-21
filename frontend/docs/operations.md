@@ -346,6 +346,7 @@ const flow = useEditablePageFlow({
 - `PlantStatus`: 페이지 조립 + feature hook + API mapper (날짜 기반 상태·기간 파생, 조회 전용)
 - `PaymentManage`: 페이지 조립 + `usePaymentManagePageState` + `usePaymentManageModalFlow` (feature 전용 모달 CRUD)
 - `CouponManage`: 페이지 조립 + `useCouponManagePageState` + `useCouponManageModalFlow` (feature 전용 모달 CRUD, useYn 뱃지 포함)
+- `AccessLog`: 페이지 조립 + `useAccessLogPageState` (datetime-local 날짜 범위 필터, 좌우 분할 마스터-디테일 조회 전용)
 
 ---
 
@@ -355,7 +356,7 @@ const flow = useEditablePageFlow({
 
 ### 조회 전용 화면 표준
 
-대상: `PlantSearch`, `PlantStatus` 같은 read-only 목록
+대상: `PlantSearch`, `PlantStatus`, `AccessLog` 같은 read-only 목록
 
 권장 구성:
 
@@ -387,6 +388,82 @@ export function mapToPlantStatusRow(res: PlantStatusResponse): PlantStatusRow {
   };
 }
 ```
+
+**datetime-local 날짜 범위 필터가 있는 경우**
+
+> 추가일: 2026-04-21
+
+`AccessLog`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
+
+- 필터 입력 타입은 `type="datetime-local"` 사용 (날짜+시간 선택)
+- draft 상태(`draftStartDate`, `draftEndDate`)를 분리하고 조회 버튼 클릭 시에만 `searchParams`에 반영
+- 날짜 범위 유효성 검사 규칙:
+  - 종료일시가 시작일시보다 이전이면 에러
+  - 최대 조회 기간(예: 7일)을 초과하면 에러
+  - 에러가 있으면 `handleSearch` 내부에서 조회를 막고 에러 메시지를 filter 컴포넌트에 전달
+- 페이지 진입 시 기본값(현재 시각 기준 7일 전 ~ 현재)으로 즉시 조회
+- API로 전달하는 datetime 포맷: `YYYY-MM-DDTHH:MM:SS` (`toApiDatetime` 유틸로 변환)
+
+```ts
+// hooks/useAccessLogPageState.ts
+const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
+
+function toApiDatetime(value: string) {
+  return value ? `${value}:00` : '';
+}
+
+const handleSearch = () => {
+  if (!validateDateRange(draftStartDate, draftEndDate)) return;
+  setSearchParams({
+    startDate: toApiDatetime(draftStartDate),
+    endDate: toApiDatetime(draftEndDate),
+    searchKeyword: draftKeyword,
+  });
+};
+```
+
+**좌우 분할 마스터-디테일 조회 전용 화면 레이아웃**
+
+> 추가일: 2026-04-21
+
+편집 없이 마스터 클릭 시 우측 디테일이 바뀌는 좌우 분할 조회 화면은 아래 패턴을 따른다.
+
+- `AdminMainLayout`의 `children`에 래퍼 `div`를 두고 `flex-direction: row`를 적용
+- 래퍼 `div`는 `--fixed` 레이아웃에서 `flex: 1; min-height: 0; overflow: hidden` 명시
+- 두 `article`(TableCard)이 래퍼 내에서 각각 `flex: 1`로 동일 비율 차지
+
+```css
+/* pages/<Feature>/<Feature>Page.css */
+.access-log-page__layout {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.access-log-page__layout > article {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+```
+
+```tsx
+/* pages/<Feature>/<Feature>Page.tsx */
+<AdminMainLayout className="admin-main-layout-page--fixed" filterSlot={...}>
+  <div className="access-log-page__layout">
+    <MasterTable ... />
+    <DetailTable ... />
+  </div>
+</AdminMainLayout>
+```
+
+- 마스터 클릭 시 선택된 행을 `selectedRow` 상태로 관리하고, 같은 행을 다시 클릭하면 선택 해제
+- 디테일 조회 훅은 `selectedRow?.sysId ?? ''`를 sysId로 받고 `enabled: Boolean(sysId)`로 제어
+
+---
 
 ### 편집형(CRUD) 화면 표준
 
