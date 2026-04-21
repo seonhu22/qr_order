@@ -331,7 +331,25 @@ const detailActions = (
 | `.common-table__empty` | 빈 상태 셀 | `colspan` 전체 차지, 중앙 정렬 |
 | `.common-table__cell--truncate` | `td` | 텍스트 말줄임 셀. 페이지 CSS에서 `max-width` 지정 필요, `title` 속성으로 전체 내용 제공 |
 
+### 테이블 수정 버튼
+
+행 오른쪽 끝 수정 아이콘 버튼은 `EditTableButton` 공용 컴포넌트를 사용한다.
+직접 `Button`이나 아이콘을 조합하지 않는다.
+
+```tsx
+import { EditTableButton } from '@/shared/components/button';
+
+<td>
+  <EditTableButton
+    ariaLabel={`${row.name} 수정`}
+    onClick={() => onEdit(row)}
+  />
+</td>
+```
+
 ### 상태 배지
+
+**공용 배지 (사용여부 2가지)**
 
 | 클래스 | 설명 |
 |---|---|
@@ -344,6 +362,22 @@ const detailActions = (
   {row.useYn ? 'Y' : 'N'}
 </span>
 ```
+
+**feature 전용 배지 (3가지 이상 상태)**
+
+상태가 3가지 이상이거나 도메인 고유 의미가 있으면 feature 페이지 CSS에 별도 클래스를 작성하고
+`--color-status-*-bg` / `--color-status-*-text` 토큰을 사용한다.
+
+```css
+/* pages/<feature>/<Feature>Page.css */
+.my-status-badge { display: inline-block; padding: 0.1875rem 0.5rem; border-radius: var(--radius-sm); font-size: var(--typography-size-caption); font-weight: var(--typography-weight-ui); }
+.my-status-badge--active   { background-color: var(--color-status-success-bg); color: var(--color-status-success-text); }
+.my-status-badge--expiring { background-color: var(--color-status-warning-bg); color: var(--color-status-warning-text); }
+.my-status-badge--expired  { background-color: var(--color-status-error-bg);   color: var(--color-status-error-text); }
+```
+
+- primitive 토큰(`--green-*`, `--red-*` 등) 직접 참조 금지 — semantic 토큰만 사용한다.
+- 적용 예시: `PlantStatus`(active/expiring/expired), `CouponManage`(사용/미사용)
 
 ### 행 상태 클래스
 

@@ -343,7 +343,9 @@ const flow = useEditablePageFlow({
 - `MessageManagement`(현재): 페이지 조립 + feature hook + `useEditablePageFlow`
 - `MessageManagement`(목표): 페이지 조립 + `useMessageListState` + `useEditablePageFlow` + `useMessageFlow`
 - `RuleManagement`: 페이지 조립 + feature hook + `useCodeMasterModalFlow` + `useOrderedRowEditor` + `useDetailTableSaveFlow`
+- `PlantStatus`: 페이지 조립 + feature hook + API mapper (날짜 기반 상태·기간 파생, 조회 전용)
 - `PaymentManage`: 페이지 조립 + `usePaymentManagePageState` + `usePaymentManageModalFlow` (feature 전용 모달 CRUD)
+- `CouponManage`: 페이지 조립 + `useCouponManagePageState` + `useCouponManageModalFlow` (feature 전용 모달 CRUD, useYn 뱃지 포함)
 
 ---
 
@@ -353,7 +355,7 @@ const flow = useEditablePageFlow({
 
 ### 조회 전용 화면 표준
 
-대상: `PlantSearch` 같은 read-only 목록
+대상: `PlantSearch`, `PlantStatus` 같은 read-only 목록
 
 권장 구성:
 
@@ -362,6 +364,29 @@ const flow = useEditablePageFlow({
 - `features/<feature>/api/*` → generated wrapper + mapper
 - `features/<feature>/components/<Feature>Filters.tsx`
 - `features/<feature>/components/<Feature>Table.tsx`
+
+**서버 응답에 없는 필드는 API 레이어(mapper)에서 파생한다**
+
+서버가 계산하지 않고 날짜 등 원시값만 반환하는 경우, 화면에 필요한 값은 `features/<feature>/api/*` mapper에서 직접 계산한다.
+page나 component에서 계산하지 않는다.
+
+```ts
+// 예시: PlantStatus — estimateCheckoutDate로 상태·기간 파생
+function deriveStatus(estimateCheckoutDate: string): 'active' | 'expiring' | 'expired' {
+  const diff = daysBetween(today, estimateCheckoutDate);
+  if (diff > 30) return 'active';
+  if (diff >= 0) return 'expiring';
+  return 'expired';
+}
+
+export function mapToPlantStatusRow(res: PlantStatusResponse): PlantStatusRow {
+  return {
+    // ...
+    licenseValidMonth: deriveLicenseMonths(res.lastCheckoutDate, res.estimateCheckoutDate),
+    status: deriveStatus(res.estimateCheckoutDate ?? ''),
+  };
+}
+```
 
 ### 편집형(CRUD) 화면 표준
 

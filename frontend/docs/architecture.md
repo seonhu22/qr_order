@@ -51,8 +51,8 @@
 | `/admin/system/message` | 메시지 관리 | 구현 |
 | `/admin/system/rule` | 규칙 관리 | 구현 |
 | `/admin/payment/rate` | 결제 요금 관리 | 구현 |
-| `/admin/payment/plant-status` | 사업장 상태 조회 | 미구현 |
-| `/admin/payment/coupon` | 쿠폰 관리 | 미구현 |
+| `/admin/payment/plant-status` | 사업장 상태 조회 | 구현 |
+| `/admin/payment/coupon` | 쿠폰 관리 | 구현 |
 | `/admin/history/access-log` | 접속 정보 조회 | 미구현 |
 | `/admin/history/audit-log` | 변경 이력 조회 | 미구현 |
 
