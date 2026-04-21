@@ -3,44 +3,41 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.system.repository.PlantMapper">
 
-    <resultMap id="plantResultMap" type="htms.QROrder.system.domain.Plant">
-        <result column="sys_id" property="sysId"/>
-        <result column="plant_cd" property="plantCd"/>
-        <result column="plant_nm" property="plantNm"/>
-        <result column="domain_url" property="domainUrl"/>
-        <result column="use_yn" property="useYn"/>
-    </resultMap>
-
-    <select id="findPlantBySearchCond" resultMap="plantResultMap">
+    <select id="findPlantBySearchCond" resultType="htms.QROrder.system.domain.Plant">
         select
             sys_id,
             plant_cd,
             plant_nm,
-            domain_url,
-            email_url_use_yn,
             email_url,
+            store_nm,
+            emp_nm,
+            zip_code,
+            address,
+            phone_number,
             use_yn
         from sys_plant
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
             and (
                 plant_cd like concat('%', #{searchKeyword}, '%') or
-                plant_nm like concat('%', #{searchKeyword}, '%') or
-                domain_url like concat('%', #{searchKeyword}, '%')
+                plant_nm like concat('%', #{searchKeyword}, '%')
             )
         </if>
         and delete_yn = 'N'
         order by plant_cd asc
     </select>
 
-    <select id="findByDomainUrl" resultMap="plantResultMap">
+    <select id="findByDomainUrl" resultType="htms.QROrder.system.domain.Plant">
         select
             sys_id,
             plant_cd,
             plant_nm,
-            domain_url,
-            email_url_use_yn,
             email_url,
+            store_nm,
+            emp_nm,
+            zip_code,
+            address,
+            phone_number,
             use_yn
         from sys_plant
         where domain_url = #{domainUrl}
@@ -62,32 +59,34 @@
 
     <insert id="newPlant">
         insert into sys_plant (
-            sys_id,
-            plant_cd,
-            plant_nm,
-            domain_url,
-            email_url,
-            email_url_use_yn,
-            use_yn,
-            delete_yn,
-            insert_datetime,
-            insert_user_id,
-            modify_datetime,
-            modify_user_id
+            sys_id ,
+            plant_cd ,
+            plant_nm ,
+            email_url ,
+            store_nm ,
+            emp_nm ,
+            zip_code ,
+            address ,
+            phone_number ,
+            use_yn ,
+            delete_yn ,
+            insert_datetime ,
+            insert_user_id
         )
         values (
             #{plant.sysId},
             #{plant.plantCd},
             #{plant.plantNm},
-            #{plant.domainUrl},
             #{plant.emailUrl},
-            #{plant.emailUrlUseYn},
+            #{plant.storeNm},
+            #{plant.empNm},
+            #{plant.zipCode},
+            #{plant.address},
+            #{plant.phoneNumber},
             #{plant.useYn},
             'N',
             now(),
-            #{userId},
-            null,
-            null
+            #{userId}
         )
     </insert>
 
@@ -102,9 +101,12 @@
     <update id="updatePlant">
         update sys_plant set
             plant_nm = #{plant.plantNm},
-            domain_url = #{plant.domainUrl},
-            email_url_use_yn = #{plant.emailUrlUseYn},
             email_url = #{plant.emailUrl},
+            store_nm = #{plant.storeNm},
+            emp_nm = #{plant.empNm},
+            zip_code = #{plant.zipCode},
+            address = #{plant.address},
+            phone_number = #{plant.phoneNumber},
             use_yn = #{plant.useYn},
             modify_datetime = now(),
             modify_user_id = #{userId}
@@ -112,14 +114,17 @@
         and sys_id = #{plant.sysId}
     </update>
 
-    <select id="getOldData" resultMap="plantResultMap">
+    <select id="getOldData" resultType="htms.QROrder.system.domain.Plant">
         select
             sys_id,
             plant_cd,
             plant_nm,
-            domain_url,
-            email_url_use_yn,
             email_url,
+            store_nm,
+            emp_nm,
+            zip_code,
+            address,
+            phone_number,
             use_yn
         from sys_plant
         where 1=1
