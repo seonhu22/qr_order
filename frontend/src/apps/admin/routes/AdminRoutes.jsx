@@ -26,6 +26,7 @@ import { SystemMenuPage } from '@/apps/admin/pages/system-menu/SystemMenuPage';
 import { MessageManagementPage } from '@/apps/admin/pages/message-management/MessageManagementPage';
 import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManagementPage';
 import { CouponManagePage } from '@/apps/admin/pages/coupon-manage/CouponManagePage';
+import { AccessLogPage } from '@/apps/admin/pages/access-log/AccessLogPage';
 
 export const adminRoutes = [
   {
@@ -78,7 +79,7 @@ export const adminRoutes = [
       },
       {
         path: 'history/access-log',
-        element: <AdminPlaceholderPage title="접속 정보 조회" />,
+        element: <AccessLogPage />,
       },
       {
         path: 'history/audit-log',
