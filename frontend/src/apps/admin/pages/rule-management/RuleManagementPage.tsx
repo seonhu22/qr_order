@@ -1,9 +1,9 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/common-code/CommonCodePage.css';
 import { RuleDetailTable } from '@/apps/admin/features/rule-management/components/RuleDetailTable';
-import { RuleManagementFilters } from '@/apps/admin/features/rule-management/components/RuleManagementFilters';
 import { RuleMasterTable } from '@/apps/admin/features/rule-management/components/RuleMasterTable';
 import { useRuleManagementPage } from '@/apps/admin/features/rule-management/hooks/useRuleManagementPage';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import {
   ConfirmModal,
@@ -36,7 +36,11 @@ export function RuleManagementPage() {
         depth2="시스템 관리"
         className="admin-main-layout-page--fixed"
         filterSlot={
-          <RuleManagementFilters
+          <SearchFilterCard
+            ariaLabel="규칙 검색"
+            inputId="rule-search-keyword"
+            inputAriaLabel="규칙 검색어"
+            placeholder="규칙코드, 규칙명으로 검색"
             draftKeyword={uiProps.draftMasterKeyword}
             onKeywordChange={actions.handleMasterKeywordChange}
             onSearch={actions.handleSearch}

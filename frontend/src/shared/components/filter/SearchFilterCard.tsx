@@ -1,4 +1,4 @@
-import '@/apps/admin/pages/plant-search/PlantSearchPage.css';
+import './SearchFilterCard.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { ResetFilterButton, SearchFilterButton } from '@/shared/components/button';
 import { InputBase, InputWrapper } from '@/shared/components/input';
@@ -19,10 +19,9 @@ type SearchFilterCardProps = {
 };
 
 /**
- * 관리자 검색 카드 공통 컴포넌트.
+ * 검색 카드 공통 컴포넌트.
  *
  * @description
- * MessageFilters의 레이아웃을 기준으로 만든 공용 filter card다.
  * 같은 검색 카드 구조를 사용하는 페이지는 aria/placeholder/id만 바꿔 재사용한다.
  */
 export function SearchFilterCard({
@@ -31,10 +30,10 @@ export function SearchFilterCard({
   inputAriaLabel,
   placeholder,
   draftKeyword,
-  cardClassName = 'plant-search-page__filter-card',
-  searchFieldClassName = 'plant-search-page__search-field',
-  inputClassName = 'plant-search-page__search-input',
-  actionsClassName = 'plant-search-page__filter-actions',
+  cardClassName = 'search-filter-card',
+  searchFieldClassName = 'search-filter-card__field',
+  inputClassName = 'search-filter-card__input',
+  actionsClassName = 'search-filter-card__actions',
   onKeywordChange,
   onSearch,
   onReset,

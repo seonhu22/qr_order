@@ -1,33 +1,4 @@
 /* =====================================================
- * 검색 필터 카드
- * ===================================================== */
-
-.plant-search-page__filter-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding: 1.0625rem;
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-}
-
-.plant-search-page__search-field {
-  flex: 1;
-  min-width: 0;
-}
-
-.plant-search-page__search-input .input-control__input {
-  font-size: var(--typography-size-ui);
-}
-
-.plant-search-page__filter-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-/* =====================================================
  * 테이블 feature 오버라이드
  * ===================================================== */
 
@@ -69,20 +40,3 @@
  * 반응형
  * ===================================================== */
 
-@media (max-width: 900px) {
-  .plant-search-page__filter-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .plant-search-page__filter-actions {
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 640px) {
-  .plant-search-page__filter-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}

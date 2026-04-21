@@ -63,7 +63,7 @@ type UseAdminUserFlowParams = {
  * });
  *
  * // 페이지에서는 액션을 이벤트에 연결만 한다.
- * <AdminUserFilters onSearch={flow.requestSearch} onReset={flow.requestResetFilters} />
+ * <SearchFilterCard onSearch={flow.requestSearch} onReset={flow.requestResetFilters} />
  * <Button onClick={flow.requestSave}>저장</Button>
  * ```
  */

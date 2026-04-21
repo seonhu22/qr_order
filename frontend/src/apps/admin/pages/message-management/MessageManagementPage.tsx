@@ -1,7 +1,7 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
-import { MessageFilters } from '@/apps/admin/features/message/components/MessageFilters';
 import { MessageTable } from '@/apps/admin/features/message/components/MessageTable';
 import { useMessagePage } from '@/apps/admin/features/message/hooks/useMessagePage';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { ConfirmModal, SaveConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
 
 /**
@@ -22,7 +22,11 @@ export function MessageManagementPage() {
         depth2="시스템 관리"
         className="admin-main-layout-page--fixed"
         filterSlot={
-          <MessageFilters
+          <SearchFilterCard
+            ariaLabel="메시지 검색"
+            inputId="message-search-keyword"
+            inputAriaLabel="메시지 검색어"
+            placeholder="메시지 코드, 메시지 명, 내용으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}
@@ -34,7 +38,7 @@ export function MessageManagementPage() {
         <MessageTable
           rows={data.rows}
           selectedRowId={uiProps.selectedRowId}
-          isLoading={status.isLoading}
+          isLoading={status.isLoading || !!status.isFetching}
           isError={status.isError}
           isSaving={status.isSaving}
           onSelectRow={actions.handleSelectRow}

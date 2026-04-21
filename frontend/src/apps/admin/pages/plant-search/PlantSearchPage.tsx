@@ -1,8 +1,8 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/plant-search/PlantSearchPage.css';
-import { PlantSearchFilters } from '@/apps/admin/features/plant-search/components/PlantSearchFilters';
 import { PlantSearchTable } from '@/apps/admin/features/plant-search/components/PlantSearchTable';
 import { usePlantSearchPage } from '@/apps/admin/features/plant-search/hooks/usePlantSearchPage';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 
 /**
  * @fileoverview 사업장 조회 페이지 컨테이너
@@ -22,7 +22,11 @@ export function PlantSearchPage() {
       depth2="시스템 관리"
       className="admin-main-layout-page--fixed"
       filterSlot={
-        <PlantSearchFilters
+        <SearchFilterCard
+          ariaLabel="사업장 검색"
+          inputId="plant-search-keyword"
+          inputAriaLabel="사업장 검색어"
+          placeholder="사업장명, 매장명으로 검색"
           draftKeyword={uiProps.draftKeyword}
           onKeywordChange={actions.handleKeywordChange}
           onSearch={actions.handleSearch}
