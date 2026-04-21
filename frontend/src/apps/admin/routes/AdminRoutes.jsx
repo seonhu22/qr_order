@@ -16,7 +16,6 @@
 import { Navigate } from 'react-router-dom';
 import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
 import { MainPage } from '@/apps/admin/pages/main/MainPage';
-import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
 import { PaymentManagePage } from '@/apps/admin/pages/payment-manage/PaymentManagePage';
 import { PlantStatusPage } from '@/apps/admin/pages/plant-status/PlantStatusPage';
@@ -27,6 +26,7 @@ import { MessageManagementPage } from '@/apps/admin/pages/message-management/Mes
 import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManagementPage';
 import { CouponManagePage } from '@/apps/admin/pages/coupon-manage/CouponManagePage';
 import { AccessLogPage } from '@/apps/admin/pages/access-log/AccessLogPage';
+import { ChangeHistoryPage } from '@/apps/admin/pages/change-history/ChangeHistoryPage';
 
 export const adminRoutes = [
   {
@@ -83,7 +83,7 @@ export const adminRoutes = [
       },
       {
         path: 'history/audit-log',
-        element: <AdminPlaceholderPage title="변경 이력 조회" />,
+        element: <ChangeHistoryPage />,
       },
     ],
   },
