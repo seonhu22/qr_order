@@ -37,6 +37,25 @@
 
 `AdminLayout(Header + Sidebar + Container)`는 고정하고, URL에 따라 컨테이너 내부 페이지만 교체하는 child route 구조를 사용한다.
 
+### 구현된 관리자 페이지 목록
+
+> 추가일: 2026-04-21
+
+| 경로 | 페이지명 | 상태 |
+| --- | --- | --- |
+| `/admin/main` | 대시보드 | 구현 |
+| `/admin/system/common-code` | 공통코드 관리 | 구현 |
+| `/admin/system/plant` | 사업장 목록 | 구현 |
+| `/admin/system/admin-user` | 관리자 관리 | 구현 |
+| `/admin/system/menu` | 메뉴 관리 | 구현 |
+| `/admin/system/message` | 메시지 관리 | 구현 |
+| `/admin/system/rule` | 규칙 관리 | 구현 |
+| `/admin/payment/rate` | 결제 요금 관리 | 구현 |
+| `/admin/payment/plant-status` | 사업장 상태 조회 | 미구현 |
+| `/admin/payment/coupon` | 쿠폰 관리 | 미구현 |
+| `/admin/history/access-log` | 접속 정보 조회 | 미구현 |
+| `/admin/history/audit-log` | 변경 이력 조회 | 미구현 |
+
 ---
 
 ## 3. 폴더 구조 전체

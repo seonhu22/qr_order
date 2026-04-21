@@ -131,6 +131,45 @@ npm run dev:real
 
 ---
 
+## MSW 핸들러 오버라이드
+
+generated MSW 핸들러(`*.msw.ts`)는 Faker 기반 랜덤 데이터를 반환한다.
+특정 기능 화면 개발 시 **고정 목업 데이터**가 필요하면 오버라이드 핸들러를 추가한다.
+
+### 오버라이드 방법
+
+```text
+1. features/<feature>/mock/<feature>Mock.ts  ← 고정 목업 데이터 작성
+2. mocks/handlers.ts                          ← 오버라이드 핸들러 등록
+```
+
+`handlers.ts`에서 오버라이드 핸들러는 반드시 `getSettingsControllerMock()` 앞에 배치해야 한다.
+MSW는 배열에서 첫 번째 매칭 핸들러를 사용하므로 순서가 우선순위를 결정한다.
+
+```ts
+// mocks/handlers.ts
+const myOverrideHandler = http.get('*/api/system/settings/my-feature/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? MY_MOCK_ROWS.filter((row) => row.code?.toLowerCase().includes(keyword))
+    : MY_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
+export const handlers = [
+  ...authHandlers,
+  myOverrideHandler,          // ← generated 핸들러보다 앞에
+  ...getSettingsControllerMock(),
+  // ...
+];
+```
+
+- 목업 파일은 `features/<feature>/mock/` 에 두고 `import` 해서 사용한다.
+- 검색어 필터링이 있는 API라면 `searchKeyword` 파라미터도 함께 처리한다.
+
+---
+
 ## 주의사항
 
 - `src/generated/` 하위 파일은 직접 수정하지 않는다. 수정해도 다음 `generate` 실행 시 덮어씌워진다.
