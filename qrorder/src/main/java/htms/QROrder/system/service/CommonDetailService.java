@@ -61,9 +61,10 @@ public class CommonDetailService {
         commonDetailMapper.updateCommonDetail(commonDetail, userId);
     }
 
-    private boolean duplicateChk(List<CommonDetail> commonDetail) {
+    private boolean duplicateChk(List<CommonDetail> commonDetail,
+                                    String tempLinkSysId) {
 
-        return  commonDetailMapper.duplicateChk(commonDetail);
+        return  commonDetailMapper.duplicateChk(commonDetail, tempLinkSysId);
     }
 
     private List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail) {
@@ -72,6 +73,7 @@ public class CommonDetailService {
     }
 
     public void saveCommonDetail(CommonDetailRequest requestData,
+                                    String tempLinkSysId,
                                     String userId,
                                     String sysPlantId,
                                     String menuCd) {
@@ -81,7 +83,7 @@ public class CommonDetailService {
         List<CommonDetail> delItems = requestData.getDeleteItems();
 
         if(!newItems.isEmpty()) {
-            if(duplicateChk(newItems)) {
+            if(duplicateChk(newItems, tempLinkSysId)) {
                 List<CommonDetail> duplicateAdminUser = getDuplicateData(newItems);
 
                 String result = duplicateAdminUser.stream()

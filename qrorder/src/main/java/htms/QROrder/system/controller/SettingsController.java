@@ -114,12 +114,13 @@ public class SettingsController {
     // 공통코드 상세 저장
     @PostMapping("/common/detail/save")
     public ResponseEntity<CommonResponse> saveCommonDetail(@RequestBody @Valid CommonDetailRequest requestData,
+                                                                    @RequestParam String tempLinkSysId,
                                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        commonDetailService.saveCommonDetail(requestData, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        commonDetailService.saveCommonDetail(requestData, tempLinkSysId, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.<Void>builder()

@@ -8,14 +8,10 @@
             sp.sys_id ,
             sp.plant_cd ,
             sp2.plant_nm ,
-            sp.payment_cd ,
-            sp.payment_nm ,
             sp.payment_fee ,
             sp.payment_fee_unit ,
             sp.license_valid_month
         from sys_payment sp
-        left join sys_plant sp2
-            on sp2.plant_cd = sp.plant_nm
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
             and (sp.user_id like concat('%', #{searchKeyword}, '%') or
@@ -28,7 +24,6 @@
     <insert id="newPayment">
         insert into sys_payment (
             sys_id,
-            plant_cd,
             payment_cd ,
             payment_nm ,
             payment_fee ,
@@ -40,7 +35,6 @@
         )
         values (
             #{payment.sysId},
-            #{payment.plantCd},
             #{payment.paymentCd},
             #{payment.paymentNm},
             #{payment.paymentFee},
@@ -95,7 +89,6 @@
     <select id="getOldData" resultType="htms.QROrder.system.domain.Payment">
         select
         sp.sys_id ,
-        sp.plant_cd ,
         sp.payment_cd ,
         sp.payment_nm ,
         sp.payment_fee ,
