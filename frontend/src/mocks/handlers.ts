@@ -9,6 +9,7 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
+import { ACCESS_LOG_DETAIL_MOCK, ACCESS_LOG_MASTER_MOCK } from '../apps/admin/features/access-log/mock/accessLogMock';
 
 // 사업장 조회 에러 확인용 — 확인 후 제거하거나 주석 처리
 // const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
@@ -60,11 +61,31 @@ const couponOverrideHandler = http.get('*/api/system/settings/payment_coupon/sea
   return HttpResponse.json(filtered);
 });
 
+const accessLogMasterOverrideHandler = http.get('*/api/system/settings/log/login/master', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? ACCESS_LOG_MASTER_MOCK.filter(
+        (row) =>
+          row.userId?.toLowerCase().includes(keyword) ||
+          row.userNm?.includes(keyword) ||
+          row.ipAddress?.includes(keyword),
+      )
+    : ACCESS_LOG_MASTER_MOCK;
+  return HttpResponse.json(filtered);
+});
+
+const accessLogDetailOverrideHandler = http.get('*/api/system/settings/log/login/detail', () => {
+  return HttpResponse.json(ACCESS_LOG_DETAIL_MOCK);
+});
+
 export const handlers = [
   ...authHandlers,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
+  accessLogMasterOverrideHandler,
+  accessLogDetailOverrideHandler,
   // ...devOverrideHandlers,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),
