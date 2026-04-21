@@ -20,9 +20,9 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
   buildAdminUserRequest,
+  getPlantSelectOptionsWithFallback,
   hasAdminUserChanges,
   mapToAdminUserModel,
-  mapToPlantSelectOption,
   useAdminUserQuery,
   usePlantComboOptionsQuery,
   useResetAdminUserPasswordMutation,
@@ -48,7 +48,7 @@ import type { AdminUserPageViewModel } from '../types';
  * ```tsx
  * const { data, status, actions, uiProps } = useAdminUserPage();
  *
- * <AdminUserFilters
+ * <SearchFilterCard
  *   draftKeyword={uiProps.draftKeyword}
  *   onKeywordChange={actions.handleKeywordChange}
  *   onSearch={actions.handleSearch}
@@ -86,7 +86,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
    * 사업장 combo API 응답을 searchable select가 바로 사용할 수 있는 옵션으로 변환한다.
    */
   const plantOptions = useMemo(
-    () => (plantComboQuery.data ?? []).map(mapToPlantSelectOption),
+    () => getPlantSelectOptionsWithFallback(plantComboQuery.data),
     [plantComboQuery.data],
   );
 

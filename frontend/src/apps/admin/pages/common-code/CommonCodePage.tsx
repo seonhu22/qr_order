@@ -9,9 +9,9 @@
 import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import '@/apps/admin/pages/common-code/CommonCodePage.css';
 import { CommonCodeDetailTable } from '@/apps/admin/features/common-code/components/CommonCodeDetailTable';
-import { CommonCodeFilters } from '@/apps/admin/features/common-code/components/CommonCodeFilters';
 import { CommonCodeMasterTable } from '@/apps/admin/features/common-code/components/CommonCodeMasterTable';
 import { useCommonCodePageState } from '@/apps/admin/features/common-code/hooks/useCommonCodePageState';
+import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import {
   ConfirmModal,
@@ -45,7 +45,11 @@ export const CommonCodePage = () => {
         className="admin-main-layout-page--fixed"
         filterSlot={
           /* filterSlot에는 입력 UI만 두고, 실제 조회/초기화 흐름은 page hook action을 연결한다. */
-          <CommonCodeFilters
+          <SearchFilterCard
+            ariaLabel="공통코드 검색"
+            inputId="common-code-search-keyword"
+            inputAriaLabel="공통코드 검색어"
+            placeholder="공통코드, 공통코드명으로 검색"
             draftKeyword={uiProps.draftMasterKeyword}
             onKeywordChange={actions.handleMasterKeywordChange}
             onSearch={actions.handleSearch}

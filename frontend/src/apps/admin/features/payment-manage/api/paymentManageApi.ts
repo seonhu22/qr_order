@@ -13,6 +13,7 @@ export function mapToPaymentRateRow(res: PaymentResponse): PaymentRateRow {
   return {
     id: res.sysId ?? res.paymentCd ?? '',
     sysId: res.sysId,
+    plantCd: res.plantCd,
     rateCode: res.paymentCd ?? '',
     rateName: res.paymentNm ?? '',
     rateAmount: res.paymentFee ?? 0,
@@ -24,7 +25,7 @@ export function mapToPaymentRateRow(res: PaymentResponse): PaymentRateRow {
 function mapToPaymentPayload(row: PaymentRateRow): Payment {
   return {
     sysId: row.sysId,
-    plantCd: '',
+    plantCd: row.plantCd ?? '',
     paymentCd: row.rateCode,
     paymentNm: row.rateName,
     paymentFee: row.rateAmount,

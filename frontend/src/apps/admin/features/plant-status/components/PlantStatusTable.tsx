@@ -48,7 +48,11 @@ export function PlantStatusTable({ rows, isLoading, isError }: PlantStatusTableP
       {isLoading ? (
         <FeedbackState variant="loading" title="사업장 상태 목록을 불러오는 중입니다." />
       ) : isError ? (
-        <FeedbackState variant="error" description="다시 한번 시도해주세요." />
+        <FeedbackState
+          variant="error"
+          title="불러오는데 실패했습니다"
+          description="다시 한번 시도해주세요."
+        />
       ) : (
         <div className="common-table-wrap">
           <table className="common-table" aria-label="사업장 상태 목록 테이블">

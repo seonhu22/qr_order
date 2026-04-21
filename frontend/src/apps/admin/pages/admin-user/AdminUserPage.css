@@ -1,33 +1,4 @@
 /* =====================================================
- * 검색 필터 카드
- * ===================================================== */
-
-.admin-user-page__filter-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding: 1.0625rem;
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-}
-
-.admin-user-page__search-field {
-  flex: 1;
-  min-width: 0;
-}
-
-.admin-user-page__search-input .input-control__input {
-  font-size: var(--typography-size-ui);
-}
-
-.admin-user-page__filter-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-/* =====================================================
  * 테이블 feature 오버라이드
  * ===================================================== */
 
@@ -55,15 +26,6 @@
  * ===================================================== */
 
 @media (max-width: 900px) {
-  .admin-user-page__filter-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .admin-user-page__filter-actions {
-    justify-content: flex-end;
-  }
-
   .common-code-card__header {
     flex-direction: column;
     align-items: stretch;
@@ -72,7 +34,6 @@
 }
 
 @media (max-width: 640px) {
-  .admin-user-page__filter-actions,
   .common-code-card__actions {
     flex-direction: column;
     align-items: stretch;

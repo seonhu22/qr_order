@@ -31,7 +31,7 @@ import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
  * ```tsx
  * const { data, status, actions, uiProps } = usePlantSearchPage();
  *
- * <PlantSearchFilters
+ * <SearchFilterCard
  *   draftKeyword={uiProps.draftKeyword}
  *   onKeywordChange={actions.handleKeywordChange}
  *   onSearch={actions.handleSearch}
