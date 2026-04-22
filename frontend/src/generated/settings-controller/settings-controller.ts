@@ -62,6 +62,7 @@ import type {
   RuleDetail,
   RuleDetailRequest,
   RuleMaster,
+  SaveCommonDetailParams,
   SearchCommonDetailParams,
   SearchCommonParams,
   SearchPlantParams,
@@ -1007,6 +1008,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
     export const saveCommonDetail = (
     commonDetailRequest: CommonDetailRequest,
+    params: SaveCommonDetailParams,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
@@ -1014,7 +1016,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return httpClient<CommonResponse>(
       {url: `/api/system/settings/common/detail/save`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: commonDetailRequest, signal
+      data: commonDetailRequest,
+        params, signal
     },
       options);
     }
@@ -1022,8 +1025,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getSaveCommonDetailMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest;params: SaveCommonDetailParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest;params: SaveCommonDetailParams}, TContext> => {
 
 const mutationKey = ['saveCommonDetail'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -1035,10 +1038,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveCommonDetail>>, {data: CommonDetailRequest}> = (props) => {
-          const {data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveCommonDetail>>, {data: CommonDetailRequest;params: SaveCommonDetailParams}> = (props) => {
+          const {data,params} = props ?? {};
 
-          return  saveCommonDetail(data,requestOptions)
+          return  saveCommonDetail(data,params,requestOptions)
         }
 
         
@@ -1051,11 +1054,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SaveCommonDetailMutationError = unknown
 
     export const useSaveCommonDetail = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveCommonDetail>>, TError,{data: CommonDetailRequest;params: SaveCommonDetailParams}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof saveCommonDetail>>,
         TError,
-        {data: CommonDetailRequest},
+        {data: CommonDetailRequest;params: SaveCommonDetailParams},
         TContext
       > => {
 

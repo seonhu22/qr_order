@@ -12,6 +12,7 @@ export interface Plant {
   plantNm: string;
   emailUrl: string;
   storeNm?: string;
+  empNm?: string;
   zipCode?: string;
   address?: string;
   phoneNumber?: string;
