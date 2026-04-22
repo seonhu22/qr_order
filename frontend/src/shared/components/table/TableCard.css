@@ -150,20 +150,32 @@
   height: 2.5rem;
   font-size: var(--typography-size-sidebar);
   color: var(--color-text-secondary);
-  text-align: center;
   vertical-align: middle;
 }
 
-/* 헤더 셀 */
+/* 컬럼 구분선 — 마지막 열 제외 */
+.common-table th:not(:last-child),
+.common-table td:not(:last-child) {
+  border-right: var(--border-1) solid var(--color-border-divider);
+}
+
+/* 헤더 셀 — 항상 중앙 정렬 */
 .common-table th {
   background-color: var(--color-bg-muted);
   font-weight: var(--typography-weight-ui);
   color: var(--color-text-tertiary);
+  text-align: center;
 }
 
-/* 데이터 셀 */
+/* 데이터 셀 — 기본 좌측 정렬 */
 .common-table td {
   font-weight: var(--typography-weight-body);
+  text-align: left;
+}
+
+/* 중앙 정렬 수식어 — 태그·날짜·시간 등 커스텀 */
+.common-table .common-table__cell--center {
+  text-align: center;
 }
 
 /* 행 인터랙션 */
