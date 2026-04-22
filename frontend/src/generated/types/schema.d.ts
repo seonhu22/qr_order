@@ -887,6 +887,7 @@ export interface components {
             plantNm: string;
             emailUrl: string;
             storeNm?: string;
+            empNm?: string;
             zipCode?: string;
             address?: string;
             phoneNumber?: string;
@@ -909,7 +910,6 @@ export interface components {
         };
         Payment: {
             sysId?: string;
-            plantCd: string;
             paymentCd: string;
             paymentNm: string;
             /** Format: int32 */
@@ -1072,8 +1072,6 @@ export interface components {
         };
         PaymentResponse: {
             sysId?: string;
-            plantCd?: string;
-            plantNm?: string;
             paymentCd?: string;
             paymentNm?: string;
             /** Format: int32 */
@@ -1539,7 +1537,9 @@ export interface operations {
     };
     saveCommonDetail: {
         parameters: {
-            query?: never;
+            query: {
+                tempLinkSysId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
