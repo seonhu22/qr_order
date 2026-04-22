@@ -18,6 +18,7 @@ import {
 import type { CommonDetail } from '@/generated/types/commonDetail';
 import type { CommonDetailRequest } from '@/generated/types/commonDetailRequest';
 import type { CommonMaster } from '@/generated/types/commonMaster';
+import type { SaveCommonDetailParams } from '@/generated/types/saveCommonDetailParams';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode, MasterCode } from '../types';
 
@@ -235,7 +236,17 @@ export function useSaveCommonDetailsMutation() {
   const mutation = useSaveCommonDetail();
 
   return {
-    mutateAsync: async (request: CommonDetailRequest) => mutation.mutateAsync({ data: request }),
+    mutateAsync: async (request: CommonDetailRequest) => {
+      const tempLinkSysId = request.linkSysId;
+
+      if (!tempLinkSysId) {
+        throw new Error('상세 저장 대상 마스터 ID가 없습니다.');
+      }
+
+      const params: SaveCommonDetailParams = { tempLinkSysId };
+
+      return mutation.mutateAsync({ data: request, params });
+    },
     isPending: mutation.isPending,
   };
 }

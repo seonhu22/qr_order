@@ -36,6 +36,12 @@ describe('commonCodeApi', () => {
     expect(hasCommonDetailChanges(request)).toBe(false);
   });
 
+  it('keeps linkSysId in detail request for tempLinkSysId param forwarding', () => {
+    const request = buildCommonDetailRequest('master-1', [], []);
+
+    expect(request.linkSysId).toBe('master-1');
+  });
+
   it('splits detail rows into new, update, and delete payloads', () => {
     const originalRows: DetailCode[] = [
       {
