@@ -192,6 +192,29 @@
   box-shadow: inset var(--border-2) 0 0 var(--color-brand-default);
 }
 
+/* 체크박스 컬럼 고정 너비 */
+.common-table__col--checkbox {
+  width: var(--spacing-14); /* 48px / 3rem */
+}
+
+/* 수정 버튼 컬럼 고정 너비 */
+.common-table__col--action {
+  width: var(--spacing-16); /* 64px / 4rem */
+}
+
+/* 컬럼 너비 사이즈 (태그/뱃지 컬럼 등) */
+.common-table__col--sm { width: 5.625rem; } /* 90px */
+.common-table__col--md { width: 8rem; }     /* 128px */
+.common-table__col--lg { width: 10rem; }    /* 160px */
+
+/* 체크박스 · 버튼 · 뱃지가 있는 th/td는 항상 중앙 정렬 */
+.common-table th:has(.common-table__checkbox),
+.common-table td:has(.common-table__checkbox),
+.common-table td:has(button),
+.common-table td:has(> span[class*="badge"]) {
+  text-align: center;
+}
+
 /* 체크박스 셀 중앙 정렬 보조 */
 .common-table__checkbox {
   display: inline-flex;

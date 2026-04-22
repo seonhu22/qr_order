@@ -184,7 +184,7 @@ export function TableBodyRenderer({
                 onSelect={row.onSelect}
               >
                 {columns.map((column) => (
-                  <td key={column.key}>{renderCell(row.cells[column.key])}</td>
+                  <td key={column.key} className={column.tdClassName}>{renderCell(row.cells[column.key])}</td>
                 ))}
               </SelectableTableRow>
             ))
