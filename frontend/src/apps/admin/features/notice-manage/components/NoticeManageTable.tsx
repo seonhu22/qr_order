@@ -66,8 +66,8 @@ export function NoticeManageTable({
                     />
                   </span>
                 </th>
-                <th scope="col" className="common-table__cell--left">제목</th>
-                <th scope="col" className="common-table__cell--left">내용</th>
+                <th scope="col">제목</th>
+                <th scope="col">내용</th>
                 <th scope="col">등록자</th>
                 <th scope="col">등록일자</th>
                 <th scope="col">수정일자</th>
