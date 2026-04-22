@@ -1,0 +1,60 @@
+.dev-layout {
+  display: flex;
+  height: 100vh;
+  font-family: var(--typography-font-base);
+}
+
+.dev-layout__nav {
+  width: 200px;
+  flex-shrink: 0;
+  background: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border-divider);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.dev-layout__nav-logo {
+  padding: 0 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-divider);
+  margin-bottom: 0.75rem;
+}
+
+.dev-layout__nav-logo-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-brand-default);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dev-layout__nav-list {
+  list-style: none;
+  padding: 0 0.5rem;
+  margin: 0;
+}
+
+.dev-layout__nav-link {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-button);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  background: transparent;
+  text-decoration: none;
+  transition: background var(--transition-ui), color var(--transition-ui);
+}
+
+.dev-layout__nav-link--active {
+  font-weight: 600;
+  color: var(--color-brand-default);
+  background: var(--color-bg-selected);
+}
+
+.dev-layout__main {
+  flex: 1;
+  overflow-y: auto;
+}

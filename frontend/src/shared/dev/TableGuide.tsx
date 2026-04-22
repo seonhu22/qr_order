@@ -9,12 +9,15 @@
  */
 
 import { useState } from 'react';
-import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase } from '@/shared/components/input';
-import { Icon } from '@/shared/assets/icons/Icon';
-import { FeedbackState } from '@/shared/components/feedback';
-import { TableCard } from '@/shared/components/table';
+import { EditTableButton } from '@/shared/components/button';
+import {
+  TableCard,
+  TableCardContentState,
+  MasterTableActions,
+  DetailTableActions,
+} from '@/shared/components/table';
 import './devStyles/TableGuide.css';
 
 /* =====================================================
@@ -73,20 +76,20 @@ function RowSelectExample() {
       title="행 클릭 선택"
       ariaLabel="행 클릭 선택 예시"
       actions={
-        <>
-          <Button type="button" variant="primary" size="sm" leftIcon={<Icon id="i-plus" size={13} />}>신규</Button>
-          <Button type="button" variant="outline" size="sm">삭제</Button>
-        </>
+        <MasterTableActions
+          onCreate={() => {}}
+          onDelete={() => {}}
+        />
       }
     >
       <div className="common-table-wrap">
         <table className="common-table">
           <colgroup>
-            <col style={{ width: '3rem' }} />
+            <col className="common-table__col--checkbox" />
             <col />
             <col />
             <col style={{ width: '8rem' }} />
-            <col style={{ width: '4rem' }} />
+            <col className="common-table__col--action" />
           </colgroup>
           <thead>
             <tr>
@@ -105,8 +108,8 @@ function RowSelectExample() {
                   aria-label="전체 선택"
                 />
               </th>
-              <th className="common-table__cell--left">코드</th>
-              <th className="common-table__cell--left">코드명</th>
+              <th>코드</th>
+              <th>코드명</th>
               <th>사용여부</th>
               <th>수정</th>
             </tr>
@@ -135,12 +138,8 @@ function RowSelectExample() {
                   </span>
                 </td>
                 <td>
-                  <Button
-                    type="button"
-                    variant="icon"
-                    size="sm"
-                    iconOnly={<Icon id="i-modal-pencil" size={12} />}
-                    aria-label={`${row.code} 수정`}
+                  <EditTableButton
+                    ariaLabel={`${row.code} 수정`}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </td>
@@ -211,44 +210,17 @@ function InlineEditExample() {
       ariaLabel="인라인 행 편집 예시"
       actionsClassName="common-code-card__actions--detail"
       actions={
-        <>
-          <Button
-            variant="icon"
-            size="sm"
-            iconOnly={<Icon id="i-chevron-up" size={12} />}
-            aria-label="위로 이동"
-            disabled={!canMoveUp}
-            onClick={handleMoveUp}
-          />
-          <Button
-            variant="icon"
-            size="sm"
-            iconOnly={<Icon id="i-chevron-down" size={12} />}
-            aria-label="아래로 이동"
-            disabled={!canMoveDown}
-            onClick={handleMoveDown}
-          />
-          <Button
-            type="button"
-            variant="text"
-            size="sm"
-            className="common-code-card__text-action"
-            onClick={handleAddRow}
-          >
-            + 행추가
-          </Button>
-          <Button
-            type="button"
-            variant="text"
-            size="sm"
-            className="common-code-card__text-action"
-            disabled={!selectedId}
-            onClick={handleDeleteRow}
-          >
-            - 행삭제
-          </Button>
-          <Button type="button" variant="outline" size="sm">저장</Button>
-        </>
+        <DetailTableActions
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
+          canDelete={!!selectedId}
+          isSaving={false}
+          onMoveUp={handleMoveUp}
+          onMoveDown={handleMoveDown}
+          onAddRow={handleAddRow}
+          onDeleteRow={handleDeleteRow}
+          onSave={() => {}}
+        />
       }
     >
       <div className="common-table-wrap">
@@ -256,12 +228,12 @@ function InlineEditExample() {
           <colgroup>
             <col />
             <col />
-            <col style={{ width: '8rem' }} />
+            <col className="table-guide__col--use-yn" />
           </colgroup>
           <thead>
             <tr>
-              <th className="common-table__cell--left">공통코드</th>
-              <th className="common-table__cell--left">공통코드명</th>
+              <th>공통코드</th>
+              <th>공통코드명</th>
               <th>사용여부</th>
             </tr>
           </thead>
@@ -328,8 +300,8 @@ export default function TableGuide() {
               <table className="common-table">
                 <thead>
                   <tr>
-                    <th className="common-table__cell--left">코드</th>
-                    <th className="common-table__cell--left">코드명</th>
+                    <th>코드</th>
+                    <th>코드명</th>
                     <th>사용여부</th>
                   </tr>
                 </thead>
@@ -369,19 +341,32 @@ export default function TableGuide() {
       </Section>
 
       {/* 4. 로딩 상태 */}
-      <Section title="로딩 상태" desc="isLoading 시 FeedbackState를 children으로 전달">
+      <Section title="로딩 상태" desc="isLoading 시 TableCardContentState에 위임">
         <div className="table-guide__preview-box">
           <TableCard title="공통코드 목록" ariaLabel="로딩 예시">
-            <FeedbackState variant="loading" title="목록을 불러오는 중입니다." />
+            <TableCardContentState
+              isLoading
+              isError={false}
+              loadingTitle="목록을 불러오는 중입니다."
+            >
+              <></>
+            </TableCardContentState>
           </TableCard>
         </div>
       </Section>
 
       {/* 5. 에러 상태 */}
-      <Section title="에러 상태" desc="isError 시 FeedbackState를 children으로 전달">
+      <Section title="에러 상태" desc="isError 시 TableCardContentState에 위임">
         <div className="table-guide__preview-box">
           <TableCard title="공통코드 목록" ariaLabel="에러 예시">
-            <FeedbackState variant="error" description="다시 한번 시도해주세요." />
+            <TableCardContentState
+              isLoading={false}
+              isError
+              loadingTitle=""
+              errorDescription="다시 한번 시도해주세요."
+            >
+              <></>
+            </TableCardContentState>
           </TableCard>
         </div>
       </Section>
@@ -393,12 +378,17 @@ export default function TableGuide() {
       >
         <div className="table-guide__preview-box">
           <TableCard ariaLabel="빈 상태 예시">
-            <FeedbackState
-              variant="empty"
-              title="목록을 선택해주세요"
-              description="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
-              className="common-code-card__empty"
-            />
+            <TableCardContentState
+              isLoading={false}
+              isError={false}
+              isEmpty
+              loadingTitle=""
+              emptyTitle="목록을 선택해주세요"
+              emptyDescription="위 목록에서 행을 클릭하면 상세 코드가 표시됩니다."
+              emptyClassName="common-code-card__empty"
+            >
+              <></>
+            </TableCardContentState>
           </TableCard>
         </div>
       </Section>

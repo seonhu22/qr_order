@@ -52,3 +52,8 @@
 .table-guide__readonly .common-table tbody tr {
   cursor: default;
 }
+
+/* 인라인 편집 예시 — 사용여부 컬럼 */
+.table-guide__col--use-yn {
+  width: 8rem;
+}
