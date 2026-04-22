@@ -380,6 +380,26 @@ const detailActions = (
 - `column.className`은 `th`에만 적용된다.
 - `column.tdClassName`은 해당 컬럼의 모든 `td`에 적용된다.
 
+### EditableDetailTable — className / 정렬 규칙
+
+> 추가일: 2026-04-22
+
+`EditableDetailTable`의 헤더(`th`)도 일반 테이블과 동일하게 **항상 중앙 정렬**이다.
+`td` 내용은 좌측 정렬(기본), 체크박스는 `:has()` 규칙으로 자동 중앙 정렬된다.
+
+`EditableDetailColumn`의 `className`은 해당 컬럼의 `th`에 적용된다.
+`common-table--detail` 환경에서는 `colgroup`이 동작하지 않으므로,
+컬럼 너비를 고정하려면 `className`에 너비 클래스를 지정한다.
+
+```ts
+// 사용여부 체크박스 컬럼 너비 고정
+{ key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--checkbox' }
+```
+
+- `common-table--detail`은 `thead`/`tbody`가 `display: block`이므로 `colgroup`이 무효
+- `th`에 너비 클래스를 적용하면 해당 헤더 셀 너비가 고정됨
+- `td` 너비는 `common-table--detail thead tr`, `tbody tr` 각각이 독립 `display: table`이므로 `th`와 연동되지 않음 — 현재는 `table-layout: fixed` + 균등 분배로 처리
+
 ### 테이블 수정 버튼
 
 행 오른쪽 끝 수정 아이콘 버튼은 `EditTableButton` 공용 컴포넌트를 사용한다.
