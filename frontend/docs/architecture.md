@@ -55,7 +55,7 @@
 | `/admin/payment/coupon` | 쿠폰 관리 | 시스템 | 구현 |
 | `/admin/history/access-log` | 접속 정보 조회 | 시스템 | 구현 |
 | `/admin/history/audit-log` | 변경 이력 조회 | 시스템 | 구현 |
-| `/admin/notice/manage` | 공지사항 관리 | 게시판 | 구현(placeholder) |
+| `/admin/notice/manage` | 공지사항 관리 | 게시판 | 구현 |
 | `/admin/inquiry/manage` | 문의사항 관리 | 게시판 | 구현(placeholder) |
 
 ### 사이드바 섹션 구조
