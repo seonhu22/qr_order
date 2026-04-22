@@ -49,4 +49,10 @@ export const queryKeys = {
     list: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
       ['settings', 'changeHistory', 'list', params] as const,
   },
+  notice: {
+    list: (searchKeyword = '') => ['board', 'notice', 'list', { searchKeyword }] as const,
+  },
+  qna: {
+    list: (searchKeyword = '') => ['board', 'qna', 'list', { searchKeyword }] as const,
+  },
 } as const;

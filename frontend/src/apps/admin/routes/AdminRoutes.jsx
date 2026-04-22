@@ -27,6 +27,8 @@ import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManag
 import { CouponManagePage } from '@/apps/admin/pages/coupon-manage/CouponManagePage';
 import { AccessLogPage } from '@/apps/admin/pages/access-log/AccessLogPage';
 import { ChangeHistoryPage } from '@/apps/admin/pages/change-history/ChangeHistoryPage';
+import { NoticeManagePage } from '@/apps/admin/pages/notice-manage/NoticeManagePage';
+import { InquiryManagePage } from '@/apps/admin/pages/inquiry-manage/InquiryManagePage';
 
 export const adminRoutes = [
   {
@@ -84,6 +86,14 @@ export const adminRoutes = [
       {
         path: 'history/audit-log',
         element: <ChangeHistoryPage />,
+      },
+      {
+        path: 'notice/manage',
+        element: <NoticeManagePage />,
+      },
+      {
+        path: 'inquiry/manage',
+        element: <InquiryManagePage />,
       },
     ],
   },
