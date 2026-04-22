@@ -43,19 +43,19 @@ export function AccessLogDetailTable({
           <table className="common-table">
             <thead>
               <tr>
-                <th className="common-table__th" scope="col">메뉴코드</th>
-                <th className="common-table__th" scope="col">메뉴명</th>
-                <th className="common-table__th" scope="col">시작 일시</th>
-                <th className="common-table__th" scope="col">종료 일시</th>
+                <th scope="col">메뉴코드</th>
+                <th scope="col">메뉴명</th>
+                <th scope="col">시작 일시</th>
+                <th scope="col">종료 일시</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="common-table__row">
-                  <td className="common-table__td">{row.menuCd}</td>
-                  <td className="common-table__td">{row.menuNm}</td>
-                  <td className="common-table__td">{row.menuOpenDatetime}</td>
-                  <td className="common-table__td">{row.menuCloseDatetime}</td>
+                <tr key={row.id}>
+                  <td>{row.menuCd}</td>
+                  <td>{row.menuNm}</td>
+                  <td className="common-table__cell--center">{row.menuOpenDatetime}</td>
+                  <td className="common-table__cell--center">{row.menuCloseDatetime}</td>
                 </tr>
               ))}
             </tbody>

@@ -27,25 +27,28 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
       >
         <div className="common-table-wrap">
           <table className="common-table">
+            <colgroup>
+              <col className="common-table__col--md" /><col /><col /><col />
+            </colgroup>
             <thead>
               <tr>
-                <th className="common-table__th" scope="col">변경 구분</th>
-                <th className="common-table__th" scope="col">메뉴명</th>
-                <th className="common-table__th" scope="col">수정내용</th>
-                <th className="common-table__th" scope="col">수정일자</th>
+                <th scope="col">변경 구분</th>
+                <th scope="col">메뉴명</th>
+                <th scope="col">수정내용</th>
+                <th scope="col">수정일자</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="common-table__row">
-                  <td className="common-table__td">
+                <tr key={row.id}>
+                  <td>
                     <span className={`change-history-flag-badge change-history-flag-badge--${row.auditFlag.toLowerCase()}`}>
                       {AUDIT_FLAG_LABEL[row.auditFlag] ?? row.auditFlag}
                     </span>
                   </td>
-                  <td className="common-table__td">{row.menuNm}</td>
-                  <td className="common-table__td">{row.auditTrailContents}</td>
-                  <td className="common-table__td">{row.insertDatetime}</td>
+                  <td>{row.menuNm}</td>
+                  <td>{row.auditTrailContents}</td>
+                  <td className="common-table__cell--center">{row.insertDatetime}</td>
                 </tr>
               ))}
             </tbody>

@@ -28,12 +28,14 @@ export function PlantStatusTable({ rows, isLoading, isError }: PlantStatusTableP
 
     return rows.map((row) => (
       <tr key={row.id}>
-        <td className="common-table__mono common-table__cell--left">{row.plantCode}</td>
-        <td className="common-table__mono common-table__cell--left">{row.paymentCode}</td>
-        <td className="common-table__cell--left">{row.paymentName}</td>
-        <td>{row.licenseValidMonth != null ? `${row.licenseValidMonth}개월` : '-'}</td>
-        <td>{row.lastCheckoutDate}</td>
-        <td>{row.estimateCheckoutDate}</td>
+        <td className="common-table__mono">{row.plantCode}</td>
+        <td className="common-table__mono">{row.paymentCode}</td>
+        <td>{row.paymentName}</td>
+        <td className="common-table__cell--center">
+          {row.licenseValidMonth != null ? `${row.licenseValidMonth}개월` : '-'}
+        </td>
+        <td className="common-table__cell--center">{row.lastCheckoutDate}</td>
+        <td className="common-table__cell--center">{row.estimateCheckoutDate}</td>
         <td>
           <span className={`plant-status-badge plant-status-badge--${row.status}`}>
             {STATUS_LABEL[row.status]}
@@ -56,11 +58,14 @@ export function PlantStatusTable({ rows, isLoading, isError }: PlantStatusTableP
       ) : (
         <div className="common-table-wrap">
           <table className="common-table" aria-label="사업장 상태 목록 테이블">
+            <colgroup>
+              <col /><col /><col /><col /><col /><col /><col className="common-table__col--md" />
+            </colgroup>
             <thead>
               <tr>
-                <th className="common-table__cell--left">사업자 번호</th>
-                <th className="common-table__cell--left">결제 요금 코드</th>
-                <th className="common-table__cell--left">결제 요금명</th>
+                <th>사업자 번호</th>
+                <th>결제 요금 코드</th>
+                <th>결제 요금명</th>
                 <th>라이센스 기간(월)</th>
                 <th>결제 날짜</th>
                 <th>라이센스 만료 날짜</th>

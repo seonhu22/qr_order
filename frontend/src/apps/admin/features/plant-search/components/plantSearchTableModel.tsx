@@ -5,15 +5,15 @@ import type { PlantSearchRow } from '../types';
 
 export function createPlantSearchTableColumns(): SharedTableColumn[] {
   return [
-    { key: 'plantCode', label: '사업자 코드', align: 'left', className: 'common-table__cell--left' },
-    { key: 'plantName', label: '사업자 명', align: 'left', className: 'common-table__cell--left' },
-    { key: 'storeName', label: '상호명', align: 'left', className: 'common-table__cell--left' },
-    { key: 'ownerName', label: '대표자명', align: 'left', className: 'common-table__cell--left' },
-    { key: 'email', label: '이메일 주소', align: 'left', className: 'common-table__cell--left' },
-    { key: 'managerName', label: '담당자 명', align: 'left', className: 'common-table__cell--left' },
-    { key: 'postalCode', label: '우편번호', align: 'left', className: 'common-table__cell--left' },
-    { key: 'address', label: '주소', align: 'left', className: 'common-table__cell--left' },
-    { key: 'phoneNumber', label: '전화번호', align: 'left', className: 'common-table__cell--left' },
+    { key: 'plantCode', label: '사업자 코드' },
+    { key: 'plantName', label: '사업자 명' },
+    { key: 'storeName', label: '상호명' },
+    { key: 'ownerName', label: '대표자명', tdClassName: 'common-table__cell--center' },
+    { key: 'email', label: '이메일 주소' },
+    { key: 'managerName', label: '담당자 명', tdClassName: 'common-table__cell--center' },
+    { key: 'postalCode', label: '우편번호', tdClassName: 'common-table__cell--center' },
+    { key: 'address', label: '주소' },
+    { key: 'phoneNumber', label: '전화번호' },
     { key: 'clientUrl', label: '클라이언트 접속' },
   ];
 }
