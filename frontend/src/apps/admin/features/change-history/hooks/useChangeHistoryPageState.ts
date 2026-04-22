@@ -5,16 +5,22 @@ function pad(n: number) {
   return String(n).padStart(2, '0');
 }
 
-function getToday() {
+function getNow() {
   const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function getMonthAgo() {
+function getWeekAgoFromNow() {
   const d = new Date();
-  d.setMonth(d.getMonth() - 1);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  d.setDate(d.getDate() - 7);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+function toApiDatetime(value: string) {
+  return value ? `${value}:00` : '';
+}
+
+const MAX_RANGE_DAYS = 7;
 
 type SearchParams = {
   startDate: string;
@@ -24,8 +30,8 @@ type SearchParams = {
 
 function makeDefaultSearchParams(): SearchParams {
   return {
-    startDate: getMonthAgo(),
-    endDate: getToday(),
+    startDate: toApiDatetime(getWeekAgoFromNow()),
+    endDate: toApiDatetime(getNow()),
     searchKeyword: '',
   };
 }
@@ -33,19 +39,26 @@ function makeDefaultSearchParams(): SearchParams {
 export function useChangeHistoryPageState() {
   const [draftAuditFlag, setDraftAuditFlag] = useState('ALL');
   const [draftKeyword, setDraftKeyword] = useState('');
-  const [draftStartDate, setDraftStartDate] = useState(getMonthAgo);
-  const [draftEndDate, setDraftEndDate] = useState(getToday);
+  const [draftStartDate, setDraftStartDate] = useState(getWeekAgoFromNow);
+  const [draftEndDate, setDraftEndDate] = useState(getNow);
   const [dateRangeError, setDateRangeError] = useState('');
 
   const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
 
   const validateDateRange = (start: string, end: string): boolean => {
     if (!start || !end) {
-      setDateRangeError('시작일과 종료일을 모두 입력해주세요.');
+      setDateRangeError('시작일시와 종료일시를 모두 입력해주세요.');
       return false;
     }
-    if (new Date(end) < new Date(start)) {
-      setDateRangeError('종료일은 시작일보다 이후여야 합니다.');
+    const startMs = new Date(start).getTime();
+    const endMs = new Date(end).getTime();
+    if (endMs < startMs) {
+      setDateRangeError('종료일시는 시작일시보다 이후여야 합니다.');
+      return false;
+    }
+    const diffDays = (endMs - startMs) / (1000 * 60 * 60 * 24);
+    if (diffDays > MAX_RANGE_DAYS) {
+      setDateRangeError(`조회 기간은 최대 ${MAX_RANGE_DAYS}일까지 설정할 수 있습니다.`);
       return false;
     }
     setDateRangeError('');
@@ -68,23 +81,23 @@ export function useChangeHistoryPageState() {
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
     setSearchParams({
-      startDate: draftStartDate,
-      endDate: draftEndDate,
+      startDate: toApiDatetime(draftStartDate),
+      endDate: toApiDatetime(draftEndDate),
       searchKeyword: draftKeyword,
     });
   };
 
   const handleReset = () => {
-    const defaultStart = getMonthAgo();
-    const defaultEnd = getToday();
+    const defaultStart = getWeekAgoFromNow();
+    const defaultEnd = getNow();
     setDraftAuditFlag('ALL');
     setDraftKeyword('');
     setDraftStartDate(defaultStart);
     setDraftEndDate(defaultEnd);
     setDateRangeError('');
     setSearchParams({
-      startDate: defaultStart,
-      endDate: defaultEnd,
+      startDate: toApiDatetime(defaultStart),
+      endDate: toApiDatetime(defaultEnd),
       searchKeyword: '',
     });
   };

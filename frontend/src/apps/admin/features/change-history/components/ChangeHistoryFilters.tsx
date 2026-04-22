@@ -76,24 +76,24 @@ export function ChangeHistoryFilters({
           <InputWrapper inputId="change-history-start-date">
             <InputBase
               id="change-history-start-date"
-              type="date"
+              type="datetime-local"
               size="md"
               value={draftStartDate}
               onChange={(e) => onStartDateChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              aria-label="시작일"
+              aria-label="시작 일시"
             />
           </InputWrapper>
           <span className="change-history-filters__date-sep">~</span>
           <InputWrapper inputId="change-history-end-date">
             <InputBase
               id="change-history-end-date"
-              type="date"
+              type="datetime-local"
               size="md"
               value={draftEndDate}
               onChange={(e) => onEndDateChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              aria-label="종료일"
+              aria-label="종료 일시"
             />
           </InputWrapper>
         </div>
@@ -104,8 +104,10 @@ export function ChangeHistoryFilters({
         </div>
       </div>
 
-      {dateRangeError && (
+      {dateRangeError ? (
         <p className="change-history-filters__error">{dateRangeError}</p>
+      ) : (
+        <p className="change-history-filters__hint">조회 기간은 최대 7일까지 설정할 수 있습니다.</p>
       )}
     </article>
   );
