@@ -46,13 +46,13 @@ export function CouponManageTable({
         <div className="common-table-wrap">
           <table className="common-table coupon-manage-table" aria-label="쿠폰 목록 테이블">
             <colgroup>
+              <col className="common-table__col--checkbox" />
               <col />
               <col />
               <col />
               <col />
-              <col />
-              <col />
-              <col />
+              <col className="common-table__col--md" />
+              <col className="common-table__col--action" />
             </colgroup>
             <thead>
               <tr>
@@ -67,8 +67,8 @@ export function CouponManageTable({
                     />
                   </span>
                 </th>
-                <th scope="col" className="common-table__cell--left">쿠폰 코드</th>
-                <th scope="col" className="common-table__cell--left">쿠폰 명</th>
+                <th scope="col">쿠폰 코드</th>
+                <th scope="col">쿠폰 명</th>
                 <th scope="col">쿠폰 적용 일자</th>
                 <th scope="col">쿠폰 종료 일자</th>
                 <th scope="col">사용 여부</th>
@@ -95,10 +95,10 @@ export function CouponManageTable({
                         />
                       </span>
                     </td>
-                    <td className="common-table__cell--left common-table__mono">{row.couponCd || '-'}</td>
-                    <td className="common-table__cell--left">{row.couponNm || '-'}</td>
-                    <td>{row.startDate || '-'}</td>
-                    <td>{row.endDate || '-'}</td>
+                    <td className="common-table__mono">{row.couponCd || '-'}</td>
+                    <td>{row.couponNm || '-'}</td>
+                    <td className="common-table__cell--center">{row.startDate || '-'}</td>
+                    <td className="common-table__cell--center">{row.endDate || '-'}</td>
                     <td>
                       <span className={`coupon-use-yn-badge coupon-use-yn-badge--${row.useYn === 'Y' ? 'active' : 'inactive'}`}>
                         {USE_YN_LABEL[row.useYn]}

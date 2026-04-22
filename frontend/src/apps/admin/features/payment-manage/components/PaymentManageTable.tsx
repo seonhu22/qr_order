@@ -44,13 +44,7 @@ export function PaymentManageTable({
         <div className="common-table-wrap">
           <table className="common-table payment-manage-table" aria-label="결제 요금 목록 테이블">
             <colgroup>
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
+              <col className="common-table__col--checkbox" /><col /><col /><col /><col /><col /><col className="common-table__col--action" />
             </colgroup>
             <thead>
               <tr>
@@ -65,8 +59,8 @@ export function PaymentManageTable({
                     />
                   </span>
                 </th>
-                <th scope="col" className="common-table__cell--left">결제 요금 코드</th>
-                <th scope="col" className="common-table__cell--left">결제 요금 명</th>
+                <th scope="col">결제 요금 코드</th>
+                <th scope="col">결제 요금 명</th>
                 <th scope="col">결제 요금</th>
                 <th scope="col">결제 요금 단위</th>
                 <th scope="col">라이센스 기간</th>
@@ -76,9 +70,7 @@ export function PaymentManageTable({
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="common-table__empty">
-                    데이터가 없습니다.
-                  </td>
+                  <td colSpan={7} className="common-table__empty">데이터가 없습니다.</td>
                 </tr>
               ) : (
                 rows.map((row) => (
@@ -93,11 +85,11 @@ export function PaymentManageTable({
                         />
                       </span>
                     </td>
-                    <td className="common-table__cell--left common-table__mono">{row.rateCode}</td>
-                    <td className="common-table__cell--left">{row.rateName}</td>
+                    <td className="common-table__mono">{row.rateCode}</td>
+                    <td>{row.rateName}</td>
                     <td>{row.rateAmount.toLocaleString()}</td>
-                    <td>{row.rateUnit}</td>
-                    <td>{row.licenseValidMonth}개월</td>
+                    <td className="common-table__cell--center">{row.rateUnit}</td>
+                    <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
                     <td>
                       <EditTableButton
                         ariaLabel={`${row.rateName} 수정`}
