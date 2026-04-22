@@ -21,9 +21,10 @@ import { create } from 'zustand';
 
 type AdminLayoutStore = {
   isSidebarOpen: boolean;
-  expandedDepth1Key: string | null;
-  expandedDepth2Key: string | null;
+  expandedDepth1Keys: string[];
+  expandedDepth2Keys: string[];
   setExpandedMenu: (depth1Key: string | null, depth2Key: string | null) => void;
+  ensureMenuOpen: (depth1Key: string | null, depth2Key: string | null) => void;
   openSidebar: () => void;
   closeSidebar: () => void;
   toggleSidebar: () => void;
@@ -32,38 +33,46 @@ type AdminLayoutStore = {
 };
 
 export const useAdminLayoutStore = create<AdminLayoutStore>((set) => ({
-  isSidebarOpen: true,
-  expandedDepth1Key: 'system',
-  expandedDepth2Key: 'systemManagement',
+  isSidebarOpen: false,
+  expandedDepth1Keys: ['system'],
+  expandedDepth2Keys: ['systemManagement'],
   setExpandedMenu: (depth1Key, depth2Key) =>
     set({
-      expandedDepth1Key: depth1Key,
-      expandedDepth2Key: depth2Key,
+      expandedDepth1Keys: depth1Key ? [depth1Key] : [],
+      expandedDepth2Keys: depth2Key ? [depth2Key] : [],
     }),
+  ensureMenuOpen: (depth1Key, depth2Key) =>
+    set((state) => ({
+      expandedDepth1Keys:
+        depth1Key && !state.expandedDepth1Keys.includes(depth1Key)
+          ? [...state.expandedDepth1Keys, depth1Key]
+          : state.expandedDepth1Keys,
+      expandedDepth2Keys:
+        depth2Key && !state.expandedDepth2Keys.includes(depth2Key)
+          ? [...state.expandedDepth2Keys, depth2Key]
+          : state.expandedDepth2Keys,
+    })),
   openSidebar: () => set({ isSidebarOpen: true }),
   closeSidebar: () => set({ isSidebarOpen: false }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   toggleDepth1: (key, hasChildren = true) =>
     set((state) => {
-      if (!hasChildren) {
-        return { expandedDepth1Key: state.expandedDepth1Key };
-      }
-
-      const nextDepth1Key = state.expandedDepth1Key === key ? null : key;
-
+      if (!hasChildren) return {};
+      const isOpen = state.expandedDepth1Keys.includes(key);
       return {
-        expandedDepth1Key: nextDepth1Key,
-        expandedDepth2Key: nextDepth1Key ? state.expandedDepth2Key : null,
+        expandedDepth1Keys: isOpen
+          ? state.expandedDepth1Keys.filter((k) => k !== key)
+          : [...state.expandedDepth1Keys, key],
       };
     }),
   toggleDepth2: (key, hasChildren = true) =>
     set((state) => {
-      if (!hasChildren) {
-        return { expandedDepth2Key: state.expandedDepth2Key };
-      }
-
+      if (!hasChildren) return {};
+      const isOpen = state.expandedDepth2Keys.includes(key);
       return {
-        expandedDepth2Key: state.expandedDepth2Key === key ? null : key,
+        expandedDepth2Keys: isOpen
+          ? state.expandedDepth2Keys.filter((k) => k !== key)
+          : [...state.expandedDepth2Keys, key],
       };
     }),
 }));

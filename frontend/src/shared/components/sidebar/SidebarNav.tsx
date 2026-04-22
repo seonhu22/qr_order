@@ -16,10 +16,10 @@ import type { SidebarNavDepth1 } from './types';
 type SidebarNavProps = {
   /** 3계층 메뉴 데이터 */
   menus: readonly SidebarNavDepth1[];
-  /** 현재 펼쳐진 1depth 키 */
-  expandedDepth1Key: string | null;
-  /** 현재 펼쳐진 2depth 키 */
-  expandedDepth2Key: string | null;
+  /** 현재 펼쳐진 1depth 키 목록 */
+  expandedDepth1Keys: string[];
+  /** 현재 펼쳐진 2depth 키 목록 */
+  expandedDepth2Keys: string[];
   /** 현재 URL 경로 (active 상태 판별용) */
   currentPathname: string;
   /** 1depth 토글 콜백 */
@@ -53,7 +53,7 @@ type SidebarNavProps = {
 /** depth2 그룹 + depth3 아이템을 렌더하는 내부 헬퍼 */
 function GroupItems({
   group,
-  expandedDepth2Key,
+  expandedDepth2Keys,
   currentPathname,
   onToggleDepth2,
   onNavigate,
@@ -61,14 +61,14 @@ function GroupItems({
   useD1Style = false,
 }: {
   group: SidebarNavDepth1['groups'][number];
-  expandedDepth2Key: string | null;
+  expandedDepth2Keys: string[];
   currentPathname: string;
   onToggleDepth2: (key: string, hasChildren?: boolean) => void;
   onNavigate: (path: string) => void;
   useD1Style?: boolean;
 }) {
   const hasChildren = group.items.length > 0;
-  const isExpanded = expandedDepth2Key === group.key;
+  const isExpanded = expandedDepth2Keys.includes(group.key);
 
   /* depth1이 없을 때 그룹 헤더는 d1 버튼 스타일로 최상위처럼 보이게 한다 */
   const btnClass = useD1Style
@@ -118,8 +118,8 @@ function GroupItems({
 
 export function SidebarNav({
   menus,
-  expandedDepth1Key,
-  expandedDepth2Key,
+  expandedDepth1Keys,
+  expandedDepth2Keys,
   currentPathname,
   onToggleDepth1,
   onToggleDepth2,
@@ -136,7 +136,7 @@ export function SidebarNav({
             <GroupItems
               key={group.key}
               group={group}
-              expandedDepth2Key={expandedDepth2Key}
+              expandedDepth2Keys={expandedDepth2Keys}
               currentPathname={currentPathname}
               onToggleDepth2={onToggleDepth2}
               onNavigate={onNavigate}
@@ -154,7 +154,7 @@ export function SidebarNav({
       <ul className="sidebar-nav__list">
         {menus.map((depth1) => {
           const hasDepth1Children = depth1.groups.length > 0;
-          const isDepth1Expanded = expandedDepth1Key === depth1.key;
+          const isDepth1Expanded = expandedDepth1Keys.includes(depth1.key);
 
           return (
             <li key={depth1.key} className="sidebar-nav__d1-item">
@@ -184,7 +184,7 @@ export function SidebarNav({
                     <GroupItems
                       key={group.key}
                       group={group}
-                      expandedDepth2Key={expandedDepth2Key}
+                      expandedDepth2Keys={expandedDepth2Keys}
                       currentPathname={currentPathname}
                       onToggleDepth2={onToggleDepth2}
                       onNavigate={onNavigate}

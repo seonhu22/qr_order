@@ -25,9 +25,11 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const expandedDepth1Key = useAdminLayoutStore((s) => s.expandedDepth1Key);
-  const expandedDepth2Key = useAdminLayoutStore((s) => s.expandedDepth2Key);
+  const expandedDepth1Keys = useAdminLayoutStore((s) => s.expandedDepth1Keys);
+  const expandedDepth2Keys = useAdminLayoutStore((s) => s.expandedDepth2Keys);
+  const isSidebarOpen = useAdminLayoutStore((s) => s.isSidebarOpen);
   const setExpandedMenu = useAdminLayoutStore((s) => s.setExpandedMenu);
+  const ensureMenuOpen = useAdminLayoutStore((s) => s.ensureMenuOpen);
   const toggleDepth1 = useAdminLayoutStore((s) => s.toggleDepth1);
   const toggleDepth2 = useAdminLayoutStore((s) => s.toggleDepth2);
 
@@ -39,12 +41,19 @@ export function AdminSidebar() {
     },
   });
 
-  // 초기 진입 및 URL 변경 시 해당 메뉴 자동 펼침
+  // 초기 진입 및 URL 변경 시 현재 페이지 그룹을 열린 상태로 보장 (기존 열린 그룹 유지)
   useEffect(() => {
     const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname);
     if (!depth1Key) return;
+    ensureMenuOpen(depth1Key, depth2Key);
+  }, [location.pathname, ensureMenuOpen]);
+
+  // 사이드바가 열릴 때 현재 페이지 그룹만 남기고 나머지 닫기
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname);
     setExpandedMenu(depth1Key, depth2Key);
-  }, [location.pathname, setExpandedMenu]);
+  }, [isSidebarOpen]);
 
   const userName =
     typeof user?.userName === 'string'
@@ -61,8 +70,8 @@ export function AdminSidebar() {
       <SidebarNav
         menus={ADMIN_SIDEBAR_MENU}
         showDepth1={false}
-        expandedDepth1Key={expandedDepth1Key}
-        expandedDepth2Key={expandedDepth2Key}
+        expandedDepth1Keys={expandedDepth1Keys}
+        expandedDepth2Keys={expandedDepth2Keys}
         currentPathname={location.pathname}
         onToggleDepth1={toggleDepth1}
         onToggleDepth2={toggleDepth2}
