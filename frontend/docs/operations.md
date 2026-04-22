@@ -347,6 +347,7 @@ const flow = useEditablePageFlow({
 - `PaymentManage`: 페이지 조립 + `usePaymentManagePageState` + `usePaymentManageModalFlow` (feature 전용 모달 CRUD)
 - `CouponManage`: 페이지 조립 + `useCouponManagePageState` + `useCouponManageModalFlow` (feature 전용 모달 CRUD, useYn 뱃지 포함)
 - `AccessLog`: 페이지 조립 + `useAccessLogPageState` (datetime-local 날짜 범위 필터, 좌우 분할 마스터-디테일 조회 전용)
+- `ChangeHistory`: 페이지 조립 + `useChangeHistoryPageState` (datetime-local 날짜 범위 필터, 변경 구분(auditFlag) 클라이언트 필터링 포함)
 
 ---
 
