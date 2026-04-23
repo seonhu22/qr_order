@@ -6,6 +6,7 @@ import '@/apps/admin/layout/AdminLayout.css';
 import { AdminSidebar } from '@/apps/admin/features/sidebar/components/AdminSidebar';
 import { AdminHeader } from '@/apps/admin/features/header/components/AdminHeader';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
+import { useAdminMenuOpenAccessLog } from '@/apps/admin/hooks/useAdminMenuOpenAccessLog';
 
 /**
  * 관리자 메인 레이아웃
@@ -22,6 +23,7 @@ import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 export function AdminLayout() {
   const isSidebarOpen = useAdminLayoutStore((state) => state.isSidebarOpen);
   const sidebarRef = useRef<HTMLElement | null>(null);
+  useAdminMenuOpenAccessLog();
 
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
