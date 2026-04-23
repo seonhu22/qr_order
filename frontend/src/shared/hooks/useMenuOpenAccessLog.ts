@@ -1,16 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 
-export function useMenuOpenAccessLog(menuCd: string) {
+export function useMenuOpenAccessLog(menuCd: string | undefined) {
   const menuOpenLogMutation = useInsertMenuOpenAccessLog();
-  const hasOpenedMenuLogRef = useRef(false);
+  const lastLoggedMenuCdRef = useRef('');
 
   useEffect(() => {
-    if (hasOpenedMenuLogRef.current) {
+    if (!menuCd || lastLoggedMenuCdRef.current === menuCd) {
       return;
     }
 
-    hasOpenedMenuLogRef.current = true;
+    lastLoggedMenuCdRef.current = menuCd;
     menuOpenLogMutation.mutate({ params: { menuCd } });
   }, [menuCd, menuOpenLogMutation]);
 }

@@ -32,4 +32,21 @@ describe('useMenuOpenAccessLog', () => {
 
     expect(mutateMock).toHaveBeenCalledTimes(1);
   });
+
+  it('calls menu open access log again when menuCd changes', () => {
+    const { rerender } = renderHook(({ menuCd }) => useMenuOpenAccessLog(menuCd), {
+      initialProps: { menuCd: 'coupon' },
+    });
+
+    rerender({ menuCd: 'adminUser' });
+
+    expect(mutateMock).toHaveBeenCalledTimes(2);
+    expect(mutateMock).toHaveBeenLastCalledWith({ params: { menuCd: 'adminUser' } });
+  });
+
+  it('does not call menu open access log when menuCd is undefined', () => {
+    renderHook(() => useMenuOpenAccessLog(undefined));
+
+    expect(mutateMock).not.toHaveBeenCalled();
+  });
 });
