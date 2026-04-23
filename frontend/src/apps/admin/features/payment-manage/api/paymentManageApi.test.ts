@@ -7,7 +7,6 @@ describe('paymentManageApi', () => {
     expect(
       mapToPaymentRateRow({
         sysId: 'pay-1',
-        plantCd: 'ADMIN',
         paymentCd: 'BASIC_M1',
         paymentNm: '베이직 플랜',
         paymentFee: 9900,
@@ -17,7 +16,6 @@ describe('paymentManageApi', () => {
     ).toEqual({
       id: 'pay-1',
       sysId: 'pay-1',
-      plantCd: 'ADMIN',
       rateCode: 'BASIC_M1',
       rateName: '베이직 플랜',
       rateAmount: 9900,
@@ -26,12 +24,11 @@ describe('paymentManageApi', () => {
     });
   });
 
-  it('keeps plantCd when editor row is converted back to payload row', () => {
+  it('converts editor row back to payload row', () => {
     expect(
       editorRowToPaymentRateRow({
         id: 'pay-1',
         sysId: 'pay-1',
-        plantCd: 'ADMIN',
         rateCode: 'BASIC_M1',
         rateName: '베이직 플랜',
         rateAmount: '9900',
@@ -41,7 +38,6 @@ describe('paymentManageApi', () => {
     ).toEqual({
       id: 'pay-1',
       sysId: 'pay-1',
-      plantCd: 'ADMIN',
       rateCode: 'BASIC_M1',
       rateName: '베이직 플랜',
       rateAmount: 9900,
