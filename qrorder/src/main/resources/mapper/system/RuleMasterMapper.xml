@@ -17,6 +17,7 @@
                 rule_nm like concat('%', #{searchKeyword}, '%')
             )
         </if>
+        and delete_yn = 'N'
     </select>
     
     <insert id="newRuleMaster">
@@ -58,7 +59,10 @@
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
-        and sys_id = #{ruleMaster.sysId}
+        and sys_id in
+        <foreach collection="ruleMaster" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
     </delete>
 
     <select id="duplicateChk" resultType="boolean">
