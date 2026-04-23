@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.system.repository.PlantStatusMapper">
 
-    <select id="findPlantBySearchCond" resultType="htms.QROrder.system.dto.PlantStatusResponse">
+    <select id="getPlantStatus" resultType="htms.QROrder.system.dto.PlantStatusResponse">
         select
             sppi.sys_id ,
             sppi.plant_cd ,
@@ -16,7 +16,7 @@
         left join sys_payment sp
             on sp.payment_cd = sppi.payment_cd
         left join sys_plant sp2
-            on sp2.plant_cd = sp.plant_cd
+            on sp2.plant_cd = sppi.plant_cd
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
             and (
