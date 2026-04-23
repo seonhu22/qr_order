@@ -20,7 +20,7 @@ export function InquiryManagePage() {
           )}
           {isError && (
             <p className="admin-main-page__placeholder-copy">
-              문의사항을 불러오지 못했습니다.
+              문의사항을 불러오지 못했습니다
             </p>
           )}
           {!isLoading && !isError && (
