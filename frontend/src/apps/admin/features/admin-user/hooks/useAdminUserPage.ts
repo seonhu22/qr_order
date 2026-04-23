@@ -14,8 +14,9 @@
  * - Page Hook(현재 파일): 위 세 레이어를 합쳐 화면에서 쓰기 쉬운 인터페이스 제공
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
@@ -70,6 +71,8 @@ import type { AdminUserPageViewModel } from '../types';
  */
 export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
+  const menuOpenLogMutation = useInsertMenuOpenAccessLog();
+  const hasOpenedMenuLogRef = useRef(false);
   const {
     draftKeyword,
     appliedKeyword,
@@ -89,6 +92,15 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     () => getPlantSelectOptionsWithFallback(plantComboQuery.data),
     [plantComboQuery.data],
   );
+
+  useEffect(() => {
+    if (hasOpenedMenuLogRef.current) {
+      return;
+    }
+
+    hasOpenedMenuLogRef.current = true;
+    menuOpenLogMutation.mutate({ params: { menuCd: 'adminUser' } });
+  }, [menuOpenLogMutation]);
 
   /**
    * 관리자 조회 DTO를 화면용 row 모델로 변환한다.
