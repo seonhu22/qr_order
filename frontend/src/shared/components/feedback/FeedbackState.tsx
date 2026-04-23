@@ -1,7 +1,7 @@
 import './FeedbackState.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 
-export type FeedbackVariant = 'loading' | 'error' | 'empty' | 'unauthorized';
+export type FeedbackVariant = 'loading' | 'error' | 'empty' | 'no-results' | 'unauthorized';
 
 type FeedbackStateProps = {
   variant: FeedbackVariant;
@@ -9,6 +9,8 @@ type FeedbackStateProps = {
   title?: string;
   /** 보조 설명 — 생략 가능 */
   description?: string;
+  /** variant 기본 아이콘을 덮어쓸 때 사용 (예: 검색 결과 없음 → "i-search") */
+  iconId?: string;
   /** 설명 아래에 렌더링할 커스텀 콘텐츠 (버튼 등) */
   children?: React.ReactNode;
   className?: string;
@@ -24,6 +26,7 @@ const VARIANT_CONFIG: Record<FeedbackVariant, VariantConfig> = {
   loading:      { defaultTitle: '불러오는 중입니다.' },
   error:        { defaultTitle: '불러오는데 실패했습니다', iconId: 'i-error',            iconSize: 22 },
   empty:        { defaultTitle: '데이터가 없습니다.',        iconId: 'i-feedback-pointer', iconSize: 22 },
+  'no-results': { defaultTitle: '검색 결과가 없습니다.',     iconId: 'i-search',           iconSize: 22 },
   unauthorized: { defaultTitle: '접근 권한이 없습니다.',     iconId: 'i-lock',             iconSize: 22 },
 };
 
