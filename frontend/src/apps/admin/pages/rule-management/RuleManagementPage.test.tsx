@@ -278,4 +278,15 @@ describe('RuleManagementPage', () => {
       ],
     });
   });
+
+  it('does not render move buttons for rule detail because rule detail has no saved order', async () => {
+    renderPage();
+
+    await screen.findByText('ORDER_STATUS');
+    fireEvent.click(screen.getByText('주문상태'));
+
+    await screen.findByLabelText('detail-1 옵션명');
+    expect(screen.queryByRole('button', { name: '위로 이동' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '아래로 이동' })).not.toBeInTheDocument();
+  });
 });

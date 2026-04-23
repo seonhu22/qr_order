@@ -227,4 +227,52 @@ describe('ruleManagementApi', () => {
     });
     expect(hasRuleDetailChanges(request)).toBe(true);
   });
+
+  it('does not treat ordNo-only changes as updates because rule detail has no ordNo contract', () => {
+    const originalRows: RuleDetailRow[] = [
+      {
+        id: 'detail-1',
+        sysId: 'detail-1',
+        masterId: 'rule-1',
+        ordNo: 1,
+        values: {
+          optionCd: 'READY',
+          optionNm: '준비',
+          optionData: 'R',
+          description: '',
+        },
+      },
+      {
+        id: 'detail-2',
+        sysId: 'detail-2',
+        masterId: 'rule-1',
+        ordNo: 2,
+        values: {
+          optionCd: 'DONE',
+          optionNm: '완료',
+          optionData: 'D',
+          description: '',
+        },
+      },
+    ];
+    const currentRows: RuleDetailRow[] = [
+      {
+        ...originalRows[1],
+        ordNo: 1,
+      },
+      {
+        ...originalRows[0],
+        ordNo: 2,
+      },
+    ];
+
+    const request = buildRuleDetailRequest(currentRows, originalRows);
+
+    expect(request).toEqual({
+      newItems: [],
+      updateItems: [],
+      delItems: [],
+    });
+    expect(hasRuleDetailChanges(request)).toBe(false);
+  });
 });
