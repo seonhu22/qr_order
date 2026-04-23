@@ -10,9 +10,19 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/api/queryKeys';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
-import { fetchMenuTree, saveMenuTree } from '../api/systemMenuApi';
+import {
+  buildMenuRequest,
+  buildMenuTree,
+  cloneMenuNodes,
+  createMenuSysId,
+  hasMenuChanges,
+  markMenuNodesPersisted,
+  useMenuQuery,
+  useSaveMenuMutation,
+} from '../api/systemMenuApi';
 
 
 /* =====================================================
@@ -243,12 +253,29 @@ function collectDeletedServerNodes(
   return deleted;
 }
 
+function createNewMenuNode(parentMenuCd?: string, ordNo = 0): MenuNode {
+  const sysId = createMenuSysId();
+
+  return {
+    id: sysId,
+    label: '',
+    data: {
+      sysId,
+      parentMenuCd,
+      code: '',
+      name: '',
+      ordNo,
+      isNew: true,
+    },
+  };
+}
 
 /* =====================================================
  * useSystemMenuPageState
  * ===================================================== */
 
 export function useSystemMenuPageState() {
+  const queryClient = useQueryClient();
   const [nodes, setNodes] = useState<MenuNode[]>([]);
   /** 초기화 기준점 — 최초 로드 또는 마지막 저장 성공 시점의 데이터 */
   const [originalNodes, setOriginalNodes] = useState<MenuNode[]>([]);
@@ -278,19 +305,18 @@ export function useSystemMenuPageState() {
 
   const hasInitialized = useRef(false);
 
-  const menuQuery = useQuery({
-    queryKey: ['system-menu'],
-    queryFn: fetchMenuTree,
-  });
+  const menuQuery = useMenuQuery();
+  const saveMenuMutation = useSaveMenuMutation();
 
   /** 최초 로드 시 한 번만 nodes를 초기화한다. 편집 중인 내용을 query 갱신으로 덮지 않는다. */
   useEffect(() => {
     if (menuQuery.data && !hasInitialized.current) {
       hasInitialized.current = true;
-      const cloned = structuredClone(menuQuery.data);
+      const menuTree = buildMenuTree(menuQuery.data);
+      const cloned = cloneMenuNodes(menuTree);
       setNodes(cloned);
-      setOriginalNodes(structuredClone(menuQuery.data));
-      setDefaultExpandedIds(collectExpandedIds(menuQuery.data));
+      setOriginalNodes(cloneMenuNodes(menuTree));
+      setDefaultExpandedIds(collectExpandedIds(menuTree));
     }
   }, [menuQuery.data]);
 
@@ -348,17 +374,7 @@ export function useSystemMenuPageState() {
    * 선택이 없으면 루트 레벨 맨 끝에 추가한다.
    */
   const handleAddSibling = () => {
-    const newNode: MenuNode = {
-      id: `new-${Date.now()}`,
-      label: '',
-      data: {
-        parentSysId: selectedNode?.data?.parentSysId ?? null,
-        code: '',
-        name: '',
-        ordNo: 0,
-        isNew: true,
-      },
-    };
+    const newNode = createNewMenuNode(selectedNode?.data?.parentMenuCd);
 
     if (selectedId) {
       setNodes((prev) => addSiblingNode(prev, selectedId, newNode));
@@ -375,17 +391,10 @@ export function useSystemMenuPageState() {
    */
   const handleAddChild = () => {
     if (!selectedId || !canAddChild) return;
-    const newNode: MenuNode = {
-      id: `new-${Date.now()}`,
-      label: '',
-      data: {
-        parentSysId: selectedNode?.data?.sysId,
-        code: '',
-        name: '',
-        ordNo: (selectedNode?.children?.length ?? 0) + 1,
-        isNew: true,
-      },
-    };
+    const newNode = createNewMenuNode(
+      selectedNode?.data?.code,
+      (selectedNode?.children?.length ?? 0) + 1,
+    );
     setNodes((prev) => addChildNode(prev, selectedId, newNode));
     setSelectedId(newNode.id);
     // 부모 노드 하나만 펼치는 신호를 보낸다. n 증가로 이미 목록에 있어도 반드시 발동.
@@ -413,7 +422,7 @@ export function useSystemMenuPageState() {
 
   /** 실제 초기화 로직 — dirty 확인 후 호출된다. */
   const doReset = () => {
-    setNodes(structuredClone(originalNodes));
+    setNodes(cloneMenuNodes(originalNodes));
     setSelectedId('');
     setNodeErrors(emptyErrors());
     setDefaultExpandedIds(collectExpandedIds(originalNodes));
@@ -466,6 +475,13 @@ export function useSystemMenuPageState() {
       return;
     }
 
+    const request = buildMenuRequest(nodes, originalNodes);
+
+    if (!hasMenuChanges(request)) {
+      setNotice({ title: '알림', description: '변경된 내용이 없습니다.' });
+      return;
+    }
+
     setIsSaveConfirmOpen(true);
   };
 
@@ -477,8 +493,12 @@ export function useSystemMenuPageState() {
   const executeSave = async (closeModal: () => void) => {
     setIsConfirming(true);
     try {
-      await saveMenuTree(nodes);
-      setOriginalNodes(structuredClone(nodes));
+      const request = buildMenuRequest(nodes, originalNodes);
+      await saveMenuMutation.mutateAsync(request);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.menu.list() });
+      const persistedNodes = markMenuNodesPersisted(nodes);
+      setNodes(cloneMenuNodes(persistedNodes));
+      setOriginalNodes(cloneMenuNodes(persistedNodes));
       closeModal();
       setNotice({ title: '알림', description: '저장되었습니다.' });
     } catch {

@@ -24,7 +24,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
         label: 'SYS-BIZ',
         data: {
           sysId: 'sys-biz',
-          parentSysId: 'sys',
+          parentMenuCd: 'sys',
           code: 'SYS-BIZ',
           name: '사업장 관리',
           ordNo: 1,
@@ -35,7 +35,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
             label: 'SYS-BIZ-SRCH',
             data: {
               sysId: 'sys-biz-srch',
-              parentSysId: 'sys-biz',
+              parentMenuCd: 'sys-biz',
               code: 'SYS-BIZ-SRCH',
               name: '사업장 조회',
               path: '/admin/system/plant',
@@ -47,7 +47,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
             label: 'SYS-BIZ-REG',
             data: {
               sysId: 'sys-biz-reg',
-              parentSysId: 'sys-biz',
+              parentMenuCd: 'sys-biz',
               code: 'SYS-BIZ-REG',
               name: '사업장 등록',
               path: '/admin/system/plant/new',
@@ -61,7 +61,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
         label: 'SYS-ADM',
         data: {
           sysId: 'sys-adm',
-          parentSysId: 'sys',
+          parentMenuCd: 'sys',
           code: 'SYS-ADM',
           name: '관리자 관리',
           ordNo: 2,
@@ -72,7 +72,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
             label: 'SYS-ADM-SRCH',
             data: {
               sysId: 'sys-adm-srch',
-              parentSysId: 'sys-adm',
+              parentMenuCd: 'sys-adm',
               code: 'SYS-ADM-SRCH',
               name: '관리자 조회',
               path: '/admin/system/admin-user',
@@ -86,7 +86,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
         label: 'SYS-MENU',
         data: {
           sysId: 'sys-menu',
-          parentSysId: 'sys',
+          parentMenuCd: 'sys',
           code: 'SYS-MENU',
           name: '메뉴 관리',
           path: '/admin/system/menu',
@@ -110,7 +110,7 @@ export const MOCK_MENU_NODES: MenuNode[] = [
         label: 'ORD-LIST',
         data: {
           sysId: 'ord-list',
-          parentSysId: 'ord',
+          parentMenuCd: 'ord',
           code: 'ORD-LIST',
           name: '주문 목록',
           path: '/admin/order',
@@ -120,3 +120,4 @@ export const MOCK_MENU_NODES: MenuNode[] = [
     ],
   },
 ];
+
