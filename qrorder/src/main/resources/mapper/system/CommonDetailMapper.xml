@@ -95,6 +95,7 @@
             #{item.commonCd}
         </foreach>
         and link_sys_id = #{tempLinkSysId}
+        and delete_yn = 'N'
     </select>
 
     <select id="getDuplicateData" resultType="htms.QROrder.system.domain.CommonDetail">

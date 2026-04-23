@@ -42,6 +42,7 @@ describe('CommonCodePage', () => {
     }>
   >;
   let detailSaveRequests: Array<{
+    tempLinkSysId?: string | null;
     linkSysId: string;
     newItems?: Array<{
       commonCd?: string;
@@ -172,7 +173,10 @@ describe('CommonCodePage', () => {
           }>;
           deleteItems?: Array<{ sysId?: string }>;
         };
-        detailSaveRequests.push(body);
+        detailSaveRequests.push({
+          ...body,
+          tempLinkSysId: new URL(request.url).searchParams.get('tempLinkSysId'),
+        });
 
         let nextRows = [...(detailsByMaster[body.linkSysId] ?? [])];
 
@@ -311,6 +315,7 @@ describe('CommonCodePage', () => {
 
     expect(detailSaveRequests).toHaveLength(1);
     expect(detailSaveRequests[0]).toMatchObject({
+      tempLinkSysId: 'master-1',
       linkSysId: 'master-1',
       newItems: [],
       deleteItems: [],
