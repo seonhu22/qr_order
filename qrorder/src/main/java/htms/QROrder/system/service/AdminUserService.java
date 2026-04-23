@@ -8,7 +8,9 @@ import htms.QROrder.system.dto.AdminUserRequest;
 import htms.QROrder.system.dto.AdminUserResponse;
 import htms.QROrder.system.repository.AdminUserMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class AdminUserService {
     private final AdminUserMapper adminUserMapper;
     private final AuditService auditService;
+    private final PasswordEncoder passwordEncoder;
 
     public List<AdminUserResponse> getAdminUser(String searchKeyword) {
 
@@ -92,8 +95,10 @@ public class AdminUserService {
                                 String menuCd,
                                 List<AdminUser> newItems) {
 
+        String tempPwd = passwordEncoder.encode("SN111111");
+
         auditService.insertNewAuditTrailData(newItems, menuCd, "sys_user", userId, sysPlantCd);
-        adminUserMapper.newAdminUser(newItems, userId, sysPlantCd);
+        adminUserMapper.newAdminUser(newItems, userId, sysPlantCd, tempPwd);
     }
 
     private boolean duplicateChk(List<AdminUser> adminUser) {
