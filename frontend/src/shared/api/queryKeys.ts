@@ -40,6 +40,10 @@ export const queryKeys = {
   coupon: {
     list: (searchKeyword = '') => ['settings', 'coupon', 'list', { searchKeyword }] as const,
   },
+  rule: {
+    masters: (searchKeyword = '') => ['settings', 'rule', 'masters', { searchKeyword }] as const,
+    details: (masterId = '') => ['settings', 'rule', 'details', masterId] as const,
+  },
   accessLog: {
     masters: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
       ['settings', 'accessLog', 'masters', params] as const,
