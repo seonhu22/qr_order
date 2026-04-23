@@ -3,7 +3,7 @@ import './NoticeManagePage.css';
 import { NoticeManageTable } from '@/apps/admin/features/notice-manage/components/NoticeManageTable';
 import { useNoticeManagePageState } from '@/apps/admin/features/notice-manage/hooks/useNoticeManagePageState';
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
-import { InputBase, InputWrapper } from '@/shared/components/input';
+import { InputBase, InputWrapper, TextareaInput } from '@/shared/components/input';
 import {
   DeleteConfirmModal,
   EditConfirmModal,
@@ -79,21 +79,16 @@ export function NoticeManagePage() {
             />
           </InputWrapper>
 
-          <InputWrapper
+          <TextareaInput
             label="내용"
-            inputId="notice-content"
+            id="notice-content"
             required
             errorText={modalProps.editor.editorErrors.content ? '내용을 입력해주세요.' : undefined}
-          >
-            <textarea
-              id="notice-content"
-              className={`notice-manage-textarea${modalProps.editor.editorErrors.content ? ' notice-manage-textarea--error' : ''}`}
-              value={modalProps.editor.editingRow?.content ?? ''}
-              rows={5}
-              placeholder="공지사항 내용을 입력하세요"
-              onChange={(e) => actions.changeEditingField('content', e.target.value)}
-            />
-          </InputWrapper>
+            value={modalProps.editor.editingRow?.content ?? ''}
+            rows={5}
+            placeholder="공지사항 내용을 입력하세요"
+            onChange={(e) => actions.changeEditingField('content', e.target.value)}
+          />
         </div>
       </WrapperModal>
 
