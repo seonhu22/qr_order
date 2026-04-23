@@ -13,6 +13,7 @@ export const queryKeys = {
   },
   menu: {
     admin: ['menu', 'admin'] as const,
+    list: () => ['settings', 'menu', 'list'] as const,
   },
   dashboard: {
     info: ['dashboard', 'info'] as const,

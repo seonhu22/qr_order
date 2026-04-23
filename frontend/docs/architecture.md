@@ -56,7 +56,7 @@
 | `/admin/history/access-log` | 접속 정보 조회 | 시스템 | 구현 |
 | `/admin/history/audit-log` | 변경 이력 조회 | 시스템 | 구현 |
 | `/admin/notice/manage` | 공지사항 관리 | 게시판 | 구현 |
-| `/admin/inquiry/manage` | 문의사항 관리 | 게시판 | 구현(placeholder) |
+| `/admin/inquiry/manage` | 문의사항 관리 | 게시판 | 구현 |
 
 ### 사이드바 섹션 구조
 
@@ -78,6 +78,24 @@ AdminHeader
   - `null`은 대시보드 초기 진입 시(헤더 탭 클릭 전) 상태다.
 - `AdminSidebar`는 `activeSection`에 따라 `SYSTEM_SIDEBAR_MENU` 또는 `BOARD_SIDEBAR_MENU`를 `SidebarNav`에 주입한다.
 - `detectSectionFromPath(pathname)` 유틸로 현재 URL이 어느 섹션에 속하는지 자동 감지할 수 있다.
+
+#### 헤더 네비게이션 동작 규칙
+
+| 요소 | 동작 |
+| --- | --- |
+| 홈 버튼 (`i-home`) | `/admin/main` 이동 + `activeSection = null` + 사이드바 닫기 |
+| 햄버거 버튼 | `currentSection !== null` 일 때만 노출 — 대시보드에서는 숨김 |
+| 헤더 탭 `--current` 스타일 | 클릭 기준이 아닌 **현재 URL 기준** — `detectSectionFromPath(pathname)` 으로 판별 |
+| 헤더 탭 클릭 | `setActiveSection` + `openSidebar` 호출 (페이지 이동 없이 사이드바 메뉴만 전환) |
+
+#### 사이드바 펼침 상태 동작 규칙 (`useSidebarExpand`)
+
+| 상황 | 동작 |
+| --- | --- |
+| URL 변경 (페이지 이동) | `ensureOpen` — 현재 페이지 그룹 추가, 기존 열린 그룹 유지 |
+| 사이드바 재오픈 | `resetTo` — 현재 페이지 그룹만 남기고 나머지 닫기 |
+| 섹션 전환 | `resetTo` — expand 상태 초기화 |
+| 그룹 헤더 클릭 | `toggle` — 개별 토글 (다중 열기 허용) |
 
 ---
 

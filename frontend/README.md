@@ -214,6 +214,13 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
   테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
   자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
 
+공용 입력 컴포넌트:
+- `shared/components/input/` — `TextInput` · `TextareaInput` · `SelectInput` · `InputBase` · `InputWrapper`
+  - `TextareaInput`: `TextInput`과 동일한 상태(`disabled` / `readonly` / `error` / `success`)·레이블·도움말 패턴
+  - `resize` prop으로 크기 조절 방향 제어: `'none'`(기본) · `'vertical'` · `'both'`
+  - 모달 안 textarea 사용 시 `TextareaInput`을 사용한다. 날것의 `<textarea>`는 사용하지 않는다.
+  - 개발 미리보기: `/dev/input` (State · Helper Text · Resize · Label Position 전 케이스 확인 가능)
+
 ---
 
 ## 11. 문서 작성 원칙

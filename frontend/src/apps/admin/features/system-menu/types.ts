@@ -14,8 +14,13 @@ import type { TreeMenuNode } from '@/shared/components/treeMenu';
 export type MenuData = {
   /** 서버 식별자. 신규 행은 undefined */
   sysId?: string;
-  /** 상위 메뉴 서버 ID. 루트 메뉴는 null/undefined */
-  parentSysId?: string | null;
+  /**
+   * 상위 메뉴 코드. 루트 메뉴는 systemMenuApi의 ROOT_PARENT_MENU_CD를 사용한다.
+   *
+   * @description
+   * 기존 mock에서는 parentSysId처럼 쓰였지만 백엔드 DTO/컬럼은 parentMenuCd다.
+   */
+  parentMenuCd?: string;
   /** 메뉴 코드 */
   code: string;
   /** 메뉴 명 */
@@ -27,6 +32,8 @@ export type MenuData = {
   path?: string;
   /** 화면 정렬 순서 */
   ordNo: number;
+  /** 트리 깊이. 루트는 1 */
+  treeLevel?: number;
   /** 신규 행 여부 — 서버에 저장되지 않은 상태 */
   isNew?: boolean;
 };

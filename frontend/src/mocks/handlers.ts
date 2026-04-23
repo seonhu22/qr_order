@@ -12,6 +12,7 @@ import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/coup
 import { ACCESS_LOG_DETAIL_MOCK, ACCESS_LOG_MASTER_MOCK } from '../apps/admin/features/access-log/mock/accessLogMock';
 import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
 import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
+import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
 
 const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', ({ request }) => {
   const url = new URL(request.url);
@@ -83,6 +84,19 @@ const noticeOverrideHandler = http.get('*/api/system/settings/board/notice/searc
   return HttpResponse.json(filtered);
 });
 
+const inquiryOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? INQUIRY_MANAGE_MOCK_ROWS.filter(
+        (row) =>
+          row.qnaTitle?.toLowerCase().includes(keyword) ||
+          row.qnaDescription?.toLowerCase().includes(keyword),
+      )
+    : INQUIRY_MANAGE_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
 const changeHistoryOverrideHandler = http.get('*/api/system/settings/log/audittrail', ({ request }) => {
   const url = new URL(request.url);
   const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
@@ -106,6 +120,7 @@ export const handlers = [
   accessLogMasterOverrideHandler,
   accessLogDetailOverrideHandler,
   noticeOverrideHandler,
+  inquiryOverrideHandler,
   changeHistoryOverrideHandler,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),

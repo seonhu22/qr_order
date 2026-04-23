@@ -91,7 +91,9 @@ export function SystemMenuTree({
     if (!shouldScrollRef.current || !selectedId || !treeContainerRef.current) return;
     shouldScrollRef.current = false;
     const selectedRow = treeContainerRef.current.querySelector('.tree-item__row.is-selected');
-    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (selectedRow instanceof HTMLElement && typeof selectedRow.scrollIntoView === 'function') {
+      selectedRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
   }, [selectedId]);
   const columns: TreeMenuColumn<MenuData>[] = [
     {
