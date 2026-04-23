@@ -14,9 +14,8 @@
  * - Page Hook(현재 파일): 위 세 레이어를 합쳐 화면에서 쓰기 쉬운 인터페이스 제공
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
@@ -71,15 +70,8 @@ import type { AdminUserPageViewModel } from '../types';
  */
 export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
-  const menuOpenLogMutation = useInsertMenuOpenAccessLog();
-  const hasOpenedMenuLogRef = useRef(false);
-  const {
-    draftKeyword,
-    appliedKeyword,
-    setDraftKeyword,
-    applyDraftKeyword,
-    resetKeywords,
-  } = useFilterKeywordState('');
+  const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
+    useFilterKeywordState('');
   const userQuery = useAdminUserQuery(appliedKeyword.trim());
   const plantComboQuery = usePlantComboOptionsQuery();
   const saveUsersMutation = useSaveAdminUsersMutation();
@@ -93,25 +85,13 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     [plantComboQuery.data],
   );
 
-  useEffect(() => {
-    if (hasOpenedMenuLogRef.current) {
-      return;
-    }
-
-    hasOpenedMenuLogRef.current = true;
-    menuOpenLogMutation.mutate({ params: { menuCd: 'adminUser' } });
-  }, [menuOpenLogMutation]);
-
   /**
    * 관리자 조회 DTO를 화면용 row 모델로 변환한다.
    *
    * @remarks
    * 이후 편집은 baseRows를 직접 수정하지 않고 useAdminUserListState의 draftRows에서 관리한다.
    */
-  const baseRows = useMemo(
-    () => (userQuery.data ?? []).map(mapToAdminUserModel),
-    [userQuery.data],
-  );
+  const baseRows = useMemo(() => (userQuery.data ?? []).map(mapToAdminUserModel), [userQuery.data]);
   const {
     rows,
     rowErrors,

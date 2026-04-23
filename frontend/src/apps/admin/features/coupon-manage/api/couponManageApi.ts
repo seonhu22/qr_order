@@ -43,14 +43,11 @@ export function buildCouponRequest({
 }
 
 export function useCouponQuery(searchKeyword = '') {
-  return useGetPaymentCoupon(
-    searchKeyword ? { searchKeyword } : undefined,
-    {
-      query: {
-        queryKey: queryKeys.coupon.list(searchKeyword),
-      },
+  return useGetPaymentCoupon(searchKeyword ? { searchKeyword } : undefined, {
+    query: {
+      queryKey: queryKeys.coupon.list(searchKeyword),
     },
-  );
+  });
 }
 
 export function useSaveCouponMutation() {
@@ -59,9 +56,7 @@ export function useSaveCouponMutation() {
   const mutateAsync = async (row: CouponRow, isCreateMode: boolean) => {
     const payload = mapToCouponPayload(row);
     const request = buildCouponRequest(
-      isCreateMode
-        ? { newItems: [payload] }
-        : { updateItems: [payload] },
+      isCreateMode ? { newItems: [payload] } : { updateItems: [payload] },
     );
     return mutation.mutateAsync({ data: request });
   };
