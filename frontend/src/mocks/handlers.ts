@@ -10,18 +10,9 @@ import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/pa
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
 import { ACCESS_LOG_DETAIL_MOCK, ACCESS_LOG_MASTER_MOCK } from '../apps/admin/features/access-log/mock/accessLogMock';
+import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
+import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
 
-// 사업장 조회 에러 확인용 — 확인 후 제거하거나 주석 처리
-// const plantSearchErrorHandler = http.get('*/api/system/settings/plant/search', () =>
-//   HttpResponse.json({ message: '서버 오류' }, { status: 500 }),
-// );
-
-// const devOverrideHandlers = [
-//   plantSearchErrorHandler,
-// ];
-
-// auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
-// MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', ({ request }) => {
   const url = new URL(request.url);
   const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
@@ -79,6 +70,34 @@ const accessLogDetailOverrideHandler = http.get('*/api/system/settings/log/login
   return HttpResponse.json(ACCESS_LOG_DETAIL_MOCK);
 });
 
+const noticeOverrideHandler = http.get('*/api/system/settings/board/notice/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? NOTICE_MOCK_ROWS.filter(
+        (row) =>
+          row.noticeTitle?.toLowerCase().includes(keyword) ||
+          row.noticeDescription?.toLowerCase().includes(keyword),
+      )
+    : NOTICE_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
+const changeHistoryOverrideHandler = http.get('*/api/system/settings/log/audittrail', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? CHANGE_HISTORY_MOCK.filter(
+        (row) =>
+          row.menuNm?.toLowerCase().includes(keyword) ||
+          row.auditTrailContents?.toLowerCase().includes(keyword),
+      )
+    : CHANGE_HISTORY_MOCK;
+  return HttpResponse.json(filtered);
+});
+
+// auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
+// MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
   ...authHandlers,
   paymentOverrideHandler,
@@ -86,7 +105,8 @@ export const handlers = [
   couponOverrideHandler,
   accessLogMasterOverrideHandler,
   accessLogDetailOverrideHandler,
-  // ...devOverrideHandlers,
+  noticeOverrideHandler,
+  changeHistoryOverrideHandler,
   ...getSettingsControllerMock(),
   ...getComboControllerMock(),
   ...getFileControllerMock(),

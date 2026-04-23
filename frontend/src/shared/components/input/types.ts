@@ -8,7 +8,7 @@
  * @module input/types
  */
 
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import type { InputHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react';
 
 
 /* =====================================================
@@ -234,6 +234,60 @@ export interface TextInputProps
   /**
    * 에러 보더만 표시하고 메시지는 생략할 때 사용
    * errorText 없이 error 상태 스타일만 적용된다
+   * @default false
+   */
+  isError?: boolean;
+  /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
+  className?: string;
+}
+
+
+/* =====================================================
+ * TextareaBase Props
+ * ===================================================== */
+
+/**
+ * textarea 크기 조절 방향
+ * - `none`     : 크기 조절 불가 (기본값)
+ * - `vertical` : 세로 방향만
+ * - `both`     : 양방향
+ */
+export type TextareaResize = 'none' | 'vertical' | 'both';
+
+/** 순수 textarea 컨트롤 박스(TextareaBase) Props */
+export interface TextareaBaseProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** 컨트롤 시각적 상태 (기본: `''`) */
+  controlState?: InputControlState;
+  /**
+   * textarea 크기 조절 방향 (기본: `'none'`)
+   * @default 'none'
+   */
+  resize?: TextareaResize;
+  /** 최상위 div 에 추가할 CSS 클래스 */
+  className?: string;
+}
+
+
+/* =====================================================
+ * TextareaInput Props
+ * ===================================================== */
+
+/**
+ * textarea 완성형 컴포넌트(TextareaInput) Props
+ *
+ * InputWrapperBaseProps(레이블·도움말) +
+ * TextareaHTMLAttributes(네이티브 이벤트 전체 포함) 를 조합한다
+ */
+export interface TextareaInputProps
+  extends TextareaHTMLAttributes<HTMLTextAreaElement>,
+    InputWrapperBaseProps {
+  /**
+   * textarea 크기 조절 방향 (기본: `'none'`)
+   * @default 'none'
+   */
+  resize?: TextareaResize;
+  /**
+   * 에러 보더만 표시하고 메시지는 생략할 때 사용
    * @default false
    */
   isError?: boolean;

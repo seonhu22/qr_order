@@ -210,6 +210,8 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 공용 테이블/카드 사용 패턴:
 - [`docs/components/TableCard.md`](./docs/components/TableCard.md)
   `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
+  테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
+  자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
 
 ---
 

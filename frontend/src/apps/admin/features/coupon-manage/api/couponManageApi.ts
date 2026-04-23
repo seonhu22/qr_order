@@ -30,6 +30,18 @@ function mapToCouponPayload(row: CouponRow): PaymentCoupon {
   };
 }
 
+export function buildCouponRequest({
+  newItems = [],
+  updateItems = [],
+  delItems = [],
+}: Partial<PaymentCouponRequest>): PaymentCouponRequest {
+  return {
+    newItems,
+    updateItems,
+    delItems,
+  };
+}
+
 export function useCouponQuery(searchKeyword = '') {
   return useGetPaymentCoupon(
     searchKeyword ? { searchKeyword } : undefined,
@@ -46,9 +58,11 @@ export function useSaveCouponMutation() {
 
   const mutateAsync = async (row: CouponRow, isCreateMode: boolean) => {
     const payload = mapToCouponPayload(row);
-    const request: PaymentCouponRequest = isCreateMode
-      ? { newItems: [payload] }
-      : { updateItems: [payload] };
+    const request = buildCouponRequest(
+      isCreateMode
+        ? { newItems: [payload] }
+        : { updateItems: [payload] },
+    );
     return mutation.mutateAsync({ data: request });
   };
 
@@ -63,7 +77,7 @@ export function useDeleteCouponsMutation() {
 
   return {
     mutateAsync: async (rows: CouponRow[]) => {
-      const request: PaymentCouponRequest = { delItems: rows.map(mapToCouponPayload) };
+      const request = buildCouponRequest({ delItems: rows.map(mapToCouponPayload) });
       return mutation.mutateAsync({ data: request });
     },
     isPending: mutation.isPending,

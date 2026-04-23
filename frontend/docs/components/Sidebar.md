@@ -151,42 +151,54 @@ type SidebarUserProps = {
 `apps/admin/features/sidebar/components/AdminSidebar.tsx`는 공용 컴포넌트에
 어드민 전용 데이터·상태(스토어, auth, 라우터)를 주입하는 **어댑터** 역할만 담당한다.
 
+### 섹션 분리 구조
+
+> 추가일: 2026-04-22
+
+관리자 사이드바는 **시스템(system)** / **게시판(board)** 두 섹션으로 분리된다.
+`adminLayoutStore`의 `activeSection` 상태에 따라 `SidebarNav`에 주입되는 메뉴 config가 교체된다.
+
+- `activeSection === 'board'` → `BOARD_SIDEBAR_MENU` 사용
+- 그 외(`'system'` 또는 `null`) → `SYSTEM_SIDEBAR_MENU` 사용
+
+사이드바 그룹 열림 상태(`expandedDepth1Keys`, `expandedDepth2Keys`)는 스토어가 아닌
+`useSidebarExpand` 훅으로 컴포넌트 로컬 상태로 관리한다.
+
 ```tsx
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const expandedDepth1Key = useAdminLayoutStore((s) => s.expandedDepth1Key);
-  const expandedDepth2Key = useAdminLayoutStore((s) => s.expandedDepth2Key);
-  const setExpandedMenu   = useAdminLayoutStore((s) => s.setExpandedMenu);
-  const toggleDepth1      = useAdminLayoutStore((s) => s.toggleDepth1);
-  const toggleDepth2      = useAdminLayoutStore((s) => s.toggleDepth2);
+
+  const isSidebarOpen = useAdminLayoutStore((s) => s.isSidebarOpen);
+  const activeSection = useAdminLayoutStore((s) => s.activeSection);
+  const setActiveSection = useAdminLayoutStore((s) => s.setActiveSection);
+
+  // depth 펼침 상태는 스토어가 아닌 훅으로 로컬 관리
+  const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2, ensureOpen, resetTo } =
+    useSidebarExpand();
 
   const { user } = useAuth();
-  const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
-    mutation: {
-      onSuccess: () => navigate('/admin/login'),
-      onError:   () => navigate('/admin/login'),
-    },
-  });
+  const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({ ... });
 
-  // URL 변경 시 해당 메뉴 자동 펼침
+  // activeSection에 따라 메뉴 config 교체
+  const currentMenus = activeSection === 'board' ? BOARD_SIDEBAR_MENU : SYSTEM_SIDEBAR_MENU;
+
+  // URL 변경 시 섹션 자동 감지 + 현재 페이지 그룹 열기
   useEffect(() => {
-    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname);
-    if (!depth1Key) return;
-    setExpandedMenu(depth1Key, depth2Key);
-  }, [location.pathname, setExpandedMenu]);
-
-  const userName = user?.userName ?? user?.userId ?? '관리자';
-  const userRole = user?.role ?? 'ADMIN';
+    const section = detectSectionFromPath(location.pathname);
+    if (section) setActiveSection(section);
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname, currentMenus);
+    if (depth1Key) ensureOpen(depth1Key, depth2Key);
+  }, [location.pathname]); // activeSection은 의도적으로 제외 (헤더 탭 전환 시 URL 감지가 덮어쓰는 문제 방지)
 
   return (
     <Sidebar>
-      <AdminSidebarHeader />          {/* 어드민 전용 (AdminBrand + 닫기 버튼) */}
+      <AdminSidebarHeader />
       <SidebarNav
-        menus={ADMIN_SIDEBAR_MENU}
-        showDepth1={false}            {/* 헤더에 1depth가 있으므로 사이드바에서 생략 */}
-        expandedDepth1Key={expandedDepth1Key}
-        expandedDepth2Key={expandedDepth2Key}
+        menus={currentMenus}
+        showDepth1={false}
+        expandedDepth1Keys={expandedDepth1Keys}
+        expandedDepth2Keys={expandedDepth2Keys}
         currentPathname={location.pathname}
         onToggleDepth1={toggleDepth1}
         onToggleDepth2={toggleDepth2}
@@ -207,13 +219,15 @@ export function AdminSidebar() {
 
 ## 6. 어드민 전용 유지 파일
 
-공용 컴포넌트로 이동하지 않고 `apps/admin/features/sidebar/`에 남아 있는 파일들.
+공용 컴포넌트로 이동하지 않고 `apps/admin/features/sidebar/` 및 관련 위치에 남아 있는 파일들.
 
 | 파일 | 역할 |
 |---|---|
 | `AdminSidebar.tsx` | 공용 컴포넌트 어댑터 — 스토어·auth·라우터 주입 |
 | `AdminSidebarHeader.tsx` | AdminBrand + 닫기 버튼 (어드민 전용 브랜딩) |
 | `styles/AdminSidebarHeader.css` | 헤더 전용 스타일 (AdminBrand 크기 오버라이드 포함) |
-| `config/adminSidebarMenu.ts` | 어드민 메뉴 데이터 (`as const`) |
-| `utils/findExpandedMenuKeys.ts` | URL → depth1/depth2 키 매핑 유틸 |
-| `stores/adminLayoutStore.ts` | 사이드바 열림·depth1/2 펼침 상태 Zustand 스토어 |
+| `config/systemSidebarMenu.ts` | 시스템 섹션 메뉴 데이터 (`as const`) |
+| `config/boardSidebarMenu.ts` | 게시판 섹션 메뉴 데이터 (`as const`) |
+| `utils/findExpandedMenuKeys.ts` | URL → depth1/depth2 키 매핑, 섹션 감지(`detectSectionFromPath`) |
+| `stores/adminLayoutStore.ts` | 사이드바 열림·`activeSection` 상태 Zustand 스토어 |
+| `shared/components/sidebar/useSidebarExpand.ts` | depth1/depth2 펼침 상태 훅 (다중 열기 지원, 컴포넌트 로컬 관리) |

@@ -10,6 +10,18 @@
 
 import { useState } from 'react';
 import { Button, LinkButton } from '@/shared/components/button';
+import {
+  CreateTableButton,
+  DeleteTableButton,
+  EditTableButton,
+  AddRowTableButton,
+  DeleteRowTableButton,
+  SaveTableButton,
+  MoveUpTableButton,
+  MoveDownTableButton,
+  ResetFilterButton,
+  SearchFilterButton,
+} from '@/shared/components/button';
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 
@@ -526,6 +538,35 @@ export default function ButtonGuide() {
             </table>
           </div>
         </div>
+      </Section>
+
+      {/* ── 7. 액션 버튼 (ActionButtons) ── */}
+      <Section title="액션 버튼 (ActionButtons)" desc="테이블·필터 영역 전용 목적별 버튼. Button을 직접 쓰지 않고 이 컴포넌트를 사용한다.">
+        <Row label="필터 영역">
+          <SearchFilterButton onClick={() => {}} />
+          <ResetFilterButton onClick={() => {}} />
+        </Row>
+        <Row label="마스터 테이블 상단 (MasterTableActions 내부 구성)">
+          <CreateTableButton onClick={() => {}} />
+          <DeleteTableButton onClick={() => {}} />
+        </Row>
+        <Row label="상세 테이블 상단 (DetailTableActions 내부 구성)">
+          <MoveUpTableButton ariaLabel="위로 이동" onClick={() => {}} />
+          <MoveDownTableButton ariaLabel="아래로 이동" onClick={() => {}} />
+          <AddRowTableButton onClick={() => {}} />
+          <DeleteRowTableButton onClick={() => {}} />
+          <SaveTableButton onClick={() => {}} />
+        </Row>
+        <Row label="테이블 행 수정 아이콘 (EditTableButton)">
+          <EditTableButton ariaLabel="수정" onClick={() => {}} />
+        </Row>
+        <Row label="disabled 상태">
+          <CreateTableButton disabled />
+          <DeleteTableButton disabled />
+          <EditTableButton ariaLabel="수정 비활성" disabled />
+          <MoveUpTableButton ariaLabel="위로 이동 비활성" disabled />
+          <SaveTableButton loading />
+        </Row>
       </Section>
     </div>
   );

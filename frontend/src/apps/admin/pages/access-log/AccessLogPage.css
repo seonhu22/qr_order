@@ -53,7 +53,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
+  padding: 1.0625rem;
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-surface);
@@ -66,14 +66,14 @@
 .access-log-filters__date-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   flex-wrap: wrap;
 }
 
 .access-log-filters__date-range {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   flex: 1;
   min-width: 0;
 }
@@ -81,6 +81,11 @@
 .access-log-filters__date-range .input-wrapper {
   flex: 1;
   min-width: 10rem;
+}
+
+/* 라벨-인풋 간격을 필터 영역에 맞게 축소 */
+.access-log-filters .input-wrapper__row {
+  gap: var(--spacing-2);
 }
 
 .access-log-filters__date-sep {

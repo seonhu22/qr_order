@@ -251,6 +251,19 @@ Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립�
 - 각 컴포넌트 폴더 내부에 전용 CSS 파일을 작성한다 (예: `Input.css`).
 - 클래스 네이밍은 BEM 방식을 따른다 (예: `.input-control__slot-left`).
 
+### 알려진 이슈 — 작업 예정
+
+> 추가일: 2026-04-22
+
+**textarea와 InputBase 폰트 크기 불일치**
+
+현재 페이지 CSS에서 직접 작성한 `textarea`(`notice-manage-textarea` 등)의 폰트 크기가
+`InputBase` 컴포넌트와 시각적으로 다르게 보이는 현상이 있다.
+
+- 원인: `textarea`는 브라우저 기본 폰트 설정을 상속하는 반면, `InputBase`는 토큰 기반 폰트 크기를 명시적으로 적용하기 때문이다.
+- 해결 방향: `InputBase`를 `textarea` 모드로 확장하거나, 공용 `TextareaBase` 컴포넌트를 추가해 동일한 토큰을 적용한다.
+- 임시 처리: 현재는 페이지 CSS에 `font-size: var(--typography-size-body); font-family: inherit;`를 명시해 최대한 맞추고 있으나 완전히 일치하지 않을 수 있다.
+
 ---
 
 ## 4. 타입 규칙

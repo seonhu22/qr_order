@@ -169,6 +169,112 @@
 
 
 /* =====================================================
+ * TextareaBase — .textarea-control
+ * InputBase와 동일한 상태·토큰 체계, 고정 높이 없음
+ * ===================================================== */
+
+.textarea-control {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-input-x-md);
+  background-color: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  transition:
+    border-color var(--transition-ui),
+    box-shadow   var(--transition-ui),
+    background   var(--transition-ui);
+  cursor: text;
+}
+
+.textarea-control:not([data-state="disabled"]):not([data-state="readonly"]):not([data-state="error"]):hover {
+  border-color: var(--color-border-hover);
+}
+
+.textarea-control:not([data-state="disabled"]):not([data-state="readonly"]):focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+  outline: none;
+}
+
+.textarea-control[data-state="error"] {
+  border-color: var(--color-border-error);
+}
+.textarea-control[data-state="error"]:focus-within {
+  box-shadow: var(--focus-ring-error);
+}
+
+.textarea-control[data-state="success"] {
+  border-color: var(--color-border-success);
+}
+.textarea-control[data-state="success"]:focus-within {
+  box-shadow: var(--focus-ring-success);
+}
+
+.textarea-control[data-state="disabled"] {
+  background-color: var(--color-bg-muted);
+  border-color: var(--color-border-default);
+  cursor: not-allowed;
+}
+
+.textarea-control[data-state="readonly"] {
+  background-color: var(--color-bg-muted);
+  cursor: default;
+}
+
+
+/* ─── 내부 <textarea> 요소 ───────────────────────── */
+
+.textarea-control__textarea {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-body);
+  color: var(--color-text-primary);
+  resize: none; /* 기본값 — data-resize 로 재정의 */
+}
+
+.textarea-control__textarea::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.textarea-control__textarea:focus,
+.textarea-control__textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.textarea-control__textarea:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.textarea-control__textarea:read-only {
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+
+/* ─── resize 변형 ────────────────────────────────── */
+
+.textarea-control[data-resize="vertical"] .textarea-control__textarea {
+  resize: vertical;
+}
+
+.textarea-control[data-resize="both"] .textarea-control__textarea {
+  resize: both;
+}
+
+
+/* =====================================================
  * TextInput 전용 — 비밀번호 토글 버튼
  * ===================================================== */
 

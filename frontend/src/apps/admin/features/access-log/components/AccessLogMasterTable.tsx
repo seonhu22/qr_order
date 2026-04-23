@@ -31,25 +31,25 @@ export function AccessLogMasterTable({
           <table className="common-table">
             <thead>
               <tr>
-                <th className="common-table__th" scope="col">사용자 ID</th>
-                <th className="common-table__th" scope="col">사용자명</th>
-                <th className="common-table__th" scope="col">IP 주소</th>
-                <th className="common-table__th" scope="col">로그인 일시</th>
-                <th className="common-table__th" scope="col">로그아웃 일시</th>
+                <th scope="col">사용자 ID</th>
+                <th scope="col">사용자명</th>
+                <th scope="col">IP 주소</th>
+                <th scope="col">로그인 일시</th>
+                <th scope="col">로그아웃 일시</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`common-table__row${row.id === selectedId ? ' is-selected' : ''}`}
+                  className={row.id === selectedId ? 'is-selected' : undefined}
                   onClick={() => onSelectRow(row)}
                 >
-                  <td className="common-table__td">{row.userId}</td>
-                  <td className="common-table__td">{row.userNm}</td>
-                  <td className="common-table__td">{row.ipAddress}</td>
-                  <td className="common-table__td">{row.loginDatetime}</td>
-                  <td className="common-table__td">{row.logoutDatetime}</td>
+                  <td>{row.userId}</td>
+                  <td className="common-table__cell--center">{row.userNm}</td>
+                  <td>{row.ipAddress}</td>
+                  <td className="common-table__cell--center">{row.loginDatetime}</td>
+                  <td className="common-table__cell--center">{row.logoutDatetime}</td>
                 </tr>
               ))}
             </tbody>

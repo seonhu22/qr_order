@@ -1,18 +1,6 @@
-// src/apps/admin/features/sidebar/config/adminSidebarMenu.ts
+// src/apps/admin/features/sidebar/config/systemSidebarMenu.ts
 
-/**
- * @fileoverview 관리자 사이드바 메뉴 데이터
- *
- * @description
- * - 현재 단계에서는 UI 렌더링과 라우트 구조 확인을 위한 정적 메뉴 데이터만 관리한다.
- * - 추후 Zustand 상태와 실제 라우트 활성값을 연결할 때 이 구조를 기준으로 확장한다.
- *
- * @param {never} _unused 이 파일은 상수 데이터만 내보낸다.
- * @example
- * import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/adminSidebarMenu';
- */
-
-export const ADMIN_SIDEBAR_MENU = [
+export const SYSTEM_SIDEBAR_MENU = [
   {
     key: 'system',
     label: '시스템',

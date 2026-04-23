@@ -69,16 +69,16 @@ import type { TableCardProps } from '@/shared/components/table';
     <table className="common-table">
       <thead>
         <tr>
-          <th className="common-table__cell--left">코드</th>
-          <th className="common-table__cell--left">코드명</th>
+          <th>코드</th>
+          <th>코드명</th>
           <th>사용여부</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
           <tr key={row.id}>
-            <td className="common-table__mono common-table__cell--left">{row.code}</td>
-            <td className="common-table__cell--left">{row.name}</td>
+            <td className="common-table__mono">{row.code}</td>
+            <td>{row.name}</td>
             <td>
               <span className={`status-badge ${row.useYn ? 'status-badge--yes' : 'status-badge--no'}`}>
                 {row.useYn ? 'Y' : 'N'}
@@ -147,14 +147,14 @@ const headerActions = (
 > `onAddRow`는 반드시 **새로 추가된 행의 `id`를 `string`으로 반환**해야 한다.
 >
 > ```ts
-> // ✅ 올바른 구현
+> // 올바른 구현
 > const handleAddRow = (): string => {
 >   const newRow = { id: `new-${Date.now()}`, ... };
 >   appendRow(newRow);
 >   return newRow.id;
 > };
 >
-> // ❌ 잘못된 구현 — 행 추가 후 is-selected 스타일이 적용되지 않음
+> // 잘못된 구현 — 행 추가 후 is-selected 스타일이 적용되지 않음
 > const handleAddRow = (): void => {
 >   appendRow({ id: `new-${Date.now()}`, ... });
 > };
@@ -317,19 +317,88 @@ const detailActions = (
 
 ### 테이블
 
+> 정렬 기본값 — 추가일: 2026-04-22
+>
+> `th`는 항상 중앙 정렬, `td`는 항상 좌측 정렬이 기본이다.
+> 별도 클래스 없이 이 규칙을 따른다.
+> 체크박스 · 버튼 · 뱃지(`[class*="badge"]`)를 포함한 셀은 `:has()` 규칙으로 자동 중앙 정렬된다.
+> 날짜 · 시간 · 코드 등 명시적으로 중앙 정렬이 필요한 `td`에만 `common-table__cell--center`를 추가한다.
+> 컬럼 간 구분선(border-right)은 자동 적용된다.
+
 | 클래스 | 적용 요소 | 설명 |
 |---|---|---|
 | `.common-table-wrap` | `div` | 수평 스크롤 래퍼. `flex: 1`로 카드 높이를 채움 |
 | `.common-table` | `table` | 테이블 기본 스타일. thead sticky, 행 hover, is-selected. `table-layout: fixed` 기본 적용 — 셀 내용(SelectInput 선택값 등)이 바뀌어도 컬럼 너비가 고정됨 |
 | `.common-table--detail` | modifier | 인라인 편집 전용. 행 높이 축소 |
-| `.common-table__cell--left` | `th`, `td` | 텍스트 좌정렬 셀 |
+| `.common-table__cell--center` | `td` | 날짜 · 시간 · 코드 등 명시적 중앙 정렬이 필요한 셀. 체크박스 · 버튼 · 뱃지는 자동 적용되므로 불필요 |
 | `.common-table__mono` | `td` | 코드값 고정폭 폰트 (font-mono) |
-| `.common-table__checkbox` | `CheckboxInput` | 테이블 내 체크박스 중앙 정렬 보조 |
+| `.common-table__checkbox` | `CheckboxInput` | 테이블 내 체크박스 중앙 정렬 보조. 포함된 `th`/`td`는 자동 중앙 정렬 |
 | `.common-table__input` | `InputBase` | 인라인 편집 input (테두리 없음, 전체 너비) |
 | `.common-table__input--readonly` | modifier | 읽기 전용 input (배경색 적용) |
 | `.common-table__select` | `SelectInput` | 인라인 편집 select (전체 너비) |
 | `.common-table__empty` | 빈 상태 셀 | `colspan` 전체 차지, 중앙 정렬 |
 | `.common-table__cell--truncate` | `td` | 텍스트 말줄임 셀. 페이지 CSS에서 `max-width` 지정 필요, `title` 속성으로 전체 내용 제공 |
+
+### 컬럼 너비 클래스
+
+> 추가일: 2026-04-22
+
+`colgroup`의 `col` 요소에 적용한다. `table-layout: fixed` 환경에서 특정 컬럼을 고정 너비로 지정할 때 사용한다.
+
+| 클래스 | 너비 | 용도 |
+|---|---|---|
+| `.common-table__col--checkbox` | `var(--spacing-14)` — 48px | 체크박스 전용 컬럼 |
+| `.common-table__col--action` | `var(--spacing-16)` — 64px | 수정 버튼(아이콘) 전용 컬럼 |
+| `.common-table__col--sm` | `5.625rem` — 90px | 뱃지/태그 컬럼 (소형) |
+| `.common-table__col--md` | `8rem` — 128px | 뱃지/태그 컬럼 (기본) |
+| `.common-table__col--lg` | `10rem` — 160px | 뱃지/태그 컬럼 (대형) |
+
+뱃지/태그 컬럼의 기본 사이즈는 `md`이다.
+
+```tsx
+<colgroup>
+  <col className="common-table__col--checkbox" />
+  <col />
+  <col />
+  <col className="common-table__col--md" />   {/* 뱃지 컬럼 */}
+  <col className="common-table__col--action" />
+</colgroup>
+```
+
+### TableBodyRenderer — tdClassName
+
+> 추가일: 2026-04-22
+
+`SharedTableColumn`의 `tdClassName` 속성으로 `td`에 직접 클래스를 적용할 수 있다.
+컬럼 모델을 사용하는 테이블(`TableBodyRenderer`)에서 특정 셀을 중앙 정렬할 때 사용한다.
+
+```ts
+// plantSearchTableModel.tsx
+{ key: 'ownerName', label: '대표자명', tdClassName: 'common-table__cell--center' }
+```
+
+- `column.className`은 `th`에만 적용된다.
+- `column.tdClassName`은 해당 컬럼의 모든 `td`에 적용된다.
+
+### EditableDetailTable — className / 정렬 규칙
+
+> 추가일: 2026-04-22
+
+`EditableDetailTable`의 헤더(`th`)도 일반 테이블과 동일하게 **항상 중앙 정렬**이다.
+`td` 내용은 좌측 정렬(기본), 체크박스는 `:has()` 규칙으로 자동 중앙 정렬된다.
+
+`EditableDetailColumn`의 `className`은 해당 컬럼의 `th`에 적용된다.
+`common-table--detail` 환경에서는 `colgroup`이 동작하지 않으므로,
+컬럼 너비를 고정하려면 `className`에 너비 클래스를 지정한다.
+
+```ts
+// 사용여부 체크박스 컬럼 너비 고정
+{ key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--checkbox' }
+```
+
+- `common-table--detail`은 `thead`/`tbody`가 `display: block`이므로 `colgroup`이 무효
+- `th`에 너비 클래스를 적용하면 해당 헤더 셀 너비가 고정됨
+- `td` 너비는 `common-table--detail thead tr`, `tbody tr` 각각이 독립 `display: table`이므로 `th`와 연동되지 않음 — 현재는 `table-layout: fixed` + 균등 분배로 처리
 
 ### 테이블 수정 버튼
 

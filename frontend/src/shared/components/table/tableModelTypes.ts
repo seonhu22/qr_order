@@ -15,6 +15,7 @@ export type SharedTableColumn = {
   required?: boolean;
   align?: TableColumnAlign;
   className?: string;
+  tdClassName?: string;
   ariaLabel?: string;
 };
 

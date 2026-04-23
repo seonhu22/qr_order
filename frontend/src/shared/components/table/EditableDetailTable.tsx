@@ -119,7 +119,7 @@ export function EditableDetailTable<
     key: column.key,
     label: column.label,
     required: column.required,
-    align: column.type === 'text' ? 'left' : undefined,
+    className: column.className,
   }));
   const tableRows: SharedTableRow[] = rows.map((row) => ({
     id: row.id,

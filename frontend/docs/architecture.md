@@ -41,20 +41,43 @@
 
 > 추가일: 2026-04-21
 
-| 경로 | 페이지명 | 상태 |
-| --- | --- | --- |
-| `/admin/main` | 대시보드 | 구현 |
-| `/admin/system/common-code` | 공통코드 관리 | 구현 |
-| `/admin/system/plant` | 사업장 목록 | 구현 |
-| `/admin/system/admin-user` | 관리자 관리 | 구현 |
-| `/admin/system/menu` | 메뉴 관리 | 구현 |
-| `/admin/system/message` | 메시지 관리 | 구현 |
-| `/admin/system/rule` | 규칙 관리 | 구현 |
-| `/admin/payment/rate` | 결제 요금 관리 | 구현 |
-| `/admin/payment/plant-status` | 사업장 상태 조회 | 구현 |
-| `/admin/payment/coupon` | 쿠폰 관리 | 구현 |
-| `/admin/history/access-log` | 접속 정보 조회 | 구현 |
-| `/admin/history/audit-log` | 변경 이력 조회 | 미구현 |
+| 경로 | 페이지명 | 섹션 | 상태 |
+| --- | --- | --- | --- |
+| `/admin/main` | 대시보드 | — | 구현 |
+| `/admin/system/common-code` | 공통코드 관리 | 시스템 | 구현 |
+| `/admin/system/plant` | 사업장 목록 | 시스템 | 구현 |
+| `/admin/system/admin-user` | 관리자 관리 | 시스템 | 구현 |
+| `/admin/system/menu` | 메뉴 관리 | 시스템 | 구현 |
+| `/admin/system/message` | 메시지 관리 | 시스템 | 구현 |
+| `/admin/system/rule` | 규칙 관리 | 시스템 | 구현 |
+| `/admin/payment/rate` | 결제 요금 관리 | 시스템 | 구현 |
+| `/admin/payment/plant-status` | 사업장 상태 조회 | 시스템 | 구현 |
+| `/admin/payment/coupon` | 쿠폰 관리 | 시스템 | 구현 |
+| `/admin/history/access-log` | 접속 정보 조회 | 시스템 | 구현 |
+| `/admin/history/audit-log` | 변경 이력 조회 | 시스템 | 구현 |
+| `/admin/notice/manage` | 공지사항 관리 | 게시판 | 구현 |
+| `/admin/inquiry/manage` | 문의사항 관리 | 게시판 | 구현(placeholder) |
+
+### 사이드바 섹션 구조
+
+> 추가일: 2026-04-22
+
+관리자 화면은 **시스템(system)** 과 **게시판(board)** 두 섹션으로 분리된다.
+헤더 상단 탭을 클릭해 섹션을 전환하면 사이드바 메뉴가 해당 섹션 메뉴로 교체된다.
+
+```text
+AdminHeader
+  └ 탭: 시스템 | 게시판       ← activeSection 상태로 관리 (adminLayoutStore)
+
+사이드바 메뉴 config
+  ├ systemSidebarMenu.ts     ← 시스템·결제·이력 관련 메뉴
+  └ boardSidebarMenu.ts      ← 공지사항·문의사항 메뉴
+```
+
+- `activeSection: 'system' | 'board' | null`은 `adminLayoutStore`에서 관리한다.
+  - `null`은 대시보드 초기 진입 시(헤더 탭 클릭 전) 상태다.
+- `AdminSidebar`는 `activeSection`에 따라 `SYSTEM_SIDEBAR_MENU` 또는 `BOARD_SIDEBAR_MENU`를 `SidebarNav`에 주입한다.
+- `detectSectionFromPath(pathname)` 유틸로 현재 URL이 어느 섹션에 속하는지 자동 감지할 수 있다.
 
 ---
 
