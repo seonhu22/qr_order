@@ -7,7 +7,6 @@ import {
   useDeleteCouponsMutation,
   useSaveCouponMutation,
 } from '../api/couponManageApi';
-import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 
 const modalFlowMock = {
   isEditorOpen: false,
@@ -44,7 +43,6 @@ const modalFlowMock = {
 };
 
 const invalidateQueriesMock = vi.fn();
-const menuOpenMutateMock = vi.fn();
 
 vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-query')>('@tanstack/react-query');
@@ -71,10 +69,6 @@ vi.mock('../api/couponManageApi', () => ({
   })),
 }));
 
-vi.mock('@/generated/log-controller/log-controller', () => ({
-  useInsertMenuOpenAccessLog: vi.fn(),
-}));
-
 vi.mock('./useCouponManageModalFlow', () => ({
   editorRowToCouponRow: vi.fn((row) => row),
   useCouponManageModalFlow: vi.fn(() => modalFlowMock),
@@ -84,17 +78,14 @@ const mockedUseCouponQuery = vi.mocked(useCouponQuery);
 const mockedUseSaveCouponMutation = vi.mocked(useSaveCouponMutation);
 const mockedUseDeleteCouponsMutation = vi.mocked(useDeleteCouponsMutation);
 const mockedMapToCouponRow = vi.mocked(mapToCouponRow);
-const mockedUseInsertMenuOpenAccessLog = vi.mocked(useInsertMenuOpenAccessLog);
 
 describe('useCouponManagePageState', () => {
   beforeEach(() => {
     invalidateQueriesMock.mockReset();
-    menuOpenMutateMock.mockReset();
     mockedUseCouponQuery.mockReset();
     mockedUseSaveCouponMutation.mockReset();
     mockedUseDeleteCouponsMutation.mockReset();
     mockedMapToCouponRow.mockClear();
-    mockedUseInsertMenuOpenAccessLog.mockReset();
 
     mockedUseCouponQuery.mockReturnValue({
       data: [],
@@ -108,9 +99,6 @@ describe('useCouponManagePageState', () => {
     mockedUseDeleteCouponsMutation.mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: false,
-    } as never);
-    mockedUseInsertMenuOpenAccessLog.mockReturnValue({
-      mutate: menuOpenMutateMock,
     } as never);
   });
 
@@ -131,17 +119,6 @@ describe('useCouponManagePageState', () => {
     });
 
     expect(mockedUseCouponQuery).toHaveBeenLastCalledWith('쿠폰');
-  });
-
-  it('opens coupon menu access log only once on mount', () => {
-    const { rerender } = renderHook(() => useCouponManagePageState());
-
-    expect(menuOpenMutateMock).toHaveBeenCalledTimes(1);
-    expect(menuOpenMutateMock).toHaveBeenCalledWith({ params: { menuCd: 'coupon' } });
-
-    rerender();
-
-    expect(menuOpenMutateMock).toHaveBeenCalledTimes(1);
   });
 
   it('maps fetched coupon rows into table rows', () => {
