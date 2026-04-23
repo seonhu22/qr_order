@@ -6,7 +6,9 @@ import type { CodeMasterRow } from '@/shared/hooks/useCodeMasterModalFlow';
  * @description
  * 공통 코드 마스터 타입을 재사용해 규칙 마스터도 동일 편집 플로우를 사용한다.
  */
-export type RuleMasterRow = CodeMasterRow;
+export type RuleMasterRow = CodeMasterRow & {
+  sysId?: string;
+};
 
 /**
  * 규칙 상세 테이블 컬럼 메타데이터.
@@ -26,6 +28,7 @@ export type RuleDetailColumn = {
  */
 export type RuleDetailRow = {
   id: string;
+  sysId?: string;
   masterId: string;
   ordNo: number;
   isNew?: boolean;
