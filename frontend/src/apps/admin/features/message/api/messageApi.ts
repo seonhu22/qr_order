@@ -52,9 +52,9 @@ export function buildMessageRequest(
     .map(mapToMessagePayload);
 
   return {
-    newItems: newItems.length ? newItems : undefined,
-    updateItems: updateItems.length ? updateItems : undefined,
-    delItems: delItems.length ? delItems : undefined,
+    newItems,
+    updateItems,
+    delItems,
   };
 }
 

@@ -20,6 +20,14 @@ describe('messageApi', () => {
     });
   });
 
+  it('builds empty arrays instead of undefined when there are no changes', () => {
+    expect(buildMessageRequest([], [])).toEqual({
+      newItems: [],
+      updateItems: [],
+      delItems: [],
+    });
+  });
+
   it('builds new, update and delete items from draft rows', () => {
     const originalRows = [
       {
