@@ -20,10 +20,8 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!isLoading && !isError && rows.length === 0}
         loadingTitle="변경 이력을 불러오는 중입니다."
         errorDescription="다시 한번 시도해주세요."
-        emptyDescription="조회 조건을 설정하고 조회 버튼을 눌러주세요."
       >
         <div className="common-table-wrap">
           <table className="common-table">
@@ -39,18 +37,22 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <span className={`change-history-flag-badge change-history-flag-badge--${row.auditFlag.toLowerCase()}`}>
-                      {AUDIT_FLAG_LABEL[row.auditFlag] ?? row.auditFlag}
-                    </span>
-                  </td>
-                  <td>{row.menuNm}</td>
-                  <td>{row.auditTrailContents}</td>
-                  <td className="common-table__cell--center">{row.insertDatetime}</td>
-                </tr>
-              ))}
+              {rows.length === 0 ? (
+                <tr><td colSpan={4} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <span className={`change-history-flag-badge change-history-flag-badge--${row.auditFlag.toLowerCase()}`}>
+                        {AUDIT_FLAG_LABEL[row.auditFlag] ?? row.auditFlag}
+                      </span>
+                    </td>
+                    <td>{row.menuNm}</td>
+                    <td>{row.auditTrailContents}</td>
+                    <td className="common-table__cell--center">{row.insertDatetime}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

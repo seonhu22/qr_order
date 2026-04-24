@@ -23,6 +23,7 @@ import {
 import { Icon } from '@/shared/assets/icons/Icon';
 import { TableCard } from '@/shared/components/table';
 import { TableCardContentState } from '@/shared/components/table/TableCardContentState';
+import { FeedbackState } from '@/shared/components/feedback';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 
 
@@ -200,7 +201,7 @@ export function SystemMenuTree({
           </p>
 
           {nodes.length === 0 ? (
-            <p className="system-menu-tree__empty-text">등록된 메뉴가 없습니다. 행추가 버튼을 눌러 메뉴를 추가하세요.</p>
+            <FeedbackState variant="empty" title="등록된 메뉴가 없습니다." description="행추가 버튼을 눌러 메뉴를 추가하세요." />
           ) : (
             <div ref={treeContainerRef} className="layout-contents">
               <TreeMenu

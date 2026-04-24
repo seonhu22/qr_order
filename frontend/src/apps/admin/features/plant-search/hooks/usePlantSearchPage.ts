@@ -12,7 +12,7 @@
  * 로 분리한다.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { mapToPlantSearchModel, usePlantSearchQuery } from '../api/plantSearchApi';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 
@@ -46,6 +46,7 @@ import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
  * ```
  */
 export function usePlantSearchPage() {
+  const [hasSearched, setHasSearched] = useState(false);
   const {
     draftKeyword,
     appliedKeyword,
@@ -53,7 +54,7 @@ export function usePlantSearchPage() {
     applyDraftKeyword,
     resetKeywords,
   } = useFilterKeywordState('');
-  const plantQuery = usePlantSearchQuery(appliedKeyword.trim());
+  const plantQuery = usePlantSearchQuery(appliedKeyword.trim(), hasSearched);
 
   /**
    * 사업장 목록은 대량 데이터가 될 수 있으므로,
@@ -76,6 +77,8 @@ export function usePlantSearchPage() {
    * 실제 서버 호출은 appliedKeyword가 바뀐 뒤 query 훅이 처리한다.
    */
   const handleSearch = () => {
+    if (!draftKeyword.trim()) return;
+    setHasSearched(true);
     applyDraftKeyword();
   };
 
@@ -87,6 +90,7 @@ export function usePlantSearchPage() {
    * 초기 목록 조회 상태로 돌아간다.
    */
   const handleReset = () => {
+    setHasSearched(false);
     resetKeywords();
   };
 

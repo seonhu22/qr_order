@@ -47,7 +47,7 @@ export function RequiredHeaderLabel({ label }: RequiredHeaderLabelProps) {
  */
 export function EmptyTableRow({
   colSpan,
-  message = '검색 결과가 없습니다.',
+  message = '조회 결과가 없습니다.',
 }: EmptyTableRowProps) {
   return (
     <tr>
