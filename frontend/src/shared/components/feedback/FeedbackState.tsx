@@ -1,7 +1,7 @@
 import './FeedbackState.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 
-export type FeedbackVariant = 'loading' | 'error' | 'empty' | 'no-results' | 'unauthorized';
+export type FeedbackVariant = 'loading' | 'error' | 'empty' | 'select' | 'unauthorized';
 
 type FeedbackStateProps = {
   variant: FeedbackVariant;
@@ -18,6 +18,7 @@ type FeedbackStateProps = {
 
 type VariantConfig = {
   defaultTitle: string;
+  defaultDescription?: string;
   iconId?: string;
   iconSize?: number;
 };
@@ -25,8 +26,8 @@ type VariantConfig = {
 const VARIANT_CONFIG: Record<FeedbackVariant, VariantConfig> = {
   loading:      { defaultTitle: '불러오는 중입니다.' },
   error:        { defaultTitle: '불러오는데 실패했습니다', iconId: 'i-error',            iconSize: 22 },
-  empty:        { defaultTitle: '데이터가 없습니다.',        iconId: 'i-feedback-pointer', iconSize: 22 },
-  'no-results': { defaultTitle: '검색 결과가 없습니다.',     iconId: 'i-search',           iconSize: 22 },
+  empty:        { defaultTitle: '데이터가 없습니다.',        defaultDescription: '등록된 데이터가 없습니다.', iconId: 'i-empty-file',        iconSize: 22 },
+  select:       { defaultTitle: '목록을 선택해주세요.',       defaultDescription: '위 목록에서 행을 클릭하면 상세 코드가 표시됩니다.',                               iconId: 'i-feedback-pointer', iconSize: 22 },
   unauthorized: { defaultTitle: '접근 권한이 없습니다.',     iconId: 'i-lock',             iconSize: 22 },
 };
 
@@ -42,6 +43,7 @@ const VARIANT_CONFIG: Record<FeedbackVariant, VariantConfig> = {
 export function FeedbackState({ variant, title, description, children, className }: FeedbackStateProps) {
   const config = VARIANT_CONFIG[variant];
   const resolvedTitle = title ?? config.defaultTitle;
+  const resolvedDescription = description ?? config.defaultDescription;
   const isLoading = variant === 'loading';
 
   return (
@@ -59,7 +61,7 @@ export function FeedbackState({ variant, title, description, children, className
       )}
       <div className="feedback-state__body">
         <p className="feedback-state__title">{resolvedTitle}</p>
-        {description && <p className="feedback-state__description">{description}</p>}
+        {resolvedDescription && <p className="feedback-state__description">{resolvedDescription}</p>}
         {children}
       </div>
     </section>
