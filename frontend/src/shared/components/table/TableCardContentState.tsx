@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { FeedbackState } from '@/shared/components/feedback';
+import type { FeedbackVariant } from '@/shared/components/feedback';
 
 type TableCardContentStateProps = {
   isLoading: boolean;
@@ -8,6 +9,7 @@ type TableCardContentStateProps = {
   loadingTitle: string;
   errorTitle?: string;
   errorDescription?: string;
+  emptyVariant?: FeedbackVariant;
   emptyTitle?: string;
   emptyDescription?: string;
   emptyClassName?: string;
@@ -28,6 +30,7 @@ export function TableCardContentState({
   loadingTitle,
   errorTitle,
   errorDescription = '다시 한번 시도해주세요.',
+  emptyVariant = 'empty',
   emptyTitle,
   emptyDescription,
   emptyClassName,
@@ -44,7 +47,7 @@ export function TableCardContentState({
   if (isEmpty) {
     return (
       <FeedbackState
-        variant="empty"
+        variant={emptyVariant}
         title={emptyTitle}
         description={emptyDescription}
         className={emptyClassName}
