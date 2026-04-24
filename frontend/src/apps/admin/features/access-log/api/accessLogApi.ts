@@ -10,37 +10,41 @@ import type { SysAccessLogDetail } from '@/generated/types/sysAccessLogDetail';
 import type { SysAccessLogMaster } from '@/generated/types/sysAccessLogMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { AccessLogDetailRow, AccessLogMasterRow } from '../types';
+import type { AccessLogSearchParams } from '../utils/accessLogDateUtils';
+
+function getSafeText(value?: string) {
+  return value ?? '';
+}
+
+function createAccessLogDetailId(detail: SysAccessLogDetail, index: number) {
+  return `detail-${index}-${detail.menuCd ?? ''}-${detail.menuOpenDatetime ?? ''}`;
+}
 
 export function mapToAccessLogMasterRow(master: SysAccessLogMaster): AccessLogMasterRow {
   return {
-    id: master.sysId ?? '',
-    sysId: master.sysId ?? '',
-    userId: master.userId ?? '',
-    userNm: master.userNm ?? '',
-    ipAddress: master.ipAddress ?? '',
-    loginDatetime: master.loginDatetime ?? '',
-    logoutDatetime: master.logoutDatetime ?? '',
+    id: getSafeText(master.sysId),
+    sysId: getSafeText(master.sysId),
+    userId: getSafeText(master.userId),
+    userNm: getSafeText(master.userNm),
+    ipAddress: getSafeText(master.ipAddress),
+    loginDatetime: getSafeText(master.loginDatetime),
+    logoutDatetime: getSafeText(master.logoutDatetime),
   };
 }
 
-export function mapToAccessLogDetailRow(
-  detail: SysAccessLogDetail & { menuNm?: string },
-  index: number,
-): AccessLogDetailRow {
+export function mapToAccessLogDetailRow(detail: SysAccessLogDetail, index: number): AccessLogDetailRow {
+  const menuCd = getSafeText(detail.menuCd);
+
   return {
-    id: `detail-${index}-${detail.menuCd ?? ''}`,
-    menuCd: detail.menuCd ?? '',
-    menuNm: detail.menuNm ?? '',
-    menuOpenDatetime: detail.menuOpenDatetime ?? '',
-    menuCloseDatetime: detail.menuCloseDatetime ?? '',
+    id: createAccessLogDetailId(detail, index),
+    menuCd,
+    menuNm: menuCd,
+    menuOpenDatetime: getSafeText(detail.menuOpenDatetime),
+    menuCloseDatetime: getSafeText(detail.menuCloseDatetime),
   };
 }
 
-export function useAccessLogMasterQuery(params: {
-  startDate: string;
-  endDate: string;
-  searchKeyword?: string;
-}) {
+export function useAccessLogMasterQuery(params: AccessLogSearchParams) {
   const { startDate, endDate, searchKeyword } = params;
   const queryParams = searchKeyword
     ? { startDate, endDate, searchKeyword }
