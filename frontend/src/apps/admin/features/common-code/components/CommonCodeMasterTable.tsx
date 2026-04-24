@@ -28,7 +28,6 @@ export function CommonCodeMasterTable(props: CommonCodeMasterTableProps) {
       }}
       statusText={{
         loading: '공통코드 목록을 불러오는 중입니다.',
-        errorTitle: '불러오는데 실패했습니다.',
       }}
       rows={props.rows}
       isLoading={props.isLoading}

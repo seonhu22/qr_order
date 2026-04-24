@@ -21,16 +21,12 @@ export function InquiryManageTable({ rows, isLoading, isError, onDetail }: Inqui
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={rows.length === 0}
         loadingTitle="문의사항 목록을 불러오는 중입니다."
-        errorTitle="불러오는데 실패했습니다"
-        emptyTitle="검색 결과가 없습니다."
       >
         <TableBodyRenderer
           tableAriaLabel="문의사항 목록 테이블"
           columns={columns}
           rows={tableRows}
-          emptyMessage="검색 결과가 없습니다."
         />
       </TableCardContentState>
     </TableCard>
