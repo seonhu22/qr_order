@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { FeedbackVariant } from '@/shared/components/feedback';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import { DetailTableActions } from './TableActionGroups';
 import { TableBodyRenderer } from './TableBodyRenderer';
@@ -21,7 +22,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
   };
   statusText: {
     loadingTitle: string;
-    emptyTitle?: string;
+    emptyVariant?: FeedbackVariant;
     emptyDescription?: string;
   };
   data: {
@@ -73,8 +74,8 @@ export function EditableDetailTable<
   } = table;
   const {
     loadingTitle,
-    emptyTitle = '목록을 선택해주세요',
-    emptyDescription = '위 목록에서 행을 클릭하면 상세 코드가 표시됩니다.',
+    emptyVariant = 'select',
+    emptyDescription,
   } = statusText;
   const { selectedMaster, rows, columns, rowErrors } = data;
   const { isLoading, isSaving } = status;
@@ -195,7 +196,7 @@ export function EditableDetailTable<
         isError={false}
         isEmpty={!selectedMaster}
         loadingTitle={loadingTitle}
-        emptyTitle={emptyTitle}
+        emptyVariant={emptyVariant}
         emptyDescription={emptyDescription}
         emptyClassName="common-code-card__empty"
       >
