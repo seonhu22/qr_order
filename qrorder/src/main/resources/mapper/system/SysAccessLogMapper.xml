@@ -28,12 +28,15 @@
 
     <select id="getSysAccessLogDetail" resultType="htms.QROrder.system.domain.SysAccessLogDetail">
         select
-            menu_cd ,
-            menu_open_datetime ,
-            menu_close_datetime
+            slld.menu_cd ,
+            sm.menu_nm ,
+            slld.menu_open_datetime ,
+            slld.menu_close_datetime
         from sys_login_log_detail slld
+        left join sys_menu sm
+            on sm.menu_cd = slld.menu_cd
         where 1=1
-        and link_sys_id = #{sysId}
-        order by menu_open_datetime asc
+        and slld.link_sys_id = #{sysId}
+        order by slld.menu_open_datetime asc
     </select>
 </mapper>
