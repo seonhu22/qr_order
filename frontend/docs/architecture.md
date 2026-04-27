@@ -299,3 +299,30 @@ shared/
 - 관리자 앱은 `/admin/main`을 기본 복귀 경로로 사용한다.
 - 사용자 백오피스와 프론트오피스는 앱 라우트가 확정된 뒤 각자의 기본 복귀 경로를 주입한다.
 - 500 화면의 재시도 버튼은 단순 경로 이동보다 `retryAction`을 우선한다. `retryAction`이 없을 때만 `homePath` 이동을 제공한다.
+- 앱 layout 내부의 에러 페이지는 `layout="contained"`를 사용해 Header/Sidebar를 유지하고 콘텐츠 영역만 교체한다.
+- 전역 ErrorBoundary fallback처럼 앱 layout 바깥에서 렌더링하는 에러 페이지는 `layout="fullscreen"`을 사용하고, 재시도 버튼은 새로고침 또는 boundary reset에 연결한다.
+
+### layout 선택 기준
+
+| 위치 | layout | 기준 |
+|---|---|---|
+| `apps/*/routes`의 layout child route | `contained` | Header/Sidebar 등 앱 shell은 유지하고 본문만 에러 화면으로 교체한다. |
+| 메뉴 권한 검사 결과 403 | `contained` | 사용자는 앱 안에 남아 있고, 접근 불가 안내만 콘텐츠 영역에 표시한다. |
+| 특정 페이지 ErrorBoundary fallback | `contained` | 해당 페이지 영역만 복구 대상으로 보고 `retryAction`은 boundary reset에 연결한다. |
+| `App` 또는 Provider 레벨 ErrorBoundary fallback | `fullscreen` | 앱 shell 자체를 신뢰할 수 없으므로 전체 화면 에러로 대체한다. |
+| 앱에 속하지 않는 최상위 fallback | `fullscreen` | 어느 앱 layout도 선택되지 않은 상태이므로 전체 화면으로 안내한다. |
+
+```tsx
+// 앱 layout 내부: 콘텐츠 영역만 404로 교체한다.
+{ path: '*', element: <NotFoundPage homePath="/admin/main" /> }
+```
+
+```tsx
+// 전역 fallback: 전체 화면을 500으로 대체하고 새로고침을 제공한다.
+<ServerErrorPage
+  homePath="/admin/main"
+  layout="fullscreen"
+  retryAction={() => window.location.reload()}
+  retryLabel="새로고침"
+/>
+```

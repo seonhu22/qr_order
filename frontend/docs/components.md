@@ -458,50 +458,8 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ## 11. 에러 페이지 템플릿 (ErrorPageTemplate)
 
-> 추가일: 2026-04-27
-
-`shared/components/error/ErrorPageTemplate`은 403/404/500 페이지의 공통 시각 요소와 레이아웃을 제공한다.
-상태코드별 기본 문구는 `shared/pages/error`에서 조립하고, 앱별 이동 경로는 라우트 또는 page wrapper에서 props로 주입한다.
-
-### 역할 분리
-
-| 위치 | 역할 |
-|---|---|
-| `shared/components/error/ErrorPageTemplate.tsx` | 공통 이미지, 상태코드, 제목, 설명, 버튼 영역 렌더링 |
-| `shared/pages/error/ForbiddenPage.tsx` | 403 기본 문구와 액션 조립 |
-| `shared/pages/error/NotFoundPage.tsx` | 404 기본 문구와 액션 조립 |
-| `shared/pages/error/ServerErrorPage.tsx` | 500 기본 문구와 재시도/복귀 액션 조립 |
-| `apps/*/routes` | 앱별 `homePath`, `loginPath`, `retryAction` 주입 |
-
-### Props 기준
-
-`ErrorPageTemplate`은 상태별 로직을 내부에 하드코딩하지 않고 아래 값을 props로 받는다.
-
-| prop | 설명 |
-|---|---|
-| `statusCode` | 화면에 표시할 상태 코드 (`403`, `404`, `500` 등) |
-| `title` | 주 제목 |
-| `description` | 보조 설명 |
-| `imageVariant` | 공통 이미지/일러스트 분기 키 (`forbidden`, `not-found`, `server-error`) |
-| `primaryAction` | 주요 버튼. `to` 또는 `onClick` 중 하나를 사용 |
-| `secondaryAction` | 보조 버튼. 필요할 때만 사용 |
-
-```tsx
-<ErrorPageTemplate
-  statusCode="404"
-  title="페이지를 찾을 수 없습니다."
-  description="주소가 변경되었거나 삭제된 페이지입니다."
-  imageVariant="not-found"
-  primaryAction={{ label: '메인으로 이동', to: homePath }}
-/>
-```
-
-### 사용 기준
-
-- 403/404/500의 이미지와 레이아웃은 `ErrorPageTemplate`에서 공통 관리한다.
-- 앱별 버튼 경로만 다르면 `homePath`, `loginPath`, `supportPath`, `retryAction` 같은 props로 분기한다.
-- 401은 에러 페이지를 렌더링하지 않고 인증 흐름에서 로그인 페이지로 redirect한다.
-- 라우팅 기준은 [architecture.md §6 에러 페이지 라우팅 기준](./architecture.md#6-에러-페이지-라우팅-기준)을 따른다.
+403/404/500 에러 페이지의 공통 화면 템플릿이다.
+상세 사용법·Props·`layout` 선택 기준은 [docs/components/ErrorPage.md](./components/ErrorPage.md) 참고.
 
 ---
 
