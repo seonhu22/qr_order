@@ -66,7 +66,25 @@
 />
 ```
 
-## 4. 상태별 페이지 사용
+## 4. 이미지와 색상 기준
+
+현재 에러 페이지는 별도 이미지 파일을 두지 않고 CSS로 QR 코드 형태의 이미지 영역을 만든다.
+기준 디자인은 `Gomgom331/Qrorder`의 `src/app/pages/NotFound.tsx`에 있는 404 화면이다.
+
+| 상태 | imageVariant | 이미지 기준 |
+|---|---|---|
+| 403 | `forbidden` | QR 코드형 공통 이미지 |
+| 404 | `not-found` | QR 코드형 공통 이미지 |
+| 500 | `server-error` | QR 코드형 공통 이미지 |
+
+- 상태 코드와 이미지 색상은 `--color-border-default`를 사용한다.
+- 제목은 `--color-text-secondary`, 설명은 `--color-text-disabled`를 사용한다.
+- 주요 버튼은 `--color-brand-default`, hover는 `--color-brand-hover`를 사용한다.
+- 직접 hex 값을 쓰지 않고 `semantic-tokens.css`의 semantic token만 참조한다.
+- 에러 페이지 전용 실제 이미지 파일이 필요해지면 `src/shared/assets/images/error/` 아래에 둔다.
+- 실제 이미지 파일을 추가하더라도 `ErrorPageTemplate` 호출부의 `imageVariant` 계약은 유지한다.
+
+## 5. 상태별 페이지 사용
 
 상태별 페이지는 기본 문구를 제공하고, 앱별로 필요한 값만 덮어쓴다.
 
@@ -90,7 +108,7 @@
 />
 ```
 
-## 5. 사용 기준
+## 6. 사용 기준
 
 - 403/404/500의 이미지와 레이아웃은 `ErrorPageTemplate`에서 공통 관리한다.
 - 앱별 버튼 경로만 다르면 `homePath`, `loginPath`, `supportPath`, `retryAction` 같은 props로 분기한다.
