@@ -7,6 +7,11 @@
   min-width: 90rem;
 }
 
+/* 데이터가 없을 때는 가로 스크롤 불필요 */
+.plant-search-table .common-table:has(.common-table__empty) {
+  min-width: unset;
+}
+
 /* 긴 텍스트 셀 max-width 오버라이드 — TableCard.css의 .common-table__cell--truncate와 함께 사용 */
 .plant-search-table .common-table__cell--truncate {
   max-width: 10rem;

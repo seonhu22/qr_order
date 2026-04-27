@@ -28,7 +28,8 @@ export function RuleMasterTable(props: RuleMasterTableProps) {
       }}
       statusText={{
         loading: '규칙 목록을 불러오는 중입니다.',
-        errorDescription: '다시 한번 시도해주세요.',
+
+        emptyMessage: '조회 결과가 없습니다.',
       }}
       rows={props.rows}
       isLoading={props.isLoading}

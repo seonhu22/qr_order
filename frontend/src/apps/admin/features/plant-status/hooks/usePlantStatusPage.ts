@@ -39,6 +39,7 @@ export function usePlantStatusPage() {
     },
     uiProps: {
       draftKeyword,
+      emptyMessage: hasSearched ? '조회 결과가 없습니다.' : '데이터가 없습니다.',
     },
   };
 }

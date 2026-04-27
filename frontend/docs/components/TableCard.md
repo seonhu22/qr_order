@@ -7,6 +7,7 @@
 - [1. 파일 구조](#1-파일-구조)
 - [2. Props](#2-props)
 - [3. 사용 패턴](#3-사용-패턴)
+  - [빈 상태 규칙](#빈-상태-규칙)
 - [4. CSS 클래스 레퍼런스](#4-css-클래스-레퍼런스)
 - [5. 페이지별 오버라이드](#5-페이지별-오버라이드)
 - [6. 개발 가이드 페이지](#6-개발-가이드-페이지)
@@ -296,6 +297,123 @@ const detailActions = (
     <div className="common-table-wrap">...</div>
   </TableCardContentState>
 </TableCard>
+```
+
+---
+
+### 빈 상태 규칙
+
+> 추가일: 2026-04-27
+
+#### 피드백(FeedbackState)과 인라인의 구분
+
+**피드백(FeedbackState)**은 카드 바디 전체를 덮는 오버레이로, 테이블 구조(thead/tbody)가 대체된다.
+**인라인**은 thead를 유지한 채 tbody 한 행에 메시지만 표시한다.
+
+> **핵심 원칙**: 서버 통신이 성공한 경우 thead(컬럼명)는 항상 유지한다. 통신 실패·로딩·마스터 미선택처럼 테이블 자체를 표시할 수 없는 상황에만 FeedbackState를 사용한다.
+
+#### 피드백(FeedbackState) 문구 정의
+
+카드 바디 전체를 대체하는 상황에서 사용한다. `TableCardContentState`의 `isLoading` · `isError` · `isEmpty` prop으로 제어된다.
+
+| variant | 제목 | 설명 | 아이콘 | 사용 시점 |
+|---|---|---|---|---|
+| `loading` | 불러오는 중입니다. | — | 스피너 | API 호출 중 |
+| `error` | 불러오는데 실패했습니다 | 다시 한번 시도해주세요. | `i-error` | 통신 실패 |
+| `empty` | 데이터가 없습니다. | 등록된 데이터가 없습니다. | `i-empty-file` | 통신 성공 + 데이터 0건 (단독 사용 시) |
+| `select` | 목록을 선택해주세요. | 위 목록에서 행을 클릭하면 상세 코드가 표시됩니다. | `i-feedback-pointer` | 마스터 미선택 (디테일 패널) |
+| `unauthorized` | 접근 권한이 없습니다. | — | `i-lock` | 권한 없음 |
+
+> `select` variant의 설명 문구는 레이아웃에 따라 달라질 수 있다.
+> 예) 좌측 목록형: `"좌측 목록에서 항목을 선택하면 메뉴 접근 이력을 조회할 수 있습니다."`
+
+#### 인라인 문구 정의
+
+통신 성공 후 표시할 데이터가 없을 때 thead를 유지한 채 tbody 한 행에 표시한다.
+
+| 상황 | 문구 | 적용 테이블 |
+|---|---|---|
+| 초기 로딩 성공 + 데이터 없음 | `데이터가 없습니다.` | CouponManage, PaymentManage, NoticeManage, SystemMenu 등 |
+| 조회 버튼 클릭 후 + 데이터 없음 | `조회 결과가 없습니다.` | AccessLog, ChangeHistory, AdminUser, CommonCode, Rule, Message, InquiryManage, PlantStatus(조회 후) 등 |
+| 조회 전 초기 상태 (조회형) | `데이터가 없습니다.` | PlantSearch, PlantStatus (조회 버튼 클릭 전) |
+| 디테일 행 없음 (마스터 선택 후) | `상세 항목이 없습니다.` | CommonCodeDetailTable, RuleDetailTable |
+| 특정 컨텍스트 | `접근한 메뉴 이력이 없습니다.` | AccessLogDetailTable (로그 선택 후 이력 없음) |
+
+#### 상황별 처리 흐름
+
+```
+로딩 중          → FeedbackState loading  (thead 없음)
+통신 실패        → FeedbackState error    (thead 없음)
+마스터 미선택    → FeedbackState select   (thead 없음)
+─────────────────────────────────────────────────────
+통신 성공 + 데이터 있음   → 테이블 정상 렌더링  (thead 있음)
+통신 성공 + 데이터 없음   → tbody 인라인 메시지 (thead 있음)
+```
+
+#### TableBodyRenderer 사용 시
+
+`emptyMessage` prop으로 전달한다. 기본값은 `데이터가 없습니다.`
+
+```tsx
+// 조회형 테이블 (검색 버튼 있음)
+<TableBodyRenderer
+  tableAriaLabel="..."
+  columns={columns}
+  rows={rows}
+  emptyMessage="조회 결과가 없습니다."
+/>
+
+// 로딩형 테이블 (기본값 사용)
+<TableBodyRenderer tableAriaLabel="..." columns={columns} rows={rows} />
+```
+
+#### 조회형 테이블 — hasSearched 분기
+
+검색 전 초기 상태와 검색 후 빈 결과를 다른 문구로 구분한다.
+hook `uiProps`에서 `hasSearched` 기반으로 분기한 메시지를 테이블에 전달한다.
+
+```ts
+// usePlantSearchPage.ts
+uiProps: {
+  emptyMessage: hasSearched ? '조회 결과가 없습니다.' : '데이터가 없습니다.',
+}
+```
+
+```tsx
+// PlantSearchTable.tsx
+<TableBodyRenderer
+  tableAriaLabel="..."
+  columns={columns}
+  rows={rows}
+  emptyMessage={emptyMessage}
+/>
+```
+
+#### 커스텀 테이블 (TableBodyRenderer 미사용)
+
+`<thead>`는 항상 유지하고, `<tbody>`에 직접 빈 row를 렌더링한다.
+
+```tsx
+<tbody>
+  {rows.length === 0 ? (
+    <tr>
+      <td colSpan={5} className="common-table__empty">조회 결과가 없습니다.</td>
+    </tr>
+  ) : (
+    rows.map((row) => ( ... ))
+  )}
+</tbody>
+```
+
+#### EditableMasterTable
+
+`statusText.emptyMessage`로 전달한다.
+
+```tsx
+statusText={{
+  loading: '목록을 불러오는 중입니다.',
+  emptyMessage: '조회 결과가 없습니다.',
+}}
 ```
 
 ---

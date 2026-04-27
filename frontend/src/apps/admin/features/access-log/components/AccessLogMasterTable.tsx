@@ -23,7 +23,7 @@ export function AccessLogMasterTable({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="접속 로그를 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <div className="common-table-wrap access-log-table__wrap">
           <table className="common-table">
@@ -38,7 +38,7 @@ export function AccessLogMasterTable({
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={5} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr
