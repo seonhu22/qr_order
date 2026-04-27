@@ -352,3 +352,5 @@ http://localhost:3000/dev/tree-menu
 |---|---|
 | 기본 | `columns` 없이 레이블 텍스트만. 클릭 선택·토글·연결선(│ ├ └) 동작 확인 |
 | labelRender + columns | 레이블 셀에 InputBase(메뉴코드), 메뉴 명·메뉴주소 컬럼 추가. 연결선은 컴포넌트 자동 렌더 |
+| disabled 노드 | `disabled: true` 노드 클릭 불가 + dim 처리. 부모 펼치기/접기는 정상 동작 |
+| 빈 상태 (emptyMessage) | `nodes=[]` 일 때 thead 유지 + tbody에 `emptyMessage` 표시 |
