@@ -123,7 +123,7 @@ export function AdminUserTable({
 
       >
         <div ref={tableRef} className="layout-contents">
-          <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} />
+          <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} emptyMessage="조회 결과가 없습니다." />
         </div>
       </TableCardContentState>
     </TableCard>

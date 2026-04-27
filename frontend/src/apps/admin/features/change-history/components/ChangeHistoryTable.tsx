@@ -38,7 +38,7 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={4} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={4} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>

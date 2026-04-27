@@ -38,7 +38,7 @@ export function AccessLogMasterTable({
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={5} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr

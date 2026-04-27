@@ -97,6 +97,7 @@ export function MessageTable({
             tableAriaLabel="메세지 관리 테이블"
             columns={columns}
             rows={tableRows}
+            emptyMessage="조회 결과가 없습니다."
             colGroup={
               <colgroup>
                 <col style={{ width: '24%' }} />
