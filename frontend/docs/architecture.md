@@ -9,6 +9,7 @@
 - [3. 폴더 구조 전체](#3-폴더-구조-전체)
 - [4. 앱 계층 역할 요약](#4-앱-계층-역할-요약)
 - [5. AdminMainLayout — filterSlot 패턴](#5-adminmainlayout--filterslot-패턴)
+- [6. 에러 페이지 라우팅 기준](#6-에러-페이지-라우팅-기준)
 
 ---
 
@@ -128,6 +129,7 @@ frontend/
       dev/                ← 개발 전용 컴포넌트 가이드 (/dev/*)
       hooks/              ← 여러 feature가 함께 쓰는 공용 UX/state 훅
       lib/                ← httpClient.ts, queryClient.ts
+      pages/              ← 여러 앱이 공유하는 라우트 단위 페이지 (예: error)
       stores/             ← Zustand 전역 스토어
       styles/             ← 디자인 토큰, 전역 CSS
       utils/
@@ -149,6 +151,7 @@ frontend/
 | `shared/components` | 공통 UI 컴포넌트                                  |
 | `shared/hooks`      | 여러 feature가 재사용하는 공통 UX/state 훅        |
 | `shared/lib`        | Query Client, fetch 래퍼 등 공용 인프라           |
+| `shared/pages`      | 여러 앱이 공유하는 라우트 단위 페이지             |
 | `shared/api`        | query key, 공용 API 계층                          |
 | `shared/stores`     | Zustand 전역 UI 상태                              |
 | `shared/styles`     | 디자인 토큰 CSS 및 전역 스타일                    |
@@ -231,3 +234,68 @@ shared/components/table/
 - `--fixed` 클래스 사용 시 filterSlot 영역은 `flex-shrink: 0` 적용 — 콘텐츠가 늘어나도 필터가 밀리지 않는다.
 - 같은 용도의 필터 컴포넌트는 페이지마다 별도 클래스를 만들지 않고 기존 클래스를 재사용한다.
   스타일이 달라지는 경우에만 별도 클래스를 추가한다.
+
+---
+
+## 6. 에러 페이지 라우팅 기준
+
+> 추가일: 2026-04-27
+
+403/404/500 에러 페이지는 여러 앱(admin, client, consumer)에서 같은 시각 요소를 공유하되,
+앱별 이동 경로와 버튼 동작만 라우트 또는 페이지 props로 주입한다.
+
+### 기본 배치
+
+```text
+shared/
+  components/error/
+    ErrorPageTemplate.tsx   ← 공통 이미지·레이아웃·버튼 영역
+    ErrorPageTemplate.css
+    index.ts
+  pages/error/
+    ForbiddenPage.tsx       ← 403
+    NotFoundPage.tsx        ← 404
+    ServerErrorPage.tsx     ← 500
+    index.ts
+```
+
+- `shared/components/error`는 공통 에러 화면의 시각 요소와 레이아웃만 담당한다.
+- `shared/pages/error`는 상태코드별 기본 문구와 기본 액션을 조립한다.
+- `apps/*/routes` 또는 앱별 page wrapper는 `homePath`, `loginPath`, `retryAction` 같은 앱별 차이만 주입한다.
+
+### 상태코드별 처리 기준
+
+| 상태 | 처리 기준 | 화면 처리 |
+|---|---|---|
+| 401 | 미로그인 또는 로그인 만료 | 에러 페이지보다 로그인 페이지 redirect를 우선한다. |
+| 403 | 로그인은 했지만 메뉴·기능 접근 권한 없음 | `ForbiddenPage`를 렌더링한다. |
+| 404 | 존재하지 않는 URL 또는 삭제된 라우트 | `NotFoundPage`를 렌더링한다. |
+| 500 | 런타임 에러 또는 복구 불가능한 시스템 오류 | `ServerErrorPage`를 렌더링한다. |
+
+### 앱별 라우팅 분기
+
+각 앱은 자신의 layout 안에서 `*` child route를 두어 앱 내부 404를 처리한다.
+앱 전체 fallback은 어느 앱에도 속하지 않는 URL을 처리한다.
+
+```tsx
+// admin route 예시
+{
+  path: '/admin',
+  element: <AdminLayout />,
+  children: [
+    { path: 'main', element: <MainPage /> },
+    { path: '*', element: <NotFoundPage homePath="/admin/main" /> },
+  ],
+}
+```
+
+```tsx
+// 향후 앱별 homePath 예시
+<NotFoundPage homePath="/admin/main" />
+<NotFoundPage homePath="/client/main" />
+<NotFoundPage homePath="/" />
+```
+
+- 관리자 앱은 `/admin/main`을 기본 복귀 경로로 사용한다.
+- 사용자 백오피스와 프론트오피스는 앱 라우트가 확정된 뒤 각자의 기본 복귀 경로를 주입한다.
+- 500 화면의 재시도 버튼은 단순 경로 이동보다 `retryAction`을 우선한다. `retryAction`이 없을 때만 `homePath` 이동을 제공한다.
