@@ -9,7 +9,7 @@
 - [3. 폴더 구조 전체](#3-폴더-구조-전체)
 - [4. 앱 계층 역할 요약](#4-앱-계층-역할-요약)
 - [5. AdminMainLayout — filterSlot 패턴](#5-adminmainlayout--filterslot-패턴)
-- [6. 에러 페이지 라우팅 기준](#6-에러-페이지-라우팅-기준)
+- [6. 상태 처리 라우팅 기준](#6-상태-처리-라우팅-기준)
 
 ---
 
@@ -237,12 +237,15 @@ shared/components/table/
 
 ---
 
-## 6. 에러 페이지 라우팅 기준
+## 6. 상태 처리 라우팅 기준
 
 > 추가일: 2026-04-27
 
+HTTP 상태에 따른 화면·이동 처리는 **상태 처리(Status Handling)** 로 부른다.
+이 중 화면으로 렌더링되는 403/404/500은 **에러 페이지(Error Page)**, 화면을 만들지 않고 로그인으로 보내는 401은 **인증 리다이렉트(Auth Redirect)** 로 구분한다.
+
 403/404/500 에러 페이지는 여러 앱(admin, client, consumer)에서 같은 시각 요소를 공유하되,
-앱별 이동 경로와 버튼 동작만 라우트 또는 페이지 props로 주입한다.
+앱별 이동 경로와 버튼 동작만 라우트 또는 페이지 props로 주입한다. 401은 `ErrorPageTemplate` 대상이 아니며 인증 라우팅에서 로그인 페이지로 redirect한다.
 
 ### 기본 배치
 
@@ -261,16 +264,40 @@ shared/
 
 - `shared/components/error`는 공통 에러 화면의 시각 요소와 레이아웃만 담당한다.
 - `shared/pages/error`는 상태코드별 기본 문구와 기본 액션을 조립한다.
-- `apps/*/routes` 또는 앱별 page wrapper는 `homePath`, `loginPath`, `retryAction` 같은 앱별 차이만 주입한다.
+- `apps/*/routes` 또는 앱별 page wrapper는 `homePath`, `retryAction`, 인증 redirect 경로 같은 앱별 차이만 주입한다.
 
 ### 상태코드별 처리 기준
 
-| 상태 | 처리 기준 | 화면 처리 |
-|---|---|---|
-| 401 | 미로그인 또는 로그인 만료 | 에러 페이지보다 로그인 페이지 redirect를 우선한다. |
-| 403 | 로그인은 했지만 메뉴·기능 접근 권한 없음 | `ForbiddenPage`를 렌더링한다. |
-| 404 | 존재하지 않는 URL 또는 삭제된 라우트 | `NotFoundPage`를 렌더링한다. |
-| 500 | 런타임 에러 또는 복구 불가능한 시스템 오류 | `ServerErrorPage`를 렌더링한다. |
+| 상태 | 이름 | 처리 기준 | 화면 처리 |
+|---|---|---|---|
+| 401 | 인증 리다이렉트(Auth Redirect) | 미로그인 또는 로그인 만료 | 에러 페이지를 렌더링하지 않고 만료 안내 모달 확인 후 앱별 로그인 페이지로 redirect한다. |
+| 403 | 에러 페이지(Error Page) | 로그인은 했지만 메뉴·기능 접근 권한 없음 | `ForbiddenPage`를 렌더링한다. |
+| 404 | 에러 페이지(Error Page) | 존재하지 않는 URL 또는 삭제된 라우트 | `NotFoundPage`를 렌더링한다. |
+| 500 | 에러 페이지(Error Page) | 런타임 에러 또는 복구 불가능한 시스템 오류 | `ServerErrorPage`를 렌더링한다. |
+
+### 401 인증 리다이렉트
+
+401은 사용자에게 에러 화면을 보여주는 상태가 아니라, 인증이 필요한 화면에 접근할 수 없다는 신호다.
+따라서 보호 라우트에서 인증 상태를 확인하고 앱별 로그인 경로로 이동시킨다.
+
+```tsx
+function RequireAuth({ children }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+}
+```
+
+- API 호출 도중 401이 발생하면 "로그인 인증이 만료되었습니다." 안내 모달을 먼저 표시하고, 확인 클릭 시 로그인 화면으로 이동한다.
+- 보호 라우트 직접 접근처럼 이미 비로그인 상태가 확정된 경우는 모달 없이 로그인 화면으로 이동한다.
+- 관리자 앱의 로그인 경로는 `/admin/login`이다.
+- 추후 client, consumer 앱을 추가하면 각 앱의 보호 라우트에서 자기 앱의 로그인 경로를 주입한다.
+- 로그인 만료 API 응답도 최종적으로는 동일한 인증 리다이렉트 흐름으로 수렴시킨다.
+- 401 전용 `UnauthorizedPage`는 만들지 않는다. 사용자에게 필요한 다음 행동은 로그인 화면에서 처리한다.
 
 ### 앱별 라우팅 분기
 

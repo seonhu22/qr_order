@@ -204,9 +204,9 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
-에러 페이지 작성 기준:
-- 403/404/500 라우팅 분기와 앱별 복귀 경로 주입 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-에러-페이지-라우팅-기준)을 참고한다.
-- 공통 에러 화면 템플릿 작성 기준은 [`docs/components/ErrorPage.md`](./docs/components/ErrorPage.md)을 참고한다.
+상태 처리 작성 기준:
+- 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
+- 공통 상태 처리와 에러 화면 템플릿 작성 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)을 참고한다.
 
 학습용 참고 문서:
 - [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)

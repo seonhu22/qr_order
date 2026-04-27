@@ -14,7 +14,7 @@
 - [8. 테이블 카드 컴포넌트 (TableCard)](#8-테이블-카드-컴포넌트-tablecard)
 - [9. 트리 메뉴 컴포넌트 (TreeMenu)](#9-트리-메뉴-컴포넌트-treemenu)
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
-- [11. 에러 페이지 템플릿 (ErrorPageTemplate)](#11-에러-페이지-템플릿-errorpagetemplate)
+- [11. 상태 처리와 에러 페이지 (StatusHandling)](#11-상태-처리와-에러-페이지-statushandling)
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
 
 ---
@@ -456,10 +456,10 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ---
 
-## 11. 에러 페이지 템플릿 (ErrorPageTemplate)
+## 11. 상태 처리와 에러 페이지 (StatusHandling)
 
-403/404/500 에러 페이지의 공통 화면 템플릿이다.
-상세 사용법·Props·`layout` 선택 기준은 [docs/components/ErrorPage.md](./components/ErrorPage.md) 참고.
+401 인증 리다이렉트와 403/404/500 에러 페이지의 공통 처리 기준이다.
+상세 사용법·Props·`layout` 선택 기준은 [docs/components/StatusHandling.md](./components/StatusHandling.md) 참고.
 
 ---
 
