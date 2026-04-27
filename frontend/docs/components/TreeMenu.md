@@ -61,6 +61,7 @@ type TreeMenuProps<T> = {
                                      // 하위추가 후 부모 노드를 자동 펼칠 때 사용.
   className?: string;                // 루트 div에 추가할 CSS 클래스
   ariaLabel?: string;                // 컨테이너 aria-label
+  emptyMessage?: string;             // nodes가 빈 배열일 때 tbody에 표시할 메시지. 기본값 없음
 };
 ```
 
@@ -274,6 +275,7 @@ const nodes: TreeMenuNode[] = [
 | `.tree-menu__header` | `thead` | 헤더 행 |
 | `.tree-menu__header th` | `th` | sticky 헤더. caption 크기, secondary 색상 |
 | `.tree-menu__header-label` | 레이블 열 `th` | `width: auto` (남은 너비 자동 배분) |
+| `.tree-menu__empty` | `td` (빈 상태) | `nodes`가 비어 있을 때 tbody 한 행. 세로 가운데 정렬, tertiary 색상 |
 
 ### 행 / 셀
 
