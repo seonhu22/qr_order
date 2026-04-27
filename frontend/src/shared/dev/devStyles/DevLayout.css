@@ -58,3 +58,100 @@
   flex: 1;
   overflow-y: auto;
 }
+
+.error-page-guide {
+  min-height: 100%;
+  padding: var(--spacing-10);
+  background: var(--color-bg-app);
+  font-family: var(--typography-font-base);
+}
+
+.error-page-guide__header {
+  margin-bottom: var(--spacing-8);
+}
+
+.error-page-guide__title {
+  margin: 0;
+  font-size: var(--typography-size-h2);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.error-page-guide__description {
+  margin: var(--spacing-2) 0 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+.error-page-guide__section {
+  margin-bottom: var(--spacing-8);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+
+.error-page-guide__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.error-page-guide__auth-test {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  background: var(--color-bg-surface);
+}
+
+.error-page-guide__auth-test > div > span {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  font-family: var(--typography-font-mono);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+}
+
+.error-page-guide__auth-test > div > p {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.error-page-guide__caption {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  background: var(--color-bg-muted);
+}
+
+.error-page-guide__caption span {
+  font-family: var(--typography-font-mono);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+}
+
+.error-page-guide__caption p {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.error-page-guide__contained-preview {
+  display: flex;
+  min-height: 30rem;
+}
+
+.error-page-guide__fullscreen-preview {
+  display: flex;
+  min-height: 100vh;
+}
