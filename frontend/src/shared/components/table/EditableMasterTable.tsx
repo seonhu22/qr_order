@@ -17,7 +17,6 @@ type EditableMasterTableLabels = {
 type EditableMasterTableStatusText = {
   loading: string;
   errorTitle?: string;
-  errorDescription?: string;
   emptyMessage?: string;
 };
 
@@ -99,7 +98,6 @@ export function EditableMasterTable<T extends EditableMasterRow>({
         isError={isError}
         loadingTitle={statusText.loading}
         errorTitle={statusText.errorTitle}
-        errorDescription={statusText.errorDescription}
       >
         <TableBodyRenderer
           tableAriaLabel={tableAriaLabel}

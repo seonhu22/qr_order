@@ -191,7 +191,7 @@ export function SystemMenuTree({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="메뉴 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <>
           {/* 타이틀-테이블 사이 안내문구 */}

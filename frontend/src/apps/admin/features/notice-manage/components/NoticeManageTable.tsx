@@ -38,9 +38,7 @@ export function NoticeManageTable({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="공지사항 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
-        isEmpty={!isLoading && !isError && rows.length === 0}
-        emptyDescription="등록된 공지사항이 없습니다."
+
       >
         <div className="common-table-wrap">
           <table className="common-table" aria-label="공지사항 목록 테이블">
@@ -75,7 +73,9 @@ export function NoticeManageTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.length === 0 ? (
+                <tr><td colSpan={7} className="common-table__empty">데이터가 없습니다.</td></tr>
+              ) : rows.map((row) => (
                 <tr key={row.id}>
                   <td>
                     <span className="common-table__checkbox">

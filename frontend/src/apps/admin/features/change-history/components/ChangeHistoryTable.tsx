@@ -21,7 +21,7 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
         isLoading={isLoading}
         isError={isError}
         loadingTitle="변경 이력을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <div className="common-table-wrap">
           <table className="common-table">
