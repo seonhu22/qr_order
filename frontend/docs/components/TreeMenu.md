@@ -61,6 +61,7 @@ type TreeMenuProps<T> = {
                                      // 하위추가 후 부모 노드를 자동 펼칠 때 사용.
   className?: string;                // 루트 div에 추가할 CSS 클래스
   ariaLabel?: string;                // 컨테이너 aria-label
+  emptyMessage?: string;             // nodes가 빈 배열일 때 tbody에 표시할 메시지. 기본값 없음
 };
 ```
 
@@ -274,6 +275,7 @@ const nodes: TreeMenuNode[] = [
 | `.tree-menu__header` | `thead` | 헤더 행 |
 | `.tree-menu__header th` | `th` | sticky 헤더. caption 크기, secondary 색상 |
 | `.tree-menu__header-label` | 레이블 열 `th` | `width: auto` (남은 너비 자동 배분) |
+| `.tree-menu__empty` | `td` (빈 상태) | `nodes`가 비어 있을 때 tbody 한 행. 세로 가운데 정렬, tertiary 색상 |
 
 ### 행 / 셀
 
@@ -350,3 +352,5 @@ http://localhost:3000/dev/tree-menu
 |---|---|
 | 기본 | `columns` 없이 레이블 텍스트만. 클릭 선택·토글·연결선(│ ├ └) 동작 확인 |
 | labelRender + columns | 레이블 셀에 InputBase(메뉴코드), 메뉴 명·메뉴주소 컬럼 추가. 연결선은 컴포넌트 자동 렌더 |
+| disabled 노드 | `disabled: true` 노드 클릭 불가 + dim 처리. 부모 펼치기/접기는 정상 동작 |
+| 빈 상태 (emptyMessage) | `nodes=[]` 일 때 thead 유지 + tbody에 `emptyMessage` 표시 |
