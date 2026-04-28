@@ -1,0 +1,560 @@
+/* =====================================================
+ * 파일 첨부 공통 스타일
+ * FileInputGroup / FileDownloadList 에서 공유
+ * - 컨테이너 너비에 맞게 자동으로 늘어난다 (width: 100%)
+ * ===================================================== */
+
+
+/* ── 공통 래퍼 ── */
+
+.file-input-group,
+.file-download-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  font-family: var(--typography-font-base);
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 파일 목록
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  /* 3개 초과 시 스크롤 — 아이템 높이 2.25rem × 3 */
+  max-height: calc(3 * 2.25rem + 2px); /* +2px: 상하 border */
+  overflow-y: auto;
+}
+
+/* 스크롤바 */
+.file-attachment__list::-webkit-scrollbar {
+  width: 4px;
+}
+.file-attachment__list::-webkit-scrollbar-track {
+  background: var(--color-bg-muted);
+}
+.file-attachment__list::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 2px;
+}
+.file-attachment__list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-disabled);
+}
+
+
+/* ── 파일 목록 행 ── */
+
+.file-attachment__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-4);
+  height: 2.25rem;
+  background: var(--color-bg-surface);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+}
+
+.file-attachment__item:last-child {
+  border-bottom: none;
+}
+
+/* 새로 추가된 파일 */
+.file-attachment__item--new {
+  background: var(--color-brand-subtle);
+}
+
+/* 편집 모드 행 hover (기존 파일) */
+.file-attachment__item:not(.file-attachment__item--download):not(.file-attachment__item--new):hover {
+  background: var(--color-bg-hover);
+}
+
+/* 편집 모드 행 hover (새 파일 — orange 배경 위에서 약간 어둡게) */
+.file-attachment__item--new:hover {
+  background: rgba(255, 107, 43, 0.1);
+}
+
+/* 다운로드 클릭 가능 행 */
+.file-attachment__item--download {
+  cursor: pointer;
+  transition: background var(--transition-ui);
+}
+
+.file-attachment__item--download:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 파일명 색상만 변경 — 버튼은 자체 호버에서만 반응 */
+.file-attachment__item--download:hover .file-attachment__item-name {
+  color: var(--color-brand-default);
+}
+
+.file-attachment__item--download:focus-visible {
+  outline: none;
+  box-shadow: inset var(--focus-ring-brand);
+}
+
+
+/* ── 행 내부 요소 ── */
+
+.file-attachment__item-icon {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--color-text-disabled);
+}
+
+/* 파일 타입별 아이콘 색상 */
+.file-attachment__item-icon--image { color: var(--color-status-info-default); }
+.file-attachment__item-icon--pdf   { color: var(--color-status-error-default); }
+.file-attachment__item-icon--doc   { color: var(--color-text-secondary); }
+.file-attachment__item-icon--sheet { color: var(--color-status-success-default); }
+.file-attachment__item-icon--ppt   { color: var(--color-brand-default); }
+.file-attachment__item-icon--zip   { color: var(--color-status-warning-default); }
+
+.file-attachment__item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+  transition: color var(--transition-ui);
+}
+
+/* NEW 뱃지 */
+.file-attachment__item-new-badge {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: var(--typography-weight-ui);
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--color-brand-default);
+  color: var(--color-brand-text);
+  letter-spacing: 0.02em;
+}
+
+.file-attachment__item-size {
+  flex-shrink: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+/* 다운로드 행 전체 클릭 영역 — flex: 1로 남은 공간 모두 차지 */
+.file-attachment__item-row {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--spacing-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font-family: var(--typography-font-base);
+}
+
+.file-attachment__item-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+  border-radius: var(--radius-xs);
+}
+
+/* 아이콘 버튼 — 다운로드 · 삭제 공통 크기 (1.5rem × 1.5rem) */
+.file-attachment__item-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  color: var(--color-text-disabled);
+  transition: color var(--transition-ui), background var(--transition-ui);
+}
+
+.file-attachment__item-action:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* 다운로드 hover — 브랜드 */
+.file-attachment__item-action--download:hover {
+  color: var(--color-brand-default);
+  background: var(--color-brand-subtle);
+}
+
+/* 삭제 hover — 에러 */
+.file-attachment__item-action--delete:hover {
+  color: var(--color-status-error-default);
+  background: var(--color-status-error-bg-subtle);
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 드롭존 (dropzone variant)
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-8) var(--spacing-6);
+  width: 100%;
+  border: var(--border-1) dashed var(--color-border-default);
+  border-radius: var(--radius-button);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+  transition: border-color var(--transition-ui), background var(--transition-ui);
+  text-align: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.file-attachment__dropzone:hover,
+.file-attachment__dropzone--active {
+  border-color: var(--color-brand-default);
+  background: var(--color-brand-subtle);
+}
+
+.file-attachment__dropzone:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+.file-attachment__dropzone--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.file-attachment__dropzone--disabled:hover {
+  border-color: var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+
+.file-attachment__dropzone--disabled:hover .file-attachment__dropzone-icon {
+  color: var(--color-text-disabled);
+}
+
+.file-attachment__dropzone--uploading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.file-attachment__dropzone-icon {
+  color: var(--color-text-disabled);
+  transition: color var(--transition-ui);
+}
+
+.file-attachment__dropzone:hover .file-attachment__dropzone-icon,
+.file-attachment__dropzone--active .file-attachment__dropzone-icon {
+  color: var(--color-brand-default);
+}
+
+/* 스피너 — global.css의 ui-spin keyframes 재사용 */
+.file-attachment__dropzone-icon--spinning {
+  animation: ui-spin 0.75s linear infinite;
+}
+
+.file-attachment__dropzone-text {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+}
+
+.file-attachment__dropzone-hint {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 버튼 형식 입력 (button variant)
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__btn-input {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 2.25rem;        /* md 인풋 높이 */
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  transition: border-color var(--transition-ui);
+}
+
+.file-attachment__btn-input:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* 왼쪽 — 아이콘 + placeholder + 카운트 뱃지 */
+.file-attachment__btn-input-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-4);
+  background: var(--color-bg-surface);
+}
+
+.file-attachment__btn-input-left--disabled {
+  background: var(--color-bg-muted);
+}
+
+.file-attachment__btn-input-icon {
+  flex-shrink: 0;
+  color: var(--color-text-disabled);
+}
+
+.file-attachment__btn-input-placeholder {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-disabled);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 파일 개수 뱃지 */
+.file-attachment__btn-input-count {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: var(--typography-weight-ui);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+/* 오른쪽 — "파일 선택" 버튼 */
+.file-attachment__btn-input-trigger {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-5);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  font-family: var(--typography-font-base);
+  border: none;
+  border-left: var(--border-1) solid var(--color-border-default);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-ui), color var(--transition-ui);
+}
+
+.file-attachment__btn-input-trigger:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.file-attachment__btn-input-trigger:focus-visible {
+  outline: none;
+}
+
+.file-attachment__btn-input-trigger:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 전체 다운로드 버튼
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__download-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-5);
+  font-size: var(--typography-size-ui);
+  font-family: var(--typography-font-base);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: background var(--transition-ui), color var(--transition-ui),
+    border-color var(--transition-ui);
+}
+
+.file-attachment__download-all:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-brand-default);
+  border-color: var(--color-brand-focus-ring);
+}
+
+.file-attachment__download-all:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 카운터 / 에러 / 빈 상태
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__counter {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+.file-attachment__error {
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+  margin: 0;
+}
+
+.file-attachment__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 var(--spacing-5);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-button);
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-disabled);
+  margin: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * 다운로드 목록 헤더
+ * ═══════════════════════════════════════════════════ */
+
+.file-attachment__dl-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.file-attachment__dl-header-label {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-secondary);
+}
+
+/* 파일 개수 뱃지 */
+.file-attachment__dl-header-count {
+  font-size: 0.625rem;
+  font-weight: var(--typography-weight-ui);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+
+/* ═══════════════════════════════════════════════════
+ * FileHint — 파일 첨부 제약 안내
+ * ═══════════════════════════════════════════════════ */
+
+/* ── simple: 아이콘 + 한 줄 텍스트 ── */
+.file-hint--simple {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-normal);
+  color: var(--color-text-disabled);
+}
+
+/* ── badge: 칩 형식으로 각 제약 표시 ── */
+.file-hint--badge {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.file-hint__badge-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.6875rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+/* ── info / warning / error: 컴팩트 박스 ── */
+.file-hint--info,
+.file-hint--warning,
+.file-hint--error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-button);
+  border: var(--border-1) solid transparent;
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-normal);
+}
+
+.file-hint__hint-icon {
+  flex-shrink: 0;
+}
+
+.file-hint--info {
+  background: var(--color-status-info-bg-subtle);
+  border-color: var(--color-status-info-border-subtle);
+  color: var(--color-status-info-text);
+}
+
+.file-hint--info .file-hint__hint-icon {
+  color: var(--color-status-info-default);
+}
+
+.file-hint--warning {
+  background: var(--color-status-warning-bg-subtle);
+  border-color: var(--color-status-warning-border-subtle);
+  color: var(--color-status-warning-text);
+}
+
+.file-hint--warning .file-hint__hint-icon {
+  color: var(--color-status-warning-default);
+}
+
+.file-hint--error {
+  background: var(--color-status-error-bg-subtle);
+  border-color: var(--color-status-error-border-subtle);
+  color: var(--color-status-error-text);
+}
+
+.file-hint--error .file-hint__hint-icon {
+  color: var(--color-status-error-default);
+}
+
+
+/* ── 숨김 파일 input ── */
+
+.file-attachment__hidden-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
