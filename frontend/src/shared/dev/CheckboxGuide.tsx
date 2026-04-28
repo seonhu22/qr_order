@@ -16,23 +16,12 @@ import { CheckboxInput, CheckboxGroup } from '@/shared/components/checkbox';
  * ===================================================== */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: '2.5rem' }}>
-      <h2
-        style={{
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--color-text-tertiary)',
-          borderBottom: '1px solid var(--color-border-divider)',
-          paddingBottom: '0.5rem',
-          marginBottom: '1.25rem',
-        }}
-      >
-        {title}
-      </h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'flex-start' }}>
-        {children}
+    <section className="dev-guide__section">
+      <div className="dev-guide__section-header">
+        <h2 className="dev-guide__section-title">{title}</h2>
+      </div>
+      <div className="dev-guide__section-body">
+        <div className="dev-guide__grid">{children}</div>
       </div>
     </section>
   );
@@ -41,9 +30,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Card({ label, children, width = 'auto' }: { label: string; children: React.ReactNode; width?: string }) {
   return (
     <div style={{ width }}>
-      <p style={{ fontSize: '0.7rem', color: 'var(--color-text-tertiary)', marginBottom: '0.5rem' }}>
-        {label}
-      </p>
+      <p className="dev-guide__item-label">{label}</p>
       {children}
     </div>
   );
@@ -69,29 +56,12 @@ export default function CheckboxGuide() {
     setTerms((prev) => ({ ...prev, [key]: v, all: false }));
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-bg-app)',
-        padding: '2rem',
-        fontFamily: 'var(--typography-font-base)',
-      }}
-    >
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div className="dev-guide">
 
         {/* 헤더 */}
-        <div style={{ marginBottom: '3rem' }}>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              marginBottom: '0.375rem',
-            }}
-          >
-            CheckboxInput
-          </h1>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+        <div className="dev-guide__header">
+          <h1 className="dev-guide__title">CheckboxInput</h1>
+          <p className="dev-guide__description">
             개발 전용 미리보기 · <code style={{ fontSize: '0.8rem' }}>/dev/checkbox</code>
           </p>
         </div>
@@ -279,8 +249,6 @@ export default function CheckboxGuide() {
             )}
           </div>
         </Section>
-
-      </div>
     </div>
   );
 }

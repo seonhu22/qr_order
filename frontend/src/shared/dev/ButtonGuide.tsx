@@ -36,28 +36,12 @@ function Section({ title, desc, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <section style={{
-      background: 'var(--color-bg-surface)',
-      border: '1px solid var(--color-border-default)',
-      borderRadius: 'var(--radius-card)',
-      overflow: 'hidden',
-      marginBottom: '1rem',
-    }}>
-      <div style={{
-        padding: '0.75rem 1rem',
-        borderBottom: '1px solid var(--color-border-divider)',
-        background: 'var(--color-bg-muted)',
-      }}>
-        <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-primary)', margin: 0 }}>
-          {title}
-        </p>
-        {desc && (
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)', margin: '2px 0 0' }}>
-            {desc}
-          </p>
-        )}
+    <section className="dev-guide__section">
+      <div className="dev-guide__section-header">
+        <h2 className="dev-guide__section-title">{title}</h2>
+        {desc && <p className="dev-guide__section-desc">{desc}</p>}
       </div>
-      <div style={{ padding: '1.25rem' }}>{children}</div>
+      <div className="dev-guide__section-body">{children}</div>
     </section>
   );
 }
@@ -112,27 +96,16 @@ export default function ButtonGuide() {
   };
 
   return (
-    <div style={{ padding: '1.5rem', fontFamily: 'var(--typography-font-base)' }}>
-      <div style={{ marginBottom: '1.25rem' }}>
-        <h2 style={{ fontSize: 'var(--typography-size-h2)', fontWeight: 'var(--typography-weight-heading)', color: 'var(--color-text-primary)', margin: 0 }}>
-          버튼 컴포넌트
-        </h2>
-        <p style={{ fontSize: 'var(--typography-size-ui)', color: 'var(--color-text-tertiary)', marginTop: '4px' }}>
+    <div className="dev-guide">
+      <div className="dev-guide__header">
+        <h1 className="dev-guide__title">버튼 컴포넌트</h1>
+        <p className="dev-guide__description">
           3가지 사이즈 × 10가지 변형 × 7가지 상태의 버튼 컴포넌트 가이드
         </p>
       </div>
 
       {/* 사이즈 기준 */}
-      <div style={{
-        background: 'var(--color-bg-surface)',
-        border: '1px solid var(--color-border-default)',
-        borderRadius: 'var(--radius-card)',
-        padding: '1rem',
-        marginBottom: '1rem',
-      }}>
-        <p style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.75rem' }}>
-          사이즈 기준 (인풋 높이와 동일)
-        </p>
+      <Section title="사이즈 기준" desc="인풋 높이와 동일">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
           {([
             { label: 'SM', height: '30px', use: '테이블 인라인 버튼' },
@@ -158,7 +131,7 @@ export default function ButtonGuide() {
             </div>
           ))}
         </div>
-      </div>
+      </Section>
 
       {/* ── 1. 변형(Type) ── */}
       <Section title="변형 (Variant)" desc="10가지 버튼 변형 — MD 사이즈 기준">
