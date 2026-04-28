@@ -3,7 +3,6 @@ import type { AuditTrail } from '@/generated/types/auditTrail';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { ChangeHistoryRow } from '../types';
-import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 
 function getSafeText(value?: string) {
   return value ?? '';
