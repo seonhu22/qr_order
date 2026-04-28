@@ -9,6 +9,7 @@ import {
 import type { SysAccessLogDetail } from '@/generated/types/sysAccessLogDetail';
 import type { SysAccessLogMaster } from '@/generated/types/sysAccessLogMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
+import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { AccessLogDetailRow, AccessLogMasterRow } from '../types';
 
 export function mapToAccessLogMasterRow(master: SysAccessLogMaster): AccessLogMasterRow {
@@ -36,11 +37,7 @@ export function mapToAccessLogDetailRow(
   };
 }
 
-export function useAccessLogMasterQuery(params: {
-  startDate: string;
-  endDate: string;
-  searchKeyword?: string;
-}) {
+export function useAccessLogMasterQuery(params: QueryDateRangeParams) {
   const { startDate, endDate, searchKeyword } = params;
   const queryParams = searchKeyword
     ? { startDate, endDate, searchKeyword }
