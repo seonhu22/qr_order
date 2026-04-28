@@ -1,31 +1,36 @@
 .tree-menu-guide {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8);
-  padding: var(--spacing-8);
+  min-height: 100%;
+  padding: var(--spacing-10);
+  background: var(--color-bg-app);
+  font-family: var(--typography-font-base);
 }
 
 .tree-menu-guide__title {
-  margin: 0;
-  font-size: var(--typography-size-h3);
+  margin: 0 0 var(--spacing-8);
+  font-size: var(--typography-size-h2);
   font-weight: var(--typography-weight-heading);
   color: var(--color-text-primary);
 }
 
 .tree-menu-guide__section {
+  margin-bottom: var(--spacing-8);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-card);
-  padding: var(--spacing-6);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
 }
 
 .tree-menu-guide__section-header {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  background: var(--color-bg-muted);
 }
 
 .tree-menu-guide__section-title {
@@ -39,6 +44,10 @@
   margin: 0;
   font-size: var(--typography-size-sidebar);
   color: var(--color-text-tertiary);
+}
+
+.tree-menu-guide__section > :not(.tree-menu-guide__section-header) {
+  margin: var(--spacing-6) var(--spacing-8);
 }
 
 /* 링크 아이콘 — 슬롯 기본색(tertiary) 대신 브랜드 컬러 적용 */
