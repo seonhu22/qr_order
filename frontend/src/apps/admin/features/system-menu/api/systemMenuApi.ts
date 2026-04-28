@@ -13,8 +13,9 @@ import type { MenuRequest } from '@/generated/types/menuRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { MenuNode } from '../types';
 
-type MenuSaveItem = Omit<Menu, 'ordNo'> & {
+type MenuSaveItem = Omit<Menu, 'ordNo' | 'treeLevel'> & {
   ordNo: number;
+  treeLevel: number;
 };
 
 type MenuSaveRequest = {
@@ -144,7 +145,7 @@ export function mapToMenuPayload(flattened: FlattenedMenuNode): MenuSaveItem {
     menuNm: node.data?.name ?? '',
     parentMenuCd,
     ordNo,
-    treeLevel: String(treeLevel),
+    treeLevel,
     menuUrl: node.data?.path?.trim() ? node.data.path : undefined,
   };
 }

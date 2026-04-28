@@ -13,8 +13,8 @@ public class Menu {
     @NotBlank(message = "오류가 발생했습니다. 관리자에게 문의해주세요.")
     private String parentMenuCd;
     @NotBlank(message = "오류가 발생했습니다. 관리자에게 문의해주세요.")
-    private String ordNo;
+    private Integer ordNo;
     @NotBlank(message = "오류가 발생했습니다. 관리자에게 문의해주세요.")
-    private String treeLevel;
+    private Integer treeLevel;
     private String menuUrl;
 }
