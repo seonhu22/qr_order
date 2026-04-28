@@ -13,10 +13,12 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -428,8 +430,8 @@ public class SettingsController {
 
     @GetMapping("/log/login/master")
     public List<SysAccessLogMaster> getSysAccessLogMaster(@RequestParam(required = false) String searchKeyword,
-                                                            @RequestParam Date startDate,
-                                                            @RequestParam Date endDate) {
+                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
 
         return sysAccessLogService.getSysAccessLogMaster(searchKeyword, startDate, endDate);
     }
@@ -442,8 +444,8 @@ public class SettingsController {
 
     @GetMapping("/log/audittrail")
     public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
-                                            @RequestParam Date startDate,
-                                            @RequestParam Date endDate) {
+                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
 
         return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
     }
