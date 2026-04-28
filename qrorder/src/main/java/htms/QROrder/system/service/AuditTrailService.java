@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -19,8 +20,8 @@ public class AuditTrailService {
     private final AuditTrailMapper auditTrailMapper;
 
     public List<AuditTrail> getAuditTrail(String searchKeyword,
-                                            Date startDate,
-                                            Date endDate) {
+                                            LocalDateTime startDate,
+                                            LocalDateTime endDate) {
 
         return auditTrailMapper.getAuditTrail(searchKeyword, startDate, endDate);
     }

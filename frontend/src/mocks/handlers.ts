@@ -61,44 +61,53 @@ const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', 
   return HttpResponse.json(filtered);
 });
 
-const plantStatusOverrideHandler = http.get('*/api/system/settings/plant_status/search', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? PLANT_STATUS_MOCK_ROWS.filter(
-        (row) =>
-          row.plantCd?.toLowerCase().includes(keyword) ||
-          row.paymentCd?.toLowerCase().includes(keyword),
-      )
-    : PLANT_STATUS_MOCK_ROWS;
-  return HttpResponse.json(filtered);
-});
+const plantStatusOverrideHandler = http.get(
+  '*/api/system/settings/plant_status/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? PLANT_STATUS_MOCK_ROWS.filter(
+          (row) =>
+            row.plantCd?.toLowerCase().includes(keyword) ||
+            row.paymentCd?.toLowerCase().includes(keyword),
+        )
+      : PLANT_STATUS_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
 
-const couponOverrideHandler = http.get('*/api/system/settings/payment_coupon/search', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? COUPON_MOCK_ROWS.filter(
-        (row) =>
-          row.couponCd?.toLowerCase().includes(keyword) ||
-          row.couponNm?.toLowerCase().includes(keyword),
-      )
-    : COUPON_MOCK_ROWS;
-  return HttpResponse.json(filtered);
-});
+const couponOverrideHandler = http.get(
+  '*/api/system/settings/payment_coupon/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? COUPON_MOCK_ROWS.filter(
+          (row) =>
+            row.couponCd?.toLowerCase().includes(keyword) ||
+            row.couponNm?.toLowerCase().includes(keyword),
+        )
+      : COUPON_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
 
-const noticeOverrideHandler = http.get('*/api/system/settings/board/notice/search', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? NOTICE_MOCK_ROWS.filter(
-        (row) =>
-          row.noticeTitle?.toLowerCase().includes(keyword) ||
-          row.noticeDescription?.toLowerCase().includes(keyword),
-      )
-    : NOTICE_MOCK_ROWS;
-  return HttpResponse.json(filtered);
-});
+const noticeOverrideHandler = http.get(
+  '*/api/system/settings/board/notice/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? NOTICE_MOCK_ROWS.filter(
+          (row) =>
+            row.noticeTitle?.toLowerCase().includes(keyword) ||
+            row.noticeDescription?.toLowerCase().includes(keyword),
+        )
+      : NOTICE_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
 
 const inquiryOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({ request }) => {
   const url = new URL(request.url);

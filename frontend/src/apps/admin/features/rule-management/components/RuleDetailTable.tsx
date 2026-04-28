@@ -1,5 +1,6 @@
 import { EditableDetailTable } from '@/shared/components/table/EditableDetailTable';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
+import { RULE_DETAIL_SUPPORTS_ORD_NO } from '../api/ruleManagementApi';
 import type { RuleDetailColumn, RuleDetailRow, RuleMasterRow } from '../types';
 
 type RuleDetailTableProps = {
@@ -56,6 +57,7 @@ export function RuleDetailTable({
         isSaving,
       }}
       actions={{
+        showMoveActions: RULE_DETAIL_SUPPORTS_ORD_NO,
         onChangeValue,
         onClearRowError,
         onAddRow,

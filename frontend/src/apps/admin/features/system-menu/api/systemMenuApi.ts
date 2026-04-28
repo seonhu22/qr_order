@@ -13,6 +13,16 @@ import type { MenuRequest } from '@/generated/types/menuRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { MenuNode } from '../types';
 
+type MenuSaveItem = Omit<Menu, 'ordNo'> & {
+  ordNo: number;
+};
+
+type MenuSaveRequest = {
+  newItems?: MenuSaveItem[];
+  updateItems?: MenuSaveItem[];
+  delItems?: MenuSaveItem[];
+};
+
 /**
  * 루트 메뉴의 parentMenuCd 계약값.
  *
@@ -22,10 +32,6 @@ import type { MenuNode } from '../types';
  */
 export const ROOT_PARENT_MENU_CD = 'ROOT';
 const ROOT_TREE_DEPTH = 0;
-
-export function createMenuSysId() {
-  return globalThis.crypto?.randomUUID?.() ?? `menu-${Date.now()}-${Math.random()}`;
-}
 
 function cloneMenuNode(node: MenuNode): MenuNode {
   return {
@@ -97,8 +103,9 @@ type FlattenedMenuNode = {
 };
 
 type MenuPayloadContext = {
-  menus: Menu[];
-  menuBySysId: Map<string, Menu>;
+  flattenedNodes: FlattenedMenuNode[];
+  menus: MenuSaveItem[];
+  menuBySysId: Map<string, MenuSaveItem>;
   nodeBySysId: Map<string, MenuNode>;
 };
 
@@ -128,7 +135,7 @@ export function flattenMenuNodes(nodes: MenuNode[]): FlattenedMenuNode[] {
   return result;
 }
 
-export function mapToMenuPayload(flattened: FlattenedMenuNode): Menu {
+export function mapToMenuPayload(flattened: FlattenedMenuNode): MenuSaveItem {
   const { node, parentMenuCd, ordNo, treeLevel } = flattened;
 
   return {
@@ -136,13 +143,13 @@ export function mapToMenuPayload(flattened: FlattenedMenuNode): Menu {
     menuCd: node.data?.code ?? '',
     menuNm: node.data?.name ?? '',
     parentMenuCd,
-    ordNo: String(ordNo),
+    ordNo,
     treeLevel: String(treeLevel),
     menuUrl: node.data?.path?.trim() ? node.data.path : undefined,
   };
 }
 
-function isSameMenu(a: Menu, b: Menu) {
+function isSameMenu(a: MenuSaveItem, b: MenuSaveItem) {
   return (
     a.menuCd === b.menuCd &&
     a.menuNm === b.menuNm &&
@@ -158,6 +165,7 @@ function buildMenuPayloadContext(nodes: MenuNode[]): MenuPayloadContext {
   const menus = flattenedNodes.map(mapToMenuPayload);
 
   return {
+    flattenedNodes,
     menus,
     menuBySysId: new Map(
       menus.filter((menu) => menu.sysId).map((menu) => [menu.sysId as string, menu]),
@@ -170,13 +178,16 @@ function buildMenuPayloadContext(nodes: MenuNode[]): MenuPayloadContext {
   };
 }
 
-export function buildMenuRequest(currentNodes: MenuNode[], originalNodes: MenuNode[]): MenuRequest {
+export function buildMenuRequest(
+  currentNodes: MenuNode[],
+  originalNodes: MenuNode[],
+): MenuSaveRequest {
   const current = buildMenuPayloadContext(currentNodes);
   const original = buildMenuPayloadContext(originalNodes);
 
-  const newItems = current.menus.filter(
-    (menu) => current.nodeBySysId.get(menu.sysId ?? '')?.data?.isNew === true,
-  );
+  const newItems = current.flattenedNodes
+    .filter((item) => item.node.data?.isNew === true)
+    .map(mapToMenuPayload);
   const updateItems = current.menus
     .filter((menu) => menu.sysId)
     .filter((menu) => {
@@ -197,8 +208,10 @@ export function buildMenuRequest(currentNodes: MenuNode[], originalNodes: MenuNo
   };
 }
 
-export function hasMenuChanges(request: MenuRequest) {
-  return Boolean(request.newItems?.length || request.updateItems?.length || request.delItems?.length);
+export function hasMenuChanges(request: MenuSaveRequest) {
+  return Boolean(
+    request.newItems?.length || request.updateItems?.length || request.delItems?.length,
+  );
 }
 
 export function useMenuQuery() {
@@ -213,7 +226,8 @@ export function useSaveMenuMutation() {
   const mutation = useSaveMenu();
 
   return {
-    mutateAsync: async (request: MenuRequest) => mutation.mutateAsync({ data: request }),
+    mutateAsync: async (request: MenuSaveRequest) =>
+      mutation.mutateAsync({ data: request as unknown as MenuRequest }),
     isPending: mutation.isPending,
   };
 }

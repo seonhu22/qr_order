@@ -58,14 +58,18 @@ export function useAccessLogPageState() {
   const masterQuery = useAccessLogMasterQuery({
     startDate: searchParams.startDate,
     endDate: searchParams.endDate,
-    searchKeyword: searchParams.searchKeyword || undefined,
+    searchKeyword: searchParams.searchKeyword,
   });
 
   const detailQuery = useAccessLogDetailQuery(selectedRow?.sysId ?? '');
 
-  const masterRows = (masterQuery.data ?? []).map(mapToAccessLogMasterRow);
-  const detailRows = (detailQuery.data ?? []).map((item, idx) =>
-    mapToAccessLogDetailRow(item, idx),
+  const masterRows = useMemo(
+    () => (masterQuery.data ?? []).map(mapToAccessLogMasterRow),
+    [masterQuery.data],
+  );
+  const detailRows = useMemo(
+    () => (detailQuery.data ?? []).map((item, idx) => mapToAccessLogDetailRow(item, idx)),
+    [detailQuery.data],
   );
 
   const handleSearch = () => {

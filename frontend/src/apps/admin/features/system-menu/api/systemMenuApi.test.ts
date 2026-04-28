@@ -60,7 +60,7 @@ describe('systemMenuApi', () => {
     expect(tree[0].children?.map((node) => node.data?.code)).toEqual(['MENU', 'COMMON_CODE']);
   });
 
-  it('flattens tree nodes with string ordNo, treeLevel, and parent menu code', () => {
+  it('flattens tree nodes with numeric ordNo, treeLevel, and parent menu code', () => {
     const tree = buildMenuTree(menus);
     const payloads = flattenMenuNodes(tree).map(mapToMenuPayload);
 
@@ -70,7 +70,7 @@ describe('systemMenuApi', () => {
         menuCd: 'SYS',
         menuNm: '시스템',
         parentMenuCd: ROOT_PARENT_MENU_CD,
-        ordNo: '1',
+        ordNo: 1,
         treeLevel: '1',
         menuUrl: undefined,
       },
@@ -79,7 +79,7 @@ describe('systemMenuApi', () => {
         menuCd: 'MENU',
         menuNm: '메뉴 관리',
         parentMenuCd: 'SYS',
-        ordNo: '1',
+        ordNo: 1,
         treeLevel: '2',
         menuUrl: '/admin/system/menu',
       },
@@ -88,7 +88,7 @@ describe('systemMenuApi', () => {
         menuCd: 'COMMON_CODE',
         menuNm: '공통코드',
         parentMenuCd: 'SYS',
-        ordNo: '2',
+        ordNo: 2,
         treeLevel: '2',
         menuUrl: '/admin/system/common-code',
       },
@@ -124,7 +124,6 @@ describe('systemMenuApi', () => {
             id: 'new-1',
             label: '',
             data: {
-              sysId: 'new-1',
               code: 'NEW_MENU',
               name: '신규 메뉴',
               path: '/admin/new-menu',
@@ -140,11 +139,10 @@ describe('systemMenuApi', () => {
 
     expect(request.newItems).toEqual([
       {
-        sysId: 'new-1',
         menuCd: 'NEW_MENU',
         menuNm: '신규 메뉴',
         parentMenuCd: 'SYS',
-        ordNo: '2',
+        ordNo: 2,
         treeLevel: '2',
         menuUrl: '/admin/new-menu',
       },
@@ -155,7 +153,7 @@ describe('systemMenuApi', () => {
         menuCd: 'MENU',
         menuNm: '메뉴 관리 수정',
         parentMenuCd: 'SYS',
-        ordNo: '1',
+        ordNo: 1,
         treeLevel: '2',
         menuUrl: '/admin/system/menu',
       },
@@ -166,7 +164,7 @@ describe('systemMenuApi', () => {
         menuCd: 'COMMON_CODE',
         menuNm: '공통코드',
         parentMenuCd: 'SYS',
-        ordNo: '2',
+        ordNo: 2,
         treeLevel: '2',
         menuUrl: '/admin/system/common-code',
       },
@@ -191,7 +189,6 @@ describe('systemMenuApi', () => {
         id: 'new-1',
         label: '',
         data: {
-          sysId: 'new-1',
           code: 'NEW_MENU',
           name: '신규 메뉴',
           path: '/admin/new-menu',
