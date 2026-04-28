@@ -16,7 +16,9 @@ function pad(value: number) {
 }
 
 function formatDateTimeLocal(date: Date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours(),
+  )}:${pad(date.getMinutes())}`;
 }
 
 export function getCurrentDateTimeLocal() {
@@ -33,7 +35,9 @@ export function toQueryDateTimeParam(value: string) {
   return value ? `${value.replace('T', ' ')}:00` : '';
 }
 
-export function createDefaultQueryDateRangeDraft(maxRangeDays = MAX_QUERY_RANGE_DAYS): QueryDateRangeDraft {
+export function createDefaultQueryDateRangeDraft(
+  maxRangeDays = MAX_QUERY_RANGE_DAYS,
+): QueryDateRangeDraft {
   return {
     startDate: getDateTimeLocalDaysAgo(maxRangeDays),
     endDate: getCurrentDateTimeLocal(),
@@ -54,7 +58,6 @@ export function createQueryDateRangeParams(
 
 export function createDefaultQueryDateRangeParams(maxRangeDays = MAX_QUERY_RANGE_DAYS) {
   const { startDate, endDate } = createDefaultQueryDateRangeDraft(maxRangeDays);
-
   return createQueryDateRangeParams(startDate, endDate);
 }
 
@@ -75,7 +78,6 @@ export function validateQueryDateRange(
   }
 
   const diffDays = (endMs - startMs) / (1000 * 60 * 60 * 24);
-
   if (diffDays > maxRangeDays) {
     return `조회 기간은 최대 ${maxRangeDays}일까지 설정할 수 있습니다.`;
   }

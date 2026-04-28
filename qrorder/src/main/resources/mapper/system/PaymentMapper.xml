@@ -28,6 +28,7 @@
             payment_fee ,
             payment_fee_unit ,
             license_valid_month ,
+            delete_yn ,
             insert_user_id,
             insert_datetime,
             sys_plant_cd
@@ -39,6 +40,7 @@
             #{payment.paymentFee},
             #{payment.paymentFeeUnit},
             #{payment.licenseValidMonth},
+            'N',
             #{userId},
             now(),
             #{sysPlantCd}

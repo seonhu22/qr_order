@@ -1,5 +1,6 @@
 package htms.QROrder.auth.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.auth.dto.InitPwdRequest;
 import htms.QROrder.auth.dto.LoginRequest;
@@ -28,7 +29,7 @@ public class LoginService {
     public boolean loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
 
         Login dbLoginData = loginMapper.findByUserId(loginRequest.getUserId());
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UlidCreator.getMonotonicUlid().toString();
 
         if (dbLoginData == null) {
             throw new LoginFailException("해당 계정은 존재하지 않습니다.");

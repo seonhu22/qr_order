@@ -430,8 +430,8 @@ public class SettingsController {
 
     @GetMapping("/log/login/master")
     public List<SysAccessLogMaster> getSysAccessLogMaster(@RequestParam(required = false) String searchKeyword,
-                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+                                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+                                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate) {
 
         return sysAccessLogService.getSysAccessLogMaster(searchKeyword, startDate, endDate);
     }
@@ -444,8 +444,8 @@ public class SettingsController {
 
     @GetMapping("/log/audittrail")
     public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
-                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate) {
 
         return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
     }

@@ -39,6 +39,7 @@ describe('RuleManagementPage', () => {
       optionNm: string;
       optionData: string;
       description?: string;
+      ordNo: number;
     }>
   >;
   let detailSaveRequests: Array<{
@@ -49,6 +50,7 @@ describe('RuleManagementPage', () => {
       optionNm: string;
       optionData: string;
       description?: string;
+      ordNo: number;
     }>;
     updateItems?: Array<{
       sysId?: string;
@@ -57,6 +59,7 @@ describe('RuleManagementPage', () => {
       optionNm: string;
       optionData: string;
       description?: string;
+      ordNo: number;
     }>;
     delItems?: Array<{
       sysId?: string;
@@ -65,6 +68,7 @@ describe('RuleManagementPage', () => {
       optionNm: string;
       optionData: string;
       description?: string;
+      ordNo: number;
     }>;
   }>;
 
@@ -83,6 +87,7 @@ describe('RuleManagementPage', () => {
           optionNm: '주문요청',
           optionData: 'REQ',
           description: '요청 상태',
+          ordNo: 1,
         },
         {
           sysId: 'detail-2',
@@ -91,6 +96,7 @@ describe('RuleManagementPage', () => {
           optionNm: '조리중',
           optionData: 'COOK',
           description: '',
+          ordNo: 2,
         },
       ],
       'rule-2': [
@@ -101,6 +107,7 @@ describe('RuleManagementPage', () => {
           optionNm: '결제대기',
           optionData: 'WAIT',
           description: '',
+          ordNo: 1,
         },
       ],
     };
@@ -274,19 +281,20 @@ describe('RuleManagementPage', () => {
           optionNm: '주문요청수정',
           optionData: 'REQ',
           description: '요청 상태',
+          ordNo: 1,
         },
       ],
     });
   });
 
-  it('does not render move buttons for rule detail because rule detail has no saved order', async () => {
+  it('renders move buttons for rule detail because rule detail has a saved order contract', async () => {
     renderPage();
 
     await screen.findByText('ORDER_STATUS');
     fireEvent.click(screen.getByText('주문상태'));
 
     await screen.findByLabelText('detail-1 옵션명');
-    expect(screen.queryByRole('button', { name: '위로 이동' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '아래로 이동' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '위로 이동' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: '아래로 이동' }).length).toBeGreaterThan(0);
   });
 });

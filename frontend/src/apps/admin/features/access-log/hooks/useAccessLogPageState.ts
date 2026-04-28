@@ -16,26 +16,26 @@ import {
 } from '../api/accessLogApi';
 import type { AccessLogMasterRow } from '../types';
 import {
-  createDefaultAccessLogDateRangeDraft,
-  createDefaultAccessLogSearchParams,
-  createAccessLogSearchParams,
-  validateAccessLogDateRange,
-} from '../utils/accessLogDateUtils';
+  createDefaultQueryDateRangeDraft,
+  createDefaultQueryDateRangeParams,
+  createQueryDateRangeParams,
+  validateQueryDateRange,
+} from '@/shared/utils/queryDateRange';
 
 export function useAccessLogPageState() {
-  const defaultDateRange = useMemo(() => createDefaultAccessLogDateRangeDraft(), []);
+  const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
   const [draftKeyword, setDraftKeyword] = useState('');
   const [draftStartDate, setDraftStartDate] = useState(defaultDateRange.startDate);
   const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
   const [dateRangeError, setDateRangeError] = useState('');
 
   /* 페이지 진입 시 기본 7일 범위로 즉시 조회 */
-  const [searchParams, setSearchParams] = useState(createDefaultAccessLogSearchParams);
+  const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
   const [selectedRow, setSelectedRow] = useState<AccessLogMasterRow | null>(null);
 
   const validateDateRange = (start: string, end: string): boolean => {
-    const nextError = validateAccessLogDateRange(start, end);
+    const nextError = validateQueryDateRange(start, end);
     setDateRangeError(nextError);
 
     if (nextError) {
@@ -74,17 +74,17 @@ export function useAccessLogPageState() {
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams(createAccessLogSearchParams(draftStartDate, draftEndDate, draftKeyword));
+    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
     setSelectedRow(null);
   };
 
   const handleReset = () => {
-    const nextDefaultDateRange = createDefaultAccessLogDateRangeDraft();
+    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setDraftKeyword('');
     setDraftStartDate(nextDefaultDateRange.startDate);
     setDraftEndDate(nextDefaultDateRange.endDate);
     setDateRangeError('');
-    setSearchParams(createDefaultAccessLogSearchParams());
+    setSearchParams(createDefaultQueryDateRangeParams());
     setSelectedRow(null);
   };
 
