@@ -124,7 +124,6 @@ describe('systemMenuApi', () => {
             id: 'new-1',
             label: '',
             data: {
-              sysId: 'new-1',
               code: 'NEW_MENU',
               name: '신규 메뉴',
               path: '/admin/new-menu',
@@ -140,7 +139,6 @@ describe('systemMenuApi', () => {
 
     expect(request.newItems).toEqual([
       {
-        sysId: 'new-1',
         menuCd: 'NEW_MENU',
         menuNm: '신규 메뉴',
         parentMenuCd: 'SYS',
@@ -191,7 +189,6 @@ describe('systemMenuApi', () => {
         id: 'new-1',
         label: '',
         data: {
-          sysId: 'new-1',
           code: 'NEW_MENU',
           name: '신규 메뉴',
           path: '/admin/new-menu',

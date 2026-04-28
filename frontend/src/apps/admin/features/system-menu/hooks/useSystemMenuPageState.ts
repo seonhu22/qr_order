@@ -17,7 +17,6 @@ import {
   buildMenuRequest,
   buildMenuTree,
   cloneMenuNodes,
-  createMenuSysId,
   hasMenuChanges,
   markMenuNodesPersisted,
   useMenuQuery,
@@ -254,13 +253,12 @@ function collectDeletedServerNodes(
 }
 
 function createNewMenuNode(parentMenuCd?: string, ordNo = 0): MenuNode {
-  const sysId = createMenuSysId();
+  const nodeId = `new-menu-${Date.now()}-${Math.random()}`;
 
   return {
-    id: sysId,
+    id: nodeId,
     label: '',
     data: {
-      sysId,
       parentMenuCd,
       code: '',
       name: '',

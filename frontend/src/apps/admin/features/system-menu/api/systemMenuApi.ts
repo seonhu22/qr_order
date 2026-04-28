@@ -33,10 +33,6 @@ type MenuSaveRequest = {
 export const ROOT_PARENT_MENU_CD = 'ROOT';
 const ROOT_TREE_DEPTH = 0;
 
-export function createMenuSysId() {
-  return globalThis.crypto?.randomUUID?.() ?? `menu-${Date.now()}-${Math.random()}`;
-}
-
 function cloneMenuNode(node: MenuNode): MenuNode {
   return {
     ...node,
@@ -107,6 +103,7 @@ type FlattenedMenuNode = {
 };
 
 type MenuPayloadContext = {
+  flattenedNodes: FlattenedMenuNode[];
   menus: MenuSaveItem[];
   menuBySysId: Map<string, MenuSaveItem>;
   nodeBySysId: Map<string, MenuNode>;
@@ -168,6 +165,7 @@ function buildMenuPayloadContext(nodes: MenuNode[]): MenuPayloadContext {
   const menus = flattenedNodes.map(mapToMenuPayload);
 
   return {
+    flattenedNodes,
     menus,
     menuBySysId: new Map(
       menus.filter((menu) => menu.sysId).map((menu) => [menu.sysId as string, menu]),
@@ -187,9 +185,9 @@ export function buildMenuRequest(
   const current = buildMenuPayloadContext(currentNodes);
   const original = buildMenuPayloadContext(originalNodes);
 
-  const newItems = current.menus.filter(
-    (menu) => current.nodeBySysId.get(menu.sysId ?? '')?.data?.isNew === true,
-  );
+  const newItems = current.flattenedNodes
+    .filter((item) => item.node.data?.isNew === true)
+    .map(mapToMenuPayload);
   const updateItems = current.menus
     .filter((menu) => menu.sysId)
     .filter((menu) => {
@@ -211,7 +209,9 @@ export function buildMenuRequest(
 }
 
 export function hasMenuChanges(request: MenuSaveRequest) {
-  return Boolean(request.newItems?.length || request.updateItems?.length || request.delItems?.length);
+  return Boolean(
+    request.newItems?.length || request.updateItems?.length || request.delItems?.length,
+  );
 }
 
 export function useMenuQuery() {
