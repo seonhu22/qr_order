@@ -1,5 +1,6 @@
 package htms.QROrder.system.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.CommonDetail;
@@ -77,6 +78,10 @@ public class MenuService {
                             String userId,
                             String sysPlantCd,
                             String menuCd) {
+
+        newItems.stream().forEach(item -> {
+            item.setSysId(UlidCreator.getMonotonicUlid().toString());
+        });
 
         auditService.insertNewAuditTrailData(newItems, menuCd, "sys_menu", userId, sysPlantCd);
         menuMapper.newMenu(newItems, userId, sysPlantCd);
