@@ -37,6 +37,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
   };
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
   actions: {
+    showMoveActions?: boolean;
     onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
     onClearRowError: (rowId: string, columnKey: string) => void;
     onAddRow: () => string;
@@ -80,6 +81,7 @@ export function EditableDetailTable<
   const { selectedMaster, rows, columns, rowErrors } = data;
   const { isLoading, isSaving } = status;
   const {
+    showMoveActions = true,
     onChangeValue,
     onClearRowError,
     onAddRow,
@@ -176,6 +178,7 @@ export function EditableDetailTable<
             canMoveDown={canMoveDown}
             canDelete={!!effectiveSelectedDetailId}
             isSaving={isSaving}
+            showMoveActions={showMoveActions}
             onMoveUp={() => onMoveUp(effectiveSelectedDetailId || undefined)}
             onMoveDown={() => onMoveDown(effectiveSelectedDetailId || undefined)}
             onAddRow={() => {

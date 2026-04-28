@@ -12,6 +12,13 @@ import type { RuleMaster } from '@/generated/types/ruleMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { RuleDetailColumn, RuleDetailRow, RuleDetailSchema, RuleMasterRow } from '../types';
 
+// 나중에 ordNo이 규칙에 들어오면 true로 바꾸면 된다.
+export const RULE_DETAIL_SUPPORTS_ORD_NO = false;
+
+type RuleDetailWithOptionalOrdNo = RuleDetail & {
+  ordNo?: number;
+};
+
 export const RULE_DETAIL_COLUMNS: RuleDetailColumn[] = [
   { key: 'optionCd', label: '옵션코드', type: 'text', required: true, readOnlyOnExisting: true },
   { key: 'optionNm', label: '옵션명', type: 'text', required: true },
@@ -53,12 +60,13 @@ export function mapToRuleMasterPayload(row: RuleMasterRow): RuleMaster {
   };
 }
 
-export function mapToRuleDetailRow(ruleDetail: RuleDetail): RuleDetailRow {
+export function mapToRuleDetailRow(ruleDetail: RuleDetailWithOptionalOrdNo): RuleDetailRow {
   return {
     id: ruleDetail.sysId ?? `${ruleDetail.linkSysId}-${ruleDetail.optionCd}`,
     sysId: ruleDetail.sysId,
     masterId: ruleDetail.linkSysId,
-    ordNo: 0,
+    // 현재 규칙 상세 DB에는 ordNo가 없다. 추후 계약 추가 시 RULE_DETAIL_SUPPORTS_ORD_NO만 true로 전환한다.
+    ordNo: RULE_DETAIL_SUPPORTS_ORD_NO ? (ruleDetail.ordNo ?? 0) : 0,
     values: {
       optionCd: ruleDetail.optionCd,
       optionNm: ruleDetail.optionNm,
@@ -76,6 +84,7 @@ export function mapToRuleDetailPayload(row: RuleDetailRow): RuleDetail {
     optionNm: String(row.values.optionNm ?? ''),
     optionData: String(row.values.optionData ?? ''),
     description: String(row.values.description ?? ''),
+    ...(RULE_DETAIL_SUPPORTS_ORD_NO ? { ordNo: row.ordNo } : {}),
   };
 }
 
@@ -85,7 +94,8 @@ function isSameRuleDetailRow(a: RuleDetailRow, b: RuleDetailRow) {
     a.values.optionCd === b.values.optionCd &&
     a.values.optionNm === b.values.optionNm &&
     a.values.optionData === b.values.optionData &&
-    (a.values.description ?? '') === (b.values.description ?? '')
+    (a.values.description ?? '') === (b.values.description ?? '') &&
+    (!RULE_DETAIL_SUPPORTS_ORD_NO || a.ordNo === b.ordNo)
   );
 }
 
@@ -114,8 +124,6 @@ export function buildRuleDetailRequest(
     .map(mapToRuleDetailPayload);
 
   return {
-    // ? 비어있어도 빈배열이 return 되나요?
-    // newItems, updateItems, delItems는 API 스펙상 optional이지만, 실제로는 빈 배열이 할당되어 return 된다.
     newItems,
     updateItems,
     delItems,
