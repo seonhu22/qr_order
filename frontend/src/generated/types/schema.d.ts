@@ -875,6 +875,8 @@ export interface components {
             optionNm: string;
             optionData: string;
             description?: string;
+            /** Format: int32 */
+            ordNo: number;
         };
         RuleDetailRequest: {
             newItems?: components["schemas"]["RuleDetail"][];

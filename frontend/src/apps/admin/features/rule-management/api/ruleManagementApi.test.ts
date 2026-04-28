@@ -77,12 +77,13 @@ describe('ruleManagementApi', () => {
         optionNm: '준비',
         optionData: 'R',
         description: '준비 상태',
+        ordNo: 3,
       }),
     ).toEqual({
       id: 'detail-1',
       sysId: 'detail-1',
       masterId: 'rule-1',
-      ordNo: 0,
+      ordNo: 3,
       values: {
         optionCd: 'READY',
         optionNm: '준비',
@@ -202,6 +203,7 @@ describe('ruleManagementApi', () => {
           optionNm: '보류',
           optionData: 'H',
           description: '',
+          ordNo: 2,
         },
       ],
       updateItems: [
@@ -212,6 +214,7 @@ describe('ruleManagementApi', () => {
           optionNm: '준비중',
           optionData: 'R',
           description: '수정',
+          ordNo: 1,
         },
       ],
       delItems: [
@@ -222,13 +225,14 @@ describe('ruleManagementApi', () => {
           optionNm: '완료',
           optionData: 'D',
           description: '',
+          ordNo: 2,
         },
       ],
     });
     expect(hasRuleDetailChanges(request)).toBe(true);
   });
 
-  it('does not treat ordNo-only changes as updates because rule detail has no ordNo contract', () => {
+  it('treats ordNo-only changes as updates because rule detail now has an ordNo contract', () => {
     const originalRows: RuleDetailRow[] = [
       {
         id: 'detail-1',
@@ -270,9 +274,28 @@ describe('ruleManagementApi', () => {
 
     expect(request).toEqual({
       newItems: [],
-      updateItems: [],
+      updateItems: [
+        {
+          sysId: 'detail-2',
+          linkSysId: 'rule-1',
+          optionCd: 'DONE',
+          optionNm: '완료',
+          optionData: 'D',
+          description: '',
+          ordNo: 1,
+        },
+        {
+          sysId: 'detail-1',
+          linkSysId: 'rule-1',
+          optionCd: 'READY',
+          optionNm: '준비',
+          optionData: 'R',
+          description: '',
+          ordNo: 2,
+        },
+      ],
       delItems: [],
     });
-    expect(hasRuleDetailChanges(request)).toBe(false);
+    expect(hasRuleDetailChanges(request)).toBe(true);
   });
 });

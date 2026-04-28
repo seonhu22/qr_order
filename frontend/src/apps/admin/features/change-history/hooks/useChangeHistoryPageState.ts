@@ -1,105 +1,62 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { mapToChangeHistoryRow, useChangeHistoryQuery } from '../api/changeHistoryApi';
-
-function pad(n: number) {
-  return String(n).padStart(2, '0');
-}
-
-function getNow() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function getWeekAgoFromNow() {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function toApiDatetime(value: string) {
-  return value ? `${value}:00` : '';
-}
-
-const MAX_RANGE_DAYS = 7;
-
-type SearchParams = {
-  startDate: string;
-  endDate: string;
-  searchKeyword: string;
-};
-
-function makeDefaultSearchParams(): SearchParams {
-  return {
-    startDate: toApiDatetime(getWeekAgoFromNow()),
-    endDate: toApiDatetime(getNow()),
-    searchKeyword: '',
-  };
-}
+import {
+  createDefaultQueryDateRangeDraft,
+  createDefaultQueryDateRangeParams,
+  createQueryDateRangeParams,
+  validateQueryDateRange,
+} from '@/shared/utils/queryDateRange';
 
 export function useChangeHistoryPageState() {
+  const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
   const [draftAuditFlag, setDraftAuditFlag] = useState('ALL');
   const [draftKeyword, setDraftKeyword] = useState('');
-  const [draftStartDate, setDraftStartDate] = useState(getWeekAgoFromNow);
-  const [draftEndDate, setDraftEndDate] = useState(getNow);
+  const [draftStartDate, setDraftStartDate] = useState(defaultDateRange.startDate);
+  const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
   const [dateRangeError, setDateRangeError] = useState('');
 
-  const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
+  const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
   const validateDateRange = (start: string, end: string): boolean => {
-    if (!start || !end) {
-      setDateRangeError('시작일시와 종료일시를 모두 입력해주세요.');
+    const nextError = validateQueryDateRange(start, end);
+    setDateRangeError(nextError);
+
+    if (nextError) {
       return false;
     }
-    const startMs = new Date(start).getTime();
-    const endMs = new Date(end).getTime();
-    if (endMs < startMs) {
-      setDateRangeError('종료일시는 시작일시보다 이후여야 합니다.');
-      return false;
-    }
-    const diffDays = (endMs - startMs) / (1000 * 60 * 60 * 24);
-    if (diffDays > MAX_RANGE_DAYS) {
-      setDateRangeError(`조회 기간은 최대 ${MAX_RANGE_DAYS}일까지 설정할 수 있습니다.`);
-      return false;
-    }
-    setDateRangeError('');
+
     return true;
   };
 
   const query = useChangeHistoryQuery({
     startDate: searchParams.startDate,
     endDate: searchParams.endDate,
-    searchKeyword: searchParams.searchKeyword || undefined,
+    searchKeyword: searchParams.searchKeyword,
   });
 
-  const allRows = (query.data ?? []).map(mapToChangeHistoryRow);
+  const allRows = useMemo(() => (query.data ?? []).map(mapToChangeHistoryRow), [query.data]);
 
-  const rows =
-    draftAuditFlag && draftAuditFlag !== 'ALL'
-      ? allRows.filter((r) => r.auditFlag === draftAuditFlag)
-      : allRows;
+  const rows = useMemo(
+    () =>
+      draftAuditFlag && draftAuditFlag !== 'ALL'
+        ? allRows.filter((row) => row.auditFlag === draftAuditFlag)
+        : allRows,
+    [allRows, draftAuditFlag],
+  );
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams({
-      startDate: toApiDatetime(draftStartDate),
-      endDate: toApiDatetime(draftEndDate),
-      searchKeyword: draftKeyword,
-    });
+    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
   };
 
   const handleReset = () => {
-    const defaultStart = getWeekAgoFromNow();
-    const defaultEnd = getNow();
+    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setDraftAuditFlag('ALL');
     setDraftKeyword('');
-    setDraftStartDate(defaultStart);
-    setDraftEndDate(defaultEnd);
+    setDraftStartDate(nextDefaultDateRange.startDate);
+    setDraftEndDate(nextDefaultDateRange.endDate);
     setDateRangeError('');
-    setSearchParams({
-      startDate: toApiDatetime(defaultStart),
-      endDate: toApiDatetime(defaultEnd),
-      searchKeyword: '',
-    });
+    setSearchParams(createDefaultQueryDateRangeParams());
   };
 
   return {
