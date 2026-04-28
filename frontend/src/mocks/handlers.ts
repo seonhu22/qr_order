@@ -1,6 +1,42 @@
 import { http, HttpResponse } from 'msw';
 import { handlers as authHandlers } from '../test/handlers';
-import { getSettingsControllerMock } from '../generated/settings-controller/settings-controller.msw';
+import {
+  getDelCommonMasterMockHandler,
+  getDelNoticeMockHandler,
+  getDelPaymentMockHandler,
+  getDelPlantMockHandler,
+  getDelRuleMasterMockHandler,
+  getGetAdminUserMockHandler,
+  getGetMenuMockHandler,
+  getGetMessageMockHandler,
+  getGetNoticeMockHandler,
+  getGetPaymentCouponMockHandler,
+  getGetPaymentMockHandler,
+  getGetPlantStatusMockHandler,
+  getGetQnaMockHandler,
+  getGetRuleDetailMockHandler,
+  getGetRuleMasterMockHandler,
+  getNewCommonMasterMockHandler,
+  getNewNoticeMockHandler,
+  getNewPaymentMockHandler,
+  getNewPlantMockHandler,
+  getNewRuleMasterMockHandler,
+  getSaveAdminUserMockHandler,
+  getSaveCommonDetailMockHandler,
+  getSaveMenuMockHandler,
+  getSaveMessageMockHandler,
+  getSavePaymentCouponMockHandler,
+  getSearchCommonDetailMockHandler,
+  getSearchCommonMockHandler,
+  getSearchPlantMockHandler,
+  getUpdateCommonMasterMockHandler,
+  getUpdateNoticeMockHandler,
+  getUpdatePaymentMockHandler,
+  getUpdatePlantMockHandler,
+  getUpdateQnaMockHandler,
+  getUpdateRuleMasterMockHandler,
+  getSaveRuleMockHandler,
+} from '../generated/settings-controller/settings-controller.msw';
 import { getComboControllerMock } from '../generated/combo-controller/combo-controller.msw';
 import { getFileControllerMock } from '../generated/file-controller/file-controller.msw';
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
@@ -9,8 +45,6 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
-import { ACCESS_LOG_DETAIL_MOCK, ACCESS_LOG_MASTER_MOCK } from '../apps/admin/features/access-log/mock/accessLogMock';
-import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
 import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
 import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
 
@@ -53,24 +87,6 @@ const couponOverrideHandler = http.get('*/api/system/settings/payment_coupon/sea
   return HttpResponse.json(filtered);
 });
 
-const accessLogMasterOverrideHandler = http.get('*/api/system/settings/log/login/master', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? ACCESS_LOG_MASTER_MOCK.filter(
-        (row) =>
-          row.userId?.toLowerCase().includes(keyword) ||
-          row.userNm?.includes(keyword) ||
-          row.ipAddress?.includes(keyword),
-      )
-    : ACCESS_LOG_MASTER_MOCK;
-  return HttpResponse.json(filtered);
-});
-
-const accessLogDetailOverrideHandler = http.get('*/api/system/settings/log/login/detail', () => {
-  return HttpResponse.json(ACCESS_LOG_DETAIL_MOCK);
-});
-
 const noticeOverrideHandler = http.get('*/api/system/settings/board/notice/search', ({ request }) => {
   const url = new URL(request.url);
   const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
@@ -97,18 +113,43 @@ const inquiryOverrideHandler = http.get('*/api/system/settings/board/qna/search'
   return HttpResponse.json(filtered);
 });
 
-const changeHistoryOverrideHandler = http.get('*/api/system/settings/log/audittrail', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? CHANGE_HISTORY_MOCK.filter(
-        (row) =>
-          row.menuNm?.toLowerCase().includes(keyword) ||
-          row.auditTrailContents?.toLowerCase().includes(keyword),
-      )
-    : CHANGE_HISTORY_MOCK;
-  return HttpResponse.json(filtered);
-});
+const settingsHandlers = [
+  getUpdateRuleMasterMockHandler(),
+  getNewRuleMasterMockHandler(),
+  getDelRuleMasterMockHandler(),
+  getSaveRuleMockHandler(),
+  getUpdatePlantMockHandler(),
+  getNewPlantMockHandler(),
+  getDelPlantMockHandler(),
+  getSavePaymentCouponMockHandler(),
+  getUpdatePaymentMockHandler(),
+  getNewPaymentMockHandler(),
+  getDelPaymentMockHandler(),
+  getSaveMessageMockHandler(),
+  getSaveMenuMockHandler(),
+  getUpdateCommonMasterMockHandler(),
+  getNewCommonMasterMockHandler(),
+  getDelCommonMasterMockHandler(),
+  getSaveCommonDetailMockHandler(),
+  getUpdateQnaMockHandler(),
+  getUpdateNoticeMockHandler(),
+  getNewNoticeMockHandler(),
+  getDelNoticeMockHandler(),
+  getSaveAdminUserMockHandler(),
+  getGetRuleMasterMockHandler(),
+  getGetRuleDetailMockHandler(),
+  getGetPlantStatusMockHandler(),
+  getSearchPlantMockHandler(),
+  getGetPaymentCouponMockHandler(),
+  getGetPaymentMockHandler(),
+  getGetMessageMockHandler(),
+  getGetMenuMockHandler(),
+  getSearchCommonMockHandler(),
+  getSearchCommonDetailMockHandler(),
+  getGetQnaMockHandler(),
+  getGetNoticeMockHandler(),
+  getGetAdminUserMockHandler(),
+];
 
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
@@ -117,12 +158,9 @@ export const handlers = [
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
-  accessLogMasterOverrideHandler,
-  accessLogDetailOverrideHandler,
   noticeOverrideHandler,
   inquiryOverrideHandler,
-  changeHistoryOverrideHandler,
-  ...getSettingsControllerMock(),
+  ...settingsHandlers,
   ...getComboControllerMock(),
   ...getFileControllerMock(),
   ...getLogControllerMock(),
