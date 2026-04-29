@@ -289,7 +289,12 @@ export function useSystemMenuPageState() {
 
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [notice, setNotice] = useState<{ title: string; description?: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    title: string;
+    description?: string;
+    validationItems?: string[];
+    onConfirm?: () => void;
+  } | null>(null);
   const [nodeErrors, setNodeErrors] = useState<NodeFieldErrors>(emptyErrors);
 
   /** 초기화 dirty guard 확인 모달 */
@@ -451,11 +456,17 @@ export function useSystemMenuPageState() {
     const hasPathConflict = errors.path.size > 0;
 
     if (hasEmpty || hasPathConflict) {
-      setNodeErrors(errors);
       const messages: string[] = [];
-      if (hasEmpty) messages.push('메뉴코드와 메뉴 명은 필수 입력 항목입니다.');
-      if (hasPathConflict) messages.push('하위 메뉴가 있는 항목에는 메뉴주소를 입력할 수 없습니다.');
-      setNotice({ title: '알림', description: messages.join('\n') });
+      if (hasEmpty) messages.push('빈값을 채워주세요.');
+      if (hasPathConflict) messages.push('하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.');
+      setNotice({
+        title: '알림',
+        validationItems: messages,
+        onConfirm: () => {
+          setNodeErrors(errors);
+          setNotice(null);
+        },
+      });
       return;
     }
 
@@ -518,6 +529,14 @@ export function useSystemMenuPageState() {
 
   const closeSaveConfirm = () => setIsSaveConfirmOpen(false);
   const closeNotice = () => setNotice(null);
+  const confirmNotice = () => {
+    if (notice?.onConfirm) {
+      notice.onConfirm();
+      return;
+    }
+
+    setNotice(null);
+  };
 
   return {
     data: { nodes },
@@ -543,6 +562,7 @@ export function useSystemMenuPageState() {
       confirmSave,
       closeSaveConfirm,
       closeNotice,
+      confirmNotice,
     },
     uiProps: {
       selectedId,
