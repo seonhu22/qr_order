@@ -13,9 +13,9 @@ type CreateMessageTableModelParams = {
 
 export function createMessageTableColumns(): SharedTableColumn[] {
   return [
-    { key: 'code', label: '메시지 코드', required: true, align: 'left' },
-    { key: 'name', label: '메시지 명', required: true, align: 'left' },
-    { key: 'content', label: '메시지 내용', required: true, align: 'left' },
+    { key: 'code', label: '메시지 코드', required: true },
+    { key: 'name', label: '메시지 명', required: true },
+    { key: 'content', label: '메시지 내용', required: true },
   ];
 }
 
