@@ -26,8 +26,8 @@
   overflow: auto;
 }
 
-/* 컬럼이 압축되지 않도록 최소 너비 지정
-.access-log-master-table .common-table { min-width: 45rem; } 
+/* 컬럼이 압축되지 않도록 최소 너비 지정 */
+.access-log-master-table .common-table { min-width: 45rem; }
 .access-log-detail-table .common-table { min-width: 45rem; }
 
 /* TableCardContentState가 렌더하는 children(table-wrap)이 카드 높이를 채우도록 */
