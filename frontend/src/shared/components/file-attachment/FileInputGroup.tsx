@@ -74,6 +74,7 @@ export function FileInputGroup({
   maxTotalSizeMB = 50,
   disabled = false,
   isUploading = false,
+  hint,
 }: FileInputGroupProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -193,13 +194,16 @@ export function FileInputGroup({
     </ul>
   ) : null;
 
-  /* ── 카운터 + 에러 ── */
+  /* ── 힌트(좌) + 카운터(우) + 에러 ── */
   const footer = (
     <>
-      {!disabled && (
-        <span className="file-attachment__counter">
-          {totalCount}/{maxFiles}개 · {formatBytes(totalBytes)}/{maxTotalSizeMB}MB
-        </span>
+      {!disabled && (hint || totalCount > 0) && (
+        <div className="file-attachment__toolbar">
+          <span className="file-attachment__toolbar-hint">{hint}</span>
+          <span className="file-attachment__counter">
+            {totalCount}/{maxFiles}개 · {formatBytes(totalBytes)}/{maxTotalSizeMB}MB
+          </span>
+        </div>
       )}
       {error && <p className="file-attachment__error">{error}</p>}
     </>

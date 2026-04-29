@@ -47,6 +47,8 @@ export type FileInputGroupProps = {
   disabled?: boolean;
   /** true이면 파일 전송 중 — 드롭존 비활성 + 스피너 표시 */
   isUploading?: boolean;
+  /** 카운터 왼쪽에 표시할 안내 요소 (FileHint 등) */
+  hint?: React.ReactNode;
 };
 
 export type FileDownloadListProps = {

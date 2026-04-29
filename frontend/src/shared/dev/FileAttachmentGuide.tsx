@@ -184,8 +184,11 @@ function RegisterDropDemo() {
   const [state, setState] = useState<FileChangeState>({ newFiles: [], deletedFiles: [] });
   return (
     <Case label="드롭존 — 인터랙티브 (실제 파일 선택 가능)">
-      <FileInputGroup {...POLICY} onChange={setState} />
-      <FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />
+      <FileInputGroup
+        {...POLICY}
+        hint={<FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        onChange={setState}
+      />
       <Log value={{ newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })) }} />
     </Case>
   );
@@ -195,8 +198,12 @@ function RegisterButtonDemo() {
   const [state, setState] = useState<FileChangeState>({ newFiles: [], deletedFiles: [] });
   return (
     <Case label="버튼 형식 — 인터랙티브 (실제 파일 선택 가능)">
-      <FileInputGroup variant="button" {...POLICY} onChange={setState} />
-      <FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />
+      <FileInputGroup
+        variant="button"
+        {...POLICY}
+        hint={<FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        onChange={setState}
+      />
       <Log value={{ newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })) }} />
     </Case>
   );
@@ -206,8 +213,12 @@ function EditDropDemo() {
   const [state, setState] = useState<FileChangeState>({ newFiles: [], deletedFiles: [] });
   return (
     <Case label="드롭존 — 인터랙티브 (기존 파일 삭제 · 새 파일 추가 가능)">
-      <FileInputGroup files={MOCK_FILES} {...POLICY} onChange={setState} />
-      <FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />
+      <FileInputGroup
+        files={MOCK_FILES}
+        {...POLICY}
+        hint={<FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        onChange={setState}
+      />
       <Log value={{
         newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })),
         deletedFiles: state.deletedFiles.map((f) => f.originalFileNm),
@@ -220,8 +231,13 @@ function EditButtonDemo() {
   const [state, setState] = useState<FileChangeState>({ newFiles: [], deletedFiles: [] });
   return (
     <Case label="버튼 형식 — 인터랙티브 (기존 파일 삭제 · 새 파일 추가 가능)">
-      <FileInputGroup variant="button" files={MOCK_FILES} {...POLICY} onChange={setState} />
-      <FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} />
+      <FileInputGroup
+        variant="button"
+        files={MOCK_FILES}
+        {...POLICY}
+        hint={<FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} />}
+        onChange={setState}
+      />
       <Log value={{
         newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })),
         deletedFiles: state.deletedFiles.map((f) => f.originalFileNm),
@@ -274,13 +290,11 @@ export default function FileAttachmentGuide() {
       {/* ── 1. 등록 ──────────────────────────────────── */}
       <Section title="1. 등록 — 기존 파일 없음">
         <Case label="드롭존 — 기본">
-          <FileInputGroup />
-          <FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileInputGroup hint={<FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="버튼 형식 — 기본">
-          <FileInputGroup variant="button" />
-          <FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileInputGroup variant="button" hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="드롭존 — 업로드 진행 중 (isUploading)">
@@ -299,18 +313,15 @@ export default function FileAttachmentGuide() {
       {/* ── 2. 수정 ──────────────────────────────────── */}
       <Section title="2. 수정 — 기존 파일 + 신규 파일">
         <Case label="드롭존 — 기존 파일 있음">
-          <FileInputGroup files={MOCK_FILES} />
-          <FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileInputGroup files={MOCK_FILES} hint={<FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="버튼 형식 — 기존 파일 있음 (개수 뱃지 확인)">
-          <FileInputGroup variant="button" files={MOCK_FILES} />
-          <FileHint variant="simple" maxSize="10MB" maxCount={5} />
+          <FileInputGroup variant="button" files={MOCK_FILES} hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} />} />
         </Case>
 
         <Case label="드롭존 — 최대 개수 도달 → warning 안내">
-          <FileInputGroup files={MOCK_FILES} maxFiles={3} />
-          <FileHint variant="warning" maxCount={3} />
+          <FileInputGroup files={MOCK_FILES} maxFiles={3} hint={<FileHint variant="warning" maxCount={3} />} />
         </Case>
 
         <Case label="드롭존 — 업로드 진행 중 (저장 API 호출 중)">

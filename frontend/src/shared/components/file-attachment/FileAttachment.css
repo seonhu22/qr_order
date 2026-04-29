@@ -410,12 +410,27 @@
 
 
 /* ═══════════════════════════════════════════════════
- * 카운터 / 에러 / 빈 상태
+ * 툴바 / 카운터 / 에러 / 빈 상태
  * ═══════════════════════════════════════════════════ */
 
+/* 힌트(좌) + 카운터(우) 한 줄 */
+.file-attachment__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.file-attachment__toolbar-hint {
+  flex: 1;
+  min-width: 0;
+}
+
 .file-attachment__counter {
+  flex-shrink: 0;
   font-size: var(--typography-size-caption);
   color: var(--color-text-disabled);
+  font-variant-numeric: tabular-nums;
 }
 
 .file-attachment__error {
