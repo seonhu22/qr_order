@@ -46,6 +46,7 @@ const [fileState, setFileState] = useState<FileChangeState>({
   maxFiles={5}
   maxFileSizeMB={10}
   maxTotalSizeMB={50}
+  hint={<FileHint maxSize="10MB" maxTotalSize="50MB" maxCount={5} />}
   onChange={setFileState}
 />
 ```
@@ -296,6 +297,12 @@ const policy = {
   maxFiles: 5,
   maxFileSizeMB: 10,
   maxTotalSizeMB: 50,
+};
+
+const hintPolicy = {
+  maxSize: '10MB',
+  maxTotalSize: '50MB',
+  maxCount: policy.maxFiles,
 };
 ```
 

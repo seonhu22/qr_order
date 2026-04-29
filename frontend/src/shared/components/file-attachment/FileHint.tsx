@@ -9,7 +9,7 @@
  *   · info    : 파란 박스 — 입력 전 일반 안내
  *   · warning : 노란 박스 — 한도 도달 임박 / 도달 시
  *   · error   : 빨간 박스 — 형식/크기 위반 발생 시
- * - maxSize · maxCount · allowedExts 각각 독립적으로 표시 여부를 제어한다.
+ * - maxSize · maxTotalSize · maxCount · allowedExts 각각 독립적으로 표시 여부를 제어한다.
  *   → 넘기지 않으면 해당 제약은 안내에서 제외된다.
  *
  * @module file-attachment/FileHint
@@ -24,6 +24,8 @@ export type FileHintProps = {
   variant?: FileHintVariant;
   /** 파일당 최대 크기 (예: "10MB") — 미전달 시 표시 안 함 */
   maxSize?: string;
+  /** 전체 최대 크기 (예: "50MB") — 미전달 시 표시 안 함 */
+  maxTotalSize?: string;
   /** 최대 파일 개수 — 미전달 시 표시 안 함 */
   maxCount?: number;
   /** 허용 확장자 목록 — 미전달 시 표시 안 함 */
@@ -40,13 +42,15 @@ export type FileHintProps = {
 export function FileHint({
   variant = 'simple',
   maxSize,
+  maxTotalSize,
   maxCount,
   allowedExts,
   message,
 }: FileHintProps) {
   const extStr = allowedExts?.join(' · ') ?? '';
   const parts = [
-    maxSize && `최대 ${maxSize}`,
+    maxSize && `파일당 최대 ${maxSize}`,
+    maxTotalSize && `전체 최대 ${maxTotalSize}`,
     maxCount && `최대 ${maxCount}개`,
     extStr || undefined,
   ].filter(Boolean) as string[];
@@ -65,7 +69,8 @@ export function FileHint({
   /* ── badge ── */
   if (variant === 'badge') {
     const badges: { emoji: string; text: string }[] = [];
-    if (maxSize) badges.push({ emoji: '📏', text: `${maxSize} 이하` });
+    if (maxSize) badges.push({ emoji: '📏', text: `파일당 ${maxSize} 이하` });
+    if (maxTotalSize) badges.push({ emoji: '📏', text: `전체 ${maxTotalSize} 이하` });
     if (maxCount) badges.push({ emoji: '📁', text: `최대 ${maxCount}개` });
     if (extStr) badges.push({ emoji: '📎', text: extStr });
 
@@ -98,6 +103,7 @@ export function FileHint({
     info: [
       maxCount && `파일은 최대 ${maxCount}개`,
       maxSize && `각 ${maxSize}까지`,
+      maxTotalSize && `전체 ${maxTotalSize}까지`,
       '첨부할 수 있습니다.',
       extStr && `허용 형식: ${extStr}`,
     ]

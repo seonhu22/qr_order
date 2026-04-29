@@ -130,7 +130,7 @@ export function NoticeManagePage() {
               variant="button"
               files={[]}
               onChange={actions.changeFileState}
-              hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP']} />}
+              hint={<FileHint variant="simple" maxSize="10MB" maxTotalSize="50MB" maxCount={5} allowedExts={['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP']} />}
             />
           </InputWrapper>
         </div>

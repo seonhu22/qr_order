@@ -64,6 +64,7 @@ const MOCK_FILES_MANY: ServerFile[] = [
 
 /* 제약 설정 — 실제 사용 시 동일한 값을 FileInputGroup과 FileHint 양쪽에 넘긴다 */
 const POLICY = { maxFiles: 5, maxFileSizeMB: 10, maxTotalSizeMB: 50 };
+const HINT_SIZE = { maxSize: '10MB', maxTotalSize: '50MB' };
 const HINT_EXTS = ['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP'];
 const ICON_CASES = [
   { filename: 'sample.jpg', extensions: 'JPG, JPEG, PNG', label: '이미지 파일', color: '--color-status-info-default', usage: '파일 목록 아이콘' },
@@ -186,7 +187,7 @@ function RegisterDropDemo() {
     <Case label="드롭존 — 인터랙티브 (실제 파일 선택 가능)">
       <FileInputGroup
         {...POLICY}
-        hint={<FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        hint={<FileHint variant="badge" {...HINT_SIZE} maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
         onChange={setState}
       />
       <Log value={{ newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })) }} />
@@ -201,7 +202,7 @@ function RegisterButtonDemo() {
       <FileInputGroup
         variant="button"
         {...POLICY}
-        hint={<FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        hint={<FileHint variant="simple" {...HINT_SIZE} maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
         onChange={setState}
       />
       <Log value={{ newFiles: state.newFiles.map((f) => ({ name: f.name, size: f.size })) }} />
@@ -216,7 +217,7 @@ function EditDropDemo() {
       <FileInputGroup
         files={MOCK_FILES}
         {...POLICY}
-        hint={<FileHint variant="badge" maxSize="10MB" maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
+        hint={<FileHint variant="badge" {...HINT_SIZE} maxCount={POLICY.maxFiles} allowedExts={HINT_EXTS} />}
         onChange={setState}
       />
       <Log value={{
@@ -235,7 +236,7 @@ function EditButtonDemo() {
         variant="button"
         files={MOCK_FILES}
         {...POLICY}
-        hint={<FileHint variant="simple" maxSize="10MB" maxCount={POLICY.maxFiles} />}
+        hint={<FileHint variant="simple" {...HINT_SIZE} maxCount={POLICY.maxFiles} />}
         onChange={setState}
       />
       <Log value={{
@@ -290,11 +291,11 @@ export default function FileAttachmentGuide() {
       {/* ── 1. 등록 ──────────────────────────────────── */}
       <Section title="1. 등록 — 기존 파일 없음">
         <Case label="드롭존 — 기본">
-          <FileInputGroup hint={<FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
+          <FileInputGroup hint={<FileHint variant="badge" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="버튼 형식 — 기본">
-          <FileInputGroup variant="button" hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
+          <FileInputGroup variant="button" hint={<FileHint variant="simple" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="드롭존 — 업로드 진행 중 (isUploading)">
@@ -313,11 +314,11 @@ export default function FileAttachmentGuide() {
       {/* ── 2. 수정 ──────────────────────────────────── */}
       <Section title="2. 수정 — 기존 파일 + 신규 파일">
         <Case label="드롭존 — 기존 파일 있음">
-          <FileInputGroup files={MOCK_FILES} hint={<FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />} />
+          <FileInputGroup files={MOCK_FILES} hint={<FileHint variant="badge" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />} />
         </Case>
 
         <Case label="버튼 형식 — 기존 파일 있음 (개수 뱃지 확인)">
-          <FileInputGroup variant="button" files={MOCK_FILES} hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} />} />
+          <FileInputGroup variant="button" files={MOCK_FILES} hint={<FileHint variant="simple" {...HINT_SIZE} maxCount={5} />} />
         </Case>
 
         <Case label="드롭존 — 최대 개수 도달 → warning 안내">
@@ -368,19 +369,19 @@ export default function FileAttachmentGuide() {
       {/* ── FileHint 변형 ────────────────────────────── */}
       <Section title="FileHint — 제약 안내 변형">
         <Case label="simple — 한 줄 텍스트">
-          <FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileHint variant="simple" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />
         </Case>
 
         <Case label="badge — 칩 형식 (확장자 없음)">
-          <FileHint variant="badge" maxSize="10MB" maxCount={5} />
+          <FileHint variant="badge" {...HINT_SIZE} maxCount={5} />
         </Case>
 
         <Case label="badge — 전체 제약 표시">
-          <FileHint variant="badge" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileHint variant="badge" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />
         </Case>
 
         <Case label="info — 파란 박스">
-          <FileHint variant="info" maxSize="10MB" maxCount={5} allowedExts={HINT_EXTS} />
+          <FileHint variant="info" {...HINT_SIZE} maxCount={5} allowedExts={HINT_EXTS} />
         </Case>
 
         <Case label="warning — 노란 박스 (한도 도달 시)">

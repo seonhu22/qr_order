@@ -24,7 +24,7 @@ import type { FileInputGroupProps, ServerFile } from './types';
 
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx', 'pptx', 'zip'];
 const ACCEPT_ATTR = '.jpg,.jpeg,.png,.pdf,.docx,.xlsx,.pptx,.zip';
-const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당 최대 10MB';
+const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당 최대 10MB · 전체 최대 50MB';
 
 
 /* =====================================================
