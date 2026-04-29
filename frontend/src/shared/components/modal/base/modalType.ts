@@ -88,7 +88,7 @@ export interface SimpleDefaultModalProps extends Pick<
   ModalCommonProps,
   'open' | 'size' | 'title' | 'onClose'
 > {
-  description?: string;
+  description?: ReactNode;
   helperText?: string;
   primaryAction?: ModalPrimaryAction;
   secondaryAction?: ConfirmSecondaryAction;

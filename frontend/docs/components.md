@@ -379,6 +379,20 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
 17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 여러 안내 문구를 합칠 때 `messages.join('\n')` 형태로 사용한다.
 18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
+19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
+
+```tsx
+<SimpleDefaultModal
+  open={open}
+  description={(
+    <>
+      <strong className="admin-user-reset-modal__account-id">admin01</strong>
+      {' 비밀번호를 초기화 하시겠습니까?'}
+    </>
+  )}
+  onClose={onClose}
+/>
+```
 
 ---
 

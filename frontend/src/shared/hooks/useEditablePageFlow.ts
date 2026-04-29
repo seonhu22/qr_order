@@ -10,11 +10,13 @@
  * admin-user, message 같은 편집형 목록 화면에서 재사용한다.
  */
 
-import { startTransition, useState } from 'react';
+import { startTransition, useState, type ReactNode } from 'react';
 import { useFilterDirtyCheck } from './useFilterDirtyCheck';
 
 export type EditablePageSimpleModalState = {
-  description: string;
+  type?: 'passwordResetConfirm';
+  userId?: string;
+  description: ReactNode;
   helperText?: string;
   onConfirm?: () => void | Promise<void>;
 } | null;
