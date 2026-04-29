@@ -204,6 +204,18 @@ export function getMenuNmByCd(catalog: MenuCatalog, menuCd?: string | null) {
   return findMenuByCd(catalog, menuCd)?.menuNm;
 }
 
+/**
+ * 메뉴명을 조회하는 유틸 함수
+ *
+ * - menuNm가 제공되면 해당 값을 반환
+ * - menuCd가 제공되면 catalog에서 메뉴명을 조회하여 반환
+ * - 둘 다 없으면 menuCd를 반환
+ *
+ * @param catalog - 메뉴 카탈로그 객체
+ * @param menuCd - 조회할 메뉴 코드 (선택사항)
+ * @param menuNm - 조회할 메뉴명 (선택사항)
+ * @returns 메뉴명 또는 menuCd 또는 빈 문자열
+ */
 export function resolveMenuDisplayName(
   catalog: MenuCatalog,
   menuCd?: string | null,
