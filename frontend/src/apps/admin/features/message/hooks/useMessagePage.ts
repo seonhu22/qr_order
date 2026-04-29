@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
-import type { MessagePageViewModel, MessageRow } from '../types';
+import type { MessagePageViewModel, MessageRow, MessageRowErrors } from '../types';
 import {
   buildMessageRequest,
   hasMessageChanges,
@@ -20,6 +20,25 @@ import {
  */
 function cloneRows(rows: MessageRow[]) {
   return rows.map((row) => ({ ...row }));
+}
+
+function getEmptyMessageRowErrors(rows: MessageRow[]): MessageRowErrors {
+  return Object.fromEntries(
+    rows
+      .map((row) => [
+        row.id,
+        {
+          code: row.isNew && !row.code.trim(),
+          name: !row.name.trim(),
+          content: !row.content.trim(),
+        },
+      ] as const)
+      .filter(([, errors]) => errors.code || errors.name || errors.content),
+  );
+}
+
+function hasRowErrors(rowErrors: MessageRowErrors) {
+  return Object.keys(rowErrors).length > 0;
 }
 
 /**
@@ -42,12 +61,14 @@ export function useMessagePage(): MessagePageViewModel {
   /* baseRows: 마지막 저장 상태, draftRows: 현재 화면에서 수정 중인 상태 */
   const [baseRows, setBaseRows] = useState<MessageRow[]>([]);
   const [draftRows, setDraftRows] = useState<MessageRow[]>([]);
+  const [rowErrors, setRowErrors] = useState<MessageRowErrors>({});
   const [selectedRowId, setSelectedRowId] = useState('');
 
   useEffect(() => {
     const nextRows = cloneRows(fetchedRows);
     setBaseRows(nextRows);
     setDraftRows(cloneRows(fetchedRows));
+    setRowErrors({});
     setSelectedRowId((prev) => {
       if (prev && nextRows.some((row) => row.id === prev)) {
         return prev;
@@ -130,6 +151,25 @@ export function useMessagePage(): MessagePageViewModel {
    */
   const handleChangeRowField = (rowId: string, key: 'code' | 'name' | 'content', value: string) => {
     setDraftRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
+    setRowErrors((prev) => {
+      const current = prev[rowId];
+
+      if (!current) {
+        return prev;
+      }
+
+      const nextRowError = { ...current, [key]: false };
+      if (!nextRowError.code && !nextRowError.name && !nextRowError.content) {
+        const rest = { ...prev };
+        delete rest[rowId];
+        return rest;
+      }
+
+      return {
+        ...prev,
+        [rowId]: nextRowError,
+      };
+    });
   };
 
   /**
@@ -168,12 +208,27 @@ export function useMessagePage(): MessagePageViewModel {
    * 저장 버튼 클릭 시 공통 저장 플로우로 진입한다.
    */
   const handleSave = () => {
+    const nextRowErrors = getEmptyMessageRowErrors(draftRows);
+
+    if (hasRowErrors(nextRowErrors)) {
+      editableFlow.setSimpleModalState({
+        description: '빈값을 채워주세요.',
+        onConfirm: () => {
+          setRowErrors(nextRowErrors);
+          editableFlow.closeSimpleModal();
+        },
+      });
+      return;
+    }
+
+    setRowErrors({});
     editableFlow.requestSave();
   };
 
   return {
     data: {
       rows,
+      rowErrors,
     },
     status: {
       isLoading: messageQuery.isLoading,
@@ -194,6 +249,7 @@ export function useMessagePage(): MessagePageViewModel {
       confirmSave: editableFlow.confirmSave,
       closeSaveConfirm: editableFlow.closeSaveConfirm,
       closeSimpleModal: editableFlow.closeSimpleModal,
+      confirmSimpleModal: editableFlow.confirmSimpleModal,
       confirmFilterAction: editableFlow.confirmFilterAction,
       cancelFilterAction: editableFlow.cancelFilterAction,
     },

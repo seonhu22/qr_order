@@ -21,11 +21,20 @@ export type MessageRow = {
   isNew: boolean;
 };
 
+export type MessageRowError = {
+  code: boolean;
+  name: boolean;
+  content: boolean;
+};
+
+export type MessageRowErrors = Record<string, MessageRowError>;
+
 /**
  * 화면 렌더링에 필요한 데이터 묶음.
  */
 export type MessagePageData = {
   rows: MessageRow[];
+  rowErrors: MessageRowErrors;
 };
 
 /**
@@ -59,6 +68,7 @@ export type MessagePageActions = {
   confirmSave: () => void;
   closeSaveConfirm: () => void;
   closeSimpleModal: () => void;
+  confirmSimpleModal: () => void | Promise<void>;
   confirmFilterAction: () => void;
   cancelFilterAction: () => void;
 };

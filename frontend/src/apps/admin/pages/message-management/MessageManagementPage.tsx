@@ -38,6 +38,7 @@ export function MessageManagementPage() {
         <MessageTable
           rows={data.rows}
           selectedRowId={uiProps.selectedRowId}
+          rowErrors={data.rowErrors}
           isLoading={status.isLoading || !!status.isFetching}
           isError={status.isError}
           isSaving={status.isSaving}
@@ -79,6 +80,11 @@ export function MessageManagementPage() {
         open={!!uiProps.flowState.simpleModalState}
         description={uiProps.flowState.simpleModalState?.description}
         helperText={uiProps.flowState.simpleModalState?.helperText}
+        primaryAction={
+          uiProps.flowState.simpleModalState?.onConfirm
+            ? { onClick: actions.confirmSimpleModal }
+            : undefined
+        }
         onClose={actions.closeSimpleModal}
       />
     </>
