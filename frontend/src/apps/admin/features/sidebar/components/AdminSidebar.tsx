@@ -14,12 +14,10 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
+import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { AdminSidebarHeader } from '@/apps/admin/features/sidebar/components/AdminSidebarHeader';
-import { SYSTEM_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/systemSidebarMenu';
-import { BOARD_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/boardSidebarMenu';
 import {
   findExpandedMenuKeys,
-  detectSectionFromPath,
 } from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAuth } from '@/shared/auth/AuthContext';
@@ -35,6 +33,7 @@ export function AdminSidebar() {
 
   const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2, ensureOpen, resetTo } =
     useSidebarExpand();
+  const { currentSection, currentMenus, menusBySection } = useAdminNavigationMenus();
 
   const { user } = useAuth();
   const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
@@ -44,31 +43,30 @@ export function AdminSidebar() {
     },
   });
 
-  const currentMenus = activeSection === 'board' ? BOARD_SIDEBAR_MENU : SYSTEM_SIDEBAR_MENU;
+  const displayedSection = activeSection ?? currentSection;
+  const displayedMenus = displayedSection ? menusBySection[displayedSection] ?? [] : currentMenus;
 
   // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
   const pathnameRef = useRef(location.pathname);
-  const currentMenusRef = useRef(currentMenus);
+  const currentMenusRef = useRef(displayedMenus);
   useLayoutEffect(() => {
     pathnameRef.current = location.pathname;
-    currentMenusRef.current = currentMenus;
+    currentMenusRef.current = displayedMenus;
   });
 
   // URL 변경 시에만 섹션 자동 감지 + 현재 페이지 그룹 열기
   // activeSection을 deps에 넣으면 헤더 탭 전환 시에도 effect가 재실행되어
   // URL 기반으로 섹션을 되돌려버리는 문제가 발생하므로 의도적으로 제외한다.
   useEffect(() => {
-    const detectedSection = detectSectionFromPath(location.pathname);
-    if (detectedSection) {
-      setActiveSection(detectedSection);
+    if (currentSection) {
+      setActiveSection(currentSection);
     }
 
-    const menus = detectedSection === 'board' ? BOARD_SIDEBAR_MENU : SYSTEM_SIDEBAR_MENU;
+    const menus = currentSection ? menusBySection[currentSection] ?? [] : currentMenus;
     const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname, menus);
     if (!depth1Key) return;
     ensureOpen(depth1Key, depth2Key);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [currentMenus, currentSection, ensureOpen, location.pathname, menusBySection, setActiveSection]);
 
   // 사이드바가 열릴 때 현재 페이지 그룹만 남기고 나머지 닫기
   useEffect(() => {
@@ -92,7 +90,7 @@ export function AdminSidebar() {
 
   const userRole = typeof user?.role === 'string' ? user.role : 'ADMIN';
 
-  const sectionLabel = activeSection === 'board' ? '게시판' : '시스템';
+  const sectionLabel = displayedMenus[0]?.label ?? displayedSection ?? '';
 
   return (
     <Sidebar>
@@ -101,7 +99,7 @@ export function AdminSidebar() {
         <span className="admin-sidebar-section__label">{sectionLabel}</span>
       </div>
       <SidebarNav
-        menus={currentMenus}
+        menus={displayedMenus}
         showDepth1={false}
         expandedDepth1Keys={expandedDepth1Keys}
         expandedDepth2Keys={expandedDepth2Keys}

@@ -1,16 +1,11 @@
 // src/apps/admin/features/header/components/AdminHeader.tsx
 
 import '@/apps/admin/features/header/styles/AdminHeader.css';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import type { AdminSection } from '@/apps/admin/stores/adminLayoutStore';
-import { detectSectionFromPath } from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
-
-const NAV_ITEMS: { section: AdminSection; label: string }[] = [
-  { section: 'system', label: '시스템' },
-  { section: 'board', label: '게시판' },
-];
 
 /**
  * 관리자 레이아웃 상단 헤더
@@ -22,14 +17,12 @@ const NAV_ITEMS: { section: AdminSection; label: string }[] = [
  */
 export function AdminHeader() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { currentSection, headerSections } = useAdminNavigationMenus();
 
   const toggleSidebar = useAdminLayoutStore((state) => state.toggleSidebar);
   const closeSidebar = useAdminLayoutStore((state) => state.closeSidebar);
   const openSidebar = useAdminLayoutStore((state) => state.openSidebar);
   const setActiveSection = useAdminLayoutStore((state) => state.setActiveSection);
-
-  const currentSection = detectSectionFromPath(location.pathname);
 
   const handleHomeClick = () => {
     navigate('/admin/main');
@@ -64,10 +57,10 @@ export function AdminHeader() {
         <Icon id="i-home" size={16} />
       </button>
 
-      <div className="admin-header__divider" aria-hidden="true" />
+        <div className="admin-header__divider" aria-hidden="true" />
 
       <nav className="admin-header__nav" aria-label="상단 메뉴">
-        {NAV_ITEMS.map(({ section, label }) => {
+        {headerSections.map(({ section, label }) => {
           const isCurrent = currentSection === section;
           return (
             <button

@@ -10,7 +10,6 @@
 import { useSaveMenu } from '@/generated/settings-controller/settings-controller';
 import type { Menu } from '@/generated/types/menu';
 import type { MenuRequest } from '@/generated/types/menuRequest';
-import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
 import type { MenuNode } from '../types';
 
 type MenuSaveItem = Omit<Menu, 'ordNo' | 'treeLevel'> & {
@@ -252,36 +251,6 @@ export function hasMenuChanges(request: MenuSaveRequest) {
   return Boolean(
     request.newItems?.length || request.updateItems?.length || request.delItems?.length,
   );
-}
-
-// ? 카탈로그라는 무슨 늬양스일까?
-// 단순 변수 모음보다 분류되어 있고, 찾아 쓰기 쉽고,공통 기준을 제공하는 모듈이라는 뜻이다.
-
-/**
- * 메뉴 조회 쿼리 훅
- *
- * - useAdminMenuCatalogQuery를 사용하여 메뉴 데이터를 가져오고, 이를 MenuNode 트리로 변환하여 반환
- * - 메뉴 데이터가 변경될 때마다 트리를 재생성하여 최신 상태를 유지
- *
- * @return MenuNode 트리를 반환하며, 쿼리 상태(로딩, 에러 등)도 함께 제공하여 화면에서 적절히 처리할 수 있도록 지원
- */
-export function useMenuQuery() {
-  const { catalogItems, ...menuCatalogQuery } = useAdminMenuCatalogQuery();
-
-  return {
-    ...menuCatalogQuery,
-    data:
-      menuCatalogQuery.data ??
-      catalogItems.map((item) => ({
-        sysId: item.sysId,
-        menuCd: item.menuCd,
-        menuNm: item.menuNm,
-        parentMenuCd: item.parentMenuCd,
-        ordNo: String(item.ordNo),
-        treeLevel: String(item.treeLevel),
-        menuUrl: item.path || undefined,
-      })),
-  };
 }
 
 export function useSaveMenuMutation() {
