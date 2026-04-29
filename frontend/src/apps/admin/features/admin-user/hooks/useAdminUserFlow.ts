@@ -29,6 +29,7 @@ type UseAdminUserFlowParams = {
   onResetDraftRows: () => void;
   onDeleteSelectedRow: () => void;
   onValidateRequiredFields: () => boolean;
+  onApplyRequiredFieldErrors: () => void;
   onSaveChanges: () => Promise<'saved' | 'unchanged'>;
   onResetPassword: (userId: string) => Promise<void>;
 };
@@ -74,6 +75,7 @@ export function useAdminUserFlow({
   onResetDraftRows,
   onDeleteSelectedRow,
   onValidateRequiredFields,
+  onApplyRequiredFieldErrors,
   onSaveChanges,
   onResetPassword,
 }: UseAdminUserFlowParams) {
@@ -83,6 +85,7 @@ export function useAdminUserFlow({
     onResetFilters,
     onResetDraftRows,
     onValidateRequiredFields,
+    onApplyRequiredFieldErrors,
     onSaveChanges,
     savedNotice: {
       description: '저장되었습니다.',

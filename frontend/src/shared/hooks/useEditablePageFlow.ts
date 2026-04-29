@@ -35,7 +35,12 @@ type UseEditablePageFlowParams = {
   onResetFilters: () => void;
   onResetDraftRows?: () => void;
   onValidateRequiredFields?: () => boolean;
+  onApplyRequiredFieldErrors?: () => void;
   onSaveChanges: () => Promise<SaveResult> | SaveResult;
+  requiredFieldNotice?: {
+    description: string;
+    helperText?: string;
+  };
   savedNotice?: {
     description: string;
     helperText?: string;
@@ -56,7 +61,11 @@ export function useEditablePageFlow({
   onResetFilters,
   onResetDraftRows,
   onValidateRequiredFields,
+  onApplyRequiredFieldErrors,
   onSaveChanges,
+  requiredFieldNotice = {
+    description: '빈값을 채워주세요.',
+  },
   savedNotice = {
     description: '저장되었습니다.',
   },
@@ -99,6 +108,13 @@ export function useEditablePageFlow({
    */
   const requestSave = () => {
     if (onValidateRequiredFields && !onValidateRequiredFields()) {
+      setSimpleModalState({
+        ...requiredFieldNotice,
+        onConfirm: () => {
+          onApplyRequiredFieldErrors?.();
+          setSimpleModalState(null);
+        },
+      });
       return;
     }
 

@@ -102,7 +102,8 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     changeRowPlant,
     addRow,
     deleteSelectedRow,
-    validateRequiredFields,
+    hasRequiredFieldErrors,
+    applyRequiredFieldErrors,
     resetToBaseRows,
   } = useAdminUserListState({
     baseRows,
@@ -144,7 +145,8 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     },
     onResetDraftRows: resetToBaseRows,
     onDeleteSelectedRow: deleteSelectedRow,
-    onValidateRequiredFields: validateRequiredFields,
+    onValidateRequiredFields: () => !hasRequiredFieldErrors(),
+    onApplyRequiredFieldErrors: applyRequiredFieldErrors,
     onSaveChanges: saveChanges,
     onResetPassword: async (userId) => {
       await resetPasswordMutation.mutateAsync(userId);

@@ -21,6 +21,7 @@ const createParams = (overrides?: Partial<Parameters<typeof useAdminUserFlow>[0]
   onResetDraftRows: vi.fn(),
   onDeleteSelectedRow: vi.fn(),
   onValidateRequiredFields: vi.fn(() => true),
+  onApplyRequiredFieldErrors: vi.fn(),
   onSaveChanges: vi.fn(async () => 'saved' as const),
   onResetPassword: vi.fn(async () => {}),
   ...overrides,
@@ -46,7 +47,7 @@ describe('useAdminUserFlow', () => {
     expect(result.current.state.pendingFilterAction).toBeNull();
   });
 
-  it('does not open save confirm when required field validation fails', () => {
+  it('shows required field notice first and applies errors after confirm', async () => {
     const params = createParams({
       onValidateRequiredFields: vi.fn(() => false),
     });
@@ -56,8 +57,15 @@ describe('useAdminUserFlow', () => {
       result.current.requestSave();
     });
 
-    // 필수값 미입력 시 모달 없이 input error 스타일만 표시
     expect(result.current.state.isSaveConfirmOpen).toBe(false);
+    expect(result.current.state.simpleModalState?.description).toBe('빈값을 채워주세요.');
+    expect(params.onApplyRequiredFieldErrors).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.confirmSimpleModal();
+    });
+
+    expect(params.onApplyRequiredFieldErrors).toHaveBeenCalledTimes(1);
     expect(result.current.state.simpleModalState).toBeNull();
   });
 
