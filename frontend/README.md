@@ -218,6 +218,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
   테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
   자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
 
+공용 첨부파일 컴포넌트:
+- [`docs/components/FileAttachment.md`](./docs/components/FileAttachment.md)
+  `FileInputGroup`, `FileDownloadList`, `FileHint` 사용법과 `/api/attach_file/save` payload 구성 기준,
+  확장자별 아이콘·색상 기준은 이 문서를 참고한다.
+
 공용 입력 컴포넌트:
 - `shared/components/input/` — `TextInput` · `TextareaInput` · `SelectInput` · `InputBase` · `InputWrapper`
   - `TextareaInput`: `TextInput`과 동일한 상태(`disabled` / `readonly` / `error` / `success`)·레이블·도움말 패턴

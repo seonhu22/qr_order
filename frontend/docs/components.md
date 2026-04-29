@@ -16,6 +16,7 @@
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
 - [11. 상태 처리와 에러 페이지 (StatusHandling)](#11-상태-처리와-에러-페이지-statushandling)
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
+- [13. 첨부파일 컴포넌트 (FileAttachment)](#13-첨부파일-컴포넌트-fileattachment)
 
 ---
 
@@ -194,6 +195,14 @@ shared/components/
     index.ts
     FeedbackState.tsx
     FeedbackState.css
+  file-attachment/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts              ← ServerFile, FileChangeState, props 타입
+    fileTypeUtils.ts      ← 확장자별 아이콘·색상 매핑
+    FileInputGroup.tsx    ← 등록·수정 파일 선택 UI
+    FileDownloadList.tsx  ← 상세 다운로드 목록
+    FileHint.tsx          ← 파일 제약 안내
+    FileAttachment.css
   error/
     index.ts              ← 외부 공개 API (배럴 파일)
     types.ts              ← ErrorPageTemplate props/action 타입
@@ -467,3 +476,10 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 라우터·스토어·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음(`Sidebar` / `SidebarNav` / `SidebarUser`).  
 상세 사용법·Props·어드민 어댑터 패턴은 [docs/components/Sidebar.md](./components/Sidebar.md) 참고.
+
+---
+
+## 13. 첨부파일 컴포넌트 (FileAttachment)
+
+등록·수정·상세 화면에서 사용하는 첨부파일 입력, 다운로드 목록, 제약 안내 컴포넌트 모음이다.
+상세 사용법·API payload 구성 기준·아이콘 기준은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.
