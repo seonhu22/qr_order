@@ -42,7 +42,7 @@ export type FileInputGroupProps = {
   files?: ServerFile[];
   onChange?: (value: FileChangeState) => void;
   maxFiles?: number;       // 기본 5
-  maxFileSizeMB?: number;  // 기본 10
+  maxFileSizeMB?: number;  // 기본 50
   maxTotalSizeMB?: number; // 기본 50
   disabled?: boolean;
   /** true이면 파일 전송 중 — 드롭존 비활성 + 스피너 표시 */

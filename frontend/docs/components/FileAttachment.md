@@ -44,7 +44,7 @@ const [fileState, setFileState] = useState<FileChangeState>({
 <FileInputGroup
   files={serverFiles}
   maxFiles={5}
-  maxFileSizeMB={10}
+  maxFileSizeMB={50}
   maxTotalSizeMB={50}
   onChange={setFileState}
 />
@@ -285,7 +285,7 @@ if (!menuAccessLog.isReady) {
 | 항목 | 기본값 |
 |---|---|
 | 최대 파일 수 | 5개 |
-| 파일당 최대 크기 | 10 MB |
+| 파일당 최대 크기 | 50 MB |
 | 전체 최대 크기 | 50 MB |
 | 허용 확장자 | JPG, JPEG, PNG, PDF, DOCX, XLSX, PPTX, ZIP |
 
@@ -294,7 +294,7 @@ if (!menuAccessLog.isReady) {
 ```tsx
 const policy = {
   maxFiles: 5,
-  maxFileSizeMB: 10,
+  maxFileSizeMB: 50,
   maxTotalSizeMB: 50,
 };
 ```
