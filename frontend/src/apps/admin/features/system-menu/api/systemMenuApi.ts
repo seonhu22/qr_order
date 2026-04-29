@@ -7,10 +7,10 @@
  * 조회 시에는 배열을 트리로 만들고, 저장 시에는 트리를 다시 배열로 펼친다.
  */
 
-import { useGetMenu, useSaveMenu } from '@/generated/settings-controller/settings-controller';
+import { useSaveMenu } from '@/generated/settings-controller/settings-controller';
 import type { Menu } from '@/generated/types/menu';
 import type { MenuRequest } from '@/generated/types/menuRequest';
-import { queryKeys } from '@/shared/api/queryKeys';
+import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
 import type { MenuNode } from '../types';
 
 type MenuSaveItem = Omit<Menu, 'ordNo' | 'treeLevel'> & {
@@ -63,6 +63,9 @@ export function mapToMenuNode(menu: Menu): MenuNode {
   };
 }
 
+/**
+ * Menu[] 배열을 MenuNode 트리로 변환하는 함수
+ */
 export function buildMenuTree(menus: Menu[]): MenuNode[] {
   const nodeByMenuCd = new Map<string, MenuNode>();
   const roots: MenuNode[] = [];
@@ -110,9 +113,20 @@ type MenuPayloadContext = {
   nodeBySysId: Map<string, MenuNode>;
 };
 
+/**
+ * MenuNode 트리를 MenuSaveItem 배열로 변환하기 위해 트리를 평탄화하는 함수
+ * - 각 노드에 부모 메뉴 코드, 순서 번호, 트리 레벨 정보를 함께 포함
+ * - 평탄화된 배열은 트리를 다시 구성하거나 서버에 저장할 때 사용
+ */
 export function flattenMenuNodes(nodes: MenuNode[]): FlattenedMenuNode[] {
   const result: FlattenedMenuNode[] = [];
 
+  /**
+   * 재귀적으로 트리를 순회하며 각 노드를 평탄화된 형태로 result 배열에 추가하는 내부 함수
+   * @param list 현재 순회 중인 노드 리스트
+   * @param parentMenuCd 부모 메뉴 코드 (루트 노드의 경우 ROOT_PARENT_MENU_CD)
+   * @param depth 현재 트리 깊이 (루트 노드의 경우 0)
+   */
   function visit(list: MenuNode[], parentMenuCd: string, depth: number) {
     list.forEach((node, index) => {
       const menuCd = node.data?.code ?? '';
@@ -136,6 +150,9 @@ export function flattenMenuNodes(nodes: MenuNode[]): FlattenedMenuNode[] {
   return result;
 }
 
+/**
+ * FlattenedMenuNode를 MenuSaveItem으로 변환하는 함수
+ */
 export function mapToMenuPayload(flattened: FlattenedMenuNode): MenuSaveItem {
   const { node, parentMenuCd, ordNo, treeLevel } = flattened;
 
@@ -150,6 +167,13 @@ export function mapToMenuPayload(flattened: FlattenedMenuNode): MenuSaveItem {
   };
 }
 
+/**
+ * 두 MenuSaveItem이 동일한지 비교하는 함수
+ * - sysId가 존재하는 경우 sysId로 비교
+ * - sysId가 없는 경우 menuCd, menuNm, parentMenuCd, ordNo, treeLevel, menuUrl을 비교
+ * - 메뉴 URL은 null/undefined와 빈 문자열을 동일하게 취급
+ * - 이 함수는 메뉴가 변경되었는지 판단하는 데 사용되며, 변경되지 않은 메뉴는 업데이트 요청에서 제외하여 불필요한 서버 연동을 방지하는 데 활용
+ */
 function isSameMenu(a: MenuSaveItem, b: MenuSaveItem) {
   return (
     a.menuCd === b.menuCd &&
@@ -161,6 +185,9 @@ function isSameMenu(a: MenuSaveItem, b: MenuSaveItem) {
   );
 }
 
+/**
+ * Menu[] 배열을 MenuNode 트리로 변환하는 함수
+ */
 function buildMenuPayloadContext(nodes: MenuNode[]): MenuPayloadContext {
   const flattenedNodes = flattenMenuNodes(nodes);
   const menus = flattenedNodes.map(mapToMenuPayload);
@@ -179,6 +206,18 @@ function buildMenuPayloadContext(nodes: MenuNode[]): MenuPayloadContext {
   };
 }
 
+/**
+ * MenuNode 트리를 MenuSaveRequest로 변환하는 함수
+ *
+ * * - 이 함수는 메뉴 관리 화면에서 사용자가 메뉴를 추가, 수정, 삭제한 후 저장할 때 호출되어 변경 사항을 서버에 전달하는 역할을 한다.
+ * - 현재 노드 트리와 원본 노드 트리를 비교하여 새로 추가된 메뉴, 수정된 메뉴, 삭제된 메뉴를 구분
+ * - 새로 추가된 메뉴는 current 트리에 존재하지만 original 트리에 없는 메뉴로 판단
+ * - 수정된 메뉴는 sysId가 존재하고 original 트리에 존재하지만, menuCd, menuNm, parentMenuCd, ordNo, treeLevel, menuUrl 중 하나라도 다른 메뉴로 판단
+ * - 삭제된 메뉴는 original 트리에 존재하지만 current 트리에 없는 메뉴로 판단
+ * - 반환된 MenuSaveRequest는 서버에 저장할 때 사용되며, 변경된 메뉴만 포함하여 불필요한 데이터 전송을 줄이는 데 활용
+ *
+ * @returns MenuSaveRequest 객체로, newItems, updateItems, delItems 배열을 포함하여 변경된 메뉴 정보를 담고 있다.
+ */
 export function buildMenuRequest(
   currentNodes: MenuNode[],
   originalNodes: MenuNode[],
@@ -215,12 +254,34 @@ export function hasMenuChanges(request: MenuSaveRequest) {
   );
 }
 
+// ? 카탈로그라는 무슨 늬양스일까?
+// 단순 변수 모음보다 분류되어 있고, 찾아 쓰기 쉽고,공통 기준을 제공하는 모듈이라는 뜻이다.
+
+/**
+ * 메뉴 조회 쿼리 훅
+ *
+ * - useAdminMenuCatalogQuery를 사용하여 메뉴 데이터를 가져오고, 이를 MenuNode 트리로 변환하여 반환
+ * - 메뉴 데이터가 변경될 때마다 트리를 재생성하여 최신 상태를 유지
+ *
+ * @return MenuNode 트리를 반환하며, 쿼리 상태(로딩, 에러 등)도 함께 제공하여 화면에서 적절히 처리할 수 있도록 지원
+ */
 export function useMenuQuery() {
-  return useGetMenu({
-    query: {
-      queryKey: queryKeys.menu.list(),
-    },
-  });
+  const { catalogItems, ...menuCatalogQuery } = useAdminMenuCatalogQuery();
+
+  return {
+    ...menuCatalogQuery,
+    data:
+      menuCatalogQuery.data ??
+      catalogItems.map((item) => ({
+        sysId: item.sysId,
+        menuCd: item.menuCd,
+        menuNm: item.menuNm,
+        parentMenuCd: item.parentMenuCd,
+        ordNo: String(item.ordNo),
+        treeLevel: String(item.treeLevel),
+        menuUrl: item.path || undefined,
+      })),
+  };
 }
 
 export function useSaveMenuMutation() {
