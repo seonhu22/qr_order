@@ -142,6 +142,17 @@ const headerActions = (
 액션 영역이 촘촘하므로 `actionsClassName="common-code-card__actions--detail"` 추가.
 상세 액션(위/아래 이동, 텍스트 행추가/삭제 버튼)은 `common-code-card__text-action` 클래스 적용.
 
+> **테이블 액션 버튼 순서 규칙**
+>
+> 테이블마다 모든 버튼이 들어가지는 않지만, 사용하는 버튼은 아래 순서를 유지한다.
+>
+> ```text
+> 위/아래 이동 → 행추가 → 행삭제 → 하위추가 → 저장 → 초기화
+> ```
+>
+> 예를 들어 하위추가가 없는 테이블은 `위/아래 이동 → 행추가 → 행삭제 → 저장` 순서만 유지한다.
+> 위/아래 이동이나 초기화가 없는 테이블도 나머지 버튼의 상대 순서는 바꾸지 않는다.
+
 > **`onAddRow` 반환 타입 필수 규칙** — 추가일: 2026-04-18
 >
 > `EditableDetailTable`(또는 패턴 C 직접 구현)에서 행추가 버튼을 연결할 때,
@@ -489,6 +500,7 @@ statusText={{
 
 `SharedTableColumn`의 `tdClassName` 속성으로 `td`에 직접 클래스를 적용할 수 있다.
 컬럼 모델을 사용하는 테이블(`TableBodyRenderer`)에서 특정 셀을 중앙 정렬할 때 사용한다.
+헤더(`th`)는 항상 중앙 정렬이므로, 바디(`td`) 정렬만 이 속성으로 조정한다.
 
 ```ts
 // plantSearchTableModel.tsx
@@ -497,6 +509,7 @@ statusText={{
 
 - `column.className`은 `th`에만 적용된다.
 - `column.tdClassName`은 해당 컬럼의 모든 `td`에 적용된다.
+- `column.align` 같은 헤더·바디 공용 정렬 속성은 사용하지 않는다.
 
 ### EditableDetailTable — className / 정렬 규칙
 
@@ -508,15 +521,16 @@ statusText={{
 `EditableDetailColumn`의 `className`은 해당 컬럼의 `th`에 적용된다.
 `common-table--detail` 환경에서는 `colgroup`이 동작하지 않으므로,
 컬럼 너비를 고정하려면 `className`에 너비 클래스를 지정한다.
+`EditableDetailTable`은 이 값을 `th`와 `td`에 함께 적용해 헤더와 바디의 컬럼 폭을 맞춘다.
 
 ```ts
 // 사용여부 체크박스 컬럼 너비 고정
-{ key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--checkbox' }
+{ key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--md' }
 ```
 
 - `common-table--detail`은 `thead`/`tbody`가 `display: block`이므로 `colgroup`이 무효
-- `th`에 너비 클래스를 적용하면 해당 헤더 셀 너비가 고정됨
-- `td` 너비는 `common-table--detail thead tr`, `tbody tr` 각각이 독립 `display: table`이므로 `th`와 연동되지 않음 — 현재는 `table-layout: fixed` + 균등 분배로 처리
+- `className`에 너비 클래스를 적용하면 해당 컬럼의 `th`와 모든 `td` 너비가 함께 고정됨
+- 마스터 테이블의 사용여부 컬럼과 같은 폭이 필요하면 `common-table__col--md`를 사용한다.
 
 ### 테이블 수정 버튼
 

@@ -123,6 +123,7 @@ export function EditableDetailTable<
     label: column.label,
     required: column.required,
     className: column.className,
+    tdClassName: column.className,
   }));
   const tableRows: SharedTableRow[] = rows.map((row) => ({
     id: row.id,

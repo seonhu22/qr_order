@@ -6,7 +6,7 @@ import type { DetailCode, MasterCode } from '../types';
 const COMMON_CODE_DETAIL_COLUMNS: EditableDetailColumn[] = [
   { key: 'code', label: '공통코드', type: 'text', required: true, readOnlyOnExisting: true },
   { key: 'name', label: '공통코드명', type: 'text', required: true },
-  { key: 'useYn', label: '사용여부', type: 'boolean' },
+  { key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--md' },
 ];
 
 type CommonCodeDetailTableProps = {
