@@ -16,7 +16,6 @@
  * - confirm 이후 어떤 콜백을 실행할지 결정
  */
 
-import { useDirtyConfirmExecutor } from '@/shared/hooks/useDirtyConfirmExecutor';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import type {
   AdminUserFlowState,
@@ -90,11 +89,6 @@ export function useAdminUserFlow({
       helperText: '초기 비밀번호는 SN111111 입니다.',
     },
   });
-  const { runWithDirtyConfirm } = useDirtyConfirmExecutor({
-    isDirty,
-    openDirtyConfirm: (state) => editableFlow.setSimpleModalState(state),
-  });
-
   /**
    * 행 삭제 흐름의 진입점.
    *
@@ -119,8 +113,9 @@ export function useAdminUserFlow({
    */
   const openPasswordResetConfirm = (userId: string) => {
     editableFlow.setSimpleModalState({
-      description: '초기화하겠습니까?',
-      helperText: '비밀번호가 초기화됩니다.',
+      type: 'passwordResetConfirm',
+      userId,
+      description: `${userId} 비밀번호를 초기화 하시겠습니까?`,
       onConfirm: async () => {
         if (!userId) {
           editableFlow.setSimpleModalState({
@@ -132,7 +127,7 @@ export function useAdminUserFlow({
         try {
           await onResetPassword(userId);
           editableFlow.setSimpleModalState({
-            description: '저장되었습니다.',
+            description: '비밀번호가 초기화되었습니다.',
             helperText: '초기 비밀번호는 SN111111 입니다.',
           });
         } catch (error) {
@@ -149,46 +144,15 @@ export function useAdminUserFlow({
    * 비밀번호 초기화 진입점.
    *
    * @description
-   * dirty 상태라면 먼저 "저장되지 않은 내용" 경고를 띄우고,
-   * 아니면 즉시 비밀번호 초기화 확인 플로우로 들어간다.
+   * 사용자 아이디를 포함한 확인 모달을 먼저 띄우고,
+   * 확인을 누른 뒤에만 비밀번호 초기화 API를 실행한다.
    *
    * @example
    * ```text
-   * dirty=true  -> "저장되지 않은 내용" 확인 -> 초기화 API -> 결과 안내
-   * dirty=false -> "비밀번호가 초기화됩니다" 확인 -> 초기화 API -> 결과 안내
+   * 초기화 버튼 -> "{아이디} 비밀번호를 초기화 하시겠습니까?" 확인 -> 초기화 API -> 결과 안내
    * ```
    */
   const requestResetPassword = (userId: string) => {
-    const handledByDirtyConfirm = runWithDirtyConfirm({
-      description: '초기화하겠습니까?',
-      helperText: '저장되지 않은 내용이 있습니다.',
-      onProceed: async () => {
-        if (!userId) {
-          editableFlow.setSimpleModalState({
-            description: '초기화할 사용자 아이디가 없습니다.',
-          });
-          return;
-        }
-
-        try {
-          await onResetPassword(userId);
-          editableFlow.setSimpleModalState({
-            description: '저장되었습니다.',
-            helperText: '초기 비밀번호는 SN111111 입니다.',
-          });
-        } catch (error) {
-          editableFlow.setSimpleModalState({
-            description:
-              error instanceof Error ? error.message : '비밀번호 초기화 중 오류가 발생했습니다.',
-          });
-        }
-      },
-    });
-
-    if (handledByDirtyConfirm) {
-      return;
-    }
-
     openPasswordResetConfirm(userId);
   };
 
