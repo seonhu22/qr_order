@@ -23,7 +23,6 @@ import {
   useSaveMenuMutation,
 } from '../api/systemMenuApi';
 
-
 /* =====================================================
  * 트리 조작 helper — 순수 함수
  * ===================================================== */
@@ -38,7 +37,7 @@ function updateNodeData(nodes: MenuNode[], id: string, patch: Partial<MenuData>)
       return {
         ...node,
         data: { ...node.data, ...patch } as MenuData,
-        label: patch.code !== undefined ? (patch.code || node.label) : node.label,
+        label: patch.code !== undefined ? patch.code || node.label : node.label,
       };
     }
     if (node.children?.length) {
@@ -333,11 +332,9 @@ export function useSystemMenuPageState() {
    * 2. 메뉴주소(path)가 없을 것 (path 있으면 리프 노드로 간주)
    * 3. 최대 5단계(depth 0~3)까지만 자식 추가 가능 — depth 4(5depth)는 리프
    */
-  const canAddChild = Boolean(
-    selectedNode && !selectedNode.data?.path && selectedDepth < 4,
-  );
-  const canDelete   = Boolean(selectedId);
-  const canMoveUp   = Boolean(selectedId && canNodeMoveUp(nodes, selectedId));
+  const canAddChild = Boolean(selectedNode && !selectedNode.data?.path && selectedDepth < 4);
+  const canDelete = Boolean(selectedId);
+  const canMoveUp = Boolean(selectedId && canNodeMoveUp(nodes, selectedId));
   const canMoveDown = Boolean(selectedId && canNodeMoveDown(nodes, selectedId));
 
   const handleSelect = (id: string) => setSelectedId(id);
@@ -454,7 +451,8 @@ export function useSystemMenuPageState() {
       setNodeErrors(errors);
       const messages: string[] = [];
       if (hasEmpty) messages.push('메뉴코드와 메뉴 명은 필수 입력 항목입니다.');
-      if (hasPathConflict) messages.push('하위 메뉴가 있는 항목에는 메뉴주소를 입력할 수 없습니다.');
+      if (hasPathConflict)
+        messages.push('하위 메뉴가 있는 항목에는 메뉴주소를 입력할 수 없습니다.');
       setNotice({ title: '알림', description: messages.join('\n') });
       return;
     }
@@ -493,7 +491,9 @@ export function useSystemMenuPageState() {
     try {
       const request = buildMenuRequest(nodes, originalNodes);
       await saveMenuMutation.mutateAsync(request);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.menu.list() });
+      // exact 옵션이란?
+      // - queryKey가 정확히 일치하는 쿼리만 리패칭한다. (배열 포함 여부, 순서 등 완전 일치)
+      await queryClient.refetchQueries({ queryKey: queryKeys.menu.list(), exact: true });
       const persistedNodes = markMenuNodesPersisted(nodes);
       setNodes(cloneMenuNodes(persistedNodes));
       setOriginalNodes(cloneMenuNodes(persistedNodes));
