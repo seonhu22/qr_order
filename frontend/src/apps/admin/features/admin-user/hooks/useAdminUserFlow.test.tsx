@@ -21,6 +21,7 @@ const createParams = (overrides?: Partial<Parameters<typeof useAdminUserFlow>[0]
   onResetDraftRows: vi.fn(),
   onDeleteSelectedRow: vi.fn(),
   onValidateRequiredFields: vi.fn(() => true),
+  onApplyRequiredFieldErrors: vi.fn(),
   onSaveChanges: vi.fn(async () => 'saved' as const),
   onResetPassword: vi.fn(async () => {}),
   ...overrides,
@@ -46,7 +47,7 @@ describe('useAdminUserFlow', () => {
     expect(result.current.state.pendingFilterAction).toBeNull();
   });
 
-  it('does not open save confirm when required field validation fails', () => {
+  it('shows required field notice first and applies errors after confirm', async () => {
     const params = createParams({
       onValidateRequiredFields: vi.fn(() => false),
     });
@@ -56,8 +57,15 @@ describe('useAdminUserFlow', () => {
       result.current.requestSave();
     });
 
-    // 필수값 미입력 시 모달 없이 input error 스타일만 표시
     expect(result.current.state.isSaveConfirmOpen).toBe(false);
+    expect(result.current.state.simpleModalState?.description).toBe('빈값을 채워주세요.');
+    expect(params.onApplyRequiredFieldErrors).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.confirmSimpleModal();
+    });
+
+    expect(params.onApplyRequiredFieldErrors).toHaveBeenCalledTimes(1);
     expect(result.current.state.simpleModalState).toBeNull();
   });
 
@@ -83,7 +91,7 @@ describe('useAdminUserFlow', () => {
     });
   });
 
-  it('shows unsaved warning before password reset and resets after confirm', async () => {
+  it('shows user id password reset confirm and resets after confirm', async () => {
     const params = createParams({
       isDirty: true,
     });
@@ -93,8 +101,10 @@ describe('useAdminUserFlow', () => {
       result.current.requestResetPassword('admin01');
     });
 
-    expect(result.current.state.simpleModalState?.description).toBe('초기화하겠습니까?');
-    expect(result.current.state.simpleModalState?.helperText).toBe('저장되지 않은 내용이 있습니다.');
+    expect(result.current.state.simpleModalState?.type).toBe('passwordResetConfirm');
+    expect(result.current.state.simpleModalState?.userId).toBe('admin01');
+    expect(result.current.state.simpleModalState?.description).toBe('admin01 비밀번호를 초기화 하시겠습니까?');
+    expect(result.current.state.simpleModalState?.helperText).toBeUndefined();
 
     await act(async () => {
       await result.current.confirmSimpleModal();
@@ -102,7 +112,7 @@ describe('useAdminUserFlow', () => {
 
     expect(params.onResetPassword).toHaveBeenCalledWith('admin01');
     expect(result.current.state.simpleModalState).toEqual({
-      description: '저장되었습니다.',
+      description: '비밀번호가 초기화되었습니다.',
       helperText: '초기 비밀번호는 SN111111 입니다.',
     });
   });

@@ -410,6 +410,7 @@ export function useCommonCodePageState() {
       open: !!detailFlow.notice,
       title: detailFlow.notice?.title ?? '안내',
       description: detailFlow.notice?.description,
+      hasConfirmAction: !!detailFlow.notice?.onConfirm,
     },
   };
 
@@ -467,6 +468,7 @@ export function useCommonCodePageState() {
       confirmSaveDetailRows: detailFlow.confirmSave,
       closeDetailSaveConfirm: detailFlow.closeSaveConfirm,
       closeDetailNotice: detailFlow.closeNotice,
+      confirmDetailNotice: detailFlow.confirmNotice,
     },
     uiProps: {
       selectedMasterId: effectiveSelectedMasterId,

@@ -1,5 +1,6 @@
-import { useGetQna } from '@/generated/settings-controller/settings-controller';
+import { useGetQna, useUpdateQna } from '@/generated/settings-controller/settings-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { DateTime } from '@/generated/types/dateTime';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
@@ -16,6 +17,8 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
   const answerStatus: InquiryAnswerStatus = res.answerYn === 'Y' ? 'answered' : 'pending';
   return {
     id: res.sysId ?? `inquiry-${index}`,
+    sysId: res.sysId,
+    fileUuid: res.fileUuid,
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
@@ -37,4 +40,23 @@ export function useInquiryManageQuery(searchKeyword = '') {
       },
     },
   );
+}
+
+/**
+ * 현재 inquiry update API는 일반 수정 CRUD가 아니라 답변 등록/수정 용도다.
+ * 백엔드가 실제로 사용하는 필드만 우선 조립한다.
+ */
+export function buildInquiryAnswerUpdateRequest(
+  row: Pick<InquiryManageRow, 'sysId'>,
+  answerDescription: string,
+): QnaRequest {
+  return {
+    sysId: row.sysId,
+    answerYn: 'Y',
+    answerDescription,
+  };
+}
+
+export function useInquiryAnswerMutation() {
+  return useUpdateQna();
 }

@@ -4,7 +4,7 @@
  * @description
  * - TableCard + TreeMenu 조합으로 공통코드 상세 테이블과 동일한 카드 헤더 패턴을 따른다.
  * - 컬럼: 메뉴코드(label·readonly for existing), 메뉴 명, 메뉴주소
- * - 액션: ↑ ↓ 행추가  하위추가  행삭제  저장  초기화
+ * - 액션: ↑ ↓ 행추가  행삭제  하위추가  저장  초기화
  * - 저장 시 필수 미입력 / 부모+경로 충돌 필드에 error 상태를 표시한다.
  */
 
@@ -12,12 +12,13 @@ import { useEffect, useRef } from 'react';
 import { TreeMenu } from '@/shared/components/treeMenu';
 import type { TreeMenuColumn } from '@/shared/components/treeMenu';
 import { InputBase } from '@/shared/components/input';
-import { Button } from '@/shared/components/button';
 import {
+  AddChildRowTableButton,
   AddRowTableButton,
   DeleteRowTableButton,
   MoveDownTableButton,
   MoveUpTableButton,
+  ResetTableButton,
   SaveTableButton,
 } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -153,30 +154,16 @@ export function SystemMenuTree({
           onAddSibling();
         }}
       />
-      <Button
-        type="button"
-        variant="text"
-        size="sm"
-        className="common-code-card__text-action"
+      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
+      <AddChildRowTableButton
         disabled={!canAddChild || isSaving}
         onClick={() => {
           shouldScrollRef.current = true;
           onAddChild();
         }}
-      >
-        + 하위추가
-      </Button>
-      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
+      />
       <SaveTableButton loading={isSaving} onClick={onSave} />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={isSaving}
-        onClick={onReset}
-      >
-        초기화
-      </Button>
+      <ResetTableButton disabled={isSaving} onClick={onReset} />
     </>
   );
 

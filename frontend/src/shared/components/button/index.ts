@@ -8,6 +8,7 @@
 
 export { Button, LinkButton } from './Button';
 export {
+  AddChildRowTableButton,
   AddRowTableButton,
   CreateTableButton,
   DeleteRowTableButton,
@@ -17,6 +18,7 @@ export {
   MoveUpTableButton,
   PasswordResetButton,
   ResetFilterButton,
+  ResetTableButton,
   SaveTableButton,
   SearchFilterButton,
 } from './ActionButtons';

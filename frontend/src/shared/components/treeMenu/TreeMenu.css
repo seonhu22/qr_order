@@ -42,7 +42,7 @@
 .tree-menu__header th {
   padding: 0 var(--spacing-6);
   height: 2.5rem;
-  text-align: left;
+  text-align: center;
   font-size: var(--typography-size-sidebar);
   font-weight: var(--typography-weight-ui);
   color: var(--color-text-tertiary);

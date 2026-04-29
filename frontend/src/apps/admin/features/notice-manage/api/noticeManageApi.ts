@@ -8,17 +8,26 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import type { NoticeResponse } from '@/generated/types/noticeResponse';
 import type { NoticeManageRow } from '../types';
 
-export function mapToNoticeManageRow(res: NoticeResponse, index: number): NoticeManageRow {
+type NoticeResponseWithMeta = NoticeResponse & {
+  sysId?: string;
+  insertUserId?: string;
+  insertDatetime?: string;
+  modifyDatetime?: string;
+};
+
+export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number): NoticeManageRow {
+  const sysId = res.sysId ?? '';
+
   return {
-    id: `notice-${index}-${res.noticeTitle ?? ''}`,
-    sysId: '',
-    noticeType: 'notice',  // API 확정 후 res.noticeType 으로 교체
-    target: 'all',         // API 확정 후 res.target 으로 교체
+    id: sysId || `notice-${index}-${res.noticeTitle ?? ''}-${res.startDate ?? ''}`,
+    sysId,
+    noticeType: 'notice',
+    target: 'all',
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
-    registrant: '',
-    registeredAt: res.startDate ?? '',
-    updatedAt: '',
+    registrant: res.insertUserId ?? '',
+    registeredAt: res.insertDatetime ?? res.startDate ?? '',
+    updatedAt: res.modifyDatetime ?? '',
   };
 }
 

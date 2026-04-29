@@ -2,22 +2,18 @@ import { http, HttpResponse } from 'msw';
 import { handlers as authHandlers } from '../test/handlers';
 import {
   getDelCommonMasterMockHandler,
-  getDelNoticeMockHandler,
   getDelPaymentMockHandler,
   getDelPlantMockHandler,
   getDelRuleMasterMockHandler,
   getGetAdminUserMockHandler,
   getGetMenuMockHandler,
   getGetMessageMockHandler,
-  getGetNoticeMockHandler,
   getGetPaymentCouponMockHandler,
   getGetPaymentMockHandler,
   getGetPlantStatusMockHandler,
-  getGetQnaMockHandler,
   getGetRuleDetailMockHandler,
   getGetRuleMasterMockHandler,
   getNewCommonMasterMockHandler,
-  getNewNoticeMockHandler,
   getNewPaymentMockHandler,
   getNewPlantMockHandler,
   getNewRuleMasterMockHandler,
@@ -30,10 +26,8 @@ import {
   getSearchCommonMockHandler,
   getSearchPlantMockHandler,
   getUpdateCommonMasterMockHandler,
-  getUpdateNoticeMockHandler,
   getUpdatePaymentMockHandler,
   getUpdatePlantMockHandler,
-  getUpdateQnaMockHandler,
   getUpdateRuleMasterMockHandler,
   getSaveRuleMockHandler,
 } from '../generated/settings-controller/settings-controller.msw';
@@ -45,8 +39,6 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
-import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
-import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
 
 const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', ({ request }) => {
   const url = new URL(request.url);
@@ -93,35 +85,6 @@ const couponOverrideHandler = http.get(
   },
 );
 
-const noticeOverrideHandler = http.get(
-  '*/api/system/settings/board/notice/search',
-  ({ request }) => {
-    const url = new URL(request.url);
-    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-    const filtered = keyword
-      ? NOTICE_MOCK_ROWS.filter(
-          (row) =>
-            row.noticeTitle?.toLowerCase().includes(keyword) ||
-            row.noticeDescription?.toLowerCase().includes(keyword),
-        )
-      : NOTICE_MOCK_ROWS;
-    return HttpResponse.json(filtered);
-  },
-);
-
-const inquiryOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({ request }) => {
-  const url = new URL(request.url);
-  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-  const filtered = keyword
-    ? INQUIRY_MANAGE_MOCK_ROWS.filter(
-        (row) =>
-          row.qnaTitle?.toLowerCase().includes(keyword) ||
-          row.qnaDescription?.toLowerCase().includes(keyword),
-      )
-    : INQUIRY_MANAGE_MOCK_ROWS;
-  return HttpResponse.json(filtered);
-});
-
 const settingsHandlers = [
   getUpdateRuleMasterMockHandler(),
   getNewRuleMasterMockHandler(),
@@ -140,10 +103,6 @@ const settingsHandlers = [
   getNewCommonMasterMockHandler(),
   getDelCommonMasterMockHandler(),
   getSaveCommonDetailMockHandler(),
-  getUpdateQnaMockHandler(),
-  getUpdateNoticeMockHandler(),
-  getNewNoticeMockHandler(),
-  getDelNoticeMockHandler(),
   getSaveAdminUserMockHandler(),
   getGetRuleMasterMockHandler(),
   getGetRuleDetailMockHandler(),
@@ -155,8 +114,6 @@ const settingsHandlers = [
   getGetMenuMockHandler(),
   getSearchCommonMockHandler(),
   getSearchCommonDetailMockHandler(),
-  getGetQnaMockHandler(),
-  getGetNoticeMockHandler(),
   getGetAdminUserMockHandler(),
 ];
 
@@ -167,8 +124,6 @@ export const handlers = [
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
-  noticeOverrideHandler,
-  inquiryOverrideHandler,
   ...settingsHandlers,
   ...getComboControllerMock(),
   ...getFileControllerMock(),

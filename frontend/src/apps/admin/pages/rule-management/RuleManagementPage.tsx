@@ -254,6 +254,11 @@ export function RuleManagementPage() {
         open={detailModalProps.notice.open}
         title={detailModalProps.notice.title}
         description={detailModalProps.notice.description}
+        primaryAction={
+          detailModalProps.notice.hasConfirmAction
+            ? { label: '확인', onClick: actions.confirmDetailNotice }
+            : undefined
+        }
         onClose={actions.closeDetailNotice}
       />
 

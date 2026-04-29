@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { mapToChangeHistoryRow, useChangeHistoryQuery } from '../api/changeHistoryApi';
+import { resolveMenuDisplayName } from '@/shared/menu/menuCatalog';
+import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
 import {
   createDefaultQueryDateRangeDraft,
   createDefaultQueryDateRangeParams,
@@ -33,8 +35,20 @@ export function useChangeHistoryPageState() {
     endDate: searchParams.endDate,
     searchKeyword: searchParams.searchKeyword,
   });
+  const { catalog } = useAdminMenuCatalogQuery();
 
-  const allRows = useMemo(() => (query.data ?? []).map(mapToChangeHistoryRow), [query.data]);
+  const allRows = useMemo(
+    () =>
+      (query.data ?? []).map((item, index) => {
+        const row = mapToChangeHistoryRow(item, index);
+
+        return {
+          ...row,
+          menuNm: resolveMenuDisplayName(catalog, item.menuCd, row.menuNm),
+        };
+      }),
+    [catalog, query.data],
+  );
 
   const rows = useMemo(
     () =>

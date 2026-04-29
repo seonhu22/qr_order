@@ -9,6 +9,7 @@ import {
 import type { SysAccessLogDetail } from '@/generated/types/sysAccessLogDetail';
 import type { SysAccessLogMaster } from '@/generated/types/sysAccessLogMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { AccessLogDetailRow, AccessLogMasterRow } from '../types';
 import type { AccessLogSearchParams } from '../utils/accessLogDateUtils';
@@ -28,8 +29,8 @@ export function mapToAccessLogMasterRow(master: SysAccessLogMaster): AccessLogMa
     userId: getSafeText(master.userId),
     userNm: getSafeText(master.userNm),
     ipAddress: getSafeText(master.ipAddress),
-    loginDatetime: getSafeText(master.loginDatetime),
-    logoutDatetime: getSafeText(master.logoutDatetime),
+    loginDatetime: formatDateTimeForDisplay(master.loginDatetime),
+    logoutDatetime: formatDateTimeForDisplay(master.logoutDatetime),
   };
 }
 
@@ -43,8 +44,8 @@ export function mapToAccessLogDetailRow(
     id: createAccessLogDetailId(detail, index),
     menuCd,
     menuNm: menuCd,
-    menuOpenDatetime: getSafeText(detail.menuOpenDatetime),
-    menuCloseDatetime: getSafeText(detail.menuCloseDatetime),
+    menuOpenDatetime: formatDateTimeForDisplay(detail.menuOpenDatetime),
+    menuCloseDatetime: formatDateTimeForDisplay(detail.menuCloseDatetime),
   };
 }
 

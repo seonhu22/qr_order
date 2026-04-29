@@ -21,6 +21,11 @@
   background-color: var(--color-bg-surface);
 }
 
+.admin-user-reset-modal__account-id {
+  color: var(--color-brand-default);
+  font-weight: var(--typography-weight-heading);
+}
+
 /* =====================================================
  * 반응형
  * ===================================================== */

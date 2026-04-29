@@ -20,10 +20,10 @@ type CreateAdminUserTableModelParams = {
  */
 export function createAdminUserTableColumns(): SharedTableColumn[] {
   return [
-    { key: 'userId', label: '사용자 아이디', required: true, align: 'left' },
-    { key: 'userName', label: '사용자 명', required: true, align: 'left' },
-    { key: 'plantCd', label: '사업장', required: true, align: 'left' },
-    { key: 'passwordReset', label: '비밀번호 초기화' },
+    { key: 'userId', label: '사용자 아이디', required: true },
+    { key: 'userName', label: '사용자 명', required: true },
+    { key: 'plantCd', label: '사업장', required: true },
+    { key: 'passwordReset', label: '비밀번호 초기화', className: 'common-table__col--md' },
   ];
 }
 

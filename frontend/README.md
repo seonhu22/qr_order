@@ -201,7 +201,9 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
 | [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
+| [`docs/admin-navigation.md`](./docs/admin-navigation.md) | `sys_menu` 기반 header/sidebar/breadcrumb/access-log 규칙 |
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
+| [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
 상태 처리 작성 기준:
@@ -217,6 +219,9 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
   `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
   테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
   자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
+  행추가/행삭제가 있는 인라인 편집 테이블은 저장 시 빈값 안내 모달을 먼저 표시하고,
+  사용자가 확인한 뒤에만 해당 필드의 error 스타일을 표시한다. 검증 안내가 1개면 기본 안내 모달,
+  2개 이상이면 리스트형 검증 안내 모달을 사용한다.
 
 공용 첨부파일 컴포넌트:
 - [`docs/components/FileAttachment.md`](./docs/components/FileAttachment.md)

@@ -60,6 +60,7 @@ export function AdminUserPage() {
         <AdminUserFlowModals
           state={flowState}
           isSaving={status.isSaving}
+          isResettingPassword={status.isResettingPassword}
           onConfirmSave={actions.confirmSave}
           onCloseSaveConfirm={actions.closeSaveConfirm}
           onCloseSimpleModal={actions.closeSimpleModal}

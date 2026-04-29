@@ -5,7 +5,7 @@ import {
   TableCard,
   TableCardContentState,
 } from '@/shared/components/table';
-import type { MessageRow } from '../types';
+import type { MessageRow, MessageRowErrors } from '../types';
 import {
   createMessageTableColumns,
   createMessageTableRows,
@@ -14,6 +14,7 @@ import {
 type MessageTableProps = {
   rows: MessageRow[];
   selectedRowId: string;
+  rowErrors: MessageRowErrors;
   isLoading: boolean;
   isError: boolean;
   isSaving: boolean;
@@ -34,6 +35,7 @@ type MessageTableProps = {
 export function MessageTable({
   rows,
   selectedRowId,
+  rowErrors,
   isLoading,
   isError,
   isSaving,
@@ -66,6 +68,7 @@ export function MessageTable({
   const tableRows = createMessageTableRows({
     rows,
     selectedRowId,
+    rowErrors,
     onSelectRow,
     onChangeRowField,
   });

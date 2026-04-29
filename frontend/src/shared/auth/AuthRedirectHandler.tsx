@@ -24,6 +24,7 @@ export function AuthRedirectHandler() {
   const redirectToLogin = useCallback(() => {
     const loginPath = resolveLoginPath(location.pathname);
 
+
     setIsExpiredModalOpen(false);
     navigate(loginPath, { replace: true });
   }, [location.pathname, navigate]);

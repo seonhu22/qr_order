@@ -10,8 +10,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/shared/api/queryKeys';
+import { findMenuByIdentity } from '@/apps/admin/features/sidebar/utils/adminMenuCatalogNav';
+import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 import {
   buildMenuRequest,
@@ -19,10 +19,8 @@ import {
   cloneMenuNodes,
   hasMenuChanges,
   markMenuNodesPersisted,
-  useMenuQuery,
   useSaveMenuMutation,
 } from '../api/systemMenuApi';
-
 
 /* =====================================================
  * 트리 조작 helper — 순수 함수
@@ -38,7 +36,7 @@ function updateNodeData(nodes: MenuNode[], id: string, patch: Partial<MenuData>)
       return {
         ...node,
         data: { ...node.data, ...patch } as MenuData,
-        label: patch.code !== undefined ? (patch.code || node.label) : node.label,
+        label: patch.code !== undefined ? patch.code || node.label : node.label,
       };
     }
     if (node.children?.length) {
@@ -273,7 +271,6 @@ function createNewMenuNode(parentMenuCd?: string, ordNo = 0): MenuNode {
  * ===================================================== */
 
 export function useSystemMenuPageState() {
-  const queryClient = useQueryClient();
   const [nodes, setNodes] = useState<MenuNode[]>([]);
   /** 초기화 기준점 — 최초 로드 또는 마지막 저장 성공 시점의 데이터 */
   const [originalNodes, setOriginalNodes] = useState<MenuNode[]>([]);
@@ -289,7 +286,12 @@ export function useSystemMenuPageState() {
 
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [notice, setNotice] = useState<{ title: string; description?: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    title: string;
+    description?: string;
+    validationItems?: string[];
+    onConfirm?: () => void;
+  } | null>(null);
   const [nodeErrors, setNodeErrors] = useState<NodeFieldErrors>(emptyErrors);
 
   /** 초기화 dirty guard 확인 모달 */
@@ -303,20 +305,35 @@ export function useSystemMenuPageState() {
 
   const hasInitialized = useRef(false);
 
-  const menuQuery = useMenuQuery();
+  // 메뉴 카탈로그 쿼리가 관리자 메뉴의 단일 진실 원천이다.
+  // 얇은 useMenuQuery 래퍼는 제거하고 공용 훅을 직접 사용한다.
+  const menuQuery = useAdminMenuCatalogQuery();
   const saveMenuMutation = useSaveMenuMutation();
 
-  /** 최초 로드 시 한 번만 nodes를 초기화한다. 편집 중인 내용을 query 갱신으로 덮지 않는다. */
-  useEffect(() => {
-    if (menuQuery.data && !hasInitialized.current) {
-      hasInitialized.current = true;
-      const menuTree = buildMenuTree(menuQuery.data);
-      const cloned = cloneMenuNodes(menuTree);
-      setNodes(cloned);
-      setOriginalNodes(cloneMenuNodes(menuTree));
-      setDefaultExpandedIds(collectExpandedIds(menuTree));
-    }
-  }, [menuQuery.data]);
+  const resetFromMenuRows = (
+    menuRows: Parameters<typeof buildMenuTree>[0],
+    selectedIdentity?: { sysId?: string; menuCd?: string; path?: string },
+  ) => {
+    const menuTree = buildMenuTree(menuRows);
+    const cloned = cloneMenuNodes(menuTree);
+    const matchedMenu = findMenuByIdentity(
+      menuRows.map((menu) => ({
+        sysId: menu.sysId,
+        menuCd: menu.menuCd,
+        menuNm: menu.menuNm,
+        parentMenuCd: menu.parentMenuCd,
+        path: menu.menuUrl ?? '',
+        ordNo: Number(menu.ordNo) || 0,
+        treeLevel: Number(menu.treeLevel) || 0,
+      })),
+      selectedIdentity,
+    );
+
+    setNodes(cloned);
+    setOriginalNodes(cloneMenuNodes(menuTree));
+    setDefaultExpandedIds(collectExpandedIds(menuTree));
+    setSelectedId(matchedMenu?.sysId ?? matchedMenu?.menuCd ?? '');
+  };
 
   /** 현재 편집 중인 내용이 originalNodes와 다르면 true */
   const isDirty = useMemo(
@@ -326,6 +343,31 @@ export function useSystemMenuPageState() {
 
   const selectedNode = selectedId ? findNode(nodes, selectedId) : undefined;
   const selectedDepth = selectedId ? getNodeDepth(nodes, selectedId) : -1;
+  const selectedNodeIdentity = useMemo(
+    () => ({
+      sysId: selectedNode?.data?.sysId,
+      menuCd: selectedNode?.data?.code,
+      path: selectedNode?.data?.path,
+    }),
+    [selectedNode?.data?.code, selectedNode?.data?.path, selectedNode?.data?.sysId],
+  );
+
+  /** 최초 로드 시 한 번만 nodes를 초기화하고, dirty하지 않을 때만 서버 최신값으로 동기화한다. */
+  useEffect(() => {
+    if (!menuQuery.data) {
+      return;
+    }
+
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      resetFromMenuRows(menuQuery.data);
+      return;
+    }
+
+    if (!isDirty) {
+      resetFromMenuRows(menuQuery.data, selectedNodeIdentity);
+    }
+  }, [isDirty, menuQuery.data, selectedNodeIdentity]);
 
   /**
    * 하위 추가 가능 조건:
@@ -333,11 +375,9 @@ export function useSystemMenuPageState() {
    * 2. 메뉴주소(path)가 없을 것 (path 있으면 리프 노드로 간주)
    * 3. 최대 5단계(depth 0~3)까지만 자식 추가 가능 — depth 4(5depth)는 리프
    */
-  const canAddChild = Boolean(
-    selectedNode && !selectedNode.data?.path && selectedDepth < 4,
-  );
-  const canDelete   = Boolean(selectedId);
-  const canMoveUp   = Boolean(selectedId && canNodeMoveUp(nodes, selectedId));
+  const canAddChild = Boolean(selectedNode && !selectedNode.data?.path && selectedDepth < 4);
+  const canDelete = Boolean(selectedId);
+  const canMoveUp = Boolean(selectedId && canNodeMoveUp(nodes, selectedId));
   const canMoveDown = Boolean(selectedId && canNodeMoveDown(nodes, selectedId));
 
   const handleSelect = (id: string) => setSelectedId(id);
@@ -451,11 +491,17 @@ export function useSystemMenuPageState() {
     const hasPathConflict = errors.path.size > 0;
 
     if (hasEmpty || hasPathConflict) {
-      setNodeErrors(errors);
       const messages: string[] = [];
-      if (hasEmpty) messages.push('메뉴코드와 메뉴 명은 필수 입력 항목입니다.');
-      if (hasPathConflict) messages.push('하위 메뉴가 있는 항목에는 메뉴주소를 입력할 수 없습니다.');
-      setNotice({ title: '알림', description: messages.join('\n') });
+      if (hasEmpty) messages.push('빈값을 채워주세요.');
+      if (hasPathConflict) messages.push('하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.');
+      setNotice({
+        title: '알림',
+        validationItems: messages,
+        onConfirm: () => {
+          setNodeErrors(errors);
+          setNotice(null);
+        },
+      });
       return;
     }
 
@@ -493,10 +539,14 @@ export function useSystemMenuPageState() {
     try {
       const request = buildMenuRequest(nodes, originalNodes);
       await saveMenuMutation.mutateAsync(request);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.menu.list() });
-      const persistedNodes = markMenuNodesPersisted(nodes);
-      setNodes(cloneMenuNodes(persistedNodes));
-      setOriginalNodes(cloneMenuNodes(persistedNodes));
+      const refetchResult = await menuQuery.refetch();
+      if (refetchResult.data) {
+        resetFromMenuRows(refetchResult.data, selectedNodeIdentity);
+      } else {
+        const persistedNodes = markMenuNodesPersisted(nodes);
+        setNodes(cloneMenuNodes(persistedNodes));
+        setOriginalNodes(cloneMenuNodes(persistedNodes));
+      }
       closeModal();
       setNotice({ title: '알림', description: '저장되었습니다.' });
     } catch {
@@ -518,6 +568,14 @@ export function useSystemMenuPageState() {
 
   const closeSaveConfirm = () => setIsSaveConfirmOpen(false);
   const closeNotice = () => setNotice(null);
+  const confirmNotice = () => {
+    if (notice?.onConfirm) {
+      notice.onConfirm();
+      return;
+    }
+
+    setNotice(null);
+  };
 
   return {
     data: { nodes },
@@ -543,6 +601,7 @@ export function useSystemMenuPageState() {
       confirmSave,
       closeSaveConfirm,
       closeNotice,
+      confirmNotice,
     },
     uiProps: {
       selectedId,

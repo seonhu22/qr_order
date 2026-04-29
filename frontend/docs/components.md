@@ -167,6 +167,7 @@ shared/components/
       NoticeModal.tsx             ← 안내(확인 1버튼) 모달
       NoticeConfirmModal.tsx      ← 안내 + 확인/취소 모달
       SimpleDefaultModal.tsx      ← 빈 슬롯형 범용 모달
+      ValidationNoticeModal.tsx   ← 검증 안내 목록 모달
   table/
     index.ts              ← 외부 공개 API (배럴 파일)
     types.ts              ← 대표 공개 props/type
@@ -377,8 +378,23 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 14. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
 15. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
 16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
-17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 여러 안내 문구를 합칠 때 `messages.join('\n')` 형태로 사용한다.
+17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 단순 안내 문구를 합칠 때만 `messages.join('\n')` 형태로 사용한다.
 18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
+19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
+20. 행추가/행삭제가 있는 인라인 편집 테이블의 저장 검증 안내는 개수에 따라 모달을 나눈다. 검증 안내가 1개면 `SimpleDefaultModal`, 2개 이상이면 `ValidationNoticeModal`을 사용한다. 이 규칙은 셀 내부에 필드별 안내 문구를 둘 공간이 부족한 행추가 테이블 전용이며, 일반 등록/수정 폼 모달은 기존처럼 필드 옆 `errorText`를 사용한다.
+
+```tsx
+<SimpleDefaultModal
+  open={open}
+  description={(
+    <>
+      <strong className="admin-user-reset-modal__account-id">admin01</strong>
+      {' 비밀번호를 초기화 하시겠습니까?'}
+    </>
+  )}
+  onClose={onClose}
+/>
+```
 
 ---
 

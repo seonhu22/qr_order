@@ -28,7 +28,6 @@ import type {
   SharedTableCell,
   SharedTableColumn,
   SharedTableRow,
-  TableColumnAlign,
   TextCellModel,
   UseYnBadgeCellModel,
 } from '@/shared/components/table/tableModelTypes';
@@ -42,18 +41,6 @@ type TableBodyRendererProps = {
   colGroup?: ReactNode;
   headerCellOverrides?: Partial<Record<string, SharedTableCell>>;
 };
-
-function getAlignClassName(align?: TableColumnAlign) {
-  if (align === 'left') {
-    return 'common-table__cell--left';
-  }
-
-  if (align === 'right') {
-    return 'common-table__cell--right';
-  }
-
-  return undefined;
-}
 
 type BuiltInSharedTableCell = Exclude<SharedTableCell, CustomCellModel>;
 
@@ -162,10 +149,7 @@ export function TableBodyRenderer({
                   key={column.key}
                   label={column.label}
                   required={column.required}
-                  className={
-                    [getAlignClassName(column.align), column.className].filter(Boolean).join(' ') ||
-                    undefined
-                  }
+                  className={column.className}
                   ariaLabel={column.ariaLabel}
                 >
                   {headerCellOverride ? renderCell(headerCellOverride) : undefined}

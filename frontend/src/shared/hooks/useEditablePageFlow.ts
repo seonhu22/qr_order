@@ -10,11 +10,13 @@
  * admin-user, message 같은 편집형 목록 화면에서 재사용한다.
  */
 
-import { startTransition, useState } from 'react';
+import { startTransition, useState, type ReactNode } from 'react';
 import { useFilterDirtyCheck } from './useFilterDirtyCheck';
 
 export type EditablePageSimpleModalState = {
-  description: string;
+  type?: 'passwordResetConfirm';
+  userId?: string;
+  description: ReactNode;
   helperText?: string;
   onConfirm?: () => void | Promise<void>;
 } | null;
@@ -33,7 +35,12 @@ type UseEditablePageFlowParams = {
   onResetFilters: () => void;
   onResetDraftRows?: () => void;
   onValidateRequiredFields?: () => boolean;
+  onApplyRequiredFieldErrors?: () => void;
   onSaveChanges: () => Promise<SaveResult> | SaveResult;
+  requiredFieldNotice?: {
+    description: string;
+    helperText?: string;
+  };
   savedNotice?: {
     description: string;
     helperText?: string;
@@ -54,7 +61,11 @@ export function useEditablePageFlow({
   onResetFilters,
   onResetDraftRows,
   onValidateRequiredFields,
+  onApplyRequiredFieldErrors,
   onSaveChanges,
+  requiredFieldNotice = {
+    description: '빈값을 채워주세요.',
+  },
   savedNotice = {
     description: '저장되었습니다.',
   },
@@ -97,6 +108,13 @@ export function useEditablePageFlow({
    */
   const requestSave = () => {
     if (onValidateRequiredFields && !onValidateRequiredFields()) {
+      setSimpleModalState({
+        ...requiredFieldNotice,
+        onConfirm: () => {
+          onApplyRequiredFieldErrors?.();
+          setSimpleModalState(null);
+        },
+      });
       return;
     }
 
