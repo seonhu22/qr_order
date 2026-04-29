@@ -203,3 +203,21 @@ export function findMenuByPath(catalog: MenuCatalog, pathname?: string | null) {
 export function getMenuNmByCd(catalog: MenuCatalog, menuCd?: string | null) {
   return findMenuByCd(catalog, menuCd)?.menuNm;
 }
+
+export function resolveMenuDisplayName(
+  catalog: MenuCatalog,
+  menuCd?: string | null,
+  menuNm?: string | null,
+) {
+  const normalizedMenuName = menuNm?.trim() ?? '';
+  if (normalizedMenuName) {
+    return normalizedMenuName;
+  }
+
+  const catalogMenuName = getMenuNmByCd(catalog, menuCd);
+  if (catalogMenuName) {
+    return catalogMenuName;
+  }
+
+  return menuCd?.trim() ?? '';
+}

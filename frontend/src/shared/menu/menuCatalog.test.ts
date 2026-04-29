@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { Menu } from '@/generated/types/menu';
 import {
   createMenuCatalog,
-  findBestPathMatch,
+    findBestPathMatch,
   findMenuByCd,
   findMenuByPath,
   getMenuNmByCd,
   mapMenuToCatalogItem,
   normalizeMenuPath,
+  resolveMenuDisplayName,
 } from './menuCatalog';
 
 const MENU_FIXTURES: Menu[] = [
@@ -96,5 +97,13 @@ describe('menuCatalog', () => {
 
     expect(findBestPathMatch(items, '/admin/system/common-code')?.key).toBe('commonCode');
     expect(findBestPathMatch(items, '/admin/system/plant/new')?.key).toBe('plantSearch');
+  });
+
+  it('resolves display menu name in the order of response name, catalog name, and menu code', () => {
+    const catalog = createMenuCatalog(MENU_FIXTURES);
+
+    expect(resolveMenuDisplayName(catalog, 'commonCode', '응답 메뉴명')).toBe('응답 메뉴명');
+    expect(resolveMenuDisplayName(catalog, 'commonCode', '')).toBe('공통코드');
+    expect(resolveMenuDisplayName(catalog, 'unknownMenu', '')).toBe('unknownMenu');
   });
 });
