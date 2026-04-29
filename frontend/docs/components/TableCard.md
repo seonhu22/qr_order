@@ -209,6 +209,29 @@ const headerActions = (
 > </div>
 > ```
 
+> **행추가 테이블 저장 검증 규칙** — 추가일: 2026-04-29
+>
+> 행추가/행삭제가 있는 인라인 편집 테이블은 셀 내부에 필드별 안내 문구를 둘 공간이 부족하므로,
+> 저장 버튼 클릭 시 빈값을 바로 error 스타일로 표시하지 않는다.
+>
+> ```text
+> 저장 클릭 → 검증 안내 모달 → 확인 클릭 → 해당 필드 error 스타일 표시
+> ```
+>
+> 검증 안내가 1개면 `SimpleDefaultModal`로 문장만 표시한다.
+> 검증 안내가 2개 이상이면 `ValidationNoticeModal`로 리스트 형태로 표시한다.
+>
+> 예:
+>
+> ```text
+> - 빈값을 채워주세요.
+> - 하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.
+> ```
+>
+> 이 규칙은 `CommonCodeDetailTable`, `RuleDetailTable`, `AdminUserTable`, `MessageTable`,
+> `SystemMenuTree`처럼 행을 직접 추가/삭제하고 저장하는 화면에 적용한다.
+> 일반 등록/수정 폼 모달은 기존처럼 필드 옆 errorText를 사용한다.
+
 ```tsx
 const detailActions = (
   <>
