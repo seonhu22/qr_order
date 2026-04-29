@@ -80,6 +80,7 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getDuplicateData" resultType="htms.QROrder.system.domain.Message">
@@ -94,6 +95,7 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.system.domain.Message">
@@ -108,5 +110,6 @@
         <foreach collection="updateItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 </mapper>
