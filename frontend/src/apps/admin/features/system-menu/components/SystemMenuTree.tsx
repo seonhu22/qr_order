@@ -4,7 +4,7 @@
  * @description
  * - TableCard + TreeMenu 조합으로 공통코드 상세 테이블과 동일한 카드 헤더 패턴을 따른다.
  * - 컬럼: 메뉴코드(label·readonly for existing), 메뉴 명, 메뉴주소
- * - 액션: ↑ ↓ 행추가  하위추가  행삭제  저장  초기화
+ * - 액션: ↑ ↓ 행추가  행삭제  하위추가  저장  초기화
  * - 저장 시 필수 미입력 / 부모+경로 충돌 필드에 error 상태를 표시한다.
  */
 
@@ -153,6 +153,7 @@ export function SystemMenuTree({
           onAddSibling();
         }}
       />
+      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
       <Button
         type="button"
         variant="text"
@@ -166,7 +167,6 @@ export function SystemMenuTree({
       >
         + 하위추가
       </Button>
-      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
       <SaveTableButton loading={isSaving} onClick={onSave} />
       <Button
         type="button"
