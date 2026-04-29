@@ -336,6 +336,7 @@ export function useRuleManagementPage() {
       open: !!detailFlow.notice,
       title: detailFlow.notice?.title ?? '알림',
       description: detailFlow.notice?.description,
+      hasConfirmAction: !!detailFlow.notice?.onConfirm,
     },
   };
 
@@ -384,6 +385,7 @@ export function useRuleManagementPage() {
       confirmSaveDetailRows: detailFlow.confirmSave,
       closeDetailSaveConfirm: detailFlow.closeSaveConfirm,
       closeDetailNotice: detailFlow.closeNotice,
+      confirmDetailNotice: detailFlow.confirmNotice,
     },
     uiProps: {
       selectedMasterId: effectiveSelectedMasterId,
