@@ -12,12 +12,13 @@ import { useEffect, useRef } from 'react';
 import { TreeMenu } from '@/shared/components/treeMenu';
 import type { TreeMenuColumn } from '@/shared/components/treeMenu';
 import { InputBase } from '@/shared/components/input';
-import { Button } from '@/shared/components/button';
 import {
+  AddChildRowTableButton,
   AddRowTableButton,
   DeleteRowTableButton,
   MoveDownTableButton,
   MoveUpTableButton,
+  ResetTableButton,
   SaveTableButton,
 } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -154,29 +155,15 @@ export function SystemMenuTree({
         }}
       />
       <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
-      <Button
-        type="button"
-        variant="text"
-        size="sm"
-        className="common-code-card__text-action"
+      <AddChildRowTableButton
         disabled={!canAddChild || isSaving}
         onClick={() => {
           shouldScrollRef.current = true;
           onAddChild();
         }}
-      >
-        + 하위추가
-      </Button>
+      />
       <SaveTableButton loading={isSaving} onClick={onSave} />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={isSaving}
-        onClick={onReset}
-      >
-        초기화
-      </Button>
+      <ResetTableButton disabled={isSaving} onClick={onReset} />
     </>
   );
 

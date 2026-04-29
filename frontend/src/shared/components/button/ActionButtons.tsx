@@ -116,6 +116,24 @@ export function DeleteRowTableButton({ onClick, disabled }: DisabledButtonProps)
 }
 
 /**
+ * 트리형 테이블의 하위추가 버튼.
+ */
+export function AddChildRowTableButton({ onClick, disabled }: DisabledButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant="text"
+      size="sm"
+      className="common-code-card__text-action"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      + 하위추가
+    </Button>
+  );
+}
+
+/**
  * 상세/편집 테이블의 저장 버튼.
  */
 export function SaveTableButton({ onClick, loading, disabled }: LoadingButtonProps) {
@@ -129,6 +147,17 @@ export function SaveTableButton({ onClick, loading, disabled }: LoadingButtonPro
       onClick={onClick}
     >
       저장
+    </Button>
+  );
+}
+
+/**
+ * 테이블 상단 초기화 버튼.
+ */
+export function ResetTableButton({ onClick, disabled }: DisabledButtonProps) {
+  return (
+    <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onClick}>
+      초기화
     </Button>
   );
 }

@@ -47,7 +47,7 @@ export function ValidationNoticeModal({
     >
       <div className="validation-notice-modal__body">
         {description ? <p className="validation-notice-modal__description">{description}</p> : null}
-        <ul className="validation-notice-modal__list">
+        <ul className="validation-notice-modal__list" aria-label="검증 안내 목록">
           {items.map((item, index) => (
             <li
               key={`${item}-${index}`}

@@ -10,14 +10,25 @@
 
 import { useState } from 'react';
 import { CheckboxInput } from '@/shared/components/checkbox';
-import { EditTableButton } from '@/shared/components/button';
+import {
+  AddChildRowTableButton,
+  AddRowTableButton,
+  DeleteRowTableButton,
+  EditTableButton,
+  MoveDownTableButton,
+  MoveUpTableButton,
+  ResetTableButton,
+  SaveTableButton,
+} from '@/shared/components/button';
 import {
   EditableMasterTable,
+  DetailTableActions,
   MasterTableActions,
   TableCard,
   TableCardContentState,
 } from '@/shared/components/table';
 import { EditableDetailTable } from '@/shared/components/table/EditableDetailTable';
+import { SimpleDefaultModal, ValidationNoticeModal } from '@/shared/components/modal';
 import type { EditableDetailColumn, EditableDetailRow } from '@/shared/components/table/editableTableTypes';
 import type { EditableMasterRow } from '@/shared/components/table/editableTableTypes';
 import './devStyles/TableGuide.css';
@@ -67,7 +78,7 @@ const INITIAL_DETAIL_ROWS: SampleDetailRow[] = [
 const DETAIL_COLUMNS: EditableDetailColumn[] = [
   { key: 'code',  label: '코드',    type: 'text',    required: true, readOnlyOnExisting: true },
   { key: 'name',  label: '코드명',  type: 'text',    required: true },
-  { key: 'useYn', label: '사용여부', type: 'boolean' },
+  { key: 'useYn', label: '사용여부', type: 'boolean', className: 'common-table__col--md' },
 ];
 
 /* =====================================================
@@ -344,6 +355,198 @@ function EditableDetailTableExample() {
   );
 }
 
+function InlineValidationGuidelineExample() {
+  const [activeModal, setActiveModal] = useState<'single' | 'multiple' | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  return (
+    <>
+      <div className="table-guide__validation-rule">
+        <div>
+          <p className="table-guide__validation-title">행추가 테이블 저장 검증</p>
+          <p className="table-guide__validation-desc">
+            행추가/행삭제가 있는 인라인 편집 테이블은 저장 클릭 시 안내 모달을 먼저 띄우고,
+            확인 후 해당 필드에 error 스타일을 표시한다.
+          </p>
+        </div>
+        <ol className="table-guide__validation-flow">
+          <li>저장 클릭</li>
+          <li>검증 안내 모달 표시</li>
+          <li>확인 클릭</li>
+          <li>필드 error 스타일 표시</li>
+        </ol>
+        <div className="table-guide__validation-actions">
+          <button
+            className="table-guide__button"
+            type="button"
+            onClick={() => setActiveModal('single')}
+          >
+            검증 1개
+          </button>
+          <button
+            className="table-guide__button"
+            type="button"
+            onClick={() => setActiveModal('multiple')}
+          >
+            검증 여러 개
+          </button>
+        </div>
+        <div className="table-guide__action-preview" aria-label="저장 중 테이블 버튼 상태">
+          <div className="table-guide__action-preview-header">
+            <span>테이블 버튼 상태</span>
+            <label className="table-guide__saving-toggle">
+              <input
+                type="checkbox"
+                checked={isSaving}
+                onChange={(event) => setIsSaving(event.target.checked)}
+              />
+              저장 중
+            </label>
+          </div>
+          <div className="table-guide__action-preview-buttons">
+            <DetailTableActions
+              canMoveUp={!isSaving}
+              canMoveDown={!isSaving}
+              canDelete={!isSaving}
+              isSaving={isSaving}
+              onMoveUp={() => {}}
+              onMoveDown={() => {}}
+              onAddRow={() => {}}
+              onDeleteRow={() => {}}
+              onSave={() => {}}
+            />
+          </div>
+        </div>
+      </div>
+
+      <SimpleDefaultModal
+        open={activeModal === 'single'}
+        title="알림"
+        description="빈값을 채워주세요."
+        onClose={() => setActiveModal(null)}
+      />
+
+      <ValidationNoticeModal
+        open={activeModal === 'multiple'}
+        title="알림"
+        items={[
+          '빈값을 채워주세요.',
+          '하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.',
+        ]}
+        onClose={() => setActiveModal(null)}
+      />
+    </>
+  );
+}
+
+function TableGuidelineChecklist() {
+  const [isSaving, setIsSaving] = useState(false);
+
+  return (
+    <div className="table-guide__guideline-grid">
+      <div className="table-guide__guideline-card">
+        <p className="table-guide__validation-title">테이블 액션 버튼 순서</p>
+        <p className="table-guide__validation-desc">
+          모든 버튼이 없는 테이블도 사용하는 버튼의 상대 순서는 유지한다.
+        </p>
+        <div className="table-guide__button-order" aria-label="테이블 액션 버튼 순서">
+          <MoveUpTableButton ariaLabel="위로 이동" disabled={isSaving} onClick={() => {}} />
+          <MoveDownTableButton ariaLabel="아래로 이동" disabled={isSaving} onClick={() => {}} />
+          <AddRowTableButton disabled={isSaving} onClick={() => {}} />
+          <DeleteRowTableButton disabled={isSaving} onClick={() => {}} />
+          <AddChildRowTableButton disabled={isSaving} onClick={() => {}} />
+          <SaveTableButton loading={isSaving} onClick={() => {}} />
+          <ResetTableButton disabled={isSaving} onClick={() => {}} />
+        </div>
+        <label className="table-guide__saving-toggle table-guide__saving-toggle--standalone">
+          <input
+            type="checkbox"
+            checked={isSaving}
+            onChange={(event) => setIsSaving(event.target.checked)}
+          />
+          저장 중 버튼 상태 확인
+        </label>
+      </div>
+
+      <div className="table-guide__guideline-card">
+        <p className="table-guide__validation-title">핵심 체크리스트</p>
+        <ul className="table-guide__guideline-list">
+          <li>테이블 헤더 텍스트는 중앙 정렬을 유지한다.</li>
+          <li>바디 셀은 좌측 정렬 기본, 필요한 컬럼만 `tdClassName`으로 조정한다.</li>
+          <li>행추가 후 새 행이 선택되고 필요한 경우 자동 스크롤된다.</li>
+          <li>저장 중에는 추가/삭제/이동/초기화 버튼을 비활성화하고 저장 버튼은 loading으로 표시한다.</li>
+          <li>행추가 테이블 검증은 안내 모달 확인 후 필드 error 스타일을 표시한다.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function ColumnSizeGuidelineExample() {
+  const columnSizes = [
+    { className: 'common-table__col--checkbox', width: '48px', usage: '체크박스 전용' },
+    { className: 'common-table__col--action', width: '64px', usage: '수정 아이콘 전용' },
+    { className: 'common-table__col--sm', width: '90px', usage: '소형 뱃지/태그' },
+    { className: 'common-table__col--md', width: '128px', usage: '기본 뱃지/태그, 사용여부' },
+    { className: 'common-table__col--lg', width: '160px', usage: '대형 뱃지/태그' },
+  ];
+
+  return (
+    <div className="table-guide__column-size">
+      <div className="table-guide__column-size-list">
+        {columnSizes.map((item) => (
+          <div key={item.className} className="table-guide__column-size-item">
+            <code>{item.className}</code>
+            <span>{item.width}</span>
+            <span>{item.usage}</span>
+          </div>
+        ))}
+      </div>
+
+      <TableCard title="컬럼 사이즈 예시" ariaLabel="컬럼 사이즈 예시">
+        <div className="common-table-wrap">
+          <table className="common-table" aria-label="컬럼 사이즈 예시 테이블">
+            <colgroup>
+              <col className="common-table__col--checkbox" />
+              <col />
+              <col className="common-table__col--sm" />
+              <col className="common-table__col--md" />
+              <col className="common-table__col--lg" />
+              <col className="common-table__col--action" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">선택</th>
+                <th scope="col">기본 flex</th>
+                <th scope="col">sm</th>
+                <th scope="col">md</th>
+                <th scope="col">lg</th>
+                <th scope="col">수정</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span className="common-table__checkbox">
+                    <CheckboxInput size="sm" checked={false} aria-label="샘플 선택" onChange={() => {}} />
+                  </span>
+                </td>
+                <td>남는 너비를 채우는 기본 컬럼</td>
+                <td className="common-table__cell--center">Y</td>
+                <td className="common-table__cell--center">사용</td>
+                <td className="common-table__cell--center">승인 완료</td>
+                <td>
+                  <EditTableButton ariaLabel="샘플 수정" onClick={() => {}} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </TableCard>
+    </div>
+  );
+}
+
 /* =====================================================
  * TableGuide
  * ===================================================== */
@@ -352,6 +555,20 @@ export default function TableGuide() {
   return (
     <div className="table-guide">
       <h1 className="table-guide__title">TableCard</h1>
+
+      <Section
+        title="테이블 공통 가이드라인"
+        desc="버튼 순서, 저장 중 상태, 행추가 검증, 정렬 규칙을 한 곳에서 확인한다."
+      >
+        <TableGuidelineChecklist />
+      </Section>
+
+      <Section
+        title="테이블 컬럼 사이즈"
+        desc="colgroup의 col 요소에 적용하는 고정 너비 클래스. 나머지 컬럼은 flex처럼 남는 너비를 채운다."
+      >
+        <ColumnSizeGuidelineExample />
+      </Section>
 
       {/* 1. 마스터 테이블 — 커스텀 컬럼 */}
       <Section
@@ -383,6 +600,13 @@ export default function TableGuide() {
         desc="CommonCodeDetailTable 패턴. 행 선택 + 이동 + 행추가/삭제 + 인라인 편집 + 저장. columns prop으로 text/boolean 컬럼 타입 지정"
       >
         <EditableDetailTableExample />
+      </Section>
+
+      <Section
+        title="행추가 테이블 저장 검증"
+        desc="행추가/행삭제가 있는 인라인 편집 테이블 전용. 일반 등록/수정 폼 모달에는 적용하지 않는다."
+      >
+        <InlineValidationGuidelineExample />
       </Section>
 
       {/* 4. 로딩 상태 */}

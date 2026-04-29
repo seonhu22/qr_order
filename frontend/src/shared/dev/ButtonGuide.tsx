@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { Button, LinkButton } from '@/shared/components/button';
 import {
+  AddChildRowTableButton,
   CreateTableButton,
   DeleteTableButton,
   EditTableButton,
@@ -20,6 +21,7 @@ import {
   MoveUpTableButton,
   MoveDownTableButton,
   ResetFilterButton,
+  ResetTableButton,
   SearchFilterButton,
 } from '@/shared/components/button';
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
@@ -530,6 +532,15 @@ export default function ButtonGuide() {
           <DeleteRowTableButton onClick={() => {}} />
           <SaveTableButton onClick={() => {}} />
         </Row>
+        <Row label="트리 테이블 상단 (SystemMenuTree 내부 구성)">
+          <MoveUpTableButton ariaLabel="위로 이동" onClick={() => {}} />
+          <MoveDownTableButton ariaLabel="아래로 이동" onClick={() => {}} />
+          <AddRowTableButton onClick={() => {}} />
+          <DeleteRowTableButton onClick={() => {}} />
+          <AddChildRowTableButton onClick={() => {}} />
+          <SaveTableButton onClick={() => {}} />
+          <ResetTableButton onClick={() => {}} />
+        </Row>
         <Row label="테이블 행 수정 아이콘 (EditTableButton)">
           <EditTableButton ariaLabel="수정" onClick={() => {}} />
         </Row>
@@ -538,6 +549,8 @@ export default function ButtonGuide() {
           <DeleteTableButton disabled />
           <EditTableButton ariaLabel="수정 비활성" disabled />
           <MoveUpTableButton ariaLabel="위로 이동 비활성" disabled />
+          <AddChildRowTableButton disabled />
+          <ResetTableButton disabled />
           <SaveTableButton loading />
         </Row>
       </Section>
