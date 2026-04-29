@@ -114,8 +114,8 @@
         from sys_rule_detail srd
         where 1=1
         and sys_id in
-        <foreach collection="ruleDetail" open="(" separator="," close=")">
-            #{sysId}
+        <foreach collection="ruleDetail" item="item" open="(" separator="," close=")">
+            #{item.sysId}
         </foreach>
     </select>
 </mapper>
