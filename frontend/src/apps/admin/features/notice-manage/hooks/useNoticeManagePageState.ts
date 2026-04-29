@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/shared/api/queryKeys';
 import {
   mapToNoticeManageRow,
   useNoticeManageQuery,
@@ -12,8 +10,18 @@ import { useNoticeManageModalFlow } from './useNoticeManageModalFlow';
 import type { NoticeEditorRow } from './useNoticeManageModalFlow';
 import type { NoticeManageRow } from '../types';
 
+async function refetchOrThrow<TError>(
+  refetch: () => Promise<{ isError: boolean; error: TError | null }>,
+  errorMessage: string,
+) {
+  const result = await refetch();
+
+  if (result.isError) {
+    throw result.error instanceof Error ? result.error : new Error(errorMessage);
+  }
+}
+
 export function useNoticeManagePageState() {
-  const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [draftKeyword, setDraftKeyword] = useState('');
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
@@ -28,8 +36,10 @@ export function useNoticeManagePageState() {
     [noticeQuery.data],
   );
 
+  const selectableRows = useMemo(() => rows.filter((row) => Boolean(row.sysId)), [rows]);
   const effectiveCheckedIds = checkedIds.filter((id) => rows.some((row) => row.id === id));
-  const isAllChecked = rows.length > 0 && effectiveCheckedIds.length === rows.length;
+  const isAllChecked =
+    selectableRows.length > 0 && effectiveCheckedIds.length === selectableRows.length;
 
   const handleSearch = () => {
     setKeyword(draftKeyword);
@@ -43,16 +53,20 @@ export function useNoticeManagePageState() {
   };
 
   const handleToggleRow = (id: string) => {
-    setCheckedIds((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
+    setCheckedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
   };
 
   const handleToggleAll = () => {
-    setCheckedIds(isAllChecked ? [] : rows.map((r) => r.id));
+    setCheckedIds(isAllChecked ? [] : selectableRows.map((row) => row.id));
   };
 
   const handleSaveRow = async (editorRow: NoticeEditorRow, isCreateMode: boolean) => {
+    if (!isCreateMode && !editorRow.sysId) {
+      throw new Error(
+        '공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+      );
+    }
+
     const params = {
       noticeRequest: {
         sysId: editorRow.sysId || undefined,
@@ -66,14 +80,19 @@ export function useNoticeManagePageState() {
     } else {
       await updateMutation.mutateAsync({ params });
     }
-    await queryClient.invalidateQueries({ queryKey: queryKeys.notice.list() });
+    await refetchOrThrow(noticeQuery.refetch, '저장 후 공지사항 목록을 다시 조회하지 못했습니다.');
   };
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
+    if (targets.some((row) => !row.sysId)) {
+      throw new Error(
+        '공지사항 조회 응답에 sysId가 없어 삭제할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+      );
+    }
     const noticeRequests = targets.map((row) => ({ sysId: row.sysId }));
     await deleteMutation.mutateAsync({ data: noticeRequests });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.notice.list() });
+    await refetchOrThrow(noticeQuery.refetch, '삭제 후 공지사항 목록을 다시 조회하지 못했습니다.');
     setCheckedIds([]);
     return targets.length;
   };

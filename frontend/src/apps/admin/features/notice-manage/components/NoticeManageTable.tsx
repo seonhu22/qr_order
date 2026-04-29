@@ -38,7 +38,6 @@ export function NoticeManageTable({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="공지사항 목록을 불러오는 중입니다."
-
       >
         <div className="common-table-wrap">
           <table className="common-table" aria-label="공지사항 목록 테이블">
@@ -58,6 +57,7 @@ export function NoticeManageTable({
                     <CheckboxInput
                       size="sm"
                       checked={isAllChecked}
+                      disabled={rows.every((row) => !row.sysId)}
                       indeterminate={checkedIds.length > 0 && !isAllChecked}
                       aria-label="전체 선택"
                       onChange={onToggleAll}
@@ -74,36 +74,50 @@ export function NoticeManageTable({
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={7} className="common-table__empty">데이터가 없습니다.</td></tr>
-              ) : rows.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <span className="common-table__checkbox">
-                      <CheckboxInput
-                        size="sm"
-                        checked={checkedIds.includes(row.id)}
-                        aria-label={`${row.title} 선택`}
-                        onChange={() => onToggleRow(row.id)}
-                      />
-                    </span>
-                  </td>
-                  <td className="common-table__cell--left common-table__cell--truncate" title={row.title}>
-                    {row.title || '-'}
-                  </td>
-                  <td className="common-table__cell--left common-table__cell--truncate" title={row.content}>
-                    {row.content || '-'}
-                  </td>
-                  <td className="common-table__cell--center">{row.registrant || '-'}</td>
-                  <td className="common-table__cell--center">{row.registeredAt || '-'}</td>
-                  <td className="common-table__cell--center">{row.updatedAt || '-'}</td>
-                  <td>
-                    <EditTableButton
-                      ariaLabel={`${row.title} 수정`}
-                      onClick={() => onEdit(row)}
-                    />
+                <tr>
+                  <td colSpan={7} className="common-table__empty">
+                    데이터가 없습니다.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <span className="common-table__checkbox">
+                        <CheckboxInput
+                          size="sm"
+                          checked={checkedIds.includes(row.id)}
+                          disabled={!row.sysId}
+                          aria-label={`${row.title} 선택`}
+                          onChange={() => onToggleRow(row.id)}
+                        />
+                      </span>
+                    </td>
+                    <td
+                      className="common-table__cell--left common-table__cell--truncate"
+                      title={row.title}
+                    >
+                      {row.title || '-'}
+                    </td>
+                    <td
+                      className="common-table__cell--left common-table__cell--truncate"
+                      title={row.content}
+                    >
+                      {row.content || '-'}
+                    </td>
+                    <td className="common-table__cell--center">{row.registrant || '-'}</td>
+                    <td className="common-table__cell--center">{row.registeredAt || '-'}</td>
+                    <td className="common-table__cell--center">{row.updatedAt || '-'}</td>
+                    <td>
+                      <EditTableButton
+                        ariaLabel={`${row.title} 수정`}
+                        disabled={!row.sysId}
+                        onClick={() => onEdit(row)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
