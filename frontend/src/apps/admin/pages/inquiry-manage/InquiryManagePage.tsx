@@ -12,13 +12,14 @@ import type { InquiryManageRow } from '@/apps/admin/features/inquiry-manage/type
 export function InquiryManagePage() {
   const { data, status, actions, uiProps } = useInquiryManagePage();
 
-  const [selectedRow, setSelectedRow]     = useState<InquiryManageRow | null>(null);
+  const [selectedRow, setSelectedRow] = useState<InquiryManageRow | null>(null);
   const [answerContent, setAnswerContent] = useState('');
-  const [answerError, setAnswerError]     = useState(false);
-  const [dirtyWarning, setDirtyWarning]   = useState(false);
-  const [noticeModal, setNoticeModal]     = useState({ open: false, title: '', description: '' });
+  const [answerError, setAnswerError] = useState(false);
+  const [dirtyWarning, setDirtyWarning] = useState(false);
+  const [noticeModal, setNoticeModal] = useState({ open: false, title: '', description: '' });
 
   const isDirty = answerContent !== (selectedRow?.answerContent ?? '');
+  const canSaveAnswer = Boolean(selectedRow?.sysId);
 
   const handleOpenDetail = (row: InquiryManageRow) => {
     setSelectedRow(row);
@@ -48,14 +49,26 @@ export function InquiryManagePage() {
   };
 
   /* 확인 — 빈 답변 검증 후 저장 */
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (!selectedRow) {
+      return;
+    }
+
     if (!answerContent.trim()) {
       setAnswerError(true);
       return;
     }
-    // TODO: 답변 저장 API 연결
-    closeEditor();
-    setNoticeModal({ open: true, title: '안내', description: '답변이 저장되었습니다.' });
+
+    try {
+      await actions.saveAnswer(selectedRow, answerContent);
+      closeEditor();
+      setNoticeModal({ open: true, title: '안내', description: '답변이 저장되었습니다.' });
+    } catch (error) {
+      const description =
+        error instanceof Error ? error.message : '답변 저장 중 오류가 발생했습니다.';
+
+      setNoticeModal({ open: true, title: '오류', description });
+    }
   };
 
   return (
@@ -93,23 +106,18 @@ export function InquiryManagePage() {
         isDirty={isDirty}
         title="문의사항 상세"
         subtitle="문의 내용을 확인하세요."
-        primaryAction={{ label: '확인', onClick: handleConfirm }}
+        primaryAction={{
+          label: status.isSaving ? '저장 중...' : '확인',
+          onClick: handleConfirm,
+          disabled: status.isSaving || !canSaveAnswer,
+        }}
         secondaryAction={{ label: '닫기', onClick: handleClose }}
         onClose={handleClose}
       >
         {selectedRow && (
           <div className="inquiry-detail">
-            <TextInput
-              label="제목"
-              value={selectedRow.title}
-              readOnly
-            />
-            <TextareaInput
-              label="내용"
-              value={selectedRow.content}
-              rows={5}
-              readOnly
-            />
+            <TextInput label="제목" value={selectedRow.title} readOnly />
+            <TextareaInput label="내용" value={selectedRow.content} rows={5} readOnly />
             <TextareaInput
               label="답변 내용"
               required
@@ -117,11 +125,17 @@ export function InquiryManagePage() {
               rows={5}
               placeholder="답변 내용을 입력하세요"
               errorText={answerError ? '답변 내용을 입력해주세요.' : undefined}
+              disabled={!canSaveAnswer}
               onChange={(e) => {
                 setAnswerContent(e.target.value);
                 if (answerError) setAnswerError(false);
               }}
             />
+            {!canSaveAnswer ? (
+              <div className="inquiry-detail__attachment-placeholder">
+                문의사항 식별자(sysId)가 없어 답변을 저장할 수 없습니다.
+              </div>
+            ) : null}
             <div className="inquiry-detail__attachment">
               <span className="inquiry-detail__attachment-label">첨부파일</span>
               <span className="inquiry-detail__attachment-placeholder">미구현</span>
