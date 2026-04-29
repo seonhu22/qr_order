@@ -489,6 +489,7 @@ statusText={{
 
 `SharedTableColumn`의 `tdClassName` 속성으로 `td`에 직접 클래스를 적용할 수 있다.
 컬럼 모델을 사용하는 테이블(`TableBodyRenderer`)에서 특정 셀을 중앙 정렬할 때 사용한다.
+헤더(`th`)는 항상 중앙 정렬이므로, 바디(`td`) 정렬만 이 속성으로 조정한다.
 
 ```ts
 // plantSearchTableModel.tsx
@@ -497,6 +498,7 @@ statusText={{
 
 - `column.className`은 `th`에만 적용된다.
 - `column.tdClassName`은 해당 컬럼의 모든 `td`에 적용된다.
+- `column.align` 같은 헤더·바디 공용 정렬 속성은 사용하지 않는다.
 
 ### EditableDetailTable — className / 정렬 규칙
 
