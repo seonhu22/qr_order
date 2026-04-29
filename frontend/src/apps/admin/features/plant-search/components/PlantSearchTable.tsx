@@ -9,9 +9,10 @@ type PlantSearchTableProps = {
   rows: PlantSearchRow[];
   isLoading: boolean;
   isError: boolean;
+  emptyMessage?: string;
 };
 
-export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableProps) {
+export function PlantSearchTable({ rows, isLoading, isError, emptyMessage }: PlantSearchTableProps) {
   const columns = createPlantSearchTableColumns();
   const tableRows = createPlantSearchTableRows(rows);
 
@@ -26,6 +27,7 @@ export function PlantSearchTable({ rows, isLoading, isError }: PlantSearchTableP
           tableAriaLabel="사업장 목록 테이블"
           columns={columns}
           rows={tableRows}
+          emptyMessage={emptyMessage}
         />
       </TableCardContentState>
     </TableCard>

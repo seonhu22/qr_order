@@ -26,6 +26,8 @@ const NAV_ITEMS = [
   { path: '/dev/form-alert', label: 'FormAlert' },
   { path: '/dev/table',     label: 'TableCard' },
   { path: '/dev/tree-menu', label: 'TreeMenu' },
+  { path: '/dev/error-page', label: 'ErrorPage' },
+  { path: '/dev/file-attachment', label: '첨부파일' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;
 

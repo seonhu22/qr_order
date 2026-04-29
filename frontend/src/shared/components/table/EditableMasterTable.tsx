@@ -17,7 +17,7 @@ type EditableMasterTableLabels = {
 type EditableMasterTableStatusText = {
   loading: string;
   errorTitle?: string;
-  errorDescription?: string;
+  emptyMessage?: string;
 };
 
 type EditableMasterTableSelectionState = {
@@ -98,19 +98,19 @@ export function EditableMasterTable<T extends EditableMasterRow>({
         isError={isError}
         loadingTitle={statusText.loading}
         errorTitle={statusText.errorTitle}
-        errorDescription={statusText.errorDescription}
       >
         <TableBodyRenderer
           tableAriaLabel={tableAriaLabel}
           columns={columns}
           rows={tableRows}
+          emptyMessage={statusText.emptyMessage}
           colGroup={
             <colgroup>
-              <col style={{ width: '3rem' }} />
+              <col className="common-table__col--checkbox" />
               <col />
               <col />
-              <col style={{ width: '8rem' }} />
-              <col style={{ width: '4rem' }} />
+              <col className="common-table__col--md" />
+              <col className="common-table__col--action" />
             </colgroup>
           }
           headerCellOverrides={headerCellOverrides}

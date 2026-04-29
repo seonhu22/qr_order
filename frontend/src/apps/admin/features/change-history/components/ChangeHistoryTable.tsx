@@ -21,7 +21,7 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
         isLoading={isLoading}
         isError={isError}
         loadingTitle="변경 이력을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <div className="common-table-wrap">
           <table className="common-table">
@@ -38,7 +38,7 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={4} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={4} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>

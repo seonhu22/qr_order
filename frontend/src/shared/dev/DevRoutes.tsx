@@ -24,6 +24,8 @@ import ToggleGuide from './ToggleGuide';
 import FormAlertGuide from './FormAlertGuide';
 import TableGuide    from './TableGuide';
 import TreeMenuGuide from './TreeMenuGuide';
+import ErrorPageGuide from './ErrorPageGuide';
+import FileAttachmentGuide from './FileAttachmentGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
 export const devRoutes = [
@@ -44,6 +46,8 @@ export const devRoutes = [
       { path: 'form-alert', element: <FormAlertGuide /> },
       { path: 'table',     element: <TableGuide /> },
       { path: 'tree-menu', element: <TreeMenuGuide /> },
+      { path: 'error-page', element: <ErrorPageGuide /> },
+      { path: 'file-attachment', element: <FileAttachmentGuide /> },
       // { path: 'feedback', element: <FeedbackGuide /> },
     ],
   },

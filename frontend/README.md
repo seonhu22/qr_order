@@ -204,6 +204,10 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
+상태 처리 작성 기준:
+- 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
+- 공통 상태 처리와 에러 화면 템플릿 작성 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)을 참고한다.
+
 학습용 참고 문서:
 - [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)
   사람 학습용 문서이며, 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
@@ -213,6 +217,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
   `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
   테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
   자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
+
+공용 첨부파일 컴포넌트:
+- [`docs/components/FileAttachment.md`](./docs/components/FileAttachment.md)
+  `FileInputGroup`, `FileDownloadList`, `FileHint` 사용법과 `/api/attach_file/save` payload 구성 기준,
+  확장자별 아이콘·색상 기준은 이 문서를 참고한다.
 
 공용 입력 컴포넌트:
 - `shared/components/input/` — `TextInput` · `TextareaInput` · `SelectInput` · `InputBase` · `InputWrapper`

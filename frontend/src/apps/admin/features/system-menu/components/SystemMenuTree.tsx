@@ -23,7 +23,6 @@ import {
 import { Icon } from '@/shared/assets/icons/Icon';
 import { TableCard } from '@/shared/components/table';
 import { TableCardContentState } from '@/shared/components/table/TableCardContentState';
-import { FeedbackState } from '@/shared/components/feedback';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 
 
@@ -192,7 +191,7 @@ export function SystemMenuTree({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="메뉴 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <>
           {/* 타이틀-테이블 사이 안내문구 */}
@@ -200,40 +199,37 @@ export function SystemMenuTree({
             ※ 메뉴코드·메뉴 명은 필수 입력 항목입니다. 메뉴주소를 입력한 항목에는 하위 메뉴를 추가할 수 없습니다.
           </p>
 
-          {nodes.length === 0 ? (
-            <FeedbackState variant="empty" title="등록된 메뉴가 없습니다." description="행추가 버튼을 눌러 메뉴를 추가하세요." />
-          ) : (
-            <div ref={treeContainerRef} className="layout-contents">
-              <TreeMenu
-                nodes={nodes}
-                labelHeader="메뉴코드"
-                labelRender={(node) => (
-                  <InputBase
-                    size="sm"
-                    className="common-table__input"
-                    value={node.data?.code ?? ''}
-                    aria-label={`${node.label} 메뉴코드`}
-                    readOnly={!node.data?.isNew}
-                    controlState={
-                      !node.data?.isNew
-                        ? 'readonly'
-                        : nodeErrors.code.has(node.id)
-                        ? 'error'
-                        : ''
-                    }
-                    onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
-                  />
-                )}
-                columns={columns}
-                selectedId={selectedId}
-                onSelect={onSelect}
-                defaultExpandedIds={defaultExpandedIds}
-                expandTrigger={expandTrigger}
-                className="system-menu-tree__inner"
-                ariaLabel="메뉴 관리 트리"
-              />
-            </div>
-          )}
+          <div ref={treeContainerRef} className="layout-contents">
+            <TreeMenu
+              nodes={nodes}
+              emptyMessage="데이터가 없습니다."
+              labelHeader="메뉴코드"
+              labelRender={(node) => (
+                <InputBase
+                  size="sm"
+                  className="common-table__input"
+                  value={node.data?.code ?? ''}
+                  aria-label={`${node.label} 메뉴코드`}
+                  readOnly={!node.data?.isNew}
+                  controlState={
+                    !node.data?.isNew
+                      ? 'readonly'
+                      : nodeErrors.code.has(node.id)
+                      ? 'error'
+                      : ''
+                  }
+                  onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
+                />
+              )}
+              columns={columns}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              defaultExpandedIds={defaultExpandedIds}
+              expandTrigger={expandTrigger}
+              className="system-menu-tree__inner"
+              ariaLabel="메뉴 관리 트리"
+            />
+          </div>
         </>
       </TableCardContentState>
     </TableCard>

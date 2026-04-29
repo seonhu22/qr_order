@@ -231,6 +231,22 @@ function DisabledExample() {
 
 
 /* =====================================================
+ * 섹션 4 — 빈 상태
+ * ===================================================== */
+
+function EmptyExample() {
+  return (
+    <TreeMenu
+      nodes={[]}
+      labelHeader="메뉴코드"
+      emptyMessage="데이터가 없습니다."
+      ariaLabel="빈 상태 트리 예시"
+    />
+  );
+}
+
+
+/* =====================================================
  * TreeMenuGuide
  * ===================================================== */
 
@@ -261,6 +277,14 @@ export default function TreeMenuGuide() {
         desc="disabled=true 노드는 클릭 선택 불가 + opacity dim. 부모 노드의 펼치기/접기는 정상 동작"
       >
         <DisabledExample />
+      </Section>
+
+      {/* 4. 빈 상태 */}
+      <Section
+        title="빈 상태 (emptyMessage)"
+        desc="nodes가 빈 배열일 때 thead(컬럼명)를 유지한 채 tbody에 메시지를 표시한다."
+      >
+        <EmptyExample />
       </Section>
     </div>
   );

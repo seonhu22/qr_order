@@ -9,6 +9,7 @@
 - [3. 폴더 구조 전체](#3-폴더-구조-전체)
 - [4. 앱 계층 역할 요약](#4-앱-계층-역할-요약)
 - [5. AdminMainLayout — filterSlot 패턴](#5-adminmainlayout--filterslot-패턴)
+- [6. 상태 처리 라우팅 기준](#6-상태-처리-라우팅-기준)
 
 ---
 
@@ -128,6 +129,7 @@ frontend/
       dev/                ← 개발 전용 컴포넌트 가이드 (/dev/*)
       hooks/              ← 여러 feature가 함께 쓰는 공용 UX/state 훅
       lib/                ← httpClient.ts, queryClient.ts
+      pages/              ← 여러 앱이 공유하는 라우트 단위 페이지 (예: error)
       stores/             ← Zustand 전역 스토어
       styles/             ← 디자인 토큰, 전역 CSS
       utils/
@@ -149,6 +151,7 @@ frontend/
 | `shared/components` | 공통 UI 컴포넌트                                  |
 | `shared/hooks`      | 여러 feature가 재사용하는 공통 UX/state 훅        |
 | `shared/lib`        | Query Client, fetch 래퍼 등 공용 인프라           |
+| `shared/pages`      | 여러 앱이 공유하는 라우트 단위 페이지             |
 | `shared/api`        | query key, 공용 API 계층                          |
 | `shared/stores`     | Zustand 전역 UI 상태                              |
 | `shared/styles`     | 디자인 토큰 CSS 및 전역 스타일                    |
@@ -231,3 +234,122 @@ shared/components/table/
 - `--fixed` 클래스 사용 시 filterSlot 영역은 `flex-shrink: 0` 적용 — 콘텐츠가 늘어나도 필터가 밀리지 않는다.
 - 같은 용도의 필터 컴포넌트는 페이지마다 별도 클래스를 만들지 않고 기존 클래스를 재사용한다.
   스타일이 달라지는 경우에만 별도 클래스를 추가한다.
+
+---
+
+## 6. 상태 처리 라우팅 기준
+
+> 추가일: 2026-04-27
+
+HTTP 상태에 따른 화면·이동 처리는 **상태 처리(Status Handling)** 로 부른다.
+이 중 화면으로 렌더링되는 403/404/500은 **에러 페이지(Error Page)**, 화면을 만들지 않고 로그인으로 보내는 401은 **인증 리다이렉트(Auth Redirect)** 로 구분한다.
+
+403/404/500 에러 페이지는 여러 앱(admin, client, consumer)에서 같은 시각 요소를 공유하되,
+앱별 이동 경로와 버튼 동작만 라우트 또는 페이지 props로 주입한다. 401은 `ErrorPageTemplate` 대상이 아니며 인증 라우팅에서 로그인 페이지로 redirect한다.
+
+### 기본 배치
+
+```text
+shared/
+  components/error/
+    ErrorPageTemplate.tsx   ← 공통 이미지·레이아웃·버튼 영역
+    ErrorPageTemplate.css
+    index.ts
+  pages/error/
+    ForbiddenPage.tsx       ← 403
+    NotFoundPage.tsx        ← 404
+    ServerErrorPage.tsx     ← 500
+    index.ts
+```
+
+- `shared/components/error`는 공통 에러 화면의 시각 요소와 레이아웃만 담당한다.
+- `shared/pages/error`는 상태코드별 기본 문구와 기본 액션을 조립한다.
+- `apps/*/routes` 또는 앱별 page wrapper는 `homePath`, `retryAction`, 인증 redirect 경로 같은 앱별 차이만 주입한다.
+
+### 상태코드별 처리 기준
+
+| 상태 | 이름 | 처리 기준 | 화면 처리 |
+|---|---|---|---|
+| 401 | 인증 리다이렉트(Auth Redirect) | 미로그인 또는 로그인 만료 | 에러 페이지를 렌더링하지 않고 만료 안내 모달 확인 후 앱별 로그인 페이지로 redirect한다. |
+| 403 | 에러 페이지(Error Page) | 로그인은 했지만 메뉴·기능 접근 권한 없음 | `ForbiddenPage`를 렌더링한다. |
+| 404 | 에러 페이지(Error Page) | 존재하지 않는 URL 또는 삭제된 라우트 | `NotFoundPage`를 렌더링한다. |
+| 500 | 에러 페이지(Error Page) | 런타임 에러 또는 복구 불가능한 시스템 오류 | `ServerErrorPage`를 렌더링한다. |
+
+### 401 인증 리다이렉트
+
+401은 사용자에게 에러 화면을 보여주는 상태가 아니라, 인증이 필요한 화면에 접근할 수 없다는 신호다.
+따라서 보호 라우트에서 인증 상태를 확인하고 앱별 로그인 경로로 이동시킨다.
+
+```tsx
+function RequireAuth({ children }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+}
+```
+
+- API 호출 도중 401이 발생하면 "로그인 인증이 만료되었습니다." 안내 모달을 먼저 표시하고, 확인 클릭 시 로그인 화면으로 이동한다.
+- 보호 라우트 직접 접근처럼 이미 비로그인 상태가 확정된 경우는 모달 없이 로그인 화면으로 이동한다.
+- 관리자 앱의 로그인 경로는 `/admin/login`이다.
+- 추후 client, consumer 앱을 추가하면 각 앱의 보호 라우트에서 자기 앱의 로그인 경로를 주입한다.
+- 로그인 만료 API 응답도 최종적으로는 동일한 인증 리다이렉트 흐름으로 수렴시킨다.
+- 401 전용 `UnauthorizedPage`는 만들지 않는다. 사용자에게 필요한 다음 행동은 로그인 화면에서 처리한다.
+
+### 앱별 라우팅 분기
+
+각 앱은 자신의 layout 안에서 `*` child route를 두어 앱 내부 404를 처리한다.
+앱 전체 fallback은 어느 앱에도 속하지 않는 URL을 처리한다.
+
+```tsx
+// admin route 예시
+{
+  path: '/admin',
+  element: <AdminLayout />,
+  children: [
+    { path: 'main', element: <MainPage /> },
+    { path: '*', element: <NotFoundPage homePath="/admin/main" /> },
+  ],
+}
+```
+
+```tsx
+// 향후 앱별 homePath 예시
+<NotFoundPage homePath="/admin/main" />
+<NotFoundPage homePath="/client/main" />
+<NotFoundPage homePath="/" />
+```
+
+- 관리자 앱은 `/admin/main`을 기본 복귀 경로로 사용한다.
+- 사용자 백오피스와 프론트오피스는 앱 라우트가 확정된 뒤 각자의 기본 복귀 경로를 주입한다.
+- 500 화면의 재시도 버튼은 단순 경로 이동보다 `retryAction`을 우선한다. `retryAction`이 없을 때만 `homePath` 이동을 제공한다.
+- 앱 layout 내부의 에러 페이지는 `layout="contained"`를 사용해 Header/Sidebar를 유지하고 콘텐츠 영역만 교체한다.
+- 전역 ErrorBoundary fallback처럼 앱 layout 바깥에서 렌더링하는 에러 페이지는 `layout="fullscreen"`을 사용하고, 재시도 버튼은 새로고침 또는 boundary reset에 연결한다.
+
+### layout 선택 기준
+
+| 위치 | layout | 기준 |
+|---|---|---|
+| `apps/*/routes`의 layout child route | `contained` | Header/Sidebar 등 앱 shell은 유지하고 본문만 에러 화면으로 교체한다. |
+| 메뉴 권한 검사 결과 403 | `contained` | 사용자는 앱 안에 남아 있고, 접근 불가 안내만 콘텐츠 영역에 표시한다. |
+| 특정 페이지 ErrorBoundary fallback | `contained` | 해당 페이지 영역만 복구 대상으로 보고 `retryAction`은 boundary reset에 연결한다. |
+| `App` 또는 Provider 레벨 ErrorBoundary fallback | `fullscreen` | 앱 shell 자체를 신뢰할 수 없으므로 전체 화면 에러로 대체한다. |
+| 앱에 속하지 않는 최상위 fallback | `fullscreen` | 어느 앱 layout도 선택되지 않은 상태이므로 전체 화면으로 안내한다. |
+
+```tsx
+// 앱 layout 내부: 콘텐츠 영역만 404로 교체한다.
+{ path: '*', element: <NotFoundPage homePath="/admin/main" /> }
+```
+
+```tsx
+// 전역 fallback: 전체 화면을 500으로 대체하고 새로고침을 제공한다.
+<ServerErrorPage
+  homePath="/admin/main"
+  layout="fullscreen"
+  retryAction={() => window.location.reload()}
+  retryLabel="새로고침"
+/>
+```

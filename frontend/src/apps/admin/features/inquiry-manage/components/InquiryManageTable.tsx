@@ -27,6 +27,7 @@ export function InquiryManageTable({ rows, isLoading, isError, onDetail }: Inqui
           tableAriaLabel="문의사항 목록 테이블"
           columns={columns}
           rows={tableRows}
+          emptyMessage="조회 결과가 없습니다."
         />
       </TableCardContentState>
     </TableCard>

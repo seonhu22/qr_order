@@ -11,9 +11,10 @@ type PlantStatusTableProps = {
   rows: PlantStatusRow[];
   isLoading: boolean;
   isError: boolean;
+  emptyMessage?: string;
 };
 
-export function PlantStatusTable({ rows, isLoading, isError }: PlantStatusTableProps) {
+export function PlantStatusTable({ rows, isLoading, isError, emptyMessage = '데이터가 없습니다.' }: PlantStatusTableProps) {
   return (
     <TableCard title="사업장 상태 목록" ariaLabel="사업장 상태 목록" className="plant-status-table">
       <TableCardContentState
@@ -39,7 +40,7 @@ export function PlantStatusTable({ rows, isLoading, isError }: PlantStatusTableP
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={7} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={7} className="common-table__empty">{emptyMessage}</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>

@@ -41,7 +41,6 @@ export function CouponManageTable({
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!isLoading && !isError && rows.length === 0}
         loadingTitle="쿠폰 목록을 불러오는 중입니다."
       >
         <div className="common-table-wrap">
@@ -77,35 +76,39 @@ export function CouponManageTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <span className="common-table__checkbox">
-                      <CheckboxInput
-                        size="sm"
-                        checked={checkedIds.includes(row.id)}
-                        aria-label={`${row.couponNm} 선택`}
-                        onChange={() => onToggleRow(row.id)}
+              {rows.length === 0 ? (
+                <tr><td colSpan={7} className="common-table__empty">데이터가 없습니다.</td></tr>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <span className="common-table__checkbox">
+                        <CheckboxInput
+                          size="sm"
+                          checked={checkedIds.includes(row.id)}
+                          aria-label={`${row.couponNm} 선택`}
+                          onChange={() => onToggleRow(row.id)}
+                        />
+                      </span>
+                    </td>
+                    <td className="common-table__mono">{row.couponCd || '-'}</td>
+                    <td>{row.couponNm || '-'}</td>
+                    <td className="common-table__cell--center">{row.startDate || '-'}</td>
+                    <td className="common-table__cell--center">{row.endDate || '-'}</td>
+                    <td>
+                      <span className={`coupon-use-yn-badge coupon-use-yn-badge--${row.useYn === 'Y' ? 'active' : 'inactive'}`}>
+                        {USE_YN_LABEL[row.useYn]}
+                      </span>
+                    </td>
+                    <td>
+                      <EditTableButton
+                        ariaLabel={`${row.couponNm} 수정`}
+                        onClick={() => onEdit(row)}
                       />
-                    </span>
-                  </td>
-                  <td className="common-table__mono">{row.couponCd || '-'}</td>
-                  <td>{row.couponNm || '-'}</td>
-                  <td className="common-table__cell--center">{row.startDate || '-'}</td>
-                  <td className="common-table__cell--center">{row.endDate || '-'}</td>
-                  <td>
-                    <span className={`coupon-use-yn-badge coupon-use-yn-badge--${row.useYn === 'Y' ? 'active' : 'inactive'}`}>
-                      {USE_YN_LABEL[row.useYn]}
-                    </span>
-                  </td>
-                  <td>
-                    <EditTableButton
-                      ariaLabel={`${row.couponNm} 수정`}
-                      onClick={() => onEdit(row)}
-                    />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

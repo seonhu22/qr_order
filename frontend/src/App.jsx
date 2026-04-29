@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/shared/auth/AuthProvider';
+import { AuthRedirectHandler } from '@/shared/auth/AuthRedirectHandler';
 import { queryClient } from '@/shared/lib/queryClient';
 import AppRoutes from '@/shared/routes/AppRoutes';
 
@@ -14,6 +15,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         {/* AuthProvider는 인증 상태를 관리하는 컨텍스트를 제공합니다. */}
         <AuthProvider>
+          {/* AuthRedirectHandler는 401 인증 만료 시 안내 모달 후 로그인으로 이동합니다. */}
+          <AuthRedirectHandler />
           {/* AppRoutes는 라우팅 설정을 담당하는 컴포넌트입니다. */}
           <AppRoutes />
         </AuthProvider>

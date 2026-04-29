@@ -15,13 +15,11 @@ describe('queryDateRange', () => {
   });
 
   it('creates query params from draft values', () => {
-    expect(createQueryDateRangeParams('2026-04-21T10:00', '2026-04-28T10:00', 'PC001')).toEqual(
-      {
-        startDate: '2026-04-21 10:00:00',
-        endDate: '2026-04-28 10:00:00',
-        searchKeyword: 'PC001',
-      },
-    );
+    expect(createQueryDateRangeParams('2026-04-21T10:00', '2026-04-28T10:00', 'PC001')).toEqual({
+      startDate: '2026-04-21 10:00:00',
+      endDate: '2026-04-28 10:00:00',
+      searchKeyword: 'PC001',
+    });
   });
 
   it('creates default draft values and params', () => {

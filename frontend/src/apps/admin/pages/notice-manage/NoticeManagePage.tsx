@@ -3,7 +3,8 @@ import './NoticeManagePage.css';
 import { NoticeManageTable } from '@/apps/admin/features/notice-manage/components/NoticeManageTable';
 import { useNoticeManagePageState } from '@/apps/admin/features/notice-manage/hooks/useNoticeManagePageState';
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
-import { InputBase, InputWrapper, TextareaInput } from '@/shared/components/input';
+import { InputBase, InputWrapper, SelectInput, TextareaInput } from '@/shared/components/input';
+import { FileInputGroup, FileHint } from '@/shared/components/file-attachment';
 import {
   DeleteConfirmModal,
   EditConfirmModal,
@@ -11,6 +12,17 @@ import {
   SimpleDefaultModal,
 } from '@/shared/components/modal';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
+
+const NOTICE_TYPE_OPTIONS = [
+  { value: 'notice', label: '공지' },
+  { value: 'update', label: '업데이트' },
+  { value: 'alert', label: '알림' },
+];
+
+const TARGET_OPTIONS = [
+  { value: 'all', label: '전체' },
+  { value: 'select', label: '선택' },
+];
 
 export function NoticeManagePage() {
   const { data, status, uiProps, actions } = useNoticeManagePageState();
@@ -62,6 +74,7 @@ export function NoticeManagePage() {
         onClose={actions.closeEditorModal}
       >
         <div className="common-code-modal-form">
+          {/* 제목 */}
           <InputWrapper
             label="제목"
             inputId="notice-title"
@@ -79,6 +92,27 @@ export function NoticeManagePage() {
             />
           </InputWrapper>
 
+          {/* 공지 유형 + 수신 대상 — 2컬럼 */}
+          <div className="notice-manage-modal-row">
+            <SelectInput
+              label="공지 유형"
+              size="md"
+              required
+              value={modalProps.editor.editingRow?.noticeType ?? 'notice'}
+              options={NOTICE_TYPE_OPTIONS}
+              onChange={(v) => actions.changeEditingField('noticeType', v)}
+            />
+            <SelectInput
+              label="수신 대상"
+              size="md"
+              required
+              value={modalProps.editor.editingRow?.target ?? 'all'}
+              options={TARGET_OPTIONS}
+              onChange={(v) => actions.changeEditingField('target', v)}
+            />
+          </div>
+
+          {/* 내용 */}
           <TextareaInput
             label="내용"
             id="notice-content"
@@ -89,6 +123,16 @@ export function NoticeManagePage() {
             placeholder="공지사항 내용을 입력하세요"
             onChange={(e) => actions.changeEditingField('content', e.target.value)}
           />
+
+          {/* 첨부파일 */}
+          <InputWrapper label="첨부파일" inputId="notice-file">
+            <FileInputGroup
+              variant="button"
+              files={[]}
+              onChange={actions.changeFileState}
+              hint={<FileHint variant="simple" maxSize="10MB" maxCount={5} allowedExts={['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP']} />}
+            />
+          </InputWrapper>
         </div>
       </WrapperModal>
 

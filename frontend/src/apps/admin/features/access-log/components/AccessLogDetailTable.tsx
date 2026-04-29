@@ -25,6 +25,7 @@ export function AccessLogDetailTable({
     <TableCard
       title="메뉴 접근 목록"
       ariaLabel="메뉴 접근 목록"
+      className="access-log-detail-table"
       actions={userBadge || undefined}
     >
       <TableCardContentState
@@ -32,7 +33,7 @@ export function AccessLogDetailTable({
         isError={isError}
         isEmpty={!isLoading && !isError && !selectedRow}
         loadingTitle="메뉴 접근 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
         emptyVariant="select"
         emptyDescription="좌측 목록에서 항목을 선택하면 메뉴 접근 이력을 조회할 수 있습니다."
       >

@@ -38,6 +38,8 @@ export function useChangeHistoryPageState() {
 
   const rows = useMemo(
     () =>
+      // 현재는 변경구분 필터를 서버가 아닌 화면 후처리로 적용한다.
+      // 백엔드가 auditFlag 검색을 지원하면 query param으로 올리는 것이 더 적절하다.
       draftAuditFlag && draftAuditFlag !== 'ALL'
         ? allRows.filter((row) => row.auditFlag === draftAuditFlag)
         : allRows,

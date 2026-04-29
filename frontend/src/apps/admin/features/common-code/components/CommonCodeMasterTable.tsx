@@ -28,6 +28,7 @@ export function CommonCodeMasterTable(props: CommonCodeMasterTableProps) {
       }}
       statusText={{
         loading: '공통코드 목록을 불러오는 중입니다.',
+        emptyMessage: '조회 결과가 없습니다.',
       }}
       rows={props.rows}
       isLoading={props.isLoading}

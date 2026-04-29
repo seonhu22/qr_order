@@ -39,7 +39,6 @@ export function PaymentManageTable({
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!isLoading && !isError && rows.length === 0}
         loadingTitle="결제 요금 목록을 불러오는 중입니다."
       >
         <div className="common-table-wrap">
@@ -69,31 +68,35 @@ export function PaymentManageTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <span className="common-table__checkbox">
-                      <CheckboxInput
-                        size="sm"
-                        checked={checkedIds.includes(row.id)}
-                        aria-label={`${row.rateName} 선택`}
-                        onChange={() => onToggleRow(row.id)}
+              {rows.length === 0 ? (
+                <tr><td colSpan={7} className="common-table__empty">데이터가 없습니다.</td></tr>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <span className="common-table__checkbox">
+                        <CheckboxInput
+                          size="sm"
+                          checked={checkedIds.includes(row.id)}
+                          aria-label={`${row.rateName} 선택`}
+                          onChange={() => onToggleRow(row.id)}
+                        />
+                      </span>
+                    </td>
+                    <td className="common-table__mono">{row.rateCode}</td>
+                    <td>{row.rateName}</td>
+                    <td>{row.rateAmount.toLocaleString()}</td>
+                    <td className="common-table__cell--center">{row.rateUnit}</td>
+                    <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
+                    <td>
+                      <EditTableButton
+                        ariaLabel={`${row.rateName} 수정`}
+                        onClick={() => onEdit(row)}
                       />
-                    </span>
-                  </td>
-                  <td className="common-table__mono">{row.rateCode}</td>
-                  <td>{row.rateName}</td>
-                  <td>{row.rateAmount.toLocaleString()}</td>
-                  <td className="common-table__cell--center">{row.rateUnit}</td>
-                  <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
-                  <td>
-                    <EditTableButton
-                      ariaLabel={`${row.rateName} 수정`}
-                      onClick={() => onEdit(row)}
-                    />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

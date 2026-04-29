@@ -12,6 +12,8 @@ export function mapToNoticeManageRow(res: NoticeResponse, index: number): Notice
   return {
     id: `notice-${index}-${res.noticeTitle ?? ''}`,
     sysId: '',
+    noticeType: 'notice',  // API 확정 후 res.noticeType 으로 교체
+    target: 'all',         // API 확정 후 res.target 으로 교체
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: '',

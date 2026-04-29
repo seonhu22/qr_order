@@ -4,13 +4,25 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { ChangeHistoryRow } from '../types';
 
+function getSafeText(value?: string) {
+  return value ?? '';
+}
+
+function createChangeHistoryRowId(item: AuditTrail, index: number) {
+  const insertDatetime = getSafeText(item.insertDatetime);
+  const auditFlag = getSafeText(item.auditFlag);
+  const menuNameOrCode = getSafeText(item.menuNm || item.menuCd);
+
+  return `change-${insertDatetime}-${auditFlag}-${menuNameOrCode || index}`;
+}
+
 export function mapToChangeHistoryRow(item: AuditTrail, index: number): ChangeHistoryRow {
   return {
-    id: `change-${index}-${item.insertDatetime ?? ''}`,
-    auditFlag: item.auditFlag ?? '',
-    menuNm: item.menuNm ?? '',
-    auditTrailContents: item.auditTrailContents ?? '',
-    insertDatetime: item.insertDatetime ?? '',
+    id: createChangeHistoryRowId(item, index),
+    auditFlag: getSafeText(item.auditFlag),
+    menuNm: getSafeText(item.menuNm),
+    auditTrailContents: getSafeText(item.auditTrailContents),
+    insertDatetime: getSafeText(item.insertDatetime),
   };
 }
 

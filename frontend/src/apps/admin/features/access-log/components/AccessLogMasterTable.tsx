@@ -18,15 +18,21 @@ export function AccessLogMasterTable({
   onSelectRow,
 }: AccessLogMasterTableProps) {
   return (
-    <TableCard title="접속 로그 목록" ariaLabel="접속 로그 목록">
+    <TableCard title="접속 로그 목록" ariaLabel="접속 로그 목록" className="access-log-master-table">
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
         loadingTitle="접속 로그를 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
       >
         <div className="common-table-wrap access-log-table__wrap">
           <table className="common-table">
+            <colgroup>
+              <col className="common-table__col--md" />
+              <col className="common-table__col--md" />
+              <col />
+              <col />
+              <col />
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col">사용자 ID</th>
@@ -38,7 +44,7 @@ export function AccessLogMasterTable({
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className="common-table__empty">조회 내용이 없습니다.</td></tr>
+                <tr><td colSpan={5} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr
@@ -48,7 +54,7 @@ export function AccessLogMasterTable({
                   >
                     <td>{row.userId}</td>
                     <td className="common-table__cell--center">{row.userNm}</td>
-                    <td>{row.ipAddress}</td>
+                    <td className="common-table__cell--center">{row.ipAddress}</td>
                     <td className="common-table__cell--center">{row.loginDatetime}</td>
                     <td className="common-table__cell--center">{row.logoutDatetime}</td>
                   </tr>
