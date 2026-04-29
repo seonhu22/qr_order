@@ -40,6 +40,44 @@ function sortByOrdNo<T extends { ordNo: number }>(items: readonly T[]) {
   return [...items].sort((a, b) => a.ordNo - b.ordNo);
 }
 
+function dedupeMenuItems(items: readonly MenuCatalogItem[]) {
+  const uniqueByMenuCd = new Map<string, MenuCatalogItem>();
+
+  for (const item of sortByOrdNo(items)) {
+    if (!item.menuCd || uniqueByMenuCd.has(item.menuCd)) {
+      continue;
+    }
+
+    uniqueByMenuCd.set(item.menuCd, item);
+  }
+
+  return [...uniqueByMenuCd.values()];
+}
+
+function createsParentCycle(
+  item: MenuCatalogItem,
+  itemByMenuCd: ReadonlyMap<string, MenuCatalogItem>,
+) {
+  const visited = new Set<string>([item.menuCd]);
+  let cursor = item.parentMenuCd?.trim();
+
+  while (cursor && cursor !== ROOT_PARENT_MENU_CD) {
+    if (visited.has(cursor)) {
+      return true;
+    }
+
+    visited.add(cursor);
+    const parent = itemByMenuCd.get(cursor);
+    if (!parent) {
+      return false;
+    }
+
+    cursor = parent.parentMenuCd?.trim();
+  }
+
+  return false;
+}
+
 function createLeafItem(node: AdminMenuTreeNode): SidebarNavItem[] {
   if (!node.path) {
     return [];
@@ -143,17 +181,19 @@ function buildSidebarMenusForSection(sectionNode: AdminMenuTreeNode): SidebarNav
 }
 
 export function buildAdminMenuTree(items: readonly MenuCatalogItem[]): AdminMenuTreeNode[] {
+  const normalizedItems = dedupeMenuItems(items);
+  const itemByMenuCd = new Map(normalizedItems.map((item) => [item.menuCd, item]));
   const nodeByMenuCd = new Map<string, AdminMenuTreeNode>();
   const roots: AdminMenuTreeNode[] = [];
 
-  sortByOrdNo(items).forEach((item) => {
+  sortByOrdNo(normalizedItems).forEach((item) => {
     nodeByMenuCd.set(item.menuCd, {
       ...item,
       children: [],
     });
   });
 
-  sortByOrdNo(items).forEach((item) => {
+  sortByOrdNo(normalizedItems).forEach((item) => {
     const node = nodeByMenuCd.get(item.menuCd);
     if (!node) {
       return;
@@ -162,7 +202,13 @@ export function buildAdminMenuTree(items: readonly MenuCatalogItem[]): AdminMenu
     const parentMenuCd = item.parentMenuCd?.trim();
     const parentNode = parentMenuCd ? nodeByMenuCd.get(parentMenuCd) : undefined;
 
-    if (!parentMenuCd || parentMenuCd === ROOT_PARENT_MENU_CD || !parentNode) {
+    if (
+      !parentMenuCd ||
+      parentMenuCd === ROOT_PARENT_MENU_CD ||
+      !parentNode ||
+      parentMenuCd === item.menuCd ||
+      createsParentCycle(item, itemByMenuCd)
+    ) {
       roots.push(node);
       return;
     }
@@ -185,22 +231,30 @@ export function createAdminNavigationData(
   pathname: string,
 ): AdminNavigationData {
   const normalizedPathname = normalizeMenuPath(pathname);
-  const tree = buildAdminMenuTree(items);
+  const normalizedItems = dedupeMenuItems(items);
+  const tree = buildAdminMenuTree(normalizedItems);
 
-  const headerSections = tree.map((sectionNode) => ({
+  const sectionEntries = tree
+    .map((sectionNode) => ({
+      sectionNode,
+      menus: buildSidebarMenusForSection(sectionNode),
+    }))
+    .filter((entry) => entry.menus.length > 0);
+
+  const headerSections = sectionEntries.map(({ sectionNode }) => ({
     section: sectionNode.menuCd,
     label: sectionNode.menuNm,
   }));
 
   const menusBySection = Object.fromEntries(
-    tree.map((sectionNode) => [sectionNode.menuCd, buildSidebarMenusForSection(sectionNode)]),
+    sectionEntries.map(({ sectionNode, menus }) => [sectionNode.menuCd, menus]),
   ) as Record<string, SidebarNavDepth1[]>;
 
   const currentMenu = findMenuByPath(
     {
-      items: [...items],
-      byMenuCd: new Map(items.map((item) => [item.menuCd, item])),
-      byPath: new Map(items.filter((item) => item.path).map((item) => [item.path, item])),
+      items: [...normalizedItems],
+      byMenuCd: new Map(normalizedItems.map((item) => [item.menuCd, item])),
+      byPath: new Map(normalizedItems.filter((item) => item.path).map((item) => [item.path, item])),
     },
     normalizedPathname,
   );
@@ -229,7 +283,10 @@ export function createAdminNavigationData(
     lineage && lineage.length > 0 && currentMenu
       ? {
           depth1: lineage[0]?.menuNm ?? '',
-          depth2: lineage[1]?.menuNm ?? lineage[0]?.menuNm ?? '',
+          depth2:
+            (lineage.length > 1 ? lineage[lineage.length - 2]?.menuNm : undefined) ??
+            lineage[0]?.menuNm ??
+            '',
           current: currentMenu.menuNm,
         }
       : undefined;

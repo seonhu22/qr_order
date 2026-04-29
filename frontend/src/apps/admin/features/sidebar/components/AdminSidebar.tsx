@@ -43,7 +43,11 @@ export function AdminSidebar() {
     },
   });
 
-  const displayedSection = activeSection ?? currentSection;
+  const displayedSection =
+    (activeSection && menusBySection[activeSection]?.length ? activeSection : null) ??
+    currentSection ??
+    Object.keys(menusBySection)[0] ??
+    null;
   const displayedMenus = displayedSection ? menusBySection[displayedSection] ?? [] : currentMenus;
 
   // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
