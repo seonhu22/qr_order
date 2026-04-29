@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import type { FileChangeState } from '@/shared/components/file-attachment';
 import type { NoticeManageRow } from '../types';
 
 export type NoticeEditorRow = {
   id: string;
   sysId: string;
+  noticeType: string;  // 공지 유형
+  target: string;      // 수신 대상
   title: string;
   content: string;
 };
@@ -21,11 +24,26 @@ type UseNoticeManageModalFlowParams = {
   onDeleteRows: () => Promise<number>;
 };
 
-const EMPTY_ROW: NoticeEditorRow = { id: '', sysId: '', title: '', content: '' };
+const EMPTY_ROW: NoticeEditorRow = {
+  id: '',
+  sysId: '',
+  noticeType: 'notice',
+  target: 'all',
+  title: '',
+  content: '',
+};
 const INITIAL_ERRORS: NoticeEditorErrors = { title: false, content: false };
+const EMPTY_FILE_STATE: FileChangeState = { newFiles: [], deletedFiles: [] };
 
 function toEditorRow(row: NoticeManageRow): NoticeEditorRow {
-  return { id: row.id, sysId: row.sysId, title: row.title, content: row.content };
+  return {
+    id: row.id,
+    sysId: row.sysId,
+    noticeType: row.noticeType || 'notice',
+    target: row.target || 'all',
+    title: row.title,
+    content: row.content,
+  };
 }
 
 export function useNoticeManageModalFlow({
@@ -44,13 +62,19 @@ export function useNoticeManageModalFlow({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [noticeState, setNoticeState] = useState<NoticeState>(null);
   const [editorErrors, setEditorErrors] = useState<NoticeEditorErrors>(INITIAL_ERRORS);
+  const [fileChangeState, setFileChangeState] = useState<FileChangeState>(EMPTY_FILE_STATE);
+
+  const hasFileChanges =
+    fileChangeState.newFiles.length > 0 || fileChangeState.deletedFiles.length > 0;
 
   const isDirty =
-    editingRow !== null &&
-    originalRow !== null &&
-    JSON.stringify(editingRow) !== JSON.stringify(originalRow);
+    (editingRow !== null &&
+      originalRow !== null &&
+      JSON.stringify(editingRow) !== JSON.stringify(originalRow)) ||
+    hasFileChanges;
 
   const resetErrors = () => setEditorErrors(INITIAL_ERRORS);
+  const resetFileState = () => setFileChangeState(EMPTY_FILE_STATE);
 
   const openCreateModal = () => {
     setEditingRow({ ...EMPTY_ROW });
@@ -76,6 +100,7 @@ export function useNoticeManageModalFlow({
     setOriginalRow(null);
     setIsCreateMode(false);
     resetErrors();
+    resetFileState();
   };
 
   const closeEditorModal = () => {
@@ -118,6 +143,7 @@ export function useNoticeManageModalFlow({
       setOriginalRow(null);
       setIsCreateMode(false);
       resetErrors();
+      resetFileState();
     } catch (error) {
       setIsSaveConfirmOpen(false);
       setNoticeState({
@@ -162,6 +188,7 @@ export function useNoticeManageModalFlow({
     isCreateMode,
     isDirty,
     editorErrors,
+    fileChangeState,
     noticeState,
     isEditorOpen,
     isSaveConfirmOpen,
@@ -174,6 +201,7 @@ export function useNoticeManageModalFlow({
     closeEditorModal,
     forceCloseEditorModal,
     changeEditingField,
+    changeFileState: setFileChangeState,
     requestSave,
     confirmSave,
     requestDelete,

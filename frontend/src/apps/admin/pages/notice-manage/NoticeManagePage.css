@@ -2,6 +2,13 @@
  * 공지사항 관리 페이지 — feature 전용 스타일
  * ===================================================== */
 
+/* 모달 폼 2컬럼 행 (공지 유형 + 수신 대상) */
+.notice-manage-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5);
+}
+
 /* 내용 컬럼 말줄임 max-width */
 .notice-manage-table .common-table__cell--truncate {
   max-width: 24rem;

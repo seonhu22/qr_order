@@ -91,6 +91,7 @@ export function useNoticeManagePageState() {
       isCreateMode: modalFlow.isCreateMode,
       editingRow: modalFlow.editingRow,
       editorErrors: modalFlow.editorErrors,
+      fileChangeState: modalFlow.fileChangeState,
     },
     saveConfirm: {
       open: modalFlow.isSaveConfirmOpen,
@@ -134,6 +135,7 @@ export function useNoticeManagePageState() {
       handleDelete: modalFlow.requestDelete,
       handleEdit: (row: NoticeManageRow) => modalFlow.openEditModal(row),
       changeEditingField: modalFlow.changeEditingField,
+      changeFileState: modalFlow.changeFileState,
       requestSave: modalFlow.requestSave,
       confirmSave: modalFlow.confirmSave,
       confirmDelete: modalFlow.confirmDelete,
