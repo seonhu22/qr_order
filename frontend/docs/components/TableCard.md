@@ -594,6 +594,46 @@ import { EditTableButton } from '@/shared/components/button';
 
 ## 5. 페이지별 오버라이드
 
+### 가로 스크롤 설정
+
+컬럼이 많거나 날짜·긴 텍스트가 포함되어 셀이 압축될 경우 가로 스크롤을 추가한다.
+`common-table-wrap`은 이미 `overflow: auto`를 가지므로, 테이블에 `min-width`만 지정하면 자동으로 스크롤이 생긴다.
+
+**Step 1** — `TableCard`에 feature 고유 클래스 지정:
+```tsx
+<TableCard title="..." ariaLabel="..." className="my-feature-table">
+```
+
+**Step 2** — 페이지 CSS에 `min-width` 지정:
+```css
+/* 카드 너비보다 큰 값을 지정해야 스크롤이 트리거된다 */
+.my-feature-table .common-table { min-width: 60rem; } /* 적절한 값으로 조정 */
+```
+
+`min-width`가 카드 너비보다 작으면 스크롤이 생기지 않으므로, 테이블의 컬럼 수와 예상 데이터 길이를 고려해 충분히 크게 설정한다.
+
+> **분할 레이아웃(좌우 나눔) 주의** — `common-table-wrap`을 커스텀 클래스로 대체하는 경우,
+> `overflow-y: auto`만 설정하면 가로 스크롤이 막힌다. 반드시 `overflow: auto`로 지정한다.
+>
+> ```css
+> /* 잘못된 예 — 가로 스크롤 차단 */
+> .my-wrap { overflow-y: auto; }
+>
+> /* 올바른 예 */
+> .my-wrap { overflow: auto; }
+> ```
+
+**구현 사례**:
+
+| 페이지 | className | min-width | 비고 |
+|---|---|---|---|
+| 사업장 조회 | `plant-search-table` | `90rem` | 빈 상태 시 `min-width: unset` |
+| 관리자 관리 | `admin-user-table` | `58rem` | — |
+| 문의사항 관리 | `inquiry-manage-table` | `72rem` | — |
+| 접속 로그 (분할) | `access-log-master-table` | `45rem` | 분할 레이아웃, 커스텀 wrap 사용 |
+
+---
+
 `TableCard.css`에는 `min-width`가 없다. 컬럼이 많아 스크롤이 필요한 경우 페이지 CSS에서 오버라이드한다.
 
 ```css
