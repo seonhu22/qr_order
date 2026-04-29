@@ -22,6 +22,7 @@ AdminLayout
 → getAdminMenuKeyByPath
 → useMenuOpenAccessLog
 → menu_open_access_log API 호출
+→ AdminMenuAccessLogContext에 완료 상태 제공
 ```
 
 관련 파일:
@@ -29,6 +30,7 @@ AdminLayout
 | 파일 | 역할 |
 |---|---|
 | `src/apps/admin/layout/AdminLayout.tsx` | 관리자 화면 공통 진입점 |
+| `src/apps/admin/contexts/AdminMenuAccessLogContext.tsx` | 현재 메뉴 접근 로그 완료 상태 제공 |
 | `src/apps/admin/hooks/useAdminMenuOpenAccessLog.ts` | 현재 URL을 읽고 접근 로그 훅 호출 |
 | `src/apps/admin/features/sidebar/utils/getAdminMenuKeyByPath.ts` | pathname을 사이드바 메뉴 key로 변환 |
 | `src/shared/hooks/useMenuOpenAccessLog.ts` | 실제 접근 로그 API 호출 |
@@ -74,6 +76,24 @@ POST /api/log/log/menu_open_access_log?menuCd={sidebar key}
 
 4. 저장 API가 audit를 사용하는 화면이라면, 저장 요청 전에 접근 로그 요청이 먼저 성공했는지 확인한다.
 
+저장 버튼은 관리자 메뉴 접근 로그 완료 상태를 함께 확인한다.
+
+```tsx
+const menuAccessLog = useAdminMenuAccessLogStatus();
+
+<Button disabled={!menuAccessLog.isReady || saveMutation.isPending}>
+  저장
+</Button>
+```
+
+저장 실행 함수에서도 한 번 더 막는다.
+
+```ts
+if (!menuAccessLog.isReady) {
+  throw new Error('메뉴 접근 로그 완료 후 저장할 수 있습니다.');
+}
+```
+
 ---
 
 ## 5. 중복 호출 방지 규칙
@@ -98,6 +118,7 @@ coupon → adminUser    호출함
 - 사이드바 설정에 없는 path는 `menuCd`를 찾을 수 없으므로 로그가 남지 않는다.
 - 메뉴 key를 바꾸면 백엔드 audit/session에서 사용하는 `menuCd`도 바뀌므로 임의 변경하지 않는다.
 - 상세 화면처럼 `/admin/system/plant/new` 형태의 하위 경로는 가장 가까운 상위 메뉴 path와 매칭된다.
+- 첨부파일처럼 백엔드 세션의 현재 메뉴 정보가 필요한 저장 API는 `useAdminMenuAccessLogStatus().isReady`가 `true`일 때만 실행한다.
 
 ---
 
