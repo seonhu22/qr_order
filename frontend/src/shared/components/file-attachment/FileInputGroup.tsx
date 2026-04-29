@@ -24,7 +24,7 @@ import type { FileInputGroupProps, ServerFile } from './types';
 
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx', 'pptx', 'zip'];
 const ACCEPT_ATTR = '.jpg,.jpeg,.png,.pdf,.docx,.xlsx,.pptx,.zip';
-const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당 최대 50MB';
+const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당 최대 10MB';
 
 
 /* =====================================================
@@ -70,7 +70,7 @@ export function FileInputGroup({
   files: existingFiles = [],
   onChange,
   maxFiles = 5,
-  maxFileSizeMB = 50,
+  maxFileSizeMB = 10,
   maxTotalSizeMB = 50,
   disabled = false,
   isUploading = false,

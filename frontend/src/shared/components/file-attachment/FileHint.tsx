@@ -22,7 +22,7 @@ export type FileHintVariant = 'simple' | 'badge' | 'info' | 'warning' | 'error';
 
 export type FileHintProps = {
   variant?: FileHintVariant;
-  /** 파일당 최대 크기 (예: "50MB") — 미전달 시 표시 안 함 */
+  /** 파일당 최대 크기 (예: "10MB") — 미전달 시 표시 안 함 */
   maxSize?: string;
   /** 최대 파일 개수 — 미전달 시 표시 안 함 */
   maxCount?: number;
