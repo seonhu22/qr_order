@@ -25,6 +25,7 @@ export function AccessLogDetailTable({
     <TableCard
       title="메뉴 접근 목록"
       ariaLabel="메뉴 접근 목록"
+      className="access-log-detail-table"
       actions={userBadge || undefined}
     >
       <TableCardContentState
