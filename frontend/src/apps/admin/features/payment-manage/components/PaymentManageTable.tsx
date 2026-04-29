@@ -83,8 +83,18 @@ export function PaymentManageTable({
                         />
                       </span>
                     </td>
-                    <td className="common-table__mono">{row.rateCode}</td>
-                    <td>{row.rateName}</td>
+                    <td
+                      className="common-table__mono common-table__cell--truncate"
+                      title={row.rateCode}
+                    >
+                      {row.rateCode}
+                    </td>
+                    <td
+                      className="common-table__cell--left common-table__cell--truncate"
+                      title={row.rateName}
+                    >
+                      {row.rateName}
+                    </td>
                     <td>{row.rateAmount.toLocaleString()}</td>
                     <td className="common-table__cell--center">{row.rateUnit}</td>
                     <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
