@@ -201,7 +201,9 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
 | [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
+| [`docs/admin-navigation.md`](./docs/admin-navigation.md) | `sys_menu` 기반 header/sidebar/breadcrumb/access-log 규칙 |
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
+| [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
 상태 처리 작성 기준:

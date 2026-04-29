@@ -1,12 +1,9 @@
-import { useLocation } from 'react-router-dom';
-import { useMemo } from 'react';
-import { getAdminMenuKeyByPath } from '@/apps/admin/features/sidebar/utils/getAdminMenuKeyByPath';
+import { useSyncCurrentAdminMenu } from '@/apps/admin/hooks/useSyncCurrentAdminMenu';
 import { useMenuOpenAccessLog } from '@/shared/hooks/useMenuOpenAccessLog';
 
 export function useAdminMenuOpenAccessLog() {
-  const location = useLocation();
-  // 현재 URL을 사이드바 메뉴 key로 바꿔 백엔드 세션의 현재 메뉴 정보를 갱신한다.
-  const menuCd = useMemo(() => getAdminMenuKeyByPath(location.pathname), [location.pathname]);
+  // 현재 URL과 서버 메뉴 카탈로그를 기준으로 실제 menuCd를 계산하고 전역 UI 상태와 동기화한다.
+  const { currentMenu } = useSyncCurrentAdminMenu();
 
-  return useMenuOpenAccessLog(menuCd);
+  return useMenuOpenAccessLog(currentMenu?.menuCd);
 }

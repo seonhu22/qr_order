@@ -21,6 +21,8 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
   return {
     id: sysId || `notice-${index}-${res.noticeTitle ?? ''}-${res.startDate ?? ''}`,
     sysId,
+    noticeType: 'notice',
+    target: 'all',
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: res.insertUserId ?? '',

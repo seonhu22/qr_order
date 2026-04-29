@@ -10,7 +10,7 @@ describe('accessLogApi', () => {
         userNm: '관리자',
         ipAddress: '127.0.0.1',
         loginDatetime: '2026-04-25T09:00:00',
-        logoutDatetime: '2026-04-25T18:00:00',
+        logoutDatetime: '2026-04-25T18:00:00.123Z',
       }),
     ).toEqual({
       id: 'log-1',
@@ -18,8 +18,8 @@ describe('accessLogApi', () => {
       userId: 'PC001',
       userNm: '관리자',
       ipAddress: '127.0.0.1',
-      loginDatetime: '2026-04-25T09:00:00',
-      logoutDatetime: '2026-04-25T18:00:00',
+      loginDatetime: '2026-04-25 09:00:00',
+      logoutDatetime: '2026-04-25 18:00:00',
     });
   });
 
@@ -41,7 +41,7 @@ describe('accessLogApi', () => {
         {
           menuCd: 'commonCode',
           menuOpenDatetime: '2026-04-25T09:01:00',
-          menuCloseDatetime: '2026-04-25T09:05:00',
+          menuCloseDatetime: '2026-04-25T09:05:00.456Z',
         },
         0,
       ),
@@ -49,8 +49,8 @@ describe('accessLogApi', () => {
       id: 'detail-0-commonCode-2026-04-25T09:01:00',
       menuCd: 'commonCode',
       menuNm: 'commonCode',
-      menuOpenDatetime: '2026-04-25T09:01:00',
-      menuCloseDatetime: '2026-04-25T09:05:00',
+      menuOpenDatetime: '2026-04-25 09:01:00',
+      menuCloseDatetime: '2026-04-25 09:05:00',
     });
   });
 });

@@ -13,7 +13,7 @@
 
 import { create } from 'zustand';
 
-export type AdminSection = 'system' | 'board';
+export type AdminSection = string;
 
 type AdminLayoutStore = {
   isSidebarOpen: boolean;

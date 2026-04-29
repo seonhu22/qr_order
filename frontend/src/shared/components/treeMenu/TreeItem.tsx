@@ -49,7 +49,7 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
+    if (e.key === 'Enter' && !isDisabled) {
       e.preventDefault();
       onSelect(node.id);
     }

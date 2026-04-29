@@ -19,6 +19,8 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-1',
       sysId: 'notice-1',
+      noticeType: 'notice',
+      target: 'all',
       title: '점검 공지',
       content: '시스템 점검 안내',
       registrant: 'PC001',
@@ -40,6 +42,8 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-2-점검 공지-2026-04-29',
       sysId: '',
+      noticeType: 'notice',
+      target: 'all',
       title: '점검 공지',
       content: '시스템 점검 안내',
       registrant: '',

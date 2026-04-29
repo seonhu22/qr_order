@@ -8,6 +8,8 @@
  */
 
 import { useMemo, useState } from 'react';
+import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
+import { resolveMenuDisplayName } from '@/shared/menu/menuCatalog';
 import {
   mapToAccessLogDetailRow,
   mapToAccessLogMasterRow,
@@ -62,14 +64,23 @@ export function useAccessLogPageState() {
   });
 
   const detailQuery = useAccessLogDetailQuery(selectedRow?.sysId ?? '');
+  const { catalog } = useAdminMenuCatalogQuery();
 
   const masterRows = useMemo(
     () => (masterQuery.data ?? []).map(mapToAccessLogMasterRow),
     [masterQuery.data],
   );
   const detailRows = useMemo(
-    () => (detailQuery.data ?? []).map((item, idx) => mapToAccessLogDetailRow(item, idx)),
-    [detailQuery.data],
+    () =>
+      (detailQuery.data ?? []).map((item, idx) => {
+        const row = mapToAccessLogDetailRow(item, idx);
+
+        return {
+          ...row,
+          menuNm: resolveMenuDisplayName(catalog, row.menuCd, row.menuNm === row.menuCd ? '' : row.menuNm),
+        };
+      }),
+    [catalog, detailQuery.data],
   );
 
   const handleSearch = () => {

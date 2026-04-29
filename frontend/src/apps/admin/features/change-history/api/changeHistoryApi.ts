@@ -1,6 +1,7 @@
 import { useGetAuditTrail } from '@/generated/settings-controller/settings-controller';
 import type { AuditTrail } from '@/generated/types/auditTrail';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { ChangeHistoryRow } from '../types';
 
@@ -22,7 +23,7 @@ export function mapToChangeHistoryRow(item: AuditTrail, index: number): ChangeHi
     auditFlag: getSafeText(item.auditFlag),
     menuNm: getSafeText(item.menuNm),
     auditTrailContents: getSafeText(item.auditTrailContents),
-    insertDatetime: getSafeText(item.insertDatetime),
+    insertDatetime: formatDateTimeForDisplay(item.insertDatetime),
   };
 }
 

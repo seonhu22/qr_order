@@ -4,20 +4,26 @@ import { useChangeHistoryPageState } from './useChangeHistoryPageState';
 
 const useChangeHistoryQueryMock = vi.fn();
 const mapToChangeHistoryRowMock = vi.fn();
+const useAdminMenuCatalogQueryMock = vi.fn();
 
 vi.mock('../api/changeHistoryApi', () => ({
   useChangeHistoryQuery: (...args: unknown[]) => useChangeHistoryQueryMock(...args),
   mapToChangeHistoryRow: (...args: unknown[]) => mapToChangeHistoryRowMock(...args),
 }));
 
+vi.mock('@/shared/menu/useAdminMenuCatalogQuery', () => ({
+  useAdminMenuCatalogQuery: (...args: unknown[]) => useAdminMenuCatalogQueryMock(...args),
+}));
+
 describe('useChangeHistoryPageState', () => {
   beforeEach(() => {
     useChangeHistoryQueryMock.mockReset();
     mapToChangeHistoryRowMock.mockReset();
+    useAdminMenuCatalogQueryMock.mockReset();
 
     useChangeHistoryQueryMock.mockReturnValue({
       data: [
-        { auditFlag: 'I', menuNm: '공통코드', auditTrailContents: '등록', insertDatetime: '2026-04-27T09:00:00' },
+        { auditFlag: 'I', menuCd: 'commonCode', menuNm: '', auditTrailContents: '등록', insertDatetime: '2026-04-27T09:00:00' },
         { auditFlag: 'U', menuNm: '규칙관리', auditTrailContents: '수정', insertDatetime: '2026-04-27T10:00:00' },
       ],
       isLoading: false,
@@ -31,12 +37,47 @@ describe('useChangeHistoryPageState', () => {
       auditTrailContents: item.auditTrailContents ?? '',
       insertDatetime: item.insertDatetime ?? '',
     }));
+
+    useAdminMenuCatalogQueryMock.mockReturnValue({
+      catalog: {
+        items: [],
+        byMenuCd: new Map([
+          [
+            'commonCode',
+            {
+              menuCd: 'commonCode',
+              menuNm: '공통코드 관리',
+              parentMenuCd: 'ROOT',
+              path: '/admin/system/common-code',
+              ordNo: 1,
+              treeLevel: 1,
+            },
+          ],
+        ]),
+        byPath: new Map(),
+      },
+    });
   });
 
-  it('returns all rows by default and filters rows by audit flag', () => {
+  it('returns all rows by default, fills missing menu name from catalog, and filters rows by audit flag', () => {
     const { result } = renderHook(() => useChangeHistoryPageState());
 
-    expect(result.current.data.rows).toHaveLength(2);
+    expect(result.current.data.rows).toEqual([
+      {
+        id: 'change-0',
+        auditFlag: 'I',
+        menuNm: '공통코드 관리',
+        auditTrailContents: '등록',
+        insertDatetime: '2026-04-27T09:00:00',
+      },
+      {
+        id: 'change-1',
+        auditFlag: 'U',
+        menuNm: '규칙관리',
+        auditTrailContents: '수정',
+        insertDatetime: '2026-04-27T10:00:00',
+      },
+    ]);
 
     act(() => {
       result.current.actions.handleAuditFlagChange('U');
