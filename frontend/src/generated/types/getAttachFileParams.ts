@@ -7,5 +7,5 @@
  */
 
 export type GetAttachFileParams = {
-sysId: string;
+linkSysId: string;
 };

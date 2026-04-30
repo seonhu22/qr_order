@@ -1,8 +1,15 @@
 import { useGetQna, useUpdateQna } from '@/generated/settings-controller/settings-controller';
+import {
+  useGetAttachFile,
+  downloadFile,
+  downloadAllFile,
+} from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { DateTime } from '@/generated/types/dateTime';
+import type { FileResponse } from '@/generated/types/fileResponse';
+import type { ServerFile } from '@/shared/components/file-attachment';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 function formatDateTime(dt?: DateTime): string {
@@ -59,4 +66,45 @@ export function buildInquiryAnswerUpdateRequest(
 
 export function useInquiryAnswerMutation() {
   return useUpdateQna();
+}
+
+export function mapFileResponseToServerFile(f: FileResponse): ServerFile {
+  return {
+    sysId: f.sysId ?? '',
+    linkSysId: '',
+    originalFileNm: f.originalFileNm ?? '',
+    convertFileNm: '',
+    fileExt: f.fileExt ?? '',
+    mimeType: '',
+    fileSize: f.fileSize ?? '0',
+    filePath: f.filePath ?? '',
+    ordNo: f.ordNo ?? 0,
+    pdfYn: f.pdfYn ?? 'N',
+  };
+}
+
+export function useInquiryAttachFileQuery(fileUuid: string | undefined) {
+  return useGetAttachFile(
+    { sysId: fileUuid ?? '' },
+    { query: { enabled: Boolean(fileUuid) } },
+  );
+}
+
+export async function downloadInquiryFile(file: ServerFile): Promise<void> {
+  const blob = await downloadFile({ sysId: file.sysId });
+  triggerBlobDownload(blob, file.originalFileNm);
+}
+
+export async function downloadAllInquiryFiles(fileUuid: string): Promise<void> {
+  const blob = await downloadAllFile({ linkSysId: fileUuid });
+  triggerBlobDownload(blob, 'files.zip');
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }

@@ -8,6 +8,7 @@
 
 export interface SysAccessLogDetail {
   menuCd?: string;
+  menuNm?: string;
   menuOpenDatetime?: string;
   menuCloseDatetime?: string;
 }

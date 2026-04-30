@@ -3,10 +3,17 @@ import AdminMainLayout from '@/apps/admin/layout/AdminMainLayout';
 import './InquiryManagePage.css';
 import { InquiryManageTable } from '@/apps/admin/features/inquiry-manage/components/InquiryManageTable';
 import { useInquiryManagePage } from '@/apps/admin/features/inquiry-manage/hooks/useInquiryManagePage';
+import {
+  useInquiryAttachFileQuery,
+  mapFileResponseToServerFile,
+  downloadInquiryFile,
+  downloadAllInquiryFiles,
+} from '@/apps/admin/features/inquiry-manage/api/inquiryManageApi';
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { TextInput, TextareaInput } from '@/shared/components/input';
+import { FileDownloadList } from '@/shared/components/file-attachment';
 import type { InquiryManageRow } from '@/apps/admin/features/inquiry-manage/types';
 
 export function InquiryManagePage() {
@@ -20,6 +27,19 @@ export function InquiryManagePage() {
 
   const isDirty = answerContent !== (selectedRow?.answerContent ?? '');
   const canSaveAnswer = Boolean(selectedRow?.sysId);
+
+  const attachFileQuery = useInquiryAttachFileQuery(selectedRow?.fileUuid);
+  const attachFiles = (attachFileQuery.data ?? []).map(mapFileResponseToServerFile);
+
+  const handleDownloadFile = (file: Parameters<typeof downloadInquiryFile>[0]) => {
+    downloadInquiryFile(file).catch(() => {});
+  };
+
+  const handleDownloadAllFiles = () => {
+    if (selectedRow?.fileUuid) {
+      downloadAllInquiryFiles(selectedRow.fileUuid).catch(() => {});
+    }
+  };
 
   const handleOpenDetail = (row: InquiryManageRow) => {
     setSelectedRow(row);
@@ -136,10 +156,13 @@ export function InquiryManagePage() {
                 문의사항 식별자(sysId)가 없어 답변을 저장할 수 없습니다.
               </div>
             ) : null}
-            <div className="inquiry-detail__attachment">
-              <span className="inquiry-detail__attachment-label">첨부파일</span>
-              <span className="inquiry-detail__attachment-placeholder">미구현</span>
-            </div>
+            <FileDownloadList
+              files={attachFiles}
+              showHeader
+              showDownloadAll={attachFiles.length > 0}
+              onDownload={handleDownloadFile}
+              onDownloadAll={handleDownloadAllFiles}
+            />
           </div>
         )}
       </WrapperModal>

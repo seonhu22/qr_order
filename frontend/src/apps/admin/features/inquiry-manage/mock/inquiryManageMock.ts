@@ -6,6 +6,7 @@ export const INQUIRY_MANAGE_MOCK_ROWS: QnaResponse[] = [
     qnaTitle: '결제 오류가 발생했습니다',
     qnaDescription: 'QR 코드 결제 시 오류가 반복적으로 발생합니다. 확인 부탁드립니다.',
     startDate: { Year: 2026, Month: 3, Day: 10 },
+    fileUuid: 'file-uuid-qna-1',
     answerYn: 'Y',
     answerDatetime: { Year: 2026, Month: 3, Day: 12 },
     answerDescription: '확인하여 조치 완료하였습니다.',
