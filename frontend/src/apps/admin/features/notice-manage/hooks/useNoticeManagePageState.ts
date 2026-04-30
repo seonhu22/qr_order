@@ -67,18 +67,18 @@ export function useNoticeManagePageState() {
       );
     }
 
-    const params = {
-      noticeRequest: {
-        sysId: editorRow.sysId || undefined,
-        noticeTitle: editorRow.title,
-        noticeDescription: editorRow.content,
-      },
-      fileRequest: {},
+    const data = {
+      sysId: editorRow.sysId || undefined,
+      fileUuid: editorRow.fileUuid,
+      title: editorRow.title,
+      content: editorRow.content,
+      fileChangeState: modalFlow.fileChangeState,
     };
+
     if (isCreateMode) {
-      await createMutation.mutateAsync({ params });
+      await createMutation.mutateAsync({ data });
     } else {
-      await updateMutation.mutateAsync({ params });
+      await updateMutation.mutateAsync({ data });
     }
     await refetchOrThrow(noticeQuery.refetch, '저장 후 공지사항 목록을 다시 조회하지 못했습니다.');
   };

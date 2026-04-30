@@ -5,8 +5,9 @@ import type { NoticeManageRow } from '../types';
 export type NoticeEditorRow = {
   id: string;
   sysId: string;
-  noticeType: string;  // 공지 유형
-  target: string;      // 수신 대상
+  fileUuid?: string;
+  noticeType: string; // 공지 유형
+  target: string; // 수신 대상
   title: string;
   content: string;
 };
@@ -39,6 +40,7 @@ function toEditorRow(row: NoticeManageRow): NoticeEditorRow {
   return {
     id: row.id,
     sysId: row.sysId,
+    fileUuid: row.fileUuid,
     noticeType: row.noticeType || 'notice',
     target: row.target || 'all',
     title: row.title,
