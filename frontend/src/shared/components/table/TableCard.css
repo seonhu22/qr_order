@@ -274,6 +274,16 @@
   color: var(--color-text-disabled);
 }
 
+.status-badge--krw {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.status-badge--usd {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
 /* 인라인 편집 InputBase */
 .common-table__input {
   width: 100%;

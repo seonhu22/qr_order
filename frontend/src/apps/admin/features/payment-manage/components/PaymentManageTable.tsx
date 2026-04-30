@@ -3,6 +3,16 @@ import { MasterTableActions, TableCard, TableCardContentState } from '@/shared/c
 import { CheckboxInput } from '@/shared/components/checkbox/CheckboxInput';
 import type { PaymentRateRow } from '../types';
 
+function PaymentUnitBadge({ unit }: { unit: string }) {
+  if (unit === '원') {
+    return <span className="status-badge status-badge--krw">원 <span className="payment-unit-badge__symbol">₩</span></span>;
+  }
+  if (unit === '달러' || unit === 'USD') {
+    return <span className="status-badge status-badge--usd">달러 <span className="payment-unit-badge__symbol">$</span></span>;
+  }
+  return <span className="status-badge">{unit}</span>;
+}
+
 type PaymentManageTableProps = {
   rows: PaymentRateRow[];
   isLoading?: boolean;
@@ -96,7 +106,7 @@ export function PaymentManageTable({
                       {row.rateName}
                     </td>
                     <td>{row.rateAmount.toLocaleString()}</td>
-                    <td className="common-table__cell--center">{row.rateUnit}</td>
+                    <td className="common-table__cell--center"><PaymentUnitBadge unit={row.rateUnit} /></td>
                     <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
                     <td>
                       <EditTableButton

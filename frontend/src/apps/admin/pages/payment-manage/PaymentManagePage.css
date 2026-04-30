@@ -21,9 +21,15 @@
 .payment-manage-table col:nth-child(6) { width: 7rem; }
 .payment-manage-table col:nth-child(7) { width: 3.5rem; }
 
+/* 결제 요금 단위 뱃지 기호 */
+.payment-unit-badge__symbol {
+  margin-left: 0.2em;
+}
+
 /* 결제 요금 명 컬럼은 핵심 텍스트 컬럼이라 줄바꿈 없이 좌정렬로 유지한다. */
 .payment-manage-table th:nth-child(3),
 .payment-manage-table td:nth-child(3) {
   white-space: nowrap;
   text-align: left;
 }
+
