@@ -88,8 +88,7 @@ export function useAdminUserFlow({
     onApplyRequiredFieldErrors,
     onSaveChanges,
     savedNotice: {
-      description: '저장되었습니다.',
-      helperText: '초기 비밀번호는 SN111111 입니다.',
+      description: '저장 완료되었습니다.',
     },
   });
   /**
