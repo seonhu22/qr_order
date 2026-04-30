@@ -1,7 +1,6 @@
 // src/shared/auth/hooks/useAuthLoginMutation.ts
 
 import { useQueryClient } from '@tanstack/react-query';
-import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
 import { useLogin } from '@/generated/login-controller/login-controller';
 import type { LoginMutationResult } from '@/generated/login-controller/login-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
@@ -26,9 +25,12 @@ export function useAuthLoginMutation(options: AuthLoginMutationOptions = {}) {
       ...mutationOptions,
       onSuccess: async (data, variables, context) => {
         if (data?.success) {
-          await queryClient.fetchQuery({
-            queryKey: queryKeys.auth.me,
-            queryFn: () => getCurrentUser(),
+          queryClient.setQueryData(queryKeys.auth.me, data);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+        } else {
+          queryClient.setQueryData(queryKeys.auth.me, {
+            success: false,
+            data: null,
           });
         }
 

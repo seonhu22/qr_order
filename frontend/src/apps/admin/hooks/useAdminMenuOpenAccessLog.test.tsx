@@ -2,26 +2,33 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useGetMenu } from '@/generated/settings-controller/settings-controller';
-import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
+import {
+  useInsertMenuCloseAccessLog,
+  useInsertMenuOpenAccessLog,
+} from '@/generated/log-controller/log-controller';
 import { useAdminMenuStore } from '@/apps/admin/stores/adminMenuStore';
 import { useAdminMenuOpenAccessLog } from './useAdminMenuOpenAccessLog';
 
-const mutateMock = vi.fn();
+const openMutateMock = vi.fn();
+const closeMutateMock = vi.fn();
 
 vi.mock('@/generated/settings-controller/settings-controller', () => ({
   useGetMenu: vi.fn(),
 }));
 
 vi.mock('@/generated/log-controller/log-controller', () => ({
+  useInsertMenuCloseAccessLog: vi.fn(),
   useInsertMenuOpenAccessLog: vi.fn(),
 }));
 
 const mockedUseGetMenu = vi.mocked(useGetMenu);
 const mockedUseInsertMenuOpenAccessLog = vi.mocked(useInsertMenuOpenAccessLog);
+const mockedUseInsertMenuCloseAccessLog = vi.mocked(useInsertMenuCloseAccessLog);
 
 describe('useAdminMenuOpenAccessLog', () => {
   beforeEach(() => {
-    mutateMock.mockReset();
+    openMutateMock.mockReset();
+    closeMutateMock.mockReset();
     useAdminMenuStore.getState().clearCurrentMenu();
 
     mockedUseGetMenu.mockReset();
@@ -44,12 +51,16 @@ describe('useAdminMenuOpenAccessLog', () => {
 
     mockedUseInsertMenuOpenAccessLog.mockReset();
     mockedUseInsertMenuOpenAccessLog.mockReturnValue({
-      mutate: mutateMock,
+      mutate: openMutateMock,
+    } as never);
+    mockedUseInsertMenuCloseAccessLog.mockReset();
+    mockedUseInsertMenuCloseAccessLog.mockReturnValue({
+      mutate: closeMutateMock,
     } as never);
   });
 
   it('syncs currentMenuCd from route and uses it for access log', async () => {
-    mutateMock.mockImplementation((_variables, options) => {
+    openMutateMock.mockImplementation((_variables, options) => {
       options.onSuccess();
     });
 
@@ -67,7 +78,7 @@ describe('useAdminMenuOpenAccessLog', () => {
       currentMenuCd: 'plantSearch',
       currentPath: '/admin/system/plant/new',
     });
-    expect(mutateMock).toHaveBeenCalledWith(
+    expect(openMutateMock).toHaveBeenCalledWith(
       { params: { menuCd: 'plantSearch' } },
       expect.objectContaining({
         onSuccess: expect.any(Function),

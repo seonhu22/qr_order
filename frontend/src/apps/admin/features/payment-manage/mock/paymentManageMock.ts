@@ -9,6 +9,6 @@ export const PAYMENT_MOCK_ROWS: PaymentResponse[] = [
   { sysId: '6', paymentCd: 'PRO_M1', paymentNm: '프리미엄 플랜 (월)', paymentFee: 39900, paymentFeeUnit: '원', licenseValidMonth: 1 },
   { sysId: '7', paymentCd: 'PRO_M6', paymentNm: '프리미엄 플랜 (반기)', paymentFee: 219000, paymentFeeUnit: '원', licenseValidMonth: 6 },
   { sysId: '8', paymentCd: 'PRO_M12', paymentNm: '프리미엄 플랜 (연)', paymentFee: 399000, paymentFeeUnit: '원', licenseValidMonth: 12 },
-  { sysId: '9', paymentCd: 'ENT_USD_M1', paymentNm: '엔터프라이즈 (월)', paymentFee: 49, paymentFeeUnit: 'USD', licenseValidMonth: 1 },
-  { sysId: '10', paymentCd: 'ENT_USD_M12', paymentNm: '엔터프라이즈 (연)', paymentFee: 499, paymentFeeUnit: 'USD', licenseValidMonth: 12 },
+  { sysId: '9', paymentCd: 'ENT_USD_M1', paymentNm: '엔터프라이즈 (월)', paymentFee: 49, paymentFeeUnit: '달러', licenseValidMonth: 1 },
+  { sysId: '10', paymentCd: 'ENT_USD_M12', paymentNm: '엔터프라이즈 (연)', paymentFee: 499, paymentFeeUnit: '달러', licenseValidMonth: 12 },
 ];

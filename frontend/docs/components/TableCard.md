@@ -573,6 +573,15 @@ import { EditTableButton } from '@/shared/components/button';
 
 ### 상태 배지
 
+배지는 **두 가지 사이즈**가 의도적으로 구분된다.
+
+| 종류 | 사이즈 | 사용 기준 |
+|---|---|---|
+| 공용 배지 (`.status-badge`) | 소형 — `height: 1.125rem`, `border-radius: --radius-xs` | Y/N 단일 문자처럼 짧은 값 |
+| feature 전용 배지 | 기본 — `padding: 0.1875rem 0.5rem`, `border-radius: --radius-sm` | 도메인 고유 상태 또는 2글자 이상 텍스트 |
+
+두 사이즈를 혼용하지 않는다. 같은 테이블 안에서는 한 가지 사이즈만 사용한다.
+
 **공용 배지 (사용여부 2가지)**
 
 | 클래스 | 설명 |
@@ -587,9 +596,9 @@ import { EditTableButton } from '@/shared/components/button';
 </span>
 ```
 
-**feature 전용 배지 (3가지 이상 상태)**
+**feature 전용 배지 (도메인 고유 상태)**
 
-상태가 3가지 이상이거나 도메인 고유 의미가 있으면 feature 페이지 CSS에 별도 클래스를 작성하고
+상태가 도메인 고유 의미를 갖거나 텍스트가 2글자 이상이면 feature 페이지 CSS에 별도 클래스를 작성하고
 `--color-status-*-bg` / `--color-status-*-text` 토큰을 사용한다.
 
 ```css
