@@ -35,6 +35,9 @@ import {
   getUpdateNoticeMockHandler,
   getNewNoticeMockHandler,
   getDelNoticeMockHandler,
+  getGetSysAccessLogMasterMockHandler,
+  getGetSysAccessLogDetailMockHandler,
+  getGetAuditTrailMockHandler,
 } from '../generated/settings-controller/settings-controller.msw';
 import { getComboControllerMock } from '../generated/combo-controller/combo-controller.msw';
 import { getFileControllerMock } from '../generated/file-controller/file-controller.msw';
@@ -205,6 +208,9 @@ const settingsHandlers = [
   getUpdateNoticeMockHandler(),
   getNewNoticeMockHandler(),
   getDelNoticeMockHandler(),
+  getGetSysAccessLogMasterMockHandler(),
+  getGetSysAccessLogDetailMockHandler(),
+  getGetAuditTrailMockHandler(),
 ];
 
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
