@@ -84,10 +84,13 @@ public class FileService {
                             String sysPlantCd,
                             String menuCd) {
 
+        newItems.forEach(item -> item.setFilePath("/" + menuCd + item.getFilePath()));
+
+        List<FileIO> convertibleItems = fileValidationService.filterConvertibleToPdf(newItems);
         Set<FileIO> converted = Collections.emptySet();
-        if (fileValidationService.isConvertibleToPdf(newItems)) {
-            fileValidationService.validateNotEncrypted(newItems);
-            converted = Set.copyOf(pdfConvertService.pdfConvert(newItems));
+        if (!convertibleItems.isEmpty()) {
+            fileValidationService.validateNotEncrypted(convertibleItems);
+            converted = Set.copyOf(pdfConvertService.pdfConvert(convertibleItems));
         }
 
         final Set<FileIO> convertedFiles = converted;
