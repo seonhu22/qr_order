@@ -95,5 +95,11 @@ export const httpClient = async <T>(
     return undefined as T;
   }
 
-  return response.json();
+  const text = await response.text();
+
+  if (!text.trim()) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 };
