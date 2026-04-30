@@ -41,6 +41,8 @@ public class NoticeService {
         noticeRequest.setSysId(ULID);
         noticeRequest.setFileUuid(fileUlid);
 
+        setNewFileUlid(fileRequest, fileUlid);
+
         auditService.insertNewAuditTrailData(noticeRequest, noticeRequest.getSysId(), menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.newNotice(noticeRequest, userId, sysPlantCd);
         fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
@@ -53,6 +55,9 @@ public class NoticeService {
                                 String menuCd) {
 
         NoticeResponse oldData = noticeMapper.getOldData(noticeRequest.getSysId());
+        String fileUlid = noticeRequest.getFileUuid();
+
+        setNewFileUlid(fileRequest, fileUlid);
 
         auditService.insertUpdateAuditTrailData(oldData, noticeRequest, noticeRequest.getSysId(), menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.updateNotice(noticeRequest, userId, sysPlantCd);
@@ -66,5 +71,12 @@ public class NoticeService {
 
         auditService.insertDeleteAuditTrailData(noticeRequest, menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.delNotice(noticeRequest, userId, sysPlantCd);
+    }
+
+    private void setNewFileUlid(FileRequest fileRequest, String fileUlid) {
+
+        fileRequest.getNewItems().forEach(item -> {
+            item.setLinkSysId(fileUlid);
+        });
     }
 }
