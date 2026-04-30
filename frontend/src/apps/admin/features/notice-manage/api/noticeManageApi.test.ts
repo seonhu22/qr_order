@@ -54,9 +54,10 @@ describe('noticeManageApi', () => {
     });
   });
 
-  it('builds notice multipart form data with flat notice fields and indexed file items', () => {
+  it('builds notice update multipart form data with flat notice fields and indexed file items', () => {
     const file = new File(['hello'], 'notice.txt', { type: 'text/plain' });
     const formData = buildNoticeFormData({
+      sysId: 'notice-1',
       fileUuid: 'file-link-1',
       title: '공지 제목',
       content: '공지 내용',
@@ -82,6 +83,7 @@ describe('noticeManageApi', () => {
     expect(formData.get('noticeTitle')).toBe('공지 제목');
     expect(formData.get('noticeDescription')).toBe('공지 내용');
     expect(formData.get('useYn')).toBe('Y');
+    expect(formData.get('sysId')).toBe('notice-1');
     expect(formData.get('fileUuid')).toBe('file-link-1');
     expect(formData.get('newItems[0].file')).toBe(file);
     expect(formData.get('newItems[0].linkSysId')).toBe('file-link-1');
@@ -89,5 +91,39 @@ describe('noticeManageApi', () => {
     expect(formData.get('delItems[0].sysId')).toBe('file-1');
     expect(formData.has('noticeRequest')).toBe(false);
     expect(formData.has('fileRequest')).toBe(false);
+  });
+
+  it('does not send fileUuid or linkSysId for new notice because backend owns file group id creation', () => {
+    const file = new File(['hello'], 'notice.txt', { type: 'text/plain' });
+    const formData = buildNoticeFormData({
+      title: '공지 제목',
+      content: '공지 내용',
+      fileChangeState: {
+        newFiles: [file],
+        deletedFiles: [],
+      },
+    });
+
+    expect(formData.has('fileUuid')).toBe(false);
+    expect(formData.get('newItems[0].file')).toBe(file);
+    expect(formData.has('newItems[0].linkSysId')).toBe(false);
+    expect(formData.get('newItems[0].ordNo')).toBe('1');
+  });
+
+  it('omits file item arrays when there are no file changes', () => {
+    const formData = buildNoticeFormData({
+      title: '공지 제목',
+      content: '공지 내용',
+      fileChangeState: {
+        newFiles: [],
+        deletedFiles: [],
+      },
+    });
+
+    expect(formData.has('newItems')).toBe(false);
+    expect(formData.has('updateItems')).toBe(false);
+    expect(formData.has('delItems')).toBe(false);
+    expect(formData.has('newItems[0].file')).toBe(false);
+    expect(formData.has('delItems[0].sysId')).toBe(false);
   });
 });

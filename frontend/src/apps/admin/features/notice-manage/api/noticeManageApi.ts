@@ -68,7 +68,7 @@ function appendNoticeFields(formData: FormData, payload: SaveNoticeFormDataPaylo
     formData.append('sysId', payload.sysId);
   }
 
-  if (payload.fileUuid) {
+  if (payload.sysId && payload.fileUuid) {
     formData.append('fileUuid', payload.fileUuid);
   }
 
@@ -80,16 +80,14 @@ function appendNoticeFields(formData: FormData, payload: SaveNoticeFormDataPaylo
 
 function appendFileFields(formData: FormData, payload: SaveNoticeFormDataPayload) {
   const fileChangeState = payload.fileChangeState ?? { newFiles: [], deletedFiles: [] };
-  const linkSysId = payload.fileUuid || payload.sysId || crypto.randomUUID();
   const filePath = getDefaultFilePath();
-
-  if (!payload.fileUuid) {
-    formData.append('fileUuid', linkSysId);
-  }
+  const existingFileUuid = payload.sysId ? payload.fileUuid : undefined;
 
   fileChangeState.newFiles.forEach((file, i) => {
     formData.append(`newItems[${i}].file`, file);
-    formData.append(`newItems[${i}].linkSysId`, linkSysId);
+    if (existingFileUuid) {
+      formData.append(`newItems[${i}].linkSysId`, existingFileUuid);
+    }
     formData.append(`newItems[${i}].convertFileNm`, crypto.randomUUID());
     formData.append(`newItems[${i}].filePath`, filePath);
     formData.append(`newItems[${i}].ordNo`, String(i + 1));
