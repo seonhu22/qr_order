@@ -11,7 +11,7 @@ export interface Menu {
   menuCd: string;
   menuNm: string;
   parentMenuCd: string;
-  ordNo: string;
-  treeLevel: string;
+  ordNo: number;
+  treeLevel: number;
   menuUrl?: string;
 }

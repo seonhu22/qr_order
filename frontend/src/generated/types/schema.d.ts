@@ -936,8 +936,10 @@ export interface components {
             menuCd: string;
             menuNm: string;
             parentMenuCd: string;
-            ordNo: string;
-            treeLevel: string;
+            /** Format: int32 */
+            ordNo: number;
+            /** Format: int32 */
+            treeLevel: number;
             menuUrl?: string;
         };
         MenuRequest: {
@@ -967,40 +969,26 @@ export interface components {
             updateItems?: components["schemas"]["CommonDetail"][];
             deleteItems?: components["schemas"]["CommonDetail"][];
         };
-        DateTime: {
-            /** Format: int32 */
-            NanoSeconds?: number;
-            /** Format: int32 */
-            Seconds?: number;
-            /** Format: int32 */
-            Minutes?: number;
-            /** Format: int32 */
-            Hours?: number;
-            /** Format: int32 */
-            Day?: number;
-            /** Format: int32 */
-            Month?: number;
-            /** Format: int32 */
-            Year?: number;
-            IsUTC?: boolean;
-        };
         QnaRequest: {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            startDate?: string;
             deleteYn?: string;
             useYn?: string;
             fileUuid?: string;
             answerYn?: string;
-            answerDatetime?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            answerDatetime?: string;
             answerDescription?: string;
         };
         NoticeRequest: {
             sysId?: string;
             noticeTitle?: string;
             noticeDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            startDate?: string;
             deleteYn?: string;
             useYn?: string;
             fileUuid?: string;
@@ -1094,6 +1082,7 @@ export interface components {
         };
         SysAccessLogDetail: {
             menuCd?: string;
+            menuNm?: string;
             /** Format: date-time */
             menuOpenDatetime?: string;
             /** Format: date-time */
@@ -1111,10 +1100,12 @@ export interface components {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            startDate?: string;
             fileUuid?: string;
             answerYn?: string;
-            answerDatetime?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            answerDatetime?: string;
             answerDescription?: string;
         };
         NoticeResponse: {
@@ -2276,7 +2267,7 @@ export interface operations {
     getAttachFile: {
         parameters: {
             query: {
-                sysId: string;
+                linkSysId: string;
             };
             header?: never;
             path?: never;
