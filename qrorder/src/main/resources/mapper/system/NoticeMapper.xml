@@ -26,7 +26,7 @@
             start_date,
             delete_yn,
             use_yn,
-            file_uuid,
+            file_ulid,
             insert_user_id,
             insert_datetime,
             sys_plant_cd
@@ -34,6 +34,7 @@
         values (
             #{noticeRequest.sysId},
             #{noticeRequest.noticeTitle},
+            #{noticeRequest.noticeDescription},
             #{noticeRequest.startDate},
             'N',
             #{noticeRequest.useYn},
