@@ -9,7 +9,7 @@
             bq.qna_title,
             bq.qns_description,
             bq.start_date,
-            bq.file_uuid,
+            bq.file_ulid,
             bq.answer_yn,
             bq.answer_datetime,
             bq.answer_description
