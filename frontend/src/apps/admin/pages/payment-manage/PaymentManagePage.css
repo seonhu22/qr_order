@@ -21,7 +21,26 @@
 .payment-manage-table col:nth-child(6) { width: 7rem; }
 .payment-manage-table col:nth-child(7) { width: 3.5rem; }
 
-/* 결제 요금 단위 뱃지 기호 */
+/* 결제 요금 단위 뱃지 */
+.payment-unit-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.payment-unit-badge--krw {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.payment-unit-badge--usd {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
 .payment-unit-badge__symbol {
   margin-left: 0.2em;
 }

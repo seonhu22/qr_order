@@ -5,12 +5,12 @@ import type { PaymentRateRow } from '../types';
 
 function PaymentUnitBadge({ unit }: { unit: string }) {
   if (unit === '원') {
-    return <span className="status-badge status-badge--krw">원 <span className="payment-unit-badge__symbol">₩</span></span>;
+    return <span className="payment-unit-badge payment-unit-badge--krw">원 <span className="payment-unit-badge__symbol">₩</span></span>;
   }
   if (unit === '달러' || unit === 'USD') {
-    return <span className="status-badge status-badge--usd">달러 <span className="payment-unit-badge__symbol">$</span></span>;
+    return <span className="payment-unit-badge payment-unit-badge--usd">달러 <span className="payment-unit-badge__symbol">$</span></span>;
   }
-  return <span className="status-badge">{unit}</span>;
+  return <span className="payment-unit-badge">{unit}</span>;
 }
 
 type PaymentManageTableProps = {
