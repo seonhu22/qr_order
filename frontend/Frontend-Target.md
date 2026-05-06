@@ -247,10 +247,65 @@ fetch(url, options)
 
 ## 17. 브랜치 전략
 
-- main: 안정 브랜치 (직접 수정 금지)
-- dev: 개발 통합 브랜치 (직접 push 허용)
-- frontend: 프론트엔드 작업 통합 브랜치
-- feature/기능명: 기능 개발 브랜치
+> 업데이트 기준: 2026-05-06 로컬/원격 브랜치 관찰 결과
+
+현재 레포지토리는 `main`, `dev`, `frontend`, `QA`를 중심으로 운영되고 있으며,
+기능 개발·버그 수정·긴급 수정 브랜치가 다수 존재한다.
+
+### 17.1 기준 브랜치 역할
+
+- `main`: 최종 안정 브랜치. 직접 수정하지 않고 검증된 결과만 병합한다.
+- `QA`: 현재 검증 및 안정화 중심 브랜치. 실제 로컬 작업 브랜치도 `QA` 기준이다.
+- `frontend`: 프론트엔드 작업 통합 브랜치. 여러 프론트 기능 브랜치가 합쳐지는 기준점으로 사용한다.
+- `dev`: 개발 통합 브랜치. 프론트엔드 외 백엔드/API 작업까지 합쳐질 수 있는 통합 기준점으로 본다.
+
+### 17.2 작업 브랜치 네이밍
+
+현재 원격 브랜치 관찰 기준으로 아래 접두사를 사용한다.
+
+- `feature/기능명`: 신규 기능 또는 화면 구현
+- `fix/문제명`: 일반 버그 수정
+- `hotfix/문제명`: 긴급 수정
+- `refactor/대상명`: 동작 변경을 최소화한 구조 개선
+- `chore/대상명`: 설정, 문서, 스타일 조정 등 기능 외 작업
+- `test/대상명`: 검증·실험 목적의 테스트 작업
+
+### 17.3 권장 작업 흐름
+
+프론트엔드 기능 작업은 기본적으로 `frontend` 또는 현재 검증 기준인 `QA`에서 최신 상태를 받은 뒤
+작업 브랜치를 만든다.
+
+```bash
+git fetch --prune
+git switch QA
+git pull --ff-only
+git switch -c feature/기능명
+```
+
+작업 완료 후에는 최소 검증을 통과한 뒤 통합 브랜치로 Pull Request를 올리거나 Merge한다.
+
+```bash
+cd frontend
+npm run lint
+npm run typecheck
+npm test
+```
+
+백엔드 API 계약이 변경된 작업은 프론트 생성물까지 함께 갱신한다.
+
+```bash
+cd frontend
+npm run generate:schema
+npm run generate
+```
+
+`src/generated/` 파일은 직접 수정하지 않고, 백엔드 OpenAPI 명세를 기준으로 재생성한다.
+
+### 17.4 직접 push 기준
+
+- `main` 직접 push 금지
+- `QA`, `frontend`, `dev` 직접 push는 팀 운영 규칙이 명확할 때만 허용
+- 일반 작업은 `feature/*`, `fix/*`, `hotfix/*` 브랜치에서 진행 후 PR 병합을 우선한다.
 
 ## 18. 품질 규칙
 
