@@ -39,12 +39,24 @@ public class FileValidationService {
 
     boolean isConvertibleToPdf(List<FileIO> files) {
 
-        return files.stream().allMatch(item -> {
+        return files.stream().anyMatch(item -> {
             String originalNm = item.getFile().getOriginalFilename();
             if (originalNm == null || !originalNm.contains(".")) return false;
             String ext = originalNm.substring(originalNm.lastIndexOf(".") + 1).toLowerCase();
             return PDF_ALLOWED_EXTENSIONS.contains(ext);
         });
+    }
+
+    List<FileIO> filterConvertibleToPdf(List<FileIO> files) {
+
+        return files.stream()
+                .filter(item -> {
+                    String originalNm = item.getFile().getOriginalFilename();
+                    if (originalNm == null || !originalNm.contains(".")) return false;
+                    String ext = originalNm.substring(originalNm.lastIndexOf(".") + 1).toLowerCase();
+                    return PDF_ALLOWED_EXTENSIONS.contains(ext);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     void validateNotEncrypted(List<FileIO> files) {

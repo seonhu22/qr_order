@@ -63,6 +63,9 @@ qrorder/src/main/resources/application-secret.properties
 logs/
 qrorder/logs/
 
+### Uploads ###
+uploads/
+
 ### Test ###
 qrorder/src/test/
 

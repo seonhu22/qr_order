@@ -38,7 +38,11 @@ public class FileIOService {
                 Path dirPath = Paths.get(uploadPath + ioReq.getFilePath());
                 Files.createDirectories(dirPath);
 
-                Path savePath = dirPath.resolve(ioReq.getConvertFileNm());
+                String originalName = ioReq.getFile().getOriginalFilename();
+                String ext = (originalName != null && originalName.contains("."))
+                        ? originalName.substring(originalName.lastIndexOf("."))
+                        : "";
+                Path savePath = dirPath.resolve(ioReq.getConvertFileNm() + ext);
 
                 ioReq.getFile().transferTo(savePath);
                 saved.add(savePath);
@@ -96,7 +100,7 @@ public class FileIOService {
     ByteArrayResource IOZipFiles(List<FileInfo> files) {
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ZipOutputStream zos = new ZipOutputStream(baos)) {
+                ZipOutputStream zos = new ZipOutputStream(baos)) {
 
             for (FileInfo file : files) {
                 Path filePath = Paths.get(resolvePath(file));

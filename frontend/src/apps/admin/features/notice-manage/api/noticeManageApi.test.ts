@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapToNoticeManageRow } from './noticeManageApi';
+import { buildNoticeFormData, mapToNoticeManageRow } from './noticeManageApi';
 
 describe('noticeManageApi', () => {
   it('maps notice response metadata into page row when backend provides extra fields', () => {
@@ -19,6 +19,7 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-1',
       sysId: 'notice-1',
+      fileUuid: undefined,
       noticeType: 'notice',
       target: 'all',
       title: '점검 공지',
@@ -42,6 +43,7 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-2-점검 공지-2026-04-29',
       sysId: '',
+      fileUuid: undefined,
       noticeType: 'notice',
       target: 'all',
       title: '점검 공지',
@@ -50,5 +52,78 @@ describe('noticeManageApi', () => {
       registeredAt: '2026-04-29',
       updatedAt: '',
     });
+  });
+
+  it('builds notice update multipart form data with flat notice fields and indexed file items', () => {
+    const file = new File(['hello'], 'notice.txt', { type: 'text/plain' });
+    const formData = buildNoticeFormData({
+      sysId: 'notice-1',
+      fileUuid: 'file-link-1',
+      title: '공지 제목',
+      content: '공지 내용',
+      fileChangeState: {
+        newFiles: [file],
+        deletedFiles: [
+          {
+            sysId: 'file-1',
+            linkSysId: 'file-link-1',
+            originalFileNm: 'old.pdf',
+            convertFileNm: 'old-converted',
+            fileExt: 'pdf',
+            mimeType: 'application/pdf',
+            fileSize: '100',
+            filePath: '/2026/04',
+            ordNo: 1,
+            pdfYn: 'Y',
+          },
+        ],
+      },
+    });
+
+    expect(formData.get('noticeTitle')).toBe('공지 제목');
+    expect(formData.get('noticeDescription')).toBe('공지 내용');
+    expect(formData.get('useYn')).toBe('Y');
+    expect(formData.get('sysId')).toBe('notice-1');
+    expect(formData.get('fileUuid')).toBe('file-link-1');
+    expect(formData.get('newItems[0].file')).toBe(file);
+    expect(formData.get('newItems[0].linkSysId')).toBe('file-link-1');
+    expect(formData.get('newItems[0].ordNo')).toBe('1');
+    expect(formData.get('delItems[0].sysId')).toBe('file-1');
+    expect(formData.has('noticeRequest')).toBe(false);
+    expect(formData.has('fileRequest')).toBe(false);
+  });
+
+  it('does not send fileUuid or linkSysId for new notice because backend owns file group id creation', () => {
+    const file = new File(['hello'], 'notice.txt', { type: 'text/plain' });
+    const formData = buildNoticeFormData({
+      title: '공지 제목',
+      content: '공지 내용',
+      fileChangeState: {
+        newFiles: [file],
+        deletedFiles: [],
+      },
+    });
+
+    expect(formData.has('fileUuid')).toBe(false);
+    expect(formData.get('newItems[0].file')).toBe(file);
+    expect(formData.has('newItems[0].linkSysId')).toBe(false);
+    expect(formData.get('newItems[0].ordNo')).toBe('1');
+  });
+
+  it('omits file item arrays when there are no file changes', () => {
+    const formData = buildNoticeFormData({
+      title: '공지 제목',
+      content: '공지 내용',
+      fileChangeState: {
+        newFiles: [],
+        deletedFiles: [],
+      },
+    });
+
+    expect(formData.has('newItems')).toBe(false);
+    expect(formData.has('updateItems')).toBe(false);
+    expect(formData.has('delItems')).toBe(false);
+    expect(formData.has('newItems[0].file')).toBe(false);
+    expect(formData.has('delItems[0].sysId')).toBe(false);
   });
 });
