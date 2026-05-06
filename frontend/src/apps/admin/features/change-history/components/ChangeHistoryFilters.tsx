@@ -1,13 +1,7 @@
 import { Icon } from '@/shared/assets/icons/Icon';
 import { ResetFilterButton, SearchFilterButton } from '@/shared/components/button';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
-
-const AUDIT_FLAG_OPTIONS = [
-  { value: 'ALL', label: '전체' },
-  { value: 'I', label: '등록' },
-  { value: 'U', label: '수정' },
-  { value: 'D', label: '삭제' },
-];
+import { AUDIT_FLAG_OPTIONS } from '../constants/changeHistoryAuditFlag';
 
 type ChangeHistoryFiltersProps = {
   draftAuditFlag: string;
