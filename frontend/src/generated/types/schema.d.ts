@@ -1102,7 +1102,7 @@ export interface components {
             qnaDescription?: string;
             /** Format: date-time */
             startDate?: string;
-            fileUuid?: string;
+            fileUlid?: string;
             answerYn?: string;
             /** Format: date-time */
             answerDatetime?: string;

@@ -11,7 +11,7 @@ export interface QnaResponse {
   qnaTitle?: string;
   qnaDescription?: string;
   startDate?: string;
-  fileUuid?: string;
+  fileUlid?: string;
   answerYn?: string;
   answerDatetime?: string;
   answerDescription?: string;
