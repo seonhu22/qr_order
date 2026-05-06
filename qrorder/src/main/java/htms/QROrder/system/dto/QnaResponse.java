@@ -10,7 +10,7 @@ public class QnaResponse {
     private String qnaTitle;
     private String qnaDescription;
     private LocalDateTime startDate;
-    private String fileUuid;
+    private String fileUlid;
     private String answerYn;
     private LocalDateTime answerDatetime;
     private String answerDescription;
