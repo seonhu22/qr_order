@@ -1,11 +1,10 @@
 package htms.QROrder.system.repository;
 
+import htms.QROrder.system.domain.Notice;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Map;
-
 @Mapper
 public interface NoticeMapper {
-    Map<String, Object> getOldData(@Param("sysId") String sysId);
+    Notice getOldData(@Param("sysId") String sysId);
 }
