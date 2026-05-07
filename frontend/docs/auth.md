@@ -1,6 +1,6 @@
 # 인증 구조
 
-> 로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책을 다룬다.
+> 로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책, 계정 잠금 정책을 다룬다.
 
 ## 목차
 
@@ -8,6 +8,7 @@
 - [2. auth/me와 auth/profile 쿼리 키 분리](#2-authme와-authprofile-쿼리-키-분리)
 - [3. 사용자 이름 필드 우선순위](#3-사용자-이름-필드-우선순위)
 - [4. init_yn 비밀번호 강제 변경 흐름](#4-init_yn-비밀번호-강제-변경-흐름)
+- [5. password_fail_cnt 계정 잠금 흐름](#5-password_fail_cnt-계정-잠금-흐름)
 
 ---
 
@@ -71,3 +72,24 @@ login mutation 성공 + init_yn === 'Y'
 - `LoginPage`는 `useEffect`로 인증 상태를 감지해, 리다이렉트로 돌아왔을 때도 자동으로 변경 폼을 표시한다.
 - 비밀번호 변경 API: `POST /api/auth/init-pwd` — `InitPwdRequest { password, chkPassword }` + `InitPwdParams { userId }`
 - auth/me 캐시의 `init_yn` 업데이트는 완료 모달의 확인 버튼 클릭 시점에 수행한다. 모달이 표시되기 전에 캐시를 갱신하면 `AppRoutes`가 즉시 리다이렉트해 모달이 뜨지 않기 때문이다.
+
+---
+
+## 5. password_fail_cnt 계정 잠금 흐름
+
+> 추가일: 2026-05-07
+
+로그인 실패 응답의 `data.password_fail_cnt`가 `5` 이상이면 잠금 화면으로 전환된다. 잠금 상태에서는 로그인 폼에 접근할 수 없다.
+
+```text
+login mutation 실패 + password_fail_cnt >= 5
+→ LoginPage가 step을 'locked'로 전환
+→ 잠금 안내 화면 표시 (관리자 문의 이메일 포함)
+→ "로그인으로 돌아가기" 클릭 → step을 'login'으로 복귀
+```
+
+- `LoginPage`의 `step: 'login' | 'changePassword' | 'locked'` 중 `'locked'`가 잠금 화면 역할을 한다.
+- 잠금 해제(비밀번호 초기화) 방법과 초기화 API는 백엔드 연동 시 확정 예정이다.
+- 관리자 문의 이메일: `admin@qrorder.co.kr` (추후 실제 값으로 교체).
+
+**목업 테스트**: `locked` 아이디로 로그인하면 즉시 잠금 화면을 확인할 수 있다. 그 외 아이디로 로그인에 실패할 때마다 `password_fail_cnt`가 1씩 증가해 5에 도달하면 잠금 화면으로 전환된다.
