@@ -282,9 +282,14 @@ shared/
 
 ```tsx
 function RequireAuth({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  // 비밀번호 초기화 상태이면 변경 전까지 메인 진입 차단
+  if (typeof user?.init_yn === 'string' && user.init_yn.toLowerCase() === 'y') {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -294,6 +299,7 @@ function RequireAuth({ children }) {
 
 - API 호출 도중 401이 발생하면 "로그인 인증이 만료되었습니다." 안내 모달을 먼저 표시하고, 확인 클릭 시 로그인 화면으로 이동한다.
 - 보호 라우트 직접 접근처럼 이미 비로그인 상태가 확정된 경우는 모달 없이 로그인 화면으로 이동한다.
+- `init_yn === 'Y'`인 경우 인증은 됐지만 비밀번호 변경 전까지 모든 보호 라우트 접근이 차단된다. `LoginPage`에서 변경 폼이 표시되며, 흐름 상세는 [`config.md §11`](./config.md#11-인증-구조) 참고.
 - 관리자 앱의 로그인 경로는 `/admin/login`이다.
 - 추후 client, consumer 앱을 추가하면 각 앱의 보호 라우트에서 자기 앱의 로그인 경로를 주입한다.
 - 로그인 만료 API 응답도 최종적으로는 동일한 인증 리다이렉트 흐름으로 수렴시킨다.
