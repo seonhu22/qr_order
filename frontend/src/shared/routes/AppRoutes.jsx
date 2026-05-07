@@ -13,9 +13,13 @@ import { devRoutes } from '@/shared/dev/DevRoutes';
  * @returns {React.ReactNode}
  */
 function RequireAuth({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  if (typeof user?.init_yn === 'string' && user.init_yn.toLowerCase() === 'y') {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -40,16 +44,18 @@ function LoadingScreen() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const needsPasswordChange =
+    isAuthenticated && typeof user?.init_yn === 'string' && user.init_yn.toLowerCase() === 'y';
 
   const routes = useRoutes([
     {
       path: '/',
-      element: <Navigate to={isAuthenticated ? '/admin/main' : '/admin/login'} replace />,
+      element: <Navigate to={isAuthenticated && !needsPasswordChange ? '/admin/main' : '/admin/login'} replace />,
     },
     {
       path: '/admin/login',
-      element: isAuthenticated ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+      element: isAuthenticated && !needsPasswordChange ? <Navigate to="/admin/main" replace /> : <LoginPage />,
     },
     ...withProtectedElement(adminRoutes),
 
@@ -58,7 +64,7 @@ function AppRoutes() {
 
     {
       path: '*',
-      element: <Navigate to={isAuthenticated ? '/admin/main' : '/admin/login'} replace />,
+      element: <Navigate to={isAuthenticated && !needsPasswordChange ? '/admin/main' : '/admin/login'} replace />,
     },
   ]);
 
