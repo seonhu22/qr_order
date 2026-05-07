@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.NoticeMapper">
+
+    <select id="getOldData" resultType="map">
+        select
+            sys_id,
+            notice_title,
+            notice_description,
+            start_date,
+            use_yn
+        from sys_notice
+        where 1=1
+        and sys_id = #{sysId}
+        and delete_yn = 'N'
+    </select>
+</mapper>
