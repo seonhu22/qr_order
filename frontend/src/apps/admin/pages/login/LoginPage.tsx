@@ -13,7 +13,7 @@ import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { queryKeys } from '@/shared/api/queryKeys';
 
-type Step = 'login' | 'changePassword';
+type Step = 'login' | 'changePassword' | 'locked';
 
 function needsPasswordChange(initYn: unknown): boolean {
   return typeof initYn === 'string' && initYn.toLowerCase() === 'y';
@@ -61,7 +61,12 @@ export default function LoginPage() {
             navigate('/admin/main');
           }
         } else {
-          setErrorMessage(data.message ?? '로그인에 실패했습니다.');
+          const userData = data?.data as Record<string, unknown> | undefined;
+          if (typeof userData?.password_fail_cnt === 'number' && userData.password_fail_cnt >= 5) {
+            setStep('locked');
+          } else {
+            setErrorMessage(data.message ?? '로그인에 실패했습니다.');
+          }
         }
       },
       onError: (error) => {
@@ -136,12 +141,38 @@ export default function LoginPage() {
       <span className="login-page__deco login-page__deco--top-right" aria-hidden="true" />
       <span className="login-page__deco login-page__deco--bottom-left" aria-hidden="true" />
 
-      <div className="login-card" role="region" aria-label={step === 'login' ? '로그인' : '비밀번호 변경'}>
+      <div
+        className="login-card"
+        role="region"
+        aria-label={step === 'login' ? '로그인' : step === 'changePassword' ? '비밀번호 변경' : '계정 잠금'}
+      >
         <header className="login-card__header">
           <AdminBrand />
         </header>
 
-        {step === 'login' ? (
+        {step === 'locked' ? (
+          <div className="login-card__body login-card__locked">
+            <div className="login-card__title">
+              <h1 className="login-card__heading">로그인 제한</h1>
+            </div>
+            <div className="login-card__locked-messages">
+              <p className="login-card__subheading">비밀번호를 5회 이상 잘못 입력하셨습니다.</p>
+              <p className="login-card__locked-desc">비밀번호는 반드시 초기화해야 합니다. 관리자에게 문의해 주세요.</p>
+            </div>
+            <a href="mailto:admin@qrorder.co.kr" className="login-card__locked-email">
+              admin@qrorder.co.kr
+            </a>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="login-card__submit"
+              onClick={() => setStep('login')}
+            >
+              로그인으로 돌아가기
+            </Button>
+          </div>
+        ) : step === 'login' ? (
           <form className="login-card__body" onSubmit={handleLoginSubmit}>
             <div className="login-card__title">
               <h1 className="login-card__heading">로그인</h1>
