@@ -70,7 +70,9 @@ describe('NoticeManagePage', () => {
     expect(screen.getByRole('dialog', { name: '공지사항 수정' })).toBeInTheDocument();
   });
 
-  it('shows an error notice when sysId is missing and save is attempted through page state', async () => {
+  it('sends update API even when sysId is missing during QA', async () => {
+    let receivedFormData: FormData | null = null;
+
     server.use(
       http.get('/api/system/settings/board/notice/search', () =>
         HttpResponse.json([
@@ -87,6 +89,10 @@ describe('NoticeManagePage', () => {
           },
         ]),
       ),
+      http.post('/api/system/settings/board/notice/update', async ({ request }) => {
+        receivedFormData = await request.formData();
+        return HttpResponse.json({ success: true, data: null, message: 'OK' });
+      }),
     );
 
     renderPage();
@@ -105,8 +111,8 @@ describe('NoticeManagePage', () => {
     });
     fireEvent.click(within(saveConfirmDialog).getByRole('button', { name: '확인' }));
 
-    expect(
-      await screen.findByText('공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('저장되었습니다.')).toBeInTheDocument();
+    expect(receivedFormData?.get('noticeTitle')).toBe('점검 공지 수정');
+    expect(receivedFormData?.has('sysId')).toBe(false);
   });
 });

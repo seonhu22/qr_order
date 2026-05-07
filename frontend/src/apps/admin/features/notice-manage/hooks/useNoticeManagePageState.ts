@@ -59,12 +59,12 @@ export function useNoticeManagePageState() {
   };
 
   const handleSaveRow = async (editorRow: NoticeEditorRow, isCreateMode: boolean) => {
-    if (!isCreateMode && !editorRow.sysId) {
-      throw new Error(
-        '공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
-      );
-    }
-
+    // TODO : 나중에 백앤드와 상의하여 SYSID가 없는 경우 공지사항은 생성으로 간주하는 방식이 맞는지 확인 필요
+    // if (!isCreateMode && !editorRow.sysId) {
+    //   throw new Error(
+    //     '공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+    //   );
+    // }
     const data = {
       sysId: editorRow.sysId || undefined,
       fileUuid: editorRow.fileUuid,
