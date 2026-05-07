@@ -11,8 +11,7 @@
             start_date,
             use_yn
         from sys_notice
-        where 1=1
-        and sys_id = #{sysId}
+        where sys_id = #{sysId}
         and delete_yn = 'N'
     </select>
 </mapper>
