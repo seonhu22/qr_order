@@ -36,10 +36,8 @@ export function useNoticeManagePageState() {
     [noticeQuery.data],
   );
 
-  const selectableRows = useMemo(() => rows.filter((row) => Boolean(row.sysId)), [rows]);
   const effectiveCheckedIds = checkedIds.filter((id) => rows.some((row) => row.id === id));
-  const isAllChecked =
-    selectableRows.length > 0 && effectiveCheckedIds.length === selectableRows.length;
+  const isAllChecked = rows.length > 0 && effectiveCheckedIds.length === rows.length;
 
   const handleSearch = () => {
     setKeyword(draftKeyword);
@@ -57,7 +55,7 @@ export function useNoticeManagePageState() {
   };
 
   const handleToggleAll = () => {
-    setCheckedIds(isAllChecked ? [] : selectableRows.map((row) => row.id));
+    setCheckedIds(isAllChecked ? [] : rows.map((row) => row.id));
   };
 
   const handleSaveRow = async (editorRow: NoticeEditorRow, isCreateMode: boolean) => {

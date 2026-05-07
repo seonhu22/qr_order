@@ -57,7 +57,7 @@ export function NoticeManageTable({
                     <CheckboxInput
                       size="sm"
                       checked={isAllChecked}
-                      disabled={rows.every((row) => !row.sysId)}
+                      disabled={rows.length === 0}
                       indeterminate={checkedIds.length > 0 && !isAllChecked}
                       aria-label="전체 선택"
                       onChange={onToggleAll}
@@ -87,7 +87,6 @@ export function NoticeManageTable({
                         <CheckboxInput
                           size="sm"
                           checked={checkedIds.includes(row.id)}
-                          disabled={!row.sysId}
                           aria-label={`${row.title} 선택`}
                           onChange={() => onToggleRow(row.id)}
                         />
@@ -111,7 +110,6 @@ export function NoticeManageTable({
                     <td>
                       <EditTableButton
                         ariaLabel={`${row.title} 수정`}
-                        disabled={!row.sysId}
                         onClick={() => onEdit(row)}
                       />
                     </td>
