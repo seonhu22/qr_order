@@ -230,12 +230,15 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, 타입/배럴 파일 규칙 |
 | [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
-| [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
+| [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명 |
+| [`docs/auth.md`](./docs/auth.md) | 인증 구조, 쿼리 키 분리, init_yn 비밀번호 강제 변경 흐름 |
 | [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
 | [`docs/admin-navigation.md`](./docs/admin-navigation.md) | `sys_menu` 기반 header/sidebar/breadcrumb/access-log 규칙 |
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
 | [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
+
+공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 참고한다.
 
 상태 처리 작성 기준:
 - 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
@@ -244,27 +247,6 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 학습용 참고 문서:
 - [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)
   사람 학습용 문서이며, 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
-
-공용 테이블/카드 사용 패턴:
-- [`docs/components/TableCard.md`](./docs/components/TableCard.md)
-  `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
-  테이블 정렬 규칙(`th` 중앙 / `td` 좌측 기본), 컬럼 너비 클래스(`--checkbox`, `--action`, `--sm/md/lg`),
-  자동 중앙 정렬(체크박스·버튼·뱃지), `tdClassName` 사용법도 이 문서에서 확인한다.
-  행추가/행삭제가 있는 인라인 편집 테이블은 저장 시 빈값 안내 모달을 먼저 표시하고,
-  사용자가 확인한 뒤에만 해당 필드의 error 스타일을 표시한다. 검증 안내가 1개면 기본 안내 모달,
-  2개 이상이면 리스트형 검증 안내 모달을 사용한다.
-
-공용 첨부파일 컴포넌트:
-- [`docs/components/FileAttachment.md`](./docs/components/FileAttachment.md)
-  `FileInputGroup`, `FileDownloadList`, `FileHint` 사용법과 `/api/attach_file/save` payload 구성 기준,
-  확장자별 아이콘·색상 기준은 이 문서를 참고한다.
-
-공용 입력 컴포넌트:
-- `shared/components/input/` — `TextInput` · `TextareaInput` · `SelectInput` · `InputBase` · `InputWrapper`
-  - `TextareaInput`: `TextInput`과 동일한 상태(`disabled` / `readonly` / `error` / `success`)·레이블·도움말 패턴
-  - `resize` prop으로 크기 조절 방향 제어: `'none'`(기본) · `'vertical'` · `'both'`
-  - 모달 안 textarea 사용 시 `TextareaInput`을 사용한다. 날것의 `<textarea>`는 사용하지 않는다.
-  - 개발 미리보기: `/dev/input` (State · Helper Text · Resize · Label Position 전 케이스 확인 가능)
 
 ---
 
@@ -283,7 +265,8 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | 공용 컴포넌트 작성 규칙, 새 컴포넌트 사용법 | `components.md` |
 | 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md` |
 | 라이브러리 추가·교체 이유 | `libraries.md` |
-| 설정 파일 변경, 인증 구조 변경 | `config.md` |
+| 설정 파일 변경 | `config.md` |
+| 인증 흐름, 쿼리 키, 비밀번호 변경 정책 변경 | `auth.md` |
 | API 코드 생성 흐름·명령어 변경 | `api-codegen.md` |
 | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 | `menu-access-log.md` |
 | 기술 선택의 배경과 근거 | `decisions.md` |

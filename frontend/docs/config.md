@@ -119,18 +119,6 @@
 
 ## 11. 인증 구조
 
-현재 인증 구조는 아래 흐름을 따른다.
+로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책은 별도 문서로 관리한다.
 
-```text
-login mutation 성공
-→ auth/me 캐시 갱신
-→ AuthProvider가 Query 캐시를 읽어 인증 상태 계산
-→ 보호 라우트가 /admin/* 접근 허용
-```
-
-관련 파일:
-
-- `src/shared/auth/AuthProvider.jsx`
-- `src/shared/auth/hooks/useCurrentUser.ts`
-- `src/shared/auth/hooks/useAuthLoginMutation.ts`
-- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+→ [`docs/auth.md`](./auth.md)
