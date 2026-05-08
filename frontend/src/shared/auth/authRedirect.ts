@@ -7,6 +7,8 @@
 
 export const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
 
+let unauthorizedNotificationSuppressCount = 0;
+
 export type AuthUnauthorizedEventDetail = {
   message?: string;
 };
@@ -30,7 +32,19 @@ export function notifyUnauthorized(detail: AuthUnauthorizedEventDetail = {}) {
     return;
   }
 
+  if (unauthorizedNotificationSuppressCount > 0) {
+    return;
+  }
+
   window.dispatchEvent(new CustomEvent<AuthUnauthorizedEventDetail>(AUTH_UNAUTHORIZED_EVENT, { detail }));
+}
+
+export function beginSuppressUnauthorizedNotification() {
+  unauthorizedNotificationSuppressCount += 1;
+}
+
+export function endSuppressUnauthorizedNotification() {
+  unauthorizedNotificationSuppressCount = Math.max(0, unauthorizedNotificationSuppressCount - 1);
 }
 
 export function subscribeUnauthorized(handler: (event: AuthUnauthorizedEvent) => void) {
