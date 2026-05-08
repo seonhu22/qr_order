@@ -13,22 +13,24 @@ export function useAuthLogoutMutation(options: AuthLogoutMutationOptions = {}) {
   const queryClient = useQueryClient();
   const mutationOptions = options.mutation ?? {};
 
+  const clearSessionCache = () => {
+    queryClient.clear();
+    queryClient.setQueryData(queryKeys.auth.me, {
+      success: false,
+      data: null,
+    });
+  };
+
   return useLogout({
     mutation: {
       ...mutationOptions,
       onSuccess: (data, variables, context) => {
-        queryClient.setQueryData(queryKeys.auth.me, {
-          success: false,
-          data: null,
-        });
+        clearSessionCache();
 
         mutationOptions.onSuccess?.(data, variables, context);
       },
       onError: (error, variables, context) => {
-        queryClient.setQueryData(queryKeys.auth.me, {
-          success: false,
-          data: null,
-        });
+        clearSessionCache();
 
         mutationOptions.onError?.(error, variables, context);
       },
