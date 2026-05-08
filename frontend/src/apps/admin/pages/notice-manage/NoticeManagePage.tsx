@@ -5,6 +5,7 @@ import { useNoticeManagePageState } from '@/apps/admin/features/notice-manage/ho
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { InputBase, InputWrapper, SelectInput, TextareaInput } from '@/shared/components/input';
 import { FileInputGroup, FileHint } from '@/shared/components/file-attachment';
+import { NOTICE_FILE_POLICY } from '@/apps/admin/features/notice-manage/constants';
 import {
   DeleteConfirmModal,
   EditConfirmModal,
@@ -130,7 +131,19 @@ export function NoticeManagePage() {
               variant="button"
               files={[]}
               onChange={actions.changeFileState}
-              hint={<FileHint variant="simple" maxSize="10MB" maxTotalSize="50MB" maxCount={5} allowedExts={['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP']} />}
+              maxFiles={NOTICE_FILE_POLICY.maxFiles}
+              maxFileSizeMB={NOTICE_FILE_POLICY.maxFileSizeMB}
+              maxTotalSizeMB={NOTICE_FILE_POLICY.maxTotalSizeMB}
+              allowedExtensions={NOTICE_FILE_POLICY.allowedExts}
+              hint={
+                <FileHint
+                  variant="simple"
+                  maxSize={`${NOTICE_FILE_POLICY.maxFileSizeMB}MB`}
+                  maxTotalSize={`${NOTICE_FILE_POLICY.maxTotalSizeMB}MB`}
+                  maxCount={NOTICE_FILE_POLICY.maxFiles}
+                  allowedExts={NOTICE_FILE_POLICY.allowedExts}
+                />
+              }
             />
           </InputWrapper>
         </div>

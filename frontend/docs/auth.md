@@ -9,6 +9,7 @@
 - [3. 사용자 이름 필드 우선순위](#3-사용자-이름-필드-우선순위)
 - [4. init_yn 비밀번호 강제 변경 흐름](#4-init_yn-비밀번호-강제-변경-흐름)
 - [5. password_fail_cnt 계정 잠금 흐름](#5-password_fail_cnt-계정-잠금-흐름)
+- [6. 인증 전환 중 401 처리](#6-인증-전환-중-401-처리)
 
 ---
 
@@ -93,3 +94,39 @@ login mutation 실패 + password_fail_cnt >= 5
 - 관리자 문의 이메일: `admin@qrorder.co.kr` (추후 실제 값으로 교체).
 
 **목업 테스트**: `locked` 아이디로 로그인하면 즉시 잠금 화면을 확인할 수 있다. 그 외 아이디로 로그인에 실패할 때마다 `password_fail_cnt`가 1씩 증가해 5에 도달하면 잠금 화면으로 전환된다.
+
+---
+
+## 6. 인증 전환 중 401 처리
+
+> 추가일: 2026-05-08
+
+로그아웃처럼 사용자가 의도적으로 인증 상태를 끊는 작업 중에는 기존 화면의 API가 뒤늦게 401을 받을 수 있다. 이 401은 세션 만료가 아니라 인증 전환 과정에서 발생한 부수 효과이므로, "로그인 인증이 만료되었습니다" 모달을 띄우지 않는다.
+
+관련 파일:
+
+- `src/shared/auth/authTransition.ts`
+- `src/shared/auth/authRedirect.ts`
+- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+
+기본 정책:
+
+- 일반 사용 중 401: `httpClient`가 인증 만료 이벤트를 발행하고 `AuthRedirectHandler`가 모달을 표시한다.
+- 인증 전환 중 401: `authTransition` 상태를 확인해 인증 만료 이벤트를 발행하지 않는다.
+- Orval generated API 파일은 직접 수정하지 않는다.
+- 로그인, 로그아웃, 비밀번호 변경처럼 인증 상태를 바꾸는 흐름은 generated hook을 감싼 커스텀 훅에서 제어한다.
+
+로그아웃 흐름:
+
+```text
+logout mutation onMutate
+→ beginAuthTransition()
+→ /api/auth/logout 호출
+→ queryClient.cancelQueries()
+→ auth/me 비로그인 상태 설정
+→ auth/me 외 query cache 제거
+→ finally에서 endAuthTransition()
+→ 호출부 콜백에서 /admin/login 이동
+```
+
+`authTransition`은 count 방식으로 관리한다. 인증 전환 작업이 겹쳐도 먼저 끝난 작업이 전체 전환 상태를 잘못 해제하지 않도록 하기 위함이다.
