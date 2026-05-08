@@ -4,10 +4,9 @@
  * httpClient처럼 React 훅을 사용할 수 없는 계층은 이벤트만 발행하고,
  * modal/signOut/navigate 처리는 AuthRedirectHandler가 담당한다.
  */
+import { isAuthTransitioning } from '@/shared/auth/authTransition';
 
 export const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
-
-let unauthorizedNotificationSuppressCount = 0;
 
 export type AuthUnauthorizedEventDetail = {
   message?: string;
@@ -32,19 +31,11 @@ export function notifyUnauthorized(detail: AuthUnauthorizedEventDetail = {}) {
     return;
   }
 
-  if (unauthorizedNotificationSuppressCount > 0) {
+  if (isAuthTransitioning()) {
     return;
   }
 
   window.dispatchEvent(new CustomEvent<AuthUnauthorizedEventDetail>(AUTH_UNAUTHORIZED_EVENT, { detail }));
-}
-
-export function beginSuppressUnauthorizedNotification() {
-  unauthorizedNotificationSuppressCount += 1;
-}
-
-export function endSuppressUnauthorizedNotification() {
-  unauthorizedNotificationSuppressCount = Math.max(0, unauthorizedNotificationSuppressCount - 1);
 }
 
 export function subscribeUnauthorized(handler: (event: AuthUnauthorizedEvent) => void) {

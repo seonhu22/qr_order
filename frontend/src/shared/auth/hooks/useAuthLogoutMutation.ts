@@ -2,9 +2,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLogout } from '@/generated/logout-controller/logout-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import {
-  beginSuppressUnauthorizedNotification,
-  endSuppressUnauthorizedNotification,
-} from '@/shared/auth/authRedirect';
+  beginAuthTransition,
+  endAuthTransition,
+} from '@/shared/auth/authTransition';
 
 type AuthLogoutMutationOptions = {
   mutation?: {
@@ -29,7 +29,7 @@ export function useAuthLogoutMutation(options: AuthLogoutMutationOptions = {}) {
           JSON.stringify(query.queryKey) !== JSON.stringify(queryKeys.auth.me),
       });
     } finally {
-      endSuppressUnauthorizedNotification();
+      endAuthTransition();
     }
   };
 
@@ -37,7 +37,7 @@ export function useAuthLogoutMutation(options: AuthLogoutMutationOptions = {}) {
     mutation: {
       ...mutationOptions,
       onMutate: () => {
-        beginSuppressUnauthorizedNotification();
+        beginAuthTransition();
       },
       onSuccess: async (data, variables, context) => {
         await clearSessionCache();
