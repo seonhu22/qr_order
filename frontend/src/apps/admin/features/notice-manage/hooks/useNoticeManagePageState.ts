@@ -83,11 +83,11 @@ export function useNoticeManagePageState() {
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
-    if (targets.some((row) => !row.sysId)) {
-      throw new Error(
-        '공지사항 조회 응답에 sysId가 없어 삭제할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
-      );
-    }
+    // if (targets.some((row) => !row.sysId)) {
+    //   throw new Error(
+    //     '공지사항 조회 응답에 sysId가 없어 삭제할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+    //   );
+    // }
     const noticeRequests = targets.map((row) => ({ sysId: row.sysId }));
     await deleteMutation.mutateAsync({ data: noticeRequests });
     await refetchOrThrow(noticeQuery.refetch, '삭제 후 공지사항 목록을 다시 조회하지 못했습니다.');
