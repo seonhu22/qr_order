@@ -41,9 +41,11 @@ export type FileInputGroupProps = {
   /** 서버에서 받은 기존 첨부파일 목록 */
   files?: ServerFile[];
   onChange?: (value: FileChangeState) => void;
-  maxFiles?: number;       // 기본 5
-  maxFileSizeMB?: number;  // 기본 10
-  maxTotalSizeMB?: number; // 기본 50
+  maxFiles?: number;          // 기본 5
+  maxFileSizeMB?: number;     // 기본 10
+  maxTotalSizeMB?: number;    // 기본 50
+  /** 허용 확장자 목록 — 미전달 시 내부 기본 정책 사용 */
+  allowedExtensions?: readonly string[];
   disabled?: boolean;
   /** true이면 파일 전송 중 — 드롭존 비활성 + 스피너 표시 */
   isUploading?: boolean;

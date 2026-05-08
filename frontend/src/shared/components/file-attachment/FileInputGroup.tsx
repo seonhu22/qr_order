@@ -22,9 +22,7 @@ import type { FileInputGroupProps, ServerFile } from './types';
  * 상수 — 파일 첨부 정책
  * ===================================================== */
 
-const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx', 'pptx', 'zip'];
-const ACCEPT_ATTR = '.jpg,.jpeg,.png,.pdf,.docx,.xlsx,.pptx,.zip';
-const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당 최대 10MB · 전체 최대 50MB';
+const DEFAULT_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx', 'pptx', 'zip'];
 
 
 /* =====================================================
@@ -33,6 +31,10 @@ const HINT_TEXT = 'JPG · PNG · PDF · DOCX · XLSX · PPTX · ZIP · 파일당
 
 function getExtension(filename: string): string {
   return filename.split('.').pop()?.toLowerCase() ?? '';
+}
+
+function normalizeExtension(ext: string): string {
+  return ext.replace(/^\./, '').toLowerCase();
 }
 
 function formatBytes(bytes: number): string {
@@ -72,6 +74,7 @@ export function FileInputGroup({
   maxFiles = 5,
   maxFileSizeMB = 10,
   maxTotalSizeMB = 50,
+  allowedExtensions,
   disabled = false,
   isUploading = false,
   hint,
@@ -82,6 +85,9 @@ export function FileInputGroup({
   const [deletedFiles, setDeletedFiles] = useState<ServerFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const allowedExts = (allowedExtensions ?? DEFAULT_ALLOWED_EXTENSIONS).map(normalizeExtension);
+  const acceptAttr = allowedExts.map((ext) => `.${ext}`).join(',');
+  const hintText = `${allowedExts.map((ext) => ext.toUpperCase()).join(' · ')} · 파일당 최대 ${maxFileSizeMB}MB · 전체 최대 ${maxTotalSizeMB}MB`;
 
   const activeExisting = existingFiles.filter(
     (f) => !deletedFiles.some((d) => d.convertFileNm === f.convertFileNm),
@@ -102,7 +108,7 @@ export function FileInputGroup({
 
     for (const file of selected) {
       const ext = getExtension(file.name);
-      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      if (!allowedExts.includes(ext)) {
         setError(`허용되지 않는 형식입니다. (.${ext})`);
         return;
       }
@@ -215,7 +221,7 @@ export function FileInputGroup({
       ref={inputRef}
       type="file"
       multiple
-      accept={ACCEPT_ATTR}
+      accept={acceptAttr}
       className="file-attachment__hidden-input"
       aria-label="파일 선택"
       onChange={handleInputChange}
@@ -309,7 +315,7 @@ export function FileInputGroup({
             }
           </span>
           {!isUploading && (
-            <span className="file-attachment__dropzone-hint">{HINT_TEXT}</span>
+            <span className="file-attachment__dropzone-hint">{hintText}</span>
           )}
         </div>
       )}

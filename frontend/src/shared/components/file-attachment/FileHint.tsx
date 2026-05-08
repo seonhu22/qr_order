@@ -29,7 +29,7 @@ export type FileHintProps = {
   /** 최대 파일 개수 — 미전달 시 표시 안 함 */
   maxCount?: number;
   /** 허용 확장자 목록 — 미전달 시 표시 안 함 */
-  allowedExts?: string[];
+  allowedExts?: readonly string[];
   /** 커스텀 메시지 — 전달 시 자동 생성 메시지 대신 사용 */
   message?: string;
 };
