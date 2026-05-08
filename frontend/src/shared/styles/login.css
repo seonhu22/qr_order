@@ -15,6 +15,10 @@
   overflow: hidden;
 }
 
+.login-page--client {
+  background-color: var(--orange-10);
+}
+
 /* ---- 장식 원형 (브랜드 컬러 5% 불투명도) ---- */
 .login-page__deco {
   position: absolute;
@@ -95,6 +99,17 @@
 /* 로그인 버튼 전체 너비 */
 .login-card__submit {
   width: 100%;
+}
+
+/* 아이디 저장 + 비밀번호 찾기 행 */
+.login-card__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login-card__options .checkbox-control__label {
+  font-size: var(--font-size-xs);
 }
 
 /* ---- 계정 잠금 ---- */
