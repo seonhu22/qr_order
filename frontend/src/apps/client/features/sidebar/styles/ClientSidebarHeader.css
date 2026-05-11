@@ -1,0 +1,58 @@
+/* AdminSidebarHeader.css 와 동일한 스타일 — 클라이언트 전용 */
+
+.client-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.9375rem;
+  padding: 0 var(--spacing-8);
+  flex-shrink: 0;
+}
+
+/* ClientBrand 사이즈 오버라이드 (사이드바 전용) */
+.client-sidebar-header .admin-brand {
+  gap: var(--spacing-5);
+}
+
+.client-sidebar-header .admin-brand__icon-box {
+  width: var(--height-component-sm);
+  height: var(--height-component-sm);
+}
+
+.client-sidebar-header .admin-brand__name {
+  font-size: var(--font-size-lg);
+  line-height: 1.75rem;
+}
+
+.client-sidebar-header__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  padding: var(--spacing-2);
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+  transition: background-color var(--transition-ui), color var(--transition-ui);
+}
+
+.client-sidebar-header__close:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
+
+.client-sidebar-section {
+  padding: var(--spacing-4) var(--spacing-8);
+  border-bottom: 1px solid var(--sb-border, var(--color-border-default));
+}
+
+.client-sidebar-section__label {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--sb-text-dim, var(--color-text-secondary));
+  letter-spacing: var(--tracking-tight);
+}
