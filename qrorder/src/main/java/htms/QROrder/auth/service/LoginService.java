@@ -42,6 +42,7 @@ public class LoginService {
         else if (!passwordEncoder.matches(loginRequest.getUserPassword(), dbLoginData.getUserPassword())) {
             String errMsg = "비밀번호가 맞지 않습니다.";
             logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
+            loginMapper.pwdIncorrectCntIncrease(dbLoginData.getSysId());
             throw new LoginFailException(errMsg);
         }
         else if (dbLoginData.getPasswordFailCnt() > 5) {
@@ -51,6 +52,7 @@ public class LoginService {
         }
 
         logService.loginLog(uuid, httpServletRequest, "P", null, dbLoginData);
+        loginMapper.pwdCntReset(dbLoginData.getSysId());
 
         session.setAttribute("loginUser", dbLoginData);
         session.setAttribute("logUuid", uuid);
