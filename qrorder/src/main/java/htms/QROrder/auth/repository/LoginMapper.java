@@ -9,4 +9,6 @@ import org.apache.ibatis.annotations.Param;
 public interface LoginMapper {
     Login findByUserId(String userId);
     void initPwd(@Param("initPwdRequest") InitPwdRequest initPwdRequest, @Param("userId") String userId);
+    void pwdIncorrectCntIncrease(String sysId);
+    void pwdCntReset(String sysId);
 }
