@@ -1,13 +1,55 @@
+/* AdminLayout.css 와 동일한 구조 — 클라이언트 전용 */
+
 .client-layout {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: var(--color-bg-app);
+}
+
+/* =====================================================
+ * 사이드바
+ * ===================================================== */
+.client-layout__sidebar {
+  width: var(--width-sidebar);
+  flex-shrink: 0;
+  background-color: var(--color-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  border-right: var(--border-1) solid var(--color-sidebar-border);
+  overflow: hidden;
+  transition: width var(--transition-panel), border-color var(--transition-panel);
+}
+
+.client-layout__sidebar--closed {
+  width: 0;
+  border-right-color: transparent;
+}
+
+/* =====================================================
+ * 오른쪽 (헤더 + 메인 콘텐츠)
+ * ===================================================== */
+.client-layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.client-layout__header {
+  height: var(--height-12);
+  flex-shrink: 0;
+  background-color: var(--color-bg-surface);
+  border-bottom: var(--border-1) solid var(--color-border-default);
 }
 
 .client-layout__main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-bg-app);
   padding: var(--spacing-page-x);
 }
