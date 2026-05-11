@@ -43,6 +43,10 @@ export const handlers = [
     );
   }),
 
+  http.post('/api/client/auth/signup', async () => {
+    return HttpResponse.json({ success: true, message: '회원가입이 완료되었습니다.' });
+  }),
+
   http.post('/api/client/auth/login', async ({ request }) => {
     const body = await request.json();
 
