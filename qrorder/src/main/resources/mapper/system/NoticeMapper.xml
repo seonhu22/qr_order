@@ -62,16 +62,21 @@
             delete_yn = 'Y'
         where 1=1
         and sys_id in
+        <foreach collection="noticeRequest" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
     </delete>
 
     <select id="getOldData" resultType="htms.QROrder.system.dto.NoticeResponse">
         select
-            bn.notice_title,
-            bn.notice_description,
-            bn.start_date
-        from brd_notice bn
-        where 1=1
-        and bn.sys_id = #{sysId}
-        and bn.delete_yn = 'N'
+            sys_id,
+            notice_title,
+            notice_description,
+            start_date,
+            use_yn,
+            file_ulid
+        from brd_notice
+        where sys_id = #{sysId}
+        and delete_yn = 'N'
     </select>
 </mapper>
