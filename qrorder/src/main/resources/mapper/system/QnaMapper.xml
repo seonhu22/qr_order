@@ -7,7 +7,7 @@
         select
             bq.sys_id,
             bq.qna_title,
-            bq.qns_description,
+            bq.qna_description,
             bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
@@ -17,7 +17,7 @@
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
         and (bq.qna_title like concat('%', #{searchKeyword}, '%')
-                or bq.qns_description like concat('%', #{searchKeyword}, '%'))
+                or bq.qna_description like concat('%', #{searchKeyword}, '%'))
         </if>
         and bq.sys_plant_cd = #{sysPlantCd}
         and bq.delete_yn = 'N'
