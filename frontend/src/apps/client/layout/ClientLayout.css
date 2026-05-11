@@ -1,0 +1,13 @@
+.client-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+}
+
+.client-layout__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-page-x);
+}
