@@ -3,6 +3,7 @@ import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
+import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
 
 /**
@@ -58,6 +59,9 @@ function AppRoutes() {
       element: isAuthenticated && !needsPasswordChange ? <Navigate to="/admin/main" replace /> : <LoginPage />,
     },
     ...withProtectedElement(adminRoutes),
+
+    /* ── 클라이언트 라우트 ── */
+    ...clientRoutes,
 
     /* ── 개발 전용 가이드 (인증 불필요) ── */
     ...devRoutes,

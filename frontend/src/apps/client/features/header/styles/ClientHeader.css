@@ -1,0 +1,84 @@
+/* AdminHeader.css 와 동일한 스타일 — 어드민과 동일한 헤더 디자인 */
+
+.client-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-9);
+  height: 100%;
+  padding: 0 var(--spacing-8);
+}
+
+.client-header__toggle {
+  width: var(--width-5);
+  height: var(--height-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-ui);
+}
+
+.client-header__toggle:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.client-header__home {
+  width: var(--width-5);
+  height: var(--height-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-ui), color var(--transition-ui);
+}
+
+.client-header__home:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.client-header__divider {
+  width: 1px;
+  height: 1rem;
+  background-color: var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.client-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-9);
+}
+
+.client-header__nav-item {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  transition: color var(--transition-ui);
+}
+
+.client-header__nav-item:hover {
+  color: var(--color-brand-hover);
+}
+
+.client-header__nav-item--current {
+  color: var(--color-brand-default);
+  font-weight: var(--typography-weight-heading);
+}
