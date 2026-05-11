@@ -10,7 +10,7 @@ import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
-type Step = 'login' | 'signup-consent' | 'signup' | 'signup-complete';
+type Step = 'login' | 'signup-consent' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
 
 async function clientLogin(data: { userId: string; userPassword: string }) {
   const res = await fetch('/api/client/auth/login', {
@@ -22,6 +22,29 @@ async function clientLogin(data: { userId: string; userPassword: string }) {
   return res.json() as Promise<{ success: boolean; message?: string }>;
 }
 
+// 비밀번호 찾기 — 아이디·이메일 제출 (API 미정, 임시 엔드포인트)
+async function findPassword(data: { userId: string; email: string }) {
+  const res = await fetch('/api/client/auth/find-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return res.json() as Promise<{ success: boolean; message?: string }>;
+}
+
+// 비밀번호 찾기 — 인증 코드 확인 (API 미정, 임시 엔드포인트)
+async function verifyFindPasswordCode(data: { userId: string; verifyCode: string }) {
+  const res = await fetch('/api/client/auth/find-password/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return res.json() as Promise<{ success: boolean; message?: string }>;
+}
+
+// 회원가입 (API 미정, 임시 엔드포인트)
 async function clientSignup(data: {
   userId: string;
   password: string;
@@ -59,6 +82,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [signupError, setSignupError] = useState('');
 
+  // 비밀번호 찾기 필드
+  const [findId, setFindId] = useState('');
+  const [findEmail, setFindEmail] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [findError, setFindError] = useState('');
+
   useEffect(() => {
     const savedId = localStorage.getItem(SAVED_ID_KEY);
     if (savedId) {
@@ -86,6 +115,34 @@ export default function LoginPage() {
     },
   });
 
+  const { mutate: findPasswordMutate, isPending: isFindPending } = useMutation({
+    mutationFn: findPassword,
+    onSuccess: (data) => {
+      if (data.success) {
+        setStep('find-password-verify');
+      } else {
+        setFindError(data.message ?? '입력하신 정보를 확인해주세요.');
+      }
+    },
+    onError: () => {
+      setFindError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    },
+  });
+
+  const { mutate: verifyCodeMutate, isPending: isVerifyPending } = useMutation({
+    mutationFn: verifyFindPasswordCode,
+    onSuccess: (data) => {
+      if (data.success) {
+        setStep('find-password-complete');
+      } else {
+        setFindError(data.message ?? '인증 코드를 확인해주세요.');
+      }
+    },
+    onError: () => {
+      setFindError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    },
+  });
+
   const { mutate: signupMutate, isPending: isSignupPending } = useMutation({
     mutationFn: clientSignup,
     onSuccess: (data) => {
@@ -106,6 +163,18 @@ export default function LoginPage() {
     loginMutate({ userId, userPassword });
   };
 
+  const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setFindError('');
+    findPasswordMutate({ userId: findId, email: findEmail });
+  };
+
+  const handleVerifyCodeSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setFindError('');
+    verifyCodeMutate({ userId: findId, verifyCode });
+  };
+
   const handleSignupSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setSignupError('');
@@ -119,12 +188,9 @@ export default function LoginPage() {
   const goToLogin = () => {
     setStep('login');
     setConsentChecked(false);
-    setSignupId('');
-    setSignupPw('');
-    setSignupPwConfirm('');
-    setBusinessNo('');
-    setEmail('');
-    setSignupError('');
+    setSignupId(''); setSignupPw(''); setSignupPwConfirm('');
+    setBusinessNo(''); setEmail(''); setSignupError('');
+    setFindId(''); setFindEmail(''); setVerifyCode(''); setFindError('');
   };
 
   const isWide = step !== 'login';
@@ -133,7 +199,10 @@ export default function LoginPage() {
     step === 'login' ? '로그인'
     : step === 'signup-consent' ? '개인정보 동의'
     : step === 'signup' ? '회원가입'
-    : '가입 완료';
+    : step === 'signup-complete' ? '가입 완료'
+    : step === 'find-password' ? '비밀번호 찾기'
+    : step === 'find-password-verify' ? '인증 코드 확인'
+    : '비밀번호 찾기 완료';
 
   return (
     <main className="login-page login-page--client">
@@ -184,7 +253,7 @@ export default function LoginPage() {
 
             <div className="login-card__options">
               <CheckboxInput label="아이디 저장" size="sm" checked={saveId} onChange={(checked) => setSaveId(checked)} />
-              <Button type="button" variant="link" size="sm">
+              <Button type="button" variant="link" size="sm" onClick={() => setStep('find-password')}>
                 비밀번호 찾기
               </Button>
             </div>
@@ -327,6 +396,100 @@ export default function LoginPage() {
             <div className="login-card__locked-messages">
               <p className="login-card__subheading">회원가입이 완료되었습니다.</p>
               <p className="login-card__locked-desc">로그인 후 서비스를 이용할 수 있습니다.</p>
+            </div>
+            <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
+              로그인하러 가기
+            </Button>
+          </div>
+        )}
+
+        {/* ── 비밀번호 찾기 — 아이디·이메일 입력 ── */}
+        {step === 'find-password' && (
+          <form className="login-card__body" onSubmit={handleFindPasswordSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">비밀번호 찾기</h1>
+              <p className="login-card__subheading">가입 시 등록한 아이디와 이메일을 입력하세요.</p>
+            </div>
+
+            {findError && (
+              <FormAlert type="error" description={findError} dismissible onDismiss={() => setFindError('')} />
+            )}
+
+            <div className="login-card__fields">
+              <TextInput
+                label="아이디"
+                placeholder="아이디를 입력하세요"
+                size="lg"
+                id="find-id"
+                autoComplete="username"
+                value={findId}
+                onChange={(e) => setFindId(e.target.value)}
+                isError={!!findError}
+              />
+              <TextInput
+                label="이메일"
+                placeholder="이메일을 입력하세요"
+                type="email"
+                size="lg"
+                id="find-email"
+                autoComplete="email"
+                value={findEmail}
+                onChange={(e) => setFindEmail(e.target.value)}
+                isError={!!findError}
+              />
+            </div>
+
+            <div className="login-card__consent-actions">
+              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>취소</Button>
+              <Button type="submit" size="lg" loading={isFindPending}>
+                {isFindPending ? '처리 중...' : '인증 코드 받기'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 비밀번호 찾기 — 인증 코드 입력 ── */}
+        {step === 'find-password-verify' && (
+          <form className="login-card__body" onSubmit={handleVerifyCodeSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">인증 코드 확인</h1>
+              <p className="login-card__subheading">이메일로 발송된 인증 코드를 입력하세요.</p>
+            </div>
+
+            {findError && (
+              <FormAlert type="error" description={findError} dismissible onDismiss={() => setFindError('')} />
+            )}
+
+            <div className="login-card__fields">
+              <TextInput
+                label="인증 코드"
+                placeholder="인증 코드를 입력하세요"
+                size="lg"
+                id="verify-code"
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value)}
+                isError={!!findError}
+              />
+            </div>
+
+            <div className="login-card__consent-actions">
+              <Button type="button" variant="outline" size="lg" onClick={() => { setFindError(''); setStep('find-password'); }}>이전</Button>
+              <Button type="submit" size="lg" loading={isVerifyPending}>
+                {isVerifyPending ? '확인 중...' : '확인'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 비밀번호 찾기 완료 ── */}
+        {step === 'find-password-complete' && (
+          <div className="login-card__body">
+            <div className="login-card__title">
+              <h1 className="login-card__heading">인증 완료</h1>
+            </div>
+            <div className="login-card__locked-messages">
+              <p className="login-card__subheading">인증이 완료되었습니다.</p>
+              <p className="login-card__locked-desc">임시 비밀번호가 이메일로 발송되었습니다.</p>
             </div>
             <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
               로그인하러 가기

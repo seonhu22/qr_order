@@ -43,6 +43,14 @@ export const handlers = [
     );
   }),
 
+  http.post('/api/client/auth/find-password', async () => {
+    return HttpResponse.json({ success: true, message: '인증 코드가 이메일로 발송되었습니다.' });
+  }),
+
+  http.post('/api/client/auth/find-password/verify', async () => {
+    return HttpResponse.json({ success: true, message: '인증이 완료되었습니다.' });
+  }),
+
   http.post('/api/client/auth/signup', async () => {
     return HttpResponse.json({ success: true, message: '회원가입이 완료되었습니다.' });
   }),
