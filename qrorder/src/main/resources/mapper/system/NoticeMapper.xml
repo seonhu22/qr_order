@@ -63,4 +63,15 @@
         where 1=1
         and sys_id in
     </delete>
+
+    <select id="getOldData" resultType="htms.QROrder.system.dto.NoticeResponse">
+        select
+            bn.notice_title,
+            bn.notice_description,
+            bn.start_date
+        from brd_notice bn
+        where 1=1
+        and bn.sys_id = #{sysId}
+        and bn.delete_yn = 'N'
+    </select>
 </mapper>
