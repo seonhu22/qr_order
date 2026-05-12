@@ -39,6 +39,7 @@ public class LoginController {
                     CommonResponse.builder()
                             .success(false)
                             .message(e.getMessage())
+                            .data(e.getData())
                             .build()
             );
         }
