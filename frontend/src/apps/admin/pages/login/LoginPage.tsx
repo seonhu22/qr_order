@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
@@ -12,6 +12,7 @@ import { useInitPwd } from '@/generated/login-controller/login-controller';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { HttpError } from '@/shared/lib/httpClient';
 
 type Step = 'login' | 'changePassword' | 'locked';
 
@@ -19,10 +20,66 @@ function needsPasswordChange(initYn: unknown): boolean {
   return typeof initYn === 'string' && initYn.toLowerCase() === 'y';
 }
 
+function getPasswordFailCount(payload: unknown): number | undefined {
+  if (!payload || typeof payload !== 'object' || !('data' in payload)) {
+    return undefined;
+  }
+
+  const data = (payload as { data?: unknown }).data;
+
+  if (typeof data === 'number') {
+    return data;
+  }
+
+  if (typeof data === 'string') {
+    const failCount = Number(data);
+
+    return Number.isFinite(failCount) ? failCount : undefined;
+  }
+
+  if (!data || typeof data !== 'object' || !('password_fail_cnt' in data)) {
+    if (data && typeof data === 'object' && 'passwordFailCnt' in data) {
+      const failCount = (data as { passwordFailCnt?: unknown }).passwordFailCnt;
+
+      if (typeof failCount === 'number') {
+        return failCount;
+      }
+
+      if (typeof failCount === 'string') {
+        const parsedFailCount = Number(failCount);
+
+        return Number.isFinite(parsedFailCount) ? parsedFailCount : undefined;
+      }
+    }
+
+    return undefined;
+  }
+
+  const failCount = (data as { password_fail_cnt?: unknown }).password_fail_cnt;
+
+  if (typeof failCount === 'number') {
+    return failCount;
+  }
+
+  if (typeof failCount === 'string') {
+    const parsedFailCount = Number(failCount);
+
+    return Number.isFinite(parsedFailCount) ? parsedFailCount : undefined;
+  }
+
+  return undefined;
+}
+
+function isLockedLoginMessage(message: unknown): boolean {
+  return typeof message === 'string' && message.includes('비밀번호 5회') && message.includes('사용 중지');
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
+  const authenticatedUserId = typeof user?.userId === 'string' ? user.userId : '';
+  const isInitialPasswordUser = isAuthenticated && needsPasswordChange(user?.init_yn);
 
   const [step, setStep] = useState<Step>('login');
   const [showInitAlert, setShowInitAlert] = useState(false);
@@ -37,15 +94,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [chkPassword, setChkPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const currentStep: Step = isInitialPasswordUser ? 'changePassword' : step;
 
-  // 이미 인증됐고 init_yn === 'Y'인 상태로 이 페이지에 오면 변경 폼 표시
-  useEffect(() => {
-    if (isAuthenticated && needsPasswordChange(user?.init_yn)) {
-      const uid = typeof user?.userId === 'string' ? user.userId : '';
-      setUserId(uid);
-      setStep('changePassword');
-    }
-  }, [isAuthenticated, user]);
+  const showLockedStep = () => {
+    setUserPassword('');
+    setErrorMessage('');
+    setStep('locked');
+  };
 
   const { mutate: loginMutate, isPending: isLoginPending } = useAuthLoginMutation({
     mutation: {
@@ -61,15 +116,28 @@ export default function LoginPage() {
             navigate('/admin/main');
           }
         } else {
-          const userData = data?.data as Record<string, unknown> | undefined;
-          if (typeof userData?.password_fail_cnt === 'number' && userData.password_fail_cnt >= 5) {
-            setStep('locked');
+          const failCount = getPasswordFailCount(data);
+
+          if ((typeof failCount === 'number' && failCount >= 5) || isLockedLoginMessage(data.message)) {
+            showLockedStep();
           } else {
             setErrorMessage(data.message ?? '로그인에 실패했습니다.');
           }
         }
       },
       onError: (error) => {
+        if (error instanceof HttpError) {
+          const failCount = getPasswordFailCount(error.payload);
+
+          if ((typeof failCount === 'number' && failCount >= 5) || isLockedLoginMessage(error.message)) {
+            showLockedStep();
+            return;
+          }
+
+          setErrorMessage(error.message);
+          return;
+        }
+
         setErrorMessage(
           error instanceof Error ? error.message : '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
         );
@@ -133,7 +201,7 @@ export default function LoginPage() {
       setErrorMessage('비밀번호가 일치하지 않습니다.');
       return;
     }
-    initPwdMutate({ data: { password, chkPassword }, params: { userId } });
+    initPwdMutate({ data: { password, chkPassword }, params: { userId: userId || authenticatedUserId } });
   };
 
   return (
@@ -144,13 +212,13 @@ export default function LoginPage() {
       <div
         className="login-card"
         role="region"
-        aria-label={step === 'login' ? '로그인' : step === 'changePassword' ? '비밀번호 변경' : '계정 잠금'}
+        aria-label={currentStep === 'login' ? '로그인' : currentStep === 'changePassword' ? '비밀번호 변경' : '계정 잠금'}
       >
         <header className="login-card__header">
           <AdminBrand />
         </header>
 
-        {step === 'locked' ? (
+        {currentStep === 'locked' ? (
           <div className="login-card__body login-card__locked">
             <div className="login-card__title">
               <h1 className="login-card__heading">로그인 제한</h1>
@@ -172,7 +240,7 @@ export default function LoginPage() {
               로그인으로 돌아가기
             </Button>
           </div>
-        ) : step === 'login' ? (
+        ) : currentStep === 'login' ? (
           <form className="login-card__body" onSubmit={handleLoginSubmit}>
             <div className="login-card__title">
               <h1 className="login-card__heading">로그인</h1>

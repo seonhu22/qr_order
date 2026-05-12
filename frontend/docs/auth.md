@@ -91,6 +91,9 @@ login mutation 실패 + password_fail_cnt >= 5
 ```
 
 - `LoginPage`의 `step: 'login' | 'changePassword' | 'locked'` 중 `'locked'`가 잠금 화면 역할을 한다.
+- 백엔드가 `401`로 로그인 실패를 반환하는 경우 `httpClient`의 `HttpError.payload`에서 `password_fail_cnt`를 읽는다.
+- 목업처럼 `200 + success: false`로 로그인 실패를 반환하는 경우 응답 body의 `data.password_fail_cnt`를 직접 읽는다.
+- 로그인 제한은 별도 모달을 띄우지 않고 로그인 카드 내부의 잠금 화면으로만 안내한다.
 - 잠금 해제(비밀번호 초기화) 방법과 초기화 API는 백엔드 연동 시 확정 예정이다.
 - 관리자 문의 이메일: `admin@qrorder.co.kr` (추후 실제 값으로 교체).
 
