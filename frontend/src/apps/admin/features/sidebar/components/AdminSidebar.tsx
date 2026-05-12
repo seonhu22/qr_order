@@ -23,6 +23,15 @@ import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object' || !('status' in error)) {
+    return undefined;
+  }
+
+  const status = (error as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
+
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,7 +42,9 @@ export function AdminSidebar() {
 
   const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2, ensureOpen, resetTo } =
     useSidebarExpand();
-  const { currentSection, currentMenus, menusBySection } = useAdminNavigationMenus();
+  const { currentSection, currentMenus, menusBySection, isError, error } = useAdminNavigationMenus();
+  const menuErrorStatus = getErrorStatus(error);
+  const hasMenuLoadError = isError && menuErrorStatus !== 403;
 
   const { user } = useAuth();
   const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
@@ -57,6 +68,14 @@ export function AdminSidebar() {
     pathnameRef.current = location.pathname;
     currentMenusRef.current = displayedMenus;
   });
+
+  useEffect(() => {
+    if (menuErrorStatus !== 403 || location.pathname === '/admin/forbidden') {
+      return;
+    }
+
+    navigate('/admin/forbidden', { replace: true });
+  }, [location.pathname, menuErrorStatus, navigate]);
 
   // URL 변경 시에만 섹션 자동 감지 + 현재 페이지 그룹 열기
   // activeSection을 deps에 넣으면 헤더 탭 전환 시에도 effect가 재실행되어
@@ -102,16 +121,22 @@ export function AdminSidebar() {
       <div className="admin-sidebar-section">
         <span className="admin-sidebar-section__label">{sectionLabel}</span>
       </div>
-      <SidebarNav
-        menus={displayedMenus}
-        showDepth1={false}
-        expandedDepth1Keys={expandedDepth1Keys}
-        expandedDepth2Keys={expandedDepth2Keys}
-        currentPathname={location.pathname}
-        onToggleDepth1={toggleDepth1}
-        onToggleDepth2={toggleDepth2}
-        onNavigate={navigate}
-      />
+      {hasMenuLoadError ? (
+        <div className="admin-sidebar-status" role="status">
+          메뉴를 불러오지 못했습니다.
+        </div>
+      ) : (
+        <SidebarNav
+          menus={displayedMenus}
+          showDepth1={false}
+          expandedDepth1Keys={expandedDepth1Keys}
+          expandedDepth2Keys={expandedDepth2Keys}
+          currentPathname={location.pathname}
+          onToggleDepth1={toggleDepth1}
+          onToggleDepth2={toggleDepth2}
+          onNavigate={navigate}
+        />
+      )}
       <SidebarUser
         userName={userName}
         userRole={userRole}

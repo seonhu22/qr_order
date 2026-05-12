@@ -1,6 +1,7 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
+import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
@@ -57,6 +58,14 @@ function AppRoutes() {
     {
       path: '/admin/login',
       element: isAuthenticated && !needsPasswordChange ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+    },
+    {
+      path: '/admin/forbidden',
+      element: (
+        <RequireAuth>
+          <AdminForbiddenPage />
+        </RequireAuth>
+      ),
     },
     ...withProtectedElement(adminRoutes),
 
