@@ -81,12 +81,11 @@ login mutation 성공 + init_yn === 'Y'
 
 > 추가일: 2026-05-07
 
-로그인 실패 응답의 `data.password_fail_cnt`가 `5` 이상이면 로그인 제한 모달을 먼저 표시한 뒤 잠금 화면으로 전환된다. 잠금 상태에서는 로그인 폼에 접근할 수 없다.
+로그인 실패 응답의 `data.password_fail_cnt`가 `5` 이상이면 잠금 화면으로 전환된다. 잠금 상태에서는 로그인 폼에 접근할 수 없다.
 
 ```text
 login mutation 실패 + password_fail_cnt >= 5
-→ 로그인 제한 모달 표시
-→ 확인 또는 닫기 → LoginPage가 step을 'locked'로 전환
+→ LoginPage가 step을 'locked'로 전환
 → 잠금 안내 화면 표시 (관리자 문의 이메일 포함)
 → "로그인으로 돌아가기" 클릭 → step을 'login'으로 복귀
 ```
@@ -94,7 +93,7 @@ login mutation 실패 + password_fail_cnt >= 5
 - `LoginPage`의 `step: 'login' | 'changePassword' | 'locked'` 중 `'locked'`가 잠금 화면 역할을 한다.
 - 백엔드가 `401`로 로그인 실패를 반환하는 경우 `httpClient`의 `HttpError.payload`에서 `password_fail_cnt`를 읽는다.
 - 목업처럼 `200 + success: false`로 로그인 실패를 반환하는 경우 응답 body의 `data.password_fail_cnt`를 직접 읽는다.
-- 로그인 제한 모달은 확인 버튼, 닫기 버튼, ESC, overlay 닫기 모두 잠금 화면 전환으로 처리한다.
+- 로그인 제한은 별도 모달을 띄우지 않고 로그인 카드 내부의 잠금 화면으로만 안내한다.
 - 잠금 해제(비밀번호 초기화) 방법과 초기화 API는 백엔드 연동 시 확정 예정이다.
 - 관리자 문의 이메일: `admin@qrorder.co.kr` (추후 실제 값으로 교체).
 

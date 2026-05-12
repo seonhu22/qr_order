@@ -83,7 +83,6 @@ export default function LoginPage() {
 
   const [step, setStep] = useState<Step>('login');
   const [showInitAlert, setShowInitAlert] = useState(false);
-  const [showLockedAlert, setShowLockedAlert] = useState(false);
   const [resultModal, setResultModal] = useState<{
     open: boolean;
     title: string;
@@ -97,14 +96,9 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const currentStep: Step = isInitialPasswordUser ? 'changePassword' : step;
 
-  const openLockedAlert = () => {
+  const showLockedStep = () => {
     setUserPassword('');
     setErrorMessage('');
-    setShowLockedAlert(true);
-  };
-
-  const closeLockedAlert = () => {
-    setShowLockedAlert(false);
     setStep('locked');
   };
 
@@ -125,7 +119,7 @@ export default function LoginPage() {
           const failCount = getPasswordFailCount(data);
 
           if ((typeof failCount === 'number' && failCount >= 5) || isLockedLoginMessage(data.message)) {
-            openLockedAlert();
+            showLockedStep();
           } else {
             setErrorMessage(data.message ?? '로그인에 실패했습니다.');
           }
@@ -136,7 +130,7 @@ export default function LoginPage() {
           const failCount = getPasswordFailCount(error.payload);
 
           if ((typeof failCount === 'number' && failCount >= 5) || isLockedLoginMessage(error.message)) {
-            openLockedAlert();
+            showLockedStep();
             return;
           }
 
@@ -362,15 +356,6 @@ export default function LoginPage() {
           },
         }}
         onClose={() => setShowInitAlert(false)}
-      />
-
-      <NoticeModal
-        open={showLockedAlert}
-        tone="danger"
-        title="로그인 제한"
-        description="비밀번호 오류 횟수가 5회 이상 누적되어 계정이 잠겼습니다. 관리자에게 문의해 주세요."
-        primaryAction={{ label: '확인', onClick: closeLockedAlert }}
-        onClose={closeLockedAlert}
       />
     </main>
   );
