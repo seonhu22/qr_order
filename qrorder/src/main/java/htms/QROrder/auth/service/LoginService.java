@@ -34,21 +34,18 @@ public class LoginService {
         if (dbLoginData == null) {
             throw new LoginFailException("해당 계정은 존재하지 않습니다.");
         }
-        else if (dbLoginData.getInitYn().equals("N")) {
-            session.setAttribute("loginUser", dbLoginData);
-            session.setAttribute("logUuid", uuid);
-            return true;
+
+        if (dbLoginData.getPasswordFailCnt() > 5) {
+            String errMsg = "해당 계정은 비밀번호 5회 초과 오류로 사용 중지된 상태입니다.";
+            logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
+            throw new LoginFailException(errMsg);
         }
-        else if (!passwordEncoder.matches(loginRequest.getUserPassword(), dbLoginData.getUserPassword())) {
+
+        if (!passwordEncoder.matches(loginRequest.getUserPassword(), dbLoginData.getUserPassword())) {
             String errMsg = "비밀번호가 맞지 않습니다.";
             logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
             loginMapper.pwdIncorrectCntIncrease(dbLoginData.getSysId());
             throw new LoginFailException(errMsg, dbLoginData.getPasswordFailCnt());
-        }
-        else if (dbLoginData.getPasswordFailCnt() > 5) {
-            String errMsg = "해당 계정은 비밀번호 5회 초과 오류로 사용 중지된 상태입니다.";
-            logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
-            throw new LoginFailException(errMsg);
         }
 
         logService.loginLog(uuid, httpServletRequest, "P", null, dbLoginData);
@@ -56,6 +53,11 @@ public class LoginService {
 
         session.setAttribute("loginUser", dbLoginData);
         session.setAttribute("logUuid", uuid);
+
+        if (dbLoginData.getInitYn().equals("N")) {
+            return true;
+        }
+
         session.setAttribute("role", "SUPER_ADMIN");
         log.info("login success={}, {}, {}", dbLoginData.getUserId(), dbLoginData.getSysPlantCd(), session.getAttribute("role"));
 
