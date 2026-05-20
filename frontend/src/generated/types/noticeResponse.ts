@@ -7,8 +7,12 @@
  */
 
 export interface NoticeResponse {
+  sysId?: string;
   noticeTitle?: string;
   noticeDescription?: string;
   startDate?: string;
-  fileUuid?: string;
+  useYn?: string;
+  fileUlid?: string;
+  modifyDatetime?: string;
+  modifyUserId?: string;
 }
