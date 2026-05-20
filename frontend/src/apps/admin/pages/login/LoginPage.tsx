@@ -9,16 +9,18 @@ import { NoticeModal, SimpleDefaultModal } from '@/shared/components/modal';
 import { AdminBrand } from '@/apps/admin/features/brand/components/AdminBrand';
 import type { LoginMutationResult } from '@/generated/login-controller/login-controller';
 import { useInitPwd } from '@/generated/login-controller/login-controller';
+import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
 import { useAuth } from '@/shared/auth/AuthContext';
+import {
+  getAuthResponseData,
+  hasInitialPasswordRequirementSignal,
+  isInitialPasswordChangeRequired,
+} from '@/shared/auth/initPassword';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { HttpError } from '@/shared/lib/httpClient';
 
 type Step = 'login' | 'changePassword' | 'locked';
-
-function needsPasswordChange(initYn: unknown): boolean {
-  return typeof initYn === 'string' && initYn.toLowerCase() === 'y';
-}
 
 function getPasswordFailCount(payload: unknown): number | undefined {
   if (!payload || typeof payload !== 'object' || !('data' in payload)) {
@@ -79,7 +81,7 @@ export default function LoginPage() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
   const authenticatedUserId = typeof user?.userId === 'string' ? user.userId : '';
-  const isInitialPasswordUser = isAuthenticated && needsPasswordChange(user?.init_yn);
+  const isInitialPasswordUser = isAuthenticated && isInitialPasswordChangeRequired(user);
 
   const [step, setStep] = useState<Step>('login');
   const [showInitAlert, setShowInitAlert] = useState(false);
@@ -104,10 +106,24 @@ export default function LoginPage() {
 
   const { mutate: loginMutate, isPending: isLoginPending } = useAuthLoginMutation({
     mutation: {
-      onSuccess: (data: LoginMutationResult) => {
+      onSuccess: async (data: LoginMutationResult) => {
         if (data.success) {
-          const userData = data?.data as Record<string, unknown> | undefined;
-          if (needsPasswordChange(userData?.init_yn)) {
+          let userData = getAuthResponseData(data);
+
+          if (!hasInitialPasswordRequirementSignal(userData)) {
+            try {
+              const meData = await queryClient.fetchQuery({
+                queryKey: queryKeys.auth.me,
+                queryFn: ({ signal }) => getCurrentUser(undefined, signal),
+              });
+              userData = getAuthResponseData(meData);
+            } catch {
+              setErrorMessage('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');
+              return;
+            }
+          }
+
+          if (isInitialPasswordChangeRequired(userData)) {
             setUserPassword('');
             setErrorMessage('');
             setUserId(typeof userData?.userId === 'string' ? userData.userId : userId);
@@ -158,7 +174,7 @@ export default function LoginPage() {
               if (meData) {
                 queryClient.setQueryData(queryKeys.auth.me, {
                   ...meData,
-                  data: { ...(meData.data as object ?? {}), init_yn: 'N' },
+                  data: { ...(meData.data as object ?? {}), initPwdRequired: false },
                 });
               }
               navigate('/admin/main');
