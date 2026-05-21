@@ -5,9 +5,14 @@
 
     <select id="getNotice" resultType="htms.QROrder.system.dto.NoticeResponse">
         select
+            bn.sys_id,
             bn.notice_title,
             bn.notice_description,
-            bn.start_date
+            bn.start_date,
+            bn.use_yn,
+            bn.file_ulid,
+            bn.modify_datetime ,
+            bn.modify_user_id
         from brd_notice bn
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
