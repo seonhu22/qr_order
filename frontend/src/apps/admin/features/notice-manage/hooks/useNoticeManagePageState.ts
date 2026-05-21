@@ -68,6 +68,7 @@ export function useNoticeManagePageState() {
     const data = {
       sysId: editorRow.sysId || undefined,
       fileUuid: editorRow.fileUuid,
+      useYn: editorRow.useYn,
       title: editorRow.title,
       content: editorRow.content,
       fileChangeState: modalFlow.fileChangeState,

@@ -10,16 +10,19 @@ describe('noticeManageApi', () => {
           noticeTitle: '점검 공지',
           noticeDescription: '시스템 점검 안내',
           startDate: '2026-04-29',
+          useYn: 'N',
+          fileUlid: 'file-link-1',
           insertUserId: 'PC001',
           insertDatetime: '2026-04-29 10:00:00',
-          modifyDatetime: '2026-04-29 11:00:00',
+          modifyDatetime: '2026-04-29 11:00:00.123456',
         },
         0,
       ),
     ).toEqual({
       id: 'notice-1',
       sysId: 'notice-1',
-      fileUuid: undefined,
+      fileUuid: 'file-link-1',
+      useYn: 'N',
       noticeType: 'notice',
       target: 'all',
       title: '점검 공지',
@@ -44,6 +47,7 @@ describe('noticeManageApi', () => {
       id: 'notice-2-점검 공지-2026-04-29',
       sysId: '',
       fileUuid: undefined,
+      useYn: 'Y',
       noticeType: 'notice',
       target: 'all',
       title: '점검 공지',
@@ -59,6 +63,7 @@ describe('noticeManageApi', () => {
     const formData = buildNoticeFormData({
       sysId: 'notice-1',
       fileUuid: 'file-link-1',
+      useYn: 'N',
       title: '공지 제목',
       content: '공지 내용',
       fileChangeState: {
@@ -82,11 +87,11 @@ describe('noticeManageApi', () => {
 
     expect(formData.get('noticeTitle')).toBe('공지 제목');
     expect(formData.get('noticeDescription')).toBe('공지 내용');
-    expect(formData.get('useYn')).toBe('Y');
+    expect(formData.get('useYn')).toBe('N');
     expect(formData.get('sysId')).toBe('notice-1');
     expect(formData.get('fileUuid')).toBe('file-link-1');
     expect(formData.get('newItems[0].file')).toBe(file);
-    expect(formData.get('newItems[0].linkSysId')).toBe('file-link-1');
+    expect(formData.get('newItems[0].linkSysId')).toBe('notice-1');
     expect(formData.get('newItems[0].ordNo')).toBe('1');
     expect(formData.get('delItems[0].sysId')).toBe('file-1');
     expect(formData.has('noticeRequest')).toBe(false);
