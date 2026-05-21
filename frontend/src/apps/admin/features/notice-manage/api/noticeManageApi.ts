@@ -4,6 +4,7 @@ import {
 } from '@/generated/settings-controller/settings-controller';
 import { useMutation } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import type { NoticeResponse } from '@/generated/types/noticeResponse';
 import type { CommonResponse } from '@/generated/types/commonResponse';
 import type { FileChangeState } from '@/shared/components/file-attachment';
@@ -30,7 +31,7 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
     content: res.noticeDescription ?? '',
     registrant: res.insertUserId ?? '',
     registeredAt: res.insertDatetime ?? res.startDate ?? '',
-    updatedAt: res.modifyDatetime ?? '',
+    updatedAt: formatDateTimeForDisplay(res.modifyDatetime),
   };
 }
 

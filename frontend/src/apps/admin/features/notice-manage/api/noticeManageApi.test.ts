@@ -14,7 +14,7 @@ describe('noticeManageApi', () => {
           fileUlid: 'file-link-1',
           insertUserId: 'PC001',
           insertDatetime: '2026-04-29 10:00:00',
-          modifyDatetime: '2026-04-29 11:00:00',
+          modifyDatetime: '2026-04-29 11:00:00.123456',
         },
         0,
       ),
