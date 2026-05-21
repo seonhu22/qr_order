@@ -58,4 +58,18 @@ public class LoginController {
                         .build()
         );
     }
+
+    @PostMapping("/init-pwd-active")
+    public ResponseEntity<CommonResponse> initPwdAndACtive(@RequestBody @Valid InitPwdRequest initPwdRequest,
+                                                  @RequestParam String userId) {
+
+        loginService.initPwdAndACtive(initPwdRequest, userId);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("비밀번호 초기화 완료.")
+                        .build()
+        );
+    }
 }
