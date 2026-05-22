@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.ClientUserMapper">
+
+    <select id="getClientUser" resultType="htms.QROrder.client.dto.ClientUserResponse">
+        select
+            su.sys_id,
+            su.user_id ,
+            su.user_nm ,
+            su.plant_cd ,
+            sp.plant_nm
+        from sys_user su
+        left join sys_plant sp
+            on sp.plant_cd = su.plant_cd
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+        and (su.user_id like concat('%', #{searchKeyword}, '%')
+                or su.user_nm like concat('%', #{searchKeyword}, '%'))
+        </if>
+        and su.plant_cd = #{sysPlantCd}
+        and su.delete_yn = 'N'
+        and sp.delete_yn = 'N'
+    </select>
+
+    <insert id="newClientUser">
+        insert into sys_user (
+            sys_id ,
+            user_id ,
+            user_nm ,
+            user_password ,
+            init_yn ,
+            password_fail_cnt ,
+            plant_cd ,
+            user_role ,
+            delete_yn,
+            insert_user_id ,
+            insert_datetime,
+            sys_plant_cd
+        )
+        values (
+            #{newItems.sysId},
+            #{newItems.userId},
+            #{newItems.userNm},
+            #{tempPwd},
+            'N',
+            0,
+            #{newItems.plantCd},
+            #{newItems.userRole},
+            'N',
+            #{userId},
+            now(),
+            #{sysPlantCd}
+        )
+    </insert>
+    
+    <update id="updateClientUser">
+        update sys_user set
+            user_nm = #{updateItems.userNm},
+            plant_cd = #{updateItems.plantCd},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{updateItems.sysId}
+    </update>
+
+    <delete id="delClientUser">
+        update sys_user set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{delItems.sysId}
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_user
+        where 1=1
+        and user_id in
+            <foreach collection="clientUserRequest" item="item" open="(" separator="," close=")">
+                #{item.userId}
+            </foreach>
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.ClientUserResponse">
+        select
+            su.sys_id,
+            su.user_id ,
+            su.user_nm ,
+            su.plant_cd ,
+            sp.plant_nm
+        from sys_user su
+        left join sys_plant sp
+            on sp.plant_cd = su.plant_cd
+        where 1=1
+        and su.sys_id = #{sysId}
+    </select>
+</mapper>
