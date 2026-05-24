@@ -26,7 +26,7 @@ public class LoginService {
     private final PasswordEncoder passwordEncoder;
     private final LogService logService;
 
-    public boolean loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
+    public void loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
 
         Login dbLoginData = loginMapper.findByUserId(loginRequest.getUserId());
         String uuid = UlidCreator.getMonotonicUlid().toString();
@@ -54,14 +54,8 @@ public class LoginService {
         session.setAttribute("loginUser", dbLoginData);
         session.setAttribute("logUuid", uuid);
 
-        if (dbLoginData.getInitYn().equals("N")) {
-            return true;
-        }
-
         session.setAttribute("role", "SUPER_ADMIN");
         log.info("login success={}, {}, {}", dbLoginData.getUserId(), dbLoginData.getSysPlantCd(), session.getAttribute("role"));
-
-        return false;
     }
 
     @Transactional
@@ -74,5 +68,17 @@ public class LoginService {
         String encodedPassword = passwordEncoder.encode(initPwdRequest.getPassword());
         initPwdRequest.setPassword(encodedPassword);
         loginMapper.initPwd(initPwdRequest, userId);
+    }
+
+    @Transactional
+    public void initPwdAndACtive(InitPwdRequest initPwdRequest, String userId) {
+
+        if (!initPwdRequest.getPassword().equals(initPwdRequest.getChkPassword())) {
+            throw new ValidationException("비밀번호와 비밀번호확인의 값이 일치하지 않습니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(initPwdRequest.getPassword());
+        initPwdRequest.setPassword(encodedPassword);
+        loginMapper.initPwdAndACtive(initPwdRequest, userId);
     }
 }

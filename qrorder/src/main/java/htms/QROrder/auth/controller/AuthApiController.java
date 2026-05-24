@@ -31,6 +31,7 @@ public class AuthApiController {
                 .userId(loginUser.getUserId())
                 .userName(loginUser.getUserNm())
                 .sysPlantCd(loginUser.getSysPlantCd())
+                .initPwdRequired(loginUser.getInitYn().equals("Y"))
                 .build();
 
         return ResponseEntity.ok(
