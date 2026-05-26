@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.TableInfoMapper">
+
+    <select id="getTableInfo" resultType="htms.QROrder.client.dto.TableInfoResponse">
+        select
+            sys_id ,
+            table_num ,
+            table_qty ,
+            use_yn
+        from table_info si
+        where 1=1
+        and si.plant_cd = #{sysPlantCd}
+    </select>
+
+    <insert id="newTableInfo">
+        insert into table_info (
+            sys_id ,
+            table_num ,
+            table_qty ,
+            use_yn ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator="," >
+            (
+                #{item.sysId},
+                #{item.tableNum},
+                #{item.tableQty},
+                #{item.useYn},
+                now(),
+                #{userId},
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateTableInfo">
+        <foreach collection="updateItems" item="item" separator=";">
+            update table_info set
+                table_num = #{item.tableNum} ,
+                table_qty = #{item.tableQty} ,
+                use_yn = #{item.useYn} ,
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delTableInfo">
+        update table_info set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from table_info
+        where 1=1
+        and table_num in
+        <foreach collection="newItems" item="item" open="(" separator="," close=")">
+            #{item.tableNum}
+        </foreach>
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.TableInfoItem">
+        select
+            sys_id ,
+            table_num ,
+            table_qty ,
+            use_yn
+        from table_info si
+        where 1=1
+        and si.sys_id = #{sysId}
+    </select>
+</mapper>

@@ -5,6 +5,7 @@ import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StoreInfoMapper;
 import htms.QROrder.client.service.ClientUserService;
 import htms.QROrder.client.service.StoreInfoService;
+import htms.QROrder.client.service.TableInfoService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class StoreManageController {
 
     private final ClientUserService clientUserService;
     private final StoreInfoService storeInfoService;
+    private final TableInfoService tableInfoService;
 
     @GetMapping("/user_manage/search")
     public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword,
@@ -133,12 +135,37 @@ public class StoreManageController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        storeInfoService.deleteStoreInfo(storeInfoItems, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        storeInfoService.delStoreInfo(storeInfoItems, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
                         .success(true)
                         .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/table_info/search")
+    public List<TableInfoResponse> getTableInfo(HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return tableInfoService.getTableInfo(loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/table_info/save")
+    public ResponseEntity<CommonResponse> newTableInfo(@RequestBody TableInfoRequest tableInfoRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        tableInfoService.saveTableInfo(tableInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
                         .build()
         );
     }

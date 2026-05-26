@@ -55,7 +55,7 @@ public class StoreInfoService {
         storeInfoMapper.updateStoreInfo(updateItems, userId, sysPlantCd, menuCd);
     }
 
-    public void deleteStoreInfo(List<StoreInfoItem> delItems,
+    public void delStoreInfo(List<StoreInfoItem> delItems,
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
