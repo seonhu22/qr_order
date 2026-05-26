@@ -60,10 +60,10 @@ public class LoginController {
     }
 
     @PostMapping("/init-pwd-active")
-    public ResponseEntity<CommonResponse> initPwdAndACtive(@RequestBody @Valid InitPwdRequest initPwdRequest,
+    public ResponseEntity<CommonResponse> initPwdAndActive(@RequestBody @Valid InitPwdRequest initPwdRequest,
                                                   @RequestParam String userId) {
 
-        loginService.initPwdAndACtive(initPwdRequest, userId);
+        loginService.initPwdAndActive(initPwdRequest, userId);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
