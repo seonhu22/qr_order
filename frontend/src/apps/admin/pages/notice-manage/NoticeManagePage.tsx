@@ -129,7 +129,7 @@ export function NoticeManagePage() {
           <InputWrapper label="첨부파일" inputId="notice-file">
             <FileInputGroup
               variant="button"
-              files={[]}
+              files={modalProps.editor.attachFiles}
               onChange={actions.changeFileState}
               maxFiles={NOTICE_FILE_POLICY.maxFiles}
               maxFileSizeMB={NOTICE_FILE_POLICY.maxFileSizeMB}

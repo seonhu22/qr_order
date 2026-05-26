@@ -23,7 +23,7 @@ describe('inquiryManageApi', () => {
     ).toEqual({
       id: 'qna-1',
       sysId: 'qna-1',
-      fileUuid: 'file-1',
+      fileUlid: 'file-1',
       title: '문의 제목',
       content: '문의 내용',
       plant: '-',

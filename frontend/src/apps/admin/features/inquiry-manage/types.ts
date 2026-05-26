@@ -3,7 +3,7 @@ export type InquiryAnswerStatus = 'answered' | 'pending';
 export type InquiryManageRow = {
   id: string;
   sysId?: string;
-  fileUuid?: string;
+  fileUlid?: string;
   title: string;
   content: string;
   plant: string;

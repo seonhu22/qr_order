@@ -7,17 +7,19 @@ import {
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
-import type { FileResponse } from '@/generated/types/fileResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
+
+export { mapFileResponseToServerFile };
 
 export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryManageRow {
   const answerStatus: InquiryAnswerStatus = res.answerYn === 'Y' ? 'answered' : 'pending';
   return {
     id: res.sysId ?? `inquiry-${index}`,
     sysId: res.sysId,
-    fileUuid: res.fileUlid,
+    fileUlid: res.fileUlid,
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
@@ -60,25 +62,10 @@ export function useInquiryAnswerMutation() {
   return useUpdateQna();
 }
 
-export function mapFileResponseToServerFile(f: FileResponse): ServerFile {
-  return {
-    sysId: f.sysId ?? '',
-    linkSysId: '',
-    originalFileNm: f.originalFileNm ?? '',
-    convertFileNm: '',
-    fileExt: f.fileExt ?? '',
-    mimeType: '',
-    fileSize: f.fileSize ?? '0',
-    filePath: f.filePath ?? '',
-    ordNo: f.ordNo ?? 0,
-    pdfYn: f.pdfYn ?? 'N',
-  };
-}
-
-export function useInquiryAttachFileQuery(fileUuid: string | undefined) {
+export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
   return useGetAttachFile(
-    { linkSysId: fileUuid ?? '' },
-    { query: { enabled: Boolean(fileUuid) } },
+    { linkSysId: fileUlid ?? '' },
+    { query: { enabled: Boolean(fileUlid) } },
   );
 }
 
@@ -87,8 +74,8 @@ export async function downloadInquiryFile(file: ServerFile): Promise<void> {
   triggerBlobDownload(blob, file.originalFileNm);
 }
 
-export async function downloadAllInquiryFiles(fileUuid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUuid });
+export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
+  const blob = await downloadAllFile({ linkSysId: fileUlid });
   triggerBlobDownload(blob, 'files.zip');
 }
 
