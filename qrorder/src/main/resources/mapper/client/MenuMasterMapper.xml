@@ -16,6 +16,7 @@
         </if>
         and smm.sys_plant_cd = #{sysPlantCd}
         and smm.delete_yn = 'N'
+        order by ord_no asc
     </select>
 
     <insert id="newMenuMaster">

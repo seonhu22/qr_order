@@ -13,4 +13,5 @@ public class MenuDetailItem {
     private String linkSysId2;
     private String useYn;
     private String fileUlid;
+    private String ordNo;
 }

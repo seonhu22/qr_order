@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.MenuDetailMapper">
+
+    <select id="getMenuDetail" resultType="htms.QROrder.client.dto.MenuDetailResponse">
+        select
+            sys_id ,
+            link_sys_id ,
+            menu_name ,
+            menu_price ,
+            menu_description ,
+            option_use_yn ,
+            link_sys_id2 ,
+            use_yn ,
+            file_ulid ,
+            ord_no
+        from store_menu_detail smd
+        where 1=1
+        and link_sys_id = #{masterSysId}
+        and delete_yn = 'N'
+        order by ord_no asc
+    </select>
+
+    <insert id="newMenuDetail">
+        insert into store_menu_detail (
+            sys_id ,
+            link_sys_id ,
+            menu_name ,
+            menu_price ,
+            menu_description ,
+            option_use_yn ,
+            link_sys_id2 ,
+            use_yn ,
+            file_ulid ,
+            ord_no ,
+            delete_yn ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator="," >
+            (
+                #{item.sysId},
+                #{item.linkSysId},
+                #{item.menuName},
+                #{item.menuPrice},
+                #{item.menuDescription},
+                #{item.optionUseYn},
+                #{item.linkSysId2},
+                #{item.useYn},
+                #{item.fileUlid},
+                #{item.ordNo},
+                'N',
+                now(),
+                #{userId},
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateMenuDetail">
+        <foreach collection="updateItems" item="item" separator=";">
+            update store_menu_detail set
+                menu_name = #{item.menuName} ,
+                menu_price = #{item.menuPrice} ,
+                menu_description = #{item.menuDescription} ,
+                option_use_yn = #{item.optionUseYn} ,
+                link_sys_id2 = #{item.linkSysId2} ,
+                use_yn = #{item.useYn} ,
+                ord_no = #{item.ordNo} ,
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delMenuDetail">
+        update store_menu_detail set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from store_menu_detail
+        where 1=1
+        and menu_name in
+        <foreach collection="newItems" item="item" open="(" separator="," close=")">
+            #{item.menuName}
+        </foreach>
+        and delete_yn = 'N'
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.MenuDetailItem">
+        select
+            sys_id ,
+            link_sys_id ,
+            menu_name ,
+            menu_price ,
+            menu_description ,
+            option_use_yn ,
+            link_sys_id2 ,
+            use_yn ,
+            file_ulid ,
+            ord_no
+        from store_menu_detail smd
+        where 1=1
+        and sys_id in
+        <foreach collection="menuDetailItem" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.client.dto.MenuDetailItem">
+        select
+            sys_id ,
+            link_sys_id ,
+            menu_name ,
+            menu_price ,
+            menu_description ,
+            option_use_yn ,
+            link_sys_id2 ,
+            use_yn ,
+            file_ulid ,
+            ord_no
+        from store_menu_detail smd
+        where 1=1
+        and menu_name in
+        <foreach collection="menuDetailItem" item="item" open="(" separator="," close=")">
+            #{item.menuName}
+        </foreach>
+    </select>
+</mapper>
