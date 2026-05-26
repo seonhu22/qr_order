@@ -10,4 +10,6 @@ public class MenuOptionDetailItem {
     private String menuOptionPrice;
     private String menuDescription;
     private String useYn;
+    private String fileUlid;
+    private Integer ordNo;
 }

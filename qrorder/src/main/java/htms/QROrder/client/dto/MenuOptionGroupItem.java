@@ -3,9 +3,9 @@ package htms.QROrder.client.dto;
 import lombok.Data;
 
 @Data
-public class MenuMasterItem {
+public class MenuOptionGroupItem {
     private String sysId;
-    private String categoryName;
-    private String useYn;
+    private String linkSysId;
+    private String groupName;
     private Integer ordNo;
 }
