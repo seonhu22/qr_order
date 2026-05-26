@@ -40,10 +40,10 @@ public class TableInfoService {
 
         if(!newItems.isEmpty()) {
             if(duplicateChk(newItems)) {
-                List<TableInfoItem> duplicateAdminUser = getDuplicateData(newItems);
+                List<TableInfoItem> duplicateData = getDuplicateData(newItems);
 
-                String result = duplicateAdminUser.stream()
-                        .map(TableInfoItem::getTableNum)
+                String result = duplicateData.stream()
+                        .map(item -> String.valueOf(item.getTableNum()))
                         .collect(Collectors.joining(", "));
 
                 throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
@@ -64,7 +64,7 @@ public class TableInfoService {
                              String sysPlantCd,
                              String menuCd) {
 
-        newItems.stream().forEach(item -> {
+        newItems.forEach(item -> {
             String ULID = UlidCreator.getMonotonicUlid().toString();
             item.setSysId(ULID);
         });

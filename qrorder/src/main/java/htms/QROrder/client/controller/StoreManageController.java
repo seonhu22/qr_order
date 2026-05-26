@@ -4,6 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StoreInfoMapper;
 import htms.QROrder.client.service.ClientUserService;
+import htms.QROrder.client.service.QRCodeService;
 import htms.QROrder.client.service.StoreInfoService;
 import htms.QROrder.client.service.TableInfoService;
 import htms.QROrder.common.dto.CommonResponse;
@@ -24,6 +25,7 @@ public class StoreManageController {
     private final ClientUserService clientUserService;
     private final StoreInfoService storeInfoService;
     private final TableInfoService tableInfoService;
+    private final QRCodeService qrCodeService;
 
     @GetMapping("/user_manage/search")
     public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword,
@@ -161,6 +163,31 @@ public class StoreManageController {
         String menuCd = (String) session.getAttribute("menuCd");
 
         tableInfoService.saveTableInfo(tableInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/qr_code/search")
+    public List<QRCodeResponse> getQRCode(HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return qrCodeService.getQRCode(loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/qr_code/save")
+    public ResponseEntity<CommonResponse> saveQRCode(@RequestBody QRCodeRequest qrCodeRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        qrCodeService.saveQRCode(qrCodeRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
