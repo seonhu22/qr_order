@@ -70,14 +70,17 @@ login mutation 성공
 → initPwdRequired === true
 → 안내 모달 표시 ("비밀번호가 초기화되었습니다. 변경해주세요.")
 → 확인 클릭 → LoginPage 내부에서 비밀번호 변경 폼으로 전환
+→ POST /api/auth/init-pwd-active 호출
 → 변경 성공 → 완료 모달
-→ 확인 클릭 → auth/me 캐시의 initPwdRequired를 false로 갱신 → /admin/main 이동
+→ 확인 클릭 → /api/auth/logout 호출
+→ 로그인 화면에서 새 비밀번호로 재로그인
 ```
 
 - `RequireAuth`는 `isAuthenticated && initPwdRequired === true`이면 `/admin/login`으로 리다이렉트한다. 이미 로그인한 상태에서 `/admin/main`을 직접 입력해도 접근이 차단된다.
 - `LoginPage`는 인증 상태의 `initPwdRequired`를 감지해, 리다이렉트로 돌아왔을 때도 변경 폼을 표시한다.
-- 비밀번호 변경 API: `POST /api/auth/init-pwd` — `InitPwdRequest { password, chkPassword }` + `InitPwdParams { userId }`
-- auth/me 캐시의 `initPwdRequired` 업데이트는 완료 모달의 확인 버튼 클릭 시점에 수행한다. 모달이 표시되기 전에 캐시를 갱신하면 `AppRoutes`가 즉시 리다이렉트해 모달이 뜨지 않기 때문이다.
+- 비밀번호 변경 완료 API: `POST /api/auth/init-pwd-active` — `InitPwdRequest { password, chkPassword }` + `InitPwdParams { userId }`
+- 관리자 목록의 "비밀번호 초기화" 버튼은 `POST /api/auth/init-pwd`를 호출한다. 이 API는 사용자를 초기 비밀번호 변경 필요 상태로 만드는 reset 용도다.
+- 현재 백엔드 세션의 `loginUser.initYn`이 즉시 갱신되지 않는 문제가 있어, `init-pwd-active` 성공 후에는 기존 세션을 로그아웃 처리하고 새 비밀번호로 다시 로그인하도록 안내한다.
 
 ---
 

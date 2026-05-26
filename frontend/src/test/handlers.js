@@ -78,6 +78,10 @@ export const handlers = [
   }),
 
   http.post('/api/auth/init-pwd', async () => {
+    return HttpResponse.json({ success: true, message: '비밀번호가 초기화되었습니다.' });
+  }),
+
+  http.post('/api/auth/init-pwd-active', async () => {
     if (currentUser) {
       currentUser = { ...currentUser, initPwdRequired: false };
     }
