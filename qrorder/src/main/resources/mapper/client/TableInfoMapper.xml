@@ -12,6 +12,7 @@
         from table_info si
         where 1=1
         and si.plant_cd = #{sysPlantCd}
+        and delete_yn = 'N'
         order by table_num asc
     </select>
 
@@ -20,6 +21,7 @@
             sys_id ,
             table_num ,
             table_qty ,
+            delete_yn ,
             use_yn ,
             insert_datetime ,
             insert_user_id ,
@@ -31,6 +33,7 @@
                 #{item.sysId},
                 #{item.tableNum},
                 #{item.tableQty},
+                'N',
                 #{item.useYn},
                 now(),
                 #{userId},
@@ -73,6 +76,7 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.tableNum}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.client.dto.TableInfoItem">
@@ -101,5 +105,6 @@
         <foreach collection="tableInfoItem" item="item" open="(" separator="," close=")">
             #{item.tableNum}
         </foreach>
+        and delete_yn = 'N'
     </select>
 </mapper>

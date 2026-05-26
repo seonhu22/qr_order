@@ -84,6 +84,7 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.description}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.client.dto.QRCodeItem">
@@ -124,5 +125,6 @@
         <foreach collection="tableInfoItem" item="item" open="(" separator="," close=")">
             #{item.description}
         </foreach>
+        and delete_yn = 'N'
     </select>
 </mapper>

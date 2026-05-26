@@ -4,6 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.service.MenuDetailService;
 import htms.QROrder.client.service.MenuMasterService;
+import htms.QROrder.client.service.MenuOptionMasterService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class MenuManageController {
 
     private final MenuMasterService menuMasterService;
     private final MenuDetailService menuDetailService;
+    private final MenuOptionMasterService menuOptionMasterService;
 
     @GetMapping("/menu/master/search")
     public List<MenuMasterResponse> getMenuMaster(@RequestParam(required = false) String searchKeyword,
@@ -101,6 +103,66 @@ public class MenuManageController {
                 CommonResponse.builder()
                         .success(true)
                         .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/option/master/search")
+    public List<MenuOptionMasterResponse> getMenuOptionMaster(@RequestParam(required = false) String searchKeyword,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return menuOptionMasterService.getMenuOptionMaster(searchKeyword, loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/option/master/new")
+    public ResponseEntity<CommonResponse> newMenuOptionMaster(@RequestBody MenuOptionMasterRequest menuOptionMasterRequest,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        menuOptionMasterService.newMenuOptionMaster(menuOptionMasterRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("생성 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/option/master/update")
+    public ResponseEntity<CommonResponse> updateMenuOptionMaster(@RequestBody MenuOptionMasterRequest menuOptionMasterRequest,
+                                                                    HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        menuOptionMasterService.updateMenuOptionMaster(menuOptionMasterRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("수정 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/option/master/del")
+    public ResponseEntity<CommonResponse> delMenuOptionMaster(@RequestBody List<MenuOptionMasterItem> menuOptionMasterItems,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        menuOptionMasterService.delMenuOptionMaster(menuOptionMasterItems, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("삭제 완료.")
                         .build()
         );
     }

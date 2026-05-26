@@ -139,5 +139,6 @@
         <foreach collection="menuDetailItem" item="item" open="(" separator="," close=")">
             #{item.menuName}
         </foreach>
+        and delete_yn = 'N'
     </select>
 </mapper>
