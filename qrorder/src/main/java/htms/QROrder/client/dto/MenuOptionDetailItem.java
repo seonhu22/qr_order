@@ -3,7 +3,7 @@ package htms.QROrder.client.dto;
 import lombok.Data;
 
 @Data
-public class StoreMenuOptionDetailItem {
+public class MenuOptionDetailItem {
     private String sysId;
     private String linkSysId;
     private String menuOptionName;
