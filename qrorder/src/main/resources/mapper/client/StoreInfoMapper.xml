@@ -77,10 +77,7 @@
             count(*) > 0
         from store_info
         where 1=1
-        and store_name in
-            <foreach collection="storeInfoRequest" item="item" open="(" separator="," close=")">
-                #{item.storeName}
-            </foreach>
+        and store_name = #{storeInfoRequest.storeName}
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.client.dto.StoreInfoResponse">
@@ -93,8 +90,7 @@
             close_datetime
         from store_info si
         where 1=1
-        and si.sys_id =
-        and si.plant_cd = #{sysPlantCd}
+        and si.sys_id = #{sysId}
         and si.delete_yn = 'N'
     </select>
 </mapper>

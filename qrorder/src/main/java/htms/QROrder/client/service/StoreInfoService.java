@@ -3,12 +3,10 @@ package htms.QROrder.client.service;
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.client.dto.*;
-import htms.QROrder.client.repository.ClientUserMapper;
 import htms.QROrder.client.repository.StoreInfoMapper;
 import htms.QROrder.common.exception.DuplicateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

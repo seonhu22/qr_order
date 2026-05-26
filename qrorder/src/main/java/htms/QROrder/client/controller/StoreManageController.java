@@ -33,7 +33,7 @@ public class StoreManageController {
     }
 
     @PostMapping("/user_manage/new")
-    public ResponseEntity<CommonResponse> newClientUser(@RequestParam ClientUserRequest clientUserRequest,
+    public ResponseEntity<CommonResponse> newClientUser(@RequestBody ClientUserRequest clientUserRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -50,7 +50,7 @@ public class StoreManageController {
      }
 
     @PostMapping("/user_manage/update")
-    public ResponseEntity<CommonResponse> updateClientUser(@RequestParam ClientUserRequest clientUserRequest,
+    public ResponseEntity<CommonResponse> updateClientUser(@RequestBody ClientUserRequest clientUserRequest,
                                                                 HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -67,7 +67,7 @@ public class StoreManageController {
     }
 
     @PostMapping("/user_manage/del")
-    public ResponseEntity<CommonResponse> delClientUser(@RequestParam List<ClientUserItem> clientUserListRequest,
+    public ResponseEntity<CommonResponse> delClientUser(@RequestBody List<ClientUserItem> clientUserListRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -93,7 +93,7 @@ public class StoreManageController {
     }
 
     @PostMapping("/store_info/new")
-    public ResponseEntity<CommonResponse> newStoreInfo(@RequestParam StoreInfoRequest storeInfoRequest,
+    public ResponseEntity<CommonResponse> newStoreInfo(@RequestBody StoreInfoRequest storeInfoRequest,
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -110,7 +110,7 @@ public class StoreManageController {
     }
 
     @PostMapping("/store_info/update")
-    public ResponseEntity<CommonResponse> updateStoreInfo(@RequestParam StoreInfoRequest storeInfoRequest,
+    public ResponseEntity<CommonResponse> updateStoreInfo(@RequestBody StoreInfoRequest storeInfoRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -127,7 +127,7 @@ public class StoreManageController {
     }
 
     @PostMapping("/store_info/del")
-    public ResponseEntity<CommonResponse> delStoreInfo(@RequestParam List<StoreInfoItem> storeInfoItems,
+    public ResponseEntity<CommonResponse> delStoreInfo(@RequestBody List<StoreInfoItem> storeInfoItems,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");

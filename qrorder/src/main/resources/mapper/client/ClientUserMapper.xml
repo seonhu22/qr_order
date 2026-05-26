@@ -13,7 +13,7 @@
         from sys_user su
         left join sys_plant sp
             on sp.plant_cd = su.plant_cd
-        where 1=
+        where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
         and (su.user_id like concat('%', #{searchKeyword}, '%')
                 or su.user_nm like concat('%', #{searchKeyword}, '%'))
@@ -81,10 +81,7 @@
             count(*) > 0
         from sys_user
         where 1=1
-        and user_id in
-            <foreach collection="clientUserRequest" item="item" open="(" separator="," close=")">
-                #{item.userId}
-            </foreach>
+        and user_id = #{clientUserRequest.userId}
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.client.dto.ClientUserResponse">

@@ -9,4 +9,5 @@ public class ClientUserItem {
     private String userNm;
     private String userRole;
     private String plantCd;
+    private String plantNm;
 }
