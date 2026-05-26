@@ -71,7 +71,7 @@ public class LoginService {
     }
 
     @Transactional
-    public void initPwdAndACtive(InitPwdRequest initPwdRequest, String userId) {
+    public void initPwdAndActive(InitPwdRequest initPwdRequest, String userId) {
 
         if (!initPwdRequest.getPassword().equals(initPwdRequest.getChkPassword())) {
             throw new ValidationException("비밀번호와 비밀번호확인의 값이 일치하지 않습니다.");
@@ -79,6 +79,6 @@ public class LoginService {
 
         String encodedPassword = passwordEncoder.encode(initPwdRequest.getPassword());
         initPwdRequest.setPassword(encodedPassword);
-        loginMapper.initPwdAndACtive(initPwdRequest, userId);
+        loginMapper.initPwdAndActive(initPwdRequest, userId);
     }
 }
