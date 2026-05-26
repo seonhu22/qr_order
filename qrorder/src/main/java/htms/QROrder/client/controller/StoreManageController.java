@@ -1,19 +1,16 @@
 package htms.QROrder.client.controller;
 
 import htms.QROrder.auth.domain.Login;
-import htms.QROrder.client.dto.ClientUserRequest;
-import htms.QROrder.client.dto.ClientUserResponse;
+import htms.QROrder.client.dto.*;
+import htms.QROrder.client.repository.StoreInfoMapper;
 import htms.QROrder.client.service.ClientUserService;
+import htms.QROrder.client.service.StoreInfoService;
 import htms.QROrder.common.dto.CommonResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,14 +21,18 @@ import java.util.List;
 public class StoreManageController {
 
     private final ClientUserService clientUserService;
+    private final StoreInfoService storeInfoService;
 
     @GetMapping("/user_manage/search")
-    public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword) {
+    public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword,
+                                                    HttpSession session) {
 
-        return clientUserService.getClientUser(searchKeyword);
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return clientUserService.getClientUser(searchKeyword, loginUser.getSysPlantCd());
     }
 
-    @GetMapping("/user_manage/new")
+    @PostMapping("/user_manage/new")
     public ResponseEntity<CommonResponse> newClientUser(@RequestParam ClientUserRequest clientUserRequest,
                                                             HttpSession session) {
 
@@ -48,7 +49,7 @@ public class StoreManageController {
         );
      }
 
-    @GetMapping("/user_manage/update")
+    @PostMapping("/user_manage/update")
     public ResponseEntity<CommonResponse> updateClientUser(@RequestParam ClientUserRequest clientUserRequest,
                                                                 HttpSession session) {
 
@@ -65,14 +66,74 @@ public class StoreManageController {
         );
     }
 
-    @GetMapping("/user_manage/del")
-    public ResponseEntity<CommonResponse> delClientUser(@RequestParam ClientUserRequest clientUserRequest,
+    @PostMapping("/user_manage/del")
+    public ResponseEntity<CommonResponse> delClientUser(@RequestParam List<ClientUserItem> clientUserListRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        clientUserService.delClientUser(clientUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        clientUserService.delClientUser(clientUserListRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("삭제 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/store_info/search")
+    public List<StoreInfoResponse> getStoreInfo(@RequestParam(required = false) String searchKeyword,
+                                                    HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return storeInfoService.getStoreInfo(searchKeyword, loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/store_info/new")
+    public ResponseEntity<CommonResponse> newStoreInfo(@RequestParam StoreInfoRequest storeInfoRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        storeInfoService.newStoreInfo(storeInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("생성 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/store_info/update")
+    public ResponseEntity<CommonResponse> updateStoreInfo(@RequestParam StoreInfoRequest storeInfoRequest,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        storeInfoService.updateStoreInfo(storeInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("수정 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/store_info/del")
+    public ResponseEntity<CommonResponse> delStoreInfo(@RequestParam List<StoreInfoItem> storeInfoItems,
+                                                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        storeInfoService.deleteStoreInfo(storeInfoItems, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

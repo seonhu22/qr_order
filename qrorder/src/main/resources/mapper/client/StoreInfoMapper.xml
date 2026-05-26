@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.StoreInfoMapper">
+
+    <select id="getStoreInfo" resultType="htms.QROrder.client.dto.StoreInfoResponse">
+        select
+            sys_id ,
+            store_name ,
+            address ,
+            phone_number ,
+            open_datetime ,
+            close_datetime
+        from store_info si
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+        and si.store_name like concat('%', #{searchKeyword}, '%')
+        </if>
+        and si.plant_cd = #{sysPlantCd}
+        and si.delete_yn = 'N'
+    </select>
+
+    <insert id="newStoreInfo">
+        insert into store_info (
+            sys_id ,
+            store_name ,
+            address ,
+            phone_number ,
+            open_datetime ,
+            close_datetime ,
+            delete_yn ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values (
+            #{newItems.sysId},
+            #{newItems.storeName},
+            #{newItems.address},
+            #{newItems.phoneNumber},
+            #{newItems.openDatetime},
+            #{newItems.closeDatetime},
+            'N',
+            now(),
+            #{userId},
+            #{sysPlantCd}
+        )
+    </insert>
+
+    <update id="updateStoreInfo">
+        update store_info set
+            store_name = #{updateItems.storeName} ,
+            address = #{updateItems.address} ,
+            phone_number = #{updateItems.phoneNumber} ,
+            open_datetime = #{updateItems.openDatetime} ,
+            close_datetime = #{updateItems.closeDatetime} ,
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id = #{updateItems.sysId}
+    </update>
+
+    <delete id="delStoreInfo">
+        update store_info set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from store_info
+        where 1=1
+        and store_name in
+            <foreach collection="storeInfoRequest" item="item" open="(" separator="," close=")">
+                #{item.storeName}
+            </foreach>
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.StoreInfoResponse">
+        select
+            sys_id ,
+            store_name ,
+            address ,
+            phone_number ,
+            open_datetime ,
+            close_datetime
+        from store_info si
+        where 1=1
+        and si.sys_id =
+        and si.plant_cd = #{sysPlantCd}
+        and si.delete_yn = 'N'
+    </select>
+</mapper>

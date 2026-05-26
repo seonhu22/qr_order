@@ -2,11 +2,11 @@ package htms.QROrder.client.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.client.dto.ClientUserItem;
 import htms.QROrder.client.dto.ClientUserRequest;
 import htms.QROrder.client.dto.ClientUserResponse;
 import htms.QROrder.client.repository.ClientUserMapper;
 import htms.QROrder.common.exception.DuplicateException;
-import htms.QROrder.system.service.AuditTrailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,9 +25,10 @@ public class ClientUserService {
     private final ClientUserMapper clientUserMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public List<ClientUserResponse> getClientUser(String searchKeyword) {
+    public List<ClientUserResponse> getClientUser(String searchKeyword,
+                                                    String sysPlantCd) {
 
-        return clientUserMapper.getClientUser(searchKeyword);
+        return clientUserMapper.getClientUser(searchKeyword, sysPlantCd);
     }
 
     public void newClientUser(ClientUserRequest newItems,
@@ -59,12 +60,12 @@ public class ClientUserService {
         clientUserMapper.updateClientUser(updateItems, userId, sysPlantCd, menuCd);
     }
 
-    public void delClientUser(ClientUserRequest delItems,
+    public void delClientUser(List<ClientUserItem> delItems,
                               String userId,
                               String sysPlantCd,
                               String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, delItems.getSysId(), menuCd, "sys_user", userId, sysPlantCd);
+        auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
         clientUserMapper.delClientUser(delItems, userId, sysPlantCd, menuCd);
     }
 
