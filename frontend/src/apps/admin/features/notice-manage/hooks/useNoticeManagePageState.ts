@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
 import {
   mapToNoticeManageRow,
   useNoticeManageQuery,
   useCreateNoticeMutation,
   useUpdateNoticeMutation,
   useDeleteNoticesMutation,
+  useNoticeAttachFileQuery,
 } from '../api/noticeManageApi';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import { useNoticeManageModalFlow } from './useNoticeManageModalFlow';
 import type { NoticeEditorRow } from './useNoticeManageModalFlow';
 import type { NoticeManageRow } from '../types';
@@ -22,6 +26,7 @@ async function refetchOrThrow<TError>(
 }
 
 export function useNoticeManagePageState() {
+  const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [draftKeyword, setDraftKeyword] = useState('');
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
@@ -67,7 +72,7 @@ export function useNoticeManagePageState() {
     // }
     const data = {
       sysId: editorRow.sysId || undefined,
-      fileUuid: editorRow.fileUuid,
+      fileUlid: editorRow.fileUlid,
       useYn: editorRow.useYn,
       title: editorRow.title,
       content: editorRow.content,
@@ -80,6 +85,13 @@ export function useNoticeManagePageState() {
       await updateMutation.mutateAsync({ data });
     }
     await refetchOrThrow(noticeQuery.refetch, '저장 후 공지사항 목록을 다시 조회하지 못했습니다.');
+
+    const fileUlid = editorRow.fileUlid?.trim();
+    if (!isCreateMode && fileUlid) {
+      await queryClient.invalidateQueries({
+        queryKey: getGetAttachFileQueryKey({ linkSysId: fileUlid }),
+      });
+    }
   };
 
   const handleDeleteRows = async () => {
@@ -102,6 +114,16 @@ export function useNoticeManagePageState() {
     onDeleteRows: handleDeleteRows,
   });
 
+  const editingFileUlid =
+    !modalFlow.isCreateMode && modalFlow.isEditorOpen
+      ? modalFlow.editingRow?.fileUlid
+      : undefined;
+  const attachFileQuery = useNoticeAttachFileQuery(editingFileUlid);
+  const attachFiles = useMemo(
+    () => (attachFileQuery.data ?? []).map(mapFileResponseToServerFile),
+    [attachFileQuery.data],
+  );
+
   const modalProps = {
     editor: {
       open: modalFlow.isEditorOpen,
@@ -110,6 +132,7 @@ export function useNoticeManagePageState() {
       editingRow: modalFlow.editingRow,
       editorErrors: modalFlow.editorErrors,
       fileChangeState: modalFlow.fileChangeState,
+      attachFiles,
     },
     saveConfirm: {
       open: modalFlow.isSaveConfirmOpen,

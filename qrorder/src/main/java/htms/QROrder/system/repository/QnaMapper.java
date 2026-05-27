@@ -12,5 +12,5 @@ import java.util.List;
 public interface QnaMapper {
     List<QnaResponse> getQna(String searchKeyword, String sysPlantCd);
     void updateQna(QnaRequest qnaRequest, String userId, String sysPlantCd);
-    QnaRequest getOldData(QnaRequest qnaRequest, String sysPlantCd);
+    QnaResponse getOldData(QnaRequest qnaRequest);
 }

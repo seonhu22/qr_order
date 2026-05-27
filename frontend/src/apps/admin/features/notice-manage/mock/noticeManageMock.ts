@@ -8,7 +8,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     noticeTitle: '시스템 점검 안내',
     noticeDescription: '2026년 4월 30일 오전 2시부터 4시까지 시스템 점검이 진행됩니다.',
     startDate: '2026-04-22',
-    fileUlid: '',
+    fileUlid: 'file-uuid-notice-1',
   },
   {
     sysId: 'notice-2',

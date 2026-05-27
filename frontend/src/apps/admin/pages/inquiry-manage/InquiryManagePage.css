@@ -31,6 +31,15 @@
   min-width: 72rem;
 }
 
+.inquiry-manage-table__col--title {
+  width: 18rem;
+}
+
+.inquiry-manage-table__title-text {
+  display: block;
+  max-width: 100%;
+}
+
 /* 읽기 전용 테이블 — 행 선택 커서 불필요 */
 .inquiry-manage-table .common-table tbody tr {
   cursor: default;
