@@ -47,6 +47,18 @@ public class FileValidationService {
         });
     }
 
+    void validateNoDuplicateFilenames(List<FileIO> files) {
+
+        long distinctCount = files.stream()
+                .map(item -> item.getFile().getOriginalFilename())
+                .distinct()
+                .count();
+
+        if (distinctCount != files.size()) {
+            throw new ValidationException("중복된 파일명이 존재합니다.");
+        }
+    }
+
     List<FileIO> filterConvertibleToPdf(List<FileIO> files) {
 
         return files.stream()

@@ -17,6 +17,7 @@
 
 import './FileAttachment.css';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { buildHintParts } from './buildHintParts';
 
 export type FileHintVariant = 'simple' | 'badge' | 'info' | 'warning' | 'error';
 
@@ -29,7 +30,7 @@ export type FileHintProps = {
   /** 최대 파일 개수 — 미전달 시 표시 안 함 */
   maxCount?: number;
   /** 허용 확장자 목록 — 미전달 시 표시 안 함 */
-  allowedExts?: string[];
+  allowedExts?: readonly string[];
   /** 커스텀 메시지 — 전달 시 자동 생성 메시지 대신 사용 */
   message?: string;
 };
@@ -48,12 +49,7 @@ export function FileHint({
   message,
 }: FileHintProps) {
   const extStr = allowedExts?.join(' · ') ?? '';
-  const parts = [
-    maxSize && `파일당 최대 ${maxSize}`,
-    maxTotalSize && `전체 최대 ${maxTotalSize}`,
-    maxCount && `최대 ${maxCount}개`,
-    extStr || undefined,
-  ].filter(Boolean) as string[];
+  const parts = buildHintParts({ maxSize, maxTotalSize, maxCount, allowedExts });
 
   /* ── simple ── */
   if (variant === 'simple') {

@@ -5,7 +5,8 @@ import type { NoticeManageRow } from '../types';
 export type NoticeEditorRow = {
   id: string;
   sysId: string;
-  fileUuid?: string;
+  fileUlid?: string;
+  useYn?: string;
   noticeType: string; // 공지 유형
   target: string; // 수신 대상
   title: string;
@@ -28,6 +29,7 @@ type UseNoticeManageModalFlowParams = {
 const EMPTY_ROW: NoticeEditorRow = {
   id: '',
   sysId: '',
+  useYn: 'Y',
   noticeType: 'notice',
   target: 'all',
   title: '',
@@ -40,7 +42,8 @@ function toEditorRow(row: NoticeManageRow): NoticeEditorRow {
   return {
     id: row.id,
     sysId: row.sysId,
-    fileUuid: row.fileUuid,
+    fileUlid: row.fileUlid,
+    useYn: row.useYn,
     noticeType: row.noticeType || 'notice',
     target: row.target || 'all',
     title: row.title,

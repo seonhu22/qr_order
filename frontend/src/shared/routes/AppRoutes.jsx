@@ -1,10 +1,12 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
+import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
+import { isInitialPasswordChangeRequired } from '@/shared/auth/initPassword';
 
 /**
  * 인증이 필요한 관리자 라우트를 보호한다.
@@ -20,7 +22,7 @@ function RequireAuth({ children }) {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (typeof user?.init_yn === 'string' && user.init_yn.toLowerCase() === 'y') {
+  if (isInitialPasswordChangeRequired(user)) {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -46,17 +48,24 @@ function LoadingScreen() {
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const needsPasswordChange =
-    isAuthenticated && typeof user?.init_yn === 'string' && user.init_yn.toLowerCase() === 'y';
+  const isPasswordChangeRequired = isAuthenticated && isInitialPasswordChangeRequired(user);
 
   const routes = useRoutes([
     {
       path: '/',
-      element: <Navigate to={isAuthenticated && !needsPasswordChange ? '/admin/main' : '/admin/login'} replace />,
+      element: <Navigate to={isAuthenticated && !isPasswordChangeRequired ? '/admin/main' : '/admin/login'} replace />,
     },
     {
       path: '/admin/login',
-      element: isAuthenticated && !needsPasswordChange ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+      element: isAuthenticated && !isPasswordChangeRequired ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+    },
+    {
+      path: '/admin/forbidden',
+      element: (
+        <RequireAuth>
+          <AdminForbiddenPage />
+        </RequireAuth>
+      ),
     },
     ...withProtectedElement(adminRoutes),
 
@@ -68,7 +77,7 @@ function AppRoutes() {
 
     {
       path: '*',
-      element: <Navigate to={isAuthenticated && !needsPasswordChange ? '/admin/main' : '/admin/login'} replace />,
+      element: <Navigate to={isAuthenticated && !isPasswordChangeRequired ? '/admin/main' : '/admin/login'} replace />,
     },
   ]);
 

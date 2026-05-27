@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.QRCodeMapper">
+
+    <select id="getQRCode" resultType="htms.QROrder.client.dto.QRCodeResponse">
+        select
+            qc.sys_id ,
+            qc.link_sys_id ,
+            ti.table_num ,
+            qc.description ,
+            qc.url ,
+            qc.use_yn
+        from qr_code qc
+        left join table_info ti
+            on ti.sys_id = qc.link_sys_id
+            and ti.delete_yn = 'N'
+            and ti.use_yn = 'Y'
+        where 1=1
+        and qc.plant_cd = #{sysPlantCd}
+        and qc.delete_yn = 'N'
+    </select>
+
+    <insert id="newQRCode">
+        insert into qr_code (
+            sys_id ,
+            link_sys_id ,
+            url ,
+            use_yn ,
+            description ,
+            delete_yn ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values
+        <foreach collection="newItems" item="item" separator="," >
+            (
+                #{item.sysId},
+                #{item.linkSysId},
+                #{item.url},
+                #{item.useYn},
+                #{item.description},
+                'N',
+                now(),
+                #{userId},
+                #{sysPlantCd}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateQRCode">
+        <foreach collection="updateItems" item="item" separator=";">
+            update qr_code set
+                link_sys_id = #{item.linkSysId} ,
+                url = #{item.url} ,
+                use_yn = #{item.useYn} ,
+                description = #{item.description} ,
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <delete id="delQRCode">
+        update qr_code set
+            delete_yn = 'Y',
+            modify_datetime = now(),
+            modify_user_id = #{userId}
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from qr_code
+        where 1=1
+        and description in
+        <foreach collection="newItems" item="item" open="(" separator="," close=")">
+            #{item.description}
+        </foreach>
+        and delete_yn = 'N'
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.QRCodeItem">
+        select
+            qc.sys_id ,
+            qc.link_sys_id ,
+            ti.table_num ,
+            qc.description ,
+            qc.url ,
+            qc.use_yn
+        from qr_code qc
+        left join table_info ti
+            on ti.sys_id = qc.link_sys_id
+            and ti.delete_yn = 'N'
+            and ti.use_yn = 'Y'
+        where 1=1
+        and qc.sys_id in
+        <foreach collection="updateItems" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+
+    <select id="getDuplicateData" resultType="htms.QROrder.client.dto.QRCodeItem">
+        select
+            qc.sys_id ,
+            qc.link_sys_id ,
+            ti.table_num ,
+            qc.description ,
+            qc.url ,
+            qc.use_yn
+        from qr_code qc
+            left join table_info ti
+            on ti.sys_id = qc.link_sys_id
+            and ti.delete_yn = 'N'
+            and ti.use_yn = 'Y'
+        where 1=1
+        and description in
+        <foreach collection="tableInfoItem" item="item" open="(" separator="," close=")">
+            #{item.description}
+        </foreach>
+        and delete_yn = 'N'
+    </select>
+</mapper>

@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
 import {
   mapToNoticeManageRow,
   useNoticeManageQuery,
   useCreateNoticeMutation,
   useUpdateNoticeMutation,
   useDeleteNoticesMutation,
+  useNoticeAttachFileQuery,
 } from '../api/noticeManageApi';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import { useNoticeManageModalFlow } from './useNoticeManageModalFlow';
 import type { NoticeEditorRow } from './useNoticeManageModalFlow';
 import type { NoticeManageRow } from '../types';
@@ -22,6 +26,7 @@ async function refetchOrThrow<TError>(
 }
 
 export function useNoticeManagePageState() {
+  const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [draftKeyword, setDraftKeyword] = useState('');
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
@@ -36,10 +41,8 @@ export function useNoticeManagePageState() {
     [noticeQuery.data],
   );
 
-  const selectableRows = useMemo(() => rows.filter((row) => Boolean(row.sysId)), [rows]);
   const effectiveCheckedIds = checkedIds.filter((id) => rows.some((row) => row.id === id));
-  const isAllChecked =
-    selectableRows.length > 0 && effectiveCheckedIds.length === selectableRows.length;
+  const isAllChecked = rows.length > 0 && effectiveCheckedIds.length === rows.length;
 
   const handleSearch = () => {
     setKeyword(draftKeyword);
@@ -57,19 +60,20 @@ export function useNoticeManagePageState() {
   };
 
   const handleToggleAll = () => {
-    setCheckedIds(isAllChecked ? [] : selectableRows.map((row) => row.id));
+    setCheckedIds(isAllChecked ? [] : rows.map((row) => row.id));
   };
 
   const handleSaveRow = async (editorRow: NoticeEditorRow, isCreateMode: boolean) => {
-    if (!isCreateMode && !editorRow.sysId) {
-      throw new Error(
-        '공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
-      );
-    }
-
+    // TODO : 나중에 백앤드와 상의하여 SYSID가 없는 경우 공지사항은 생성으로 간주하는 방식이 맞는지 확인 필요
+    // if (!isCreateMode && !editorRow.sysId) {
+    //   throw new Error(
+    //     '공지사항 조회 응답에 sysId가 없어 수정할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+    //   );
+    // }
     const data = {
       sysId: editorRow.sysId || undefined,
-      fileUuid: editorRow.fileUuid,
+      fileUlid: editorRow.fileUlid,
+      useYn: editorRow.useYn,
       title: editorRow.title,
       content: editorRow.content,
       fileChangeState: modalFlow.fileChangeState,
@@ -81,15 +85,22 @@ export function useNoticeManagePageState() {
       await updateMutation.mutateAsync({ data });
     }
     await refetchOrThrow(noticeQuery.refetch, '저장 후 공지사항 목록을 다시 조회하지 못했습니다.');
+
+    const fileUlid = editorRow.fileUlid?.trim();
+    if (!isCreateMode && fileUlid) {
+      await queryClient.invalidateQueries({
+        queryKey: getGetAttachFileQueryKey({ linkSysId: fileUlid }),
+      });
+    }
   };
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
-    if (targets.some((row) => !row.sysId)) {
-      throw new Error(
-        '공지사항 조회 응답에 sysId가 없어 삭제할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
-      );
-    }
+    // if (targets.some((row) => !row.sysId)) {
+    //   throw new Error(
+    //     '공지사항 조회 응답에 sysId가 없어 삭제할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
+    //   );
+    // }
     const noticeRequests = targets.map((row) => ({ sysId: row.sysId }));
     await deleteMutation.mutateAsync({ data: noticeRequests });
     await refetchOrThrow(noticeQuery.refetch, '삭제 후 공지사항 목록을 다시 조회하지 못했습니다.');
@@ -103,6 +114,16 @@ export function useNoticeManagePageState() {
     onDeleteRows: handleDeleteRows,
   });
 
+  const editingFileUlid =
+    !modalFlow.isCreateMode && modalFlow.isEditorOpen
+      ? modalFlow.editingRow?.fileUlid
+      : undefined;
+  const attachFileQuery = useNoticeAttachFileQuery(editingFileUlid);
+  const attachFiles = useMemo(
+    () => (attachFileQuery.data ?? []).map(mapFileResponseToServerFile),
+    [attachFileQuery.data],
+  );
+
   const modalProps = {
     editor: {
       open: modalFlow.isEditorOpen,
@@ -111,6 +132,7 @@ export function useNoticeManagePageState() {
       editingRow: modalFlow.editingRow,
       editorErrors: modalFlow.editorErrors,
       fileChangeState: modalFlow.fileChangeState,
+      attachFiles,
     },
     saveConfirm: {
       open: modalFlow.isSaveConfirmOpen,

@@ -4,7 +4,8 @@ import { NoticeManageTable } from '@/apps/admin/features/notice-manage/component
 import { useNoticeManagePageState } from '@/apps/admin/features/notice-manage/hooks/useNoticeManagePageState';
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { InputBase, InputWrapper, SelectInput, TextareaInput } from '@/shared/components/input';
-import { FileInputGroup, FileHint } from '@/shared/components/file-attachment';
+import { FileInputGroup } from '@/shared/components/file-attachment';
+import { NOTICE_FILE_POLICY } from '@/apps/admin/features/notice-manage/constants';
 import {
   DeleteConfirmModal,
   EditConfirmModal,
@@ -128,9 +129,12 @@ export function NoticeManagePage() {
           <InputWrapper label="첨부파일" inputId="notice-file">
             <FileInputGroup
               variant="button"
-              files={[]}
+              files={modalProps.editor.attachFiles}
               onChange={actions.changeFileState}
-              hint={<FileHint variant="simple" maxSize="10MB" maxTotalSize="50MB" maxCount={5} allowedExts={['JPG', 'PNG', 'PDF', 'DOCX', 'XLSX', 'PPTX', 'ZIP']} />}
+              maxFiles={NOTICE_FILE_POLICY.maxFiles}
+              maxFileSizeMB={NOTICE_FILE_POLICY.maxFileSizeMB}
+              maxTotalSizeMB={NOTICE_FILE_POLICY.maxTotalSizeMB}
+              allowedExtensions={NOTICE_FILE_POLICY.allowedExtensions}
             />
           </InputWrapper>
         </div>

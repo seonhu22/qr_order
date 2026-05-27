@@ -1,7 +1,8 @@
 export type NoticeManageRow = {
   id: string;
   sysId: string;
-  fileUuid?: string;
+  fileUlid?: string;
+  useYn?: string;
   noticeType: string;  // 공지 유형 (notice | update | alert)
   target: string;      // 수신 대상 (all | select)
   title: string;

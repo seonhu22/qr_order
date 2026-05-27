@@ -19,13 +19,15 @@ export class HttpError extends Error {
   status: number;
   statusText: string;
   url: string;
+  payload?: unknown;
 
-  constructor(message: string, response: Response, url: string) {
+  constructor(message: string, response: Response, url: string, payload?: unknown) {
     super(message);
     this.name = 'HttpError';
     this.status = response.status;
     this.statusText = response.statusText;
     this.url = url;
+    this.payload = payload;
   }
 }
 
@@ -34,7 +36,7 @@ function shouldNotifyUnauthorized(url: string): boolean {
   return !url.startsWith('/api/auth/');
 }
 
-async function readErrorMessage(response: Response): Promise<string> {
+async function readErrorResponse(response: Response): Promise<{ message: string; payload?: unknown }> {
   const contentType = response.headers.get('content-type') ?? '';
 
   try {
@@ -45,21 +47,23 @@ async function readErrorMessage(response: Response): Promise<string> {
         const message = payload.message;
 
         if (typeof message === 'string' && message.trim()) {
-          return message;
+          return { message, payload };
         }
       }
+
+      return { message: `${response.status} ${response.statusText}`, payload };
     } else {
       const text = await response.text();
 
       if (text.trim()) {
-        return text;
+        return { message: text };
       }
     }
   } catch {
-    return `${response.status} ${response.statusText}`;
+    return { message: `${response.status} ${response.statusText}` };
   }
 
-  return `${response.status} ${response.statusText}`;
+  return { message: `${response.status} ${response.statusText}` };
 }
 
 export const httpClient = async <T>(
@@ -82,13 +86,13 @@ export const httpClient = async <T>(
   });
 
   if (!response.ok) {
-    const message = await readErrorMessage(response);
+    const { message, payload } = await readErrorResponse(response);
 
     if (response.status === 401 && shouldNotifyUnauthorized(url)) {
       notifyUnauthorized({ message });
     }
 
-    throw new HttpError(message, response, url);
+    throw new HttpError(message, response, url, payload);
   }
 
   if (response.status === 204) {

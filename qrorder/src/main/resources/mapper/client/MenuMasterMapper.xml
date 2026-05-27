@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.MenuMasterMapper">
+
+    <select id="getMenuMaster" resultType="htms.QROrder.client.dto.MenuMasterResponse">
+        select
+            sys_id ,
+            category_name ,
+            use_yn ,
+            ord_no
+        from store_menu_master smm
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+        and smm.category_name like concat('%', #{searchKeyword}, '%')
+        </if>
+        and smm.sys_plant_cd = #{sysPlantCd}
+        and smm.delete_yn = 'N'
+        order by ord_no asc
+    </select>
+
+    <insert id="newMenuMaster">
+        insert into store_menu_master (
+            sys_id ,
+            category_name ,
+            use_yn ,
+            delete_yn ,
+            ord_no ,
+            insert_datetime ,
+            insert_user_id ,
+            sys_plant_cd
+        )
+        values (
+            #{newItems.sysId},
+            #{newItems.categoryName},
+            #{newItems.useYn},
+            'N',
+            #{newItems.ordNo},
+            now(),
+            #{userId},
+            #{sysPlantCd}
+        )
+    </insert>
+    
+    <update id="updateMenuMaster">
+        update store_menu_master set
+            category_name = #{updateItems.categoryName} ,
+            use_yn = #{updateItems.useYn} ,
+            ord_no = #{updateItems.ordNo} ,
+            modify_user_id = #{userId} ,
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{updateItems.sysId}
+    </update>
+
+    <delete id="delMenuMaster">
+        update store_menu_master set
+            delete_yn = 'Y',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id in
+        <foreach collection="delItems" item="item" open="(" separator="," close=")" >
+            #{item.sysId}
+        </foreach>
+    </delete>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from store_menu_master
+        where 1=1
+        and category_name = #{menuMasterRequest.categoryName}
+        and delete_yn = 'N'
+    </select>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.MenuMasterResponse">
+        select
+            sys_id ,
+            category_name ,
+            use_yn ,
+            ord_no
+        from store_menu_master smm
+        where 1=1
+        and smm.sys_id = #{sysId}
+    </select>
+</mapper>

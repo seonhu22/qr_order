@@ -2,12 +2,17 @@ import {
   useGetNotice,
   useDelNotice,
 } from '@/generated/settings-controller/settings-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { useMutation } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import type { NoticeResponse } from '@/generated/types/noticeResponse';
 import type { CommonResponse } from '@/generated/types/commonResponse';
 import type { FileChangeState } from '@/shared/components/file-attachment';
 import type { NoticeManageRow } from '../types';
+
+export { mapFileResponseToServerFile };
 
 type NoticeResponseWithMeta = NoticeResponse & {
   sysId?: string;
@@ -22,14 +27,15 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
   return {
     id: sysId || `notice-${index}-${res.noticeTitle ?? ''}-${res.startDate ?? ''}`,
     sysId,
-    fileUuid: res.fileUuid,
+    fileUlid: res.fileUlid,
+    useYn: res.useYn ?? 'Y',
     noticeType: 'notice',
     target: 'all',
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: res.insertUserId ?? '',
     registeredAt: res.insertDatetime ?? res.startDate ?? '',
-    updatedAt: res.modifyDatetime ?? '',
+    updatedAt: formatDateTimeForDisplay(res.modifyDatetime),
   };
 }
 
@@ -44,7 +50,8 @@ export function useNoticeManageQuery(searchKeyword?: string) {
 
 export type SaveNoticeFormDataPayload = {
   sysId?: string;
-  fileUuid?: string;
+  fileUlid?: string;
+  useYn?: string;
   title: string;
   content: string;
   fileChangeState?: FileChangeState;
@@ -68,25 +75,25 @@ function appendNoticeFields(formData: FormData, payload: SaveNoticeFormDataPaylo
     formData.append('sysId', payload.sysId);
   }
 
-  if (payload.sysId && payload.fileUuid) {
-    formData.append('fileUuid', payload.fileUuid);
+  if (payload.sysId && payload.fileUlid) {
+    formData.append('fileUuid', payload.fileUlid);
   }
 
   formData.append('noticeTitle', payload.title);
   formData.append('noticeDescription', payload.content);
   formData.append('startDate', formatNoticeStartDate());
-  formData.append('useYn', 'Y');
+  formData.append('useYn', payload.useYn ?? 'Y');
 }
 
 function appendFileFields(formData: FormData, payload: SaveNoticeFormDataPayload) {
   const fileChangeState = payload.fileChangeState ?? { newFiles: [], deletedFiles: [] };
   const filePath = getDefaultFilePath();
-  const existingFileUuid = payload.sysId ? payload.fileUuid : undefined;
+  const linkSysId = payload.fileUlid || payload.sysId;
 
   fileChangeState.newFiles.forEach((file, i) => {
     formData.append(`newItems[${i}].file`, file);
-    if (existingFileUuid) {
-      formData.append(`newItems[${i}].linkSysId`, existingFileUuid);
+    if (linkSysId) {
+      formData.append(`newItems[${i}].linkSysId`, linkSysId);
     }
     formData.append(`newItems[${i}].convertFileNm`, crypto.randomUUID());
     formData.append(`newItems[${i}].filePath`, filePath);
@@ -154,4 +161,12 @@ export function useUpdateNoticeMutation() {
 
 export function useDeleteNoticesMutation() {
   return useDelNotice();
+}
+
+export function useNoticeAttachFileQuery(fileUlid: string | undefined) {
+  const trimmed = fileUlid?.trim() ?? '';
+  return useGetAttachFile(
+    { linkSysId: trimmed },
+    { query: { enabled: trimmed.length > 0 } },
+  );
 }

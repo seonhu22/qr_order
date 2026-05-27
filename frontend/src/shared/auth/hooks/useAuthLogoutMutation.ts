@@ -1,6 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useLogout } from '@/generated/logout-controller/logout-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import {
+  beginAuthTransition,
+  endAuthTransition,
+} from '@/shared/auth/authTransition';
 
 type AuthLogoutMutationOptions = {
   mutation?: {
@@ -13,22 +17,35 @@ export function useAuthLogoutMutation(options: AuthLogoutMutationOptions = {}) {
   const queryClient = useQueryClient();
   const mutationOptions = options.mutation ?? {};
 
+  const clearSessionCache = async () => {
+    try {
+      await queryClient.cancelQueries();
+      queryClient.setQueryData(queryKeys.auth.me, {
+        success: false,
+        data: null,
+      });
+      queryClient.removeQueries({
+        predicate: (query) =>
+          JSON.stringify(query.queryKey) !== JSON.stringify(queryKeys.auth.me),
+      });
+    } finally {
+      endAuthTransition();
+    }
+  };
+
   return useLogout({
     mutation: {
       ...mutationOptions,
-      onSuccess: (data, variables, context) => {
-        queryClient.setQueryData(queryKeys.auth.me, {
-          success: false,
-          data: null,
-        });
+      onMutate: () => {
+        beginAuthTransition();
+      },
+      onSuccess: async (data, variables, context) => {
+        await clearSessionCache();
 
         mutationOptions.onSuccess?.(data, variables, context);
       },
-      onError: (error, variables, context) => {
-        queryClient.setQueryData(queryKeys.auth.me, {
-          success: false,
-          data: null,
-        });
+      onError: async (error, variables, context) => {
+        await clearSessionCache();
 
         mutationOptions.onError?.(error, variables, context);
       },

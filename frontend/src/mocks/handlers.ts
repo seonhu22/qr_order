@@ -149,8 +149,8 @@ const qnaOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({
 
 const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) => {
   const url = new URL(request.url);
-  const sysId = url.searchParams.get('sysId');
-  if (sysId === 'file-uuid-qna-1') {
+  const linkSysId = url.searchParams.get('linkSysId');
+  if (linkSysId === 'file-uuid-qna-1') {
     return HttpResponse.json([
       {
         sysId: 'attach-file-1',
@@ -169,6 +169,28 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
         ordNo: 2,
         fileExt: 'pdf',
         pdfYn: 'Y',
+      },
+    ]);
+  }
+  if (linkSysId === 'file-uuid-notice-1') {
+    return HttpResponse.json([
+      {
+        sysId: 'notice-attach-1',
+        originalFileNm: '공지_본문.pdf',
+        fileSize: '512000',
+        filePath: '/upload/notice/2026/05/body.pdf',
+        ordNo: 1,
+        fileExt: 'pdf',
+        pdfYn: 'Y',
+      },
+      {
+        sysId: 'notice-attach-2',
+        originalFileNm: '첨부_엑셀.xlsx',
+        fileSize: '102400',
+        filePath: '/upload/notice/2026/05/x.xlsx',
+        ordNo: 2,
+        fileExt: 'xlsx',
+        pdfYn: 'N',
       },
     ]);
   }

@@ -16,14 +16,14 @@ export const handlers = [
 
     if (body.userId === 'admin' && body.userPassword === 'password') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'admin', userNm: '슈퍼 관리자', role: 'ADMIN', init_yn: 'N' };
-      return HttpResponse.json({ success: true, message: '로그인 성공', data: currentUser });
+      currentUser = { userId: 'admin', userNm: '슈퍼 관리자', role: 'ADMIN', initPwdRequired: false };
+      return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'admin', userNm: '슈퍼 관리자', role: 'ADMIN' } });
     }
 
     if (body.userId === 'a' && body.userPassword === '1') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'ADMIN', init_yn: 'Y' };
-      return HttpResponse.json({ success: true, message: '로그인 성공', data: currentUser });
+      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'ADMIN', initPwdRequired: true };
+      return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'a', userNm: '일반 관리자', role: 'ADMIN' } });
     }
 
     // locked 계정: password_fail_cnt >= 5 시나리오 테스트용
@@ -78,8 +78,12 @@ export const handlers = [
   }),
 
   http.post('/api/auth/init-pwd', async () => {
+    return HttpResponse.json({ success: true, message: '비밀번호가 초기화되었습니다.' });
+  }),
+
+  http.post('/api/auth/init-pwd-active', async () => {
     if (currentUser) {
-      currentUser = { ...currentUser, init_yn: 'N' };
+      currentUser = { ...currentUser, initPwdRequired: false };
     }
     return HttpResponse.json({ success: true, message: '비밀번호가 변경되었습니다.' });
   }),

@@ -69,6 +69,10 @@ public class NoticeService {
                             String sysPlantCd,
                             String menuCd) {
 
+        noticeRequest.forEach(noticeRequest1 -> {
+            log.info("sysId:{}", noticeRequest1.getSysId());
+        });
+
         auditService.insertDeleteAuditTrailData(noticeRequest, menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.delNotice(noticeRequest, userId, sysPlantCd);
     }
