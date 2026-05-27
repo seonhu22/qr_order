@@ -15,14 +15,10 @@ import './FileAttachment.css';
 import { useRef, useState } from 'react';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { getFileTypeInfo } from './fileTypeUtils';
+import { buildHintParts } from './buildHintParts';
+import { FileHint } from './FileHint';
+import { DEFAULT_FILE_ALLOWED_EXTENSIONS } from './filePolicy';
 import type { FileInputGroupProps, ServerFile } from './types';
-
-
-/* =====================================================
- * 상수 — 파일 첨부 정책
- * ===================================================== */
-
-const DEFAULT_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx', 'pptx', 'zip'];
 
 
 /* =====================================================
@@ -85,9 +81,17 @@ export function FileInputGroup({
   const [deletedFiles, setDeletedFiles] = useState<ServerFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const allowedExts = (allowedExtensions ?? DEFAULT_ALLOWED_EXTENSIONS).map(normalizeExtension);
+  const allowedExts = (allowedExtensions ?? DEFAULT_FILE_ALLOWED_EXTENSIONS).map(normalizeExtension);
   const acceptAttr = allowedExts.map((ext) => `.${ext}`).join(',');
-  const hintText = `${allowedExts.map((ext) => ext.toUpperCase()).join(' · ')} · 파일당 최대 ${maxFileSizeMB}MB · 전체 최대 ${maxTotalSizeMB}MB`;
+  const hintText = buildHintParts({
+    maxSize: `${maxFileSizeMB}MB`,
+    maxTotalSize: `${maxTotalSizeMB}MB`,
+    maxCount: maxFiles,
+    allowedExts: allowedExts.map((ext) => ext.toUpperCase()),
+  }).join(' · ');
+  const effectiveHint = hint === undefined
+    ? <FileHint variant="simple" message={hintText} />
+    : hint;
 
   const activeExisting = existingFiles.filter(
     (f) => !deletedFiles.some((d) => d.convertFileNm === f.convertFileNm),
@@ -203,9 +207,9 @@ export function FileInputGroup({
   /* ── 힌트(좌) + 카운터(우) + 에러 ── */
   const footer = (
     <>
-      {!disabled && (hint || totalCount > 0) && (
+      {!disabled && (effectiveHint || totalCount > 0) && (
         <div className="file-attachment__toolbar">
-          <span className="file-attachment__toolbar-hint">{hint}</span>
+          <span className="file-attachment__toolbar-hint">{effectiveHint}</span>
           <span className="file-attachment__counter">
             {totalCount}/{maxFiles}개 · {formatBytes(totalBytes)}/{maxTotalSizeMB}MB
           </span>

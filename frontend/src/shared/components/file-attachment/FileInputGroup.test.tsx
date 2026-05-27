@@ -10,7 +10,10 @@ describe('FileInputGroup', () => {
 
     const input = screen.getByLabelText('파일 선택');
     expect(input).toHaveAttribute('accept', '.pdf');
-    expect(screen.getByText(/PDF · 파일당 최대 10MB · 전체 최대 50MB/)).toBeInTheDocument();
+    const hints = screen.getAllByText(/파일당 최대 10MB · 전체 최대 50MB · 최대 5개 · PDF/);
+    expect(hints.length).toBe(2);
+    expect(hints[0].className).toBe('file-attachment__dropzone-hint');
+    expect(hints[1].className).toBe('file-hint--simple');
 
     fireEvent.change(input, {
       target: {

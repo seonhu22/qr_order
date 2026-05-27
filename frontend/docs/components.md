@@ -498,4 +498,10 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 ## 13. 첨부파일 컴포넌트 (FileAttachment)
 
 등록·수정·상세 화면에서 사용하는 첨부파일 입력, 다운로드 목록, 제약 안내 컴포넌트 모음이다.
-상세 사용법·API payload 구성 기준·아이콘 기준은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.
+컴포넌트 사용법은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.
+
+관련 문서:
+
+- [파일 정책](./file-attachment-policy.md)
+- [첨부파일 API 계약](./file-attachment-api.md)
+- [첨부파일 QA](./file-attachment-qa.md)
