@@ -8,7 +8,12 @@ const ANSWER_STATUS_LABEL: Record<InquiryManageRow['answerStatus'], string> = {
 
 export function createInquiryManageTableColumns(): SharedTableColumn[] {
   return [
-    { key: 'title',       label: '제목' },
+    {
+      key: 'title',
+      label: '제목',
+      className: 'inquiry-manage-table__col--title',
+      tdClassName: 'common-table__cell--left',
+    },
     { key: 'plant',       label: '사업장' },
     { key: 'registrant',  label: '등록자',  tdClassName: 'common-table__cell--center' },
     { key: 'registeredAt', label: '등록일자', tdClassName: 'common-table__cell--center' },
@@ -29,7 +34,7 @@ export function createInquiryManageTableRows(
       title: {
         type: 'text',
         value: row.title,
-        className: 'common-table__cell--truncate',
+        className: 'common-table__cell--truncate inquiry-manage-table__title-text',
         title: row.title,
       },
       plant: {

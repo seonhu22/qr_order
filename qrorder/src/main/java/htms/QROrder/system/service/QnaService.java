@@ -38,15 +38,14 @@ public class QnaService {
                             String sysPlantCd,
                             String menuCd) {
 
-        QnaRequest oldData = getOldData(qnaRequest, sysPlantCd);
+        QnaResponse oldData = getOldData(qnaRequest);
 
         auditService.insertUpdateAuditTrailData(oldData, qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
         qnaMapper.updateQna(qnaRequest, userId, sysPlantCd);
     }
 
-    private QnaRequest getOldData(QnaRequest qnaRequest,
-                                    String sysPlantCd) {
+    private QnaResponse getOldData(QnaRequest qnaRequest) {
 
-        return qnaMapper.getOldData(qnaRequest, sysPlantCd);
+        return qnaMapper.getOldData(qnaRequest);
     }
 }

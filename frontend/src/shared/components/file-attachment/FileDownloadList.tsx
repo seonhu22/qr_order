@@ -13,19 +13,9 @@
 
 import './FileAttachment.css';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { formatFileSize } from './formatFileSize';
 import { getFileTypeInfo } from './fileTypeUtils';
 import type { FileDownloadListProps, ServerFile } from './types';
-
-
-/* =====================================================
- * 유틸
- * ===================================================== */
-
-function formatBytes(bytes: number): string {
-  const n = typeof bytes === 'string' ? parseInt(bytes as string, 10) : bytes;
-  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 
 /* =====================================================
@@ -149,7 +139,7 @@ function DownloadRow({ file, onDownload }: DownloadRowProps) {
           {file.originalFileNm}
         </span>
         <span className="file-attachment__item-size">
-          {formatBytes(parseInt(file.fileSize, 10))}
+          {formatFileSize(file.fileSize)}
         </span>
       </button>
       {/* 다운로드 아이콘 버튼 — 삭제 버튼과 동일 크기(1.5rem), 호버 색만 다름 */}

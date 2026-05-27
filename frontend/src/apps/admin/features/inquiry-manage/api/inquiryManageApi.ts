@@ -7,32 +7,26 @@ import {
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
-import type { DateTime } from '@/generated/types/dateTime';
-import type { FileResponse } from '@/generated/types/fileResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
+import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
-function formatDateTime(dt?: DateTime): string {
-  if (!dt?.Year) return '-';
-  const y = dt.Year;
-  const m = String(dt.Month ?? 1).padStart(2, '0');
-  const d = String(dt.Day ?? 1).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+export { mapFileResponseToServerFile };
 
 export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryManageRow {
   const answerStatus: InquiryAnswerStatus = res.answerYn === 'Y' ? 'answered' : 'pending';
   return {
     id: res.sysId ?? `inquiry-${index}`,
     sysId: res.sysId,
-    fileUuid: res.fileUuid,
+    fileUlid: res.fileUlid,
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
     registrant: '-',
-    registeredAt: formatDateTime(res.startDate),
+    registeredAt: formatDateTimeForDisplay(res.startDate) || '-',
     updatedAt: '-',
-    answeredAt: answerStatus === 'answered' ? formatDateTime(res.answerDatetime) : '-',
+    answeredAt: answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
     answerStatus,
     answerContent: res.answerDescription ?? '',
   };
@@ -68,25 +62,10 @@ export function useInquiryAnswerMutation() {
   return useUpdateQna();
 }
 
-export function mapFileResponseToServerFile(f: FileResponse): ServerFile {
-  return {
-    sysId: f.sysId ?? '',
-    linkSysId: '',
-    originalFileNm: f.originalFileNm ?? '',
-    convertFileNm: '',
-    fileExt: f.fileExt ?? '',
-    mimeType: '',
-    fileSize: f.fileSize ?? '0',
-    filePath: f.filePath ?? '',
-    ordNo: f.ordNo ?? 0,
-    pdfYn: f.pdfYn ?? 'N',
-  };
-}
-
-export function useInquiryAttachFileQuery(fileUuid: string | undefined) {
+export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
   return useGetAttachFile(
-    { sysId: fileUuid ?? '' },
-    { query: { enabled: Boolean(fileUuid) } },
+    { linkSysId: fileUlid ?? '' },
+    { query: { enabled: Boolean(fileUlid) } },
   );
 }
 
@@ -95,8 +74,8 @@ export async function downloadInquiryFile(file: ServerFile): Promise<void> {
   triggerBlobDownload(blob, file.originalFileNm);
 }
 
-export async function downloadAllInquiryFiles(fileUuid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUuid });
+export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
+  const blob = await downloadAllFile({ linkSysId: fileUlid });
   triggerBlobDownload(blob, 'files.zip');
 }
 

@@ -33,4 +33,19 @@
         where 1=1
         and sys_id = #{noticeRequest.sysId}
     </update>
+
+    <select id="getOldData" resultType="htms.QROrder.system.dto.QnaResponse">
+        select
+            bq.sys_id,
+            bq.qna_title,
+            bq.qna_description,
+            bq.start_date,
+            bq.file_ulid,
+            bq.answer_yn,
+            bq.answer_datetime,
+            bq.answer_description
+        from brd_qna bq
+        where 1=1
+        and bq.sys_id = #{sysId}
+    </select>
 </mapper>

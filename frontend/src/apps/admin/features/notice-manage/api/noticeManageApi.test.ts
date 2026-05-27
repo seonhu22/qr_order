@@ -21,7 +21,7 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-1',
       sysId: 'notice-1',
-      fileUuid: 'file-link-1',
+      fileUlid: 'file-link-1',
       useYn: 'N',
       noticeType: 'notice',
       target: 'all',
@@ -46,7 +46,7 @@ describe('noticeManageApi', () => {
     ).toEqual({
       id: 'notice-2-점검 공지-2026-04-29',
       sysId: '',
-      fileUuid: undefined,
+      fileUlid: undefined,
       useYn: 'Y',
       noticeType: 'notice',
       target: 'all',
@@ -62,7 +62,7 @@ describe('noticeManageApi', () => {
     const file = new File(['hello'], 'notice.txt', { type: 'text/plain' });
     const formData = buildNoticeFormData({
       sysId: 'notice-1',
-      fileUuid: 'file-link-1',
+      fileUlid: 'file-link-1',
       useYn: 'N',
       title: '공지 제목',
       content: '공지 내용',
@@ -91,7 +91,7 @@ describe('noticeManageApi', () => {
     expect(formData.get('sysId')).toBe('notice-1');
     expect(formData.get('fileUuid')).toBe('file-link-1');
     expect(formData.get('newItems[0].file')).toBe(file);
-    expect(formData.get('newItems[0].linkSysId')).toBe('notice-1');
+    expect(formData.get('newItems[0].linkSysId')).toBe('file-link-1');
     expect(formData.get('newItems[0].ordNo')).toBe('1');
     expect(formData.get('delItems[0].sysId')).toBe('file-1');
     expect(formData.has('noticeRequest')).toBe(false);

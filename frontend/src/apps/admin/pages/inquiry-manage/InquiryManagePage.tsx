@@ -28,7 +28,7 @@ export function InquiryManagePage() {
   const isDirty = answerContent !== (selectedRow?.answerContent ?? '');
   const canSaveAnswer = Boolean(selectedRow?.sysId);
 
-  const attachFileQuery = useInquiryAttachFileQuery(selectedRow?.fileUuid);
+  const attachFileQuery = useInquiryAttachFileQuery(selectedRow?.fileUlid);
   const attachFiles = (attachFileQuery.data ?? []).map(mapFileResponseToServerFile);
 
   const handleDownloadFile = (file: Parameters<typeof downloadInquiryFile>[0]) => {
@@ -36,8 +36,8 @@ export function InquiryManagePage() {
   };
 
   const handleDownloadAllFiles = () => {
-    if (selectedRow?.fileUuid) {
-      downloadAllInquiryFiles(selectedRow.fileUuid).catch(() => {});
+    if (selectedRow?.fileUlid) {
+      downloadAllInquiryFiles(selectedRow.fileUlid).catch(() => {});
     }
   };
 
