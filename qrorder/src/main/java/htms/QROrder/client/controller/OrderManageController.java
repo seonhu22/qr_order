@@ -2,7 +2,9 @@ package htms.QROrder.client.controller;
 
 
 import htms.QROrder.client.dto.OrderHistoryResponse;
+import htms.QROrder.client.dto.StatusResponse;
 import htms.QROrder.client.service.OrderHistoryService;
+import htms.QROrder.client.service.StatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +20,14 @@ import java.util.List;
 @RequestMapping("/api/client/order_manage")
 public class OrderManageController {
 
+    private final StatusService statusService;
     private final OrderHistoryService orderHistoryService;
+
+    @GetMapping("/status")
+    public List<StatusResponse> getStatus() {
+
+        return statusService.getStatus();
+    }
 
     @GetMapping("/history")
     public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus) {

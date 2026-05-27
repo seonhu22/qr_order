@@ -24,12 +24,12 @@
     <select id="getOrderMasterTotalPrice" resultType="htms.QROrder.client.dto.OrderTotalPriceItem">
         select
             od.link_sys_id ,
-            sum(smd.menu_price + coalesce(opt_sum.option_price, 0)) as total_price
+            sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price
         from order_detail od
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
-            select odo.link_sys_id, sum(smod.menu_option_price) as option_price
+            select odo.link_sys_id, sum(smod.menu_option_price * odo.qty) as option_price
             from order_detail_option odo
             left join store_menu_option_detail smod
                 on smod.sys_id = odo.link_sys_id2
@@ -48,7 +48,7 @@
             od.sys_id ,
             od.link_sys_id as master_sys_id ,
             smd.menu_name ,
-            smd.menu_price ,
+            smd.menu_price * od.qty as menu_price ,
             null as menu_option ,
             od.insert_datetime as order_datetime
         from order_detail od
@@ -64,7 +64,7 @@
     <select id="getOrderDetailTotalPrice" resultType="htms.QROrder.client.dto.OrderTotalPriceItem">
         select
             odo.link_sys_id ,
-            sum(smod.menu_option_price) as total_price
+            sum(smod.menu_option_price * odo.qty) as total_price
         from order_detail_option odo
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
