@@ -17,6 +17,7 @@ import { Icon } from '@/shared/assets/icons/Icon';
 import { getFileTypeInfo } from './fileTypeUtils';
 import { buildHintParts } from './buildHintParts';
 import { FileHint } from './FileHint';
+import { formatFileSize } from './formatFileSize';
 import { DEFAULT_FILE_ALLOWED_EXTENSIONS } from './filePolicy';
 import type { FileInputGroupProps, ServerFile } from './types';
 
@@ -33,12 +34,15 @@ function normalizeExtension(ext: string): string {
   return ext.replace(/^\./, '').toLowerCase();
 }
 
-function formatBytes(bytes: number): string {
-  const n = typeof bytes === 'string' ? parseInt(bytes as string, 10) : bytes;
-  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+function normalizeFileName(filename: string): string {
+  return filename.trim().toLowerCase();
 }
 
+function getServerFileName(file: ServerFile): string {
+  const ext = file.fileExt ? `.${normalizeExtension(file.fileExt)}` : '';
+  const name = file.originalFileNm.trim();
+  return name.toLowerCase().endsWith(ext) ? name : `${name}${ext}`;
+}
 
 /* =====================================================
  * FileInputGroup
@@ -134,6 +138,21 @@ export function FileInputGroup({
       return;
     }
 
+    const activeNames = new Set([
+      ...activeExisting.map((file) => normalizeFileName(getServerFileName(file))),
+      ...newFiles.map((file) => normalizeFileName(file.name)),
+    ]);
+    const selectedNames = new Set<string>();
+
+    for (const file of selected) {
+      const normalizedName = normalizeFileName(file.name);
+      if (activeNames.has(normalizedName) || selectedNames.has(normalizedName)) {
+        setError(`같은 이름의 파일이 이미 첨부되어 있습니다. (${file.name})`);
+        return;
+      }
+      selectedNames.add(normalizedName);
+    }
+
     setError(null);
     const next = [...newFiles, ...selected];
     setNewFiles(next);
@@ -211,7 +230,7 @@ export function FileInputGroup({
         <div className="file-attachment__toolbar">
           <span className="file-attachment__toolbar-hint">{effectiveHint}</span>
           <span className="file-attachment__counter">
-            {totalCount}/{maxFiles}개 · {formatBytes(totalBytes)}/{maxTotalSizeMB}MB
+            {totalCount}/{maxFiles}개 · {formatFileSize(totalBytes)}/{maxTotalSizeMB}MB
           </span>
         </div>
       )}
@@ -356,7 +375,7 @@ function FileRow({ name, size, isNew = false, onDelete }: FileRowProps) {
         {name}
       </span>
       {isNew && <span className="file-attachment__item-new-badge">NEW</span>}
-      <span className="file-attachment__item-size">{formatBytes(size)}</span>
+      <span className="file-attachment__item-size">{formatFileSize(size)}</span>
       {onDelete && (
         <button
           type="button"
