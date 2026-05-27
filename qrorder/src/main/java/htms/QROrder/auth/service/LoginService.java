@@ -54,7 +54,10 @@ public class LoginService {
         session.setAttribute("loginUser", dbLoginData);
         session.setAttribute("logUuid", uuid);
 
-        session.setAttribute("role", "SUPER_ADMIN");
+        if ("ADMIN".equals(dbLoginData.getSysPlantCd())) {
+            session.setAttribute("role", "SUPER_ADMIN");
+        }
+
         log.info("login success={}, {}, {}", dbLoginData.getUserId(), dbLoginData.getSysPlantCd(), session.getAttribute("role"));
     }
 
