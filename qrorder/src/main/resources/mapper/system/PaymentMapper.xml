@@ -6,49 +6,44 @@
     <select id="getPayment" resultType="htms.QROrder.system.dto.PaymentResponse">
         select
             sp.sys_id ,
-            sp.plant_cd ,
-            sp2.plant_nm ,
             sp.payment_cd ,
             sp.payment_nm ,
             sp.payment_fee ,
             sp.payment_fee_unit ,
             sp.license_valid_month
         from sys_payment sp
-        left join sys_plant sp2
-            on sp2.plant_cd = sp.plant_nm
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
             and (sp.user_id like concat('%', #{searchKeyword}, '%') or
                     sp.user_nm like concat('%', #{searchKeyword}, '%'))
         </if>
         and sp.delete_yn = 'N'
-        and sp2.delete_yn = 'N'
     </select>
 
     <insert id="newPayment">
         insert into sys_payment (
             sys_id,
-            plant_cd,
             payment_cd ,
             payment_nm ,
             payment_fee ,
             payment_fee_unit ,
             license_valid_month ,
+            delete_yn ,
             insert_user_id,
             insert_datetime,
             sys_plant_cd
         )
         values (
             #{payment.sysId},
-            #{payment.plantCd},
             #{payment.paymentCd},
             #{payment.paymentNm},
             #{payment.paymentFee},
             #{payment.paymentFeeUnit},
             #{payment.licenseValidMonth},
+            'N',
             #{userId},
             now(),
-            #{payment.sysPlantCd}
+            #{sysPlantCd}
         )
     </insert>
 
@@ -81,7 +76,7 @@
             count(*) > 0
         from sys_payment
         where 1=1
-        and payment_cd = #{payment.paymentCd}
+        and payment_cd = #{paymentCd}
     </select>
 
     <select id="isPaymentCdUse" resultType="boolean">
@@ -89,13 +84,12 @@
             count(*) > 0
         from sys_plant_pay_info
         where 1=1
-        and payment_cd = #{payment.paymentCd}
+        and payment_cd = #{paymentCd}
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.system.domain.Payment">
         select
         sp.sys_id ,
-        sp.plant_cd ,
         sp.payment_cd ,
         sp.payment_nm ,
         sp.payment_fee ,
@@ -103,6 +97,6 @@
         sp.license_valid_month
         from sys_payment sp
         where 1=1
-        and sys_id = #{payment.sysId}
+        and sys_id = #{sysId}
     </select>
 </mapper>

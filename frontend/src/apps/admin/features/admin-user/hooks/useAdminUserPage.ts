@@ -70,13 +70,8 @@ import type { AdminUserPageViewModel } from '../types';
  */
 export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
-  const {
-    draftKeyword,
-    appliedKeyword,
-    setDraftKeyword,
-    applyDraftKeyword,
-    resetKeywords,
-  } = useFilterKeywordState('');
+  const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
+    useFilterKeywordState('');
   const userQuery = useAdminUserQuery(appliedKeyword.trim());
   const plantComboQuery = usePlantComboOptionsQuery();
   const saveUsersMutation = useSaveAdminUsersMutation();
@@ -96,10 +91,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
    * @remarks
    * 이후 편집은 baseRows를 직접 수정하지 않고 useAdminUserListState의 draftRows에서 관리한다.
    */
-  const baseRows = useMemo(
-    () => (userQuery.data ?? []).map(mapToAdminUserModel),
-    [userQuery.data],
-  );
+  const baseRows = useMemo(() => (userQuery.data ?? []).map(mapToAdminUserModel), [userQuery.data]);
   const {
     rows,
     rowErrors,
@@ -110,7 +102,8 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     changeRowPlant,
     addRow,
     deleteSelectedRow,
-    validateRequiredFields,
+    hasRequiredFieldErrors,
+    applyRequiredFieldErrors,
     resetToBaseRows,
   } = useAdminUserListState({
     baseRows,
@@ -152,7 +145,8 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     },
     onResetDraftRows: resetToBaseRows,
     onDeleteSelectedRow: deleteSelectedRow,
-    onValidateRequiredFields: validateRequiredFields,
+    onValidateRequiredFields: () => !hasRequiredFieldErrors(),
+    onApplyRequiredFieldErrors: applyRequiredFieldErrors,
     onSaveChanges: saveChanges,
     onResetPassword: async (userId) => {
       await resetPasswordMutation.mutateAsync(userId);

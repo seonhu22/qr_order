@@ -23,4 +23,27 @@
         where 1=1
         and user_id = #{userId}
     </update>
+
+    <update id="pwdIncorrectCntIncrease">
+        update sys_user set
+            password_fail_cnt = password_fail_cnt + 1
+        where 1=1
+        and sys_id = #{sysId}
+    </update>
+
+    <update id="pwdCntReset">
+        update sys_user set
+            password_fail_cnt = 0
+        where 1=1
+        and sys_id = #{sysId}
+    </update>
+
+    <update id="initPwdAndActive">
+        update sys_user set
+            user_password = #{initPwdRequest.password},
+            password_fail_cnt = 0,
+            init_yn = 'N'
+        where 1=1
+        and user_id = #{userId}
+    </update>
 </mapper>

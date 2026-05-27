@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { FeedbackVariant } from '@/shared/components/feedback';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import { DetailTableActions } from './TableActionGroups';
 import { TableBodyRenderer } from './TableBodyRenderer';
@@ -21,7 +22,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
   };
   statusText: {
     loadingTitle: string;
-    emptyTitle?: string;
+    emptyVariant?: FeedbackVariant;
     emptyDescription?: string;
   };
   data: {
@@ -36,6 +37,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
   };
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
   actions: {
+    showMoveActions?: boolean;
     onChangeValue: (rowId: string, columnKey: string, value: string | boolean) => void;
     onClearRowError: (rowId: string, columnKey: string) => void;
     onAddRow: () => string;
@@ -73,12 +75,13 @@ export function EditableDetailTable<
   } = table;
   const {
     loadingTitle,
-    emptyTitle = '목록을 선택해주세요',
-    emptyDescription = '위 목록에서 행을 클릭하면 상세 코드가 표시됩니다.',
+    emptyVariant = 'select',
+    emptyDescription,
   } = statusText;
   const { selectedMaster, rows, columns, rowErrors } = data;
   const { isLoading, isSaving } = status;
   const {
+    showMoveActions = true,
     onChangeValue,
     onClearRowError,
     onAddRow,
@@ -119,7 +122,8 @@ export function EditableDetailTable<
     key: column.key,
     label: column.label,
     required: column.required,
-    align: column.type === 'text' ? 'left' : undefined,
+    className: column.className,
+    tdClassName: column.className,
   }));
   const tableRows: SharedTableRow[] = rows.map((row) => ({
     id: row.id,
@@ -175,6 +179,7 @@ export function EditableDetailTable<
             canMoveDown={canMoveDown}
             canDelete={!!effectiveSelectedDetailId}
             isSaving={isSaving}
+            showMoveActions={showMoveActions}
             onMoveUp={() => onMoveUp(effectiveSelectedDetailId || undefined)}
             onMoveDown={() => onMoveDown(effectiveSelectedDetailId || undefined)}
             onAddRow={() => {
@@ -195,7 +200,7 @@ export function EditableDetailTable<
         isError={false}
         isEmpty={!selectedMaster}
         loadingTitle={loadingTitle}
-        emptyTitle={emptyTitle}
+        emptyVariant={emptyVariant}
         emptyDescription={emptyDescription}
         emptyClassName="common-code-card__empty"
       >

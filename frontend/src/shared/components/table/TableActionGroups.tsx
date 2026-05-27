@@ -26,6 +26,7 @@ type DetailTableActionsProps = {
   canMoveDown: boolean;
   canDelete: boolean;
   isSaving: boolean;
+  showMoveActions?: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onAddRow: () => void;
@@ -81,6 +82,7 @@ export function DetailTableActions({
   canMoveDown,
   canDelete,
   isSaving,
+  showMoveActions = true,
   onMoveUp,
   onMoveDown,
   onAddRow,
@@ -89,16 +91,20 @@ export function DetailTableActions({
 }: DetailTableActionsProps) {
   return (
     <>
-      <MoveUpTableButton
-        ariaLabel="위로 이동"
-        disabled={!canMoveUp || isSaving}
-        onClick={onMoveUp}
-      />
-      <MoveDownTableButton
-        ariaLabel="아래로 이동"
-        disabled={!canMoveDown || isSaving}
-        onClick={onMoveDown}
-      />
+      {showMoveActions ? (
+        <>
+          <MoveUpTableButton
+            ariaLabel="위로 이동"
+            disabled={!canMoveUp || isSaving}
+            onClick={onMoveUp}
+          />
+          <MoveDownTableButton
+            ariaLabel="아래로 이동"
+            disabled={!canMoveDown || isSaving}
+            onClick={onMoveDown}
+          />
+        </>
+      ) : null}
       <AddRowTableButton disabled={isSaving} onClick={onAddRow} />
       <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDeleteRow} />
       <SaveTableButton loading={isSaving} onClick={onSave} />

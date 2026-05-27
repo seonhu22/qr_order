@@ -60,6 +60,7 @@ export * from './qnaResponse';
 export * from './ruleDetail';
 export * from './ruleDetailRequest';
 export * from './ruleMaster';
+export * from './saveCommonDetailParams';
 export * from './saveFileParams';
 export * from './saveMenuParams';
 export * from './searchCommonDetailParams';

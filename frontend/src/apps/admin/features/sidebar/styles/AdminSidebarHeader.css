@@ -32,6 +32,29 @@
   line-height: 1.75rem; /* 28px */
 }
 
+/* ---- 섹션 레이블 ---- */
+.admin-sidebar-section {
+  padding: var(--spacing-4) var(--spacing-8);
+  border-bottom: 1px solid var(--sb-border, var(--color-border-default));
+}
+
+.admin-sidebar-section__label {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--sb-text-dim, var(--color-text-secondary));
+  letter-spacing: var(--tracking-tight);
+}
+
+.admin-sidebar-status {
+  margin: var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-6);
+  border: 1px solid var(--sb-border, var(--color-border-default));
+  border-radius: var(--radius-card);
+  color: var(--sb-text-muted, var(--color-text-secondary));
+  font-size: var(--typography-size-ui);
+  line-height: var(--typography-leading-normal);
+}
+
 /* ---- 닫기 버튼 ---- */
 .admin-sidebar-header__close {
   display: flex;

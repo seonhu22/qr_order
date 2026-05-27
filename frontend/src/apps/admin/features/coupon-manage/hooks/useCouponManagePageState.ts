@@ -1,51 +1,43 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
   mapToCouponRow,
   useCouponQuery,
   useSaveCouponMutation,
   useDeleteCouponsMutation,
 } from '../api/couponManageApi';
-import {
-  editorRowToCouponRow,
-  useCouponManageModalFlow,
-} from './useCouponManageModalFlow';
+import { editorRowToCouponRow, useCouponManageModalFlow } from './useCouponManageModalFlow';
 import type { CouponEditorRow } from './useCouponManageModalFlow';
 
 export function useCouponManagePageState() {
   const queryClient = useQueryClient();
-  const [keyword, setKeyword] = useState('');
-  const [draftKeyword, setDraftKeyword] = useState('');
+  const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
+    useFilterKeywordState('');
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
 
-  const couponQuery = useCouponQuery(keyword);
+  const couponQuery = useCouponQuery(appliedKeyword.trim());
   const saveMutation = useSaveCouponMutation();
   const deleteMutation = useDeleteCouponsMutation();
 
-  const rows = useMemo(
-    () => (couponQuery.data ?? []).map(mapToCouponRow),
-    [couponQuery.data],
-  );
+  const rows = useMemo(() => (couponQuery.data ?? []).map(mapToCouponRow), [couponQuery.data]);
 
   const effectiveCheckedIds = checkedIds.filter((id) => rows.some((row) => row.id === id));
   const isAllChecked = rows.length > 0 && effectiveCheckedIds.length === rows.length;
 
   const handleSearch = () => {
-    setKeyword(draftKeyword);
+    applyDraftKeyword();
     setCheckedIds([]);
   };
 
   const handleReset = () => {
-    setDraftKeyword('');
-    setKeyword('');
+    resetKeywords();
     setCheckedIds([]);
   };
 
   const handleToggleRow = (id: string) => {
-    setCheckedIds((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
+    setCheckedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
   };
 
   const handleToggleAll = () => {
@@ -55,13 +47,17 @@ export function useCouponManagePageState() {
   const handleSaveRow = async (editorRow: CouponEditorRow, isCreateMode: boolean) => {
     const row = editorRowToCouponRow(editorRow);
     await saveMutation.mutateAsync(row, isCreateMode);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.coupon.list() });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.coupon.list(appliedKeyword.trim()),
+    });
   };
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
     await deleteMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.coupon.list() });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.coupon.list(appliedKeyword.trim()),
+    });
     setCheckedIds([]);
     return targets.length;
   };

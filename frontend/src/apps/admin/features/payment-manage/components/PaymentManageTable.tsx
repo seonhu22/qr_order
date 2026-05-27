@@ -3,6 +3,16 @@ import { MasterTableActions, TableCard, TableCardContentState } from '@/shared/c
 import { CheckboxInput } from '@/shared/components/checkbox/CheckboxInput';
 import type { PaymentRateRow } from '../types';
 
+function PaymentUnitBadge({ unit }: { unit: string }) {
+  if (unit === '원') {
+    return <span className="payment-unit-badge payment-unit-badge--krw">원 <span className="payment-unit-badge__symbol">₩</span></span>;
+  }
+  if (unit === '달러' || unit === 'USD') {
+    return <span className="payment-unit-badge payment-unit-badge--usd">달러 <span className="payment-unit-badge__symbol">$</span></span>;
+  }
+  return <span className="payment-unit-badge">{unit}</span>;
+}
+
 type PaymentManageTableProps = {
   rows: PaymentRateRow[];
   isLoading?: boolean;
@@ -44,13 +54,7 @@ export function PaymentManageTable({
         <div className="common-table-wrap">
           <table className="common-table payment-manage-table" aria-label="결제 요금 목록 테이블">
             <colgroup>
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
+              <col className="common-table__col--checkbox" /><col /><col /><col /><col /><col /><col className="common-table__col--action" />
             </colgroup>
             <thead>
               <tr>
@@ -65,8 +69,8 @@ export function PaymentManageTable({
                     />
                   </span>
                 </th>
-                <th scope="col" className="common-table__cell--left">결제 요금 코드</th>
-                <th scope="col" className="common-table__cell--left">결제 요금 명</th>
+                <th scope="col">결제 요금 코드</th>
+                <th scope="col">결제 요금 명</th>
                 <th scope="col">결제 요금</th>
                 <th scope="col">결제 요금 단위</th>
                 <th scope="col">라이센스 기간</th>
@@ -75,11 +79,7 @@ export function PaymentManageTable({
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="common-table__empty">
-                    데이터가 없습니다.
-                  </td>
-                </tr>
+                <tr><td colSpan={7} className="common-table__empty">데이터가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>
@@ -93,11 +93,21 @@ export function PaymentManageTable({
                         />
                       </span>
                     </td>
-                    <td className="common-table__cell--left common-table__mono">{row.rateCode}</td>
-                    <td className="common-table__cell--left">{row.rateName}</td>
+                    <td
+                      className="common-table__mono common-table__cell--truncate"
+                      title={row.rateCode}
+                    >
+                      {row.rateCode}
+                    </td>
+                    <td
+                      className="common-table__cell--left common-table__cell--truncate"
+                      title={row.rateName}
+                    >
+                      {row.rateName}
+                    </td>
                     <td>{row.rateAmount.toLocaleString()}</td>
-                    <td>{row.rateUnit}</td>
-                    <td>{row.licenseValidMonth}개월</td>
+                    <td className="common-table__cell--center"><PaymentUnitBadge unit={row.rateUnit} /></td>
+                    <td className="common-table__cell--center">{row.licenseValidMonth}개월</td>
                     <td>
                       <EditTableButton
                         ariaLabel={`${row.rateName} 수정`}

@@ -26,7 +26,7 @@ type UseAdminUserListStateParams = {
  *
  * @description
  * - 필수값 검증에 따른 rowErrors 생성 책임도 이 훅이 가진다.
- * - flow 훅은 validateRequiredFields의 결과만 보고 어떤 모달을 띄울지 결정한다.
+ * - flow 훅은 필수값 누락 여부와 rowErrors 적용 시점을 분리해 사용한다.
  *
  * @param {UseAdminUserListStateParams} params
  * @returns 목록 렌더링/편집에 필요한 상태와 액션
@@ -45,8 +45,9 @@ type UseAdminUserListStateParams = {
  * />
  *
  * // 저장 전 검증
- * if (!listState.validateRequiredFields()) {
+ * if (listState.hasRequiredFieldErrors()) {
  *   openValidationNotice();
+ *   listState.applyRequiredFieldErrors();
  * }
  * ```
  */
@@ -172,6 +173,15 @@ export function useAdminUserListState({
       return acc;
     }, {});
 
+  const hasRequiredFieldErrors = () =>
+    Object.values(getRequiredFieldErrors()).some(
+      (rowError) => rowError.userId || rowError.userName || rowError.plantCd,
+    );
+
+  const applyRequiredFieldErrors = () => {
+    setRowErrors(getRequiredFieldErrors());
+  };
+
   /**
    * 현재 draft 행의 필수값을 검사하고 rowErrors를 갱신한다.
    *
@@ -189,9 +199,7 @@ export function useAdminUserListState({
     const nextRowErrors = getRequiredFieldErrors();
     setRowErrors(nextRowErrors);
 
-    return !Object.values(nextRowErrors).some(
-      (rowError) => rowError.userId || rowError.userName || rowError.plantCd,
-    );
+    return !hasRequiredFieldErrors();
   };
 
   /**
@@ -217,6 +225,8 @@ export function useAdminUserListState({
     changeRowPlant,
     addRow,
     deleteSelectedRow,
+    hasRequiredFieldErrors,
+    applyRequiredFieldErrors,
     validateRequiredFields,
     resetToBaseRows,
   };

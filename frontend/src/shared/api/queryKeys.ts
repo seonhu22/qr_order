@@ -13,6 +13,7 @@ export const queryKeys = {
   },
   menu: {
     admin: ['menu', 'admin'] as const,
+    list: () => ['settings', 'menu', 'list'] as const,
   },
   dashboard: {
     info: ['dashboard', 'info'] as const,
@@ -40,9 +41,23 @@ export const queryKeys = {
   coupon: {
     list: (searchKeyword = '') => ['settings', 'coupon', 'list', { searchKeyword }] as const,
   },
+  rule: {
+    masters: (searchKeyword = '') => ['settings', 'rule', 'masters', { searchKeyword }] as const,
+    details: (masterId = '') => ['settings', 'rule', 'details', masterId] as const,
+  },
   accessLog: {
     masters: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
       ['settings', 'accessLog', 'masters', params] as const,
     details: (sysId = '') => ['settings', 'accessLog', 'details', sysId] as const,
+  },
+  changeHistory: {
+    list: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
+      ['settings', 'changeHistory', 'list', params] as const,
+  },
+  notice: {
+    list: (searchKeyword = '') => ['board', 'notice', 'list', { searchKeyword }] as const,
+  },
+  qna: {
+    list: (searchKeyword = '') => ['board', 'qna', 'list', { searchKeyword }] as const,
   },
 } as const;

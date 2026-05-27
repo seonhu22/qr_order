@@ -43,7 +43,7 @@
                 #{item.sysId},
                 #{item.userId},
                 #{item.userNm},
-                #{item.userPassword},
+                #{tempPwd},
                 'N',
                 0,
                 #{item.plantCd},
@@ -55,7 +55,7 @@
         </foreach>
     </insert>
     
-    <update id="updateItems">
+    <update id="updateAdminUser">
         <foreach collection="updateItems" item="item" separator=";">
             update sys_user set
                 user_nm = #{item.userNm},
@@ -63,18 +63,18 @@
                 modify_user_id = #{userId},
                 modify_datetime = now()
             where 1=1
-            and #{item.sysId}
+            and sys_id = #{item.sysId}
         </foreach>
     </update>
-    
-    <delete id="delItems">
+
+    <delete id="deleteAdminUser">
         <foreach collection="delItems" item="item" separator=";">
             update sys_user set
-                delete_yn = #{item.deleteYn},
+                delete_yn = 'Y',
                 modify_user_id = #{userId},
                 modify_datetime = now()
             where 1=1
-            and #{item.sysId}
+            and sys_id = #{item.sysId}
         </foreach>
     </delete>
 
@@ -89,7 +89,7 @@
             </foreach>
     </select>
 
-    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.AdminUser">
+    <select id="getDuplicateData" resultType="htms.QROrder.system.dto.AdminUserResponse">
         select
             su.sys_id,
             su.user_id ,
@@ -121,7 +121,7 @@
         left join sys_plant sp
         on sp.plant_cd = su.plant_cd
         where 1=1
-        and sys_id in
+        and su.sys_id in
         <foreach collection="adminUser" item="item" open="(" separator="," close=")">
             #{item.sysId}
         </foreach>

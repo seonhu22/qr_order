@@ -17,6 +17,7 @@
                 rule_nm like concat('%', #{searchKeyword}, '%')
             )
         </if>
+        and delete_yn = 'N'
     </select>
     
     <insert id="newRuleMaster">
@@ -42,7 +43,7 @@
         )
     </insert>
 
-    <update id="ruleMaster">
+    <update id="updateRuleMaster">
         update sys_rule_master set
             rule_nm  = #{ruleMaster.ruleNm},
             use_yn = #{ruleMaster.useYn},
@@ -54,11 +55,14 @@
 
     <delete id="delRuleMaster">
         update sys_rule_master set
-            delete_yn = #{ruleMaster.deleteYn},
+            delete_yn = 'Y',
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
-        and sys_id = #{ruleMaster.sysId}
+        and sys_id in
+        <foreach collection="ruleMaster" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
     </delete>
 
     <select id="duplicateChk" resultType="boolean">
@@ -66,7 +70,7 @@
             count(*) > 0
         from sys_rule_master
         where 1=1
-        and rule_cd = #{ruleMaster.ruleCd}
+        and rule_cd = #{ruleCd}
     </select>
 
     <select id="getDuplicateData" resultType="htms.QROrder.system.domain.RuleMaster">

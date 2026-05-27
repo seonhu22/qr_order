@@ -63,7 +63,7 @@
     <delete id="delMessage">
         <foreach collection="delItems" item="item" separator=";">
             update sys_message set
-                delete_yn = #{item.deleteYn},
+                delete_yn = 'Y',
                 modify_user_id = #{userId},
                 modify_datetime = now()
             where 1=1
@@ -80,9 +80,10 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
-    <select id="getDeuplicateData" resultType="htms.QROrder.system.domain.Message">
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.Message">
         select
             sys_id ,
             msg_cd ,
@@ -94,6 +95,7 @@
         <foreach collection="newItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.system.domain.Message">
@@ -108,5 +110,6 @@
         <foreach collection="updateItems" item="item" open="(" separator="," close=")">
             #{item.msgCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 </mapper>

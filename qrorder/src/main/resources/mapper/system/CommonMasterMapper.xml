@@ -3,14 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.system.repository.CommonMasterMapper">
 
-    <resultMap id="commonResultMap" type="htms.QROrder.system.domain.CommonMaster">
-        <result column="sys_id" property="sysId"/>
-        <result column="common_cd" property="commonCd"/>
-        <result column="common_nm" property="commonNm"/>
-        <result column="use_yn" property="useYn"/>
-    </resultMap>
-
-    <select id="findCommonBySearchCond" resultMap="commonResultMap">
+    <select id="findCommonBySearchCond" resultType="htms.QROrder.system.domain.CommonMaster">
         select
             sys_id,
             common_cd,
@@ -78,13 +71,14 @@
     <update id="updateCommonMaster">
         update sys_common_master set
             common_nm = #{commonMaster.commonNm},
+            use_yn = #{commonMaster.useYn},
             modify_datetime = now(),
             modify_user_id = #{userId}
         where 1=1
         and sys_id = #{commonMaster.sysId}
     </update>
 
-    <select id="getOldData" resultMap="commonResultMap">
+    <select id="getOldData" resultType="htms.QROrder.system.domain.CommonMaster">
         select
             sys_id,
             common_cd,

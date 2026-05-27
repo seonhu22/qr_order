@@ -71,6 +71,7 @@
     <select id="duplicateChk" resultType="boolean">
         select
             COUNT(*) > 0
+        from sys_menu mu
         where 1=1
         and menu_cd in
         <foreach collection="menu" item="item" open="(" separator="," close=")" >

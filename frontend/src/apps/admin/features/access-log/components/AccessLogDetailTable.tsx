@@ -25,39 +25,41 @@ export function AccessLogDetailTable({
     <TableCard
       title="메뉴 접근 목록"
       ariaLabel="메뉴 접근 목록"
+      className="access-log-detail-table"
       actions={userBadge || undefined}
     >
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!isLoading && !isError && rows.length === 0}
+        isEmpty={!isLoading && !isError && !selectedRow}
         loadingTitle="메뉴 접근 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
-        emptyDescription={
-          selectedRow
-            ? '접근한 메뉴 이력이 없습니다.'
-            : '좌측 목록에서 항목을 선택하면 메뉴 접근 이력을 조회할 수 있습니다.'
-        }
+
+        emptyVariant="select"
+        emptyDescription="좌측 목록에서 항목을 선택하면 메뉴 접근 이력을 조회할 수 있습니다."
       >
         <div className="common-table-wrap access-log-table__wrap">
           <table className="common-table">
             <thead>
               <tr>
-                <th className="common-table__th" scope="col">메뉴코드</th>
-                <th className="common-table__th" scope="col">메뉴명</th>
-                <th className="common-table__th" scope="col">시작 일시</th>
-                <th className="common-table__th" scope="col">종료 일시</th>
+                <th scope="col">메뉴코드</th>
+                <th scope="col">메뉴명</th>
+                <th scope="col">시작 일시</th>
+                <th scope="col">종료 일시</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="common-table__row">
-                  <td className="common-table__td">{row.menuCd}</td>
-                  <td className="common-table__td">{row.menuNm}</td>
-                  <td className="common-table__td">{row.menuOpenDatetime}</td>
-                  <td className="common-table__td">{row.menuCloseDatetime}</td>
-                </tr>
-              ))}
+              {rows.length === 0 ? (
+                <tr><td colSpan={4} className="common-table__empty">접근한 메뉴 이력이 없습니다.</td></tr>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.menuCd}</td>
+                    <td>{row.menuNm}</td>
+                    <td className="common-table__cell--center">{row.menuOpenDatetime}</td>
+                    <td className="common-table__cell--center">{row.menuCloseDatetime}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

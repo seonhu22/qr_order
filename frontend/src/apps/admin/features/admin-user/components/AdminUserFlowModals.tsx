@@ -13,6 +13,7 @@ import type { AdminUserFlowState, AdminUserSimpleModalState } from '../types';
 type AdminUserFlowModalsProps = {
   state: AdminUserFlowState;
   isSaving: boolean;
+  isResettingPassword: boolean;
   onConfirmSave: () => void | Promise<void>;
   onCloseSaveConfirm: () => void;
   onCloseSimpleModal: () => void;
@@ -29,12 +30,24 @@ type AdminUserFlowModalsProps = {
 export function AdminUserFlowModals({
   state,
   isSaving,
+  isResettingPassword,
   onConfirmSave,
   onCloseSaveConfirm,
   onCloseSimpleModal,
   onConfirmSimpleModal,
 }: AdminUserFlowModalsProps) {
   const simpleModalState: AdminUserSimpleModalState = state.simpleModalState;
+  const simpleDescription =
+    simpleModalState?.type === 'passwordResetConfirm' ? (
+      <>
+        <strong className="admin-user-reset-modal__account-id">
+          {simpleModalState.userId}
+        </strong>
+        {' 비밀번호를 초기화 하시겠습니까?'}
+      </>
+    ) : (
+      simpleModalState?.description
+    );
 
   return (
     <>
@@ -55,9 +68,18 @@ export function AdminUserFlowModals({
 
       <SimpleDefaultModal
         open={!!simpleModalState}
-        description={simpleModalState?.description}
+        description={simpleDescription}
         helperText={simpleModalState?.helperText}
-        primaryAction={simpleModalState?.onConfirm ? { onClick: onConfirmSimpleModal } : undefined}
+        primaryAction={
+          simpleModalState?.onConfirm
+            ? { loading: isResettingPassword, onClick: onConfirmSimpleModal }
+            : undefined
+        }
+        secondaryAction={
+          simpleModalState?.onConfirm
+            ? { disabled: isResettingPassword, onClick: onCloseSimpleModal }
+            : undefined
+        }
         onClose={onCloseSimpleModal}
       />
     </>

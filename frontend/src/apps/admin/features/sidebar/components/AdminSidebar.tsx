@@ -10,26 +10,41 @@
  *   <footer> SidebarUser        — 사용자 정보 + 로그아웃 (공용)
  */
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
+import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { AdminSidebarHeader } from '@/apps/admin/features/sidebar/components/AdminSidebarHeader';
-import { ADMIN_SIDEBAR_MENU } from '@/apps/admin/features/sidebar/config/adminSidebarMenu';
-import { findExpandedMenuKeys } from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
+import {
+  findExpandedMenuKeys,
+} from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object' || !('status' in error)) {
+    return undefined;
+  }
+
+  const status = (error as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
 
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const expandedDepth1Key = useAdminLayoutStore((s) => s.expandedDepth1Key);
-  const expandedDepth2Key = useAdminLayoutStore((s) => s.expandedDepth2Key);
-  const setExpandedMenu = useAdminLayoutStore((s) => s.setExpandedMenu);
-  const toggleDepth1 = useAdminLayoutStore((s) => s.toggleDepth1);
-  const toggleDepth2 = useAdminLayoutStore((s) => s.toggleDepth2);
+  const isSidebarOpen = useAdminLayoutStore((s) => s.isSidebarOpen);
+  const activeSection = useAdminLayoutStore((s) => s.activeSection);
+  const setActiveSection = useAdminLayoutStore((s) => s.setActiveSection);
+
+  const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2, ensureOpen, resetTo } =
+    useSidebarExpand();
+  const { currentSection, currentMenus, menusBySection, isError, error } = useAdminNavigationMenus();
+  const menuErrorStatus = getErrorStatus(error);
+  const hasMenuLoadError = isError && menuErrorStatus !== 403;
 
   const { user } = useAuth();
   const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
@@ -39,12 +54,55 @@ export function AdminSidebar() {
     },
   });
 
-  // 초기 진입 및 URL 변경 시 해당 메뉴 자동 펼침
+  const displayedSection =
+    (activeSection && menusBySection[activeSection]?.length ? activeSection : null) ??
+    currentSection ??
+    Object.keys(menusBySection)[0] ??
+    null;
+  const displayedMenus = displayedSection ? menusBySection[displayedSection] ?? [] : currentMenus;
+
+  // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
+  const pathnameRef = useRef(location.pathname);
+  const currentMenusRef = useRef(displayedMenus);
+  useLayoutEffect(() => {
+    pathnameRef.current = location.pathname;
+    currentMenusRef.current = displayedMenus;
+  });
+
   useEffect(() => {
-    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname);
+    if (menuErrorStatus !== 403 || location.pathname === '/admin/forbidden') {
+      return;
+    }
+
+    navigate('/admin/forbidden', { replace: true });
+  }, [location.pathname, menuErrorStatus, navigate]);
+
+  // URL 변경 시에만 섹션 자동 감지 + 현재 페이지 그룹 열기
+  // activeSection을 deps에 넣으면 헤더 탭 전환 시에도 effect가 재실행되어
+  // URL 기반으로 섹션을 되돌려버리는 문제가 발생하므로 의도적으로 제외한다.
+  useEffect(() => {
+    if (currentSection) {
+      setActiveSection(currentSection);
+    }
+
+    const menus = currentSection ? menusBySection[currentSection] ?? [] : currentMenus;
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(location.pathname, menus);
     if (!depth1Key) return;
-    setExpandedMenu(depth1Key, depth2Key);
-  }, [location.pathname, setExpandedMenu]);
+    ensureOpen(depth1Key, depth2Key);
+  }, [currentMenus, currentSection, ensureOpen, location.pathname, menusBySection, setActiveSection]);
+
+  // 사이드바가 열릴 때 현재 페이지 그룹만 남기고 나머지 닫기
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(pathnameRef.current, currentMenusRef.current);
+    resetTo(depth1Key, depth2Key);
+  }, [isSidebarOpen, resetTo]);
+
+  // 섹션 전환 시 expand 상태 초기화
+  useEffect(() => {
+    const { depth1Key, depth2Key } = findExpandedMenuKeys(pathnameRef.current, currentMenusRef.current);
+    resetTo(depth1Key, depth2Key);
+  }, [activeSection, resetTo]);
 
   const userName =
     typeof user?.userName === 'string'
@@ -55,19 +113,30 @@ export function AdminSidebar() {
 
   const userRole = typeof user?.role === 'string' ? user.role : 'ADMIN';
 
+  const sectionLabel = displayedMenus[0]?.label ?? displayedSection ?? '';
+
   return (
     <Sidebar>
       <AdminSidebarHeader />
-      <SidebarNav
-        menus={ADMIN_SIDEBAR_MENU}
-        showDepth1={false}
-        expandedDepth1Key={expandedDepth1Key}
-        expandedDepth2Key={expandedDepth2Key}
-        currentPathname={location.pathname}
-        onToggleDepth1={toggleDepth1}
-        onToggleDepth2={toggleDepth2}
-        onNavigate={navigate}
-      />
+      <div className="admin-sidebar-section">
+        <span className="admin-sidebar-section__label">{sectionLabel}</span>
+      </div>
+      {hasMenuLoadError ? (
+        <div className="admin-sidebar-status" role="status">
+          메뉴를 불러오지 못했습니다.
+        </div>
+      ) : (
+        <SidebarNav
+          menus={displayedMenus}
+          showDepth1={false}
+          expandedDepth1Keys={expandedDepth1Keys}
+          expandedDepth2Keys={expandedDepth2Keys}
+          currentPathname={location.pathname}
+          onToggleDepth1={toggleDepth1}
+          onToggleDepth2={toggleDepth2}
+          onNavigate={navigate}
+        />
+      )}
       <SidebarUser
         userName={userName}
         userRole={userRole}

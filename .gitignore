@@ -63,12 +63,17 @@ qrorder/src/main/resources/application-secret.properties
 logs/
 qrorder/logs/
 
+### Uploads ###
+uploads/
+
 ### Test ###
 qrorder/src/test/
 
 ### Claude Code ###
 .claude/
 CLAUDE.md
+/docs/agent-reports/
+AGENTS.md
 
 ### 백엔드 테스트파일 ###
 qrorder/src/test/

@@ -3,6 +3,7 @@ import { useState } from 'react';
 type NoticeState = {
   title: string;
   description: string;
+  onConfirm?: () => void;
 } | null;
 
 export type DetailRowErrorState = Record<string, Record<string, boolean | undefined>>;
@@ -43,15 +44,24 @@ export function useDetailTableSaveFlow({
 
   const requestSave = () => {
     const nextErrors = validateRows();
-    setRowErrors(nextErrors);
 
     const hasErrors = Object.values(nextErrors).some((fields) =>
       Object.values(fields).some(Boolean),
     );
 
     if (hasErrors) {
+      setNotice({
+        title: '알림',
+        description: '빈값을 채워주세요.',
+        onConfirm: () => {
+          setRowErrors(nextErrors);
+          setNotice(null);
+        },
+      });
       return false;
     }
+
+    setRowErrors({});
 
     if (isDirty === false) {
       setNotice({ title: '알림', description: '변경된 내용이 없습니다.' });
@@ -98,5 +108,13 @@ export function useDetailTableSaveFlow({
     confirmSave,
     closeSaveConfirm: () => setIsSaveConfirmOpen(false),
     closeNotice: () => setNotice(null),
+    confirmNotice: () => {
+      if (notice?.onConfirm) {
+        notice.onConfirm();
+        return;
+      }
+
+      setNotice(null);
+    },
   };
 }

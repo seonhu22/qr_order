@@ -12,6 +12,8 @@ export function SimpleDefaultModal({
   secondaryAction,
   onClose,
 }: SimpleDefaultModalProps) {
+  const stringDescription = typeof description === 'string' ? description : undefined;
+  const customDescription = typeof description === 'string' ? undefined : description;
   const resolvedPrimaryAction = {
     label: '확인',
     variant: 'primary' as const,
@@ -24,13 +26,19 @@ export function SimpleDefaultModal({
       open={open}
       size={size}
       title={title}
-      subtitle={description}
+      subtitle={stringDescription}
       noticeMeta={
         helperText ? <span className="simple-default-modal__helper">{helperText}</span> : null
       }
       primaryAction={resolvedPrimaryAction}
       secondaryAction={secondaryAction}
       onClose={onClose}
-    />
+    >
+      {customDescription ? (
+        <p className="base-modal__description simple-default-modal__description">
+          {customDescription}
+        </p>
+      ) : null}
+    </WrapperModal>
   );
 }

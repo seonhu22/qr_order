@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.system.repository.PaymentCouponMapper">
 
-    <select id="findPlantBySearchCond" resultType="htms.QROrder.system.domain.PaymentCoupon">
+    <select id="getPaymentCoupon" resultType="htms.QROrder.system.domain.PaymentCoupon">
         select
             sys_id ,
             coupon_cd ,
@@ -13,7 +13,7 @@
             use_yn
         from sys_payment_coupon spc
         where 1=1
-        delete_yn = 'N'
+        and delete_yn = 'N'
         order by sys_id desc
     </select>
 
@@ -26,6 +26,7 @@
             <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
                 #{item.couponCd}
             </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getDuplicateData" resultType="htms.QROrder.system.domain.PaymentCoupon">
@@ -38,11 +39,11 @@
             use_yn
         from sys_payment_coupon spc
         where 1=1
-        delete_yn = 'N'
         and coupon_cd in
         <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
             #{item.couponCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.system.domain.PaymentCoupon">
@@ -55,11 +56,11 @@
         use_yn
         from sys_payment_coupon spc
         where 1=1
-        delete_yn = 'N'
         and coupon_cd in
         <foreach collection="paymentCoupon" item="item" open="(" separator="," close=")">
             #{item.couponCd}
         </foreach>
+        and delete_yn = 'N'
     </select>
 
     <insert id="newPaymentCoupon">

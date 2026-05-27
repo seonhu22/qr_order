@@ -10,9 +10,10 @@
 - [6. 설치 및 실행](#6-설치-및-실행)
 - [7. 사용 가능한 스크립트](#7-사용-가능한-스크립트)
 - [8. MSW 모드 전환](#8-msw-모드-전환)
-- [9. 자주 발생하는 문제](#9-자주-발생하는-문제)
-- [10. 참고 문서](#10-참고-문서)
-- [11. 문서 작성 원칙](#11-문서-작성-원칙)
+- [9. 작업 시 주의할 점](#9-작업-시-주의할-점)
+- [10. 자주 발생하는 문제](#10-자주-발생하는-문제)
+- [11. 참고 문서](#11-참고-문서)
+- [12. 문서 작성 원칙](#12-문서-작성-원칙)
 
 ---
 
@@ -169,7 +170,37 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 ---
 
-## 9. 자주 발생하는 문제
+## 9. 작업 시 주의할 점
+
+### 생성 파일은 직접 수정하지 않는다
+
+- `src/generated/` 하위 파일은 Orval과 `openapi-typescript` 결과물이므로 직접 수정하지 않는다.
+- 백엔드 API가 변경되면 `npm run generate:schema`로 `openapi.json`을 갱신한 뒤 `npm run generate` 결과까지 함께 커밋한다.
+- 생성 API를 화면에서 바로 호출하기보다, 필요한 경우 `features/<feature>/api/*` 또는 `shared/auth/hooks/*`처럼 프로젝트 wrapper를 통해 사용한다.
+
+### 인증과 로그아웃은 Query 캐시 기준으로 처리한다
+
+- 현재 인증 상태는 `queryKeys.auth.me` 캐시를 `AuthProvider`가 읽어서 계산한다.
+- 로그인/로그아웃 응답을 받은 뒤 localStorage나 sessionStorage를 직접 만지지 않는다. 요청은 `credentials: 'include'` 기반 쿠키 세션 흐름을 따른다.
+- 로그인은 `useAuthLoginMutation`을 사용한다. 성공 시 로그인 응답으로 `auth/me` 캐시를 즉시 채우고, `/api/auth/me`는 백그라운드에서 다시 동기화한다.
+- 로그아웃은 `useAuthLogoutMutation`을 사용한다. 이 훅은 `/api/auth/logout` 성공/실패와 관계없이 `auth/me` 캐시를 비우고, 호출부에서 로그인 화면으로 이동시킨다.
+- 일반 API 401은 `httpClient`가 인증 만료 이벤트로 알리고, auth API의 401은 로그인·초기 인증 확인 흐름에서 직접 처리한다.
+
+### MSW 모드와 실제 백엔드 모드를 구분한다
+
+- `npm run dev`와 `npm run dev:mock`은 MSW가 API를 가로챈다.
+- 실제 백엔드 연동을 확인할 때는 `npm run dev:real`을 사용하고, Network 탭에서 요청이 `localhost:8080`으로 전달되는지 확인한다.
+- 인증 관련 mock은 생성 핸들러보다 `src/test/handlers.js`의 커스텀 핸들러를 우선 사용한다.
+
+### 공용 규칙을 먼저 확인한다
+
+- 테이블/카드 UI는 [`docs/components/TableCard.md`](./docs/components/TableCard.md)를 우선 따른다.
+- 상태 처리, 401 리다이렉트, 403/404/500 에러 페이지 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)를 따른다.
+- 개발 전용 가이드 라우트는 인증 없이 등록되어 있으므로, 운영 화면 코드와 섞이지 않도록 주의한다.
+
+---
+
+## 10. 자주 발생하는 문제
 
 ### `npm install` 중 의존성 충돌
 
@@ -190,7 +221,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 ---
 
-## 10. 참고 문서
+## 11. 참고 문서
 
 | 문서 | 내용 |
 |---|---|
@@ -199,21 +230,27 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, 타입/배럴 파일 규칙 |
 | [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
-| [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명, 인증 구조 |
+| [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명 |
+| [`docs/auth.md`](./docs/auth.md) | 인증 구조, 쿼리 키 분리, init_yn 비밀번호 강제 변경 흐름 |
 | [`docs/api-codegen.md`](./docs/api-codegen.md) | API 코드 자동 생성 전체 가이드, 명령어, CI 검증 방식, 모드 전환 |
+| [`docs/admin-navigation.md`](./docs/admin-navigation.md) | `sys_menu` 기반 header/sidebar/breadcrumb/access-log 규칙 |
+| [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
+| [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
+
+공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 참고한다.
+
+상태 처리 작성 기준:
+- 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
+- 공통 상태 처리와 에러 화면 템플릿 작성 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)을 참고한다.
 
 학습용 참고 문서:
 - [`docs/training/Tanstack-Query-Guide.md`](./docs/training/Tanstack-Query-Guide.md)
   사람 학습용 문서이며, 현재 프로젝트의 구현 기준이나 AI 코드 생성 지침으로 사용하지 않는다.
 
-공용 테이블/카드 사용 패턴:
-- [`docs/components/TableCard.md`](./docs/components/TableCard.md)
-  `TableCard`, `TableCardContentState`, 마스터/상세 테이블 패턴을 우선 참고한다.
-
 ---
 
-## 11. 문서 작성 원칙
+## 12. 문서 작성 원칙
 
 `docs/` 문서를 추가하거나 수정할 때 아래 원칙을 지킨다.
 
@@ -228,8 +265,10 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | 공용 컴포넌트 작성 규칙, 새 컴포넌트 사용법 | `components.md` |
 | 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md` |
 | 라이브러리 추가·교체 이유 | `libraries.md` |
-| 설정 파일 변경, 인증 구조 변경 | `config.md` |
+| 설정 파일 변경 | `config.md` |
+| 인증 흐름, 쿼리 키, 비밀번호 변경 정책 변경 | `auth.md` |
 | API 코드 생성 흐름·명령어 변경 | `api-codegen.md` |
+| 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 | `menu-access-log.md` |
 | 기술 선택의 배경과 근거 | `decisions.md` |
 
 ### 중복 방지

@@ -1,0 +1,165 @@
+# 인증 구조
+
+> 로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책, 계정 잠금 정책을 다룬다.
+
+## 목차
+
+- [1. 기본 흐름](#1-기본-흐름)
+- [2. auth/me와 auth/profile 쿼리 키 분리](#2-authme와-authprofile-쿼리-키-분리)
+- [3. 사용자 이름 필드 우선순위](#3-사용자-이름-필드-우선순위)
+- [4. 초기 비밀번호 강제 변경 흐름](#4-초기-비밀번호-강제-변경-흐름)
+- [5. password_fail_cnt 계정 잠금 흐름](#5-password_fail_cnt-계정-잠금-흐름)
+- [6. 인증 전환 중 401 처리](#6-인증-전환-중-401-처리)
+- [7. 관리자 메뉴 403 처리](#7-관리자-메뉴-403-처리)
+
+---
+
+## 1. 기본 흐름
+
+```text
+login mutation 성공
+→ auth/me 캐시 갱신 + auth/profile 캐시 갱신
+→ AuthProvider가 Query 캐시를 읽어 인증 상태 계산
+→ 보호 라우트가 /admin/* 접근 허용
+```
+
+관련 파일:
+
+- `src/shared/auth/AuthProvider.jsx`
+- `src/shared/auth/hooks/useCurrentUser.ts`
+- `src/shared/auth/hooks/useAuthLoginMutation.ts`
+- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+
+---
+
+## 2. auth/me와 auth/profile 쿼리 키 분리
+
+로그인 성공 후 `invalidateQueries`가 `/api/auth/me`를 재조회하면, 백엔드가 user 정보 없이 `{ success: true }`만 반환하는 경우 user 데이터가 사라지는 문제가 있다.
+
+이를 방지하기 위해 로그인 응답의 user 데이터를 `auth/profile`에 별도 보존한다.
+
+| 쿼리 키                  | 역할                                              |
+| ------------------------ | ------------------------------------------------- |
+| `queryKeys.auth.me`      | `/api/auth/me` 응답 — 인증 상태 확인용            |
+| `queryKeys.auth.profile` | 로그인 응답의 user 데이터 — user 이름·역할 표시용 |
+
+`AuthProvider`는 `auth/me`에서 user 데이터가 없으면 `auth/profile`로 보완한다. 로그아웃 시 두 캐시를 모두 비운다.
+
+---
+
+## 3. 사용자 이름 필드 우선순위
+
+실제 백엔드는 `userNm` 필드를 사용한다. `AdminSidebar`는 아래 순서로 사용자 이름을 결정한다.
+
+```
+user.userNm → user.userName → user.userId → '관리자' (fallback)
+```
+
+---
+
+## 4. 초기 비밀번호 강제 변경 흐름
+
+> 추가일: 2026-05-07, 수정일: 2026-05-20
+
+`/api/auth/me` 응답의 `data.initPwdRequired`가 `true`이면 사용자는 비밀번호를 변경하기 전까지 메인 페이지에 진입할 수 없다.
+프론트는 DB 컬럼인 `init_yn`을 직접 판단하지 않고, 백엔드가 내려주는 `initPwdRequired`만 계약값으로 사용한다.
+
+```text
+login mutation 성공
+→ /api/auth/me 조회
+→ initPwdRequired === true
+→ 안내 모달 표시 ("비밀번호가 초기화되었습니다. 변경해주세요.")
+→ 확인 클릭 → LoginPage 내부에서 비밀번호 변경 폼으로 전환
+→ POST /api/auth/init-pwd-active 호출
+→ 변경 성공 → 완료 모달
+→ 확인 클릭 → /api/auth/logout 호출
+→ 로그인 화면에서 새 비밀번호로 재로그인
+```
+
+- `RequireAuth`는 `isAuthenticated && initPwdRequired === true`이면 `/admin/login`으로 리다이렉트한다. 이미 로그인한 상태에서 `/admin/main`을 직접 입력해도 접근이 차단된다.
+- `LoginPage`는 인증 상태의 `initPwdRequired`를 감지해, 리다이렉트로 돌아왔을 때도 변경 폼을 표시한다.
+- 비밀번호 변경 완료 API: `POST /api/auth/init-pwd-active` — `InitPwdRequest { password, chkPassword }` + `InitPwdParams { userId }`
+- 관리자 목록의 "비밀번호 초기화" 버튼은 `POST /api/auth/init-pwd`를 호출한다. 이 API는 사용자를 초기 비밀번호 변경 필요 상태로 만드는 reset 용도다.
+- 현재 백엔드 세션의 `loginUser.initYn`이 즉시 갱신되지 않는 문제가 있어, `init-pwd-active` 성공 후에는 기존 세션을 로그아웃 처리하고 새 비밀번호로 다시 로그인하도록 안내한다.
+
+---
+
+## 5. password_fail_cnt 계정 잠금 흐름
+
+> 추가일: 2026-05-07
+
+로그인 실패 응답의 `data.password_fail_cnt`가 `5` 이상이면 잠금 화면으로 전환된다. 잠금 상태에서는 로그인 폼에 접근할 수 없다.
+
+```text
+login mutation 실패 + password_fail_cnt >= 5
+→ LoginPage가 step을 'locked'로 전환
+→ 잠금 안내 화면 표시 (관리자 문의 이메일 포함)
+→ "로그인으로 돌아가기" 클릭 → step을 'login'으로 복귀
+```
+
+- `LoginPage`의 `step: 'login' | 'changePassword' | 'locked'` 중 `'locked'`가 잠금 화면 역할을 한다.
+- 백엔드가 `401`로 로그인 실패를 반환하는 경우 `httpClient`의 `HttpError.payload`에서 `password_fail_cnt`를 읽는다.
+- 목업처럼 `200 + success: false`로 로그인 실패를 반환하는 경우 응답 body의 `data.password_fail_cnt`를 직접 읽는다.
+- 로그인 제한은 별도 모달을 띄우지 않고 로그인 카드 내부의 잠금 화면으로만 안내한다.
+- 잠금 해제(비밀번호 초기화) 방법과 초기화 API는 백엔드 연동 시 확정 예정이다.
+- 관리자 문의 이메일: `admin@qrorder.co.kr` (추후 실제 값으로 교체).
+
+**목업 테스트**: `locked` 아이디로 로그인하면 즉시 잠금 화면을 확인할 수 있다. 그 외 아이디로 로그인에 실패할 때마다 `password_fail_cnt`가 1씩 증가해 5에 도달하면 잠금 화면으로 전환된다.
+
+---
+
+## 6. 인증 전환 중 401 처리
+
+> 추가일: 2026-05-08
+
+로그아웃처럼 사용자가 의도적으로 인증 상태를 끊는 작업 중에는 기존 화면의 API가 뒤늦게 401을 받을 수 있다. 이 401은 세션 만료가 아니라 인증 전환 과정에서 발생한 부수 효과이므로, "로그인 인증이 만료되었습니다" 모달을 띄우지 않는다.
+
+관련 파일:
+
+- `src/shared/auth/authTransition.ts`
+- `src/shared/auth/authRedirect.ts`
+- `src/shared/auth/hooks/useAuthLogoutMutation.ts`
+
+기본 정책:
+
+- 일반 사용 중 401: `httpClient`가 인증 만료 이벤트를 발행하고 `AuthRedirectHandler`가 모달을 표시한다.
+- 인증 전환 중 401: `authTransition` 상태를 확인해 인증 만료 이벤트를 발행하지 않는다.
+- Orval generated API 파일은 직접 수정하지 않는다.
+- 로그인, 로그아웃, 비밀번호 변경처럼 인증 상태를 바꾸는 흐름은 generated hook을 감싼 커스텀 훅에서 제어한다.
+
+로그아웃 흐름:
+
+```text
+logout mutation onMutate
+→ beginAuthTransition()
+→ /api/auth/logout 호출
+→ queryClient.cancelQueries()
+→ auth/me 비로그인 상태 설정
+→ auth/me 외 query cache 제거
+→ finally에서 endAuthTransition()
+→ 호출부 콜백에서 /admin/login 이동
+```
+
+`authTransition`은 count 방식으로 관리한다. 인증 전환 작업이 겹쳐도 먼저 끝난 작업이 전체 전환 상태를 잘못 해제하지 않도록 하기 위함이다.
+
+---
+
+## 7. 관리자 메뉴 403 처리
+
+> 추가일: 2026-05-11
+
+관리자 로그인은 성공했지만 `/api/system/settings/menu/search`에서 403이 발생하면 관리자 메뉴를 렌더링할 수 없다. 이때 사이드바 메뉴에 의존하면 로그아웃 버튼에 접근하기 어려워지므로, 메뉴 조회 403은 `/admin/forbidden`으로 이동시킨다.
+
+현재 정책:
+
+- 403 감지는 메뉴를 사용하는 `AdminSidebar`에서 직접 처리한다.
+- `/admin/forbidden`은 `AdminLayout` 밖에 둔다.
+- forbidden 화면은 인증만 요구하고, 관리자 메뉴 조회는 수행하지 않는다.
+- forbidden 화면에는 로그아웃 버튼을 직접 제공한다.
+- 403 외 메뉴 조회 오류는 사이드바 메뉴 영역에 `메뉴를 불러오지 못했습니다.` fallback을 표시하고, 사용자/로그아웃 영역은 유지한다.
+
+추후 공통화 계획:
+
+- 403 처리 위치가 admin/client/consumer 여러 앱으로 반복되면 `httpClient`에서 403 이벤트를 발행하는 구조를 검토한다.
+- 단, `httpClient`는 이벤트 감지만 담당하고 직접 라우팅하지 않는다.
+- 실제 이동 또는 모달 UX는 앱별 ForbiddenHandler 또는 해당 컴포넌트에서 결정한다.

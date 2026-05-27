@@ -10,10 +10,12 @@
             option_cd ,
             option_nm ,
             option_data ,
-            description
+            description ,
+            ord_no
         from sys_rule_detail srd
         where 1=1
         and link_sys_id = #{sysId}
+        and delete_yn = 'N'
     </select>
 
     <insert id="newRuleDetail">
@@ -24,6 +26,8 @@
             option_nm ,
             option_data ,
             description,
+            ord_no,
+            delete_yn,
             insert_user_id,
             insert_datetime
         )
@@ -36,6 +40,8 @@
                 #{item.optionNm},
                 #{item.optionData},
                 #{item.description},
+                #{item.ordNo},
+                'N',
                 #{userId},
                 now()
             )
@@ -48,6 +54,7 @@
                 option_nm = #{item.optionNm},
                 option_data = #{item.optionData},
                 description = #{item.description},
+                ord_no = #{item.ordNo},
                 modify_user_id = #{userId},
                 modify_datetime = now()
             where 1=1
@@ -74,28 +81,41 @@
             option_cd ,
             option_nm ,
             option_data ,
-            description
+            description ,
+            ord_no
         from sys_rule_detail srd
         where 1=1
         and sys_id in
-        <foreach collection="ruleDetail" open="(" separator="," close=")">
-            #{ruleDetail.sysId}
+        <foreach collection="ruleDetail" item="item" open="(" separator="," close=")">
+            #{item.sysId}
+        </foreach>
+    </select>
+
+    <select id="duplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_rule_detail
+        where 1=1
+        and option_cd in
+        <foreach collection="ruleDetail" item="item" open="(" separator="," close=")">
+            #{item.optionCd}
         </foreach>
     </select>
 
     <select id="getOldData" resultType="htms.QROrder.system.domain.RuleDetail">
         select
-        sys_id ,
-        link_sys_id ,
-        option_cd ,
-        option_nm ,
-        option_data ,
-        description
+            sys_id ,
+            link_sys_id ,
+            option_cd ,
+            option_nm ,
+            option_data ,
+            description ,
+            ord_no
         from sys_rule_detail srd
         where 1=1
         and sys_id in
-        <foreach collection="ruleDetail" open="(" separator="," close=")">
-            #{ruleDetail.sysId}
+        <foreach collection="ruleDetail" item="item" open="(" separator="," close=")">
+            #{item.sysId}
         </foreach>
     </select>
 </mapper>

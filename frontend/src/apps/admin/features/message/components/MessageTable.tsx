@@ -5,7 +5,7 @@ import {
   TableCard,
   TableCardContentState,
 } from '@/shared/components/table';
-import type { MessageRow } from '../types';
+import type { MessageRow, MessageRowErrors } from '../types';
 import {
   createMessageTableColumns,
   createMessageTableRows,
@@ -14,6 +14,7 @@ import {
 type MessageTableProps = {
   rows: MessageRow[];
   selectedRowId: string;
+  rowErrors: MessageRowErrors;
   isLoading: boolean;
   isError: boolean;
   isSaving: boolean;
@@ -34,6 +35,7 @@ type MessageTableProps = {
 export function MessageTable({
   rows,
   selectedRowId,
+  rowErrors,
   isLoading,
   isError,
   isSaving,
@@ -66,6 +68,7 @@ export function MessageTable({
   const tableRows = createMessageTableRows({
     rows,
     selectedRowId,
+    rowErrors,
     onSelectRow,
     onChangeRowField,
   });
@@ -91,13 +94,13 @@ export function MessageTable({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="메세지 목록을 불러오는 중입니다."
-        errorTitle="불러오는데 실패했습니다"
       >
         <div ref={tableRef} className="layout-contents">
           <TableBodyRenderer
             tableAriaLabel="메세지 관리 테이블"
             columns={columns}
             rows={tableRows}
+            emptyMessage="조회 결과가 없습니다."
             colGroup={
               <colgroup>
                 <col style={{ width: '24%' }} />

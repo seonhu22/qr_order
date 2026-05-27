@@ -119,10 +119,11 @@ export function AdminUserTable({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="관리자 목록을 불러오는 중입니다."
-        errorTitle="불러오는데 실패했습니다"
+
+
       >
         <div ref={tableRef} className="layout-contents">
-          <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} />
+          <TableBodyRenderer tableAriaLabel="관리자 목록 테이블" columns={columns} rows={tableRows} emptyMessage="조회 결과가 없습니다." />
         </div>
       </TableCardContentState>
     </TableCard>

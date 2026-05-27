@@ -14,6 +14,7 @@ export type EditableDetailColumn = {
   type: 'text' | 'boolean';
   required?: boolean;
   readOnlyOnExisting?: boolean;
+  className?: string;
 };
 
 /**

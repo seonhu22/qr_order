@@ -204,6 +204,11 @@
         <symbol id="i-lightbulb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <path d="M9 21H15M12 3C8.68629 3 6 5.68629 6 9C6 11.0736 7.02694 12.9003 8.60777 14.0116C9.15875 14.4 9.5 15.0016 9.5 15.6567V17C9.5 17.5523 9.94772 18 10.5 18H13.5C14.0523 18 14.5 17.5523 14.5 17V15.6567C14.5 15.0016 14.8412 14.4 15.3922 14.0116C16.9731 12.9003 18 11.0736 18 9C18 5.68629 15.3137 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
+        <!-- 빈 데이터 문서 -->
+        <symbol id="i-empty-file" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+            <path d="M2.66406 2.66927V13.3359C2.66406 13.6896 2.80454 14.0287 3.05459 14.2787C3.30464 14.5288 3.64377 14.6693 3.9974 14.6693H11.9974C12.351 14.6693 12.6902 14.5288 12.9402 14.2787C13.1903 14.0287 13.3307 13.6896 13.3307 13.3359V5.56394C13.3307 5.38631 13.2952 5.21048 13.2263 5.04677C13.1574 4.88306 13.0564 4.73477 12.9294 4.6106L9.9694 1.71594C9.7203 1.47238 9.38578 1.33598 9.0374 1.33594H3.9974C3.64377 1.33594 3.30464 1.47641 3.05459 1.72646C2.80454 1.97651 2.66406 2.31565 2.66406 2.66927Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9.32812 1.33594V4.0026C9.32812 4.35623 9.4686 4.69536 9.71865 4.94541C9.9687 5.19546 10.3078 5.33594 10.6615 5.33594H13.3281" stroke="currentColor" stroke-width="1.33333" stroke-linejoin="round"/>
+        </symbol>
         <!-- 공통코드 안내 포인터 -->
         <symbol id="i-feedback-pointer" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" fill="none">
             <path d="M12.8333 3.7583L11 5.49997" stroke="currentColor" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -255,6 +260,40 @@
         <symbol id="i-lock" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <rect width="18" height="11" x="3" y="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 이미지 파일 (jpg, jpeg, png) -->
+        <symbol id="i-file-image" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path fill-opacity="0.3" d="M13 9V3.5L18.5 9M6 2C4.89 2 4 2.89 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6Z" fill="currentColor"/>
+            <circle cx="9" cy="12.5" r="1.5" fill="currentColor"/>
+            <path d="M7 19L10.5 14L13.5 17.5L15 15.5L17.5 19H7Z" fill="currentColor"/>
+        </symbol>
+        <!-- 문서 파일 (docx, pdf) -->
+        <symbol id="i-file-doc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path fill-opacity="0.3" d="M13 9V3.5L18.5 9M6 2C4.89 2 4 2.89 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6Z" fill="currentColor"/>
+            <rect x="7" y="12" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect x="7" y="15" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect x="7" y="18" width="7" height="1.5" rx="0.75" fill="currentColor"/>
+        </symbol>
+        <!-- 스프레드시트 (xlsx) -->
+        <symbol id="i-file-sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path fill-opacity="0.3" d="M13 9V3.5L18.5 9M6 2C4.89 2 4 2.89 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6Z" fill="currentColor"/>
+            <rect x="7" y="11" width="4.5" height="3" rx="0.5" fill="currentColor"/>
+            <rect x="12.5" y="11" width="4.5" height="3" rx="0.5" fill="currentColor"/>
+            <rect x="7" y="15.5" width="4.5" height="3" rx="0.5" fill="currentColor"/>
+            <rect x="12.5" y="15.5" width="4.5" height="3" rx="0.5" fill="currentColor"/>
+        </symbol>
+        <!-- 프레젠테이션 (pptx) -->
+        <symbol id="i-file-ppt" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path fill-opacity="0.3" d="M13 9V3.5L18.5 9M6 2C4.89 2 4 2.89 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6Z" fill="currentColor"/>
+            <path d="M10 12L10 19L17 15.5L10 12Z" fill="currentColor"/>
+        </symbol>
+        <!-- 압축 파일 (zip) -->
+        <symbol id="i-file-zip" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path fill-opacity="0.3" d="M13 9V3.5L18.5 9M6 2C4.89 2 4 2.89 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6Z" fill="currentColor"/>
+            <rect x="10" y="10" width="4" height="2" rx="0.5" fill="currentColor"/>
+            <rect x="10" y="13" width="4" height="2" rx="0.5" fill="currentColor"/>
+            <rect x="10" y="16" width="4" height="2" rx="0.5" fill="currentColor"/>
+            <rect x="10.5" y="18.5" width="3" height="2" rx="0.5" fill="currentColor"/>
         </symbol>
     </defs>
 </svg>

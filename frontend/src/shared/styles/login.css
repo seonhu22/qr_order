@@ -15,6 +15,10 @@
   overflow: hidden;
 }
 
+.login-page--client {
+  background-color: var(--orange-10);
+}
+
 /* ---- 장식 원형 (브랜드 컬러 5% 불투명도) ---- */
 .login-page__deco {
   position: absolute;
@@ -92,9 +96,117 @@
   gap: var(--spacing-8);
 }
 
+/* 회원가입 step에서 카드 너비 확장 + 고정 높이 스크롤 */
+.login-card--wide {
+  width: min(100%, var(--width-modal-lg));
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-card--wide .login-card__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* 로그인 버튼 전체 너비 */
 .login-card__submit {
   width: 100%;
+}
+
+/* 로그인·회원가입 버튼 그룹 */
+.login-card__button-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* 아이디 저장 + 비밀번호 찾기 행 */
+.login-card__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login-card__options .checkbox-control__label {
+  font-size: var(--font-size-xs);
+}
+
+/* 회원가입 입력 목록 */
+.login-card__signup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+/* 개인정보 동의 박스 */
+.login-card__consent-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--color-bg-muted);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.login-card__consent-section-title {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.login-card__consent-text {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+  margin-top: calc(var(--spacing-1) * -1);
+}
+
+.login-card__consent-notice {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  margin-top: var(--spacing-2);
+}
+
+/* 동의·이전/다음 버튼 행 */
+.login-card__consent-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+/* ---- 계정 잠금 ---- */
+.login-card__locked-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.login-card__locked-desc {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+  line-height: var(--typography-leading-ui);
+}
+
+.login-card__locked-email {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-5);
+  background-color: var(--color-bg-muted);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.login-card__locked-email:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
 }
 
 /* ---- 저작권 텍스트 ---- */

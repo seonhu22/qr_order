@@ -875,6 +875,8 @@ export interface components {
             optionNm: string;
             optionData: string;
             description?: string;
+            /** Format: int32 */
+            ordNo: number;
         };
         RuleDetailRequest: {
             newItems?: components["schemas"]["RuleDetail"][];
@@ -887,6 +889,7 @@ export interface components {
             plantNm: string;
             emailUrl: string;
             storeNm?: string;
+            empNm?: string;
             zipCode?: string;
             address?: string;
             phoneNumber?: string;
@@ -909,7 +912,6 @@ export interface components {
         };
         Payment: {
             sysId?: string;
-            plantCd: string;
             paymentCd: string;
             paymentNm: string;
             /** Format: int32 */
@@ -934,8 +936,10 @@ export interface components {
             menuCd: string;
             menuNm: string;
             parentMenuCd: string;
-            ordNo: string;
-            treeLevel: string;
+            /** Format: int32 */
+            ordNo: number;
+            /** Format: int32 */
+            treeLevel: number;
             menuUrl?: string;
         };
         MenuRequest: {
@@ -965,40 +969,26 @@ export interface components {
             updateItems?: components["schemas"]["CommonDetail"][];
             deleteItems?: components["schemas"]["CommonDetail"][];
         };
-        DateTime: {
-            /** Format: int32 */
-            NanoSeconds?: number;
-            /** Format: int32 */
-            Seconds?: number;
-            /** Format: int32 */
-            Minutes?: number;
-            /** Format: int32 */
-            Hours?: number;
-            /** Format: int32 */
-            Day?: number;
-            /** Format: int32 */
-            Month?: number;
-            /** Format: int32 */
-            Year?: number;
-            IsUTC?: boolean;
-        };
         QnaRequest: {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            startDate?: string;
             deleteYn?: string;
             useYn?: string;
             fileUuid?: string;
             answerYn?: string;
-            answerDatetime?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            answerDatetime?: string;
             answerDescription?: string;
         };
         NoticeRequest: {
             sysId?: string;
             noticeTitle?: string;
             noticeDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            startDate?: string;
             deleteYn?: string;
             useYn?: string;
             fileUuid?: string;
@@ -1072,8 +1062,6 @@ export interface components {
         };
         PaymentResponse: {
             sysId?: string;
-            plantCd?: string;
-            plantNm?: string;
             paymentCd?: string;
             paymentNm?: string;
             /** Format: int32 */
@@ -1094,6 +1082,7 @@ export interface components {
         };
         SysAccessLogDetail: {
             menuCd?: string;
+            menuNm?: string;
             /** Format: date-time */
             menuOpenDatetime?: string;
             /** Format: date-time */
@@ -1111,17 +1100,23 @@ export interface components {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            startDate?: components["schemas"]["DateTime"];
-            fileUuid?: string;
+            /** Format: date-time */
+            startDate?: string;
+            fileUlid?: string;
             answerYn?: string;
-            answerDatetime?: components["schemas"]["DateTime"];
+            /** Format: date-time */
+            answerDatetime?: string;
             answerDescription?: string;
         };
         NoticeResponse: {
+            sysId?: string;
             noticeTitle?: string;
             noticeDescription?: string;
             startDate?: string;
-            fileUuid?: string;
+            useYn?: string;
+            fileUlid?: string;
+            modifyDatetime?: string;
+            modifyUserId?: string;
         };
         AdminUserResponse: {
             sysId?: string;
@@ -1539,7 +1534,9 @@ export interface operations {
     };
     saveCommonDetail: {
         parameters: {
-            query?: never;
+            query: {
+                tempLinkSysId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2274,7 +2271,7 @@ export interface operations {
     getAttachFile: {
         parameters: {
             query: {
-                sysId: string;
+                linkSysId: string;
             };
             header?: never;
             path?: never;

@@ -1,16 +1,18 @@
 package htms.QROrder.system.dto;
 
-import com.sun.star.util.DateTime;
 import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class QnaResponse {
     private String sysId;
     private String qnaTitle;
     private String qnaDescription;
-    private DateTime startDate;
-    private String fileUuid;
+    private LocalDate startDate;
+    private String fileUlid;
     private String answerYn;
-    private DateTime answerDatetime;
+    private LocalDateTime answerDatetime;
     private String answerDescription;
 }

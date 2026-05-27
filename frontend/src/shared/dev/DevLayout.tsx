@@ -9,6 +9,7 @@
  */
 
 import { NavLink, Outlet } from 'react-router-dom';
+import './devStyles/DevLayout.css';
 
 /* =====================================================
  * 내비게이션 메뉴 목록
@@ -25,64 +26,30 @@ const NAV_ITEMS = [
   { path: '/dev/form-alert', label: 'FormAlert' },
   { path: '/dev/table',     label: 'TableCard' },
   { path: '/dev/tree-menu', label: 'TreeMenu' },
+  { path: '/dev/error-page', label: 'ErrorPage' },
+  { path: '/dev/file-attachment', label: '첨부파일' },
   // { path: '/dev/feedback', label: 'Feedback' },
 ] as const;
 
 export default function DevLayout() {
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'var(--typography-font-base)' }}>
+    <div className="dev-layout">
       {/* ── 사이드 내비게이션 ────────────────────────── */}
-      <nav
-        style={{
-          width: '200px',
-          flexShrink: 0,
-          background: 'var(--color-bg-surface)',
-          borderRight: '1px solid var(--color-border-divider)',
-          padding: '1.5rem 0',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          overflowY: 'auto',
-        }}
-      >
+      <nav className="dev-layout__nav">
         {/* 로고 */}
-        <div
-          style={{
-            padding: '0 1rem 1.25rem',
-            borderBottom: '1px solid var(--color-border-divider)',
-            marginBottom: '0.75rem',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--color-brand-default)',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Dev Guide
-          </span>
+        <div className="dev-layout__nav-logo">
+          <span className="dev-layout__nav-logo-text">Dev Guide</span>
         </div>
 
         {/* 컴포넌트 목록 */}
-        <ul style={{ listStyle: 'none', padding: '0 0.5rem', margin: 0 }}>
+        <ul className="dev-layout__nav-list">
           {NAV_ITEMS.map(({ path, label }) => (
             <li key={path}>
               <NavLink
                 to={path}
-                style={({ isActive }) => ({
-                  display: 'block',
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: 'var(--radius-button)',
-                  fontSize: '0.8125rem',
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? 'var(--color-brand-default)' : 'var(--color-text-secondary)',
-                  background: isActive ? 'var(--color-bg-selected)' : 'transparent',
-                  textDecoration: 'none',
-                  transition: 'background var(--transition-ui), color var(--transition-ui)',
-                })}
+                className={({ isActive }) =>
+                  `dev-layout__nav-link${isActive ? ' dev-layout__nav-link--active' : ''}`
+                }
               >
                 {label}
               </NavLink>
@@ -92,7 +59,7 @@ export default function DevLayout() {
       </nav>
 
       {/* ── 콘텐츠 영역 ─────────────────────────────── */}
-      <main style={{ flex: 1, overflowY: 'auto' }}>
+      <main className="dev-layout__main">
         <Outlet />
       </main>
     </div>

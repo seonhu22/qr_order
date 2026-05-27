@@ -14,7 +14,9 @@
 - [8. 테이블 카드 컴포넌트 (TableCard)](#8-테이블-카드-컴포넌트-tablecard)
 - [9. 트리 메뉴 컴포넌트 (TreeMenu)](#9-트리-메뉴-컴포넌트-treemenu)
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
-- [11. 사이드바 컴포넌트 (Sidebar)](#11-사이드바-컴포넌트-sidebar)
+- [11. 상태 처리와 에러 페이지 (StatusHandling)](#11-상태-처리와-에러-페이지-statushandling)
+- [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
+- [13. 첨부파일 컴포넌트 (FileAttachment)](#13-첨부파일-컴포넌트-fileattachment)
 
 ---
 
@@ -75,6 +77,8 @@ shared/
   lib/
     httpClient.ts         ← fetch 래퍼 (공통 헤더, 에러 처리)
     queryClient.js        ← QueryClient 설정
+  pages/
+    error/                ← 403/404/500 공통 페이지 조립
   routes/
     AppRoutes.jsx         ← 앱 전체 라우트 진입점
   stores/                 ← Zustand 전역 UI 상태 (확장 예정)
@@ -163,6 +167,7 @@ shared/components/
       NoticeModal.tsx             ← 안내(확인 1버튼) 모달
       NoticeConfirmModal.tsx      ← 안내 + 확인/취소 모달
       SimpleDefaultModal.tsx      ← 빈 슬롯형 범용 모달
+      ValidationNoticeModal.tsx   ← 검증 안내 목록 모달
   table/
     index.ts              ← 외부 공개 API (배럴 파일)
     types.ts              ← 대표 공개 props/type
@@ -191,6 +196,19 @@ shared/components/
     index.ts
     FeedbackState.tsx
     FeedbackState.css
+  file-attachment/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts              ← ServerFile, FileChangeState, props 타입
+    fileTypeUtils.ts      ← 확장자별 아이콘·색상 매핑
+    FileInputGroup.tsx    ← 등록·수정 파일 선택 UI
+    FileDownloadList.tsx  ← 상세 다운로드 목록
+    FileHint.tsx          ← 파일 제약 안내
+    FileAttachment.css
+  error/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    types.ts              ← ErrorPageTemplate props/action 타입
+    ErrorPageTemplate.tsx ← 403/404/500 공통 화면 템플릿
+    ErrorPageTemplate.css
 ```
 
 #### modal/ 계층 원칙
@@ -250,6 +268,19 @@ Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립�
 - `semantic-tokens.css`의 CSS 변수만 참조한다. px 값 직접 사용 금지.
 - 각 컴포넌트 폴더 내부에 전용 CSS 파일을 작성한다 (예: `Input.css`).
 - 클래스 네이밍은 BEM 방식을 따른다 (예: `.input-control__slot-left`).
+
+### 알려진 이슈 — 작업 예정
+
+> 추가일: 2026-04-22
+
+**textarea와 InputBase 폰트 크기 불일치**
+
+현재 페이지 CSS에서 직접 작성한 `textarea`(`notice-manage-textarea` 등)의 폰트 크기가
+`InputBase` 컴포넌트와 시각적으로 다르게 보이는 현상이 있다.
+
+- 원인: `textarea`는 브라우저 기본 폰트 설정을 상속하는 반면, `InputBase`는 토큰 기반 폰트 크기를 명시적으로 적용하기 때문이다.
+- 해결 방향: `InputBase`를 `textarea` 모드로 확장하거나, 공용 `TextareaBase` 컴포넌트를 추가해 동일한 토큰을 적용한다.
+- 임시 처리: 현재는 페이지 CSS에 `font-size: var(--typography-size-body); font-family: inherit;`를 명시해 최대한 맞추고 있으나 완전히 일치하지 않을 수 있다.
 
 ---
 
@@ -347,8 +378,23 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 14. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
 15. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
 16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
-17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 여러 안내 문구를 합칠 때 `messages.join('\n')` 형태로 사용한다.
+17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 단순 안내 문구를 합칠 때만 `messages.join('\n')` 형태로 사용한다.
 18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
+19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
+20. 행추가/행삭제가 있는 인라인 편집 테이블의 저장 검증 안내는 개수에 따라 모달을 나눈다. 검증 안내가 1개면 `SimpleDefaultModal`, 2개 이상이면 `ValidationNoticeModal`을 사용한다. 이 규칙은 셀 내부에 필드별 안내 문구를 둘 공간이 부족한 행추가 테이블 전용이며, 일반 등록/수정 폼 모달은 기존처럼 필드 옆 `errorText`를 사용한다.
+
+```tsx
+<SimpleDefaultModal
+  open={open}
+  description={(
+    <>
+      <strong className="admin-user-reset-modal__account-id">admin01</strong>
+      {' 비밀번호를 초기화 하시겠습니까?'}
+    </>
+  )}
+  onClose={onClose}
+/>
+```
 
 ---
 
@@ -435,7 +481,27 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ---
 
-## 11. 사이드바 컴포넌트 (Sidebar)
+## 11. 상태 처리와 에러 페이지 (StatusHandling)
+
+401 인증 리다이렉트와 403/404/500 에러 페이지의 공통 처리 기준이다.
+상세 사용법·Props·`layout` 선택 기준은 [docs/components/StatusHandling.md](./components/StatusHandling.md) 참고.
+
+---
+
+## 12. 사이드바 컴포넌트 (Sidebar)
 
 라우터·스토어·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음(`Sidebar` / `SidebarNav` / `SidebarUser`).  
 상세 사용법·Props·어드민 어댑터 패턴은 [docs/components/Sidebar.md](./components/Sidebar.md) 참고.
+
+---
+
+## 13. 첨부파일 컴포넌트 (FileAttachment)
+
+등록·수정·상세 화면에서 사용하는 첨부파일 입력, 다운로드 목록, 제약 안내 컴포넌트 모음이다.
+컴포넌트 사용법은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.
+
+관련 문서:
+
+- [파일 정책](./file-attachment-policy.md)
+- [첨부파일 API 계약](./file-attachment-api.md)
+- [첨부파일 QA](./file-attachment-qa.md)

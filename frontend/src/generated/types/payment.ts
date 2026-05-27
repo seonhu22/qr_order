@@ -8,7 +8,6 @@
 
 export interface Payment {
   sysId?: string;
-  plantCd: string;
   paymentCd: string;
   paymentNm: string;
   paymentFee: number;

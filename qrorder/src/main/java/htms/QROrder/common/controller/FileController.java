@@ -27,9 +27,9 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping
-    public List<FileResponse> getAttachFile(@RequestParam String sysId) {
+    public List<FileResponse> getAttachFile(@RequestParam String linkSysId) {
 
-        return fileService.getAttachFile(sysId);
+        return fileService.getAttachFile(linkSysId);
     }
 
     @PostMapping("/save")

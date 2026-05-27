@@ -5,6 +5,7 @@ import { MessageTable } from './MessageTable';
 const createProps = () => ({
   rows: [],
   selectedRowId: '',
+  rowErrors: {},
   isLoading: false,
   isError: false,
   isSaving: false,

@@ -8,8 +8,6 @@
 
 export interface PaymentResponse {
   sysId?: string;
-  plantCd?: string;
-  plantNm?: string;
   paymentCd?: string;
   paymentNm?: string;
   paymentFee?: number;

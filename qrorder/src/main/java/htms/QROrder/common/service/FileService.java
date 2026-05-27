@@ -69,6 +69,7 @@ public class FileService {
 
         if (!newItems.isEmpty()) {
             fileValidationService.validateExtensions(newItems);
+            fileValidationService.validateNoDuplicateFilenames(newItems);
             newFile(newItems, userId, sysPlantCd, menuCd);
         }
         if (!updateItems.isEmpty()) {
@@ -84,10 +85,13 @@ public class FileService {
                             String sysPlantCd,
                             String menuCd) {
 
+        newItems.forEach(item -> item.setFilePath("/" + menuCd + item.getFilePath()));
+
         Set<FileIO> converted = Collections.emptySet();
         if (fileValidationService.isConvertibleToPdf(newItems)) {
-            fileValidationService.validateNotEncrypted(newItems);
-            converted = Set.copyOf(pdfConvertService.pdfConvert(newItems));
+            List<FileIO> convertibleItems = fileValidationService.filterConvertibleToPdf(newItems);
+            fileValidationService.validateNotEncrypted(convertibleItems);
+            converted = Set.copyOf(pdfConvertService.pdfConvert(convertibleItems));
         }
 
         final Set<FileIO> convertedFiles = converted;

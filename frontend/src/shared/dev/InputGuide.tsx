@@ -9,38 +9,23 @@
  */
 
 import { useState } from 'react';
-import { TextInput } from '@/shared/components/input';
+import { TextInput, TextareaInput } from '@/shared/components/input';
 import { Icon } from '@/shared/assets/icons/Icon';
+import './devStyles/InputGuide.css';
 
 /* =====================================================
  * 간단한 섹션 레이아웃 헬퍼
  * ===================================================== */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: '2.5rem' }}>
-      <h2
-        style={{
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--color-text-tertiary)',
-          borderBottom: '1px solid var(--color-border-divider)',
-          paddingBottom: '0.5rem',
-          marginBottom: '1.25rem',
-        }}
-      >
-        {title}
-      </h2>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1.25rem',
-          alignItems: 'flex-start',
-        }}
-      >
+    <section className="dev-guide__section">
+      <div className="dev-guide__section-header">
+        <h2 className="dev-guide__section-title">{title}</h2>
+      </div>
+      <div className="dev-guide__section-body">
+        <div className="dev-guide__grid">
         {children}
+        </div>
       </div>
     </section>
   );
@@ -58,15 +43,7 @@ function Card({
 }) {
   return (
     <div style={{ width }}>
-      <p
-        style={{
-          fontSize: '0.7rem',
-          color: 'var(--color-text-tertiary)',
-          marginBottom: '0.5rem',
-        }}
-      >
-        {label}
-      </p>
+      <p className="dev-guide__item-label">{label}</p>
       {children}
     </div>
   );
@@ -80,28 +57,11 @@ export default function InputGuide() {
   const [pwValue, setPwValue] = useState('');
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-bg-app)',
-        padding: '2rem',
-        fontFamily: 'var(--typography-font-base)',
-      }}
-    >
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div className="dev-guide">
         {/* 헤더 */}
-        <div style={{ marginBottom: '3rem' }}>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              marginBottom: '0.375rem',
-            }}
-          >
-            TextInput
-          </h1>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+        <div className="dev-guide__header">
+          <h1 className="dev-guide__title">TextInput</h1>
+          <p className="dev-guide__description">
             개발 전용 미리보기 · <code style={{ fontSize: '0.8rem' }}>/dev/input</code>
           </p>
         </div>
@@ -253,6 +213,124 @@ export default function InputGuide() {
           </Card>
         </Section>
 
+        {/* =====================================================
+         * Textarea
+         * ===================================================== */}
+        <div className="input-guide-section-title">
+          <h1 className="input-guide-section-title__heading">TextareaInput</h1>
+          <p className="input-guide-section-title__sub">
+            개발 전용 미리보기 · <code>/dev/input</code>
+          </p>
+        </div>
+
+        {/* ─── 상태 ─────────────────────────────────────── */}
+        <Section title="State">
+          <Card label="기본" width="320px">
+            <TextareaInput label="메모" rows={3} placeholder="내용을 입력하세요" />
+          </Card>
+          <Card label="필수" width="320px">
+            <TextareaInput label="사유" required rows={3} placeholder="필수 입력 항목입니다" />
+          </Card>
+          <Card label="disabled" width="320px">
+            <TextareaInput label="비활성" disabled rows={3} value="수정 불가" readOnly />
+          </Card>
+          <Card label="readOnly" width="320px">
+            <TextareaInput label="읽기 전용" readOnly rows={3} value="읽기 전용 값입니다." />
+          </Card>
+          <Card label="error" width="320px">
+            <TextareaInput
+              label="내용"
+              errorText="내용을 입력해주세요"
+              rows={3}
+              defaultValue="너무 짧습니다."
+            />
+          </Card>
+          <Card label="success" width="320px">
+            <TextareaInput
+              label="설명"
+              successText="적절한 길이입니다"
+              rows={3}
+              defaultValue="내용이 올바르게 입력되었습니다."
+            />
+          </Card>
+        </Section>
+
+        {/* ─── 도움말 텍스트 ─────────────────────────────── */}
+        <Section title="Helper Text">
+          <Card label="hint" width="320px">
+            <TextareaInput label="메모" hint="최대 500자까지 입력 가능합니다" rows={3} placeholder="내용을 입력하세요" />
+          </Card>
+          <Card label="infoText (항상 표시)" width="320px">
+            <TextareaInput
+              label="공지사항 내용"
+              infoText="HTML 태그는 사용할 수 없습니다"
+              rows={3}
+              placeholder="내용을 입력하세요"
+            />
+          </Card>
+          <Card label="infoText + error 동시" width="320px">
+            <TextareaInput
+              label="내용"
+              infoText="최대 500자까지 입력 가능합니다"
+              errorText="내용이 너무 짧습니다"
+              rows={3}
+              defaultValue="짧음"
+            />
+          </Card>
+        </Section>
+
+        {/* ─── resize ────────────────────────────────────── */}
+        <Section title="Resize">
+          <Card label="none (기본)" width="320px">
+            <TextareaInput label="고정" resize="none" rows={4} placeholder="크기 조절 불가" />
+          </Card>
+          <Card label="vertical" width="320px">
+            <TextareaInput label="세로 조절" resize="vertical" rows={4} placeholder="세로만 조절 가능" />
+          </Card>
+          <Card label="both" width="320px">
+            <TextareaInput label="양방향 조절" resize="both" rows={4} placeholder="가로·세로 모두 조절 가능" />
+          </Card>
+        </Section>
+
+        {/* ─── 레이블 위치 ───────────────────────────────── */}
+        <Section title="Label Position">
+          <Card label="top (기본)" width="320px">
+            <TextareaInput labelPosition="top" label="메모" rows={3} placeholder="입력" />
+          </Card>
+          <Card label="left" width="400px">
+            <TextareaInput labelPosition="left" label="메모" labelWidth="4rem" rows={3} placeholder="입력" />
+          </Card>
+        </Section>
+
+        {/* ─── 조합 예시 ─────────────────────────────────── */}
+        <Section title="실제 사용 예시 — 공지사항 등록 폼">
+          <div
+            style={{
+              width: '480px',
+              background: 'var(--color-bg-surface)',
+              borderRadius: 'var(--radius-card)',
+              padding: '1.5rem',
+              boxShadow: 'var(--shadow-card)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+            }}
+          >
+            <TextInput label="제목" required placeholder="공지사항 제목을 입력하세요" />
+            <TextareaInput
+              label="내용"
+              required
+              rows={5}
+              placeholder="공지사항 내용을 입력하세요"
+              hint="최대 1000자까지 입력 가능합니다"
+            />
+          </div>
+        </Section>
+
+        <div className="input-guide-section-title">
+          <h1 className="input-guide-section-title__heading">TextInput</h1>
+        </div>
+
         {/* ─── 조합 예시 ─────────────────────────────────── */}
         <Section title="실제 사용 예시 — 로그인 폼">
           <div
@@ -286,7 +364,6 @@ export default function InputGuide() {
             />
           </div>
         </Section>
-      </div>
     </div>
   );
 }

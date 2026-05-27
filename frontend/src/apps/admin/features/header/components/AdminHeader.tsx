@@ -1,46 +1,79 @@
 // src/apps/admin/features/header/components/AdminHeader.tsx
 
 import '@/apps/admin/features/header/styles/AdminHeader.css';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
+import type { AdminSection } from '@/apps/admin/stores/adminLayoutStore';
 
 /**
  * 관리자 레이아웃 상단 헤더
  *
- * - 사이드바 토글 버튼 (햄버거 메뉴)
+ * - 홈 버튼: 대시보드 이동 + 사이드바 초기화
  * - 상단 내비게이션 탭 (시스템 / 게시판)
- *
- * TODO: 활성 탭·토글 동작은 라우트·상태 연결 예정 (현재 UI only)
+ *   · --selected: 현재 사이드바에 열려 있는 섹션
+ *   · --current:  현재 URL이 속한 섹션 (실제 페이지 위치)
  */
 export function AdminHeader() {
+  const navigate = useNavigate();
+  const { currentSection, headerSections } = useAdminNavigationMenus();
+
   const toggleSidebar = useAdminLayoutStore((state) => state.toggleSidebar);
+  const closeSidebar = useAdminLayoutStore((state) => state.closeSidebar);
+  const openSidebar = useAdminLayoutStore((state) => state.openSidebar);
+  const setActiveSection = useAdminLayoutStore((state) => state.setActiveSection);
+
+  const handleHomeClick = () => {
+    navigate('/admin/main');
+    setActiveSection(null);
+    closeSidebar();
+  };
+
+  const handleNavClick = (section: AdminSection) => {
+    setActiveSection(section);
+    openSidebar();
+  };
 
   return (
     <div className="admin-header">
-      {/* 사이드바 토글 버튼 */}
-      <button
-        type="button"
-        className="admin-header__toggle"
-        aria-label="메뉴 열기/닫기"
-        onClick={toggleSidebar}
-      >
-        <Icon id="i-menu" size={20} />
-      </button>
-
-      {/* 상단 내비게이션 탭 */}
-      <nav className="admin-header__nav" aria-label="상단 메뉴">
-        {/* TODO : CONTANTS를 받아  반복문 UL LI 구조으로 제작  */}
-        {/* --ACTIVE를 사용하면 활성 탭 표시 가능 */}
+      {currentSection !== null && (
         <button
           type="button"
-          className="admin-header__nav-item admin-header__nav-item--active"
-          aria-current="page"
+          className="admin-header__toggle"
+          aria-label="메뉴 열기/닫기"
+          onClick={toggleSidebar}
         >
-          시스템
+          <Icon id="i-menu" size={20} />
         </button>
-        <button type="button" className="admin-header__nav-item">
-          게시판
-        </button>
+      )}
+
+      <button
+        type="button"
+        className="admin-header__home"
+        aria-label="대시보드로 이동"
+        onClick={handleHomeClick}
+      >
+        <Icon id="i-home" size={16} />
+      </button>
+
+        <div className="admin-header__divider" aria-hidden="true" />
+
+      <nav className="admin-header__nav" aria-label="상단 메뉴">
+        {headerSections.map(({ section, label }) => {
+          const isCurrent = currentSection === section;
+          return (
+            <button
+              key={section}
+              type="button"
+              className={`admin-header__nav-item${isCurrent ? ' admin-header__nav-item--current' : ''}`}
+              aria-current={isCurrent ? 'page' : undefined}
+              onClick={() => handleNavClick(section)}
+            >
+              {label}
+            </button>
+          );
+        })}
       </nav>
     </div>
   );

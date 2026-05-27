@@ -30,6 +30,7 @@ export function PlantStatusPage() {
         rows={data.rows}
         isLoading={status.isLoading || status.isFetching}
         isError={status.isError}
+        emptyMessage={uiProps.emptyMessage}
       />
     </AdminMainLayout>
   );

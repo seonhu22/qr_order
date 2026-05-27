@@ -56,6 +56,7 @@ export function RuleDetailTable({
         isSaving,
       }}
       actions={{
+        showMoveActions: true,
         onChangeValue,
         onClearRowError,
         onAddRow,

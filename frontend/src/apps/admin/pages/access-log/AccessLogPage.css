@@ -19,12 +19,16 @@
 }
 
 /* ── 테이블 스크롤 ── */
-/* 카드 내부 table-wrap이 남은 높이를 채우고 y 스크롤 */
+/* 카드 내부 table-wrap이 남은 높이를 채우고 y·x 스크롤 모두 허용 */
 .access-log-table__wrap {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
 }
+
+/* 컬럼이 압축되지 않도록 최소 너비 지정 */
+.access-log-master-table .common-table { min-width: 45rem; }
+.access-log-detail-table .common-table { min-width: 45rem; }
 
 /* TableCardContentState가 렌더하는 children(table-wrap)이 카드 높이를 채우도록 */
 .access-log-page__layout .common-code-card {
@@ -53,7 +57,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
+  padding: 1.0625rem;
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-surface);
@@ -66,14 +70,14 @@
 .access-log-filters__date-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   flex-wrap: wrap;
 }
 
 .access-log-filters__date-range {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   flex: 1;
   min-width: 0;
 }
@@ -81,6 +85,11 @@
 .access-log-filters__date-range .input-wrapper {
   flex: 1;
   min-width: 10rem;
+}
+
+/* 라벨-인풋 간격을 필터 영역에 맞게 축소 */
+.access-log-filters .input-wrapper__row {
+  gap: var(--spacing-2);
 }
 
 .access-log-filters__date-sep {

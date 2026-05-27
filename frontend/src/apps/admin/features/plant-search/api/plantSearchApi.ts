@@ -48,12 +48,13 @@ export function mapToPlantSearchModel(plant: Plant): PlantSearchRow {
  * - generated hook이 만드는 기본 key 대신 feature 표준 key를 사용한다.
  * - 페이지는 이 wrapper만 알고, generated 구현 세부사항은 이 파일에 숨긴다.
  */
-export function usePlantSearchQuery(searchKeyword = '') {
+export function usePlantSearchQuery(searchKeyword = '', enabled = true) {
   return useSearchPlant(
     searchKeyword ? { searchKeyword } : undefined,
     {
       query: {
         queryKey: queryKeys.plant.list(searchKeyword),
+        enabled,
       },
     },
   );

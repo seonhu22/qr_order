@@ -17,10 +17,12 @@
  */
 
 /* 컴포넌트 */
-export { InputBase }    from './InputBase';
-export { InputWrapper } from './InputWrapper';
-export { TextInput }    from './TextInput';
-export { SelectInput }  from './SelectInput';
+export { InputBase }     from './InputBase';
+export { InputWrapper }  from './InputWrapper';
+export { TextInput }     from './TextInput';
+export { SelectInput }   from './SelectInput';
+export { TextareaBase }  from './TextareaBase';
+export { TextareaInput } from './TextareaInput';
 
 /* 타입 */
 export type {
@@ -32,4 +34,7 @@ export type {
   TextInputProps,
   SelectOption,
   SelectInputProps,
+  TextareaResize,
+  TextareaBaseProps,
+  TextareaInputProps,
 } from './types';

@@ -1,0 +1,20 @@
+.input-guide-section-title {
+  margin-top: 4rem;
+  margin-bottom: 3rem;
+}
+
+.input-guide-section-title__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.input-guide-section-title__sub {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.input-guide-section-title__sub code {
+  font-size: 0.8rem;
+}

@@ -15,6 +15,7 @@ import {
   DeleteListConfirmModal,
   SaveConfirmModal,
   SimpleDefaultModal,
+  ValidationNoticeModal,
 } from '@/shared/components/modal';
 import './SystemMenuPage.css';
 
@@ -96,11 +97,29 @@ export function SystemMenuPage() {
         onClose={actions.closeSaveConfirm}
       />
 
-      {/* 안내 모달 (입력 오류 / 저장 완료 / 저장 실패) */}
-      <SimpleDefaultModal
-        open={!!uiProps.notice}
+      {/* 검증 안내 모달: 여러 입력 오류를 목록으로 보여준다. */}
+      <ValidationNoticeModal
+        open={(uiProps.notice?.validationItems?.length ?? 0) > 1}
         title={uiProps.notice?.title ?? '알림'}
         description={uiProps.notice?.description}
+        items={uiProps.notice?.validationItems ?? []}
+        primaryAction={{ label: '확인', onClick: actions.confirmNotice }}
+        onClose={actions.closeNotice}
+      />
+
+      {/* 안내 모달 (저장 완료 / 저장 실패) */}
+      <SimpleDefaultModal
+        open={
+          !!uiProps.notice &&
+          (!uiProps.notice.validationItems || uiProps.notice.validationItems.length === 1)
+        }
+        title={uiProps.notice?.title ?? '알림'}
+        description={uiProps.notice?.validationItems?.[0] ?? uiProps.notice?.description}
+        primaryAction={
+          uiProps.notice?.onConfirm
+            ? { label: '확인', onClick: actions.confirmNotice }
+            : undefined
+        }
         onClose={actions.closeNotice}
       />
     </>

@@ -42,7 +42,7 @@
 .tree-menu__header th {
   padding: 0 var(--spacing-6);
   height: 2.5rem;
-  text-align: left;
+  text-align: center;
   font-size: var(--typography-size-sidebar);
   font-weight: var(--typography-weight-ui);
   color: var(--color-text-tertiary);
@@ -63,6 +63,16 @@
 /* =====================================================
  * .tree-item__row — 행
  * ===================================================== */
+
+.tree-menu__empty {
+  padding: 0 var(--spacing-6);
+  height: 2.5rem;
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
 
 .tree-item__row {
   cursor: pointer;

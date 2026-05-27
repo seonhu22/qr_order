@@ -16,6 +16,7 @@
 import { useMemo, useState } from 'react';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
+  ConfirmModal,
   DeleteConfirmModal,
   DeleteListConfirmModal,
   EditConfirmModal,
@@ -23,9 +24,10 @@ import {
   NoticeConfirmModal,
   SaveConfirmModal,
   SimpleDefaultModal,
+  ValidationNoticeModal,
   WrapperModal,
 } from '@/shared/components/modal';
-import type { ModalSize, WrapperModalLayout } from '@/shared/components/modal';
+import type { ConfirmModalTone, ModalSize, WrapperModalLayout } from '@/shared/components/modal';
 import './devStyles/ModalGuide.css';
 
 type Preset = {
@@ -39,6 +41,7 @@ type Preset = {
   primaryActionLabel?: string;
   secondaryActionLabel?: string;
   icon?: string;
+  tone?: ConfirmModalTone;
   onConfirmType?: 'default-close' | 'custom-close';
 };
 
@@ -70,6 +73,7 @@ const PRESETS: Preset[] = [
     layout: 'notice',
     subtitle: '정상적으로 저장되었습니다.',
     icon: 'i-modal-check',
+    tone: 'success',
     primaryActionLabel: '확인',
     onConfirmType: 'default-close',
   },
@@ -80,7 +84,8 @@ const PRESETS: Preset[] = [
     size: 'md',
     layout: 'notice',
     subtitle: '선택한 항목을 삭제하시겠습니까?',
-    icon: 'i-modal-information',
+    icon: 'i-modal-trash',
+    tone: 'danger',
     primaryActionLabel: '삭제',
     secondaryActionLabel: '닫기',
     onConfirmType: 'custom-close',
@@ -300,6 +305,37 @@ function DeleteConfirmModalSection() {
   );
 }
 
+function ConfirmModalSection() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">ConfirmModal (2버튼)</p>
+        <p className="modal-guide__card-description">
+          실제 ConfirmModal 템플릿 · danger tone · trash 아이콘
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <ConfirmModal
+        open={open}
+        tone="danger"
+        title="삭제 확인"
+        description="선택한 항목을 삭제하시겠습니까?"
+        primaryAction={{ onClick: () => setOpen(false) }}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
 function DeleteListConfirmModalSection() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -337,6 +373,38 @@ function DeleteListConfirmModalSection() {
         ]}
         primaryAction={{ loading, onClick: handleConfirm }}
         secondaryAction={{ onClick: () => setOpen(false) }}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
+function ValidationNoticeModalSection() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">ValidationNoticeModal (검증 목록)</p>
+        <p className="modal-guide__card-description">
+          행추가 테이블 저장 검증이 2개 이상일 때 리스트로 표시
+        </p>
+        <button
+          className="modal-guide__card-button"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          모달 열기
+        </button>
+      </div>
+
+      <ValidationNoticeModal
+        open={open}
+        title="알림"
+        items={[
+          '빈값을 채워주세요.',
+          '하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.',
+        ]}
         onClose={() => setOpen(false)}
       />
     </>
@@ -477,9 +545,11 @@ export default function ModalGuide() {
           <p className="modal-guide__card-description" style={{ marginBottom: '12px' }}>
             <code>SimpleDefaultModal</code>은 WrapperModal <code>layout=&quot;default&quot;</code>{' '}
             기반의 1버튼 안내 모달로, description 아래에 helperText 한 줄을 추가할 수 있습니다.
+            행추가 테이블 저장 검증이 1개일 때도 이 모달을 사용합니다.
           </p>
           <div className="modal-guide__grid">
             <SimpleDefaultModalSection />
+            <ValidationNoticeModalSection />
           </div>
         </section>
 
@@ -489,19 +559,7 @@ export default function ModalGuide() {
             <code>ConfirmModal</code>은 삭제/수정/저장 확인 같은 2버튼 상태 전달용 완성 모달입니다.
           </p>
           <div className="modal-guide__grid">
-            <div className="modal-guide__card">
-              <p className="modal-guide__card-label">ConfirmModal (2버튼)</p>
-              <p className="modal-guide__card-description">
-                danger tone · 확인/닫기 버튼 · layout=notice
-              </p>
-              <button
-                className="modal-guide__card-button"
-                type="button"
-                onClick={() => setActivePresetKey('notice-double')}
-              >
-                모달 열기
-              </button>
-            </div>
+            <ConfirmModalSection />
             <DeleteConfirmModalSection />
             <DeleteListConfirmModalSection />
             <SaveConfirmModalSection />
@@ -534,7 +592,13 @@ export default function ModalGuide() {
           title={activePreset.title}
           subtitle={activePreset.subtitle}
           layout={activePreset.layout}
-          icon={activePreset.icon ? <Icon id={activePreset.icon} size={28} /> : undefined}
+          icon={
+            activePreset.icon ? (
+              <div className={`confirm-modal__icon-wrapper confirm-modal__icon-wrapper--${activePreset.tone ?? 'info'}`}>
+                <Icon className="confirm-modal__icon-svg" id={activePreset.icon} size={24} />
+              </div>
+            ) : undefined
+          }
           primaryAction={
             activePreset.primaryActionLabel
               ? {

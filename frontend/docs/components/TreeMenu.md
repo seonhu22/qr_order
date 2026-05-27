@@ -61,6 +61,7 @@ type TreeMenuProps<T> = {
                                      // 하위추가 후 부모 노드를 자동 펼칠 때 사용.
   className?: string;                // 루트 div에 추가할 CSS 클래스
   ariaLabel?: string;                // 컨테이너 aria-label
+  emptyMessage?: string;             // nodes가 빈 배열일 때 tbody에 표시할 메시지. 기본값 없음
 };
 ```
 
@@ -272,8 +273,9 @@ const nodes: TreeMenuNode[] = [
 | `.tree-menu` | `div` (루트) | 테두리·스크롤·배경. `--tree-item-indent`, `--tree-line-width` CSS 변수 선언 |
 | `.tree-menu__table` | `table` | `width: 100%`, `border-collapse: collapse`, `table-layout: fixed` |
 | `.tree-menu__header` | `thead` | 헤더 행 |
-| `.tree-menu__header th` | `th` | sticky 헤더. caption 크기, secondary 색상 |
+| `.tree-menu__header th` | `th` | sticky 헤더. caption 크기, secondary 색상. 헤더 텍스트는 항상 중앙 정렬 |
 | `.tree-menu__header-label` | 레이블 열 `th` | `width: auto` (남은 너비 자동 배분) |
+| `.tree-menu__empty` | `td` (빈 상태) | `nodes`가 비어 있을 때 tbody 한 행. 세로 가운데 정렬, tertiary 색상 |
 
 ### 행 / 셀
 
@@ -285,6 +287,25 @@ const nodes: TreeMenuNode[] = [
 | `.tree-item__label-inner` | `div` | 레이블 콘텐츠 영역. `flex: 1`, 패딩 포함 |
 | `.tree-item__label` | `span` | 텍스트 레이블. `white-space: nowrap`, `text-overflow: ellipsis` |
 | `.tree-item__cell` | 추가 컬럼 `td` | 좌측 divider border, `vertical-align: middle` |
+
+TreeMenu의 바디 셀은 `render`로 직접 콘텐츠를 넣는 구조다.
+추가 컬럼 텍스트 정렬을 바꾸려면 `render` 내부 요소에 className을 주거나,
+사용 화면의 루트 className을 기준으로 `.tree-item__cell`을 오버라이드한다.
+헤더 정렬은 공용 테이블 규칙과 동일하게 중앙 정렬을 유지한다.
+
+```tsx
+const columns: TreeMenuColumn<MenuData>[] = [
+  {
+    key: 'sortOrder',
+    header: '정렬',
+    render: (node) => (
+      <span className="system-menu-tree__cell--center">
+        {node.data?.sortOrder}
+      </span>
+    ),
+  },
+];
+```
 
 ### 연결선 세그먼트
 
@@ -350,3 +371,5 @@ http://localhost:3000/dev/tree-menu
 |---|---|
 | 기본 | `columns` 없이 레이블 텍스트만. 클릭 선택·토글·연결선(│ ├ └) 동작 확인 |
 | labelRender + columns | 레이블 셀에 InputBase(메뉴코드), 메뉴 명·메뉴주소 컬럼 추가. 연결선은 컴포넌트 자동 렌더 |
+| disabled 노드 | `disabled: true` 노드 클릭 불가 + dim 처리. 부모 펼치기/접기는 정상 동작 |
+| 빈 상태 (emptyMessage) | `nodes=[]` 일 때 thead 유지 + tbody에 `emptyMessage` 표시 |

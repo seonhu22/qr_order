@@ -4,7 +4,7 @@
  * @description
  * - TableCard + TreeMenu 조합으로 공통코드 상세 테이블과 동일한 카드 헤더 패턴을 따른다.
  * - 컬럼: 메뉴코드(label·readonly for existing), 메뉴 명, 메뉴주소
- * - 액션: ↑ ↓ 행추가  하위추가  행삭제  저장  초기화
+ * - 액션: ↑ ↓ 행추가  행삭제  하위추가  저장  초기화
  * - 저장 시 필수 미입력 / 부모+경로 충돌 필드에 error 상태를 표시한다.
  */
 
@@ -12,12 +12,13 @@ import { useEffect, useRef } from 'react';
 import { TreeMenu } from '@/shared/components/treeMenu';
 import type { TreeMenuColumn } from '@/shared/components/treeMenu';
 import { InputBase } from '@/shared/components/input';
-import { Button } from '@/shared/components/button';
 import {
+  AddChildRowTableButton,
   AddRowTableButton,
   DeleteRowTableButton,
   MoveDownTableButton,
   MoveUpTableButton,
+  ResetTableButton,
   SaveTableButton,
 } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -91,7 +92,9 @@ export function SystemMenuTree({
     if (!shouldScrollRef.current || !selectedId || !treeContainerRef.current) return;
     shouldScrollRef.current = false;
     const selectedRow = treeContainerRef.current.querySelector('.tree-item__row.is-selected');
-    selectedRow?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (selectedRow instanceof HTMLElement && typeof selectedRow.scrollIntoView === 'function') {
+      selectedRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
   }, [selectedId]);
   const columns: TreeMenuColumn<MenuData>[] = [
     {
@@ -151,30 +154,16 @@ export function SystemMenuTree({
           onAddSibling();
         }}
       />
-      <Button
-        type="button"
-        variant="text"
-        size="sm"
-        className="common-code-card__text-action"
+      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
+      <AddChildRowTableButton
         disabled={!canAddChild || isSaving}
         onClick={() => {
           shouldScrollRef.current = true;
           onAddChild();
         }}
-      >
-        + 하위추가
-      </Button>
-      <DeleteRowTableButton disabled={!canDelete || isSaving} onClick={onDelete} />
+      />
       <SaveTableButton loading={isSaving} onClick={onSave} />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={isSaving}
-        onClick={onReset}
-      >
-        초기화
-      </Button>
+      <ResetTableButton disabled={isSaving} onClick={onReset} />
     </>
   );
 
@@ -189,7 +178,7 @@ export function SystemMenuTree({
         isLoading={isLoading}
         isError={isError}
         loadingTitle="메뉴 목록을 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
+
       >
         <>
           {/* 타이틀-테이블 사이 안내문구 */}
@@ -197,40 +186,37 @@ export function SystemMenuTree({
             ※ 메뉴코드·메뉴 명은 필수 입력 항목입니다. 메뉴주소를 입력한 항목에는 하위 메뉴를 추가할 수 없습니다.
           </p>
 
-          {nodes.length === 0 ? (
-            <p className="system-menu-tree__empty-text">등록된 메뉴가 없습니다. 행추가 버튼을 눌러 메뉴를 추가하세요.</p>
-          ) : (
-            <div ref={treeContainerRef} className="layout-contents">
-              <TreeMenu
-                nodes={nodes}
-                labelHeader="메뉴코드"
-                labelRender={(node) => (
-                  <InputBase
-                    size="sm"
-                    className="common-table__input"
-                    value={node.data?.code ?? ''}
-                    aria-label={`${node.label} 메뉴코드`}
-                    readOnly={!node.data?.isNew}
-                    controlState={
-                      !node.data?.isNew
-                        ? 'readonly'
-                        : nodeErrors.code.has(node.id)
-                        ? 'error'
-                        : ''
-                    }
-                    onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
-                  />
-                )}
-                columns={columns}
-                selectedId={selectedId}
-                onSelect={onSelect}
-                defaultExpandedIds={defaultExpandedIds}
-                expandTrigger={expandTrigger}
-                className="system-menu-tree__inner"
-                ariaLabel="메뉴 관리 트리"
-              />
-            </div>
-          )}
+          <div ref={treeContainerRef} className="layout-contents">
+            <TreeMenu
+              nodes={nodes}
+              emptyMessage="데이터가 없습니다."
+              labelHeader="메뉴코드"
+              labelRender={(node) => (
+                <InputBase
+                  size="sm"
+                  className="common-table__input"
+                  value={node.data?.code ?? ''}
+                  aria-label={`${node.label} 메뉴코드`}
+                  readOnly={!node.data?.isNew}
+                  controlState={
+                    !node.data?.isNew
+                      ? 'readonly'
+                      : nodeErrors.code.has(node.id)
+                      ? 'error'
+                      : ''
+                  }
+                  onChange={(e) => onUpdateData(node.id, { code: e.target.value })}
+                />
+              )}
+              columns={columns}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              defaultExpandedIds={defaultExpandedIds}
+              expandTrigger={expandTrigger}
+              className="system-menu-tree__inner"
+              ariaLabel="메뉴 관리 트리"
+            />
+          </div>
         </>
       </TableCardContentState>
     </TableCard>

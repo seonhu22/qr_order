@@ -1,6 +1,7 @@
 package htms.QROrder.auth.controller;
 
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.auth.dto.LoginResponse;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,17 @@ public class AuthApiController {
             );
         }
 
+        LoginResponse meResponse = LoginResponse.builder()
+                .userId(loginUser.getUserId())
+                .userName(loginUser.getUserNm())
+                .sysPlantCd(loginUser.getSysPlantCd())
+                .initPwdRequired(loginUser.getInitYn().equals("Y"))
+                .build();
+
         return ResponseEntity.ok(
                 CommonResponse.builder()
                         .success(true)
+                        .data(meResponse)
                         .build()
         );
     }

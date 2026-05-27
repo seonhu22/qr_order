@@ -4,8 +4,12 @@ import lombok.Data;
 
 @Data
 public class NoticeResponse {
+    private String sysId;
     private String noticeTitle;
     private String noticeDescription;
     private String startDate;
-    private String fileUuid;
+    private String useYn;
+    private String fileUlid;
+    private String modifyDatetime;
+    private String modifyUserId;
 }

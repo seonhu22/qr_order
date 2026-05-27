@@ -55,6 +55,8 @@ type TreeMenuProps<T> = {
   className?: string;
   /** 컨테이너 aria-label */
   ariaLabel?: string;
+  /** 노드가 없을 때 tbody에 표시할 메시지 */
+  emptyMessage?: string;
 };
 
 /**
@@ -95,6 +97,7 @@ export function TreeMenu<T = unknown>({
   expandTrigger,
   className = '',
   ariaLabel,
+  emptyMessage,
 }: TreeMenuProps<T>) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set(defaultExpandedIds ?? []),
@@ -177,15 +180,26 @@ export function TreeMenu<T = unknown>({
             </thead>
           )}
           <tbody className="tree-menu__body">
-            {nodes.map((node, idx) => (
-              <TreeItem
-                key={node.id}
-                node={node}
-                depth={0}
-                isLastSibling={idx === nodes.length - 1}
-                lines={[]}
-              />
-            ))}
+            {nodes.length === 0 && emptyMessage ? (
+              <tr>
+                <td
+                  colSpan={(columns?.length ?? 0) + 1}
+                  className="tree-menu__empty"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              nodes.map((node, idx) => (
+                <TreeItem
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  isLastSibling={idx === nodes.length - 1}
+                  lines={[]}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>

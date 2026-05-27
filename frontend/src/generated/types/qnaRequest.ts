@@ -5,17 +5,16 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { DateTime } from './dateTime';
 
 export interface QnaRequest {
   sysId?: string;
   qnaTitle?: string;
   qnaDescription?: string;
-  startDate?: DateTime;
+  startDate?: string;
   deleteYn?: string;
   useYn?: string;
   fileUuid?: string;
   answerYn?: string;
-  answerDatetime?: DateTime;
+  answerDatetime?: string;
   answerDescription?: string;
 }

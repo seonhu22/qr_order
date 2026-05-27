@@ -7,14 +7,12 @@ import type {
   UseYnBadgeValue,
 } from './tableBadgeTypes';
 
-export type TableColumnAlign = 'left' | 'center' | 'right';
-
 export type SharedTableColumn = {
   key: string;
   label?: string;
   required?: boolean;
-  align?: TableColumnAlign;
   className?: string;
+  tdClassName?: string;
   ariaLabel?: string;
 };
 

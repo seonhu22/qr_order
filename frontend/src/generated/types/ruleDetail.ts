@@ -13,4 +13,5 @@ export interface RuleDetail {
   optionNm: string;
   optionData: string;
   description?: string;
+  ordNo: number;
 }

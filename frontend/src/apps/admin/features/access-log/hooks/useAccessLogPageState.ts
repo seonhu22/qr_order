@@ -7,7 +7,9 @@
  * - 마스터 행 클릭 시 해당 sysId로 디테일을 조회한다.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
+import { resolveMenuDisplayName } from '@/shared/menu/menuCatalog';
 import {
   mapToAccessLogDetailRow,
   mapToAccessLogMasterRow,
@@ -15,73 +17,33 @@ import {
   useAccessLogMasterQuery,
 } from '../api/accessLogApi';
 import type { AccessLogMasterRow } from '../types';
-
-function pad(n: number) {
-  return String(n).padStart(2, '0');
-}
-
-/** datetime-local 입력값 형식: YYYY-MM-DDTHH:MM — 현재 시각 */
-function getNow() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/** 현재 시각 기준 정확히 7일 전 */
-function getWeekAgoFromNow() {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/** datetime-local 값(YYYY-MM-DDTHH:MM)을 API용 ISO 문자열로 변환한다 (초 추가). */
-function toApiDatetime(value: string) {
-  return value ? `${value}:00` : '';
-}
-
-const MAX_RANGE_DAYS = 7;
-
-type SearchParams = {
-  startDate: string;
-  endDate: string;
-  searchKeyword: string;
-};
-
-function makeDefaultSearchParams(): SearchParams {
-  return {
-    startDate: toApiDatetime(getWeekAgoFromNow()),
-    endDate: toApiDatetime(getNow()),
-    searchKeyword: '',
-  };
-}
+import {
+  createDefaultQueryDateRangeDraft,
+  createDefaultQueryDateRangeParams,
+  createQueryDateRangeParams,
+  validateQueryDateRange,
+} from '@/shared/utils/queryDateRange';
 
 export function useAccessLogPageState() {
+  const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
   const [draftKeyword, setDraftKeyword] = useState('');
-  const [draftStartDate, setDraftStartDate] = useState(getWeekAgoFromNow);
-  const [draftEndDate, setDraftEndDate] = useState(getNow);
+  const [draftStartDate, setDraftStartDate] = useState(defaultDateRange.startDate);
+  const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
   const [dateRangeError, setDateRangeError] = useState('');
 
   /* 페이지 진입 시 기본 7일 범위로 즉시 조회 */
-  const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
+  const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
   const [selectedRow, setSelectedRow] = useState<AccessLogMasterRow | null>(null);
 
   const validateDateRange = (start: string, end: string): boolean => {
-    if (!start || !end) {
-      setDateRangeError('시작일시와 종료일시를 모두 입력해주세요.');
+    const nextError = validateQueryDateRange(start, end);
+    setDateRangeError(nextError);
+
+    if (nextError) {
       return false;
     }
-    const startMs = new Date(start).getTime();
-    const endMs = new Date(end).getTime();
-    if (endMs < startMs) {
-      setDateRangeError('종료일시는 시작일시보다 이후여야 합니다.');
-      return false;
-    }
-    const diffDays = (endMs - startMs) / (1000 * 60 * 60 * 24);
-    if (diffDays > MAX_RANGE_DAYS) {
-      setDateRangeError(`조회 기간은 최대 ${MAX_RANGE_DAYS}일까지 설정할 수 있습니다.`);
-      return false;
-    }
-    setDateRangeError('');
+
     return true;
   };
 
@@ -98,38 +60,42 @@ export function useAccessLogPageState() {
   const masterQuery = useAccessLogMasterQuery({
     startDate: searchParams.startDate,
     endDate: searchParams.endDate,
-    searchKeyword: searchParams.searchKeyword || undefined,
+    searchKeyword: searchParams.searchKeyword,
   });
 
   const detailQuery = useAccessLogDetailQuery(selectedRow?.sysId ?? '');
+  const { catalog } = useAdminMenuCatalogQuery();
 
-  const masterRows = (masterQuery.data ?? []).map(mapToAccessLogMasterRow);
-  const detailRows = (detailQuery.data ?? []).map((item, idx) =>
-    mapToAccessLogDetailRow(item, idx),
+  const masterRows = useMemo(
+    () => (masterQuery.data ?? []).map(mapToAccessLogMasterRow),
+    [masterQuery.data],
+  );
+  const detailRows = useMemo(
+    () =>
+      (detailQuery.data ?? []).map((item, idx) => {
+        const row = mapToAccessLogDetailRow(item, idx);
+
+        return {
+          ...row,
+          menuNm: resolveMenuDisplayName(catalog, row.menuCd, row.menuNm === row.menuCd ? '' : row.menuNm),
+        };
+      }),
+    [catalog, detailQuery.data],
   );
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams({
-      startDate: toApiDatetime(draftStartDate),
-      endDate: toApiDatetime(draftEndDate),
-      searchKeyword: draftKeyword,
-    });
+    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
     setSelectedRow(null);
   };
 
   const handleReset = () => {
-    const defaultStart = getWeekAgoFromNow();
-    const defaultEnd = getNow();
+    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setDraftKeyword('');
-    setDraftStartDate(defaultStart);
-    setDraftEndDate(defaultEnd);
+    setDraftStartDate(nextDefaultDateRange.startDate);
+    setDraftEndDate(nextDefaultDateRange.endDate);
     setDateRangeError('');
-    setSearchParams({
-      startDate: toApiDatetime(defaultStart),
-      endDate: toApiDatetime(defaultEnd),
-      searchKeyword: '',
-    });
+    setSearchParams(createDefaultQueryDateRangeParams());
     setSelectedRow(null);
   };
 

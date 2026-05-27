@@ -13,10 +13,10 @@
  * import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
  */
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
+import { NotFoundPage } from '@/shared/pages/error';
 import { MainPage } from '@/apps/admin/pages/main/MainPage';
-import AdminPlaceholderPage from '@/apps/admin/features/common/components/AdminPlaceholderPage';
 import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
 import { PaymentManagePage } from '@/apps/admin/pages/payment-manage/PaymentManagePage';
 import { PlantStatusPage } from '@/apps/admin/pages/plant-status/PlantStatusPage';
@@ -27,6 +27,19 @@ import { MessageManagementPage } from '@/apps/admin/pages/message-management/Mes
 import { RuleManagementPage } from '@/apps/admin/pages/rule-management/RuleManagementPage';
 import { CouponManagePage } from '@/apps/admin/pages/coupon-manage/CouponManagePage';
 import { AccessLogPage } from '@/apps/admin/pages/access-log/AccessLogPage';
+import { ChangeHistoryPage } from '@/apps/admin/pages/change-history/ChangeHistoryPage';
+import { NoticeManagePage } from '@/apps/admin/pages/notice-manage/NoticeManagePage';
+import { InquiryManagePage } from '@/apps/admin/pages/inquiry-manage/InquiryManagePage';
+
+function RejectUnexpectedSearchParams({ children }) {
+  const location = useLocation();
+
+  if (location.search) {
+    return <NotFoundPage homePath="/admin/main" />;
+  }
+
+  return children;
+}
 
 export const adminRoutes = [
   {
@@ -63,7 +76,11 @@ export const adminRoutes = [
       },
       {
         path: 'system/rule',
-        element: <RuleManagementPage/>,
+        element: (
+          <RejectUnexpectedSearchParams>
+            <RuleManagementPage/>
+          </RejectUnexpectedSearchParams>
+        ),
       },
       {
         path: 'payment/rate',
@@ -83,7 +100,19 @@ export const adminRoutes = [
       },
       {
         path: 'history/audit-log',
-        element: <AdminPlaceholderPage title="변경 이력 조회" />,
+        element: <ChangeHistoryPage />,
+      },
+      {
+        path: 'notice/manage',
+        element: <NoticeManagePage />,
+      },
+      {
+        path: 'inquiry/manage',
+        element: <InquiryManagePage />,
+      },
+      {
+        path: '*',
+        element: <NotFoundPage homePath="/admin/main" />,
       },
     ],
   },

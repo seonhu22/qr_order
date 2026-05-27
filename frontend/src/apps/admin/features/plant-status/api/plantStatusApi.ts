@@ -33,12 +33,13 @@ export function mapToPlantStatusRow(res: PlantStatusResponse): PlantStatusRow {
   };
 }
 
-export function usePlantStatusQuery(searchKeyword = '') {
+export function usePlantStatusQuery(searchKeyword = '', enabled = true) {
   return useGetPlantStatus(
     searchKeyword ? { searchKeyword } : undefined,
     {
       query: {
         queryKey: queryKeys.plantStatus.list(searchKeyword),
+        enabled,
       },
     },
   );

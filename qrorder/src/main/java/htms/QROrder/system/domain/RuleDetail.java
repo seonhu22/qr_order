@@ -15,4 +15,6 @@ public class RuleDetail {
     @NotBlank(message = "규칙은 필수입니다.")
     private String optionData;
     private String description;
+    @NotBlank(message = "순번은 필수입니다.")
+    private Integer ordNo;
 }

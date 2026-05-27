@@ -7,14 +7,13 @@
  * - 마스터/상세 선택, 체크 상태, 상세 draft 편집, 저장/삭제, 순번 이동까지 담당한다.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
-import { useInsertMenuOpenAccessLog } from '@/generated/log-controller/log-controller';
 import type { DetailCode, MasterCode } from '../types';
 import {
   buildCommonDetailRequest,
@@ -45,9 +44,6 @@ export function useCommonCodePageState() {
   const orderedRowEditor = useOrderedRowEditor<DetailCode>();
   const [selectedMasterId, setSelectedMasterId] = useState<string>('');
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
-  // 메뉴 접근 로그 남기는 mutation, 페이지 진입 시 한 번만 실행한다. useRef 가드로 한번만 렌더링하도록 했다.
-  const menuOpenLogMutation = useInsertMenuOpenAccessLog();
-  const hasOpenedMenuLogRef = useRef(false);
   /**
    * 사용자가 실제로 수정하기 시작한 상세 행만 저장하는 draft 저장소.
    *
@@ -63,18 +59,6 @@ export function useCommonCodePageState() {
   const [masterKeyword, setMasterKeyword] = useState('');
 
   /* 조회·초기화 dirty guard: useFilterDirtyCheck로 관리 */
-  useEffect(() => {
-    // 이전에 실행된 적 있으면 REF가 true이므로, 다시 실행하지 않고 그냥 return 한다.
-    if (hasOpenedMenuLogRef.current) {
-      return;
-    }
-    hasOpenedMenuLogRef.current = true;
-
-    // 백엔드 저장 API는 audit 처리에서 session.menuCd를 사용하므로
-    // 페이지 진입 시 현재 메뉴 접근 로그를 먼저 남겨 세션 값을 맞춘다.
-    menuOpenLogMutation.mutate({ params: { menuCd: 'commonCode' } });
-  }, [menuOpenLogMutation]);
-
   const mastersQuery = useCommonCodeMastersQuery(masterKeyword);
   const saveMasterMutation = useSaveCommonMasterMutation();
   const deleteMastersMutation = useDeleteCommonMastersMutation();
@@ -426,6 +410,7 @@ export function useCommonCodePageState() {
       open: !!detailFlow.notice,
       title: detailFlow.notice?.title ?? '안내',
       description: detailFlow.notice?.description,
+      hasConfirmAction: !!detailFlow.notice?.onConfirm,
     },
   };
 
@@ -483,6 +468,7 @@ export function useCommonCodePageState() {
       confirmSaveDetailRows: detailFlow.confirmSave,
       closeDetailSaveConfirm: detailFlow.closeSaveConfirm,
       closeDetailNotice: detailFlow.closeNotice,
+      confirmDetailNotice: detailFlow.confirmNotice,
     },
     uiProps: {
       selectedMasterId: effectiveSelectedMasterId,

@@ -1,0 +1,42 @@
+/* =====================================================
+ * 공지사항 관리 페이지 — feature 전용 스타일
+ * ===================================================== */
+
+/* 모달 폼 2컬럼 행 (공지 유형 + 수신 대상) */
+.notice-manage-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5);
+}
+
+/* 내용 컬럼 말줄임 max-width */
+.notice-manage-table .common-table__cell--truncate {
+  max-width: 24rem;
+}
+
+/* 내용 입력 textarea */
+.notice-manage-textarea {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-default);
+  font-size: var(--typography-size-body);
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.notice-manage-textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-default);
+}
+
+.notice-manage-textarea--error {
+  border-color: var(--color-status-error-default);
+}
+
+.notice-manage-textarea::placeholder {
+  color: var(--color-text-placeholder);
+}

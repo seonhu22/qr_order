@@ -3,23 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.system.repository.CommonDetailMapper">
 
-    <resultMap id="commonDetailResultMap" type="htms.QROrder.system.domain.CommonDetail">
-        <result column="sys_id" property="sysId"/>
-        <result column="link_sys_id" property="linkSysId"/>
-        <result column="common_master_cd" property="commonMasterCd"/>
-        <result column="ord_no" property="ordNo"/>
-        <result column="common_cd" property="commonCd"/>
-        <result column="common_nm" property="commonNm"/>
-        <result column="use_yn" property="useYn"/>
-    </resultMap>
-
-    <select id="findCommonDetailBySearchCond" resultMap="commonDetailResultMap">
+    <select id="findCommonDetailBySearchCond" resultType="htms.QROrder.system.domain.CommonDetail">
         select
             scd.sys_id,
             scd.link_sys_id,
             scm.common_cd as master_common_cd,
             scd.common_cd,
             scd.common_nm,
+            scd.ord_no,
             scd.use_yn
         from sys_common_detail scd
         left join sys_common_master scm on scm.sys_id = scd.link_sys_id
@@ -86,6 +77,7 @@
             update sys_common_detail set
                 common_nm = #{item.commonNm},
                 ord_no = #{item.ordNo},
+                use_yn = #{item.useYn},
                 modify_datetime = now(),
                 modify_user_id = #{userId}
             where 1=1
@@ -103,15 +95,17 @@
             #{item.commonCd}
         </foreach>
         and link_sys_id = #{tempLinkSysId}
+        and delete_yn = 'N'
     </select>
 
-    <select id="getDeuplicateData" resultMap="commonDetailResultMap">
+    <select id="getDuplicateData" resultType="htms.QROrder.system.domain.CommonDetail">
         select
             scd.sys_id,
             scd.link_sys_id,
             scm.common_cd as master_common_cd,
             scd.common_cd,
             scd.common_nm,
+            scd.ord_no,
             scd.use_yn
         from sys_common_detail scd
         left join sys_common_master scm on scm.sys_id = scd.link_sys_id
@@ -124,13 +118,14 @@
         order by scd.ord_no asc
     </select>
 
-    <select id="getOldData" resultMap="commonDetailResultMap">
+    <select id="getOldData" resultType="htms.QROrder.system.domain.CommonDetail">
         select
             scd.sys_id,
             scd.link_sys_id,
             scm.common_cd as master_common_cd,
             scd.common_cd,
             scd.common_nm,
+            scd.ord_no,
             scd.use_yn
         from sys_common_detail scd
         left join sys_common_master scm on scm.sys_id = scd.link_sys_id

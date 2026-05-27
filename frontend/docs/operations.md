@@ -321,6 +321,8 @@ const flow = useEditablePageFlow({
 ```
 
 - 필수값 검증이 필요한 화면만 `onValidateRequiredFields`를 전달한다.
+- 행추가/행삭제가 있는 인라인 편집 테이블은 필수값 검증 실패 시 바로 필드 error를 표시하지 않는다. 먼저 안내 모달을 띄우고, 확인 클릭 후 row error 상태를 적용한다.
+- 검증 안내가 1개면 `SimpleDefaultModal`, 2개 이상이면 `ValidationNoticeModal`을 사용한다.
 - 저장 성공/변경 없음 문구가 다르면 `savedNotice`, `unchangedNotice`로 화면별 오버라이드한다.
 - 페이지에서는 `uiProps.flowState`를 사용해 `ConfirmModal`, `SaveConfirmModal`, `SimpleDefaultModal`을 조립한다.
 
@@ -347,6 +349,8 @@ const flow = useEditablePageFlow({
 - `PaymentManage`: 페이지 조립 + `usePaymentManagePageState` + `usePaymentManageModalFlow` (feature 전용 모달 CRUD)
 - `CouponManage`: 페이지 조립 + `useCouponManagePageState` + `useCouponManageModalFlow` (feature 전용 모달 CRUD, useYn 뱃지 포함)
 - `AccessLog`: 페이지 조립 + `useAccessLogPageState` (datetime-local 날짜 범위 필터, 좌우 분할 마스터-디테일 조회 전용)
+- `ChangeHistory`: 페이지 조립 + `useChangeHistoryPageState` (datetime-local 날짜 범위 필터, 변경 구분(auditFlag) 클라이언트 필터링 포함)
+- `NoticeManage`: 페이지 조립 + `useNoticeManagePageState` + `useNoticeManageModalFlow` (feature 전용 모달 CRUD, textarea 내용 입력)
 
 ---
 
@@ -514,6 +518,7 @@ const handleSearch = () => {
 
 - `use<Feature>PageState`는 `data / status / uiProps / actions` 구조로 page에 전달한다.
 - page는 테이블과 모달 조립만 담당한다.
+- 위 흐름은 모달 CRUD 폼 기준이다. 행추가/행삭제 인라인 편집 테이블은 저장 검증 실패 시 안내 모달 확인 후 필드 오류를 표시한다.
 
 ### 신규 화면 구현 체크리스트
 

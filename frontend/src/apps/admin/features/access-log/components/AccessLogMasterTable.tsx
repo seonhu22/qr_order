@@ -18,40 +18,48 @@ export function AccessLogMasterTable({
   onSelectRow,
 }: AccessLogMasterTableProps) {
   return (
-    <TableCard title="접속 로그 목록" ariaLabel="접속 로그 목록">
+    <TableCard title="접속 로그 목록" ariaLabel="접속 로그 목록" className="access-log-master-table">
       <TableCardContentState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!isLoading && !isError && rows.length === 0}
         loadingTitle="접속 로그를 불러오는 중입니다."
-        errorDescription="다시 한번 시도해주세요."
-        emptyDescription="조회 조건을 설정하고 조회 버튼을 눌러주세요."
       >
         <div className="common-table-wrap access-log-table__wrap">
           <table className="common-table">
+            <colgroup>
+              <col className="common-table__col--md" />
+              <col className="common-table__col--md" />
+              <col />
+              <col />
+              <col />
+            </colgroup>
             <thead>
               <tr>
-                <th className="common-table__th" scope="col">사용자 ID</th>
-                <th className="common-table__th" scope="col">사용자명</th>
-                <th className="common-table__th" scope="col">IP 주소</th>
-                <th className="common-table__th" scope="col">로그인 일시</th>
-                <th className="common-table__th" scope="col">로그아웃 일시</th>
+                <th scope="col">사용자 ID</th>
+                <th scope="col">사용자명</th>
+                <th scope="col">IP 주소</th>
+                <th scope="col">로그인 일시</th>
+                <th scope="col">로그아웃 일시</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={`common-table__row${row.id === selectedId ? ' is-selected' : ''}`}
-                  onClick={() => onSelectRow(row)}
-                >
-                  <td className="common-table__td">{row.userId}</td>
-                  <td className="common-table__td">{row.userNm}</td>
-                  <td className="common-table__td">{row.ipAddress}</td>
-                  <td className="common-table__td">{row.loginDatetime}</td>
-                  <td className="common-table__td">{row.logoutDatetime}</td>
-                </tr>
-              ))}
+              {rows.length === 0 ? (
+                <tr><td colSpan={5} className="common-table__empty">조회 결과가 없습니다.</td></tr>
+              ) : (
+                rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={row.id === selectedId ? 'is-selected' : undefined}
+                    onClick={() => onSelectRow(row)}
+                  >
+                    <td>{row.userId}</td>
+                    <td className="common-table__cell--center">{row.userNm}</td>
+                    <td className="common-table__cell--center">{row.ipAddress}</td>
+                    <td className="common-table__cell--center">{row.loginDatetime}</td>
+                    <td className="common-table__cell--center">{row.logoutDatetime}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
