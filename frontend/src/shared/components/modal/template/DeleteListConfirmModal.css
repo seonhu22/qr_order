@@ -1,0 +1,64 @@
+.delete-list-confirm-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.delete-list-confirm-modal__description {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* 총 N건 — 리스트 박스 바로 위, 우측 정렬 */
+.delete-list-confirm-modal__list-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.delete-list-confirm-modal__count {
+  font-size: var(--typography-size-sidebar);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+}
+
+.delete-list-confirm-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.delete-list-confirm-modal__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-4);
+  height: 2.25rem;
+  font-size: var(--typography-size-sidebar);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.delete-list-confirm-modal__item:last-child {
+  border-bottom: none;
+}
+
+.delete-list-confirm-modal__item-code {
+  font-family: var(--typography-font-mono);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.delete-list-confirm-modal__item-name {
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

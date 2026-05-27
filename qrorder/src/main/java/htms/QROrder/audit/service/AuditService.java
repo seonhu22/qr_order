@@ -48,7 +48,7 @@ public class AuditService {
         auditMapper.insertNewMultiAuditTrailData(audit, userId, sysPlantCd);
     }
 
-    public <T> Audit convertNewAuditTrailData(T newData,
+    private  <T> Audit convertNewAuditTrailData(T newData,
                                             String menuCd,
                                             String tableNm) {
 
@@ -59,7 +59,12 @@ public class AuditService {
 
         Audit audit = new Audit();
         audit.setAuditSysId(ULID);
-        audit.setAuditFlag("I");
+        if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FI");
+        }
+        else {
+            audit.setAuditFlag("I");
+        }
         audit.setMenuCd(menuCd);
         audit.setTableNm(tableNm);
         audit.setInsertDatetime(LocalDateTime.now());
@@ -85,7 +90,7 @@ public class AuditService {
         return audit;
     }
 
-    public <T> List<Audit> convertNewAuditTrailData(List<T> newData,
+    private <T> List<Audit> convertNewAuditTrailData(List<T> newData,
                                             String menuCd,
                                             String tableNm) {
 
@@ -102,7 +107,12 @@ public class AuditService {
 
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("I");
+            if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FI");
+            }
+            else {
+                audit.setAuditFlag("I");
+            }
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
             audit.setInsertDatetime(LocalDateTime.now());
@@ -160,7 +170,7 @@ public class AuditService {
         auditMapper.insertUpdateMultiAuditTrailData(audit, userId, sysPlantCd);
     }
 
-    public <T> Audit convertUpdateAuditTrailData(T oldData,
+    private <T> Audit convertUpdateAuditTrailData(T oldData,
                                                     T newData,
                                                     String menuCd,
                                                     String tableNm) {
@@ -172,7 +182,12 @@ public class AuditService {
 
         Audit audit = new Audit();
         audit.setAuditSysId(ULID);
-        audit.setAuditFlag("U");
+        if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FU");
+        }
+        else {
+            audit.setAuditFlag("U");
+        }
         audit.setMenuCd(menuCd);
         audit.setTableNm(tableNm);
         audit.setInsertDatetime(LocalDateTime.now());
@@ -208,7 +223,7 @@ public class AuditService {
         return audit;
     }
 
-    public <T> List<Audit> convertUpdateAuditTrailData(List<T> oldData,
+    private <T> List<Audit> convertUpdateAuditTrailData(List<T> oldData,
                                             List<T> newData,
                                             String menuCd,
                                             String tableNm) {
@@ -262,7 +277,12 @@ public class AuditService {
             String ULID = UlidCreator.getMonotonicUlid().toString();
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("U");
+            if(tableNm.equals("attach_file")){
+                audit.setAuditFlag("FU");
+            }
+            else {
+                audit.setAuditFlag("U");
+            }
             audit.setRefKey(sysId);
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
@@ -274,17 +294,70 @@ public class AuditService {
         return auditResult;
     }
 
-    public <T> void insertDeleteAuditTrailData(List<T> delIds,
+    public <T> void insertDeleteAuditTrailData(T delData,
+                                        String refKey,
                                         String menuCd,
                                         String tableNm,
                                         String userId,
                                         String sysPlantCd) {
 
-        List<Audit> audit = convertDeleteAuditTrailData(delIds, menuCd, tableNm);
-        auditMapper.insertDeleteAuditTrailData(audit, userId, sysPlantCd);
+        Audit audit = convertDeleteAuditTrailData(delData, menuCd, tableNm);
+        auditMapper.insertDeleteSingleAuditTrailData(audit, refKey, userId, sysPlantCd);
     }
 
-    public <T> List<Audit> convertDeleteAuditTrailData(List<T> delIds,
+    public <T> void insertDeleteAuditTrailData(List<T> delData,
+                                        String menuCd,
+                                        String tableNm,
+                                        String userId,
+                                        String sysPlantCd) {
+
+        List<Audit> audit = convertDeleteAuditTrailData(delData, menuCd, tableNm);
+        auditMapper.insertDeleteMultiAuditTrailData(audit, userId, sysPlantCd);
+    }
+
+    private <T> Audit convertDeleteAuditTrailData(T delData,
+                                            String menuCd,
+                                            String tableNm) {
+
+        List<TableInfo> tableInfo = getTableInfo(tableNm);
+        Map<String, String> columnCommentMap = tableInfo.stream()
+                .collect(Collectors.toMap(TableInfo::getColumnName, TableInfo::getColumnComment));
+        String ULID = UlidCreator.getMonotonicUlid().toString();
+
+        Audit audit = new Audit();
+        audit.setAuditSysId(ULID);
+        if(tableNm.equals("attach_file")){
+            audit.setAuditFlag("FD");
+        }
+        else {
+            audit.setAuditFlag("D");
+        }
+        audit.setMenuCd(menuCd);
+        audit.setTableNm(tableNm);
+        audit.setInsertDatetime(LocalDateTime.now());
+
+        Map<String, Object> delDataMap = dataSetToHashMap(delData);
+
+        StringBuilder contents = new StringBuilder("삭제 데이터\n");
+        for (Map.Entry<String, Object> entry : delDataMap.entrySet()) {
+            String snakeKey = camelToSnake(entry.getKey());
+            String comment = columnCommentMap.get(snakeKey);
+
+            if (comment == null) {
+                continue;
+            }
+
+            contents.append(" ")
+                    .append(comment).append(": ")
+                    .append(entry.getValue() != null ? entry.getValue().toString() : "")
+                    .append("\n");
+        }
+
+        audit.setAuditTrailContents(contents.toString().trim());
+        return audit;
+    }
+
+    private <T> List<Audit> convertDeleteAuditTrailData(List<T> delData,
                                             String menuCd,
                                             String tableNm) {
 
@@ -294,14 +367,19 @@ public class AuditService {
 
         List<Audit> auditResult = new ArrayList<>();
 
-        delIds.forEach(delId -> {
+        delData.forEach(delId -> {
             Map<String, Object> delDataMap = dataSetToHashMap(delId);
             String ULID = UlidCreator.getMonotonicUlid().toString();
             StringBuilder contents = new StringBuilder("삭제 데이터\n");
 
             Audit audit = new Audit();
             audit.setAuditSysId(ULID);
-            audit.setAuditFlag("D");
+            if(tableNm.equals("attach_file")){
+                audit.setAuditFlag("FD");
+            }
+            else {
+                audit.setAuditFlag("D");
+            }
             audit.setMenuCd(menuCd);
             audit.setTableNm(tableNm);
             audit.setInsertDatetime(LocalDateTime.now());

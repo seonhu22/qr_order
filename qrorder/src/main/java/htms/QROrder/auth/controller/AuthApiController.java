@@ -14,28 +14,30 @@ import org.springframework.web.bind.annotation.*;
 public class AuthApiController {
 
     @GetMapping("/me")
-    public ResponseEntity<CommonResponse<LoginResponse>> getCurrentUser(HttpSession session) {
+    public ResponseEntity<CommonResponse> getCurrentUser(HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
         if (loginUser == null) {
             return ResponseEntity.status(401).body(
-                    CommonResponse.<LoginResponse>builder()
+                    CommonResponse.builder()
                             .success(false)
                             .message("인증되지 않은 사용자")
                             .build()
             );
         }
 
+        LoginResponse meResponse = LoginResponse.builder()
+                .userId(loginUser.getUserId())
+                .userName(loginUser.getUserNm())
+                .sysPlantCd(loginUser.getSysPlantCd())
+                .initPwdRequired(loginUser.getInitYn().equals("Y"))
+                .build();
+
         return ResponseEntity.ok(
-                CommonResponse.<LoginResponse>builder()
+                CommonResponse.builder()
                         .success(true)
-                        .data(LoginResponse.builder()
-                                .userId(loginUser.getUserId())
-                                .userName(loginUser.getUserNm())
-                                .sysPlantCd(loginUser.getSysPlantCd() != null ? loginUser.getSysPlantCd() : "")
-                                .build()
-                        )
+                        .data(meResponse)
                         .build()
         );
     }

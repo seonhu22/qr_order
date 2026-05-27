@@ -13,6 +13,7 @@ public class Plant {
     @NotBlank(message = "이메일 주소는 필수입니다.")
     private String emailUrl;
     private String storeNm;
+    private String empNm;
     private String zipCode;
     private String address;
     private String phoneNumber;

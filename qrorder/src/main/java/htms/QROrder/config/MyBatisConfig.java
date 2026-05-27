@@ -15,7 +15,6 @@ import javax.sql.DataSource;
         "htms.QROrder.auth.repository",
         "htms.QROrder.system.repository",
         "htms.QROrder.common.repository",
-        "htms.QROrder.masterdata.repository",
         "htms.QROrder.home.repository",
         "htms.QROrder.popup.repository",
         "htms.QROrder.log.repository",

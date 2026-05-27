@@ -1,5 +1,6 @@
 package htms.QROrder.log.controller;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.log.service.LogService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +21,20 @@ public class LogController {
     public void insertMenuOpenAccessLog(@RequestParam String menuCd,
                                         HttpSession session) {
 
-        String menuUuid = UUID.randomUUID().toString();
-        session.setAttribute("menuUuid", menuUuid);
+        String menuUlid = UlidCreator.getMonotonicUlid().toString();
+        session.setAttribute("menuUuid", menuUlid);
         session.setAttribute("menuCd", menuCd);
 
         String logUuid = (String) session.getAttribute("logUuid");
 
-        logService.insertMenuOpenAccessLog(menuUuid, logUuid, menuCd);
+        logService.insertMenuOpenAccessLog(menuUlid, logUuid, menuCd);
     }
 
     @PostMapping("/menu_close_access_log")
     public void insertMenuCloseAccessLog(HttpSession session) {
 
-        String menuUuid = (String) session.getAttribute("menuUuid");
+        String menuUlid = (String) session.getAttribute("menuUuid");
 
-        logService.insertMenuCloseAccessLog(menuUuid);
+        logService.insertMenuCloseAccessLog(menuUlid);
     }
 }

@@ -1,0 +1,46 @@
+/* =====================================================
+ * 테이블 feature 오버라이드
+ * ===================================================== */
+
+/* 컬럼이 많아 가로 스크롤이 필요한 최소 너비 */
+.admin-user-table .common-table {
+  min-width: 58rem;
+}
+
+/* 필수 항목 표시 */
+.admin-user-page__required {
+  color: var(--color-status-error-default);
+}
+
+/* 비밀번호 초기화 버튼 — 활성 시 흰색 배경으로 행과 구분 */
+.admin-user-page__password-button {
+  min-width: 4.25rem;
+  padding-inline: 0.625rem;
+  border-radius: var(--radius-button);
+  font-weight: var(--typography-weight-ui);
+  background-color: var(--color-bg-surface);
+}
+
+.admin-user-reset-modal__account-id {
+  color: var(--color-brand-default);
+  font-weight: var(--typography-weight-heading);
+}
+
+/* =====================================================
+ * 반응형
+ * ===================================================== */
+
+@media (max-width: 900px) {
+  .common-code-card__header {
+    flex-direction: column;
+    align-items: stretch;
+    padding-block: var(--spacing-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .common-code-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

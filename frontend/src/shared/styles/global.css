@@ -1,0 +1,89 @@
+@charset "utf-8";
+
+/* =====================================================
+ * QR Order — Global Styles
+ * - 앱 전체에 공통으로 적용되는 스타일 진입점
+ * - main.jsx 에서 최초 1회 import
+ * ===================================================== */
+
+@import './reset.css';
+@import './fonts.css';
+@import './primitive-tokens.css';
+@import './semantic-tokens.css';
+
+/* =====================================================
+ * 공통 컴포넌트 애니메이션
+ * - 버튼·인풋·셀렉트 등 스피너에서 공유
+ * ===================================================== */
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================
+ * SPA 뷰포트 고정
+ * html → body → #root 높이 체인을 확정해 viewport 스크롤을 원천 차단한다.
+ * 각 페이지 내부의 스크롤은 해당 레이아웃의 overflow-y: auto 에서 처리한다.
+ * ===================================================== */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* =====================================================
+ * 스크롤바 스타일
+ * ===================================================== */
+::-webkit-scrollbar {
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-hover);
+}
+
+/* =====================================================
+ * 기본 body 폰트·색상
+ * ===================================================== */
+body {
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-app);
+}
+
+/* =====================================================
+ * auto-fill 스타일 제거
+  - 웹킷 기반 브라우저에서 자동 완성된 입력 필드의 배경색과 글자색을 제어하여 디자인 일관성 유지
+ * ===================================================== */
+/* 자동 완성 시 배경색을 투명하게 하거나 특정 색으로 고정 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  /* 배경색을 흰색으로 고정하고 싶을 때 내부 그림자(box-shadow)를 이용*/
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  box-shadow: 0 0 0px 1000px transparent inset;
+
+  /* 글자색 설정 */
+  -webkit-text-fill-color: var(--color-text-primary);
+}
+
+/* 배경색을 아예 투명하게 유지하고 싶을 때 (최신 브라우저) */
+input:-webkit-autofill {
+  transition: background-color 5000s ease-in-out 0s;
+}

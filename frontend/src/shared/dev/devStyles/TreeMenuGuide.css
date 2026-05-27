@@ -1,0 +1,63 @@
+.tree-menu-guide {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: var(--spacing-10);
+  background: var(--color-bg-app);
+  font-family: var(--typography-font-base);
+}
+
+.tree-menu-guide__title {
+  margin: 0 0 var(--spacing-8);
+  font-size: var(--typography-size-h2);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.tree-menu-guide__section {
+  margin-bottom: var(--spacing-8);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-menu-guide__section-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  background: var(--color-bg-muted);
+}
+
+.tree-menu-guide__section-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.tree-menu-guide__section-desc {
+  margin: 0;
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-tertiary);
+}
+
+.tree-menu-guide__section > :not(.tree-menu-guide__section-header) {
+  margin: var(--spacing-6) var(--spacing-8);
+}
+
+/* 링크 아이콘 — 슬롯 기본색(tertiary) 대신 브랜드 컬러 적용 */
+.tree-menu-guide__link-icon {
+  color: var(--color-brand-default);
+}
+
+/* 전체 예시 — 레이블·컬럼 셀 내 input 패딩 최소화 */
+.tree-menu-guide__full-example .tree-item__label-inner,
+.tree-menu-guide__full-example .tree-item__cell {
+  padding-top: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
+}

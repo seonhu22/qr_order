@@ -1,0 +1,299 @@
+/* =====================================================
+ * TableCard — 공통 테이블 카드 레이아웃
+ *
+ * 관리자 화면에서 반복되는 테이블 카드 구조를 공유한다.
+ * - .common-code-card         : 카드 래퍼 (border + radius + surface)
+ * - .common-code-card__header : 헤더 바 (title + actions)
+ * - .common-code-card__title  : 카드 타이틀 (h2)
+ * - .common-code-card__actions: 우측 액션 버튼 그룹
+ * - .common-table-wrap        : 스크롤 가능한 테이블 래퍼
+ * - .common-table             : 테이블 기본 스타일
+ * - .common-table__cell--left : 좌정렬 셀
+ * - .common-table__checkbox   : 체크박스 셀 중앙 정렬 보조
+ * - .common-table__mono       : 모노스페이스 폰트 셀
+ * - .common-table__input      : 인라인 편집 InputBase
+ * - .common-table__select     : 인라인 편집 SelectInput
+ * - .common-table__empty      : 빈 결과 / 에러 셀
+ * - .status-badge             : 사용여부(Y/N) 배지
+ *
+ * feature별 컬럼 최소 너비, 특수 셀은 각 페이지 CSS에서 오버라이드한다.
+ * ===================================================== */
+
+/* 카드 래퍼 */
+.common-code-card {
+  display: flex;
+  flex-direction: column;
+  /* flex 부모(content wrapper) 안에서 높이를 완전히 채우기 위해 min-height 제한 */
+  min-height: 0;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  overflow: hidden;
+}
+
+/* 헤더 바 */
+.common-code-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* 헤더는 테이블 행수와 무관하게 항상 고정 높이 유지 */
+  flex-shrink: 0;
+  min-height: 3rem;
+  padding: 0 var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+/* 카드 타이틀 */
+.common-code-card__title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-text-primary);
+}
+
+/* 액션 버튼 그룹 */
+.common-code-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* 레이아웃에 투명한 래퍼 — 자식이 직접 flex 자식이 되도록 한다 */
+.layout-contents {
+  display: contents;
+}
+
+/* 테이블 스크롤 래퍼 */
+.common-table-wrap {
+  /* 헤더·푸터를 제외한 나머지 카드 높이를 채우고, 행이 넘치면 내부 스크롤 */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* 테이블 헤더 고정 — 기본 테이블은 common-table-wrap 안에서 sticky */
+.common-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* =====================================================
+ * 인라인 편집 테이블(common-table--detail) 전용 레이아웃
+ *
+ * thead를 스크롤 영역 밖에 두고 tbody만 세로 스크롤한다.
+ * common-table-wrap의 overflow-y를 hidden으로 재정의하고
+ * tbody가 독립 스크롤 컨테이너가 된다.
+ * ===================================================== */
+
+/* detail 테이블이 있는 wrap은 세로 스크롤을 tbody로 위임 */
+.common-table-wrap:has(.common-table--detail) {
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* detail 테이블 자체를 flex 컨테이너로 전환 */
+.common-table--detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* thead — 스크롤 영역 밖에 고정, sticky 해제 */
+.common-table--detail thead {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.common-table--detail thead th {
+  position: static;
+}
+
+/* tbody — 유일한 세로 스크롤 컨테이너 */
+.common-table--detail tbody {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* thead tr, tbody tr — 독립 table로 렌더링해 컬럼 너비 동기화 */
+.common-table--detail thead tr,
+.common-table--detail tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* 좌정렬 컬럼
+   .common-table th/td가 (0,1,1)이므로 앞에 .common-table를 붙여 (0,2,0)으로 우선순위 확보 */
+.common-table .common-table__cell--left {
+  text-align: left;
+}
+
+/* 테이블 기본 */
+.common-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* 셀 기본 */
+.common-table th,
+.common-table td {
+  padding: 0 var(--spacing-6);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  height: 2.5rem;
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-secondary);
+  vertical-align: middle;
+}
+
+/* 컬럼 구분선 — 마지막 열 제외 */
+.common-table th:not(:last-child),
+.common-table td:not(:last-child) {
+  border-right: var(--border-1) solid var(--color-border-divider);
+}
+
+/* 헤더 셀 — 항상 중앙 정렬 */
+.common-table th {
+  background-color: var(--color-bg-muted);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+/* 데이터 셀 — 기본 좌측 정렬 */
+.common-table td {
+  font-weight: var(--typography-weight-body);
+  text-align: left;
+}
+
+/* 중앙 정렬 수식어 — 태그·날짜·시간 등 커스텀 */
+.common-table .common-table__cell--center {
+  text-align: center;
+}
+
+/* 행 인터랙션 */
+.common-table tbody tr {
+  cursor: pointer;
+}
+
+.common-table tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.common-table tbody tr.is-selected {
+  background-color: rgba(255, 107, 43, 0.06);
+  box-shadow: inset var(--border-2) 0 0 var(--color-brand-default);
+}
+
+/* 체크박스 컬럼 고정 너비 */
+.common-table__col--checkbox {
+  width: var(--spacing-14); /* 48px / 3rem */
+}
+
+/* 수정 버튼 컬럼 고정 너비 */
+.common-table__col--action {
+  width: var(--spacing-16); /* 64px / 4rem */
+}
+
+/* 컬럼 너비 사이즈 (태그/뱃지 컬럼 등) */
+.common-table__col--sm { width: 5.625rem; } /* 90px */
+.common-table__col--md { width: 8rem; }     /* 128px */
+.common-table__col--lg { width: 10rem; }    /* 160px */
+
+/* 체크박스 · 버튼 · 뱃지가 있는 th/td는 항상 중앙 정렬 */
+.common-table th:has(.common-table__checkbox),
+.common-table td:has(.common-table__checkbox),
+.common-table td:has(button),
+.common-table td:has(> span[class*="badge"]) {
+  text-align: center;
+}
+
+/* 체크박스 셀 중앙 정렬 보조 */
+.common-table__checkbox {
+  display: inline-flex;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.common-table__checkbox .checkbox-control__row {
+  justify-content: center;
+  align-items: center;
+}
+
+/* 테이블 셀 안에는 레이블이 없으므로 베이스라인 보정 margin 제거 */
+.common-table__checkbox .checkbox-control__box {
+  margin-top: 0;
+}
+
+/* 모노스페이스 폰트 */
+.common-table__mono {
+  font-family: var(--typography-font-mono);
+  font-size: var(--typography-size-sidebar);
+}
+
+/* 빈 결과 / 에러 셀 */
+.common-table__empty {
+  color: var(--color-text-tertiary);
+  text-align: center !important;
+}
+
+/* 긴 텍스트 셀 말줄임 — 페이지에서 max-width 지정 필요, title 속성으로 전체 내용 제공 */
+.common-table__cell--truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 사용여부 배지 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.125rem;
+  border-radius: var(--radius-xs);
+  padding: 0 var(--spacing-2);
+  font-size: var(--typography-size-caption);
+  line-height: var(--typography-leading-ui);
+}
+
+.status-badge--yes {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.status-badge--no {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-disabled);
+}
+
+/* 인라인 편집 InputBase */
+.common-table__input {
+  width: 100%;
+}
+
+.common-table__input .input-control__input {
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-secondary);
+}
+
+.common-table__input .input-control__input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* 읽기 전용 인라인 인풋 */
+.common-table__input--readonly .input-control__input {
+  background-color: var(--color-bg-muted);
+}
+
+/* 인라인 SelectInput 전체 너비 */
+.common-table__select {
+  width: 100%;
+}

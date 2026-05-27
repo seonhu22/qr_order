@@ -4,6 +4,7 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.system.domain.CommonDetail;
+import htms.QROrder.system.dto.AdminUserResponse;
 import htms.QROrder.system.dto.CommonDetailRequest;
 import htms.QROrder.system.repository.CommonDetailMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,27 +29,17 @@ public class CommonDetailService {
         return commonDetailMapper.findCommonDetailBySearchCond(linkSysId , searchCond);
     }
 
-    public void newCommonDetail(List<CommonDetail> commonDetail,
+    private void newCommonDetail(List<CommonDetail> commonDetail,
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
 
-        String tempLinkSysId = commonDetail.stream()
-                .findFirst()
-                .map(CommonDetail::getLinkSysId)
-                .orElse(null);
-
-        if(checkDuplicate(commonDetail, tempLinkSysId)) {
-            throw new DuplicateException("이미 존재하는 코드입니다.");
-        }
-        else {
-            commonDetail.forEach(item -> item.setSysId(UlidCreator.getMonotonicUlid().toString()));
-            auditService.insertNewAuditTrailData(commonDetail, menuCd, "sys_common_detail", userId, sysPlantCd);
-            commonDetailMapper.newCommonDetail(commonDetail, userId);
-        }
+        commonDetail.forEach(item -> item.setSysId(UlidCreator.getMonotonicUlid().toString()));
+        auditService.insertNewAuditTrailData(commonDetail, menuCd, "sys_common_detail", userId, sysPlantCd);
+        commonDetailMapper.newCommonDetail(commonDetail, userId);
     }
 
-    public void delCommonDetail(List<CommonDetail> commonDetail,
+    private void delCommonDetail(List<CommonDetail> commonDetail,
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
@@ -59,35 +50,60 @@ public class CommonDetailService {
         commonDetailMapper.delCommonDetail(ids, userId);
     }
 
-    public void updateCommonDetail(List<CommonDetail> commonDetail,
+    private void updateCommonDetail(List<CommonDetail> commonDetail,
                                     String userId,
                                 String sysPlantCd,
                                 String menuCd) {
 
         List<CommonDetail> oldData = commonDetailMapper.getOldData(commonDetail);
+
         auditService.insertUpdateAuditTrailData(oldData, commonDetail, menuCd, "sys_common_detail", userId, sysPlantCd);
         commonDetailMapper.updateCommonDetail(commonDetail, userId);
     }
 
-    public boolean checkDuplicate(List<CommonDetail> commonDetail,
+    private boolean duplicateChk(List<CommonDetail> commonDetail,
                                     String tempLinkSysId) {
 
-        return  commonDetailMapper.checkDuplicate(commonDetail, tempLinkSysId);
+        return  commonDetailMapper.duplicateChk(commonDetail, tempLinkSysId);
+    }
+
+    private List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail) {
+
+        return commonDetailMapper.getDuplicateData(commonDetail);
     }
 
     public void saveCommonDetail(CommonDetailRequest requestData,
+                                    String tempLinkSysId,
                                     String userId,
                                     String sysPlantId,
                                     String menuCd) {
 
-        if(!requestData.getNewItems().isEmpty()) {
-            newCommonDetail(requestData.getNewItems(), userId, sysPlantId, menuCd);
+        List<CommonDetail> newItems = requestData.getNewItems();
+        List<CommonDetail> updateItems = requestData.getUpdateItems();
+        List<CommonDetail> delItems = requestData.getDeleteItems();
+
+        if(!newItems.isEmpty()) {
+            if(duplicateChk(newItems, tempLinkSysId)) {
+                List<CommonDetail> duplicateAdminUser = getDuplicateData(newItems);
+
+                String result = duplicateAdminUser.stream()
+                    .map(u -> u.getCommonNm() + "(" + u.getCommonCd() + ")")
+                    .collect(Collectors.joining(", "));
+
+                throw new DuplicateException("중복된 데이터가 존재합니다.\n" + result);
+            }
+
+            newCommonDetail(newItems, userId, sysPlantId, menuCd);
         }
-        if(!requestData.getUpdateItems().isEmpty()) {
-            updateCommonDetail(requestData.getUpdateItems(), userId, sysPlantId, menuCd);
+
+        if(!updateItems.isEmpty()) {
+
+            updateCommonDetail(updateItems, userId, sysPlantId, menuCd);
         }
-        if(!requestData.getDeleteItems().isEmpty()) {
-            delCommonDetail(requestData.getDeleteItems(), userId, sysPlantId, menuCd);
+
+        if(!delItems.isEmpty()) {
+
+            delCommonDetail(delItems, userId, sysPlantId, menuCd);
         }
     }
 }

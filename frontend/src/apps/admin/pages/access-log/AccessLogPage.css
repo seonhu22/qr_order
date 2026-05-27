@@ -1,0 +1,130 @@
+/* =====================================================
+ * 접속정보조회 페이지 — feature 전용 스타일
+ * ===================================================== */
+
+/* 좌우 분할 레이아웃 — 마스터(좌) + 디테일(우) */
+.access-log-page__layout {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.access-log-page__layout > article {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── 테이블 스크롤 ── */
+/* 카드 내부 table-wrap이 남은 높이를 채우고 y·x 스크롤 모두 허용 */
+.access-log-table__wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* 컬럼이 압축되지 않도록 최소 너비 지정 */
+.access-log-master-table .common-table { min-width: 45rem; }
+.access-log-detail-table .common-table { min-width: 45rem; }
+
+/* TableCardContentState가 렌더하는 children(table-wrap)이 카드 높이를 채우도록 */
+.access-log-page__layout .common-code-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.access-log-page__layout .common-code-card > .common-table-wrap,
+.access-log-page__layout .common-code-card > div {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 행 클릭 커서 */
+.access-log-page__layout .common-table tbody tr {
+  cursor: pointer;
+}
+
+/* 디테일 행은 클릭 불가 */
+.access-log-page__layout .common-code-card:last-child .common-table tbody tr {
+  cursor: default;
+}
+
+/* ── 필터 카드 ── */
+.access-log-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.access-log-filters__keyword-row {
+  width: 100%;
+}
+
+.access-log-filters__date-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.access-log-filters__date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.access-log-filters__date-range .input-wrapper {
+  flex: 1;
+  min-width: 10rem;
+}
+
+/* 라벨-인풋 간격을 필터 영역에 맞게 축소 */
+.access-log-filters .input-wrapper__row {
+  gap: var(--spacing-2);
+}
+
+.access-log-filters__date-sep {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-ui);
+  flex-shrink: 0;
+}
+
+.access-log-filters__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.access-log-filters__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+}
+
+.access-log-filters__hint {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 테이블 헤더 뱃지 ── */
+.access-log-table__user-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+}

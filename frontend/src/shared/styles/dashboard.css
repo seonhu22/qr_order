@@ -1,0 +1,23 @@
+/* =====================================================
+ * QR Order — 대시보드 레이아웃 스타일
+ * ===================================================== */
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-page-y) var(--spacing-page-x);
+  background-color: var(--color-bg-app);
+}

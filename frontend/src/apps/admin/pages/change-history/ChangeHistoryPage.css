@@ -1,0 +1,189 @@
+/* =====================================================
+ * 변경 이력 조회 페이지 — feature 전용 스타일
+ * ===================================================== */
+
+/* ── 필터 카드 ── */
+.change-history-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+/* 1줄: 변경구분 셀렉트 + 키워드 */
+.change-history-filters__top-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.change-history-filters__select {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.change-history-filters__keyword {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 2줄: 날짜 범위 + 버튼 */
+.change-history-filters__date-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.change-history-filters__date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.change-history-filters__date-range .input-wrapper {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.change-history-filters__date-sep {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-ui);
+  flex-shrink: 0;
+}
+
+.change-history-filters__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.change-history-filters__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+}
+
+.change-history-filters__hint {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 변경 이력 목록 ── */
+.change-history-table .common-table {
+  min-width: 48rem;
+}
+
+.change-history-table__col--menu {
+  width: 8rem;
+}
+
+.change-history-table__col--date {
+  width: 10.5rem;
+}
+
+.change-history-table .common-table td {
+  vertical-align: middle;
+}
+
+.change-history-table__cell--menu {
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.change-history-table__cell--contents {
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.change-history-table__cell--date {
+  white-space: nowrap;
+}
+
+/* ── 변경 내용 표시 ── */
+.change-history-contents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  line-height: var(--typography-leading-ui);
+}
+
+.change-history-contents__title,
+.change-history-contents__item {
+  margin: 0;
+}
+
+.change-history-contents__title {
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.change-history-contents__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.change-history-contents__label {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+  font-weight: var(--typography-weight-ui);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-border-hover);
+  text-underline-offset: 0.1875rem;
+  white-space: nowrap;
+}
+
+.change-history-contents__label::after {
+  content: ':';
+}
+
+.change-history-contents__value {
+  min-width: 0;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ── 변경 구분 뱃지 ── */
+.change-history-flag-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.change-history-flag-badge--i,
+.change-history-flag-badge--fi {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.change-history-flag-badge--u {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+
+.change-history-flag-badge--fu {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.change-history-flag-badge--d,
+.change-history-flag-badge--fd {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
