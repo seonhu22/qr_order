@@ -26,7 +26,7 @@ public class LoginService {
     private final PasswordEncoder passwordEncoder;
     private final LogService logService;
 
-    public boolean loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
+    public void loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
 
         Login dbLoginData = loginMapper.findByUserId(loginRequest.getUserId());
         String uuid = UlidCreator.getMonotonicUlid().toString();
@@ -54,14 +54,11 @@ public class LoginService {
         session.setAttribute("loginUser", dbLoginData);
         session.setAttribute("logUuid", uuid);
 
-        if (dbLoginData.getInitYn().equals("N")) {
-            return true;
+        if ("ADMIN".equals(dbLoginData.getSysPlantCd())) {
+            session.setAttribute("role", "SUPER_ADMIN");
         }
 
-        session.setAttribute("role", "SUPER_ADMIN");
         log.info("login success={}, {}, {}", dbLoginData.getUserId(), dbLoginData.getSysPlantCd(), session.getAttribute("role"));
-
-        return false;
     }
 
     @Transactional
