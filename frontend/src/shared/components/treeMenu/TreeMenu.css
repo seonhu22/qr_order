@@ -1,0 +1,286 @@
+/* =====================================================
+ * TreeMenu — 트리 구조 테이블 컴포넌트
+ * - semantic-tokens.css 변수만 참조 (primitive 직접 참조 금지)
+ * - Tailwind 미사용, 순수 CSS + BEM
+ * - px 직접 사용 금지 — rem 또는 CSS 커스텀 프로퍼티 사용
+ * ===================================================== */
+
+
+/* =====================================================
+ * .tree-menu — 루트 컨테이너
+ * ===================================================== */
+
+.tree-menu {
+  /* 레벨 당 indent 너비. 사용 측에서 오버라이드 가능 */
+  --tree-item-indent: 1.5rem;
+  /* 연결선 굵기. 사용 측에서 오버라이드 가능 */
+  --tree-line-width: 0.09375rem; /* ~1.5px */
+
+  width: 100%;
+  overflow: auto;
+  border: var(--border-1) solid var(--color-border-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+}
+
+
+/* =====================================================
+ * .tree-menu__table — 테이블
+ * ===================================================== */
+
+.tree-menu__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+
+/* =====================================================
+ * .tree-menu__header — 헤더
+ * ===================================================== */
+
+.tree-menu__header th {
+  padding: 0 var(--spacing-6);
+  height: 2.5rem;
+  text-align: center;
+  font-size: var(--typography-size-sidebar);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-muted);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  white-space: nowrap;
+  vertical-align: middle;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tree-menu__header-label {
+  width: auto;
+}
+
+
+/* =====================================================
+ * .tree-item__row — 행
+ * ===================================================== */
+
+.tree-menu__empty {
+  padding: 0 var(--spacing-6);
+  height: 2.5rem;
+  font-size: var(--typography-size-sidebar);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.tree-item__row {
+  cursor: pointer;
+  transition: background-color var(--transition-ui);
+}
+
+.tree-item__row + .tree-item__row {
+  border-top: var(--border-1) solid var(--color-border-divider);
+}
+
+.tree-item__row:last-child {
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.tree-item__row:hover {
+  background: var(--color-bg-hover);
+}
+
+.tree-item__row:focus-visible {
+  outline: var(--border-2) solid var(--color-border-focus);
+  outline-offset: -0.125rem;
+}
+
+/* 선택 상태 — 배경 + 좌측 브랜드 보더 (common-table 동일 패턴) */
+.tree-item__row.is-selected {
+  background: var(--color-bg-selected);
+  box-shadow: inset var(--border-2) 0 0 var(--color-brand-default);
+}
+
+.tree-item__row.is-selected .tree-item__label {
+  color: var(--color-brand-default);
+  font-weight: var(--typography-weight-ui);
+}
+
+/* 비활성 상태 */
+.tree-item__row.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tree-item__row.is-disabled:hover {
+  background: transparent;
+}
+
+
+/* =====================================================
+ * .tree-item__label-cell — 레이블 셀
+ * ===================================================== */
+
+.tree-item__label-cell {
+  padding: 0;
+  /* flex 자식이 height: 100% 를 참조할 수 있게 하는 레이아웃 트릭 */
+  height: 0.0625rem;
+}
+
+.tree-item__label-wrap {
+  display: flex;
+  /* 기본은 center — 토글·레이블 수직 중앙 정렬 */
+  align-items: center;
+  height: 100%;
+  min-height: var(--height-component-md);
+}
+
+
+/* =====================================================
+ * .tree-item__indent — 연결선 세그먼트
+ *
+ * background-gradient로 연결선을 그림.
+ *   수직선 x 위치 : calc(var(--tree-item-indent) / 2) (중앙)
+ *   수평선 y 위치 : right 50% (우측 절반, 수직 중앙)
+ *   선 굵기       : var(--tree-line-width)
+ * ===================================================== */
+
+.tree-item__indent {
+  /* align-self: stretch 로 parent align-items: center 를 덮어 씀 */
+  align-self: stretch;
+  width: var(--tree-item-indent);
+  flex-shrink: 0;
+}
+
+/* │ — 조상에 더 많은 형제가 있음 (세로선 계속) */
+.tree-item__indent--line {
+  background-image: linear-gradient(
+    var(--color-border-default),
+    var(--color-border-default)
+  );
+  background-size: var(--tree-line-width) 100%;
+  background-position: calc(var(--tree-item-indent) / 2) 0;
+  background-repeat: no-repeat;
+}
+
+/* ├ — 현재 레벨에 다음 형제 있음 (전체 세로선 + 우측 절반 가로선) */
+.tree-item__indent--branch {
+  background-image:
+    linear-gradient(var(--color-border-default), var(--color-border-default)),
+    linear-gradient(var(--color-border-default), var(--color-border-default));
+  background-size:
+    var(--tree-line-width) 100%,
+    calc(var(--tree-item-indent) / 2) var(--tree-line-width);
+  background-position:
+    calc(var(--tree-item-indent) / 2) 0,
+    right 50%;
+  background-repeat: no-repeat;
+}
+
+/* └ — 마지막 형제 (상단 절반 세로선 + 우측 절반 가로선) */
+.tree-item__indent--corner {
+  background-image:
+    linear-gradient(var(--color-border-default), var(--color-border-default)),
+    linear-gradient(var(--color-border-default), var(--color-border-default));
+  background-size:
+    var(--tree-line-width) 50%,
+    calc(var(--tree-item-indent) / 2) var(--tree-line-width);
+  background-position:
+    calc(var(--tree-item-indent) / 2) 0,
+    right 50%;
+  background-repeat: no-repeat;
+}
+
+
+/* =====================================================
+ * .tree-item__label-inner — 레이블 콘텐츠 영역
+ * ===================================================== */
+
+.tree-item__label-inner {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-2);
+}
+
+.tree-item__label {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+
+/* =====================================================
+ * .tree-item__cell — 추가 컬럼 셀
+ * ===================================================== */
+
+.tree-item__cell {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-left: var(--border-1) solid var(--color-border-divider);
+  vertical-align: middle;
+}
+
+
+/* =====================================================
+ * .tree-toggle — 펼치기/접기 버튼
+ * ===================================================== */
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  margin-inline: var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-tag);
+  background: transparent;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  /* btn--icon 기본색 */
+  color: var(--color-text-tertiary);
+  transition:
+    transform        var(--transition-ui),
+    background-color var(--transition-ui),
+    color            var(--transition-ui),
+    box-shadow       var(--transition-ui),
+    opacity          var(--transition-ui);
+}
+
+/* btn--icon 호버 */
+.tree-toggle:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+/* btn--icon 액티브 */
+.tree-toggle:active {
+  background-color: var(--color-bg-selected);
+}
+
+/* btn--icon 포커스 */
+.tree-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* 펼침 상태 — chevron 90도 회전 */
+.tree-toggle--expanded {
+  transform: rotate(90deg);
+  color: var(--color-brand-default);
+}
+
+/* 리프 노드용 placeholder — 공간 확보, 이벤트 없음 */
+.tree-toggle--placeholder {
+  cursor: default;
+  pointer-events: none;
+}

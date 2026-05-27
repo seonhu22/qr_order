@@ -1,0 +1,74 @@
+import type { AuditTrail } from '@/generated/types/auditTrail';
+
+export const CHANGE_HISTORY_MOCK: AuditTrail[] = [
+  {
+    auditFlag: 'I',
+    menuCd: 'SYS001',
+    menuNm: '공통코드 관리',
+    auditTrailContents: '공통코드 마스터 등록 (코드: MSG001)',
+    insertDatetime: '2026-04-14T09:20:00',
+  },
+  {
+    auditFlag: 'U',
+    menuCd: 'SYS002',
+    menuNm: '관리자 사용자 관리',
+    auditTrailContents: '사용자 권한 수정 (userId: staff003)',
+    insertDatetime: '2026-04-14T10:35:12',
+  },
+  {
+    auditFlag: 'D',
+    menuCd: 'SYS003',
+    menuNm: '결제 수단 관리',
+    auditTrailContents: '결제 수단 삭제 (코드: PAY009)',
+    insertDatetime: '2026-04-15T11:05:44',
+  },
+  {
+    auditFlag: 'I',
+    menuCd: 'SYS004',
+    menuNm: '쿠폰 관리',
+    auditTrailContents: '쿠폰 등록 (코드: CPN-010)',
+    insertDatetime: '2026-04-15T13:50:22',
+  },
+  {
+    auditFlag: 'U',
+    menuCd: 'SYS005',
+    menuNm: '사업장 관리',
+    auditTrailContents: '사업장 정보 수정 (sysId: PLT-003)',
+    insertDatetime: '2026-04-16T09:00:05',
+  },
+  {
+    auditFlag: 'U',
+    menuCd: 'SYS006',
+    menuNm: '시스템 메뉴 관리',
+    auditTrailContents: '메뉴 순서 변경 (menuCd: MNU002)',
+    insertDatetime: '2026-04-16T14:22:31',
+  },
+  {
+    auditFlag: 'D',
+    menuCd: 'SYS007',
+    menuNm: '규칙 관리',
+    auditTrailContents: '규칙 삭제 (ruleCd: RULE005)',
+    insertDatetime: '2026-04-17T08:45:10',
+  },
+  {
+    auditFlag: 'I',
+    menuCd: 'SYS008',
+    menuNm: '메시지 관리',
+    auditTrailContents: '메시지 등록 (코드: ERR_1001)',
+    insertDatetime: '2026-04-17T16:30:00',
+  },
+  {
+    auditFlag: 'U',
+    menuCd: 'SYS001',
+    menuNm: '공통코드 관리',
+    auditTrailContents: '공통코드 상세 수정 (코드: MSG001, detailCd: M001)',
+    insertDatetime: '2026-04-18T10:10:55',
+  },
+  {
+    auditFlag: 'D',
+    menuCd: 'SYS009',
+    menuNm: '사업장 상태 관리',
+    auditTrailContents: '사업장 상태 삭제 (sysId: PLT-007)',
+    insertDatetime: '2026-04-18T15:00:00',
+  },
+];

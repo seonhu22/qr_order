@@ -1,0 +1,29 @@
+/* 읽기 전용 테이블 — 행 선택 커서 불필요 */
+.plant-status-table .common-table tbody tr {
+  cursor: default;
+}
+
+/* 상태 뱃지 공통 */
+.plant-status-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.plant-status-badge--active {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.plant-status-badge--expiring {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.plant-status-badge--expired {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}

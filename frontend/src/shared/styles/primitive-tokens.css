@@ -1,0 +1,343 @@
+/* =====================================================
+ * QR Order — Primitive Tokens
+ * - 백오피스·고객앱·관리자 등 프로젝트 전체에서 공통으로 사용하는 원시값 모음
+ * - 모든 Semantic Token 이 이 파일을 참조한다
+ * - 이 파일의 변수를 컴포넌트에 직접 사용하지 않는다
+ * - 반드시 Semantic Token(qr-order-semantic-tokens.css)을
+ *   통해 간접 참조할 것
+ * - 단위 기준 : 1rem = 16px (브라우저 기본값)
+ * - shadow / radius-full / z-index / transition 은
+ *   단위 특성상 px 또는 unitless 유지
+ * ===================================================== */
+
+:root {
+
+  /* =====================================================
+   * COLOR — 컬러 팔레트
+   * - 숫자가 클수록 어둡고, 작을수록 밝다 (0 = 흰색, 100 = 가장 진함)
+   * - 각 색상군은 0~100 스케일로 통일
+   * ===================================================== */
+
+  /* Slate — 기본 UI 텍스트·배경·보더에 사용하는 무채색 계열 */
+  --slate-0:    #FFFFFF;
+  --slate-10:   #F8FAFC;
+  --slate-20:   #F1F5F9;
+  --slate-30:   #E2E8F0;
+  --slate-40:   #CBD5E1;
+  --slate-50:   #94A3B8;
+  --slate-60:   #64748B;
+  --slate-70:   #475569;
+  --slate-80:   #334155;
+  --slate-90:   #1E293B;
+  --slate-100:  #0F172A;
+
+  /* Orange — 브랜드 메인 컬러 */
+  --orange-0:   #FFFFFF;
+  --orange-10:  #FFF4EF;
+  --orange-20:  #FFE4D4;
+  --orange-30:  #FFCDB0;
+  --orange-40:  #FFB088;
+  --orange-50:  #FF8F5A;
+  --orange-60:  #FF6B2B;  /* brand-default */
+  --orange-70:  #E85D20;  /* brand-hover    */
+  --orange-80:  #D15118;  /* brand-active   */
+  --orange-90:  #A03A0A;
+  --orange-100: #6B2200;
+
+  /* Red — 에러·위험·삭제 상태에 사용 */
+  --red-0:   #FFFFFF;
+  --red-10:  #FFF5F5;
+  --red-20:  #FEE2E2;  /* 에러 배경 */
+  --red-30:  #FECACA;
+  --red-40:  #F87171;  /* 에러 보더 */
+  --red-50:  #EF4444;  /* 에러 기본 */
+  --red-60:  #DC2626;
+  --red-70:  #B91C1C;  /* 에러 텍스트 */
+  --red-80:  #991B1B;
+  --red-90:  #7F1D1D;
+  --red-100: #450A0A;
+
+  /* Emerald — 성공·완료·활성 상태에 사용 */
+  --emerald-0:   #FFFFFF;
+  --emerald-10:  #ECFDF5;
+  --emerald-20:  #D1FAE5;  /* 성공 배경 */
+  --emerald-30:  #A7F3D0;
+  --emerald-40:  #34D399;  /* 성공 보더 */
+  --emerald-50:  #10B981;  /* 성공 기본 */
+  --emerald-60:  #059669;
+  --emerald-70:  #047857;
+  --emerald-80:  #065F46;  /* 성공 텍스트 */
+  --emerald-90:  #064E3B;
+  --emerald-100: #022C22;
+
+  /* Amber — 경고·주의 상태에 사용 */
+  --amber-0:   #FFFFFF;
+  --amber-10:  #FFFBEB;
+  --amber-20:  #FEF3C7;  /* 경고 배경 */
+  --amber-30:  #FDE68A;
+  --amber-40:  #FCD34D;
+  --amber-50:  #F59E0B;  /* 경고 기본 */
+  --amber-60:  #D97706;
+  --amber-70:  #B45309;
+  --amber-80:  #92400E;  /* 경고 텍스트 */
+  --amber-90:  #78350F;
+  --amber-100: #451A03;
+
+  /* Blue — 정보·안내 상태에 사용 */
+  --blue-0:   #FFFFFF;
+  --blue-10:  #EFF6FF;
+  --blue-20:  #DBEAFE;  /* 정보 배경 */
+  --blue-30:  #BFDBFE;
+  --blue-40:  #93C5FD;
+  --blue-50:  #3B82F6;  /* 정보 기본 */
+  --blue-60:  #2563EB;
+  --blue-70:  #1D4ED8;
+  --blue-80:  #1E40AF;  /* 정보 텍스트 */
+  --blue-90:  #1E3A8A;
+  --blue-100: #172554;
+
+  /* Base — 순수 흑백. 오버레이·텍스트 on-brand 등에 사용 */
+  --black: #000000;
+  --white: #FFFFFF;
+
+
+  /* =====================================================
+   * TYPOGRAPHY — 타이포그래피
+   * ===================================================== */
+
+  /* Font Family
+   * - base : 서비스 전체 기본 폰트 (Pretendard + 시스템 폰트 fallback)
+   * - mono : 코드·숫자·테이블 데이터 등 고정폭이 필요한 경우 */
+  --font-family-base: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  /* Font Size
+   * - xs~sm    : 라벨·힌트·태그·캡션
+   * - base     : 기본 본문
+   * - lg~xl    : 서브 헤딩·강조 텍스트
+   * - 2xl~5xl  : 헤딩·KPI 숫자·빈 상태 안내 */
+  --font-size-xs:   0.75rem;   /* 12px */
+  --font-size-2xs:  0.8125rem; /* 13px */
+  --font-size-sm:   0.875rem;  /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg:   1.125rem;  /* 18px */
+  --font-size-xl:   1.25rem;   /* 20px */
+  --font-size-2xl:  1.5rem;    /* 24px */
+  --font-size-3xl:  1.875rem;  /* 30px */
+  --font-size-4xl:  2.25rem;   /* 36px */
+  --font-size-5xl:  3rem;      /* 48px */
+
+  /* Font Weight
+   * - normal   : 일반 본문·인풋 텍스트
+   * - medium   : 버튼·레이블·네비게이션
+   * - semibold : 헤딩·강조
+   * - bold     : 로고·핵심 강조 */
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* Line Height
+   * - none    : 아이콘 버튼·배지처럼 줄높이가 필요 없는 경우
+   * - tight   : 헤딩·짧은 타이틀
+   * - snug    : 체크박스·라디오 라벨
+   * - normal  : 기본 본문 (권장)
+   * - relaxed : 긴 설명 텍스트·가이드 문구 */
+  --leading-none:    1;
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+
+  /* Letter Spacing (자간)
+   * - tight  : 큰 헤딩·대문자 타이틀에서 답답함 제거
+   * - normal : 기본값 (대부분의 경우)
+   * - wide   : 버튼 텍스트·배지·태그 가독성 향상
+   * - wider  : 올캡스(ALL CAPS) 레이블 */
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.025em;
+  --tracking-wider:   0.05em;
+
+
+  /* =====================================================
+   * BORDER RADIUS — 테두리 반경
+   * - none : 각진 스타일이 필요한 경우
+   * - xs~sm : 태그·배지·작은 버튼
+   * - md~lg : 기본 버튼·인풋·카드
+   * - xl~2xl: 모달·대형 패널
+   * - full  : 원형·필 형태 (토글·아바타·칩)
+   * ===================================================== */
+  --radius-none: 0;
+  --radius-xs:   0.1875rem;  /* 3px  */
+  --radius-sm:   0.25rem;    /* 4px  */
+  --radius-md:   0.375rem;   /* 6px  */
+  --radius-lg:   0.5rem;     /* 8px  */
+  --radius-xl:   0.625rem;   /* 10px */
+  --radius-2xl:  0.75rem;    /* 12px */
+  --radius-full: 9999px;
+
+
+  /* =====================================================
+   * BORDER WIDTH — 보더 두께
+   * - 0 : 보더 제거 (disabled·ghost 상태)
+   * - 1 : 기본 인풋·카드·구분선 (가장 많이 사용)
+   * - 2 : 포커스·선택 상태 강조
+   * - 4 : 왼쪽 액센트 보더·강조 구분선
+   * ===================================================== */
+  --border-0: 0;
+  --border-1: 0.0625rem;  /* 1px */
+  --border-2: 0.125rem;   /* 2px */
+  --border-4: 0.25rem;    /* 4px */
+
+
+  /* =====================================================
+   * ICON SIZE — 아이콘 크기
+   * - xs : 인풋 내부 보조 아이콘·배지
+   * - sm : 버튼 내부 아이콘·리스트 아이콘
+   * - md : 기본 UI 아이콘 (가장 많이 사용)
+   * - lg : 네비게이션·사이드바 아이콘
+   * - xl : 빈 상태(empty state)·온보딩 일러스트
+   * ===================================================== */
+  --icon-xs: 0.75rem;  /* 12px */
+  --icon-sm: 1rem;     /* 16px */
+  --icon-md: 1.25rem;  /* 20px */
+  --icon-lg: 1.5rem;   /* 24px */
+  --icon-xl: 2rem;     /* 32px */
+
+
+  /* =====================================================
+   * HEIGHT — 컴포넌트 높이
+   * - 주로 버튼·인풋·셀렉트·테이블 행 높이에 사용
+   * - Semantic에서 --height-component-sm 등으로 매핑해서 사용
+   * ===================================================== */
+  --height-1:  1rem;      /* 16px */
+  --height-2:  1.25rem;   /* 20px */
+  --height-3:  1.5rem;    /* 24px */
+  --height-4:  1.75rem;   /* 28px */
+  --height-5:  1.875rem;  /* 30px */
+  --height-6:  2rem;      /* 32px */
+  --height-7:  2.25rem;   /* 36px */
+  --height-8:  2.5rem;    /* 40px */
+  --height-9:  2.75rem;   /* 44px */
+  --height-10: 3rem;      /* 48px */
+  --height-11: 3.25rem;   /* 52px */
+  --height-12: 3.5rem;    /* 56px */
+  --height-13: 4rem;      /* 64px */
+  --height-14: 4.5rem;    /* 72px */
+  --height-15: 5rem;      /* 80px */
+
+
+  /* =====================================================
+   * SPACING — 간격 (padding · margin · gap 공용)
+   * - 컴포넌트 내부 padding, 요소 간 gap, 레이아웃 margin 모두 이 스케일 참조
+   * - Semantic에서 용도별로 --spacing-page-x, --spacing-card-y 등으로 매핑
+   * ===================================================== */
+  --spacing-1:  0.125rem;  /* 2px  */
+  --spacing-2:  0.25rem;   /* 4px  */
+  --spacing-3:  0.375rem;  /* 6px  */
+  --spacing-4:  0.5rem;    /* 8px  */
+  --spacing-5:  0.625rem;  /* 10px */
+  --spacing-6:  0.75rem;   /* 12px */
+  --spacing-7:  0.875rem;  /* 14px */
+  --spacing-8:  1rem;      /* 16px */
+  --spacing-9:  1.25rem;   /* 20px */
+  --spacing-10: 1.5rem;    /* 24px */
+  --spacing-11: 1.75rem;   /* 28px */
+  --spacing-12: 2rem;      /* 32px */
+  --spacing-13: 2.5rem;    /* 40px */
+  --spacing-14: 3rem;      /* 48px */
+  --spacing-15: 3.5rem;    /* 56px */
+  --spacing-16: 4rem;      /* 64px */
+  --spacing-17: 5rem;      /* 80px */
+
+
+  /* =====================================================
+   * WIDTH — 고정 너비
+   * - width-1~8   : 아이콘·체크박스·토글 등 소형 컴포넌트
+   * - width-9~11  : 인풋·버튼 최소 너비 등 중형
+   * - width-12~17 : 사이드바·모달 등 레이아웃 고정 너비
+   * ===================================================== */
+  --width-1:  1rem;      /* 16px  */
+  --width-2:  1.25rem;   /* 20px  */
+  --width-3:  1.5rem;    /* 24px  */
+  --width-4:  1.75rem;   /* 28px  */
+  --width-5:  2rem;      /* 32px  */
+  --width-6:  2.5rem;    /* 40px  */
+  --width-7:  2.75rem;   /* 44px  */
+  --width-8:  3rem;      /* 48px  */
+  --width-9:  7.5rem;    /* 120px */
+  --width-10: 10rem;     /* 160px */
+  --width-11: 12.5rem;   /* 200px */
+  --width-12: 15rem;     /* 240px */
+  --width-13: 20rem;     /* 320px */
+  --width-14: 22.5rem;   /* 360px */
+  --width-15: 30rem;     /* 480px */
+  --width-16: 40rem;     /* 640px */
+  --width-17: 56.25rem;  /* 900px */
+
+
+  /* =====================================================
+   * SHADOW — 그림자
+   * - shadow 내부 blur/spread 값은 디자인 의도상 px 유지
+   * - xs~sm : 카드·버튼·인풋 등 플랫 요소에 미세한 깊이감
+   * - md    : 드롭다운·툴팁·팝오버
+   * - lg    : 사이드패널·슬라이드오버
+   * - xl    : 모달·다이얼로그
+   * - 2xl   : 풀스크린 오버레이·최상위 레이어
+   * ===================================================== */
+  --shadow-xs:  0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm:  0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+
+  /* =====================================================
+   * OPACITY — 투명도
+   * - 0~10  : 호버·비활성 배경 오버레이
+   * - 20~50 : 비활성(disabled) 텍스트·아이콘
+   * - 60~80 : 보조 텍스트·플레이스홀더
+   * - 100   : 완전 불투명 (기본값)
+   * ===================================================== */
+  --opacity-0:   0;
+  --opacity-5:   0.05;
+  --opacity-10:  0.10;
+  --opacity-20:  0.20;
+  --opacity-40:  0.40;
+  --opacity-50:  0.50;
+  --opacity-60:  0.60;
+  --opacity-70:  0.70;
+  --opacity-80:  0.80;
+  --opacity-100: 1;
+
+
+  /* =====================================================
+   * Z-INDEX — 레이어 순서
+   * - 숫자 기반(0~20)  : 일반 UI 요소 간 레이어 조정
+   * - 이름 기반(100~)  : 고정 UI 컴포넌트 (절대 임의 변경 금지)
+   * - 레이어 우선순위  : sidebar < dropdown < modal < toast < tooltip
+   * ===================================================== */
+  --z-0:        0;
+  --z-10:       10;
+  --z-20:       20;
+  --z-sidebar:  100;
+  --z-dropdown: 200;
+  --z-modal:    300;
+  --z-toast:    400;
+  --z-tooltip:  500;
+
+
+  /* =====================================================
+   * TRANSITION — 전환 애니메이션
+   * - 모든 transition 은 cubic-bezier(0.4, 0, 0.2, 1) (ease-in-out 계열) 사용
+   * - fast   : 버튼 호버·색상 변화 등 즉각적 피드백
+   * - normal : 드롭다운·툴팁 등 일반 UI 전환 (기본값)
+   * - slow   : 사이드바·모달 등 큰 레이아웃 전환
+   * ===================================================== */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+}

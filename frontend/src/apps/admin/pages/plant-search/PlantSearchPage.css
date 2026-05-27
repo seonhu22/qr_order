@@ -1,0 +1,47 @@
+/* =====================================================
+ * 테이블 feature 오버라이드
+ * ===================================================== */
+
+/* 컬럼이 많아 가로 스크롤이 필요한 최소 너비 */
+.plant-search-table .common-table {
+  min-width: 90rem;
+}
+
+/* 데이터가 없을 때는 가로 스크롤 불필요 */
+.plant-search-table .common-table:has(.common-table__empty) {
+  min-width: unset;
+}
+
+/* 긴 텍스트 셀 max-width 오버라이드 — TableCard.css의 .common-table__cell--truncate와 함께 사용 */
+.plant-search-table .common-table__cell--truncate {
+  max-width: 10rem;
+}
+
+/* 읽기 전용 테이블 — 행 선택 커서 불필요 */
+.plant-search-table .common-table tbody tr {
+  cursor: default;
+}
+
+/* 보조 정보 셀 (이메일, 우편번호, 주소, 전화번호) */
+.plant-search-page__muted {
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+}
+
+/* 접속 버튼 */
+.plant-search-page__access-button {
+  min-width: 4.25rem;
+  padding-inline: 0.625rem;
+  gap: 0.3125rem;
+  border-radius: var(--radius-button);
+  font-weight: var(--typography-weight-ui);
+}
+
+.plant-search-page__access-button .btn__icon-right {
+  opacity: 0.92;
+}
+
+/* =====================================================
+ * 반응형
+ * ===================================================== */
+

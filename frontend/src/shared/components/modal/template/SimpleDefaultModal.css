@@ -1,0 +1,10 @@
+.simple-default-modal__helper {
+  color: var(--color-text-tertiary);
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-ui);
+  font-style: normal;
+  font-weight: var(--typography-weight-body);
+  line-height: var(--typography-leading-ui);
+  letter-spacing: var(--tracking-tight);
+  text-align: left;
+}

@@ -1,0 +1,18 @@
+.coupon-use-yn-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.coupon-use-yn-badge--active {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.coupon-use-yn-badge--inactive {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}

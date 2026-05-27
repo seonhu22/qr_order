@@ -7,6 +7,6 @@ public class AdminUserResponse {
     private String sysId;
     private String userId;
     private String userNm;
-    private String passwordFailCnt;
-    private String initYn;
+    private String plantCd;
+    private String plantNm;
 }

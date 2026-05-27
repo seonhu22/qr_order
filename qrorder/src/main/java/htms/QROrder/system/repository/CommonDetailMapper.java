@@ -11,6 +11,7 @@ public interface CommonDetailMapper {
     void newCommonDetail(List<CommonDetail> commonDetail, String userId);
     void delCommonDetail(List<String> ids, String userId);
     void updateCommonDetail(List<CommonDetail> commonDetail, String userId);
-    boolean checkDuplicate(List<CommonDetail> commonDetail, String tempLinkSysId);
+    boolean duplicateChk(List<CommonDetail> commonDetail, String tempLinkSysId);
+    List<CommonDetail> getDuplicateData(List<CommonDetail> commonDetail);
     List<CommonDetail> getOldData(List<CommonDetail> commonDetails);
 }

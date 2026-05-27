@@ -1,0 +1,143 @@
+/* =====================================================
+ * ToggleGuide 개발 가이드 전용 스타일
+ * ===================================================== */
+
+.toggle-guide {
+  min-height: 100%;
+  background-color: var(--color-bg-app);
+  padding: var(--spacing-10);
+  font-family: var(--typography-font-base);
+}
+
+.toggle-guide__container {
+  max-width: none;
+  margin: 0;
+}
+
+/* ── 헤더 ── */
+.toggle-guide__header {
+  margin-bottom: var(--spacing-8);
+}
+
+.toggle-guide__title {
+  font-size: var(--typography-size-h2);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.toggle-guide__subtitle {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+  margin: var(--spacing-2) 0 0;
+}
+
+/* ── 섹션 ── */
+.toggle-guide__section {
+  margin-bottom: var(--spacing-8);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+
+.toggle-guide__section-title {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-primary);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  background: var(--color-bg-muted);
+  padding: var(--spacing-6) var(--spacing-8);
+  margin: 0;
+}
+
+.toggle-guide__section-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding: var(--spacing-6) var(--spacing-8);
+}
+
+/* ── 카드 ── */
+.toggle-guide__card {
+  width: auto;
+}
+
+.toggle-guide__card--w180 { width: 11.25rem; }  /* 180px */
+.toggle-guide__card--w200 { width: var(--width-11); }  /* 200px */
+.toggle-guide__card--w240 { width: var(--width-12); }  /* 240px */
+.toggle-guide__card--w300 { width: 18.75rem; }  /* 300px */
+.toggle-guide__card--w400 { width: 25rem; }      /* 400px */
+
+.toggle-guide__card-label {
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+  margin: 0 0 0.5rem;
+}
+
+/* ── 제어 컴포넌트 섹션 ── */
+.toggle-guide__control-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.toggle-guide__control-result {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-card);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.toggle-guide__control-value {
+  color: var(--color-brand-default);
+}
+
+/* ── 실제 사용 예시 카드 ── */
+.toggle-guide__settings-card {
+  width: 25rem; /* 400px */
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.toggle-guide__settings-header {
+  padding: 1rem 1.25rem;
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.toggle-guide__settings-header-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.toggle-guide__settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.toggle-guide__settings-row-text {}
+
+.toggle-guide__settings-row-label {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  margin: 0 0 0.125rem;
+}
+
+.toggle-guide__settings-row-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin: 0;
+}

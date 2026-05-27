@@ -1,0 +1,54 @@
+/* =====================================================
+ * 결제 요금 관리 페이지 — feature 전용 스타일
+ * ===================================================== */
+
+/* 행 클릭 이벤트 없음 — 커서 기본값, 호버 배경 제거 */
+.payment-manage-table tbody tr {
+  cursor: default;
+}
+
+/* 결제 요금 테이블은 핵심 텍스트 컬럼이 줄바꿈되지 않도록 컬럼 합산 최소 폭을 보장한다. */
+.payment-manage-table {
+  min-width: 57.5rem;
+}
+
+/* 컬럼 너비 */
+.payment-manage-table col:nth-child(1) { width: 3rem; }
+.payment-manage-table col:nth-child(2) { width: 12rem; }
+.payment-manage-table col:nth-child(3) { width: 16rem; }
+.payment-manage-table col:nth-child(4) { width: 10rem; }
+.payment-manage-table col:nth-child(5) { width: 6rem; }
+.payment-manage-table col:nth-child(6) { width: 7rem; }
+.payment-manage-table col:nth-child(7) { width: 3.5rem; }
+
+/* 결제 요금 단위 뱃지 */
+.payment-unit-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.payment-unit-badge--krw {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.payment-unit-badge--usd {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.payment-unit-badge__symbol {
+  margin-left: 0.2em;
+}
+
+/* 결제 요금 명 컬럼은 핵심 텍스트 컬럼이라 줄바꿈 없이 좌정렬로 유지한다. */
+.payment-manage-table th:nth-child(3),
+.payment-manage-table td:nth-child(3) {
+  white-space: nowrap;
+  text-align: left;
+}
+

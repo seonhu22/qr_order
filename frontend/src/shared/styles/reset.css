@@ -1,0 +1,158 @@
+@charset "utf-8";
+
+/* =============================================
+Box Model 기준 통일 (현대 레이아웃 필수)
+============================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* =============================================
+전체 리셋
+============================================= */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td, textarea,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, button, select, input, option {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    text-decoration: none;
+}
+
+/* =============================================
+HTML5 display-role reset
+============================================= */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+/* =============================================
+기본 body 설정
+============================================= */
+body {
+    line-height: 1.5;          /* 1 → 1.5 : 가독성 개선 */
+    -webkit-font-smoothing: antialiased;   /* macOS 폰트 렌더링 */
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================
+리스트, 인용
+============================================= */
+ol, ul, li {
+    list-style: none;
+}
+
+blockquote, q {
+    quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+/* =============================================
+테이블
+============================================= */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* =============================================
+미디어 - 반응형 기본값
+============================================= */
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;           /* 컨테이너 이탈 방지 */
+}
+
+/* =============================================
+폼 요소
+============================================= */
+input, button, textarea, select, option {
+    font: inherit;             /* 부모 폰트 상속 보장 */
+    color: inherit;
+}
+
+img { border: 0; padding: 0; margin: 0; }
+
+button {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: var(--text-body);
+}
+
+input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: var(--text-body);
+    background: none;
+}
+
+select {
+    border: none;
+    outline: none;
+    color: var(--text-body);
+}
+
+/* =============================================
+링크
+============================================= */
+a {
+    color: var(--text-body);
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--input-focus-border);
+}
+
+/* =============================================
+포커스 - 접근성 기준 처리
+마우스 클릭: outline 제거
+키보드 탭: outline 유지 (접근성 필수)
+============================================= */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--input-focus-border, #3b82f6);
+    outline-offset: 2px;
+}
+
+/* =============================================
+스크롤
+============================================= */
+html {
+    scroll-behavior: smooth;
+}
