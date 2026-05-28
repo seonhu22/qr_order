@@ -24,7 +24,8 @@
             od.sys_id as detail_sys_id ,
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
-            od.qty
+            od.qty ,
+            od.payment_yn
         from order_detail od
         left join order_group og
             on og.sys_id = od.link_sys_id3
@@ -39,7 +40,8 @@
             odo.sys_id as detail_sys_id ,
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
-            odo.qty
+            odo.qty ,
+            'Y' as payment_yn
         from order_detail od
         left join order_group og
             on og.sys_id = od.link_sys_id3
@@ -55,7 +57,13 @@
     <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusItem$Footer">
         select
             od.link_sys_id3 as sys_id ,
-            sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price
+            sum(
+                case
+                    when od.payment_yn = 'Y'
+                        then smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)
+                    else 0
+                end
+            ) as total_price
         from order_detail od
         left join order_group og
             on og.sys_id = od.link_sys_id3
@@ -192,7 +200,8 @@
             od.sys_id as detail_sys_id ,
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
-            od.qty
+            od.qty ,
+            od.payment_yn
         from order_detail od
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
@@ -205,7 +214,8 @@
             odo.sys_id as detail_sys_id ,
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
-            odo.qty
+            odo.qty ,
+            'Y' as payment_yn
         from order_detail od
         inner join order_detail_option odo
             on odo.link_sys_id = od.sys_id
@@ -218,7 +228,13 @@
     <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Footer">
         select
             od.link_sys_id3 as sys_id ,
-            sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price
+            sum(
+                case
+                    when od.payment_yn = 'Y'
+                        then smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)
+                    else 0
+                end
+            ) as total_price
         from order_detail od
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
@@ -233,5 +249,17 @@
         and od.link_sys_id3 = #{sysId}
         group by od.link_sys_id3
     </select>
+
+    <update id="changeOrder">
+        update order_detail set
+            payment_yn = 'N',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id in
+        <foreach collection="listDetailSysId" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>

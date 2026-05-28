@@ -69,9 +69,10 @@ public class StatusService {
         statusMapper.backToCooking(header, userId);
     }
 
-    public PaymentCompleteResponse getPaymentComplete(StatusRequest statusRequest) {
+    public PaymentCompleteResponse getPaymentComplete(String sysId) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId(sysId);
 
         PaymentCompleteResponse paymentCompleteResponse = new PaymentCompleteResponse();
         paymentCompleteResponse.setHeader(statusMapper.getPaymentCompleteHeaders(header));
@@ -79,6 +80,12 @@ public class StatusService {
         paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header));
 
         return paymentCompleteResponse;
+    }
+
+    public void changeOrder(List<String> listDetailSysId,
+                                String userId) {
+
+        statusMapper.changeOrder(listDetailSysId, userId);
     }
 
     public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
@@ -109,9 +116,9 @@ public class StatusService {
 
     private List<StatusResponse> orderNumClassification() {
 
-        List<StatusItem.Header> header = statusMapper.getStatusItem.Headers();
-        List<StatusItem.Body> body = statusMapper.getStatusItem.Bodys();
-        List<StatusItem.Footer> footer = statusMapper.getStatusItem.Footers();
+        List<StatusItem.Header> header = statusMapper.getStatusHeaderItems();
+        List<StatusItem.Body> body = statusMapper.getStatusBodyItems();
+        List<StatusItem.Footer> footer = statusMapper.getStatusFooterItems();
 
         List<StatusItem> statusItems = new ArrayList<>();
 

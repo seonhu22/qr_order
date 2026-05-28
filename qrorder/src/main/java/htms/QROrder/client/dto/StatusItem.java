@@ -29,6 +29,7 @@ public class StatusItem {
         private String parentDetailSysId;
         private String itemName;
         private Integer qty;
+        private String paymentYn;
     }
 
     @Data

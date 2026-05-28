@@ -23,4 +23,5 @@ public interface StatusMapper {
     PaymentCompleteResponse.Header getPaymentCompleteHeaders(StatusItem.Header header);
     List<PaymentCompleteResponse.Body> getPaymentCompleteBodyItems(StatusItem.Header header);
     PaymentCompleteResponse.Footer getPaymentCompleteFooterItems(StatusItem.Header header);
+    void changeOrder(List<String> listDetailSysId, String userId);
 }

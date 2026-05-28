@@ -109,10 +109,10 @@ public class OrderManageController {
         );
     }
 
-    @PostMapping("/status/get_payment_complete")
-    public PaymentCompleteResponse getPaymentComplete(@RequestBody StatusRequest statusRequest) {
+    @GetMapping("/status/get_payment_complete")
+    public PaymentCompleteResponse getPaymentComplete(@RequestParam String sysId) {
 
-        return statusService.getPaymentComplete(statusRequest);
+        return statusService.getPaymentComplete(sysId);
     }
 
     @PostMapping("/status/payment_complete")
@@ -143,6 +143,28 @@ public class OrderManageController {
                 CommonResponse.builder()
                         .success(true)
                         .message("미결제완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/status/get_change_order")
+    public PaymentCompleteResponse getChangeOrder(@RequestParam String sysId) {
+
+        return statusService.getPaymentComplete(sysId);
+    }
+
+    @PostMapping("/status/change_order")
+    public ResponseEntity<CommonResponse> changeOrder(@RequestBody List<String> listDetailSysId,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        statusService.changeOrder(listDetailSysId, loginUser.getUserId());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("주문 수정 완료.")
                         .build()
         );
     }

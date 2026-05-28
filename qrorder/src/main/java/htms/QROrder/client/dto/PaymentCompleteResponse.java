@@ -26,6 +26,7 @@ public class PaymentCompleteResponse {
         private String parentDetailSysId;
         private String itemName;
         private Integer qty;
+        private String paymentYn;
     }
 
     @Data
