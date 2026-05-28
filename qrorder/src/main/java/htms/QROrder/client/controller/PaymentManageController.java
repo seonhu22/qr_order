@@ -19,5 +19,21 @@ import java.util.List;
 @RequestMapping("/api/client/payment_manage")
 public class PaymentManageController {
 
+    private final PaymentInfoMasterService paymentInfoMasterService;
+    private final PaymentInfoDetailService paymentInfoDetailService;
 
+    @GetMapping("/history/master/search")
+    public List<PaymentInfoMasterResponse> getPaymentInfoMaster(@RequestParam String paymentStatus,
+                                                                    HttpSession session) {
+
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return paymentInfoMasterService.getPaymentInfoMaster(paymentStatus, login.getSysPlantCd());
+    }
+
+    @GetMapping("/history/detail/search/{masterSysId}")
+    public List<PaymentInfoDetailResponse> getPaymentInfoDetail(@PathVariable String masterSysId) {
+
+        return paymentInfoDetailService.getPaymentInfoMaster(masterSysId);
+    }
 }

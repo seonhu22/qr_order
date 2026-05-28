@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.PaymentInfoDetailMapper">
+
+    <select id="getPaymentInfoDetail" resultType="htms.QROrder.client.dto.PaymentInfoDetailResponse">
+        select
+            1 as tree_level ,
+            og.sys_id ,
+            og.link_sys_id as parent_sys_id ,
+            concat('주문 #', og.order_num) as item_name ,
+            null as qty ,
+            null as price ,
+            null as total_price ,
+            null as payment_yn,
+            og.order_status,
+            og.cancel_reason,
+            og.cancel_description
+        from order_group og
+        where 1=1
+        and og.link_sys_id = #{masterSysId}
+        union all
+        select
+            2 as tree_level ,
+            od.sys_id ,
+            od.link_sys_id3 as parent_sys_id ,
+            smd.menu_name as item_name ,
+            od.qty ,
+            smd.menu_price as price ,
+            case when od.payment_yn = 'Y'
+                then smd.menu_price * od.qty
+                else 0
+            end as total_price ,
+            od.payment_yn,
+            null as order_status,
+            null as cancel_reason,
+            null as cancel_description
+        from order_detail od
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
+        left join store_menu_detail smd
+            on smd.sys_id = od.link_sys_id2
+        where 1=1
+        and og.link_sys_id = #{masterSysId}
+        union all
+        select
+            3 as tree_level ,
+            odo.sys_id ,
+            odo.link_sys_id as parent_sys_id ,
+            smod.menu_option_name as item_name ,
+            odo.qty ,
+            smod.menu_option_price as price ,
+            case when od.payment_yn = 'Y'
+                then smod.menu_option_price * odo.qty
+                else 0
+            end as total_price ,
+            od.payment_yn,
+            null as order_status,
+            null as cancel_reason,
+            null as cancel_description
+        from order_detail_option odo
+        inner join order_detail od
+            on od.sys_id = odo.link_sys_id
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
+        left join store_menu_option_detail smod
+            on smod.sys_id = odo.link_sys_id2
+        where 1=1
+        and og.link_sys_id = #{masterSysId}
+        order by tree_level asc
+    </select>
+
+</mapper>
