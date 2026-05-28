@@ -2,8 +2,6 @@ package htms.QROrder.client.service;
 
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StatusMapper;
-import htms.QROrder.common.dto.Combo;
-import htms.QROrder.common.repository.ComboMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,11 +19,67 @@ import java.util.stream.Collectors;
 public class StatusService {
 
     private final StatusMapper statusMapper;
-    private final ComboMapper comboMapper;
 
     public List<StatusResponse> getStatus(){
 
         return orderNumClassification();
+    }
+
+    public void cancelOrder(StatusRequest statusRequest,
+                            String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+        String cancelReason = statusRequest.getCancelReason();
+        String cancelDescription = statusRequest.getCancelDescription();
+
+        statusMapper.cancelOrder(header, cancelReason, cancelDescription, userId);
+    }
+
+    public void goToCooking(StatusRequest statusRequest,
+                            String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        statusMapper.goToCooking(header, userId);
+    }
+
+    public void backToReceiveOrder(StatusRequest statusRequest,
+                                    String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        statusMapper.backToReceiveOrder(header, userId);
+    }
+
+    public void goToServingComplete(StatusRequest statusRequest,
+                                        String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        statusMapper.goToServingComplete(header, userId);
+    }
+
+    public void backToCooking(StatusRequest statusRequest,
+                                String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        statusMapper.backToCooking(header, userId);
+    }
+
+    public void paymentComplete(StatusRequest statusRequest,
+                                    String userId) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        statusMapper.paymentComplete(header, userId);
+    }
+
+    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+
+        StatusHeaderItem header = statusRequest.getHeader();
+
+        return statusMapper.getStatusCancelResponses(header);
     }
 
     private List<StatusResponse> orderNumClassification() {

@@ -74,4 +74,69 @@
         group by od.link_sys_id3
     </select>
 
+    <update id="cancelOrder">
+        update order_group set
+            order_status = '99!',
+            cancel_yn = 'Y',
+            cancel_reason = #{cancelReason},
+            cancel_description = #{cancelDescription},
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <update id="goToCooking">
+        update order_group set
+            order_status = '02',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <update id="backToReceiveOrder">
+        update order_group set
+        order_status = '01',
+        modify_user_id = #{userId},
+        modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <update id="goToServingComplete">
+        update order_group set
+        order_status = '03',
+        modify_user_id = #{userId},
+        modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <update id="backToCooking">
+        update order_group set
+        order_status = '02',
+        modify_user_id = #{userId},
+        modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <update id="paymentComplete">
+        update order_group set
+        order_status = '04',
+        modify_user_id = #{userId},
+        modify_datetime = now()
+        where 1=1
+        and sys_id = #{header.sysId}
+    </update>
+
+    <select id="getStatusCancelResponses" resultType="htms.QROrder.client.dto.StatusCancelResponse">
+        select
+            cancel_reason ,
+            cancel_description
+        from order_group og
+        where 1=1
+        and sys_id = #{sysId}
+    </select>
 </mapper>

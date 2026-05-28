@@ -6,8 +6,8 @@ import java.util.List;
 
 @Data
 public class StatusItem {
-    String orderNum;
-    StatusHeaderItem header;
-    List<StatusBodyItem> body;
-    StatusFooterItem footer;
+    private String orderNum;
+    private StatusHeaderItem header;
+    private List<StatusBodyItem> body;
+    private StatusFooterItem footer;
 }
