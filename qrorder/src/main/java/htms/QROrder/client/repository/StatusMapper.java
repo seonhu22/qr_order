@@ -15,6 +15,12 @@ public interface StatusMapper {
     void backToReceiveOrder(StatusHeaderItem header, String userId);
     void goToServingComplete(StatusHeaderItem header, String userId);
     void backToCooking(StatusHeaderItem header, String userId);
-    void paymentComplete(StatusHeaderItem header, String userId);
+    void paymentCompleteOrderMaster(String paymentType, String sysId, String userId);
+    void paymentCompleteOrderGroup(String sysId, String userId);
+    void paymentNotCompleteOrderMaster(String unpaidReason, String unpaidDescription, String sysId, String userId);
+    void paymentNotCompleteOrderGroup(String sysId, String userId);
     StatusCancelResponse getStatusCancelResponses(StatusHeaderItem header);
+    PaymentCompleteHeaderItem getPaymentCompleteHeaders(StatusHeaderItem header);
+    List<PaymentCompleteBodyItem> getPaymentCompleteBodyItems(StatusHeaderItem header);
+    PaymentCompleteFooterItem getPaymentCompleteFooterItems(StatusHeaderItem header);
 }

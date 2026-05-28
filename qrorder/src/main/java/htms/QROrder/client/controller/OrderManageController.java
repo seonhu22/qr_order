@@ -2,10 +2,7 @@ package htms.QROrder.client.controller;
 
 
 import htms.QROrder.auth.domain.Login;
-import htms.QROrder.client.dto.OrderHistoryResponse;
-import htms.QROrder.client.dto.StatusCancelResponse;
-import htms.QROrder.client.dto.StatusRequest;
-import htms.QROrder.client.dto.StatusResponse;
+import htms.QROrder.client.dto.*;
 import htms.QROrder.client.service.OrderHistoryService;
 import htms.QROrder.client.service.StatusService;
 import htms.QROrder.common.dto.CommonResponse;
@@ -112,18 +109,40 @@ public class OrderManageController {
         );
     }
 
+    @PostMapping("/status/get_payment_complete")
+    public PaymentCompleteResponse getPaymentComplete(@RequestBody StatusRequest statusRequest) {
+
+        return statusService.getPaymentComplete(statusRequest);
+    }
+
     @PostMapping("/status/payment_complete")
-    public ResponseEntity<CommonResponse> paymentComplete(@RequestBody StatusRequest statusRequest,
+    public ResponseEntity<CommonResponse> paymentComplete(@RequestBody PaymentCompleteRequest paymentCompleteRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.paymentComplete(statusRequest, loginUser.getUserId());
+        statusService.paymentComplete(paymentCompleteRequest, loginUser.getUserId());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
                         .success(true)
                         .message("결제완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/status/not_payment_complete")
+    public ResponseEntity<CommonResponse> notPaymentComplete(@RequestBody PaymentNotCompleteRequest paymentNotCompleteRequest,
+                                                                HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        statusService.paymentNotComplete(paymentNotCompleteRequest, loginUser.getUserId());
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("미결제완료.")
                         .build()
         );
     }

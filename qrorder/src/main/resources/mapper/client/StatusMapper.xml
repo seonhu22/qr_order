@@ -97,38 +97,69 @@
 
     <update id="backToReceiveOrder">
         update order_group set
-        order_status = '01',
-        modify_user_id = #{userId},
-        modify_datetime = now()
+            order_status = '01',
+            modify_user_id = #{userId},
+            modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
     </update>
 
     <update id="goToServingComplete">
         update order_group set
-        order_status = '03',
-        modify_user_id = #{userId},
-        modify_datetime = now()
+            order_status = '03',
+            modify_user_id = #{userId},
+            modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
     </update>
 
     <update id="backToCooking">
         update order_group set
-        order_status = '02',
-        modify_user_id = #{userId},
-        modify_datetime = now()
+            order_status = '02',
+            modify_user_id = #{userId},
+            modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
     </update>
 
-    <update id="paymentComplete">
-        update order_group set
-        order_status = '04',
-        modify_user_id = #{userId},
-        modify_datetime = now()
+    <update id="paymentCompleteOrderMaster">
+        update order_master set
+            payment_type = #{paymentType},
+            order_status = '02',
+            modify_user_id = #{userId},
+            modify_datetime = now()
         where 1=1
-        and sys_id = #{header.sysId}
+        and sys_id = #{sysId}
+    </update>
+
+    <update id="paymentCompleteOrderGroup">
+        update order_group set
+            order_status = '04',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and link_sys_id = #{sysId}
+        and order_status != '99!'
+    </update>
+
+    <update id="paymentNotCompleteOrderMaster">
+        update order_master set
+            unpaid_reason = #{unpaidReason},
+            unpaid_description = #{unpaidDescription},
+            order_status = '03',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and sys_id = #{sysId}
+    </update>
+
+    <update id="paymentNotCompleteOrderGroup">
+        update order_group set
+            order_status = '05',
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        where 1=1
+        and link_sys_id = #{sysId}
     </update>
 
     <select id="getStatusCancelResponses" resultType="htms.QROrder.client.dto.StatusCancelResponse">
@@ -139,4 +170,68 @@
         where 1=1
         and sys_id = #{sysId}
     </select>
+
+    <select id="getPaymentCompleteHeaders" resultType="htms.QROrder.client.dto.PaymentCompleteHeaderItem">
+        select
+            om.sys_id ,
+            concat(ti.table_num, '(', ti.table_name, ')') as table_info ,
+            om.insert_datetime as order_datetime
+        from order_master om
+        left join table_info ti
+            on ti.sys_id = om.link_sys_id
+        inner join order_group og
+            on og.link_sys_id = om.sys_id
+        where 1=1
+        and og.sys_id = #{sysId}
+    </select>
+
+    <select id="getPaymentCompleteBodyItems" resultType="htms.QROrder.client.dto.PaymentCompleteBodyItem">
+        select
+            od.link_sys_id3 as link_sys_id ,
+            'MENU' as row_type ,
+            od.sys_id as detail_sys_id ,
+            null as parent_detail_sys_id ,
+            smd.menu_name as item_name ,
+            od.qty
+        from order_detail od
+        left join store_menu_detail smd
+            on smd.sys_id = od.link_sys_id2
+        where 1=1
+        and od.link_sys_id3 = #{sysId}
+        union all
+        select
+            od.link_sys_id3 as link_sys_id ,
+            'OPTION' as row_type ,
+            odo.sys_id as detail_sys_id ,
+            odo.link_sys_id as parent_detail_sys_id ,
+            smod.menu_option_name as item_name ,
+            odo.qty
+        from order_detail od
+        inner join order_detail_option odo
+            on odo.link_sys_id = od.sys_id
+        left join store_menu_option_detail smod
+            on smod.sys_id = odo.link_sys_id2
+        where 1=1
+        and od.link_sys_id3 = #{sysId}
+    </select>
+
+    <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteFooterItem">
+        select
+            od.link_sys_id3 as sys_id ,
+            sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price
+        from order_detail od
+        left join store_menu_detail smd
+            on smd.sys_id = od.link_sys_id2
+        left join (
+            select odo.link_sys_id , sum(smod.menu_option_price * odo.qty) as option_price
+            from order_detail_option odo
+            left join store_menu_option_detail smod
+                on smod.sys_id = odo.link_sys_id2
+            group by odo.link_sys_id
+        ) opt_sum on opt_sum.link_sys_id = od.sys_id
+        where 1=1
+        and od.link_sys_id3 = #{sysId}
+        group by od.link_sys_id3
+    </select>
+
 </mapper>

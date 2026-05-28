@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class TableInfoItem {
     private String sysId;
+    private String tableName;
     private Integer tableNum;
     private Integer tableQty;
     private String useYn;

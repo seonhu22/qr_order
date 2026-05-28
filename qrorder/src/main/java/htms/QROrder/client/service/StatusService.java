@@ -1,7 +1,9 @@
 package htms.QROrder.client.service;
 
+import htms.QROrder.auth.dto.LoginResponse;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StatusMapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,12 +69,16 @@ public class StatusService {
         statusMapper.backToCooking(header, userId);
     }
 
-    public void paymentComplete(StatusRequest statusRequest,
-                                    String userId) {
+    public PaymentCompleteResponse getPaymentComplete(StatusRequest statusRequest) {
 
         StatusHeaderItem header = statusRequest.getHeader();
 
-        statusMapper.paymentComplete(header, userId);
+        PaymentCompleteResponse paymentCompleteResponse = new PaymentCompleteResponse();
+        paymentCompleteResponse.setHeader(statusMapper.getPaymentCompleteHeaders(header));
+        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(header));
+        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header));
+
+        return paymentCompleteResponse;
     }
 
     public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
@@ -80,6 +86,25 @@ public class StatusService {
         StatusHeaderItem header = statusRequest.getHeader();
 
         return statusMapper.getStatusCancelResponses(header);
+    }
+
+    public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
+                                    String userId) {
+
+        PaymentCompleteHeaderItem header = paymentCompleteRequest.getHeader();
+        String sysId = header.getSysId();
+
+        statusMapper.paymentCompleteOrderMaster(paymentCompleteRequest.getPaymentType(), sysId, userId);
+        statusMapper.paymentCompleteOrderGroup(sysId, userId);
+    }
+
+    public void paymentNotComplete(PaymentNotCompleteRequest paymentNotCompleteRequest,
+                                    String userId) {
+
+        String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
+
+        statusMapper.paymentNotCompleteOrderMaster(paymentNotCompleteRequest.getUnpaidReason(), paymentNotCompleteRequest.getUnpaidDescription(), orderMasterSysId, userId);
+        statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId);
     }
 
     private List<StatusResponse> orderNumClassification() {
