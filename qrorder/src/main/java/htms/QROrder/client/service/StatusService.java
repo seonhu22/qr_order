@@ -30,7 +30,7 @@ public class StatusService {
     public void cancelOrder(StatusRequest statusRequest,
                             String userId) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
         String cancelReason = statusRequest.getCancelReason();
         String cancelDescription = statusRequest.getCancelDescription();
 
@@ -40,7 +40,7 @@ public class StatusService {
     public void goToCooking(StatusRequest statusRequest,
                             String userId) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         statusMapper.goToCooking(header, userId);
     }
@@ -48,7 +48,7 @@ public class StatusService {
     public void backToReceiveOrder(StatusRequest statusRequest,
                                     String userId) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         statusMapper.backToReceiveOrder(header, userId);
     }
@@ -56,7 +56,7 @@ public class StatusService {
     public void goToServingComplete(StatusRequest statusRequest,
                                         String userId) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         statusMapper.goToServingComplete(header, userId);
     }
@@ -64,14 +64,14 @@ public class StatusService {
     public void backToCooking(StatusRequest statusRequest,
                                 String userId) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         statusMapper.backToCooking(header, userId);
     }
 
     public PaymentCompleteResponse getPaymentComplete(StatusRequest statusRequest) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         PaymentCompleteResponse paymentCompleteResponse = new PaymentCompleteResponse();
         paymentCompleteResponse.setHeader(statusMapper.getPaymentCompleteHeaders(header));
@@ -83,7 +83,7 @@ public class StatusService {
 
     public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
 
-        StatusHeaderItem header = statusRequest.getHeader();
+        StatusItem.Header header = statusRequest.getHeader();
 
         return statusMapper.getStatusCancelResponses(header);
     }
@@ -91,7 +91,7 @@ public class StatusService {
     public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
                                     String userId) {
 
-        PaymentCompleteHeaderItem header = paymentCompleteRequest.getHeader();
+        PaymentCompleteResponse.Header header = paymentCompleteRequest.getHeader();
         String sysId = header.getSysId();
 
         statusMapper.paymentCompleteOrderMaster(paymentCompleteRequest.getPaymentType(), sysId, userId);
@@ -109,9 +109,9 @@ public class StatusService {
 
     private List<StatusResponse> orderNumClassification() {
 
-        List<StatusHeaderItem> header = statusMapper.getStatusHeaderItems();
-        List<StatusBodyItem> body = statusMapper.getStatusBodyItems();
-        List<StatusFooterItem> footer = statusMapper.getStatusFooterItems();
+        List<StatusItem.Header> header = statusMapper.getStatusItem.Headers();
+        List<StatusItem.Body> body = statusMapper.getStatusItem.Bodys();
+        List<StatusItem.Footer> footer = statusMapper.getStatusItem.Footers();
 
         List<StatusItem> statusItems = new ArrayList<>();
 

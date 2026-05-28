@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.client.repository.StatusMapper">
 
-    <select id="getStatusHeaderItems" resultType="htms.QROrder.client.dto.StatusHeaderItem">
+    <select id="getStatusHeaderItems" resultType="htms.QROrder.client.dto.StatusItem$Header">
         select
             og.sys_id,
             og.order_num ,
@@ -17,7 +17,7 @@
             on ti.sys_id = om.link_sys_id
     </select>
 
-    <select id="getStatusBodyItems" resultType="htms.QROrder.client.dto.StatusBodyItem">
+    <select id="getStatusBodyItems" resultType="htms.QROrder.client.dto.StatusItem$Body">
         select
             od.link_sys_id3 as link_sys_id ,
             'MENU' as row_type ,
@@ -52,7 +52,7 @@
         where 1=1
     </select>
 
-    <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusFooterItem">
+    <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusItem$Footer">
         select
             od.link_sys_id3 as sys_id ,
             sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price
@@ -171,7 +171,7 @@
         and sys_id = #{sysId}
     </select>
 
-    <select id="getPaymentCompleteHeaders" resultType="htms.QROrder.client.dto.PaymentCompleteHeaderItem">
+    <select id="getPaymentCompleteHeaders" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Header">
         select
             om.sys_id ,
             concat(ti.table_num, '(', ti.table_name, ')') as table_info ,
@@ -185,7 +185,7 @@
         and og.sys_id = #{sysId}
     </select>
 
-    <select id="getPaymentCompleteBodyItems" resultType="htms.QROrder.client.dto.PaymentCompleteBodyItem">
+    <select id="getPaymentCompleteBodyItems" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Body">
         select
             od.link_sys_id3 as link_sys_id ,
             'MENU' as row_type ,
@@ -215,7 +215,7 @@
         and od.link_sys_id3 = #{sysId}
     </select>
 
-    <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteFooterItem">
+    <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Footer">
         select
             od.link_sys_id3 as sys_id ,
             sum(smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)) as total_price

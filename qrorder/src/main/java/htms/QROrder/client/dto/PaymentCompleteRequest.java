@@ -7,7 +7,7 @@ import java.util.List;
 @Data
 public class PaymentCompleteRequest {
     private String paymentType;
-    private PaymentCompleteHeaderItem header;
-    private List<PaymentCompleteBodyItem> body;
-    private PaymentCompleteFooterItem footer;
+    private PaymentCompleteResponse.Header header;
+    private List<PaymentCompleteResponse.Body> body;
+    private PaymentCompleteResponse.Footer footer;
 }

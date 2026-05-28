@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class PaymentNotCompleteRequest {
-    private PaymentCompleteHeaderItem orderInfo;
+    private PaymentCompleteResponse.Header orderInfo;
     private String unpaidReason;
     private String unpaidDescription;
 }
