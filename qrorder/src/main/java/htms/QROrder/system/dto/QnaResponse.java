@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
 public class QnaResponse {
     private String sysId;
     private String qnaTitle;
+    private String writeUsername;
     private String qnaDescription;
     private LocalDate startDate;
     private String fileUlid;
     private String answerYn;
-    private String answerUserId;
+    private String answerUserName;
     private LocalDateTime answerDatetime;
     private String answerDescription;
 }

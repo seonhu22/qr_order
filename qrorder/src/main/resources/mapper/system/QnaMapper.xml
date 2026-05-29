@@ -7,14 +7,19 @@
         select
             bq.sys_id,
             bq.qna_title,
+            su.user_nm as write_user_name,
             bq.qna_description,
             bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
-            bq.answer_user_id,
+            su2.user_nm as answer_user_name,
             bq.answer_datetime,
             bq.answer_description
         from brd_qna bq
+        left join sys_user su
+            on su.user_id = bq.insert_user_id
+        left join sys_user su2
+            on su2.user_id = bq.answer_user_id
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
         and (bq.qna_title like concat('%', #{searchKeyword}, '%')
