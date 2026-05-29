@@ -21,6 +21,7 @@ public class PaymentManageController {
 
     private final PaymentInfoMasterService paymentInfoMasterService;
     private final PaymentInfoDetailService paymentInfoDetailService;
+    private final SettlementService settlementService;
 
     @GetMapping("/history/master/search")
     public List<PaymentInfoMasterResponse> getPaymentInfoMaster(@RequestParam String paymentStatus,
@@ -35,5 +36,14 @@ public class PaymentManageController {
     public List<PaymentInfoDetailResponse> getPaymentInfoDetail(@PathVariable String masterSysId) {
 
         return paymentInfoDetailService.getPaymentInfoMaster(masterSysId);
+    }
+
+    @GetMapping("/settlement/search")
+    public SettlementResponse getSettlement(@RequestParam SettlementRequest settlementRequest,
+                                HttpSession session) {
+
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return settlementService.getSettlement(settlementRequest, login.getUserId(), login.getSysPlantCd());
     }
 }
