@@ -3,6 +3,7 @@ package htms.QROrder.qr.controller;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import htms.QROrder.qr.service.QrConnectService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,8 @@ public class QrConnectController {
     private final QrConnectService qrConnectService;
 
     @GetMapping("/{url}")
-    public ResponseEntity<CommonResponse> getTableInfo(@PathVariable String url) {
+    public ResponseEntity<CommonResponse> getTableInfo(@PathVariable String url,
+                                                        HttpSession session) {
 
         QrConnectResponse response = qrConnectService.getTableInfo(url);
 
@@ -29,6 +31,8 @@ public class QrConnectController {
                             .build()
             );
         }
+
+        session.setAttribute("qrTableInfo", response);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
