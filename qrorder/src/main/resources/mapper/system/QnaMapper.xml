@@ -11,6 +11,7 @@
             bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
+            bq.answer_user_id,
             bq.answer_datetime,
             bq.answer_description
         from brd_qna bq
@@ -28,6 +29,7 @@
             answer_yn = 'Y',
             answer_datetime = now(),
             answer_description = #{qnaRequest.answerDescription},
+            answer_user_id = #{userId},
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
@@ -42,6 +44,7 @@
             bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
+            bq.answer_user_id,
             bq.answer_datetime,
             bq.answer_description
         from brd_qna bq

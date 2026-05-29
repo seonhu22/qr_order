@@ -13,6 +13,7 @@ public class QnaResponse {
     private LocalDate startDate;
     private String fileUlid;
     private String answerYn;
+    private String answerUserId;
     private LocalDateTime answerDatetime;
     private String answerDescription;
 }
