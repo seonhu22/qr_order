@@ -28,9 +28,9 @@ public class QRCodeService {
     }
 
     public void saveQRCode(QRCodeRequest qrCodeRequest,
-                              String userId,
-                              String sysPlantCd,
-                              String menuCd) {
+                                String userId,
+                                String sysPlantCd,
+                                String menuCd) {
 
         List<QRCodeItem> newItems = qrCodeRequest.getNewItems();
         List<QRCodeItem> updateItems = qrCodeRequest.getUpdateItems();
@@ -58,13 +58,14 @@ public class QRCodeService {
     }
 
     private void newQRCode(List<QRCodeItem> newItems,
-                              String userId,
-                              String sysPlantCd,
-                              String menuCd) {
+                                String userId,
+                                String sysPlantCd,
+                                String menuCd) {
 
         newItems.forEach(item -> {
             String ULID = UlidCreator.getMonotonicUlid().toString();
             item.setSysId(ULID);
+            item.setUrl(ULID);
         });
 
         auditService.insertNewAuditTrailData(newItems, menuCd, "qr_code", userId, sysPlantCd);
@@ -72,9 +73,9 @@ public class QRCodeService {
     }
 
     private void updateQRCode(List<QRCodeItem> updateItems,
-                                 String userId,
-                                 String sysPlantCd,
-                                 String menuCd) {
+                                    String userId,
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         List<QRCodeItem> oldData = getOldData(updateItems);
 
@@ -83,9 +84,9 @@ public class QRCodeService {
     }
 
     private void delQRCode(List<QRCodeItem> delItems,
-                              String userId,
-                              String sysPlantCd,
-                              String menuCd) {
+                                String userId,
+                                String sysPlantCd,
+                                String menuCd) {
 
         auditService.insertDeleteAuditTrailData(delItems, menuCd, "qr_code", userId, sysPlantCd);
         qrCodeMapper.delQRCode(delItems, userId, sysPlantCd, menuCd);
