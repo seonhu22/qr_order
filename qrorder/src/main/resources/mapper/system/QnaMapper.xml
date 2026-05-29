@@ -9,7 +9,6 @@
             bq.qna_title,
             su.user_nm as write_user_name,
             bq.qna_description,
-            bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
             su2.user_nm as answer_user_name,
@@ -46,7 +45,6 @@
             bq.sys_id,
             bq.qna_title,
             bq.qna_description,
-            bq.start_date,
             bq.file_ulid,
             bq.answer_yn,
             bq.answer_user_id,
@@ -56,4 +54,5 @@
         where 1=1
         and bq.sys_id = #{sysId}
     </select>
+
 </mapper>

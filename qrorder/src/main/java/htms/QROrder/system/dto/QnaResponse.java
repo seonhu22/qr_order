@@ -11,7 +11,6 @@ public class QnaResponse {
     private String qnaTitle;
     private String writeUsername;
     private String qnaDescription;
-    private LocalDate startDate;
     private String fileUlid;
     private String answerYn;
     private String answerUserName;
