@@ -58,7 +58,7 @@ export const handlers = [
   http.post('/api/client/auth/login', async ({ request }) => {
     const body = await request.json();
 
-    if (body.userId === 'client' && body.userPassword === 'password') {
+    if (body.userId === 'a' && body.userPassword === '1') {
       return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'client', userNm: '클라이언트 사용자' } });
     }
 
