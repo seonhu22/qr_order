@@ -404,6 +404,438 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/store_manage/user_manage/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateClientUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/user_manage/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newClientUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/user_manage/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delClientUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/table_info/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newTableInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/store_info/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateStoreInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/store_info/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newStoreInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/store_info/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delStoreInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/qr_code/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["saveQRCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/payment_complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["paymentComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/not_payment_complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notPaymentComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/go_to_serving_complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["goToServingComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/go_to_cooking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["goToCooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/change_order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["changeOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/cancel_order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancelOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/back_to_receive_order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["backToReceiveOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/back_to_cooking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["backToCooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/master/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateMenuOptionMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/master/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newMenuOptionMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/master/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delMenuOptionMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/group/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateMenuOptionGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/group/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newMenuOptionGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/group/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delMenuOptionGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/detail/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["saveMenuOptionDetail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/master/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateMenuMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/master/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newMenuMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/master/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delMenuMaster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/detail/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["saveMenuDetail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -446,6 +878,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["initPwd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/init-pwd-active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["initPwdAndActive"];
         delete?: never;
         options?: never;
         head?: never;
@@ -772,6 +1220,262 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/store_manage/user_manage/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getClientUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/table_info/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTableInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/store_info/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStoreInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/qr_code/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getQRCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/payment_manage/history/master/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPaymentInfoMaster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/payment_manage/history/detail/search/{masterSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPaymentInfoDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/search/cancel_reason": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStatusCancelResponses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/get_payment_complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPaymentComplete"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/get_change_order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getChangeOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/history/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOrderHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/master/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuOptionMaster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/group/search/{masterSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuOptionGroup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/option/detail/search/{groupSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuOptionDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/master/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuMaster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/menu_manage/menu/detail/search/{masterSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -1041,6 +1745,187 @@ export interface components {
             newPwd: string;
             chkNewPwd: string;
         };
+        ClientUserRequest: {
+            sysId?: string;
+            userId?: string;
+            userNm?: string;
+            userRole?: string;
+            plantCd?: string;
+            plantNm?: string;
+        };
+        ClientUserItem: {
+            sysId?: string;
+            userId?: string;
+            userNm?: string;
+            userRole?: string;
+            plantCd?: string;
+            plantNm?: string;
+        };
+        TableInfoItem: {
+            sysId?: string;
+            tableName?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: int32 */
+            tableQty?: number;
+            useYn?: string;
+        };
+        TableInfoRequest: {
+            newItems?: components["schemas"]["TableInfoItem"][];
+            updateItems?: components["schemas"]["TableInfoItem"][];
+            delItems?: components["schemas"]["TableInfoItem"][];
+        };
+        StoreInfoRequest: {
+            sysId?: string;
+            storeName?: string;
+            address?: string;
+            phoneNumber?: string;
+            /** Format: date-time */
+            openDatetime?: string;
+            /** Format: date-time */
+            closeDatetime?: string;
+        };
+        StoreInfoItem: {
+            sysId?: string;
+            storeName?: string;
+            address?: string;
+            phoneNumber?: string;
+            /** Format: date-time */
+            openDatetime?: string;
+            /** Format: date-time */
+            closeDatetime?: string;
+        };
+        QRCodeItem: {
+            sysId?: string;
+            linkSysId?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            description?: string;
+            url?: string;
+            useYn?: string;
+        };
+        QRCodeRequest: {
+            newItems?: components["schemas"]["QRCodeItem"][];
+            updateItems?: components["schemas"]["QRCodeItem"][];
+            delItems?: components["schemas"]["QRCodeItem"][];
+        };
+        Body: {
+            linkSysId?: string;
+            rowType?: string;
+            detailSysId?: string;
+            parentDetailSysId?: string;
+            itemName?: string;
+            /** Format: int32 */
+            qty?: number;
+            paymentYn?: string;
+        };
+        Footer: {
+            sysId?: string;
+            /** Format: int32 */
+            totalPrice?: number;
+        };
+        Header: {
+            sysId?: string;
+            tableInfo?: string;
+            /** Format: date-time */
+            orderDatetime?: string;
+        };
+        PaymentCompleteRequest: {
+            paymentType?: string;
+            header?: components["schemas"]["Header"];
+            body?: components["schemas"]["Body"][];
+            footer?: components["schemas"]["Footer"];
+        };
+        PaymentNotCompleteRequest: {
+            orderInfo?: components["schemas"]["Header"];
+            unpaidReason?: string;
+            unpaidDescription?: string;
+        };
+        StatusRequest: {
+            orderNum?: string;
+            header?: components["schemas"]["Header"];
+            body?: components["schemas"]["Body"][];
+            footer?: components["schemas"]["Footer"];
+            cancelReason?: string;
+            cancelDescription?: string;
+        };
+        MenuOptionMasterRequest: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionMasterItem: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionGroupRequest: {
+            sysId?: string;
+            linkSysId?: string;
+            groupName?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionGroupItem: {
+            sysId?: string;
+            linkSysId?: string;
+            groupName?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionDetailItem: {
+            sysId?: string;
+            linkSysId?: string;
+            menuOptionName?: string;
+            menuOptionPrice?: string;
+            menuDescription?: string;
+            useYn?: string;
+            fileUlid?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionDetailRequest: {
+            newItems?: components["schemas"]["MenuOptionDetailItem"][];
+            updateItems?: components["schemas"]["MenuOptionDetailItem"][];
+            delItems?: components["schemas"]["MenuOptionDetailItem"][];
+        };
+        MenuMasterRequest: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuMasterItem: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuDetailItem: {
+            sysId?: string;
+            linkSysId?: string;
+            menuName?: string;
+            /** Format: int32 */
+            menuPrice?: number;
+            menuDescription?: string;
+            optionUseYn?: string;
+            linkSysId2?: string;
+            useYn?: string;
+            fileUlid?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuDetailRequest: {
+            newItems?: components["schemas"]["MenuDetailItem"][];
+            updateItems?: components["schemas"]["MenuDetailItem"][];
+            delItems?: components["schemas"]["MenuDetailItem"][];
+        };
         LoginRequest: {
             userId: string;
             userPassword: string;
@@ -1100,7 +1985,7 @@ export interface components {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            /** Format: date-time */
+            /** Format: date */
             startDate?: string;
             fileUlid?: string;
             answerYn?: string;
@@ -1128,6 +2013,150 @@ export interface components {
         Combo: {
             code?: string;
             name?: string;
+        };
+        ClientUserResponse: {
+            sysId?: string;
+            userId?: string;
+            userNm?: string;
+            userRole?: string;
+            plantCd?: string;
+            plantNm?: string;
+        };
+        TableInfoResponse: {
+            sysId?: string;
+            tableName?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: int32 */
+            tableQty?: number;
+            useYn?: string;
+        };
+        StoreInfoResponse: {
+            sysId?: string;
+            storeName?: string;
+            address?: string;
+            phoneNumber?: string;
+            /** Format: date-time */
+            openDatetime?: string;
+            /** Format: date-time */
+            closeDatetime?: string;
+        };
+        QRCodeResponse: {
+            sysId?: string;
+            linkSysId?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            description?: string;
+            url?: string;
+            useYn?: string;
+        };
+        PaymentInfoMasterResponse: {
+            sysId?: string;
+            tableInfo?: string;
+            paymentType?: string;
+            orderStatus?: string;
+            /** Format: date-time */
+            orderDatetime?: string;
+            /** Format: int32 */
+            totalPrice?: number;
+        };
+        PaymentInfoDetailResponse: {
+            sysId?: string;
+            /** Format: int32 */
+            orderNum?: number;
+            items?: string;
+            orderStatus?: string;
+            cancelReason?: string;
+            cancelDescription?: string;
+        };
+        StatusItem: {
+            orderNum?: string;
+            header?: components["schemas"]["Header"];
+            body?: components["schemas"]["Body"][];
+            footer?: components["schemas"]["Footer"];
+        };
+        StatusResponse: {
+            statusFlag?: string;
+            statusList?: components["schemas"]["StatusItem"][];
+        };
+        StatusCancelResponse: {
+            cancelReason?: string;
+            cancelDescription?: string;
+        };
+        PaymentCompleteResponse: {
+            header?: components["schemas"]["Header"];
+            body?: components["schemas"]["Body"][];
+            footer?: components["schemas"]["Footer"];
+        };
+        OrderDetailHistoryItem: {
+            sysId?: string;
+            masterSysId?: string;
+            menuName?: string;
+            /** Format: int32 */
+            menuPrice?: number;
+            menuOption?: string;
+            orderDatetime?: string;
+        };
+        OrderHistoryResponse: {
+            orderMasterHistory?: components["schemas"]["OrderMasterHistoryItem"][];
+            orderDetailHistory?: components["schemas"]["OrderDetailHistoryItem"][];
+        };
+        OrderMasterHistoryItem: {
+            sysId?: string;
+            linkSysId?: string;
+            tableNum?: string;
+            orderStatus?: string;
+            orderStatusNm?: string;
+            /** Format: int32 */
+            totalPrice?: number;
+            /** Format: date-time */
+            orderStartDatetime?: string;
+        };
+        MenuOptionMasterResponse: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionGroupResponse: {
+            sysId?: string;
+            linkSysId?: string;
+            groupName?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuOptionDetailResponse: {
+            sysId?: string;
+            linkSysId?: string;
+            menuOptionName?: string;
+            menuOptionPrice?: string;
+            menuDescription?: string;
+            useYn?: string;
+            fileUlid?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuMasterResponse: {
+            sysId?: string;
+            categoryName?: string;
+            useYn?: string;
+            /** Format: int32 */
+            ordNo?: number;
+        };
+        MenuDetailResponse: {
+            sysId?: string;
+            linkSysId?: string;
+            menuName?: string;
+            /** Format: int32 */
+            menuPrice?: number;
+            menuDescription?: string;
+            optionUseYn?: string;
+            linkSysId2?: string;
+            useYn?: string;
+            fileUlid?: string;
+            /** Format: int32 */
+            ordNo?: number;
         };
         FileResponse: {
             sysId?: string;
@@ -1738,6 +2767,652 @@ export interface operations {
             };
         };
     };
+    updateClientUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newClientUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delClientUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientUserItem"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newTableInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableInfoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateStoreInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreInfoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newStoreInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreInfoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delStoreInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreInfoItem"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    saveQRCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QRCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    paymentComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    notPaymentComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentNotCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    goToServingComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    goToCooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    changeOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    cancelOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    backToReceiveOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    backToCooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateMenuOptionMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionMasterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newMenuOptionMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionMasterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delMenuOptionMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionMasterItem"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateMenuOptionGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newMenuOptionGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delMenuOptionGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuOptionGroupItem"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    saveMenuOptionDetail: {
+        parameters: {
+            query: {
+                menuOptionDetailRequest: components["schemas"]["MenuOptionDetailRequest"];
+                fileRequest: components["schemas"]["FileRequest"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    updateMenuMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuMasterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newMenuMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuMasterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delMenuMaster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuMasterItem"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    saveMenuDetail: {
+        parameters: {
+            query: {
+                menuDetailRequest: components["schemas"]["MenuDetailRequest"];
+                fileRequest: components["schemas"]["FileRequest"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
     logout: {
         parameters: {
             query?: never;
@@ -1783,6 +3458,32 @@ export interface operations {
         };
     };
     initPwd: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InitPwdRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    initPwdAndActive: {
         parameters: {
             query: {
                 userId: string;
@@ -2244,6 +3945,352 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["Combo"][];
+                };
+            };
+        };
+    };
+    getClientUser: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClientUserResponse"][];
+                };
+            };
+        };
+    };
+    getTableInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TableInfoResponse"][];
+                };
+            };
+        };
+    };
+    getStoreInfo: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StoreInfoResponse"][];
+                };
+            };
+        };
+    };
+    getQRCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QRCodeResponse"][];
+                };
+            };
+        };
+    };
+    getPaymentInfoMaster: {
+        parameters: {
+            query: {
+                paymentStatus: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentInfoMasterResponse"][];
+                };
+            };
+        };
+    };
+    getPaymentInfoDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                masterSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentInfoDetailResponse"][];
+                };
+            };
+        };
+    };
+    getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StatusResponse"][];
+                };
+            };
+        };
+    };
+    getStatusCancelResponses: {
+        parameters: {
+            query: {
+                statusRequest: components["schemas"]["StatusRequest"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StatusCancelResponse"];
+                };
+            };
+        };
+    };
+    getPaymentComplete: {
+        parameters: {
+            query: {
+                sysId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentCompleteResponse"];
+                };
+            };
+        };
+    };
+    getChangeOrder: {
+        parameters: {
+            query: {
+                sysId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentCompleteResponse"];
+                };
+            };
+        };
+    };
+    getOrderHistory: {
+        parameters: {
+            query: {
+                orderStatus: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OrderHistoryResponse"];
+                };
+            };
+        };
+    };
+    getMenuOptionMaster: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuOptionMasterResponse"][];
+                };
+            };
+        };
+    };
+    getMenuOptionGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                masterSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuOptionGroupResponse"][];
+                };
+            };
+        };
+    };
+    getMenuOptionDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuOptionDetailResponse"][];
+                };
+            };
+        };
+    };
+    getMenuMaster: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuMasterResponse"][];
+                };
+            };
+        };
+    };
+    getMenuDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                masterSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuDetailResponse"][];
                 };
             };
         };

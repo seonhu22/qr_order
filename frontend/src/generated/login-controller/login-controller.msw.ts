@@ -27,6 +27,8 @@ export const getLoginResponseMock = (overrideResponse: Partial< CommonResponse >
 
 export const getInitPwdResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
+export const getInitPwdAndActiveResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
 
 export const getLoginMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
   return http.post('*/api/auth/login', async (info) => {await delay(1000);
@@ -51,7 +53,20 @@ export const getInitPwdMockHandler = (overrideResponse?: CommonResponse | ((info
       })
   }, options)
 }
+
+export const getInitPwdAndActiveMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/auth/init-pwd-active', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getInitPwdAndActiveResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 export const getLoginControllerMock = () => [
   getLoginMockHandler(),
-  getInitPwdMockHandler()
+  getInitPwdMockHandler(),
+  getInitPwdAndActiveMockHandler()
 ]
