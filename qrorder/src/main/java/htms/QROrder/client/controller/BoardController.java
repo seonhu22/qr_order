@@ -1,11 +1,11 @@
 package htms.QROrder.client.controller;
 
 import htms.QROrder.auth.domain.Login;
-import htms.QROrder.client.dto.NoticeResponse;
-import htms.QROrder.client.dto.QnaRequest;
-import htms.QROrder.client.dto.QnaResponse;
-import htms.QROrder.client.service.NoticeService;
-import htms.QROrder.client.service.QnaService;
+import htms.QROrder.client.dto.ClientNoticeResponse;
+import htms.QROrder.client.dto.ClientQnaRequest;
+import htms.QROrder.client.dto.ClientQnaResponse;
+import htms.QROrder.client.service.ClinetNoticeService;
+import htms.QROrder.client.service.ClientQnaService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +21,18 @@ import java.util.List;
 @RequestMapping("/api/client/board")
 public class BoardController {
 
-    private final NoticeService noticeService;
-    private final QnaService qnaService;
+    private final ClinetNoticeService noticeService;
+    private final ClientQnaService qnaService;
 
     @GetMapping("/notice/search")
-    public List<NoticeResponse> getNotice(@RequestParam String searchKeyword) {
+    public List<ClientNoticeResponse> getNotice(@RequestParam String searchKeyword) {
 
         return noticeService.getNotice(searchKeyword);
     }
 
     @GetMapping("/qna/search")
-    public List<QnaResponse> getQna(@RequestParam String searchKeyword,
-                                        HttpSession session) {
+    public List<ClientQnaResponse> getQna(@RequestParam String searchKeyword,
+                                          HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
@@ -40,7 +40,7 @@ public class BoardController {
     }
 
     @PostMapping("/qna/new")
-    public ResponseEntity<CommonResponse> newQna(@RequestBody QnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> newQna(@RequestBody ClientQnaRequest qnaRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -57,7 +57,7 @@ public class BoardController {
     }
 
     @PostMapping("/qna/update")
-    public ResponseEntity<CommonResponse> updateQna(@RequestBody QnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> updateQna(@RequestBody ClientQnaRequest qnaRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
@@ -74,7 +74,7 @@ public class BoardController {
     }
 
     @PostMapping("/qna/del")
-    public ResponseEntity<CommonResponse> delQna(@RequestBody QnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> delQna(@RequestBody ClientQnaRequest qnaRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");

@@ -1,7 +1,7 @@
 package htms.QROrder.client.service;
 
-import htms.QROrder.client.dto.NoticeResponse;
-import htms.QROrder.client.repository.NoticeMapper;
+import htms.QROrder.client.dto.ClientNoticeResponse;
+import htms.QROrder.client.repository.ClientNoticeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,11 +13,11 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class NoticeService {
+public class ClinetNoticeService {
 
-    private final NoticeMapper noticeMapper;
+    private final ClientNoticeMapper noticeMapper;
 
-    public List<NoticeResponse> getNotice(String searchKeyword) {
+    public List<ClientNoticeResponse> getNotice(String searchKeyword) {
 
         return noticeMapper.getNotice(searchKeyword);
     }

@@ -6,7 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 @Data
-public class NoticeItem {
+public class ClientNoticeItem {
     private String sysId;
     private String noticeTitle;
     private String writeUserName;
