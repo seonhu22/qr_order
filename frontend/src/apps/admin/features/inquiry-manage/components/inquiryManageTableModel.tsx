@@ -19,6 +19,7 @@ export function createInquiryManageTableColumns(): SharedTableColumn[] {
     { key: 'registeredAt', label: '등록일자', tdClassName: 'common-table__cell--center' },
     { key: 'updatedAt',   label: '수정일자', tdClassName: 'common-table__cell--center' },
     { key: 'answeredAt',  label: '답변일자', tdClassName: 'common-table__cell--center' },
+    { key: 'answerer',    label: '답변자',  className: 'common-table__col--md', tdClassName: 'common-table__cell--center' },
     { key: 'answerStatus', label: '답변상태', className: 'common-table__col--md' },
     { key: 'action',      label: '',        className: 'common-table__col--action' },
   ];
@@ -58,6 +59,10 @@ export function createInquiryManageTableRows(
       answeredAt: {
         type: 'text',
         value: row.answeredAt,
+      },
+      answerer: {
+        type: 'text',
+        value: row.answerer,
       },
       answerStatus: {
         type: 'custom',

@@ -28,7 +28,7 @@
 
 /* 컬럼이 많아 가로 스크롤이 필요한 최소 너비 */
 .inquiry-manage-table .common-table {
-  min-width: 72rem;
+  min-width: 78rem;
 }
 
 .inquiry-manage-table__col--title {
