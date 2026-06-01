@@ -1,9 +1,9 @@
 package htms.QROrder.client.service;
 
+import htms.QROrder.auth.dto.LoginResponse;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StatusMapper;
-import htms.QROrder.common.dto.Combo;
-import htms.QROrder.common.repository.ComboMapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,18 +21,104 @@ import java.util.stream.Collectors;
 public class StatusService {
 
     private final StatusMapper statusMapper;
-    private final ComboMapper comboMapper;
 
     public List<StatusResponse> getStatus(){
 
         return orderNumClassification();
     }
 
+    public void cancelOrder(StatusRequest statusRequest,
+                            String userId) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+        String cancelReason = statusRequest.getCancelReason();
+        String cancelDescription = statusRequest.getCancelDescription();
+
+        statusMapper.cancelOrder(header, cancelReason, cancelDescription, userId);
+    }
+
+    public void goToCooking(StatusRequest statusRequest,
+                            String userId) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+
+        statusMapper.goToCooking(header, userId);
+    }
+
+    public void backToReceiveOrder(StatusRequest statusRequest,
+                                    String userId) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+
+        statusMapper.backToReceiveOrder(header, userId);
+    }
+
+    public void goToServingComplete(StatusRequest statusRequest,
+                                        String userId) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+
+        statusMapper.goToServingComplete(header, userId);
+    }
+
+    public void backToCooking(StatusRequest statusRequest,
+                                String userId) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+
+        statusMapper.backToCooking(header, userId);
+    }
+
+    public PaymentCompleteResponse getPaymentComplete(String sysId) {
+
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId(sysId);
+
+        PaymentCompleteResponse paymentCompleteResponse = new PaymentCompleteResponse();
+        paymentCompleteResponse.setHeader(statusMapper.getPaymentCompleteHeaders(header));
+        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(header));
+        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header));
+
+        return paymentCompleteResponse;
+    }
+
+    public void changeOrder(List<String> listDetailSysId,
+                                String userId) {
+
+        statusMapper.changeOrder(listDetailSysId, userId);
+    }
+
+    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+
+        StatusItem.Header header = statusRequest.getHeader();
+
+        return statusMapper.getStatusCancelResponses(header);
+    }
+
+    public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
+                                    String userId) {
+
+        PaymentCompleteResponse.Header header = paymentCompleteRequest.getHeader();
+        String sysId = header.getSysId();
+
+        statusMapper.paymentCompleteOrderMaster(paymentCompleteRequest.getPaymentType(), sysId, userId);
+        statusMapper.paymentCompleteOrderGroup(sysId, userId);
+    }
+
+    public void paymentNotComplete(PaymentNotCompleteRequest paymentNotCompleteRequest,
+                                    String userId) {
+
+        String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
+
+        statusMapper.paymentNotCompleteOrderMaster(paymentNotCompleteRequest.getUnpaidReason(), paymentNotCompleteRequest.getUnpaidDescription(), orderMasterSysId, userId);
+        statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId);
+    }
+
     private List<StatusResponse> orderNumClassification() {
 
-        List<StatusHeaderItem> header = statusMapper.getStatusHeaderItems();
-        List<StatusBodyItem> body = statusMapper.getStatusBodyItems();
-        List<StatusFooterItem> footer = statusMapper.getStatusFooterItems();
+        List<StatusItem.Header> header = statusMapper.getStatusHeaderItems();
+        List<StatusItem.Body> body = statusMapper.getStatusBodyItems();
+        List<StatusItem.Footer> footer = statusMapper.getStatusFooterItems();
 
         List<StatusItem> statusItems = new ArrayList<>();
 

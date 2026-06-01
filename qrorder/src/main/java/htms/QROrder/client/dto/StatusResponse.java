@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class StatusResponse {
-    String statusFlag;
-    List<StatusItem> statusList;
+    private String statusFlag;
+    private List<StatusItem> statusList;
 }

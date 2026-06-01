@@ -5,7 +5,6 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class StatusFooterItem {
-    private String sysId;
-    private Integer totalPrice;
+public class PaymentInfoMasterResponse extends PaymentInfoMasterItem {
+
 }
