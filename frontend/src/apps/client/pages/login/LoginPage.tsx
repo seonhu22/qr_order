@@ -6,11 +6,22 @@ import { TextInput } from '@/shared/components/input/TextInput';
 import { Button } from '@/shared/components/button';
 import { FormAlert } from '@/shared/components/form-alert';
 import { CheckboxInput } from '@/shared/components/checkbox';
+import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
-type Step = 'login' | 'signup-consent' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
+type Step = 'login' | 'change-password' | 'signup-consent' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
+
+async function clientInitPwdActive(data: { password: string; chkPassword: string; userId: string }) {
+  const res = await fetch('/api/client/auth/init-pwd-active', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return res.json() as Promise<{ success: boolean; message?: string }>;
+}
 
 async function clientLogin(data: { userId: string; userPassword: string }) {
   const res = await fetch('/api/client/auth/login', {
@@ -19,7 +30,7 @@ async function clientLogin(data: { userId: string; userPassword: string }) {
     credentials: 'include',
     body: JSON.stringify(data),
   });
-  return res.json() as Promise<{ success: boolean; message?: string }>;
+  return res.json() as Promise<{ success: boolean; message?: string; data?: Record<string, unknown> }>;
 }
 
 // 비밀번호 찾기 — 아이디·이메일 제출 (API 미정, 임시 엔드포인트)
@@ -71,6 +82,15 @@ export default function LoginPage() {
   const [saveId, setSaveId] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  // 비밀번호 변경 필드
+  const [loggedInUserId, setLoggedInUserId] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [resultModal, setResultModal] = useState<{ open: boolean; title: string; description: string; onConfirm: () => void }>(
+    { open: false, title: '', description: '', onConfirm: () => {} },
+  );
+
   // 동의
   const [consentChecked, setConsentChecked] = useState(false);
 
@@ -105,13 +125,55 @@ export default function LoginPage() {
         } else {
           localStorage.removeItem(SAVED_ID_KEY);
         }
-        navigate('/client/main');
+        const responseData = data.data as Record<string, unknown> | undefined;
+        if (responseData?.initPwdRequired === true) {
+          setLoggedInUserId(typeof responseData.userId === 'string' ? responseData.userId : userId);
+          setUserPassword('');
+          setStep('change-password');
+        } else {
+          navigate('/client/main');
+        }
       } else {
         setLoginError(data.message ?? '로그인에 실패했습니다.');
       }
     },
     onError: () => {
       setLoginError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    },
+  });
+
+  const { mutate: changePasswordMutate, isPending: isChangePending } = useMutation({
+    mutationFn: clientInitPwdActive,
+    onSuccess: (data) => {
+      if (data.success) {
+        setResultModal({
+          open: true,
+          title: '알림',
+          description: '비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 다시 로그인해주세요.',
+          onConfirm: () => {
+            setResultModal((prev) => ({ ...prev, open: false }));
+            setStep('login');
+            setNewPassword('');
+            setNewPasswordConfirm('');
+            setChangePasswordError('');
+          },
+        });
+      } else {
+        setResultModal({
+          open: true,
+          title: '비밀번호 변경 실패',
+          description: data.message ?? '비밀번호 변경에 실패했습니다.',
+          onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+        });
+      }
+    },
+    onError: () => {
+      setResultModal({
+        open: true,
+        title: '비밀번호 변경 실패',
+        description: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+      });
     },
   });
 
@@ -163,6 +225,20 @@ export default function LoginPage() {
     loginMutate({ userId, userPassword });
   };
 
+  const handleChangePasswordSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    if (!newPassword || !newPasswordConfirm) {
+      setChangePasswordError('비밀번호를 입력해주세요.');
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      setChangePasswordError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    changePasswordMutate({ password: newPassword, chkPassword: newPasswordConfirm, userId: loggedInUserId });
+  };
+
   const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setFindError('');
@@ -193,10 +269,11 @@ export default function LoginPage() {
     setFindId(''); setFindEmail(''); setVerifyCode(''); setFindError('');
   };
 
-  const isWide = step !== 'login';
+  const isWide = step !== 'login' && step !== 'change-password';
 
   const ariaLabel =
     step === 'login' ? '로그인'
+    : step === 'change-password' ? '비밀번호 변경'
     : step === 'signup-consent' ? '개인정보 동의'
     : step === 'signup' ? '회원가입'
     : step === 'signup-complete' ? '가입 완료'
@@ -264,6 +341,50 @@ export default function LoginPage() {
               </Button>
               <Button type="button" variant="outline" size="lg" className="login-card__submit" onClick={() => setStep('signup-consent')}>
                 회원가입
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 비밀번호 변경 (초기 비밀번호) ── */}
+        {step === 'change-password' && (
+          <form className="login-card__body" onSubmit={handleChangePasswordSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">비밀번호 변경</h1>
+              <p className="login-card__subheading">초기 비밀번호를 변경해주세요.</p>
+            </div>
+
+            {changePasswordError && (
+              <FormAlert type="error" description={changePasswordError} dismissible onDismiss={() => setChangePasswordError('')} />
+            )}
+
+            <div className="login-card__fields">
+              <TextInput
+                label="새 비밀번호"
+                placeholder="새 비밀번호를 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="change-pw"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                isError={!!changePasswordError}
+              />
+              <TextInput
+                label="비밀번호 확인"
+                placeholder="비밀번호를 다시 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="change-pw-confirm"
+                autoComplete="new-password"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                isError={!!changePasswordError}
+              />
+              <Button type="submit" size="lg" className="login-card__submit" disabled={isChangePending}>
+                {isChangePending ? '변경 중...' : '변경하기'}
               </Button>
             </div>
           </form>
@@ -499,6 +620,14 @@ export default function LoginPage() {
       </div>
 
       <p className="login-copyright">© 2026 QRorder. All rights reserved.</p>
+
+      <SimpleDefaultModal
+        open={resultModal.open}
+        title={resultModal.title}
+        description={resultModal.description}
+        primaryAction={{ label: '확인', onClick: resultModal.onConfirm }}
+        onClose={resultModal.onConfirm}
+      />
     </main>
   );
 }
