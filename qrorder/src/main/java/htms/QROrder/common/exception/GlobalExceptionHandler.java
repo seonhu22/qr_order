@@ -1,5 +1,6 @@
 package htms.QROrder.common.exception;
 
+import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.exception.LoginFailException;
 import htms.QROrder.common.dto.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<CommonResponse> handleValidationException(ValidationException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message(e.getMessage())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(BusinessRegiException.class)
+    public ResponseEntity<CommonResponse> handleBusinessRegiException(BusinessRegiException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(CommonResponse.<Void>builder()
                         .success(false)
