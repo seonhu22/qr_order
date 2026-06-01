@@ -56,6 +56,10 @@ public class LoginService {
 
         if ("ADMIN".equals(dbLoginData.getSysPlantCd())) {
             session.setAttribute("role", "SUPER_ADMIN");
+            session.setMaxInactiveInterval(60 * 60);
+        }
+        else {
+            session.setMaxInactiveInterval(-1);
         }
 
         log.info("login success={}, {}, {}", dbLoginData.getUserId(), dbLoginData.getSysPlantCd(), session.getAttribute("role"));
