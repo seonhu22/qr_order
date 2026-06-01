@@ -6,8 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class StatusItem {
-    private String orderNum;
+public class PaymentCompleteResponse {
     private Header header;
     private List<Body> body;
     private Footer footer;
@@ -15,10 +14,8 @@ public class StatusItem {
     @Data
     public static class Header {
         private String sysId;
-        private Integer orderNum;
-        private Integer tableNum;
+        private String tableInfo;
         private LocalDateTime orderDatetime;
-        private String orderStatus;
     }
 
     @Data
