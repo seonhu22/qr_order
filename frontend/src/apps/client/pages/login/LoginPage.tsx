@@ -149,7 +149,7 @@ export default function LoginPage() {
         setResultModal({
           open: true,
           title: '알림',
-          description: '비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 다시 로그인해주세요.',
+          description: '비밀번호가 성공적으로 변경되었습니다.\n새 비밀번호로 다시 로그인해주세요.',
           onConfirm: () => {
             setResultModal((prev) => ({ ...prev, open: false }));
             setStep('login');
@@ -171,7 +171,7 @@ export default function LoginPage() {
       setResultModal({
         open: true,
         title: '비밀번호 변경 실패',
-        description: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
         onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
       });
     },
