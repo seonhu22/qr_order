@@ -140,6 +140,17 @@
   gap: var(--spacing-6);
 }
 
+/* 아이디 중복확인 행 */
+.login-card__id-check-row {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.login-card__id-check-row .input-control {
+  flex: 1;
+  min-width: 0;
+}
+
 /* 개인정보 동의 박스 */
 .login-card__consent-box {
   display: flex;

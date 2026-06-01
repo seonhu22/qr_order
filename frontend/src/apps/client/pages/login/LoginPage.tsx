@@ -2,16 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
-import { TextInput } from '@/shared/components/input/TextInput';
+import { TextInput, InputWrapper, InputBase } from '@/shared/components/input';
 import { Button } from '@/shared/components/button';
 import { FormAlert } from '@/shared/components/form-alert';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
+import { FileInputGroup } from '@/shared/components/file-attachment';
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
-type Step = 'login' | 'change-password' | 'signup-consent' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
+type Step = 'login' | 'change-password' | 'signup-consent' | 'signup-business' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
+
+function formatBusinessNo(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+}
 
 async function clientInitPwdActive(data: { password: string; chkPassword: string; userId: string }) {
   const res = await fetch('/api/client/auth/init-pwd-active', {
@@ -55,6 +63,16 @@ async function verifyFindPasswordCode(data: { userId: string; verifyCode: string
   return res.json() as Promise<{ success: boolean; message?: string }>;
 }
 
+// 아이디 중복 확인 (API 미정, 임시 통과 처리)
+async function checkDuplicateId(_data: { userId: string }) {
+  return { success: true, available: true } as { success: boolean; available: boolean; message?: string };
+}
+
+// 사업자 인증 (API 미정, 임시 통과 처리)
+async function verifyBusiness(_data: { businessNo: string; representativeName: string; openDate: string }) {
+  return { success: true, message: undefined } as { success: boolean; message?: string };
+}
+
 // 회원가입 (API 미정, 임시 엔드포인트)
 async function clientSignup(data: {
   userId: string;
@@ -94,11 +112,18 @@ export default function LoginPage() {
   // 동의
   const [consentChecked, setConsentChecked] = useState(false);
 
+  // 사업자 인증 필드
+  const [businessNo, setBusinessNo] = useState('');
+  const [businessRepName, setBusinessRepName] = useState('');
+  const [openDate, setOpenDate] = useState('');
+  const [businessFile, setBusinessFile] = useState<File | null>(null);
+  const [businessError, setBusinessError] = useState('');
+
   // 회원가입 필드
   const [signupId, setSignupId] = useState('');
+  const [idCheckStatus, setIdCheckStatus] = useState<'idle' | 'available' | 'taken'>('idle');
   const [signupPw, setSignupPw] = useState('');
   const [signupPwConfirm, setSignupPwConfirm] = useState('');
-  const [businessNo, setBusinessNo] = useState('');
   const [email, setEmail] = useState('');
   const [signupError, setSignupError] = useState('');
 
@@ -177,6 +202,48 @@ export default function LoginPage() {
     },
   });
 
+  const { mutate: verifyBusinessMutate, isPending: isBusinessPending } = useMutation({
+    mutationFn: verifyBusiness,
+    onSuccess: (data) => {
+      if (data.success) {
+        setResultModal({
+          open: true,
+          title: '인증 완료',
+          description: '사업자 인증이 완료되었습니다.',
+          onConfirm: () => {
+            setResultModal((prev) => ({ ...prev, open: false }));
+            setStep('signup');
+          },
+        });
+      } else {
+        setResultModal({
+          open: true,
+          title: '인증 실패',
+          description: data.message ?? '사업자 정보를 확인해주세요.',
+          onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+        });
+      }
+    },
+    onError: () => {
+      setResultModal({
+        open: true,
+        title: '서버 오류',
+        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+      });
+    },
+  });
+
+  const { mutate: checkIdMutate, isPending: isIdCheckPending } = useMutation({
+    mutationFn: checkDuplicateId,
+    onSuccess: (data) => {
+      setIdCheckStatus(data.available ? 'available' : 'taken');
+    },
+    onError: () => {
+      setIdCheckStatus('idle');
+    },
+  });
+
   const { mutate: findPasswordMutate, isPending: isFindPending } = useMutation({
     mutationFn: findPassword,
     onSuccess: (data) => {
@@ -209,13 +276,26 @@ export default function LoginPage() {
     mutationFn: clientSignup,
     onSuccess: (data) => {
       if (data.success) {
-        setStep('signup-complete');
+        setResultModal({
+          open: true,
+          title: '가입 완료',
+          description: '회원가입이 완료되었습니다.\n로그인 후 서비스를 이용하실 수 있습니다.',
+          onConfirm: () => {
+            setResultModal((prev) => ({ ...prev, open: false }));
+            setStep('signup-complete');
+          },
+        });
       } else {
         setSignupError(data.message ?? '회원가입에 실패했습니다.');
       }
     },
     onError: () => {
-      setSignupError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      setResultModal({
+        open: true,
+        title: '서버 오류',
+        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+      });
     },
   });
 
@@ -239,6 +319,16 @@ export default function LoginPage() {
     changePasswordMutate({ password: newPassword, chkPassword: newPasswordConfirm, userId: loggedInUserId });
   };
 
+  const handleBusinessSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setBusinessError('');
+    if (!businessFile) {
+      setBusinessError('사업자등록증을 첨부해주세요.');
+      return;
+    }
+    verifyBusinessMutate({ businessNo, representativeName: businessRepName, openDate });
+  };
+
   const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setFindError('');
@@ -254,6 +344,10 @@ export default function LoginPage() {
   const handleSignupSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setSignupError('');
+    if (idCheckStatus !== 'available') {
+      setSignupError('아이디 중복 확인을 해주세요.');
+      return;
+    }
     if (signupPw !== signupPwConfirm) {
       setSignupError('비밀번호가 일치하지 않습니다.');
       return;
@@ -264,8 +358,9 @@ export default function LoginPage() {
   const goToLogin = () => {
     setStep('login');
     setConsentChecked(false);
-    setSignupId(''); setSignupPw(''); setSignupPwConfirm('');
-    setBusinessNo(''); setEmail(''); setSignupError('');
+    setBusinessNo(''); setBusinessRepName(''); setOpenDate(''); setBusinessFile(null); setBusinessError('');
+    setSignupId(''); setIdCheckStatus('idle'); setSignupPw(''); setSignupPwConfirm('');
+    setEmail(''); setSignupError('');
     setFindId(''); setFindEmail(''); setVerifyCode(''); setFindError('');
   };
 
@@ -275,6 +370,7 @@ export default function LoginPage() {
     step === 'login' ? '로그인'
     : step === 'change-password' ? '비밀번호 변경'
     : step === 'signup-consent' ? '개인정보 동의'
+    : step === 'signup-business' ? '사업자 인증'
     : step === 'signup' ? '회원가입'
     : step === 'signup-complete' ? '가입 완료'
     : step === 'find-password' ? '비밀번호 찾기'
@@ -422,14 +518,75 @@ export default function LoginPage() {
               <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
                 취소
               </Button>
-              <Button type="button" size="lg" disabled={!consentChecked} onClick={() => setStep('signup')}>
+              <Button type="button" size="lg" disabled={!consentChecked} onClick={() => setStep('signup-business')}>
                 동의 후 계속
               </Button>
             </div>
           </div>
         )}
 
-        {/* ── 회원가입 ── */}
+        {/* ── 사업자 인증 ── */}
+        {step === 'signup-business' && (
+          <form className="login-card__body" onSubmit={handleBusinessSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">사업자 인증</h1>
+              <p className="login-card__subheading">사업자 정보를 입력하여 인증을 진행해주세요.</p>
+            </div>
+
+            {businessError && (
+              <FormAlert type="error" description={businessError} dismissible onDismiss={() => setBusinessError('')} />
+            )}
+
+            <div className="login-card__signup-grid">
+              <TextInput
+                label="사업자 등록번호"
+                placeholder="000-00-00000"
+                size="lg"
+                id="biz-no"
+                value={businessNo}
+                onChange={(e) => setBusinessNo(formatBusinessNo(e.target.value))}
+                required
+              />
+              <TextInput
+                label="대표자명"
+                placeholder="대표자명을 입력하세요"
+                size="lg"
+                id="biz-rep-name"
+                value={businessRepName}
+                onChange={(e) => setBusinessRepName(e.target.value)}
+                required
+              />
+              <TextInput
+                label="개업일자"
+                type="date"
+                size="lg"
+                id="biz-open-date"
+                value={openDate}
+                onChange={(e) => setOpenDate(e.target.value)}
+                required
+              />
+              <InputWrapper inputId="biz-file" label="사업자등록증">
+                <FileInputGroup
+                  variant="button"
+                  maxFiles={1}
+                  allowedExtensions={['pdf', 'jpg', 'jpeg', 'png']}
+                  onChange={(state) => setBusinessFile(state.newFiles[0] ?? null)}
+                />
+              </InputWrapper>
+            </div>
+
+            <div className="login-card__consent-actions">
+              <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-consent')}>
+                이전
+              </Button>
+              <Button type="submit" size="lg" loading={isBusinessPending}>
+                {isBusinessPending ? '처리 중...' : '인증하기'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 회원가입 (유저 정보) ── */}
         {step === 'signup' && (
           <form className="login-card__body" onSubmit={handleSignupSubmit}>
             <div className="login-card__title">
@@ -441,16 +598,38 @@ export default function LoginPage() {
             )}
 
             <div className="login-card__signup-grid">
-              <TextInput
+              <InputWrapper
+                inputId="signup-id"
                 label="아이디"
-                placeholder="아이디를 입력하세요"
-                size="lg"
-                id="signup-id"
-                autoComplete="username"
-                value={signupId}
-                onChange={(e) => setSignupId(e.target.value)}
-                isError={!!signupError}
-              />
+                required
+                successText={idCheckStatus === 'available' ? '사용 가능한 아이디입니다.' : undefined}
+                errorText={idCheckStatus === 'taken' ? '이미 사용 중인 아이디입니다.' : undefined}
+              >
+                <div className="login-card__id-check-row">
+                  <InputBase
+                    id="signup-id"
+                    size="lg"
+                    placeholder="아이디를 입력하세요"
+                    autoComplete="username"
+                    value={signupId}
+                    onChange={(e) => { setSignupId(e.target.value); setIdCheckStatus('idle'); }}
+                    controlState={
+                      idCheckStatus === 'taken' ? 'error' :
+                      idCheckStatus === 'available' ? 'success' : ''
+                    }
+                  />
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    loading={isIdCheckPending}
+                    disabled={!signupId || isIdCheckPending}
+                    onClick={() => checkIdMutate({ userId: signupId })}
+                  >
+                    중복확인
+                  </Button>
+                </div>
+              </InputWrapper>
               <TextInput
                 label="이메일"
                 placeholder="이메일을 입력하세요"
@@ -461,6 +640,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 isError={!!signupError}
+                required
               />
               <TextInput
                 label="비밀번호"
@@ -473,6 +653,7 @@ export default function LoginPage() {
                 value={signupPw}
                 onChange={(e) => setSignupPw(e.target.value)}
                 isError={!!signupError}
+                required
               />
               <TextInput
                 label="비밀번호 확인"
@@ -485,20 +666,12 @@ export default function LoginPage() {
                 value={signupPwConfirm}
                 onChange={(e) => setSignupPwConfirm(e.target.value)}
                 isError={!!signupError}
-              />
-              <TextInput
-                label="사업자 등록번호"
-                placeholder="000-00-00000"
-                size="lg"
-                id="signup-business-no"
-                value={businessNo}
-                onChange={(e) => setBusinessNo(e.target.value)}
-                isError={!!signupError}
+                required
               />
             </div>
 
             <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-consent')}>
+              <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-business')}>
                 이전
               </Button>
               <Button type="submit" size="lg" loading={isSignupPending}>
