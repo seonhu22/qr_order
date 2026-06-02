@@ -1,15 +1,11 @@
 package htms.QROrder.auth.controller;
 
-import htms.QROrder.auth.dto.InitPwdRequest;
-import htms.QROrder.auth.dto.LoginRequest;
+import htms.QROrder.auth.dto.BRNRequest;
+import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
-import htms.QROrder.auth.exception.LoginFailException;
-import htms.QROrder.auth.service.LoginService;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
+import htms.QROrder.common.dto.FileRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +19,20 @@ public class SignUpController {
 
     private final SignUpService signUpService;
 
-    @GetMapping("/signup/new")
+    @PostMapping("/signup/new/chkBRN")
+    public ResponseEntity<CommonResponse> chkBRN(@RequestBody BRNRequest brnRequest){
+
+        signUpService.chkBRN(brnRequest);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("사업자 인증 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/signup/new")
     public ResponseEntity<CommonResponse> newUser(@RequestBody SignUpRequest signUpRequest){
 
         signUpService.newUser(signUpRequest);
@@ -32,6 +41,19 @@ public class SignUpController {
                 CommonResponse.builder()
                         .success(true)
                         .message("회원가입 완료.")
+                        .build()
+        );
+    }
+
+    @PostMapping("/signup/email_valid/{encodeSysId}")
+    public ResponseEntity<CommonResponse> emailValid(@PathVariable String encodeSysId){
+
+        signUpService.emailValid(encodeSysId);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("이메일 인증 완료.")
                         .build()
         );
     }
