@@ -7,5 +7,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface EmailValidMapper {
     boolean codeExist(String encodeSysID);
-    void emailValid(String  encodeSysId);
+    void newUserEmailValid(String  encodeSysId);
 }

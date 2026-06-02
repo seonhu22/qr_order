@@ -30,13 +30,13 @@ public class EmailValidService {
 
     private final EmailValidMapper emailValidMapper;
 
-    public void emailValid(String encodeSysId) {
+    public void newUserEmailValid(String encodeSysId) {
 
         if(!codeExist(encodeSysId)) {
             throw new EmailValidException("인증 링크가 유효하지 않습니다.");
         }
 
-        emailValidMapper.emailValid(encodeSysId);
+        emailValidMapper.newUserEmailValid(encodeSysId);
     }
 
     private boolean codeExist(String encodeSysId) {

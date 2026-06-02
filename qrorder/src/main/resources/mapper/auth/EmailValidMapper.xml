@@ -9,9 +9,10 @@
         from sys_email_valid
         where 1=1
         and encode_sys_id = #{encodeSysId}
+        and email_valid_yn = 'N'
     </select>
 
-    <update id="emailValid">
+    <update id="newUserEmailValid">
         update sys_email_valid set
             email_valid_yn = 'Y',
             modify_datetime = now(),

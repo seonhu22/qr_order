@@ -18,10 +18,10 @@ public class EmailValidController {
 
     private final EmailValidService emailValidService;
 
-    @PostMapping("/email_valid/{encodeSysId")
-    public ResponseEntity<CommonResponse> emailValid(@PathVariable String encodeSysId){
+    @PostMapping("/email_valid/new_user/{encodeSysId")
+    public ResponseEntity<CommonResponse> newUserEmailValid(@PathVariable String encodeSysId){
 
-        emailValidService.emailValid(encodeSysId);
+        emailValidService.newUserEmailValid(encodeSysId);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

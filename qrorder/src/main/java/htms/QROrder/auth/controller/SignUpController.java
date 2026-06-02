@@ -45,6 +45,12 @@ public class SignUpController {
         );
     }
 
+    @GetMapping("/signup/idDuplicateChk")
+    public boolean idDuplicateChk(@RequestParam String userId) {
+
+        return signUpService.idDuplicateChk(userId);
+    }
+
     @PostMapping("/signup/email_valid/{encodeSysId}")
     public ResponseEntity<CommonResponse> emailValid(@PathVariable String encodeSysId){
 

@@ -9,5 +9,6 @@ import org.apache.ibatis.annotations.Mapper;
 public interface SignUpMapper {
     void newUser(SignUpRequest signUpRequest);
     void newEmailChk(EmailValidRequest emailValidRequest);
-    void emailValid(String  encodeSysId);
+    boolean idDuplicateChk(String userId);
+    void emailValid(String encodeSysId);
 }

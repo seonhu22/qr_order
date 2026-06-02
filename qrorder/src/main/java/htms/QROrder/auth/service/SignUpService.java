@@ -64,6 +64,11 @@ public class SignUpService {
         signUpMapper.newEmailChk(emailValidRequest);
     }
 
+    public boolean idDuplicateChk(String userId) {
+
+        return signUpMapper.idDuplicateChk(userId);
+    }
+
     public void emailValid(String encodeSysId) {
 
         signUpMapper.emailValid(encodeSysId);
