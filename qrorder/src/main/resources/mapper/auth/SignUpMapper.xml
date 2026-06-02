@@ -10,28 +10,64 @@
             user_nm ,
             user_password ,
             email ,
+            email_valid_yn ,
             init_yn ,
             password_fail_cnt ,
             delete_yn,
-            brn_check_yn,
             insert_user_id ,
             insert_datetime,
             sys_plant_cd
         )
         values (
-            #{signUpRequest.sysId},
-            #{signUpRequest.userId},
-            #{signUpRequest.userNm},
-            #{signUpRequest.userPassword},
-            #{signUpRequest.email} ,
+            #{BRNRequest.sysId},
+            #{BRNRequest.userId},
+            #{BRNRequest.userNm},
+            #{BRNRequest.userPassword},
+            #{BRNRequest.email} ,
+            'N',
             'N',
             0,
             'N',
-            'N',
             #{userId},
             now(),
-            #{signUpRequest.businessRegiNum}
+            #{BRNRequest.businessRegiNum}
         )
     </insert>
+
+    <insert id="newEmailChk">
+        insert into sys_email_valid (
+            sys_id ,
+            link_sys_id ,
+            encode_sys_id ,
+            email_valid_yn ,
+            insert_user_id ,
+            insert_datetime
+        )
+        values (
+            #{BRNRequest.sysId},
+            #{BRNRequest.linkSysId},
+            #{BRNRequest.encodeSysId},
+            'N',
+            #{userId},
+            now()
+        )
+    </insert>
+
+    <select id="idDuplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_user
+        where 1=1
+        and user_id = #{userId}
+        and delete_yn = 'N'
+    </select>
+
+    <update id="emailValid">
+        update sys_email_valid set
+            email_valid_yn = 'Y',
+            modify_datetime = now(),
+        where 1=1
+        and encode_sys_id = #{encodeSysID}
+    </update>
 
 </mapper>

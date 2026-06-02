@@ -48,6 +48,10 @@ public class LoginService {
             throw new LoginFailException(errMsg, dbLoginData.getPasswordFailCnt());
         }
 
+        if("N".equals(dbLoginData.getEmailValidYn())) {
+            throw new LoginFailException("이메일 인증이 미완료된 상태입니다.");
+        }
+
         logService.loginLog(uuid, httpServletRequest, "P", null, dbLoginData);
         loginMapper.pwdCntReset(dbLoginData.getSysId());
 
