@@ -51,7 +51,7 @@ public class StoreManageController {
                         .message("생성 완료.")
                         .build()
         );
-     }
+    }
 
     @PostMapping("/user_manage/update")
     public ResponseEntity<CommonResponse> updateClientUser(@RequestBody ClientUserRequest clientUserRequest,

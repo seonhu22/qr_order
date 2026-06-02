@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.SettlementMapper">
+
+    <select id="getSettlementSummary" resultType="htms.QROrder.client.dto.SettlementResponse">
+        SELECT
+            COALESCE(SUM(CASE
+                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                              AS total_price,
+            COALESCE(SUM(CASE
+                WHEN og.order_status = '99!'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                              AS cancel_price,
+            0                                                                     AS discount_pice,
+            COALESCE(SUM(CASE
+                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)
+            - COALESCE(SUM(CASE
+                WHEN og.order_status = '99!'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                              AS net_price,
+            COUNT(DISTINCT CASE WHEN og.order_status != '99!' THEN og.sys_id END) AS order_count
+        FROM order_master om
+        INNER JOIN order_group og ON og.link_sys_id = om.sys_id
+        INNER JOIN order_detail od ON od.link_sys_id3 = og.sys_id
+        INNER JOIN store_menu_detail smd ON smd.sys_id = od.link_sys_id2
+        LEFT JOIN (
+            SELECT
+                odo.link_sys_id,
+                SUM(smod.menu_option_price * odo.qty) AS option_price
+            FROM order_detail_option odo
+            LEFT JOIN store_menu_option_detail smod ON smod.sys_id = odo.link_sys_id2
+            GROUP BY odo.link_sys_id
+        ) opt_sum ON opt_sum.link_sys_id = od.sys_id
+        WHERE 1=1
+        and om.sys_plant_cd = #{sysPlantCd}
+        AND DATE(om.insert_datetime) BETWEEN #{settlementRequest.searchStartDate} AND #{settlementRequest.searchEndDate}
+        <if test="settlementRequest.paymentType != null and settlementRequest.paymentType != ''">
+            AND om.payment_type = #{settlementRequest.paymentType}
+        </if>
+    </select>
+
+    <select id="getSettlementDailyList" resultType="htms.QROrder.client.dto.SettlementItem$dailySale">
+        SELECT
+            DATE(om.insert_datetime)                                                  AS group_date,
+            COALESCE(SUM(CASE
+                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                                  AS day_total_price,
+            COALESCE(SUM(CASE
+                WHEN og.order_status = '99!'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                                  AS day_cancel_price,
+            COALESCE(SUM(CASE
+                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)
+            - COALESCE(SUM(CASE
+                WHEN og.order_status = '99!'
+                    THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
+                ELSE 0
+            END), 0)                                                                  AS day_net_price,
+            COUNT(DISTINCT CASE WHEN og.order_status != '99!' THEN og.sys_id END)     AS day_order_count,
+            COUNT(DISTINCT CASE WHEN og.order_status = '99!' THEN og.sys_id END)      AS day_cancel_count
+        FROM order_master om
+        INNER JOIN order_group og ON og.link_sys_id = om.sys_id
+        INNER JOIN order_detail od ON od.link_sys_id3 = og.sys_id
+        INNER JOIN store_menu_detail smd ON smd.sys_id = od.link_sys_id2
+        LEFT JOIN (
+            SELECT
+                odo.link_sys_id,
+                SUM(smod.menu_option_price * odo.qty) AS option_price
+            FROM order_detail_option odo
+            LEFT JOIN store_menu_option_detail smod ON smod.sys_id = odo.link_sys_id2
+            GROUP BY odo.link_sys_id
+        ) opt_sum ON opt_sum.link_sys_id = od.sys_id
+        WHERE 1=1
+        and om.sys_plant_cd = #{sysPlantCd}
+        AND DATE(om.insert_datetime) BETWEEN #{settlementRequest.searchStartDate} AND #{settlementRequest.searchEndDate}
+        <if test="settlementRequest.paymentType != null and settlementRequest.paymentType != ''">
+            AND om.payment_type = #{settlementRequest.paymentType}
+        </if>
+        GROUP BY DATE(om.insert_datetime)
+        ORDER BY DATE(om.insert_datetime)
+    </select>
+
+</mapper>
