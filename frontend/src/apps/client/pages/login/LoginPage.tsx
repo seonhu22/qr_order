@@ -8,7 +8,7 @@ import { FormAlert } from '@/shared/components/form-alert';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
-import { FileInputGroup } from '@/shared/components/file-attachment';
+import { Icon } from '@/shared/assets/icons/Icon';
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
@@ -116,7 +116,6 @@ export default function LoginPage() {
   const [businessNo, setBusinessNo] = useState('');
   const [businessRepName, setBusinessRepName] = useState('');
   const [openDate, setOpenDate] = useState('');
-  const [businessFile, setBusinessFile] = useState<File | null>(null);
   const [businessError, setBusinessError] = useState('');
 
   // 회원가입 필드
@@ -124,8 +123,16 @@ export default function LoginPage() {
   const [idCheckStatus, setIdCheckStatus] = useState<'idle' | 'available' | 'taken'>('idle');
   const [signupPw, setSignupPw] = useState('');
   const [signupPwConfirm, setSignupPwConfirm] = useState('');
-  const [email, setEmail] = useState('');
   const [signupError, setSignupError] = useState('');
+
+  // 이메일 인증 필드
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailTimerSeconds, setEmailTimerSeconds] = useState(0);
+  const [emailVerifyCode, setEmailVerifyCode] = useState('');
+  const [emailCodeError, setEmailCodeError] = useState('');
 
   // 비밀번호 찾기 필드
   const [findId, setFindId] = useState('');
@@ -140,6 +147,46 @@ export default function LoginPage() {
       setSaveId(true);
     }
   }, []);
+
+  // 이메일 인증 타이머
+  useEffect(() => {
+    if (emailTimerSeconds <= 0) return;
+    const id = setTimeout(() => setEmailTimerSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [emailTimerSeconds]);
+
+  const formatTimer = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+  const handleSendEmailCode = () => {
+    if (!email) {
+      setEmailError('이메일을 입력해주세요.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('올바른 이메일 형식이 아닙니다.');
+      return;
+    }
+    setEmailError('');
+    setEmailVerifyCode('');
+    setEmailCodeError('');
+    // TODO: 이메일 인증 코드 발송 API 연결
+    setEmailSent(true);
+    setEmailTimerSeconds(300);
+  };
+
+  const handleVerifyEmailCode = () => {
+    if (!emailVerifyCode) {
+      setEmailCodeError('인증 코드를 입력해주세요.');
+      return;
+    }
+    // TODO: 이메일 인증 코드 확인 API 연결 (현재 임시 통과)
+    setEmailVerified(true);
+    setEmailTimerSeconds(0);
+    setEmailCodeError('');
+  };
+
+  const emailFieldDisabled = emailSent && !emailVerified && emailTimerSeconds > 0;
 
   const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
     mutationFn: clientLogin,
@@ -322,10 +369,6 @@ export default function LoginPage() {
   const handleBusinessSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setBusinessError('');
-    if (!businessFile) {
-      setBusinessError('사업자등록증을 첨부해주세요.');
-      return;
-    }
     verifyBusinessMutate({ businessNo, representativeName: businessRepName, openDate });
   };
 
@@ -348,6 +391,10 @@ export default function LoginPage() {
       setSignupError('아이디 중복 확인을 해주세요.');
       return;
     }
+    if (!emailVerified) {
+      setSignupError('이메일 인증을 완료해주세요.');
+      return;
+    }
     if (signupPw !== signupPwConfirm) {
       setSignupError('비밀번호가 일치하지 않습니다.');
       return;
@@ -358,9 +405,11 @@ export default function LoginPage() {
   const goToLogin = () => {
     setStep('login');
     setConsentChecked(false);
-    setBusinessNo(''); setBusinessRepName(''); setOpenDate(''); setBusinessFile(null); setBusinessError('');
+    setBusinessNo(''); setBusinessRepName(''); setOpenDate(''); setBusinessError('');
     setSignupId(''); setIdCheckStatus('idle'); setSignupPw(''); setSignupPwConfirm('');
-    setEmail(''); setSignupError('');
+    setEmail(''); setEmailError(''); setEmailSent(false); setEmailVerified(false);
+    setEmailTimerSeconds(0); setEmailVerifyCode(''); setEmailCodeError('');
+    setSignupError('');
     setFindId(''); setFindEmail(''); setVerifyCode(''); setFindError('');
   };
 
@@ -565,14 +614,6 @@ export default function LoginPage() {
                 onChange={(e) => setOpenDate(e.target.value)}
                 required
               />
-              <InputWrapper inputId="biz-file" label="사업자등록증">
-                <FileInputGroup
-                  variant="button"
-                  maxFiles={1}
-                  allowedExtensions={['pdf', 'jpg', 'jpeg', 'png']}
-                  onChange={(state) => setBusinessFile(state.newFiles[0] ?? null)}
-                />
-              </InputWrapper>
             </div>
 
             <div className="login-card__consent-actions">
@@ -598,6 +639,7 @@ export default function LoginPage() {
             )}
 
             <div className="login-card__signup-grid">
+              {/* 아이디 */}
               <InputWrapper
                 inputId="signup-id"
                 label="아이디"
@@ -630,18 +672,8 @@ export default function LoginPage() {
                   </Button>
                 </div>
               </InputWrapper>
-              <TextInput
-                label="이메일"
-                placeholder="이메일을 입력하세요"
-                type="email"
-                size="lg"
-                id="signup-email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                isError={!!signupError}
-                required
-              />
+
+              {/* 비밀번호 */}
               <TextInput
                 label="비밀번호"
                 placeholder="비밀번호를 입력하세요"
@@ -655,6 +687,8 @@ export default function LoginPage() {
                 isError={!!signupError}
                 required
               />
+
+              {/* 비밀번호 확인 */}
               <TextInput
                 label="비밀번호 확인"
                 placeholder="비밀번호를 다시 입력하세요"
@@ -668,6 +702,83 @@ export default function LoginPage() {
                 isError={!!signupError}
                 required
               />
+
+              {/* ── 이메일 인증 (하단) ── */}
+              <InputWrapper
+                inputId="signup-email"
+                label="이메일"
+                required
+                errorText={emailError || undefined}
+                successText={emailVerified ? '이메일 인증이 완료되었습니다.' : undefined}
+              >
+                <div className="login-card__id-check-row">
+                  <InputBase
+                    id="signup-email"
+                    type="email"
+                    size="lg"
+                    placeholder="이메일을 입력하세요"
+                    autoComplete="email"
+                    value={email}
+                    disabled={emailFieldDisabled}
+                    controlState={emailError ? 'error' : emailVerified ? 'success' : emailFieldDisabled ? 'disabled' : ''}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                  />
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    disabled={emailVerified}
+                    onClick={handleSendEmailCode}
+                  >
+                    {emailSent && emailTimerSeconds > 0 ? '재전송' : '인증'}
+                  </Button>
+                </div>
+              </InputWrapper>
+
+              {emailSent && !emailVerified && (
+                <>
+                  <InputWrapper
+                    inputId="signup-email-code"
+                    label="인증 코드"
+                    required
+                    errorText={emailCodeError || undefined}
+                  >
+                    <>
+                      <div className="login-card__id-check-row">
+                        <InputBase
+                          id="signup-email-code"
+                          size="lg"
+                          placeholder="인증 코드를 입력하세요"
+                          value={emailVerifyCode}
+                          disabled={emailTimerSeconds === 0}
+                          controlState={emailCodeError ? 'error' : emailTimerSeconds === 0 ? 'disabled' : ''}
+                          onChange={(e) => { setEmailVerifyCode(e.target.value); setEmailCodeError(''); }}
+                        />
+                        <Button
+                          type="button"
+                          size="lg"
+                          variant="outline"
+                          disabled={emailTimerSeconds === 0}
+                          onClick={handleVerifyEmailCode}
+                        >
+                          확인
+                        </Button>
+                      </div>
+                      {emailTimerSeconds > 0 ? (
+                        <span className="signup-timer">
+                          <Icon id="i-clock" size={13} />
+                          남은 시간 {formatTimer(emailTimerSeconds)}
+                        </span>
+                      ) : (
+                        <span className="signup-timer signup-timer--expired">
+                          <Icon id="i-clock" size={13} />
+                          인증 시간이 만료되었습니다. 이메일을 다시 입력 후 재시도해주세요.
+                        </span>
+                      )}
+                    </>
+                  </InputWrapper>
+                </>
+              )}
             </div>
 
             <div className="login-card__consent-actions">
