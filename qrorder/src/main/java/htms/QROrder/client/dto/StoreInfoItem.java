@@ -11,6 +11,7 @@ public class StoreInfoItem {
     private String storeName;
     private String address;
     private String phoneNumber;
+    private String email;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime openTime;
     @JsonFormat(pattern = "HH:mm")
