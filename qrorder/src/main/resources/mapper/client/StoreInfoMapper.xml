@@ -9,6 +9,7 @@
             store_name ,
             address ,
             phone_number ,
+            (select email from sys_user where user_id = #{userId}) as email
             open_time ,
             close_time
         from store_info si
@@ -20,66 +21,18 @@
         and si.delete_yn = 'N'
     </select>
 
-    <insert id="newStoreInfo">
-        insert into store_info (
-            sys_id ,
-            store_name ,
-            address ,
-            phone_number ,
-            open_time ,
-            close_time ,
-            delete_yn ,
-            insert_datetime ,
-            insert_user_id ,
-            sys_plant_cd
-        )
-        values (
-            #{newItems.sysId},
-            #{newItems.storeName},
-            #{newItems.address},
-            #{newItems.phoneNumber},
-            #{newItems.openDatetime},
-            #{newItems.closeDatetime},
-            'N',
-            now(),
-            #{userId},
-            #{sysPlantCd}
-        )
-    </insert>
-
     <update id="updateStoreInfo">
         update store_info set
             store_name = #{updateItems.storeName} ,
             address = #{updateItems.address} ,
             phone_number = #{updateItems.phoneNumber} ,
-            open_time = #{updateItems.openDatetime} ,
-            close_time = #{updateItems.closeDatetime} ,
+            open_time = #{updateItems.opentime} ,
+            close_time = #{updateItems.closetime} ,
             modify_datetime = now(),
             modify_user_id = #{userId}
         where 1=1
         and sys_id = #{updateItems.sysId}
     </update>
-
-    <delete id="delStoreInfo">
-        update store_info set
-            delete_yn = 'Y',
-            modify_datetime = now(),
-            modify_user_id = #{userId}
-        where 1=1
-        and sys_id in
-        <foreach collection="delItems" item="item" open="(" separator="," close=")">
-            #{item.sysId}
-        </foreach>
-    </delete>
-
-    <select id="duplicateChk" resultType="boolean">
-        select
-            count(*) > 0
-        from store_info
-        where 1=1
-        and store_name = #{storeInfoRequest.storeName}
-        and delete_yn = 'N'
-    </select>
 
     <select id="getOldData" resultType="htms.QROrder.client.dto.StoreInfoResponse">
         select
@@ -87,6 +40,7 @@
             store_name ,
             address ,
             phone_number ,
+            null as email ,
             open_time ,
             close_time
         from store_info si
@@ -94,4 +48,14 @@
         and si.sys_id = #{sysId}
         and si.delete_yn = 'N'
     </select>
+
+    <update id="updateEmail">
+        update sys_user set
+            email = #{updateItems.email} ,
+            modify_datetime = now() ,
+            modify_user_id = #{userId}
+        where 1=1
+        and user_id = #{userId}
+    </update>
+
 </mapper>

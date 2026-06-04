@@ -104,56 +104,22 @@ public class StoreManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return storeInfoService.getStoreInfo(searchKeyword, loginUser.getSysPlantCd());
+        return storeInfoService.getStoreInfo(searchKeyword, loginUser.getUserId(), loginUser.getSysPlantCd());
     }
 
-    @PostMapping("/store_info/new")
-    public ResponseEntity<CommonResponse> newStoreInfo(@RequestBody StoreInfoRequest storeInfoRequest,
+    @PostMapping("/store_info/save")
+    public ResponseEntity<CommonResponse> saveStoreInfo(@RequestBody StoreInfoRequest storeInfoRequest,
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        storeInfoService.newStoreInfo(storeInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        storeInfoService.saveStoreInfo(storeInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
                         .success(true)
-                        .message("생성 완료.")
-                        .build()
-        );
-    }
-
-    @PostMapping("/store_info/update")
-    public ResponseEntity<CommonResponse> updateStoreInfo(@RequestBody StoreInfoRequest storeInfoRequest,
-                                                            HttpSession session) {
-
-        Login loginUser = (Login) session.getAttribute("loginUser");
-        String menuCd = (String) session.getAttribute("menuCd");
-
-        storeInfoService.updateStoreInfo(storeInfoRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
-
-        return ResponseEntity.ok(
-                CommonResponse.builder()
-                        .success(true)
-                        .message("수정 완료.")
-                        .build()
-        );
-    }
-
-    @PostMapping("/store_info/del")
-    public ResponseEntity<CommonResponse> delStoreInfo(@RequestBody List<StoreInfoItem> storeInfoItems,
-                                                            HttpSession session) {
-
-        Login loginUser = (Login) session.getAttribute("loginUser");
-        String menuCd = (String) session.getAttribute("menuCd");
-
-        storeInfoService.delStoreInfo(storeInfoItems, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
-
-        return ResponseEntity.ok(
-                CommonResponse.builder()
-                        .success(true)
-                        .message("삭제 완료.")
+                        .message("저장 완료.")
                         .build()
         );
     }
