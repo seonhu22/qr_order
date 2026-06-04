@@ -2,7 +2,8 @@ package htms.QROrder.client.dto;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalTime;
 
 @Data
 public class StoreInfoItem {
@@ -10,6 +11,8 @@ public class StoreInfoItem {
     private String storeName;
     private String address;
     private String phoneNumber;
-    private LocalDateTime openDatetime;
-    private LocalDateTime closeDatetime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime openTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime closeTime;
 }
