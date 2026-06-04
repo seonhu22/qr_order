@@ -3,10 +3,7 @@ package htms.QROrder.client.controller;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StoreInfoMapper;
-import htms.QROrder.client.service.ClientUserService;
-import htms.QROrder.client.service.QRCodeService;
-import htms.QROrder.client.service.StoreInfoService;
-import htms.QROrder.client.service.TableInfoService;
+import htms.QROrder.client.service.*;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +23,7 @@ public class StoreManageController {
     private final StoreInfoService storeInfoService;
     private final TableInfoService tableInfoService;
     private final QRCodeService qrCodeService;
+    private final TableGuiService tableGuiService;
 
     @GetMapping("/user_manage/search")
     public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword,
@@ -85,6 +83,20 @@ public class StoreManageController {
                         .message("삭제 완료.")
                         .build()
         );
+    }
+
+    @PostMapping("/user_manage/reset_pwd/{sysId}")
+    public ResponseEntity<CommonResponse> resetPwd(@PathVariable String sysId) {
+
+        clientUserService.resetPwd(sysId);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("비밀번호 초기화 완료.")
+                        .build()
+        );
+
     }
 
     @GetMapping("/store_info/search")
@@ -188,6 +200,31 @@ public class StoreManageController {
         String menuCd = (String) session.getAttribute("menuCd");
 
         qrCodeService.saveQRCode(qrCodeRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("저장 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/table_gui/search")
+    public List<TableGuiResponse> getTableGui(HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return tableGuiService.getTableGui(loginUser.getSysPlantCd());
+    }
+
+    @PostMapping("/table_gui/save")
+    public ResponseEntity<CommonResponse> saveTableGui(@RequestBody TableGuiRequest tableGuiRequest,
+                                                        HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        String menuCd = (String) session.getAttribute("menuCd");
+
+        tableGuiService.saveTableGui(tableGuiRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
