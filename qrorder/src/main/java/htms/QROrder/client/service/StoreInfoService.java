@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -19,6 +21,15 @@ public class StoreInfoService {
 
     private final AuditService auditService;
     private final StoreInfoMapper storeInfoMapper;
+    private final PasswordEncoder passwordEncoder;
+
+    public boolean pwdChk(String pwd,
+                            String userId) {
+
+        String dbPwd = storeInfoMapper.pwdChk(userId);
+
+        return passwordEncoder.matches(pwd, dbPwd);
+    }
 
     public List<StoreInfoResponse> getStoreInfo(String searchKeyword,
                                                     String userId,

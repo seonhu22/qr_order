@@ -95,7 +95,15 @@ public class StoreManageController {
                         .message("비밀번호 초기화 완료.")
                         .build()
         );
+    }
 
+    @GetMapping("/store_info/pwd_chk")
+    public boolean pwdChk(@RequestParam String pwd,
+                            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return storeInfoService.pwdChk(pwd, loginUser.getUserId());
     }
 
     @GetMapping("/store_info/search")

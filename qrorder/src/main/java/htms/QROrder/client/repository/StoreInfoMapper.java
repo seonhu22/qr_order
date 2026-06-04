@@ -7,6 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface StoreInfoMapper {
+    String pwdChk(String userId);
     List<StoreInfoResponse> getStoreInfo(String searchKeyword, String userId, String sysPlantCd);
     void updateStoreInfo(StoreInfoRequest updateItems, String userId, String sysPlantCd );
     StoreInfoResponse getOldData(String sysId);
