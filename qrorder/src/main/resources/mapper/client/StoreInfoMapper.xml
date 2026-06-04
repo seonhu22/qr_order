@@ -17,6 +17,7 @@
             store_name ,
             address ,
             phone_number ,
+            emergency_phone_number ,
             (select email from sys_user where user_id = #{userId}) as email ,
             open_time ,
             close_time
@@ -34,6 +35,7 @@
             store_name = #{updateItems.storeName} ,
             address = #{updateItems.address} ,
             phone_number = #{updateItems.phoneNumber} ,
+            emergency_phone_number = #{updateItems.emergency_phone_number} ,
             open_time = #{updateItems.opentime} ,
             close_time = #{updateItems.closetime} ,
             modify_datetime = now(),
@@ -48,6 +50,7 @@
             store_name ,
             address ,
             phone_number ,
+            emergency_phone_number ,
             null as email ,
             open_time ,
             close_time
