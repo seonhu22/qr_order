@@ -25,6 +25,7 @@
             #{BRNRequest.userPassword},
             #{BRNRequest.email} ,
             'N',
+
             'N',
             0,
             'N',
