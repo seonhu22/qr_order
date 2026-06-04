@@ -2,7 +2,6 @@ package htms.QROrder.client.controller;
 
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
-import htms.QROrder.client.repository.StoreInfoMapper;
 import htms.QROrder.client.service.*;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;

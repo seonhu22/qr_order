@@ -4,7 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.ClientNoticeResponse;
 import htms.QROrder.client.dto.ClientQnaRequest;
 import htms.QROrder.client.dto.ClientQnaResponse;
-import htms.QROrder.client.service.ClinetNoticeService;
+import htms.QROrder.client.service.ClientNoticeService;
 import htms.QROrder.client.service.ClientQnaService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,18 +21,18 @@ import java.util.List;
 @RequestMapping("/api/client/board")
 public class BoardController {
 
-    private final ClinetNoticeService noticeService;
+    private final ClientNoticeService noticeService;
     private final ClientQnaService qnaService;
 
     @GetMapping("/notice/search")
-    public List<ClientNoticeResponse> getNotice(@RequestParam String searchKeyword) {
+    public List<ClientNoticeResponse> getNotice(@RequestParam(required = false) String searchKeyword) {
 
         return noticeService.getNotice(searchKeyword);
     }
 
     @GetMapping("/qna/search")
-    public List<ClientQnaResponse> getQna(@RequestParam String searchKeyword,
-                                          HttpSession session) {
+    public List<ClientQnaResponse> getQna(@RequestParam(required = false) String searchKeyword,
+                                            HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 

@@ -1,19 +1,14 @@
 package htms.QROrder.client.service;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.TableGuiMapper;
-import htms.QROrder.client.repository.TableInfoMapper;
-import htms.QROrder.common.exception.DuplicateException;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
