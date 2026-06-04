@@ -9,8 +9,8 @@
             store_name ,
             address ,
             phone_number ,
-            open_datetime ,
-            close_datetime
+            open_time ,
+            close_time
         from store_info si
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
@@ -26,8 +26,8 @@
             store_name ,
             address ,
             phone_number ,
-            open_datetime ,
-            close_datetime ,
+            open_time ,
+            close_time ,
             delete_yn ,
             insert_datetime ,
             insert_user_id ,
@@ -52,8 +52,8 @@
             store_name = #{updateItems.storeName} ,
             address = #{updateItems.address} ,
             phone_number = #{updateItems.phoneNumber} ,
-            open_datetime = #{updateItems.openDatetime} ,
-            close_datetime = #{updateItems.closeDatetime} ,
+            open_time = #{updateItems.openDatetime} ,
+            close_time = #{updateItems.closeDatetime} ,
             modify_datetime = now(),
             modify_user_id = #{userId}
         where 1=1
@@ -87,8 +87,8 @@
             store_name ,
             address ,
             phone_number ,
-            open_datetime ,
-            close_datetime
+            open_time ,
+            close_time
         from store_info si
         where 1=1
         and si.sys_id = #{sysId}
