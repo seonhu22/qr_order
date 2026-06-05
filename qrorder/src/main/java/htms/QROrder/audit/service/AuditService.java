@@ -82,7 +82,7 @@ public class AuditService {
 
             contents.append(" ")
                     .append(comment).append(": ")
-                    .append(entry.getValue() != null ? entry.getValue().toString() : "")
+                    .append(entry.getValue() != null ? entry.getValue().toString() : "[미입력]")
                     .append("\n");
         }
 
@@ -136,7 +136,7 @@ public class AuditService {
 
                 contents.append(" ")
                         .append(comment).append(": ")
-                        .append(entry.getValue() != null ? entry.getValue().toString() : "")
+                        .append(entry.getValue() != null ? entry.getValue().toString() : "[미입력]")
                         .append("\n");
             }
 
@@ -212,9 +212,9 @@ public class AuditService {
 
                 contents.append(" ")
                     .append(comment).append(": ")
-                    .append(oldVal != null ? oldVal.toString() : "")
+                    .append(oldVal != null ? oldVal.toString() : "[미입력]")
                     .append(" -> ")
-                    .append(newVal != null ? newVal.toString() : "")
+                    .append(newVal != null ? newVal.toString() : "[미입력]")
                     .append("\n");
             }
         }
@@ -267,9 +267,9 @@ public class AuditService {
 
                     contents.append(" ")
                         .append(comment).append(": ")
-                        .append(oldVal != null ? oldVal.toString() : "")
+                        .append(oldVal != null ? oldVal.toString() : "[미입력]")
                         .append(" -> ")
-                        .append(newVal != null ? newVal.toString() : "")
+                        .append(newVal != null ? newVal.toString() : "[미입력]")
                         .append("\n");
                 }
             }
@@ -349,7 +349,7 @@ public class AuditService {
 
             contents.append(" ")
                     .append(comment).append(": ")
-                    .append(entry.getValue() != null ? entry.getValue().toString() : "")
+                    .append(entry.getValue() != null ? entry.getValue().toString() : "[미입력]")
                     .append("\n");
         }
 
@@ -403,7 +403,7 @@ public class AuditService {
 
                 contents.append(" ")
                         .append(comment).append(": ")
-                        .append(entry.getValue() != null ? entry.getValue().toString() : "")
+                        .append(entry.getValue() != null ? entry.getValue().toString() : "[미입력]")
                         .append("\n");
             }
 
