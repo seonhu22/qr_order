@@ -14,30 +14,31 @@
     <select id="getStoreInfo" resultType="htms.QROrder.client.dto.StoreInfoResponse">
         select
             sys_id ,
-            store_name ,
+            plant_nm as store_name ,
             address ,
             phone_number ,
             emergency_phone_number ,
             (select email from sys_user where user_id = #{userId}) as email ,
             open_time ,
             close_time
-        from store_info si
+        from sys_plant sp
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
-        and si.store_name like concat('%', #{searchKeyword}, '%')
+        and sp.plant_nm like concat('%', #{searchKeyword}, '%')
         </if>
-        and si.plant_cd = #{sysPlantCd}
-        and si.delete_yn = 'N'
+        and sp.plant_cd = #{sysPlantCd}
+        and sp.delete_yn = 'N'
     </select>
 
     <update id="updateStoreInfo">
-        update store_info set
-            store_name = #{updateItems.storeName} ,
+        update sys_plant set
+            plant_nm = #{updateItems.storeName} ,
             address = #{updateItems.address} ,
             phone_number = #{updateItems.phoneNumber} ,
-            emergency_phone_number = #{updateItems.emergency_phone_number} ,
-            open_time = #{updateItems.opentime} ,
-            close_time = #{updateItems.closetime} ,
+            emergency_phone_number = #{updateItems.emergencyPhoneNumber} ,
+            email = #{updateItems.email} ,
+            open_time = #{updateItems.openTime} ,
+            close_time = #{updateItems.closeTime} ,
             modify_datetime = now(),
             modify_user_id = #{userId}
         where 1=1
@@ -47,26 +48,17 @@
     <select id="getOldData" resultType="htms.QROrder.client.dto.StoreInfoResponse">
         select
             sys_id ,
-            store_name ,
+            plant_nm as store_name ,
             address ,
             phone_number ,
             emergency_phone_number ,
             null as email ,
             open_time ,
             close_time
-        from store_info si
+        from sys_plant sp
         where 1=1
-        and si.sys_id = #{sysId}
-        and si.delete_yn = 'N'
+        and sp.sys_id = #{sysId}
+        and sp.delete_yn = 'N'
     </select>
-
-    <update id="updateEmail">
-        update sys_user set
-            email = #{updateItems.email} ,
-            modify_datetime = now() ,
-            modify_user_id = #{userId}
-        where 1=1
-        and user_id = #{userId}
-    </update>
 
 </mapper>

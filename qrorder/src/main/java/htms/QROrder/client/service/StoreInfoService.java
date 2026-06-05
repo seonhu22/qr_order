@@ -45,11 +45,6 @@ public class StoreInfoService {
 
         StoreInfoResponse oldData = storeInfoMapper.getOldData(updateItems.getSysId());
 
-        if(!Objects.equals(oldData.getEmail(), updateItems.getEmail())) {
-            auditService.insertUpdateAuditTrailData(oldData.getEmail(), updateItems.getEmail(), userId, menuCd, "sys_user", userId, sysPlantCd);
-            storeInfoMapper.updateEmail(updateItems, userId, sysPlantCd);
-        }
-
         auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "store_info", userId, sysPlantCd);
         storeInfoMapper.updateStoreInfo(updateItems, userId, sysPlantCd);
     }
