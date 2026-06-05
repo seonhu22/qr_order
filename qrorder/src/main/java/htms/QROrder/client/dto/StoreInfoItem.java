@@ -10,8 +10,8 @@ public class StoreInfoItem {
     private String sysId;
     private String storeName;
     private String address;
-    private String phoneNumber;
-    private String emergencyPhoneNumber;
+    private Integer phoneNumber;
+    private Integer emergencyPhoneNumber;
     private String email;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime openTime;

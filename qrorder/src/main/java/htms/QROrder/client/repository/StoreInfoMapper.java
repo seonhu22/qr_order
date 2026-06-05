@@ -11,5 +11,4 @@ public interface StoreInfoMapper {
     List<StoreInfoResponse> getStoreInfo(String searchKeyword, String userId, String sysPlantCd);
     void updateStoreInfo(StoreInfoRequest updateItems, String userId, String sysPlantCd );
     StoreInfoResponse getOldData(String sysId);
-    void updateEmail(StoreInfoRequest updateItems, String userId, String sysPlantCd);
 }

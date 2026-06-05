@@ -1,9 +1,8 @@
 package htms.QROrder.auth.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import htms.QROrder.auth.dto.BRNRequest;
-import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
+import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +31,9 @@ public class SignUpService {
     @Value("${nts.api.service-key}")
     private String ntsServiceKey;
 
-    public void chkBRN(BRNRequest brnRequest) {
+    public void chkBRN(SignUpRequest signUpRequest) {
 
-        if (!chkBusinessRegistrationNumberAPI(brnRequest)) {
+        if (!chkBusinessRegistrationNumberAPI(signUpRequest)) {
             throw new BusinessRegiException("사업자등록 정보가 일치하지 않습니다.");
         }
     }
@@ -60,6 +59,7 @@ public class SignUpService {
         signUpRequest.setPassword(password);
         signUpRequest.setPasswordChk(passwordChk);
 
+        signUpMapper.newPlant(signUpRequest);
         signUpMapper.newUser(signUpRequest);
         signUpMapper.newEmailChk(emailValidRequest);
     }
@@ -74,16 +74,16 @@ public class SignUpService {
         signUpMapper.emailValid(encodeSysId);
     }
 
-    private boolean chkBusinessRegistrationNumberAPI(BRNRequest brnRequest) {
+    private boolean chkBusinessRegistrationNumberAPI(SignUpRequest signUpRequest) {
         try {
             RestTemplate restTemplate = new RestTemplate();
 
             String url = "https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=" + ntsServiceKey;
 
             Map<String, Object> business = new HashMap<>();
-            business.put("b_no", brnRequest.getBusinessRegiNum());
-            business.put("start_dt", brnRequest.getBusinessRegiDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
-            business.put("p_nm", brnRequest.getUserNm());
+            business.put("b_no", signUpRequest.getBusinessRegiNum());
+            business.put("start_dt", signUpRequest.getBusinessRegiDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
+            business.put("p_nm", signUpRequest.getUserNm());
             business.put("p_nm2", "");
             business.put("b_nm", "");
             business.put("corp_no", "");

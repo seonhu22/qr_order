@@ -1,9 +1,7 @@
 package htms.QROrder.auth.controller;
 
-import htms.QROrder.auth.dto.BRNRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.service.EmailValidService;
-import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

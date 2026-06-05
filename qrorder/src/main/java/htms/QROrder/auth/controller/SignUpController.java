@@ -1,11 +1,8 @@
 package htms.QROrder.auth.controller;
 
-import htms.QROrder.auth.dto.BRNRequest;
-import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
-import htms.QROrder.common.dto.FileRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +17,9 @@ public class SignUpController {
     private final SignUpService signUpService;
 
     @PostMapping("/signup/new/chkBRN")
-    public ResponseEntity<CommonResponse> chkBRN(@RequestBody BRNRequest brnRequest){
+    public ResponseEntity<CommonResponse> chkBRN(@RequestBody SignUpRequest signUpRequest){
 
-        signUpService.chkBRN(brnRequest);
+        signUpService.chkBRN(signUpRequest);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
