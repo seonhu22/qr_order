@@ -1,9 +1,7 @@
 package htms.QROrder.auth.controller;
 
-import htms.QROrder.auth.dto.BRNRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.service.EmailValidService;
-import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +16,7 @@ public class EmailValidController {
 
     private final EmailValidService emailValidService;
 
-    @PostMapping("/email_valid/new_user/{encodeSysId")
+    @PostMapping("/email_valid/new_user/{encodeSysId}")
     public ResponseEntity<CommonResponse> newUserEmailValid(@PathVariable String encodeSysId){
 
         emailValidService.newUserEmailValid(encodeSysId);

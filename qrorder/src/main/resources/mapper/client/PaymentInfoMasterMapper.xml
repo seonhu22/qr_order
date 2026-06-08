@@ -41,7 +41,9 @@
             group by og.link_sys_id
         ) price_sum on price_sum.order_master_sys_id = om.sys_id
         where 1=1
-        and om.order_status = #{paymentStatus}
+        <if test="paymentStatus != null and paymentStatus != ''">
+            and om.order_status = #{paymentStatus}
+        </if>
         and om.sys_plant_cd = #{sysPlantCd}
     </select>
 

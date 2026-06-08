@@ -3,6 +3,33 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.auth.repository.SignUpMapper">
 
+    <insert id="newPlant">
+        insert into sys_plant (
+            sys_id,
+            plant_cd,
+            plant_nm,
+            use_yn,
+            delete_yn,
+            insert_datetime,
+            insert_user_id,
+            emp_nm,
+            phone_number,
+            reg_num
+        )
+        values (
+            #{signUpRequest.sysId},
+            #{signUpRequest.businessRegiNum},
+            #{signUpRequest.plantNm},
+            'Y',
+            'N',
+            now(),
+            #{signUpRequest.userId},
+            #{signUpRequest.userNm},
+            #{signUpRequest.phoneNumber},
+            #{signUpRequest.businessRegiNum}
+        )
+    </insert>
+
     <insert id="newUser">
         insert into sys_user (
             sys_id ,
@@ -19,18 +46,18 @@
             sys_plant_cd
         )
         values (
-            #{BRNRequest.sysId},
-            #{BRNRequest.userId},
-            #{BRNRequest.userNm},
-            #{BRNRequest.userPassword},
-            #{BRNRequest.email} ,
+            #{signUpRequest.sysId},
+            #{signUpRequest.userId},
+            #{signUpRequest.userNm},
+            #{signUpRequest.userPassword},
+            #{signUpRequest.email} ,
             'N',
             'N',
             0,
             'N',
             #{userId},
             now(),
-            #{BRNRequest.businessRegiNum}
+            #{signUpRequest.businessRegiNum}
         )
     </insert>
 
@@ -44,14 +71,16 @@
             insert_datetime
         )
         values (
-            #{BRNRequest.sysId},
-            #{BRNRequest.linkSysId},
-            #{BRNRequest.encodeSysId},
+            #{signUpRequest.sysId},
+            #{signUpRequest.linkSysId},
+            #{signUpRequest.encodeSysId},
             'N',
             #{userId},
             now()
         )
     </insert>
+
+
 
     <select id="idDuplicateChk" resultType="boolean">
         select

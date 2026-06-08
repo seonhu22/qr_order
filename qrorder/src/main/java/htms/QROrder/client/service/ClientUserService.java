@@ -9,6 +9,7 @@ import htms.QROrder.client.repository.ClientUserMapper;
 import htms.QROrder.common.exception.DuplicateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,9 @@ public class ClientUserService {
     private final AuditService auditService;
     private final ClientUserMapper clientUserMapper;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${auth.default-password}")
+    private String defaultPassword;
 
     public List<ClientUserResponse> getClientUser(String searchKeyword,
                                                     String sysPlantCd) {
@@ -41,7 +45,7 @@ public class ClientUserService {
         }
 
         String ULID = UlidCreator.getMonotonicUlid().toString();
-        String tempPwd = passwordEncoder.encode("SN111111");
+        String tempPwd = passwordEncoder.encode(defaultPassword);
 
         newItems.setSysId(ULID);
 
@@ -50,9 +54,9 @@ public class ClientUserService {
     }
 
     public void updateClientUser(ClientUserRequest updateItems,
-                                 String userId,
-                                 String sysPlantCd,
-                                 String menuCd) {
+                                    String userId,
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         ClientUserResponse oldData = clientUserMapper.getOldData(updateItems.getSysId());
 
@@ -61,12 +65,18 @@ public class ClientUserService {
     }
 
     public void delClientUser(List<ClientUserItem> delItems,
-                              String userId,
-                              String sysPlantCd,
-                              String menuCd) {
+                                String userId,
+                                String sysPlantCd,
+                                String menuCd) {
 
         auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
         clientUserMapper.delClientUser(delItems, userId, sysPlantCd, menuCd);
+    }
+
+    public void resetPwd(String sysId) {
+
+        String tempPwd = passwordEncoder.encode(defaultPassword);
+        clientUserMapper.resetPwd(sysId, tempPwd);
     }
 
     private boolean duplicateChk(ClientUserRequest clientUserRequest) {

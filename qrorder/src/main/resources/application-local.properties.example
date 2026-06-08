@@ -34,3 +34,6 @@ file.upload.path=/your_dir/qr_order/uploads
 
 # PDF 컨버트 라이브러리 경로
 jodconverter.local.office-home=libre_program_path
+
+# 신규 계정 생성 / 비밀번호 초기화 시 사용할 기본 비밀번호
+auth.default-password=your_default_password

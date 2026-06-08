@@ -7,10 +7,8 @@ import java.util.List;
 
 @Mapper
 public interface StoreInfoMapper {
-    List<StoreInfoResponse> getStoreInfo(String searchKeyword, String sysPlantCd);
-    void newStoreInfo(StoreInfoRequest newItems, String userId, String sysPlantCd, String menuCd);
-    void updateStoreInfo(StoreInfoRequest updateItems, String userId, String sysPlantCd, String menuCd);
-    void delStoreInfo(List<StoreInfoItem> delItems, String userId, String sysPlantCd, String menuCd);
+    String pwdChk(String userId);
+    List<StoreInfoResponse> getStoreInfo(String searchKeyword, String userId, String sysPlantCd);
+    void updateStoreInfo(StoreInfoRequest updateItems, String userId, String sysPlantCd );
     StoreInfoResponse getOldData(String sysId);
-    boolean duplicateChk(StoreInfoRequest storeInfoRequest);
 }

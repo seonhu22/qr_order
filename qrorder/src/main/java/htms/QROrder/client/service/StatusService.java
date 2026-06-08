@@ -1,9 +1,7 @@
 package htms.QROrder.client.service;
 
-import htms.QROrder.auth.dto.LoginResponse;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StatusMapper;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ClinetNoticeService {
+public class ClientNoticeService {
 
     private final ClientNoticeMapper noticeMapper;
 
