@@ -9,6 +9,7 @@
             bq.qna_title,
             su.user_nm as write_user_name,
             bq.qna_description,
+            bq.insert_datetime as write_datetime,
             bq.file_ulid,
             bq.answer_yn,
             su2.user_nm as answer_user_name,
