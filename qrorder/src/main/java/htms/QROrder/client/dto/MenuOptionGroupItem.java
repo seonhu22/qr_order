@@ -7,5 +7,7 @@ public class MenuOptionGroupItem {
     private String sysId;
     private String linkSysId;
     private String groupName;
+    private String requiredYn;
+    private String inputType;
     private Integer ordNo;
 }

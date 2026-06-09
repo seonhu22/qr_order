@@ -37,3 +37,6 @@ jodconverter.local.office-home=libre_program_path
 
 # 신규 계정 생성 / 비밀번호 초기화 시 사용할 기본 비밀번호
 auth.default-password=your_default_password
+
+# 국세청 사업자등록번호 확인 API 서비스키 (https://www.data.go.kr 에서 발급)
+nts.api.service-key=your_nts_service_key
