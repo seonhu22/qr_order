@@ -10,6 +10,7 @@
             su.user_password,
             su.password_fail_cnt,
             su.init_yn,
+            su.email_valid_yn,
             su.sys_plant_cd
         from sys_user su
         where 1=1

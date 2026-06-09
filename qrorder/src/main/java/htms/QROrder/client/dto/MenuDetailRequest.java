@@ -1,5 +1,6 @@
 package htms.QROrder.client.dto;
 
+import htms.QROrder.common.dto.FileRequest;
 import lombok.Data;
 
 import java.util.ArrayList;

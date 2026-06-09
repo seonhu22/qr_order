@@ -4,7 +4,9 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.MenuDetailMapper;
+import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.exception.DuplicateException;
+import htms.QROrder.common.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class MenuDetailService {
 
     private final AuditService auditService;
     private final MenuDetailMapper menuDetailMapper;
+    private final FileService fileService;
 
     public List<MenuDetailResponse> getMenuDetail(String masterSysId) {
 
@@ -28,9 +31,10 @@ public class MenuDetailService {
     }
 
     public void saveMenuDetail(MenuDetailRequest menuDetailRequest,
-                                   String userId,
-                                   String sysPlantCd,
-                                   String menuCd) {
+                                    FileRequest fileRequest,
+                                    String userId,
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         List<MenuDetailItem> newItems = menuDetailRequest.getNewItems();
         List<MenuDetailItem> updateItems = menuDetailRequest.getUpdateItems();
@@ -55,12 +59,14 @@ public class MenuDetailService {
         if(!delItems.isEmpty()) {
             delMenuDetail(delItems, userId, sysPlantCd, menuCd);
         }
+
+        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
     }
 
     private void newMenuDetail(List<MenuDetailItem> newItems,
-                                   String userId,
-                                   String sysPlantCd,
-                                   String menuCd) {
+                                    String userId,
+                                    String sysPlantCd,
+                                    String menuCd) {
 
         newItems.forEach(item -> {
             String ULID = UlidCreator.getMonotonicUlid().toString();
@@ -72,9 +78,9 @@ public class MenuDetailService {
     }
 
     private void updateMenuDetail(List<MenuDetailItem> updateItems,
-                              String userId,
-                              String sysPlantCd,
-                              String menuCd) {
+                                String userId,
+                                String sysPlantCd,
+                                String menuCd) {
 
         List<MenuDetailItem> oldData = getOldData(updateItems);
 
@@ -83,9 +89,9 @@ public class MenuDetailService {
     }
 
     private void delMenuDetail(List<MenuDetailItem> delItems,
-                           String userId,
-                           String sysPlantCd,
-                           String menuCd) {
+                            String userId,
+                            String sysPlantCd,
+                            String menuCd) {
 
         auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_detail", userId, sysPlantCd);
         menuDetailMapper.delMenuDetail(delItems, userId, sysPlantCd, menuCd);

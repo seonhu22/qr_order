@@ -13,6 +13,7 @@ public interface ClientUserMapper {
     void newClientUser(ClientUserRequest newItems, String userId, String sysPlantCd, String menuCd, String tempPwd);
     void updateClientUser(ClientUserRequest updateItems, String userId, String sysPlantCd, String menuCd);
     void delClientUser(List<ClientUserItem> delItems, String userId, String sysPlantCd, String menuCd);
+    void resetPwd(String sysId, String tempPwd);
     ClientUserResponse getOldData(String sysId);
     boolean duplicateChk(ClientUserRequest clientUserRequest);
 }

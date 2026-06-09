@@ -4,6 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.service.*;
 import htms.QROrder.common.dto.CommonResponse;
+import htms.QROrder.common.dto.FileRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class MenuManageController {
 
     @GetMapping("/menu/master/search")
     public List<MenuMasterResponse> getMenuMaster(@RequestParam(required = false) String searchKeyword,
-                                                  HttpSession session) {
+                                                    HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
@@ -91,13 +92,14 @@ public class MenuManageController {
     }
 
     @PostMapping("/menu/detail/save")
-    public ResponseEntity<CommonResponse> saveMenuDetail(@RequestBody MenuDetailRequest menuDetailRequest,
+    public ResponseEntity<CommonResponse> saveMenuDetail(@ModelAttribute MenuDetailRequest menuDetailRequest,
+                                                            @ModelAttribute FileRequest fileRequest,
                                                             HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        menuDetailService.saveMenuDetail(menuDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        menuDetailService.saveMenuDetail(menuDetailRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -192,7 +194,7 @@ public class MenuManageController {
 
     @PostMapping("/option/group/update")
     public ResponseEntity<CommonResponse> updateMenuOptionGroup(@RequestBody MenuOptionGroupRequest menuOptionGroupRequest,
-                                                             HttpSession session) {
+                                                                    HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
@@ -209,7 +211,7 @@ public class MenuManageController {
 
     @PostMapping("/option/group/del")
     public ResponseEntity<CommonResponse> delMenuOptionGroup(@RequestBody List<MenuOptionGroupItem> menuOptionGroupItems,
-                                                             HttpSession session) {
+                                                                HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
@@ -231,13 +233,14 @@ public class MenuManageController {
     }
 
     @PostMapping("/option/detail/save")
-    public ResponseEntity<CommonResponse> saveMenuOptionDetail(@RequestBody MenuOptionDetailRequest menuOptionDetailRequest,
+    public ResponseEntity<CommonResponse> saveMenuOptionDetail(@ModelAttribute MenuOptionDetailRequest menuOptionDetailRequest,
+                                                                    @ModelAttribute FileRequest fileRequest,
                                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        menuOptionDetailService.saveMenuOptionDetail(menuOptionDetailRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        menuOptionDetailService.saveMenuOptionDetail(menuOptionDetailRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

@@ -23,6 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(1)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/login",
+                        "/api/qr/**",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**");
 
         registry.addInterceptor(new RoleCheckInterceptor())

@@ -33,6 +33,8 @@ public class OrderHistoryService {
 
     private List<OrderDetailHistoryItem> getOrderDetailHistory(List<OrderMasterHistoryItem> orderMasterHistory) {
 
+        if (orderMasterHistory.isEmpty()) return List.of();
+
         List<String> masterSysIds = new ArrayList<>();
         orderMasterHistory.forEach(item -> {
             masterSysIds.add(item.getSysId());
@@ -42,6 +44,8 @@ public class OrderHistoryService {
     }
 
     private List<OrderMasterHistoryItem> setMasterTotalPriceData(List<OrderMasterHistoryItem> orderMasterHistory) {
+
+        if (orderMasterHistory.isEmpty()) return orderMasterHistory;
 
         List<String> listSysId = new ArrayList<>();
         orderMasterHistory.forEach(orderMasterHistoryItem -> {
@@ -60,6 +64,8 @@ public class OrderHistoryService {
     }
 
     private List<OrderDetailHistoryItem> setDetailTotalPriceAndOptionData(List<OrderDetailHistoryItem> orderDetailHistory) {
+
+        if (orderDetailHistory.isEmpty()) return orderDetailHistory;
 
         List<String> listSysId = new ArrayList<>();
         orderDetailHistory.forEach(orderMasterHistoryItem -> {

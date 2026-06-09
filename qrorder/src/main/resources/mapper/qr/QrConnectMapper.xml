@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.qr.repository.QrConnectMapper">
+
+    <select id="getTableInfoByUrl" resultType="htms.QROrder.qr.dto.QrConnectResponse">
+        SELECT
+            ti.sys_id,
+            ti.table_name,
+            ti.table_num,
+            ti.table_qty,
+            qc.sys_plant_cd
+        FROM qr_code qc
+        INNER JOIN table_info ti
+            ON ti.sys_id = qc.link_sys_id
+        WHERE 1=1
+        and qc.sys_id = #{url}
+        AND qc.delete_yn = 'N'
+        AND qc.use_yn = 'Y'
+        AND ti.delete_yn = 'N'
+        AND ti.use_yn = 'Y'
+    </select>
+
+</mapper>
