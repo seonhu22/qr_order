@@ -56,7 +56,7 @@ export const queryKeys = {
       endDate: string;
       searchKeyword?: string;
       auditFlag?: string;
-      changeType?: string;
+      changeType: string;
     }) =>
       ['settings', 'changeHistory', 'list', params] as const,
   },
