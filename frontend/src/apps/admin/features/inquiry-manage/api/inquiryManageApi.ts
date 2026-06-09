@@ -24,7 +24,7 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
-    p,
+    registrant: res.writeUsername ?? '-',
     registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
     updatedAt: '-',
     answeredAt:
