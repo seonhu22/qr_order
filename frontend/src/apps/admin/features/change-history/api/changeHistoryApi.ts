@@ -2,6 +2,7 @@ import { useGetAuditTrail } from '@/generated/settings-controller/settings-contr
 import type { AuditTrail } from '@/generated/types/auditTrail';
 import type { GetAuditTrailParams } from '@/generated/types/getAuditTrailParams';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import type { ChangeHistoryRow } from '../types';
 
@@ -44,6 +45,7 @@ export function useChangeHistoryQuery(params: ChangeHistoryQueryParams) {
     query: {
       queryKey: queryKeys.changeHistory.list(params),
       enabled: Boolean(startDate && endDate),
+      ...queryPolicies.searchResult,
     },
   });
 }

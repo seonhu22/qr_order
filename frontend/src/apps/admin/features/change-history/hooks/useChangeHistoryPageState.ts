@@ -11,6 +11,7 @@ import {
   createQueryDateRangeParams,
   validateQueryDateRange,
 } from '@/shared/utils/queryDateRange';
+import { areQueryParamsEqual } from '@/shared/utils/queryParams';
 
 function createChangeHistorySearchParams(
   startDate: string,
@@ -80,14 +81,17 @@ export function useChangeHistoryPageState() {
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams(
-      createChangeHistorySearchParams(
-        draftStartDate,
-        draftEndDate,
-        draftKeyword,
-        draftAuditFlag,
-      ),
+    const nextParams = createChangeHistorySearchParams(
+      draftStartDate,
+      draftEndDate,
+      draftKeyword,
+      draftAuditFlag,
     );
+    if (areQueryParamsEqual(nextParams, searchParams)) {
+      void query.refetch();
+    } else {
+      setSearchParams(nextParams);
+    }
   };
 
   const handleReset = () => {

@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
   buildInquiryAnswerUpdateRequest,
@@ -8,18 +10,8 @@ import {
 } from '../api/inquiryManageApi';
 import type { InquiryManageRow } from '../types';
 
-async function refetchOrThrow<TError>(
-  refetch: () => Promise<{ isError: boolean; error: TError | null }>,
-  errorMessage: string,
-) {
-  const result = await refetch();
-
-  if (result.isError) {
-    throw result.error instanceof Error ? result.error : new Error(errorMessage);
-  }
-}
-
 export function useInquiryManagePage() {
+  const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
 
@@ -38,7 +30,7 @@ export function useInquiryManagePage() {
     const request = buildInquiryAnswerUpdateRequest(row, answerDescription.trim());
 
     await updateMutation.mutateAsync({ data: request });
-    await refetchOrThrow(query.refetch, '답변 저장 후 문의사항 목록을 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.qna.lists });
   };
 
   return {

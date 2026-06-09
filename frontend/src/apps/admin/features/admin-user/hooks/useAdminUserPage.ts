@@ -130,7 +130,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
 
     await saveUsersMutation.mutateAsync(request);
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.adminUser.list(appliedKeyword.trim()),
+      queryKey: queryKeys.adminUser.lists,
     });
     resetToBaseRows();
     return 'saved';

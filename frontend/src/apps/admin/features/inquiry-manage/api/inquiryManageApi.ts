@@ -5,6 +5,7 @@ import {
   downloadAllFile,
 } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
@@ -23,25 +24,24 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
-    registrant: res.writeUsername ?? '-',
+    p,
     registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
     updatedAt: '-',
-    answeredAt: answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
-    answerer: answerStatus === 'answered' ? res.answerUserName ?? '-' : '-',
+    answeredAt:
+      answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
+    answerer: answerStatus === 'answered' ? (res.answerUserName ?? '-') : '-',
     answerStatus,
     answerContent: res.answerDescription ?? '',
   };
 }
 
 export function useInquiryManageQuery(searchKeyword = '') {
-  return useGetQna(
-    searchKeyword ? { searchKeyword } : undefined,
-    {
-      query: {
-        queryKey: queryKeys.qna.list(searchKeyword),
-      },
+  return useGetQna(searchKeyword ? { searchKeyword } : undefined, {
+    query: {
+      queryKey: queryKeys.qna.list(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
-  );
+  });
 }
 
 /**
@@ -64,10 +64,7 @@ export function useInquiryAnswerMutation() {
 }
 
 export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
-  return useGetAttachFile(
-    { linkSysId: fileUlid ?? '' },
-    { query: { enabled: Boolean(fileUlid) } },
-  );
+  return useGetAttachFile({ linkSysId: fileUlid ?? '' }, { query: { enabled: Boolean(fileUlid) } });
 }
 
 export async function downloadInquiryFile(file: ServerFile): Promise<void> {

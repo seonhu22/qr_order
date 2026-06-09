@@ -138,6 +138,7 @@ frontend/
 
 > `shared/` 상세 구조·`public/`·`assets/` 설명은 [`components.md` §1 폴더 구조](./components.md#1-폴더-구조) 참고
 > 주요 설정 파일 설명은 [`config.md`](./config.md) 참고
+> TanStack Query 캐시 기준은 [`query-cache-policy.md`](./query-cache-policy.md) 참고
 
 ---
 

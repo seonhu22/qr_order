@@ -10,6 +10,7 @@ import type { RuleDetail } from '@/generated/types/ruleDetail';
 import type { RuleDetailRequest } from '@/generated/types/ruleDetailRequest';
 import type { RuleMaster } from '@/generated/types/ruleMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { RuleDetailColumn, RuleDetailRow, RuleDetailSchema, RuleMasterRow } from '../types';
 
 export const RULE_DETAIL_COLUMNS: RuleDetailColumn[] = [
@@ -132,6 +133,7 @@ export function useRuleMasterQuery(searchKeyword = '') {
   return useGetRuleMaster(searchKeyword ? { searchKeyword } : undefined, {
     query: {
       queryKey: queryKeys.rule.masters(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
   });
 }
@@ -143,6 +145,7 @@ export function useRuleDetailQuery(masterId = '') {
       query: {
         enabled: Boolean(masterId),
         queryKey: queryKeys.rule.details(masterId),
+        ...queryPolicies.adminCrudList,
       },
     },
   );
