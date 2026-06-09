@@ -17,6 +17,20 @@ export const AUDIT_FLAG_OPTIONS = [
   { value: 'FD', label: AUDIT_FLAG_LABEL.FD },
 ];
 
+export const AUDIT_FLAG_CHANGE_TYPE: Record<string, string> = {
+  I: '01',
+  U: '02',
+  D: '03',
+};
+
+export function getChangeTypeByAuditFlag(auditFlag: string) {
+  return AUDIT_FLAG_CHANGE_TYPE[auditFlag] ?? '';
+}
+
+export function shouldFilterAuditFlagOnClient(auditFlag: string) {
+  return Boolean(auditFlag && auditFlag !== 'ALL' && !getChangeTypeByAuditFlag(auditFlag));
+}
+
 export function getAuditFlagLabel(auditFlag: string) {
   return AUDIT_FLAG_LABEL[auditFlag] ?? auditFlag;
 }

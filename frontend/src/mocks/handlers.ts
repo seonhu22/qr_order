@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { handlers as authHandlers } from '../test/handlers';
 import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
 import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
+import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
 import {
   getDelCommonMasterMockHandler,
   getDelPaymentMockHandler,
@@ -47,6 +48,16 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
+
+const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
+  '01': 'I',
+  '02': 'U',
+  '03': 'D',
+};
+
+function toMockDate(value: string | null) {
+  return value ? new Date(value.replace(' ', 'T')).getTime() : null;
+}
 
 const paymentOverrideHandler = http.get('*/api/system/settings/payment/search', ({ request }) => {
   const url = new URL(request.url);
@@ -147,6 +158,33 @@ const qnaOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({
   return HttpResponse.json(filtered);
 });
 
+const auditTrailOverrideHandler = http.get(
+  '*/api/system/settings/log/audittrail',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const changeType = url.searchParams.get('changeType') ?? '';
+    const auditFlag = CHANGE_TYPE_AUDIT_FLAG_MAP[changeType];
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const startMs = toMockDate(url.searchParams.get('startDate'));
+    const endMs = toMockDate(url.searchParams.get('endDate'));
+
+    const filtered = CHANGE_HISTORY_MOCK.filter((row) => {
+      const rowMs = toMockDate(row.insertDatetime ?? '');
+      const matchesChangeType = auditFlag ? row.auditFlag === auditFlag : true;
+      const matchesKeyword = keyword
+        ? row.menuNm?.toLowerCase().includes(keyword) ||
+          row.auditTrailContents?.toLowerCase().includes(keyword)
+        : true;
+      const matchesStartDate = startMs !== null && rowMs !== null ? rowMs >= startMs : true;
+      const matchesEndDate = endMs !== null && rowMs !== null ? rowMs <= endMs : true;
+
+      return matchesChangeType && matchesKeyword && matchesStartDate && matchesEndDate;
+    });
+
+    return HttpResponse.json(filtered);
+  },
+);
+
 const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) => {
   const url = new URL(request.url);
   const linkSysId = url.searchParams.get('linkSysId');
@@ -245,6 +283,7 @@ export const handlers = [
   menuOverrideHandler,
   noticeOverrideHandler,
   qnaOverrideHandler,
+  auditTrailOverrideHandler,
   attachFileOverrideHandler,
   ...settingsHandlers,
   ...getComboControllerMock(),

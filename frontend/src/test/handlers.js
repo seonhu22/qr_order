@@ -58,18 +58,22 @@ export const handlers = [
   http.post('/api/client/auth/login', async ({ request }) => {
     const body = await request.json();
 
-    if (body.userId === 'client' && body.userPassword === 'password') {
+    if (body.userId === 'a' && body.userPassword === '1') {
       return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'client', userNm: '클라이언트 사용자' } });
     }
 
     if (body.userId === 'b' && body.userPassword === '1') {
-      return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'b', userNm: '테스트 사용자' } });
+      return HttpResponse.json({ success: true, message: '로그인 성공', data: { userId: 'b', userNm: '테스트 사용자', initPwdRequired: true } });
     }
 
     return HttpResponse.json(
       { success: false, message: '아이디 또는 비밀번호를 확인해주세요.' },
       { status: 200 },
     );
+  }),
+
+  http.post('/api/client/auth/init-pwd-active', async () => {
+    return HttpResponse.json({ success: true, message: '비밀번호가 변경되었습니다.' });
   }),
 
   http.post('/api/auth/logout', () => {
