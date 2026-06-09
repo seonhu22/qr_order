@@ -1,7 +1,19 @@
-import { describe, expect, it } from 'vitest';
-import { mapToChangeHistoryRow } from './changeHistoryApi';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mapToChangeHistoryRow, useChangeHistoryQuery } from './changeHistoryApi';
+
+const { useGetAuditTrailMock } = vi.hoisted(() => ({
+  useGetAuditTrailMock: vi.fn(),
+}));
+
+vi.mock('@/generated/settings-controller/settings-controller', () => ({
+  useGetAuditTrail: (...args: unknown[]) => useGetAuditTrailMock(...args),
+}));
 
 describe('changeHistoryApi', () => {
+  beforeEach(() => {
+    useGetAuditTrailMock.mockReset();
+  });
+
   it('maps audit trail dto into page row with safe fallback values', () => {
     expect(
       mapToChangeHistoryRow(
@@ -31,5 +43,31 @@ describe('changeHistoryApi', () => {
       auditTrailContents: '',
       insertDatetime: '',
     });
+  });
+
+  it('passes changeType to generated audit trail query params', () => {
+    useGetAuditTrailMock.mockReturnValue({ data: [] });
+
+    useChangeHistoryQuery({
+      startDate: '2026-04-27 00:00:00',
+      endDate: '2026-04-27 23:59:59',
+      searchKeyword: '메뉴',
+      auditFlag: 'U',
+      changeType: '02',
+    });
+
+    expect(useGetAuditTrailMock).toHaveBeenCalledWith(
+      {
+        startDate: '2026-04-27 00:00:00',
+        endDate: '2026-04-27 23:59:59',
+        searchKeyword: '메뉴',
+        changeType: '02',
+      },
+      expect.objectContaining({
+        query: expect.objectContaining({
+          enabled: true,
+        }),
+      }),
+    );
   });
 });
