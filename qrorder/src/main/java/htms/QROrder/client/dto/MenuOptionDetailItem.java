@@ -9,6 +9,8 @@ public class MenuOptionDetailItem {
     private String menuOptionName;
     private String menuOptionPrice;
     private String menuDescription;
+    private String maximumYn;
+    private String maximumNum;
     private String useYn;
     private String fileUlid;
     private Integer ordNo;
