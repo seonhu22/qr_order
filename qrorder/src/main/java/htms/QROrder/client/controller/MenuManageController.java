@@ -25,6 +25,7 @@ public class MenuManageController {
     private final MenuOptionGroupService menuOptionGroupService;
     private final MenuOptionDetailService menuOptionDetailService;
 
+    // 메뉴 관리
     @GetMapping("/menu/master/search")
     public List<MenuMasterResponse> getMenuMaster(@RequestParam(required = false) String searchKeyword,
                                                     HttpSession session) {
@@ -109,6 +110,7 @@ public class MenuManageController {
         );
     }
 
+    // 옵션관리
     @GetMapping("/option/master/search")
     public List<MenuOptionMasterResponse> getMenuOptionMaster(@RequestParam(required = false) String searchKeyword,
                                                                 HttpSession session) {

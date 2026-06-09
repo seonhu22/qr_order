@@ -24,12 +24,14 @@ public class BoardController {
     private final ClientNoticeService noticeService;
     private final ClientQnaService qnaService;
 
+    // 공지사항 조회
     @GetMapping("/notice/search")
     public List<ClientNoticeResponse> getNotice(@RequestParam(required = false) String searchKeyword) {
 
         return noticeService.getNotice(searchKeyword);
     }
 
+    // 문의사항 관리
     @GetMapping("/qna/search")
     public List<ClientQnaResponse> getQna(@RequestParam(required = false) String searchKeyword,
                                             HttpSession session) {
