@@ -1,6 +1,7 @@
 package htms.QROrder.client.dto;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -12,5 +13,6 @@ public class OrderMasterHistoryItem {
     private String orderStatus;
     private String orderStatusNm;
     private Integer totalPrice;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderStartDatetime;
 }

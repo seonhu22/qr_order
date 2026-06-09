@@ -10,6 +10,7 @@
             menu_option_name ,
             menu_option_price ,
             menu_description ,
+            maximum_num ,
             use_yn ,
             file_ulid ,
             ord_no
@@ -27,6 +28,7 @@
             menu_option_name ,
             menu_option_price ,
             menu_description ,
+            maximum_num ,
             use_yn ,
             ord_no ,
             delete_yn ,
@@ -43,6 +45,7 @@
                 #{item.menuOptionName},
                 #{item.menuOptionPrice},
                 #{item.menuDescription},
+                #{item.maximum_num} ,
                 #{item.useYn},
                 #{item.ordNo},
                 'N',
@@ -60,6 +63,7 @@
                 menu_option_name = #{item.menuOptionName} ,
                 menu_option_price = #{item.menuOptionPrice} ,
                 menu_description = #{item.menuDescription} ,
+                maximum_num #{item.maximumNum} ,
                 use_yn = #{item.useYn} ,
                 ord_no = #{item.ordNo} ,
                 modify_datetime = now(),
@@ -100,6 +104,7 @@
             menu_option_name ,
             menu_option_price ,
             menu_description ,
+            maximum_num ,
             use_yn ,
             file_ulid ,
             ord_no
@@ -118,6 +123,7 @@
             menu_option_name ,
             menu_option_price ,
             menu_description ,
+            maximum_num ,
             use_yn ,
             file_ulid ,
             ord_no

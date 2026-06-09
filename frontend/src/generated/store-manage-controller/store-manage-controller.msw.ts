@@ -23,11 +23,14 @@ import type {
   CommonResponse,
   QRCodeResponse,
   StoreInfoResponse,
+  TableGuiResponse,
   TableInfoResponse
 } from '.././types';
 
 
 export const getUpdateClientUserResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getResetPwdResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getNewClientUserResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
@@ -35,19 +38,21 @@ export const getDelClientUserResponseMock = (overrideResponse: Partial< CommonRe
 
 export const getNewTableInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
-export const getUpdateStoreInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+export const getSaveTableGuiResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
-export const getNewStoreInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
-
-export const getDelStoreInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+export const getSaveStoreInfoResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getSaveQRCodeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getGetClientUserResponseMock = (): ClientUserResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), userId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), userNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), userRole: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), plantCd: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), plantNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
-export const getGetTableInfoResponseMock = (): TableInfoResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), tableQty: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
+export const getGetTableInfo1ResponseMock = (): TableInfoResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), tableQty: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
-export const getGetStoreInfoResponseMock = (): StoreInfoResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), storeName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), address: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), phoneNumber: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), openDatetime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), closeDatetime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined])})))
+export const getGetTableGuiResponseMock = (): TableGuiResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), tableQty: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), height: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), width: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), tableType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ycoordinate: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), xcoordinate: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
+
+export const getGetStoreInfoResponseMock = (): StoreInfoResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), storeName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), address: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), phoneNumber: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), emergencyPhoneNumber: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), email: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), openTime: faker.helpers.arrayElement([{hour: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), minute: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), second: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), nano: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])}, undefined]), closeTime: faker.helpers.arrayElement([{hour: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), minute: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), second: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), nano: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])}, undefined])})))
+
+export const getPwdChkResponseMock = (): boolean => (faker.datatype.boolean())
 
 export const getGetQRCodeResponseMock = (): QRCodeResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
@@ -58,6 +63,18 @@ export const getUpdateClientUserMockHandler = (overrideResponse?: CommonResponse
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getUpdateClientUserResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getResetPwdMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/client/store_manage/user_manage/reset_pwd/:sysId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getResetPwdResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -100,36 +117,24 @@ export const getNewTableInfoMockHandler = (overrideResponse?: CommonResponse | (
   }, options)
 }
 
-export const getUpdateStoreInfoMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
-  return http.post('*/api/client/store_manage/store_info/update', async (info) => {await delay(1000);
+export const getSaveTableGuiMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/client/store_manage/table_gui/save', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getUpdateStoreInfoResponseMock()),
+    : getSaveTableGuiResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
   }, options)
 }
 
-export const getNewStoreInfoMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
-  return http.post('*/api/client/store_manage/store_info/new', async (info) => {await delay(1000);
+export const getSaveStoreInfoMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/client/store_manage/store_info/save', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getNewStoreInfoResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
-  }, options)
-}
-
-export const getDelStoreInfoMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
-  return http.post('*/api/client/store_manage/store_info/del', async (info) => {await delay(1000);
-  
-    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getDelStoreInfoResponseMock()),
+    : getSaveStoreInfoResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -160,12 +165,24 @@ export const getGetClientUserMockHandler = (overrideResponse?: ClientUserRespons
   }, options)
 }
 
-export const getGetTableInfoMockHandler = (overrideResponse?: TableInfoResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TableInfoResponse[]> | TableInfoResponse[]), options?: RequestHandlerOptions) => {
+export const getGetTableInfo1MockHandler = (overrideResponse?: TableInfoResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TableInfoResponse[]> | TableInfoResponse[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/client/store_manage/table_info/search', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getGetTableInfoResponseMock()),
+    : getGetTableInfo1ResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getGetTableGuiMockHandler = (overrideResponse?: TableGuiResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TableGuiResponse[]> | TableGuiResponse[]), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/store_manage/table_gui/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetTableGuiResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -178,6 +195,18 @@ export const getGetStoreInfoMockHandler = (overrideResponse?: StoreInfoResponse[
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getGetStoreInfoResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getPwdChkMockHandler = (overrideResponse?: boolean | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<boolean> | boolean), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/store_manage/store_info/pwd_chk', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPwdChkResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -197,15 +226,17 @@ export const getGetQRCodeMockHandler = (overrideResponse?: QRCodeResponse[] | ((
 }
 export const getStoreManageControllerMock = () => [
   getUpdateClientUserMockHandler(),
+  getResetPwdMockHandler(),
   getNewClientUserMockHandler(),
   getDelClientUserMockHandler(),
   getNewTableInfoMockHandler(),
-  getUpdateStoreInfoMockHandler(),
-  getNewStoreInfoMockHandler(),
-  getDelStoreInfoMockHandler(),
+  getSaveTableGuiMockHandler(),
+  getSaveStoreInfoMockHandler(),
   getSaveQRCodeMockHandler(),
   getGetClientUserMockHandler(),
-  getGetTableInfoMockHandler(),
+  getGetTableInfo1MockHandler(),
+  getGetTableGuiMockHandler(),
   getGetStoreInfoMockHandler(),
+  getPwdChkMockHandler(),
   getGetQRCodeMockHandler()
 ]

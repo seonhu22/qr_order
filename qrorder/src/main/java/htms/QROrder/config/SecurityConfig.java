@@ -9,6 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -24,6 +26,15 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable);
         http.logout(AbstractHttpConfigurer::disable);
+
+        http.headers(headers -> headers
+            .contentTypeOptions(withDefaults())
+            .frameOptions(frame -> frame.deny())
+            .cacheControl(withDefaults())
+            .contentSecurityPolicy(csp -> csp
+                .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'")
+            )
+        );
 
         return http.build();
     }

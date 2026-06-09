@@ -23,10 +23,11 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
-    registrant: '-',
-    registeredAt: formatDateTimeForDisplay(res.startDate) || '-',
+    registrant: res.writeUsername ?? '-',
+    registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
     updatedAt: '-',
     answeredAt: answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
+    answerer: answerStatus === 'answered' ? res.answerUserName ?? '-' : '-',
     answerStatus,
     answerContent: res.answerDescription ?? '',
   };

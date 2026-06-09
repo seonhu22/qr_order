@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class StatusItem {
-    private String orderNum;
+    private Integer orderNum;
     private Header header;
     private List<Body> body;
     private Footer footer;

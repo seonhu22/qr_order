@@ -8,6 +8,8 @@
             sys_id ,
             link_sys_id ,
             group_name ,
+            required_yn ,
+            input_type ,
             ord_no
         from store_menu_option_group smom
         where 1=1
@@ -21,6 +23,8 @@
             sys_id ,
             link_sys_id ,
             group_name ,
+            required_yn ,
+            input_type ,
             delete_yn ,
             ord_no ,
             insert_datetime ,
@@ -31,6 +35,8 @@
             #{newItems.sysId},
             #{newItems.linkSysId},
             #{newItems.groupName},
+            #{newItems.requiredYn},
+            #{newItems.inputType},
             'N',
             #{newItems.ordNo},
             now(),
@@ -42,6 +48,8 @@
     <update id="updateMenuOptionGroup">
         update store_menu_option_group set
             group_name = #{updateItems.groupName} ,
+            required_yn = #{updateItems.requiredYn} ,
+            input_type = #{updateItems.inputType} ,
             ord_no = #{updateItems.ordNo} ,
             modify_user_id = #{userId} ,
             modify_datetime = now()
@@ -74,6 +82,8 @@
         select
             sys_id ,
             group_name ,
+            required_yn ,
+            input_type ,
             use_yn ,
             ord_no
         from store_menu_option_group smm
