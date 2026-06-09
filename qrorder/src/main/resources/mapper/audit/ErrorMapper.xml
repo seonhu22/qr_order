@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.audit.repository.ErrorMapper">
+
+    <insert id="newErrorInfo" parameterType="htms.QROrder.audit.domain.ErrorInfo">
+        INSERT INTO sys_error_info (
+            sys_id,
+            err_msg,
+            err_detail_msg,
+            menu_cd,
+            file_path,
+            function_nm,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd
+        ) VALUES (
+            #{sysId},
+            #{errMsg},
+            #{errDetailMsg},
+            #{menuCd},
+            #{filePath},
+            #{functionNm},
+            #{insertUserId},
+            now(),
+            #{sysPlantCd}
+        )
+    </insert>
+
+</mapper>
