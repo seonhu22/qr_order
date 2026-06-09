@@ -51,7 +51,13 @@ export const queryKeys = {
     details: (sysId = '') => ['settings', 'accessLog', 'details', sysId] as const,
   },
   changeHistory: {
-    list: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
+    list: (params: {
+      startDate: string;
+      endDate: string;
+      searchKeyword?: string;
+      auditFlag?: string;
+      changeType: string;
+    }) =>
       ['settings', 'changeHistory', 'list', params] as const,
   },
   notice: {
