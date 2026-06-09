@@ -6,9 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAuditTrailParams = {
-changeType: string;
-searchKeyword?: string;
-startDate: string;
-endDate: string;
+export type PwdChkParams = {
+pwd: string;
 };

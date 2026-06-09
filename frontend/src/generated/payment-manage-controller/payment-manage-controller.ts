@@ -23,13 +23,101 @@ import type {
 import type {
   GetPaymentInfoMasterParams,
   PaymentInfoDetailResponse,
-  PaymentInfoMasterResponse
+  PaymentInfoMasterResponse,
+  SettlementRequest,
+  SettlementResponse
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+export const getSettlement = (
+    settlementRequest: SettlementRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<SettlementResponse>(
+      {url: `/api/client/payment_manage/settlement/search`, method: 'GET',
+      headers: {'Content-Type': 'application/json', }, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetSettlementQueryKey = (settlementRequest?: SettlementRequest,) => {
+    return [
+    `/api/client/payment_manage/settlement/search`, settlementRequest
+    ] as const;
+    }
+
+    
+export const getGetSettlementQueryOptions = <TData = Awaited<ReturnType<typeof getSettlement>>, TError = unknown>(settlementRequest: SettlementRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSettlementQueryKey(settlementRequest);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSettlement>>> = ({ signal }) => getSettlement(settlementRequest, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSettlementQueryResult = NonNullable<Awaited<ReturnType<typeof getSettlement>>>
+export type GetSettlementQueryError = unknown
+
+
+export function useGetSettlement<TData = Awaited<ReturnType<typeof getSettlement>>, TError = unknown>(
+ settlementRequest: SettlementRequest, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSettlement>>,
+          TError,
+          Awaited<ReturnType<typeof getSettlement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSettlement<TData = Awaited<ReturnType<typeof getSettlement>>, TError = unknown>(
+ settlementRequest: SettlementRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSettlement>>,
+          TError,
+          Awaited<ReturnType<typeof getSettlement>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSettlement<TData = Awaited<ReturnType<typeof getSettlement>>, TError = unknown>(
+ settlementRequest: SettlementRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSettlement<TData = Awaited<ReturnType<typeof getSettlement>>, TError = unknown>(
+ settlementRequest: SettlementRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettlement>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSettlementQueryOptions(settlementRequest,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
 
 
 

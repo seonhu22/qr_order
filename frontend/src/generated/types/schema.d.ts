@@ -420,6 +420,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/store_manage/user_manage/reset_pwd/{sysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resetPwd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/store_manage/user_manage/new": {
         parameters: {
             query?: never;
@@ -468,7 +484,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/store_manage/store_info/update": {
+    "/api/client/store_manage/table_gui/save": {
         parameters: {
             query?: never;
             header?: never;
@@ -477,14 +493,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["updateStoreInfo"];
+        post: operations["saveTableGui"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/client/store_manage/store_info/new": {
+    "/api/client/store_manage/store_info/save": {
         parameters: {
             query?: never;
             header?: never;
@@ -493,23 +509,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["newStoreInfo"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/client/store_manage/store_info/del": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["delStoreInfo"];
+        post: operations["saveStoreInfo"];
         delete?: never;
         options?: never;
         head?: never;
@@ -836,6 +836,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/board/qna/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateQna_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/board/qna/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newQna"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/board/qna/del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["delQna"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup/new/chkBRN": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["chkBRN"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup/email_valid/{encodeSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["emailValid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -894,6 +990,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["initPwdAndActive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/email_valid/new_user/{encodeSysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["newUserEmailValid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1172,6 +1284,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/qr/{url}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTableInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard/info": {
         parameters: {
             query?: never;
@@ -1243,7 +1371,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getTableInfo"];
+        get: operations["getTableInfo_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/store_manage/table_gui/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getTableGui"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1268,6 +1412,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/store_manage/store_info/pwd_chk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["pwdChk"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/store_manage/qr_code/search": {
         parameters: {
             query?: never;
@@ -1276,6 +1436,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getQRCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/payment_manage/settlement/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSettlement"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1468,6 +1644,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getMenuDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/board/qna/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getQna_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/board/notice/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getNotice_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup/idDuplicateChk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["idDuplicateChk"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1677,8 +1901,6 @@ export interface components {
             sysId?: string;
             qnaTitle?: string;
             qnaDescription?: string;
-            /** Format: date-time */
-            startDate?: string;
             deleteYn?: string;
             useYn?: string;
             fileUuid?: string;
@@ -1775,25 +1997,49 @@ export interface components {
             updateItems?: components["schemas"]["TableInfoItem"][];
             delItems?: components["schemas"]["TableInfoItem"][];
         };
+        TableGuiItem: {
+            sysId?: string;
+            tableName?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: int32 */
+            tableQty?: number;
+            /** Format: int32 */
+            height?: number;
+            /** Format: int32 */
+            width?: number;
+            tableType?: string;
+            /** Format: int32 */
+            ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
+        };
+        TableGuiRequest: {
+            newItems?: components["schemas"]["TableGuiItem"][];
+            updateItems?: components["schemas"]["TableGuiItem"][];
+            delItems?: components["schemas"]["TableGuiItem"][];
+        };
+        LocalTime: {
+            /** Format: int32 */
+            hour?: number;
+            /** Format: int32 */
+            minute?: number;
+            /** Format: int32 */
+            second?: number;
+            /** Format: int32 */
+            nano?: number;
+        };
         StoreInfoRequest: {
             sysId?: string;
             storeName?: string;
             address?: string;
-            phoneNumber?: string;
-            /** Format: date-time */
-            openDatetime?: string;
-            /** Format: date-time */
-            closeDatetime?: string;
-        };
-        StoreInfoItem: {
-            sysId?: string;
-            storeName?: string;
-            address?: string;
-            phoneNumber?: string;
-            /** Format: date-time */
-            openDatetime?: string;
-            /** Format: date-time */
-            closeDatetime?: string;
+            /** Format: int32 */
+            phoneNumber?: number;
+            /** Format: int32 */
+            emergencyPhoneNumber?: number;
+            email?: string;
+            openTime?: components["schemas"]["LocalTime"];
+            closeTime?: components["schemas"]["LocalTime"];
         };
         QRCodeItem: {
             sysId?: string;
@@ -1842,7 +2088,8 @@ export interface components {
             unpaidDescription?: string;
         };
         StatusRequest: {
-            orderNum?: string;
+            /** Format: int32 */
+            orderNum?: number;
             header?: components["schemas"]["Header"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
@@ -1867,6 +2114,8 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             groupName?: string;
+            requiredYn?: string;
+            inputType?: string;
             /** Format: int32 */
             ordNo?: number;
         };
@@ -1874,6 +2123,8 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             groupName?: string;
+            requiredYn?: string;
+            inputType?: string;
             /** Format: int32 */
             ordNo?: number;
         };
@@ -1883,6 +2134,7 @@ export interface components {
             menuOptionName?: string;
             menuOptionPrice?: string;
             menuDescription?: string;
+            maximumNum?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -1925,6 +2177,34 @@ export interface components {
             newItems?: components["schemas"]["MenuDetailItem"][];
             updateItems?: components["schemas"]["MenuDetailItem"][];
             delItems?: components["schemas"]["MenuDetailItem"][];
+        };
+        ClientQnaRequest: {
+            sysId?: string;
+            qnaTitle?: string;
+            writeUserName?: string;
+            qnaDescription?: string;
+            /** Format: date-time */
+            writeDatetime?: string;
+            fileUlid?: string;
+            answerYn?: string;
+            answerUserName?: string;
+            /** Format: date-time */
+            answerDatetime?: string;
+            answerDescription?: string;
+        };
+        SignUpRequest: {
+            businessRegiNum?: string;
+            plantNm?: string;
+            userNm?: string;
+            /** Format: date */
+            businessRegiDate?: string;
+            sysId?: string;
+            userId?: string;
+            password?: string;
+            passwordChk?: string;
+            email?: string;
+            /** Format: int32 */
+            phoneNumber?: number;
         };
         LoginRequest: {
             userId: string;
@@ -1984,11 +2264,13 @@ export interface components {
         QnaResponse: {
             sysId?: string;
             qnaTitle?: string;
+            writeUsername?: string;
             qnaDescription?: string;
-            /** Format: date */
-            startDate?: string;
+            /** Format: date-time */
+            writeDatetime?: string;
             fileUlid?: string;
             answerYn?: string;
+            answerUserName?: string;
             /** Format: date-time */
             answerDatetime?: string;
             answerDescription?: string;
@@ -2031,15 +2313,34 @@ export interface components {
             tableQty?: number;
             useYn?: string;
         };
+        TableGuiResponse: {
+            sysId?: string;
+            tableName?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: int32 */
+            tableQty?: number;
+            /** Format: int32 */
+            height?: number;
+            /** Format: int32 */
+            width?: number;
+            tableType?: string;
+            /** Format: int32 */
+            ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
+        };
         StoreInfoResponse: {
             sysId?: string;
             storeName?: string;
             address?: string;
-            phoneNumber?: string;
-            /** Format: date-time */
-            openDatetime?: string;
-            /** Format: date-time */
-            closeDatetime?: string;
+            /** Format: int32 */
+            phoneNumber?: number;
+            /** Format: int32 */
+            emergencyPhoneNumber?: number;
+            email?: string;
+            openTime?: components["schemas"]["LocalTime"];
+            closeTime?: components["schemas"]["LocalTime"];
         };
         QRCodeResponse: {
             sysId?: string;
@@ -2049,6 +2350,40 @@ export interface components {
             description?: string;
             url?: string;
             useYn?: string;
+        };
+        SettlementRequest: {
+            paymentType?: string;
+            /** Format: date */
+            searchStartDate?: string;
+            /** Format: date */
+            searchEndDate?: string;
+        };
+        SettlementResponse: {
+            /** Format: int32 */
+            totalPrice?: number;
+            /** Format: int32 */
+            cancelPrice?: number;
+            /** Format: int32 */
+            discountPice?: number;
+            /** Format: int32 */
+            netPrice?: number;
+            /** Format: int32 */
+            orderCount?: number;
+            dailySales?: components["schemas"]["dailySale"][];
+        };
+        dailySale: {
+            /** Format: date */
+            groupDate?: string;
+            /** Format: int32 */
+            dayTotalPrice?: number;
+            /** Format: int32 */
+            dayCancelPrice?: number;
+            /** Format: int32 */
+            dayNetPrice?: number;
+            /** Format: int32 */
+            dayOrderCount?: number;
+            /** Format: int32 */
+            dayCancelCount?: number;
         };
         PaymentInfoMasterResponse: {
             sysId?: string;
@@ -2070,7 +2405,8 @@ export interface components {
             cancelDescription?: string;
         };
         StatusItem: {
-            orderNum?: string;
+            /** Format: int32 */
+            orderNum?: number;
             header?: components["schemas"]["Header"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
@@ -2123,6 +2459,8 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             groupName?: string;
+            requiredYn?: string;
+            inputType?: string;
             /** Format: int32 */
             ordNo?: number;
         };
@@ -2132,6 +2470,7 @@ export interface components {
             menuOptionName?: string;
             menuOptionPrice?: string;
             menuDescription?: string;
+            maximumNum?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -2157,6 +2496,29 @@ export interface components {
             fileUlid?: string;
             /** Format: int32 */
             ordNo?: number;
+        };
+        ClientQnaResponse: {
+            sysId?: string;
+            qnaTitle?: string;
+            writeUserName?: string;
+            qnaDescription?: string;
+            /** Format: date-time */
+            writeDatetime?: string;
+            fileUlid?: string;
+            answerYn?: string;
+            answerUserName?: string;
+            /** Format: date-time */
+            answerDatetime?: string;
+            answerDescription?: string;
+        };
+        ClientNoticeResponse: {
+            sysId?: string;
+            noticeTitle?: string;
+            writeUserName?: string;
+            /** Format: date */
+            openDate?: string;
+            noticeDescription?: string;
+            fileUlid?: string;
         };
         FileResponse: {
             sysId?: string;
@@ -2791,6 +3153,28 @@ export interface operations {
             };
         };
     };
+    resetPwd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
     newClientUser: {
         parameters: {
             query?: never;
@@ -2863,7 +3247,7 @@ export interface operations {
             };
         };
     };
-    updateStoreInfo: {
+    saveTableGui: {
         parameters: {
             query?: never;
             header?: never;
@@ -2872,7 +3256,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StoreInfoRequest"];
+                "application/json": components["schemas"]["TableGuiRequest"];
             };
         };
         responses: {
@@ -2887,7 +3271,7 @@ export interface operations {
             };
         };
     };
-    newStoreInfo: {
+    saveStoreInfo: {
         parameters: {
             query?: never;
             header?: never;
@@ -2897,30 +3281,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["StoreInfoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CommonResponse"];
-                };
-            };
-        };
-    };
-    delStoreInfo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StoreInfoItem"][];
             };
         };
         responses: {
@@ -3413,6 +3773,148 @@ export interface operations {
             };
         };
     };
+    updateQna_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientQnaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newQna: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientQnaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    delQna: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientQnaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignUpRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    chkBRN: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignUpRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    emailValid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encodeSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
     logout: {
         parameters: {
             query?: never;
@@ -3497,6 +3999,28 @@ export interface operations {
                 "application/json": components["schemas"]["InitPwdRequest"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    newUserEmailValid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encodeSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -3754,6 +4278,7 @@ export interface operations {
     getAuditTrail: {
         parameters: {
             query: {
+                changeType: string;
                 searchKeyword?: string;
                 startDate: string;
                 endDate: string;
@@ -3887,6 +4412,28 @@ export interface operations {
             };
         };
     };
+    getTableInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                url: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
     getDashboardInfo: {
         parameters: {
             query?: never;
@@ -3971,7 +4518,7 @@ export interface operations {
             };
         };
     };
-    getTableInfo: {
+    getTableInfo_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3987,6 +4534,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TableInfoResponse"][];
+                };
+            };
+        };
+    };
+    getTableGui: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TableGuiResponse"][];
                 };
             };
         };
@@ -4013,6 +4580,28 @@ export interface operations {
             };
         };
     };
+    pwdChk: {
+        parameters: {
+            query: {
+                pwd: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": boolean;
+                };
+            };
+        };
+    };
     getQRCode: {
         parameters: {
             query?: never;
@@ -4029,6 +4618,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["QRCodeResponse"][];
+                };
+            };
+        };
+    };
+    getSettlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettlementResponse"];
                 };
             };
         };
@@ -4291,6 +4904,72 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MenuDetailResponse"][];
+                };
+            };
+        };
+    };
+    getQna_1: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClientQnaResponse"][];
+                };
+            };
+        };
+    };
+    getNotice_1: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClientNoticeResponse"][];
+                };
+            };
+        };
+    };
+    idDuplicateChk: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": boolean;
                 };
             };
         };

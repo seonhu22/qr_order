@@ -6,9 +6,9 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAuditTrailParams = {
-changeType: string;
-searchKeyword?: string;
-startDate: string;
-endDate: string;
-};
+export interface LocalTime {
+  hour?: number;
+  minute?: number;
+  second?: number;
+  nano?: number;
+}

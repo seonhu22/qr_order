@@ -6,14 +6,15 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface QnaRequest {
+export interface ClientQnaResponse {
   sysId?: string;
   qnaTitle?: string;
+  writeUserName?: string;
   qnaDescription?: string;
-  deleteYn?: string;
-  useYn?: string;
-  fileUuid?: string;
+  writeDatetime?: string;
+  fileUlid?: string;
   answerYn?: string;
+  answerUserName?: string;
   answerDatetime?: string;
   answerDescription?: string;
 }

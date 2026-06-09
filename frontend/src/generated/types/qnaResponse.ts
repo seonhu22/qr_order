@@ -9,10 +9,12 @@
 export interface QnaResponse {
   sysId?: string;
   qnaTitle?: string;
+  writeUsername?: string;
   qnaDescription?: string;
-  startDate?: string;
+  writeDatetime?: string;
   fileUlid?: string;
   answerYn?: string;
+  answerUserName?: string;
   answerDatetime?: string;
   answerDescription?: string;
 }

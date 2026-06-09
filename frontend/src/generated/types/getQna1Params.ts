@@ -6,9 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAuditTrailParams = {
-changeType: string;
+export type GetQna1Params = {
 searchKeyword?: string;
-startDate: string;
-endDate: string;
 };

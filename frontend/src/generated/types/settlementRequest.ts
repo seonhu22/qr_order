@@ -6,9 +6,8 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetAuditTrailParams = {
-changeType: string;
-searchKeyword?: string;
-startDate: string;
-endDate: string;
-};
+export interface SettlementRequest {
+  paymentType?: string;
+  searchStartDate?: string;
+  searchEndDate?: string;
+}

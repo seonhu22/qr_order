@@ -6,11 +6,11 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface MenuOptionGroupRequest {
+export interface ClientNoticeResponse {
   sysId?: string;
-  linkSysId?: string;
-  groupName?: string;
-  requiredYn?: string;
-  inputType?: string;
-  ordNo?: number;
+  noticeTitle?: string;
+  writeUserName?: string;
+  openDate?: string;
+  noticeDescription?: string;
+  fileUlid?: string;
 }
