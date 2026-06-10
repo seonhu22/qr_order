@@ -1,0 +1,24 @@
+.order-history-page {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.order-history-page__grid {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.order-history-page__master-table {
+  min-width: 50rem;
+}
+
+.order-history-page__detail-table {
+  min-width: 42rem;
+}
+
+@media (min-width: 82rem) {
+  .order-history-page__grid {
+    grid-template-columns: minmax(42rem, 1.1fr) minmax(34rem, 0.9fr);
+    align-items: start;
+  }
+}
