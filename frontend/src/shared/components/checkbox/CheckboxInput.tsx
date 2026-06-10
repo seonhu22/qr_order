@@ -63,6 +63,7 @@ export function CheckboxInput({
   errorText,
   successText,
   className,
+  'aria-label': ariaLabel,
 }: CheckboxInputProps) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +121,7 @@ export function CheckboxInput({
           className="checkbox-control__native"
           checked={isChecked}
           disabled={disabled}
+          aria-label={ariaLabel}
           aria-invalid={hasError ? true : undefined}
           aria-describedby={
             errorText ? `${id}-error` : hint ? `${id}-hint` : undefined

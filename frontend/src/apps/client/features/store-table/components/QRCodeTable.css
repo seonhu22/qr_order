@@ -1,0 +1,15 @@
+.qr-code-table__col--code {
+  width: 7rem;
+}
+
+.qr-code-table__col--table {
+  width: 10rem;
+}
+
+.qr-code-table__table {
+  min-width: 58rem;
+}
+
+.qr-code-table__table-select {
+  min-width: 8.5rem;
+}

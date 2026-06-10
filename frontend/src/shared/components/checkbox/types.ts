@@ -62,6 +62,8 @@ export interface CheckboxInputProps {
   successText?: string;
   /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
   className?: string;
+  /** 네이티브 checkbox 접근성 이름 */
+  'aria-label'?: string;
 }
 
 

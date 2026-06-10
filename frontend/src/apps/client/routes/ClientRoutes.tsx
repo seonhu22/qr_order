@@ -6,6 +6,8 @@ import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 import { StoreInfoPage } from '@/apps/client/pages/store/info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/store/ClientUserPage';
+import { StoreTableInfoPage } from '@/apps/client/pages/store/tables/StoreTableInfoPage';
+import { QRCodeManagePage } from '@/apps/client/pages/store/qr/QRCodeManagePage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -30,21 +32,11 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/tables',
-        element: (
-          <ClientPlaceholderPage
-            title="테이블 관리"
-            description="매장 테이블 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <StoreTableInfoPage />,
       },
       {
         path: 'store/qr',
-        element: (
-          <ClientPlaceholderPage
-            title="QR 관리"
-            description="테이블별 QR 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <QRCodeManagePage />,
       },
       {
         path: 'store/users',

@@ -1,0 +1,4 @@
+.qr-code-manage-page {
+  display: grid;
+  gap: var(--spacing-5);
+}

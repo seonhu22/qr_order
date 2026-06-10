@@ -1,0 +1,4 @@
+.store-table-info-page {
+  display: grid;
+  gap: var(--spacing-5);
+}
