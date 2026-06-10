@@ -1,24 +1,43 @@
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import '@/apps/client/layout/ClientLayout.css';
 import { ClientHeader } from '@/apps/client/features/header/components/ClientHeader';
 import { ClientSidebar } from '@/apps/client/features/sidebar/components/ClientSidebar';
-import type { ClientSection } from '@/apps/client/data/clientMenus';
+import { findClientSectionByPath, type ClientSection } from '@/apps/client/data/clientMenus';
+import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 
 export function ClientLayout() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<ClientSection | null>(null);
+  const isSidebarOpen = useClientLayoutStore((s) => s.isSidebarOpen);
+  const activeSection = useClientLayoutStore((s) => s.activeSection);
+  const openSidebar = useClientLayoutStore((s) => s.openSidebar);
+  const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
+  const toggleSidebar = useClientLayoutStore((s) => s.toggleSidebar);
+  const setActiveSection = useClientLayoutStore((s) => s.setActiveSection);
+
+  useEffect(() => {
+    const nextSection = findClientSectionByPath(location.pathname);
+    const currentSection = useClientLayoutStore.getState().activeSection;
+    if (nextSection === currentSection) {
+      return;
+    }
+
+    setActiveSection(nextSection);
+    if (nextSection && currentSection === null) {
+      openSidebar();
+    }
+  }, [location.pathname, openSidebar, setActiveSection]);
 
   const handleSectionChange = (section: ClientSection) => {
     setActiveSection(section);
-    setIsSidebarOpen(true);
+    openSidebar();
   };
 
   const handleHomeClick = () => {
     navigate('/client/main');
     setActiveSection(null);
-    setIsSidebarOpen(false);
+    closeSidebar();
   };
 
   return (
@@ -28,10 +47,7 @@ export function ClientLayout() {
         className={`client-layout__sidebar${isSidebarOpen ? '' : ' client-layout__sidebar--closed'}`}
         aria-label="사이드 내비게이션"
       >
-        <ClientSidebar
-          activeSection={activeSection}
-          onClose={() => setIsSidebarOpen(false)}
-        />
+        <ClientSidebar />
       </aside>
 
       {/* ---- 오른쪽 콘텐츠 래퍼 ---- */}
@@ -41,7 +57,7 @@ export function ClientLayout() {
             activeSection={activeSection}
             isSidebarOpen={isSidebarOpen}
             onSectionChange={handleSectionChange}
-            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+            onToggleSidebar={toggleSidebar}
             onHomeClick={handleHomeClick}
           />
         </header>
