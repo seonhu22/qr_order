@@ -1284,6 +1284,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/search_combo/common": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSearchCommonCombo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/qr/{url}": {
         parameters: {
             query?: never;
@@ -2010,9 +2026,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2282,6 +2298,8 @@ export interface components {
             startDate?: string;
             useYn?: string;
             fileUlid?: string;
+            insertUserId?: string;
+            insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
         };
@@ -2326,9 +2344,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -4412,6 +4430,28 @@ export interface operations {
             };
         };
     };
+    getSearchCommonCombo: {
+        parameters: {
+            query: {
+                code: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Combo"][];
+                };
+            };
+        };
+    };
     getTableInfo: {
         parameters: {
             query?: never;
@@ -4650,6 +4690,8 @@ export interface operations {
         parameters: {
             query: {
                 paymentStatus: string;
+                startDate: string;
+                endDate: string;
             };
             header?: never;
             path?: never;
@@ -4780,6 +4822,8 @@ export interface operations {
         parameters: {
             query: {
                 orderStatus: string;
+                startDate: string;
+                endDate: string;
             };
             header?: never;
             path?: never;
