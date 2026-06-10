@@ -7,7 +7,7 @@
  */
 
 import { create } from 'zustand';
-import type { ClientSection } from '@/apps/client/data/clientMenus';
+import type { ClientSection } from '@/shared/menu/clientNavigation';
 
 type ClientLayoutStore = {
   isSidebarOpen: boolean;

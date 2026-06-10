@@ -8,7 +8,7 @@ import {
   findClientMenuBreadcrumb,
   findClientSectionByPath,
   type ClientSection,
-} from '@/apps/client/data/clientMenus';
+} from '@/shared/menu/clientNavigation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 
 export function ClientLayout() {

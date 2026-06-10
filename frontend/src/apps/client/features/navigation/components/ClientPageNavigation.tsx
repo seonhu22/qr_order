@@ -1,5 +1,5 @@
 import '@/apps/client/features/navigation/styles/ClientPageNavigation.css';
-import type { ClientMenuBreadcrumb } from '@/apps/client/data/clientMenus';
+import type { ClientMenuBreadcrumb } from '@/shared/menu/clientNavigation';
 
 type ClientPageNavigationProps = {
   breadcrumb: ClientMenuBreadcrumb | null;

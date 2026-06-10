@@ -8,7 +8,7 @@ import { Icon } from '@/shared/assets/icons/Icon';
 import {
   CLIENT_SIDEBAR_MENUS,
   findClientExpandedMenuKeys,
-} from '@/apps/client/data/clientMenus';
+} from '@/shared/menu/clientNavigation';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
