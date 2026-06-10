@@ -63,6 +63,7 @@ public class LoginService {
             session.setMaxInactiveInterval(60 * 60);
         }
         else {
+            session.setAttribute("role", "STAFF");
             session.setMaxInactiveInterval(-1);
         }
 
