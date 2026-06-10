@@ -53,7 +53,7 @@ describe('noticeManageApi', () => {
       title: '점검 공지',
       content: '시스템 점검 안내',
       registrant: '',
-      registeredAt: '2026-04-29',
+      registeredAt: '',
       updatedAt: '',
     });
   });
