@@ -11,6 +11,8 @@
             bn.start_date,
             bn.use_yn,
             bn.file_ulid,
+            bn.insert_user_id ,
+            bn.insert_datetime ,
             bn.modify_datetime ,
             bn.modify_user_id
         from brd_notice bn
@@ -79,7 +81,11 @@
             notice_description,
             start_date,
             use_yn,
-            file_ulid
+            file_ulid ,
+            insert_user_id ,
+            insert_datetime ,
+            modify_datetime ,
+            modify_user_id
         from brd_notice
         where sys_id = #{sysId}
         and delete_yn = 'N'
