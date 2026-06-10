@@ -5,6 +5,7 @@ import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { CLIENT_MENUS_BY_SECTION, type ClientSection } from '@/apps/client/data/clientMenus';
+import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
 type ClientSidebarProps = {
   activeSection: ClientSection | null;
@@ -14,6 +15,12 @@ type ClientSidebarProps = {
 export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
+    mutation: {
+      onSuccess: () => navigate('/client/login', { replace: true }),
+      onError: () => navigate('/client/login', { replace: true }),
+    },
+  });
 
   const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2 } = useSidebarExpand();
 
@@ -58,7 +65,8 @@ export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
       <SidebarUser
         userName="홍길동"
         userRole="매장 관리자"
-        onLogout={() => navigate('/client/login')}
+        onLogout={() => logoutMutate()}
+        isLoggingOut={isPending}
       />
     </Sidebar>
   );
