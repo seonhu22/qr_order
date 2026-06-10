@@ -385,7 +385,7 @@ feat: TanStack Query 공통 QueryClient 설정 추가
 
 ## 12. 3단계 커밋: App 최상단에 Provider 연결하기
 
-현재 프로젝트의 `[App.jsx](...qr_order/frontend/src/App.jsx)`는 아래 구조로 되어 있다.
+현재 프로젝트의 `[App.tsx](...qr_order/frontend/src/App.tsx)`는 아래 구조로 되어 있다.
 
 ```jsx
 <BrowserRouter>
@@ -411,7 +411,7 @@ feat: App 루트에 QueryClientProvider 연결
 
 ### 12.1 실습 체크포인트
 
-- `[App.jsx](...qr_order/frontend/src/App.jsx)`에 `QueryClientProvider`가 있는지 확인한다.
+- `[App.tsx](...qr_order/frontend/src/App.tsx)`에 `QueryClientProvider`가 있는지 확인한다.
 - `client={queryClient}`로 연결되어 있는지 확인한다.
 - `BrowserRouter`와 `QueryClientProvider`의 역할 차이를 한 문장으로 설명해본다.
 - Provider가 없으면 `useQuery`가 왜 동작하지 않는지 스스로 설명해본다.
@@ -621,7 +621,7 @@ feat: 사업장 관리 페이지에 조회 예시 컴포넌트 연결
 현재 프로젝트는 아래 순서로 동작한다.
 
 1. 앱이 시작된다.
-2. `App.jsx`에서 `QueryClientProvider`가 QueryClient를 공급한다.
+2. `App.tsx`에서 `QueryClientProvider`가 QueryClient를 공급한다.
 3. 사용자가 사업장 관리 페이지에 진입한다.
 4. `PlantListPreview`가 렌더링된다.
 5. `useQuery`가 `queryKey`와 `queryFn`을 등록한다.

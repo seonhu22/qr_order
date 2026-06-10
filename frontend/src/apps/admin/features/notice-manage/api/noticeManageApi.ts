@@ -5,6 +5,7 @@ import {
 import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { useMutation } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import type { NoticeResponse } from '@/generated/types/noticeResponse';
@@ -34,7 +35,7 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: res.insertUserId ?? '',
-    registeredAt: res.insertDatetime ?? res.startDate ?? '',
+    registeredAt: res.insertDatetime ?? '',
     updatedAt: formatDateTimeForDisplay(res.modifyDatetime),
   };
 }
@@ -44,6 +45,7 @@ export function useNoticeManageQuery(searchKeyword?: string) {
   return useGetNotice(params, {
     query: {
       queryKey: queryKeys.notice.list(searchKeyword ?? ''),
+      ...queryPolicies.adminCrudList,
     },
   });
 }

@@ -251,7 +251,7 @@ export function useCommonCodePageState() {
     isCreateMode: boolean,
   ) => {
     await saveMasterMutation.mutateAsync(master, isCreateMode);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masterLists });
   };
 
   /**
@@ -272,7 +272,7 @@ export function useCommonCodePageState() {
     }
 
     await deleteMastersMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masterLists });
 
     if (targets.some((row) => row.id === effectiveSelectedMasterId)) {
       setSelectedMasterId('');
@@ -310,7 +310,7 @@ export function useCommonCodePageState() {
 
     await saveDetailsMutation.mutateAsync(request);
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.commonCode.details(selectedMaster.id),
+      queryKey: queryKeys.commonCode.detailLists,
     });
     setDetailRowsByMaster((prev) => {
       const next = { ...prev };

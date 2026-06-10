@@ -137,8 +137,10 @@ export function TreeMenu<T = unknown>({
     () => ({
       expandedIds,
       selectedId,
-      columns,
-      labelRender,
+      columns: columns as TreeMenuColumn<unknown>[] | undefined,
+      labelRender: labelRender as
+        | ((node: TreeMenuNode<unknown>, depth: number) => ReactNode)
+        | undefined,
       onSelect: handleSelect,
       onToggle: handleToggle,
     }),

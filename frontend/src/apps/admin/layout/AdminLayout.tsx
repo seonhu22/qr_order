@@ -18,7 +18,7 @@ import { AdminMenuAccessLogProvider } from '@/apps/admin/contexts/AdminMenuAcces
  * - React Router `<Outlet />` 으로 `/admin/main` 등 child route를 렌더링한다.
  *
  * @example
- * // AdminRoutes.jsx
+ * // AdminRoutes.tsx
  * { path: '/admin', element: <AdminLayout />, children: [...] }
  */
 export function AdminLayout() {

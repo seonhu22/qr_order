@@ -17,6 +17,7 @@ import type {
 
 import type {
   CommonResponse,
+  InitPwdAndActiveParams,
   InitPwdParams,
   InitPwdRequest,
   LoginRequest
@@ -144,6 +145,66 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
 
       const mutationOptions = getInitPwdMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const initPwdAndActive = (
+    initPwdRequest: InitPwdRequest,
+    params: InitPwdAndActiveParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/auth/init-pwd-active`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: initPwdRequest,
+        params, signal
+    },
+      options);
+    }
+  
+
+
+export const getInitPwdAndActiveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initPwdAndActive>>, TError,{data: InitPwdRequest;params: InitPwdAndActiveParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof initPwdAndActive>>, TError,{data: InitPwdRequest;params: InitPwdAndActiveParams}, TContext> => {
+
+const mutationKey = ['initPwdAndActive'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof initPwdAndActive>>, {data: InitPwdRequest;params: InitPwdAndActiveParams}> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  initPwdAndActive(data,params,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InitPwdAndActiveMutationResult = NonNullable<Awaited<ReturnType<typeof initPwdAndActive>>>
+    export type InitPwdAndActiveMutationBody = InitPwdRequest
+    export type InitPwdAndActiveMutationError = unknown
+
+    export const useInitPwdAndActive = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initPwdAndActive>>, TError,{data: InitPwdRequest;params: InitPwdAndActiveParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof initPwdAndActive>>,
+        TError,
+        {data: InitPwdRequest;params: InitPwdAndActiveParams},
+        TContext
+      > => {
+
+      const mutationOptions = getInitPwdAndActiveMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

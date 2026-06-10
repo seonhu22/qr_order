@@ -3,11 +3,28 @@ import { mapToChangeHistoryRow, useChangeHistoryQuery } from '../api/changeHisto
 import { resolveMenuDisplayName } from '@/shared/menu/menuCatalog';
 import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
 import {
+  getChangeTypeByAuditFlag,
+  shouldFilterAuditFlagOnClient,
+} from '../constants/changeHistoryAuditFlag';
+import {
   createDefaultQueryDateRangeDraft,
-  createDefaultQueryDateRangeParams,
   createQueryDateRangeParams,
   validateQueryDateRange,
 } from '@/shared/utils/queryDateRange';
+import { areQueryParamsEqual } from '@/shared/utils/queryParams';
+
+function createChangeHistorySearchParams(
+  startDate: string,
+  endDate: string,
+  searchKeyword = '',
+  auditFlag = 'ALL',
+) {
+  return {
+    ...createQueryDateRangeParams(startDate, endDate, searchKeyword),
+    auditFlag,
+    changeType: getChangeTypeByAuditFlag(auditFlag),
+  };
+}
 
 export function useChangeHistoryPageState() {
   const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
@@ -17,7 +34,9 @@ export function useChangeHistoryPageState() {
   const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
   const [dateRangeError, setDateRangeError] = useState('');
 
-  const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
+  const [searchParams, setSearchParams] = useState(() =>
+    createChangeHistorySearchParams(defaultDateRange.startDate, defaultDateRange.endDate),
+  );
 
   const validateDateRange = (start: string, end: string): boolean => {
     const nextError = validateQueryDateRange(start, end);
@@ -34,6 +53,8 @@ export function useChangeHistoryPageState() {
     startDate: searchParams.startDate,
     endDate: searchParams.endDate,
     searchKeyword: searchParams.searchKeyword,
+    auditFlag: searchParams.auditFlag,
+    changeType: searchParams.changeType,
   });
   const { catalog } = useAdminMenuCatalogQuery();
 
@@ -52,17 +73,25 @@ export function useChangeHistoryPageState() {
 
   const rows = useMemo(
     () =>
-      // 현재는 변경구분 필터를 서버가 아닌 화면 후처리로 적용한다.
-      // 백엔드가 auditFlag 검색을 지원하면 query param으로 올리는 것이 더 적절하다.
-      draftAuditFlag && draftAuditFlag !== 'ALL'
-        ? allRows.filter((row) => row.auditFlag === draftAuditFlag)
+      shouldFilterAuditFlagOnClient(searchParams.auditFlag)
+        ? allRows.filter((row) => row.auditFlag === searchParams.auditFlag)
         : allRows,
-    [allRows, draftAuditFlag],
+    [allRows, searchParams.auditFlag],
   );
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
+    const nextParams = createChangeHistorySearchParams(
+      draftStartDate,
+      draftEndDate,
+      draftKeyword,
+      draftAuditFlag,
+    );
+    if (areQueryParamsEqual(nextParams, searchParams)) {
+      void query.refetch();
+    } else {
+      setSearchParams(nextParams);
+    }
   };
 
   const handleReset = () => {
@@ -72,7 +101,9 @@ export function useChangeHistoryPageState() {
     setDraftStartDate(nextDefaultDateRange.startDate);
     setDraftEndDate(nextDefaultDateRange.endDate);
     setDateRangeError('');
-    setSearchParams(createDefaultQueryDateRangeParams());
+    setSearchParams(
+      createChangeHistorySearchParams(nextDefaultDateRange.startDate, nextDefaultDateRange.endDate),
+    );
   };
 
   return {

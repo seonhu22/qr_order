@@ -8,17 +8,15 @@ import type { ReactNode } from 'react';
 import type { TreeMenuColumn, TreeMenuNode } from './types';
 
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type TreeMenuContextValue = {
   expandedIds: Set<string>;
   selectedId?: string;
-  columns?: TreeMenuColumn<any>[];
+  columns?: TreeMenuColumn<unknown>[];
   /** 레이블 셀 커스텀 렌더. 생략 시 node.label 텍스트 */
-  labelRender?: (node: TreeMenuNode<any>, depth: number) => ReactNode;
+  labelRender?: (node: TreeMenuNode<unknown>, depth: number) => ReactNode;
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const TreeMenuContext = createContext<TreeMenuContextValue | null>(null);
 

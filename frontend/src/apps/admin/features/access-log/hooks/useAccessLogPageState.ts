@@ -23,6 +23,7 @@ import {
   createQueryDateRangeParams,
   validateQueryDateRange,
 } from '@/shared/utils/queryDateRange';
+import { areQueryParamsEqual } from '@/shared/utils/queryParams';
 
 export function useAccessLogPageState() {
   const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
@@ -85,7 +86,12 @@ export function useAccessLogPageState() {
 
   const handleSearch = () => {
     if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
+    const nextParams = createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword);
+    if (areQueryParamsEqual(nextParams, searchParams)) {
+      void masterQuery.refetch();
+    } else {
+      setSearchParams(nextParams);
+    }
     setSelectedRow(null);
   };
 

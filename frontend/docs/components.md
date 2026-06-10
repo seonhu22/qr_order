@@ -58,7 +58,7 @@ shared/
       Icon.tsx            ← <Icon id="..." size={N} /> 컴포넌트
   auth/
     AuthContext.tsx        ← 인증 컨텍스트 타입 정의
-    AuthProvider.jsx      ← auth/me Query 캐시 기반 인증 상태 계산
+    AuthProvider.tsx      ← auth/me Query 캐시 기반 인증 상태 계산
     authResponse.ts       ← 인증 응답 타입
     hooks/
       useAuthLoginMutation.ts
@@ -80,8 +80,8 @@ shared/
   pages/
     error/                ← 403/404/500 공통 페이지 조립
   routes/
-    AppRoutes.jsx         ← 앱 전체 라우트 진입점
-  stores/                 ← Zustand 전역 UI 상태 (확장 예정)
+    AppRoutes.tsx         ← 앱 전체 라우트 진입점
+  stores/                 ← 공용 Zustand UI 상태가 생길 때만 사용
   styles/
     global.css            ← 진입점 (reset + fonts + tokens 통합 import)
     reset.css             ← 브라우저 기본 스타일 초기화
