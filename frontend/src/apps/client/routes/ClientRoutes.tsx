@@ -4,6 +4,7 @@ import { ClientLayout } from '@/apps/client/layout/ClientLayout';
 import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
+import { StoreUserManagePage } from '@/apps/client/pages/store/users/StoreUserManagePage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -51,12 +52,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/users',
-        element: (
-          <ClientPlaceholderPage
-            title="유저 정보 관리"
-            description="유저를 생성하고 권한을 관리하는 화면입니다."
-          />
-        ),
+        element: <StoreUserManagePage />,
       },
       {
         path: 'menu/categories',
