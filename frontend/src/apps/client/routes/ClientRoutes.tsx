@@ -11,6 +11,8 @@ import { QRCodeManagePage } from '@/apps/client/pages/store/qr/QRCodeManagePage'
 import { MenuManagePage } from '@/apps/client/pages/menu/MenuManagePage';
 import { OptionManagePage } from '@/apps/client/pages/menu/OptionManagePage';
 import { OrderHistoryPage } from '@/apps/client/pages/order/OrderHistoryPage';
+import { PaymentListPage } from '@/apps/client/pages/payment/PaymentListPage';
+import { SettlementPage } from '@/apps/client/pages/payment/SettlementPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -77,21 +79,11 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'payment/list',
-        element: (
-          <ClientPlaceholderPage
-            title="결제 목록 조회"
-            description="주문 결제 내역을 조회하는 화면입니다."
-          />
-        ),
+        element: <PaymentListPage />,
       },
       {
         path: 'settlement',
-        element: (
-          <ClientPlaceholderPage
-            title="정산 조회"
-            description="매장 정산 정보를 조회하는 화면입니다."
-          />
-        ),
+        element: <SettlementPage />,
       },
       {
         path: 'board/notice',
