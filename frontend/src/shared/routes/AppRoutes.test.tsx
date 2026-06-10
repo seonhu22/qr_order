@@ -20,7 +20,7 @@ function LocationProbe() {
   return <span data-testid="pathname">{location.pathname}</span>;
 }
 
-function renderRoutes(initialPath) {
+function renderRoutes(initialPath: string) {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <AuthContext.Provider

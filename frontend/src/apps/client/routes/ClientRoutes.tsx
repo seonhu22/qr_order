@@ -1,10 +1,11 @@
 import { Navigate } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { ClientLayout } from '@/apps/client/layout/ClientLayout';
 import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 
-export const clientRoutes = [
+export const clientRoutes: RouteObject[] = [
   {
     path: '/client/login',
     element: <LoginPage />,

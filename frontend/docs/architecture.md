@@ -153,7 +153,7 @@ frontend/
 | `shared/lib`        | Query Client, fetch 래퍼 등 공용 인프라           |
 | `shared/pages`      | 여러 앱이 공유하는 라우트 단위 페이지             |
 | `shared/api`        | query key, 공용 API 계층                          |
-| `shared/stores`     | Zustand 전역 UI 상태                              |
+| `apps/*/stores`     | 앱별 Zustand UI 상태                              |
 | `shared/styles`     | 디자인 토큰 CSS 및 전역 스타일                    |
 | `mocks`             | MSW 브라우저 mock 구성                            |
 | `test`              | 테스트 설정 및 공통 테스트 유틸                   |

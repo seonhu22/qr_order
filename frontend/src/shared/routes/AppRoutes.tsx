@@ -1,4 +1,6 @@
 import { Navigate, useLocation, useRoutes } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import type { RouteObject } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
@@ -16,7 +18,11 @@ import { resolveLoginPath } from '@/shared/auth/authRedirect';
  * @param {React.ReactNode} props.children 인증 성공 시 렌더링할 요소
  * @returns {React.ReactNode}
  */
-function RequireAuth({ children }) {
+type RequireAuthProps = {
+  children: ReactNode;
+};
+
+function RequireAuth({ children }: RequireAuthProps) {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
   const loginPath = resolveLoginPath(location.pathname);
@@ -38,7 +44,7 @@ function RequireAuth({ children }) {
  * @param {Array<{ path: string, element: React.ReactNode, children?: unknown[] }>} routes 보호 대상 라우트 목록
  * @returns {Array<{ path: string, element: React.ReactNode, children?: unknown[] }>}
  */
-function withProtectedElement(routes) {
+function withProtectedElement(routes: RouteObject[]): RouteObject[] {
   return routes.map((route) => ({
     ...route,
     element: <RequireAuth>{route.element}</RequireAuth>,
@@ -49,7 +55,7 @@ function LoadingScreen() {
   return <div className="app-loading">로딩 중...</div>;
 }
 
-function resolveDefaultPath(isAuthenticated, isPasswordChangeRequired) {
+function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: boolean) {
   return isAuthenticated && !isPasswordChangeRequired ? '/client/main' : '/client/login';
 }
 

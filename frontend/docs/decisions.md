@@ -277,9 +277,9 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 - [ ] `SidebarUser`의 `userName` · `userRole`을 클라이언트 auth 상태에서 읽도록 교체
 - [ ] 로그아웃 동작을 `useAuthLogoutMutation` 패턴으로 교체
 - [x] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
-- [ ] `clientLayoutStore` 도입: 사이드바 열림, 활성 섹션, 현재 메뉴 UI 상태만 관리
+- [x] `clientLayoutStore` 도입: 사이드바 열림, 활성 섹션 UI 상태만 관리
 - [ ] 주문 데이터는 TanStack Query로 관리하고, Zustand에는 주문 화면 UI 상태만 둔다
-- [ ] 실제 메뉴 경로에 맞게 `ClientRoutes.jsx` child route 추가
+- [x] 실제 메뉴 경로에 맞게 `ClientRoutes.tsx` child route 추가
 
 상세 추적 문서: [Client Zustand Policy](./client-zustand-policy.md)
 
