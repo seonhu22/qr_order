@@ -259,7 +259,7 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 |---|---|---|
 | 사이드바 | `ClientSidebar` | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
 | 헤더 | `ClientHeader` | 어드민 헤더와 동일한 CSS 패턴 |
-| 레이아웃 상태 | `ClientLayout` (useState) | 어드민의 Zustand store 대신 로컬 state로 단순화 |
+| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정 |
 
 ### 임시로 정한 사항
 
@@ -276,5 +276,9 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 - [ ] `clientMenus.ts` 임시 데이터를 백엔드 메뉴 API 응답으로 교체
 - [ ] `SidebarUser`의 `userName` · `userRole`을 클라이언트 auth 상태에서 읽도록 교체
 - [ ] 로그아웃 동작을 `useAuthLogoutMutation` 패턴으로 교체
-- [ ] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
+- [x] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
+- [ ] `clientLayoutStore` 도입: 사이드바 열림, 활성 섹션, 현재 메뉴 UI 상태만 관리
+- [ ] 주문 데이터는 TanStack Query로 관리하고, Zustand에는 주문 화면 UI 상태만 둔다
 - [ ] 실제 메뉴 경로에 맞게 `ClientRoutes.jsx` child route 추가
+
+상세 추적 문서: [Client Zustand Policy](./client-zustand-policy.md)
