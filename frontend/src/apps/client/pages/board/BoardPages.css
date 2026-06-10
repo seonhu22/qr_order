@@ -1,0 +1,20 @@
+.board-page {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.board-page__table {
+  min-width: 52rem;
+}
+
+.board-page__modal-content,
+.board-page__modal-fields {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.board-page__modal-content p {
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-body);
+}

@@ -13,6 +13,8 @@ import { OptionManagePage } from '@/apps/client/pages/menu/OptionManagePage';
 import { OrderHistoryPage } from '@/apps/client/pages/order/OrderHistoryPage';
 import { PaymentListPage } from '@/apps/client/pages/payment/PaymentListPage';
 import { SettlementPage } from '@/apps/client/pages/payment/SettlementPage';
+import { NoticeListPage } from '@/apps/client/pages/board/NoticeListPage';
+import { QnaManagePage } from '@/apps/client/pages/board/QnaManagePage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -87,21 +89,11 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'board/notice',
-        element: (
-          <ClientPlaceholderPage
-            title="공지사항 조회"
-            description="점주용 공지사항을 조회하는 화면입니다."
-          />
-        ),
+        element: <NoticeListPage />,
       },
       {
         path: 'board/qna',
-        element: (
-          <ClientPlaceholderPage
-            title="문의사항 관리"
-            description="문의사항을 조회하고 관리하는 화면입니다."
-          />
-        ),
+        element: <QnaManagePage />,
       },
     ],
   },
