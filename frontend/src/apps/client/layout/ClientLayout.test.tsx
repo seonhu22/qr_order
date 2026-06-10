@@ -61,7 +61,7 @@ describe('ClientLayout', () => {
     renderLayout();
 
     const headerNav = screen.getByRole('navigation', { name: '상단 메뉴' });
-    await user.click(within(headerNav).getByRole('button', { name: '매장 관리' }));
+    await user.click(within(headerNav).getByRole('button', { name: '매장' }));
 
     expect(useClientLayoutStore.getState().activeSection).toBe('store');
     expect(useClientLayoutStore.getState().isSidebarOpen).toBe(true);
