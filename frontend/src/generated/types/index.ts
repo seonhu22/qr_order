@@ -54,6 +54,7 @@ export * from './getQna1Params';
 export * from './getQnaParams';
 export * from './getRuleDetailParams';
 export * from './getRuleMasterParams';
+export * from './getSearchCommonComboParams';
 export * from './getStatusCancelResponsesParams';
 export * from './getStoreInfoParams';
 export * from './getSysAccessLogDetailParams';

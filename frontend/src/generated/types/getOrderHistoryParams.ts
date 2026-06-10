@@ -8,4 +8,6 @@
 
 export type GetOrderHistoryParams = {
 orderStatus: string;
+startDate: string;
+endDate: string;
 };

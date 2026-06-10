@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +24,16 @@ public class OrderManageController {
     private final StatusService statusService;
     private final OrderHistoryService orderHistoryService;
 
+    // 주문 이력 조회
+    @GetMapping("/history/search")
+    public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus,
+                                                @RequestParam LocalDate startDate,
+                                                @RequestParam LocalDate endDate) {
+
+        return orderHistoryService.getOrderHistory(orderStatus, startDate, endDate);
+    }
+
+    // 주문 상태 관리
     @GetMapping("/status/search")
     public List<StatusResponse> getStatus() {
 
@@ -173,11 +184,5 @@ public class OrderManageController {
     public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
 
         return statusService.getStatusCancelResponses(statusRequest);
-    }
-
-    @GetMapping("/history/search")
-    public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus) {
-
-        return orderHistoryService.getOrderHistory(orderStatus);
     }
 }

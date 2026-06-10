@@ -18,8 +18,10 @@ public class PaymentInfoMasterService {
     private final PaymentInfoMasterMapper paymentInfoMasterMapper;
 
     public List<PaymentInfoMasterResponse> getPaymentInfoMaster(String paymentStatus,
+                                                                    String startDate,
+                                                                    String endDate,
                                                                     String sysPlantCd) {
 
-        return paymentInfoMasterMapper.getPaymentInfoMaster(paymentStatus, sysPlantCd);
+        return paymentInfoMasterMapper.getPaymentInfoMaster(paymentStatus, startDate, endDate, sysPlantCd);
     }
 }

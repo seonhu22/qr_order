@@ -6,8 +6,6 @@
  * OpenAPI spec version: v1.0
  */
 
-export type GetPaymentInfoMasterParams = {
-paymentStatus: string;
-startDate: string;
-endDate: string;
+export type GetSearchCommonComboParams = {
+code: string;
 };
