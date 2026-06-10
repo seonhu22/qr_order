@@ -1,10 +1,11 @@
 import { QueryClient } from '@tanstack/react-query';
+import { staleTimes } from '@/shared/api/queryPolicies';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 60 * 5, // 5분
+      staleTime: staleTimes.normal,
     },
   },
 });

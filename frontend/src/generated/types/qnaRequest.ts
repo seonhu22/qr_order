@@ -10,7 +10,6 @@ export interface QnaRequest {
   sysId?: string;
   qnaTitle?: string;
   qnaDescription?: string;
-  startDate?: string;
   deleteYn?: string;
   useYn?: string;
   fileUuid?: string;

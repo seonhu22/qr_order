@@ -10,5 +10,7 @@ export interface MenuOptionGroupResponse {
   sysId?: string;
   linkSysId?: string;
   groupName?: string;
+  requiredYn?: string;
+  inputType?: string;
   ordNo?: number;
 }

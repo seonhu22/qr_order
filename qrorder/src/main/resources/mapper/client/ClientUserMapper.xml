@@ -76,6 +76,14 @@
         </foreach>
     </delete>
 
+    <update id="resetPwd">
+        update sys_user set
+            user_password = #{tempPwd},
+            and init_yn = 'N'
+        where 1=1
+        and sys_id = #{sysId}
+    </update>
+
     <select id="duplicateChk" resultType="boolean">
         select
             count(*) > 0

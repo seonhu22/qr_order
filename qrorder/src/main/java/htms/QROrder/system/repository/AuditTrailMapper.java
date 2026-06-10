@@ -9,5 +9,5 @@ import java.util.List;
 
 @Mapper
 public interface AuditTrailMapper {
-    List<AuditTrail> getAuditTrail(String searchKeyword, LocalDateTime startDate, LocalDateTime endDate);
+    List<AuditTrail> getAuditTrail(String changeType, String searchKeyword, LocalDateTime startDate, LocalDateTime endDate);
 }

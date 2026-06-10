@@ -1,9 +1,14 @@
 import { useGetAuditTrail } from '@/generated/settings-controller/settings-controller';
 import type { AuditTrail } from '@/generated/types/auditTrail';
+import type { GetAuditTrailParams } from '@/generated/types/getAuditTrailParams';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
-import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { ChangeHistoryRow } from '../types';
+
+export type ChangeHistoryQueryParams = GetAuditTrailParams & {
+  auditFlag: string;
+};
 
 function getSafeText(value?: string) {
   return value ?? '';
@@ -27,16 +32,20 @@ export function mapToChangeHistoryRow(item: AuditTrail, index: number): ChangeHi
   };
 }
 
-export function useChangeHistoryQuery(params: QueryDateRangeParams) {
-  const { startDate, endDate, searchKeyword } = params;
-  const queryParams = searchKeyword
-    ? { startDate, endDate, searchKeyword }
-    : { startDate, endDate };
+export function useChangeHistoryQuery(params: ChangeHistoryQueryParams) {
+  const { startDate, endDate, searchKeyword, changeType } = params;
+  const queryParams: GetAuditTrailParams = {
+    startDate,
+    endDate,
+    changeType,
+    ...(searchKeyword ? { searchKeyword } : {}),
+  };
 
   return useGetAuditTrail(queryParams, {
     query: {
       queryKey: queryKeys.changeHistory.list(params),
       enabled: Boolean(startDate && endDate),
+      ...queryPolicies.searchResult,
     },
   });
 }

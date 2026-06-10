@@ -12,6 +12,7 @@ export interface MenuOptionDetailItem {
   menuOptionName?: string;
   menuOptionPrice?: string;
   menuDescription?: string;
+  maximumNum?: string;
   useYn?: string;
   fileUlid?: string;
   ordNo?: number;
