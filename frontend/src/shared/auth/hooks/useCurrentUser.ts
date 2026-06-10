@@ -1,6 +1,7 @@
 // src/shared/auth/hooks/useCurrentUser.ts
 import { useGetCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 
 /**
  * 현재 로그인한 사용자의 정보를 조회하는 커스텀 훅
@@ -16,8 +17,7 @@ export function useCurrentUser() {
   return useGetCurrentUser({
     query: {
       queryKey: queryKeys.auth.me,
-      retry: false,
-      staleTime: 1000 * 60 * 30,
+      ...queryPolicies.authMe,
     },
   });
 }

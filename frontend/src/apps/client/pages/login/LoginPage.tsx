@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
 import { TextInput, InputWrapper, InputBase } from '@/shared/components/input';
 import { Button } from '@/shared/components/button';
@@ -9,6 +9,14 @@ import { CheckboxInput } from '@/shared/components/checkbox';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
+import { queryKeys } from '@/shared/api/queryKeys';
+import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
+import {
+  getAuthResponseData,
+  hasInitialPasswordRequirementSignal,
+  isInitialPasswordChangeRequired,
+} from '@/shared/auth/initPassword';
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
@@ -29,16 +37,6 @@ async function clientInitPwdActive(data: { password: string; chkPassword: string
     body: JSON.stringify(data),
   });
   return res.json() as Promise<{ success: boolean; message?: string }>;
-}
-
-async function clientLogin(data: { userId: string; userPassword: string }) {
-  const res = await fetch('/api/client/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-  return res.json() as Promise<{ success: boolean; message?: string; data?: Record<string, unknown> }>;
 }
 
 // 비밀번호 찾기 — 아이디·이메일 제출 (API 미정, 임시 엔드포인트)
@@ -91,13 +89,14 @@ async function clientSignup(data: {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState<Step>('login');
 
   // 로그인 필드
-  const [userId, setUserId] = useState('');
+  const [userId, setUserId] = useState(() => localStorage.getItem(SAVED_ID_KEY) ?? '');
   const [userPassword, setUserPassword] = useState('');
-  const [saveId, setSaveId] = useState(false);
+  const [saveId, setSaveId] = useState(() => !!localStorage.getItem(SAVED_ID_KEY));
   const [loginError, setLoginError] = useState('');
 
   // 비밀번호 변경 필드
@@ -140,14 +139,6 @@ export default function LoginPage() {
   const [verifyCode, setVerifyCode] = useState('');
   const [findError, setFindError] = useState('');
 
-  useEffect(() => {
-    const savedId = localStorage.getItem(SAVED_ID_KEY);
-    if (savedId) {
-      setUserId(savedId);
-      setSaveId(true);
-    }
-  }, []);
-
   // 이메일 인증 타이머
   useEffect(() => {
     if (emailTimerSeconds <= 0) return;
@@ -188,29 +179,57 @@ export default function LoginPage() {
 
   const emailFieldDisabled = emailSent && !emailVerified && emailTimerSeconds > 0;
 
-  const { mutate: loginMutate, isPending: isLoginPending } = useMutation({
-    mutationFn: clientLogin,
-    onSuccess: (data) => {
-      if (data.success) {
-        if (saveId) {
-          localStorage.setItem(SAVED_ID_KEY, userId);
+  const refetchCurrentUser = async () => {
+    const meData = await getCurrentUser();
+    queryClient.setQueryData(queryKeys.auth.me, meData);
+
+    return getAuthResponseData(meData);
+  };
+
+  const { mutate: loginMutate, isPending: isLoginPending } = useAuthLoginMutation({
+    mutation: {
+      onSuccess: async (data) => {
+        if (data.success) {
+          if (saveId) {
+            localStorage.setItem(SAVED_ID_KEY, userId);
+          } else {
+            localStorage.removeItem(SAVED_ID_KEY);
+          }
+
+          let responseData = getAuthResponseData(data);
+
+          if (!hasInitialPasswordRequirementSignal(responseData)) {
+            try {
+              responseData = await refetchCurrentUser();
+            } catch {
+              setLoginError('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');
+              return;
+            }
+          }
+
+          if (!responseData) {
+            setLoginError('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');
+            return;
+          }
+
+          if (isInitialPasswordChangeRequired(responseData)) {
+            setLoggedInUserId(typeof responseData?.userId === 'string' ? responseData.userId : userId);
+            setUserPassword('');
+            setStep('change-password');
+          } else {
+            navigate('/client/main');
+          }
         } else {
-          localStorage.removeItem(SAVED_ID_KEY);
+          setLoginError(data.message ?? '로그인에 실패했습니다.');
         }
-        const responseData = data.data as Record<string, unknown> | undefined;
-        if (responseData?.initPwdRequired === true) {
-          setLoggedInUserId(typeof responseData.userId === 'string' ? responseData.userId : userId);
-          setUserPassword('');
-          setStep('change-password');
-        } else {
-          navigate('/client/main');
-        }
-      } else {
-        setLoginError(data.message ?? '로그인에 실패했습니다.');
-      }
-    },
-    onError: () => {
-      setLoginError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      },
+      onError: (error) => {
+        setLoginError(
+          error instanceof Error
+            ? error.message
+            : '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        );
+      },
     },
   });
 
@@ -349,7 +368,7 @@ export default function LoginPage() {
   const handleLoginSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setLoginError('');
-    loginMutate({ userId, userPassword });
+    loginMutate({ data: { userId, userPassword } });
   };
 
   const handleChangePasswordSubmit = (e: { preventDefault: () => void }) => {

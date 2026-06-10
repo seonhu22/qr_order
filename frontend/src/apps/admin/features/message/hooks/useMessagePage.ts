@@ -120,7 +120,7 @@ export function useMessagePage(): MessagePageViewModel {
 
       await saveMessagesMutation.mutateAsync(request);
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.message.list(appliedKeyword.trim()),
+        queryKey: queryKeys.message.lists,
       });
       return 'saved';
     },

@@ -1,4 +1,4 @@
-// src/apps/admin/routes/AdminRoutes.jsx
+// src/apps/admin/routes/AdminRoutes.tsx
 
 /**
  * 관리자 페이지 라우트 정의
@@ -13,9 +13,11 @@
  * import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
  */
 
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { AdminLayout } from '@/apps/admin/layout/AdminLayout';
 import { NotFoundPage } from '@/shared/pages/error';
+import { RejectUnexpectedSearchParams } from '@/apps/admin/routes/RejectUnexpectedSearchParams';
 import { MainPage } from '@/apps/admin/pages/main/MainPage';
 import { CommonCodePage } from '@/apps/admin/pages/common-code/CommonCodePage';
 import { PaymentManagePage } from '@/apps/admin/pages/payment-manage/PaymentManagePage';
@@ -31,17 +33,7 @@ import { ChangeHistoryPage } from '@/apps/admin/pages/change-history/ChangeHisto
 import { NoticeManagePage } from '@/apps/admin/pages/notice-manage/NoticeManagePage';
 import { InquiryManagePage } from '@/apps/admin/pages/inquiry-manage/InquiryManagePage';
 
-function RejectUnexpectedSearchParams({ children }) {
-  const location = useLocation();
-
-  if (location.search) {
-    return <NotFoundPage homePath="/admin/main" />;
-  }
-
-  return children;
-}
-
-export const adminRoutes = [
+export const adminRoutes: RouteObject[] = [
   {
     path: '/admin',
     element: <AdminLayout />,

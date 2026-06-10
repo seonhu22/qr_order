@@ -1,5 +1,6 @@
 package htms.QROrder.common.exception;
 
+import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.exception.LoginFailException;
 import htms.QROrder.common.dto.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -28,6 +30,26 @@ public class GlobalExceptionHandler {
                 .body(CommonResponse.<Void>builder()
                         .success(false)
                         .message(e.getMessage())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(BusinessRegiException.class)
+    public ResponseEntity<CommonResponse> handleBusinessRegiException(BusinessRegiException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message(e.getMessage())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<CommonResponse> handleNoResourceFound(NoResourceFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message("리소스를 찾을 수 없습니다.")
                         .build()
                 );
     }

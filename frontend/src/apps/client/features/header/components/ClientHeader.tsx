@@ -1,6 +1,6 @@
 import '@/apps/client/features/header/styles/ClientHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { CLIENT_SECTIONS, type ClientSection } from '@/apps/client/data/clientMenus';
+import { CLIENT_SECTIONS, type ClientSection } from '@/shared/menu/clientNavigation';
 
 type ClientHeaderProps = {
   activeSection: ClientSection | null;

@@ -20,6 +20,15 @@
                 sat.audit_trail_contents like concat('%', #{searchKeyword}, '%')
             )
         </if>
+        <if test="changeType == '01'">
+            and sat.audit_flag = 'I'
+        </if>
+        <if test="changeType == '02'">
+            and sat.audit_flag = 'U'
+        </if>
+        <if test="changeType == '03'">
+            and sat.audit_flag = 'D'
+        </if>
         and sat.insert_datetime between #{startDate} and #{endDate}
         order by sat.insert_datetime desc
     </select>

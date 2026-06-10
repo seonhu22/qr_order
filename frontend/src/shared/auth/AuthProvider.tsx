@@ -1,19 +1,26 @@
+import type { PropsWithChildren } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { resolveAuthUser } from '@/shared/auth/authResponse';
 import { AuthContext } from '@/shared/auth/AuthContext';
 import { useCurrentUser } from '@/shared/auth/hooks/useCurrentUser';
 
-export function AuthProvider({ children }) {
+type AuthUser = Record<string, unknown> | null;
+
+function normalizeAuthUser(user: unknown): AuthUser {
+  return user && typeof user === 'object' ? user as Record<string, unknown> : null;
+}
+
+export function AuthProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useCurrentUser();
-  const user = resolveAuthUser(data);
+  const user = normalizeAuthUser(resolveAuthUser(data));
   const isAuthenticated = !!user;
 
-  const signIn = (user) => {
+  const signIn = (nextUser: AuthUser) => {
     queryClient.setQueryData(queryKeys.auth.me, {
       success: true,
-      data: user ?? null,
+      data: nextUser ?? null,
     });
   };
 

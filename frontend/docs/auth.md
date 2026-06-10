@@ -25,7 +25,7 @@ login mutation 성공
 
 관련 파일:
 
-- `src/shared/auth/AuthProvider.jsx`
+- `src/shared/auth/AuthProvider.tsx`
 - `src/shared/auth/hooks/useCurrentUser.ts`
 - `src/shared/auth/hooks/useAuthLoginMutation.ts`
 - `src/shared/auth/hooks/useAuthLogoutMutation.ts`

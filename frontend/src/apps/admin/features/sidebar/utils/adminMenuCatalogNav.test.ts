@@ -14,8 +14,8 @@ const catalog = createMenuCatalog([
     menuCd: 'commonCode',
     menuNm: '공통코드 최신명',
     parentMenuCd: 'ROOT',
-    ordNo: '1',
-    treeLevel: '1',
+    ordNo: 1,
+    treeLevel: 1,
     menuUrl: '/admin/system/common-code',
   },
   {
@@ -23,8 +23,8 @@ const catalog = createMenuCatalog([
     menuCd: 'noticeManage',
     menuNm: '공지사항 최신명',
     parentMenuCd: 'ROOT',
-    ordNo: '2',
-    treeLevel: '1',
+    ordNo: 2,
+    treeLevel: 1,
     menuUrl: '/admin/notice/manage',
   },
 ]);

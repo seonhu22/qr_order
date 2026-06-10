@@ -21,6 +21,7 @@ import {
 } from '@/apps/admin/features/sidebar/utils/findExpandedMenuKeys';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
 function getErrorStatus(error: unknown): number | undefined {
@@ -104,14 +105,8 @@ export function AdminSidebar() {
     resetTo(depth1Key, depth2Key);
   }, [activeSection, resetTo]);
 
-  const userName =
-    typeof user?.userName === 'string'
-      ? user.userName
-      : typeof user?.userId === 'string'
-        ? user.userId
-        : '관리자';
-
-  const userRole = typeof user?.role === 'string' ? user.role : 'ADMIN';
+  const userName = getAuthUserDisplayName(user, '관리자');
+  const userRole = getAuthUserRoleLabel(user, 'ADMIN');
 
   const sectionLabel = displayedMenus[0]?.label ?? displayedSection ?? '';
 

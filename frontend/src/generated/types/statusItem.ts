@@ -10,7 +10,7 @@ import type { Body } from './body';
 import type { Footer } from './footer';
 
 export interface StatusItem {
-  orderNum?: string;
+  orderNum?: number;
   header?: Header;
   body?: Body[];
   footer?: Footer;

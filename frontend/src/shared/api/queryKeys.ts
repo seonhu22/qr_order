@@ -1,5 +1,20 @@
 // src/shared/api/queryKeys.ts
 
+const commonCodeMasterListsKey = ['settings', 'common', 'masters'] as const;
+const commonCodeDetailListsKey = ['settings', 'common', 'details'] as const;
+const plantListsKey = ['settings', 'plant', 'list'] as const;
+const adminUserListsKey = ['settings', 'adminUser', 'list'] as const;
+const messageListsKey = ['settings', 'message', 'list'] as const;
+const paymentListsKey = ['settings', 'payment', 'list'] as const;
+const plantStatusListsKey = ['settings', 'plantStatus', 'list'] as const;
+const couponListsKey = ['settings', 'coupon', 'list'] as const;
+const ruleMasterListsKey = ['settings', 'rule', 'masters'] as const;
+const ruleDetailListsKey = ['settings', 'rule', 'details'] as const;
+const accessLogMasterListsKey = ['settings', 'accessLog', 'masters'] as const;
+const changeHistoryListsKey = ['settings', 'changeHistory', 'list'] as const;
+const noticeListsKey = ['board', 'notice', 'list'] as const;
+const qnaListsKey = ['board', 'qna', 'list'] as const;
+
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
  *
@@ -19,45 +34,65 @@ export const queryKeys = {
     info: ['dashboard', 'info'] as const,
   },
   commonCode: {
-    masters: (searchKeyword = '') => ['settings', 'common', 'masters', { searchKeyword }] as const,
+    masterLists: commonCodeMasterListsKey,
+    detailLists: commonCodeDetailListsKey,
+    masters: (searchKeyword = '') => [...commonCodeMasterListsKey, { searchKeyword }] as const,
     details: (masterId = '', searchKeyword = '') =>
-      ['settings', 'common', 'details', masterId, { searchKeyword }] as const,
+      [...commonCodeDetailListsKey, masterId, { searchKeyword }] as const,
   },
   plant: {
-    list: (searchKeyword = '') => ['settings', 'plant', 'list', { searchKeyword }] as const,
+    lists: plantListsKey,
+    list: (searchKeyword = '') => [...plantListsKey, { searchKeyword }] as const,
   },
   adminUser: {
-    list: (searchKeyword = '') => ['settings', 'adminUser', 'list', { searchKeyword }] as const,
+    lists: adminUserListsKey,
+    list: (searchKeyword = '') => [...adminUserListsKey, { searchKeyword }] as const,
   },
   message: {
-    list: (searchKeyword = '') => ['settings', 'message', 'list', { searchKeyword }] as const,
+    lists: messageListsKey,
+    list: (searchKeyword = '') => [...messageListsKey, { searchKeyword }] as const,
   },
   payment: {
-    list: (searchKeyword = '') => ['settings', 'payment', 'list', { searchKeyword }] as const,
+    lists: paymentListsKey,
+    list: (searchKeyword = '') => [...paymentListsKey, { searchKeyword }] as const,
   },
   plantStatus: {
-    list: (searchKeyword = '') => ['settings', 'plantStatus', 'list', { searchKeyword }] as const,
+    lists: plantStatusListsKey,
+    list: (searchKeyword = '') => [...plantStatusListsKey, { searchKeyword }] as const,
   },
   coupon: {
-    list: (searchKeyword = '') => ['settings', 'coupon', 'list', { searchKeyword }] as const,
+    lists: couponListsKey,
+    list: (searchKeyword = '') => [...couponListsKey, { searchKeyword }] as const,
   },
   rule: {
-    masters: (searchKeyword = '') => ['settings', 'rule', 'masters', { searchKeyword }] as const,
-    details: (masterId = '') => ['settings', 'rule', 'details', masterId] as const,
+    masterLists: ruleMasterListsKey,
+    detailLists: ruleDetailListsKey,
+    masters: (searchKeyword = '') => [...ruleMasterListsKey, { searchKeyword }] as const,
+    details: (masterId = '') => [...ruleDetailListsKey, masterId] as const,
   },
   accessLog: {
+    masterLists: accessLogMasterListsKey,
     masters: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
-      ['settings', 'accessLog', 'masters', params] as const,
+      [...accessLogMasterListsKey, params] as const,
     details: (sysId = '') => ['settings', 'accessLog', 'details', sysId] as const,
   },
   changeHistory: {
-    list: (params: { startDate: string; endDate: string; searchKeyword?: string }) =>
-      ['settings', 'changeHistory', 'list', params] as const,
+    lists: changeHistoryListsKey,
+    list: (params: {
+      startDate: string;
+      endDate: string;
+      searchKeyword?: string;
+      auditFlag?: string;
+      changeType: string;
+    }) =>
+      [...changeHistoryListsKey, params] as const,
   },
   notice: {
-    list: (searchKeyword = '') => ['board', 'notice', 'list', { searchKeyword }] as const,
+    lists: noticeListsKey,
+    list: (searchKeyword = '') => [...noticeListsKey, { searchKeyword }] as const,
   },
   qna: {
-    list: (searchKeyword = '') => ['board', 'qna', 'list', { searchKeyword }] as const,
+    lists: qnaListsKey,
+    list: (searchKeyword = '') => [...qnaListsKey, { searchKeyword }] as const,
   },
 } as const;

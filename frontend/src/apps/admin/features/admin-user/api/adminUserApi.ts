@@ -11,6 +11,7 @@ import type { AdminUserRequest } from '@/generated/types/adminUserRequest';
 import type { Combo } from '@/generated/types/combo';
 import type { AdminUserResponse } from '@/generated/types/adminUserResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { SelectOption } from '@/shared/components/input';
 import type { AdminUserRow } from '../types';
 import { ADMIN_USER_PLANT_FALLBACK_OPTIONS } from '../constants';
@@ -108,6 +109,7 @@ export function useAdminUserQuery(searchKeyword = '') {
   return useGetAdminUser(searchKeyword ? { searchKeyword } : undefined, {
     query: {
       queryKey: queryKeys.adminUser.list(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
   });
 }

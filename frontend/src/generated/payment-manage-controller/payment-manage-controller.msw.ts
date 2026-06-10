@@ -20,14 +20,29 @@ import type {
 
 import type {
   PaymentInfoDetailResponse,
-  PaymentInfoMasterResponse
+  PaymentInfoMasterResponse,
+  SettlementResponse
 } from '.././types';
 
+
+export const getGetSettlementResponseMock = (overrideResponse: Partial< SettlementResponse > = {}): SettlementResponse => ({totalPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), cancelPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), discountPice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), netPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), orderCount: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), dailySales: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({groupDate: faker.helpers.arrayElement([faker.date.past().toISOString().split('T')[0], undefined]), dayTotalPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), dayCancelPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), dayNetPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), dayOrderCount: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), dayCancelCount: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})), undefined]), ...overrideResponse})
 
 export const getGetPaymentInfoMasterResponseMock = (): PaymentInfoMasterResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableInfo: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), paymentType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderStatus: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderDatetime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), totalPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
 
 export const getGetPaymentInfoDetailResponseMock = (): PaymentInfoDetailResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), items: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderStatus: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), cancelReason: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), cancelDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
+
+export const getGetSettlementMockHandler = (overrideResponse?: SettlementResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SettlementResponse> | SettlementResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/payment_manage/settlement/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetSettlementResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 
 export const getGetPaymentInfoMasterMockHandler = (overrideResponse?: PaymentInfoMasterResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaymentInfoMasterResponse[]> | PaymentInfoMasterResponse[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/client/payment_manage/history/master/search', async (info) => {await delay(1000);
@@ -53,6 +68,7 @@ export const getGetPaymentInfoDetailMockHandler = (overrideResponse?: PaymentInf
   }, options)
 }
 export const getPaymentManageControllerMock = () => [
+  getGetSettlementMockHandler(),
   getGetPaymentInfoMasterMockHandler(),
   getGetPaymentInfoDetailMockHandler()
 ]

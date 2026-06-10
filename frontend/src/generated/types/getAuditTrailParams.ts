@@ -7,6 +7,7 @@
  */
 
 export type GetAuditTrailParams = {
+changeType: string;
 searchKeyword?: string;
 startDate: string;
 endDate: string;

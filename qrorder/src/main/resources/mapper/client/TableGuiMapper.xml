@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.TableGuiMapper">
+
+    <select id="getTableGui" resultType="htms.QROrder.client.dto.TableGuiResponse">
+        select
+            sys_id ,
+            table_name ,
+            table_num ,
+            table_qty ,
+            x_coordinate ,
+            y_coordinate ,
+            height ,
+            width ,
+            table_type
+        from table_info si
+        where 1=1
+        and exists (
+            select
+                1
+            from qr_code qc
+            where 1=1
+            and qc.link_sys_id = si.sys_id
+        )
+        and si.plant_cd = #{sysPlantCd}
+        and delete_yn = 'N'
+        and use_yn = 'Y'
+        order by table_num asc
+    </select>
+
+    <update id="newTableGui">
+        <foreach collection="newItems" item="item" separator=";">
+            update table_info set
+                x_coordinate = #{item.xCoordinate},
+                y_coordinate = #{item.yCoordinate},
+                height = #{item.height},
+                width = #{item.width},
+                table_type = #{item.tableType},
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <update id="updateTableGui">
+        <foreach collection="updateItems" item="item" separator=";">
+            update table_info set
+                x_coordinate = #{item.xCoordinate},
+                y_coordinate = #{item.yCoordinate},
+                height = #{item.height},
+                width = #{item.width},
+                table_type = #{item.tableType},
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <update id="delTableGui">
+        <foreach collection="delItems" item="item" separator=";">
+            update table_info set
+                x_coordinate = null,
+                y_coordinate = null,
+                height = null,
+                width = null,
+                table_type = #{item.tableType},
+                modify_datetime = now(),
+                modify_user_id = #{userId}
+            where 1=1
+            and sys_id = #{item.sysId}
+        </foreach>
+    </update>
+
+    <select id="getOldData" resultType="htms.QROrder.client.dto.TableGuiItem">
+        select
+            sys_id ,
+            table_name ,
+            table_num ,
+            table_qty ,
+            x_coordinate ,
+            y_coordinate ,
+            height ,
+            width ,
+            table_type
+        from table_info si
+        where 1=1
+        and exists (
+            select
+                1
+            from qr_code qc
+            where 1=1
+            and qc.link_sys_id = si.sys_id
+        )
+        and si.plant_cd = #{sysPlantCd}
+        and delete_yn = 'N'
+        and use_yn = 'Y'
+        order by table_num asc
+    </select>
+
+</mapper>

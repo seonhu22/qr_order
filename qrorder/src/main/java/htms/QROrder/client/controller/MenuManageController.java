@@ -194,7 +194,7 @@ public class MenuManageController {
 
     @PostMapping("/option/group/update")
     public ResponseEntity<CommonResponse> updateMenuOptionGroup(@RequestBody MenuOptionGroupRequest menuOptionGroupRequest,
-                                                             HttpSession session) {
+                                                                    HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
@@ -211,7 +211,7 @@ public class MenuManageController {
 
     @PostMapping("/option/group/del")
     public ResponseEntity<CommonResponse> delMenuOptionGroup(@RequestBody List<MenuOptionGroupItem> menuOptionGroupItems,
-                                                             HttpSession session) {
+                                                                HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");

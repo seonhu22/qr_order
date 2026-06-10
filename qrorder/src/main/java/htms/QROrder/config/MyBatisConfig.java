@@ -19,7 +19,8 @@ import javax.sql.DataSource;
         "htms.QROrder.popup.repository",
         "htms.QROrder.log.repository",
         "htms.QROrder.audit.repository",
-        "htms.QROrder.client.repository"
+        "htms.QROrder.client.repository",
+        "htms.QROrder.qr.repository"
 })
 public class MyBatisConfig {
     @Value("${mybatis.mapper-locations}")

@@ -31,11 +31,13 @@ import type {
   CommonResponse,
   GetClientUserParams,
   GetStoreInfoParams,
+  PwdChkParams,
   QRCodeRequest,
   QRCodeResponse,
-  StoreInfoItem,
   StoreInfoRequest,
   StoreInfoResponse,
+  TableGuiRequest,
+  TableGuiResponse,
   TableInfoRequest,
   TableInfoResponse
 } from '.././types';
@@ -102,6 +104,62 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
 
       const mutationOptions = getUpdateClientUserMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const resetPwd = (
+    sysId: string,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/client/store_manage/user_manage/reset_pwd/${sysId}`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getResetPwdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPwd>>, TError,{sysId: string}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetPwd>>, TError,{sysId: string}, TContext> => {
+
+const mutationKey = ['resetPwd'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetPwd>>, {sysId: string}> = (props) => {
+          const {sysId} = props ?? {};
+
+          return  resetPwd(sysId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetPwdMutationResult = NonNullable<Awaited<ReturnType<typeof resetPwd>>>
+    
+    export type ResetPwdMutationError = unknown
+
+    export const useResetPwd = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPwd>>, TError,{sysId: string}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resetPwd>>,
+        TError,
+        {sysId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getResetPwdMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -279,14 +337,72 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
       return useMutation(mutationOptions, queryClient);
     }
-    export const updateStoreInfo = (
+    export const saveTableGui = (
+    tableGuiRequest: TableGuiRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/client/store_manage/table_gui/save`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: tableGuiRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getSaveTableGuiMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveTableGui>>, TError,{data: TableGuiRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveTableGui>>, TError,{data: TableGuiRequest}, TContext> => {
+
+const mutationKey = ['saveTableGui'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveTableGui>>, {data: TableGuiRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveTableGui(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveTableGuiMutationResult = NonNullable<Awaited<ReturnType<typeof saveTableGui>>>
+    export type SaveTableGuiMutationBody = TableGuiRequest
+    export type SaveTableGuiMutationError = unknown
+
+    export const useSaveTableGui = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveTableGui>>, TError,{data: TableGuiRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveTableGui>>,
+        TError,
+        {data: TableGuiRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getSaveTableGuiMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const saveStoreInfo = (
     storeInfoRequest: StoreInfoRequest,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
       
       return httpClient<CommonResponse>(
-      {url: `/api/client/store_manage/store_info/update`, method: 'POST',
+      {url: `/api/client/store_manage/store_info/save`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: storeInfoRequest, signal
     },
@@ -295,11 +411,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   
 
 
-export const getUpdateStoreInfoMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateStoreInfo>>, TError,{data: StoreInfoRequest}, TContext> => {
+export const getSaveStoreInfoMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveStoreInfo>>, TError,{data: StoreInfoRequest}, TContext> => {
 
-const mutationKey = ['updateStoreInfo'];
+const mutationKey = ['saveStoreInfo'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -309,10 +425,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStoreInfo>>, {data: StoreInfoRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveStoreInfo>>, {data: StoreInfoRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  updateStoreInfo(data,requestOptions)
+          return  saveStoreInfo(data,requestOptions)
         }
 
         
@@ -320,136 +436,20 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UpdateStoreInfoMutationResult = NonNullable<Awaited<ReturnType<typeof updateStoreInfo>>>
-    export type UpdateStoreInfoMutationBody = StoreInfoRequest
-    export type UpdateStoreInfoMutationError = unknown
+    export type SaveStoreInfoMutationResult = NonNullable<Awaited<ReturnType<typeof saveStoreInfo>>>
+    export type SaveStoreInfoMutationBody = StoreInfoRequest
+    export type SaveStoreInfoMutationError = unknown
 
-    export const useUpdateStoreInfo = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+    export const useSaveStoreInfo = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateStoreInfo>>,
+        Awaited<ReturnType<typeof saveStoreInfo>>,
         TError,
         {data: StoreInfoRequest},
         TContext
       > => {
 
-      const mutationOptions = getUpdateStoreInfoMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    export const newStoreInfo = (
-    storeInfoRequest: StoreInfoRequest,
- options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<CommonResponse>(
-      {url: `/api/client/store_manage/store_info/new`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: storeInfoRequest, signal
-    },
-      options);
-    }
-  
-
-
-export const getNewStoreInfoMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof newStoreInfo>>, TError,{data: StoreInfoRequest}, TContext> => {
-
-const mutationKey = ['newStoreInfo'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newStoreInfo>>, {data: StoreInfoRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  newStoreInfo(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type NewStoreInfoMutationResult = NonNullable<Awaited<ReturnType<typeof newStoreInfo>>>
-    export type NewStoreInfoMutationBody = StoreInfoRequest
-    export type NewStoreInfoMutationError = unknown
-
-    export const useNewStoreInfo = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newStoreInfo>>, TError,{data: StoreInfoRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof newStoreInfo>>,
-        TError,
-        {data: StoreInfoRequest},
-        TContext
-      > => {
-
-      const mutationOptions = getNewStoreInfoMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    export const delStoreInfo = (
-    storeInfoItem: StoreInfoItem[],
- options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<CommonResponse>(
-      {url: `/api/client/store_manage/store_info/del`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: storeInfoItem, signal
-    },
-      options);
-    }
-  
-
-
-export const getDelStoreInfoMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delStoreInfo>>, TError,{data: StoreInfoItem[]}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof delStoreInfo>>, TError,{data: StoreInfoItem[]}, TContext> => {
-
-const mutationKey = ['delStoreInfo'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof delStoreInfo>>, {data: StoreInfoItem[]}> = (props) => {
-          const {data} = props ?? {};
-
-          return  delStoreInfo(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DelStoreInfoMutationResult = NonNullable<Awaited<ReturnType<typeof delStoreInfo>>>
-    export type DelStoreInfoMutationBody = StoreInfoItem[]
-    export type DelStoreInfoMutationError = unknown
-
-    export const useDelStoreInfo = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delStoreInfo>>, TError,{data: StoreInfoItem[]}, TContext>, request?: SecondParameter<typeof httpClient>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof delStoreInfo>>,
-        TError,
-        {data: StoreInfoItem[]},
-        TContext
-      > => {
-
-      const mutationOptions = getDelStoreInfoMutationOptions(options);
+      const mutationOptions = getSaveStoreInfoMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -597,7 +597,7 @@ export function useGetClientUser<TData = Awaited<ReturnType<typeof getClientUser
 
 
 
-export const getTableInfo = (
+export const getTableInfo1 = (
     
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
@@ -612,66 +612,151 @@ export const getTableInfo = (
 
 
 
-export const getGetTableInfoQueryKey = () => {
+export const getGetTableInfo1QueryKey = () => {
     return [
     `/api/client/store_manage/table_info/search`
     ] as const;
     }
 
     
-export const getGetTableInfoQueryOptions = <TData = Awaited<ReturnType<typeof getTableInfo>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export const getGetTableInfo1QueryOptions = <TData = Awaited<ReturnType<typeof getTableInfo1>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetTableInfoQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetTableInfo1QueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTableInfo>>> = ({ signal }) => getTableInfo(requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTableInfo1>>> = ({ signal }) => getTableInfo1(requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetTableInfoQueryResult = NonNullable<Awaited<ReturnType<typeof getTableInfo>>>
-export type GetTableInfoQueryError = unknown
+export type GetTableInfo1QueryResult = NonNullable<Awaited<ReturnType<typeof getTableInfo1>>>
+export type GetTableInfo1QueryError = unknown
 
 
-export function useGetTableInfo<TData = Awaited<ReturnType<typeof getTableInfo>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData>> & Pick<
+export function useGetTableInfo1<TData = Awaited<ReturnType<typeof getTableInfo1>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTableInfo>>,
+          Awaited<ReturnType<typeof getTableInfo1>>,
           TError,
-          Awaited<ReturnType<typeof getTableInfo>>
+          Awaited<ReturnType<typeof getTableInfo1>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTableInfo<TData = Awaited<ReturnType<typeof getTableInfo>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData>> & Pick<
+export function useGetTableInfo1<TData = Awaited<ReturnType<typeof getTableInfo1>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTableInfo>>,
+          Awaited<ReturnType<typeof getTableInfo1>>,
           TError,
-          Awaited<ReturnType<typeof getTableInfo>>
+          Awaited<ReturnType<typeof getTableInfo1>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTableInfo<TData = Awaited<ReturnType<typeof getTableInfo>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetTableInfo1<TData = Awaited<ReturnType<typeof getTableInfo1>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetTableInfo<TData = Awaited<ReturnType<typeof getTableInfo>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetTableInfo1<TData = Awaited<ReturnType<typeof getTableInfo1>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableInfo1>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetTableInfoQueryOptions(options)
+  const queryOptions = getGetTableInfo1QueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getTableGui = (
+    
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<TableGuiResponse[]>(
+      {url: `/api/client/store_manage/table_gui/search`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetTableGuiQueryKey = () => {
+    return [
+    `/api/client/store_manage/table_gui/search`
+    ] as const;
+    }
+
+    
+export const getGetTableGuiQueryOptions = <TData = Awaited<ReturnType<typeof getTableGui>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTableGuiQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTableGui>>> = ({ signal }) => getTableGui(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTableGuiQueryResult = NonNullable<Awaited<ReturnType<typeof getTableGui>>>
+export type GetTableGuiQueryError = unknown
+
+
+export function useGetTableGui<TData = Awaited<ReturnType<typeof getTableGui>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTableGui>>,
+          TError,
+          Awaited<ReturnType<typeof getTableGui>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTableGui<TData = Awaited<ReturnType<typeof getTableGui>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTableGui>>,
+          TError,
+          Awaited<ReturnType<typeof getTableGui>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTableGui<TData = Awaited<ReturnType<typeof getTableGui>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTableGui<TData = Awaited<ReturnType<typeof getTableGui>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTableGui>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTableGuiQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -758,6 +843,92 @@ export function useGetStoreInfo<TData = Awaited<ReturnType<typeof getStoreInfo>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetStoreInfoQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const pwdChk = (
+    params: PwdChkParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<boolean>(
+      {url: `/api/client/store_manage/store_info/pwd_chk`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getPwdChkQueryKey = (params?: PwdChkParams,) => {
+    return [
+    `/api/client/store_manage/store_info/pwd_chk`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getPwdChkQueryOptions = <TData = Awaited<ReturnType<typeof pwdChk>>, TError = unknown>(params: PwdChkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPwdChkQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof pwdChk>>> = ({ signal }) => pwdChk(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PwdChkQueryResult = NonNullable<Awaited<ReturnType<typeof pwdChk>>>
+export type PwdChkQueryError = unknown
+
+
+export function usePwdChk<TData = Awaited<ReturnType<typeof pwdChk>>, TError = unknown>(
+ params: PwdChkParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pwdChk>>,
+          TError,
+          Awaited<ReturnType<typeof pwdChk>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePwdChk<TData = Awaited<ReturnType<typeof pwdChk>>, TError = unknown>(
+ params: PwdChkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pwdChk>>,
+          TError,
+          Awaited<ReturnType<typeof pwdChk>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePwdChk<TData = Awaited<ReturnType<typeof pwdChk>>, TError = unknown>(
+ params: PwdChkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePwdChk<TData = Awaited<ReturnType<typeof pwdChk>>, TError = unknown>(
+ params: PwdChkParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof pwdChk>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPwdChkQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

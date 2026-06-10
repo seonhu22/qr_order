@@ -448,11 +448,12 @@ public class SettingsController {
     }
 
     @GetMapping("/log/audittrail")
-    public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
+    public List<AuditTrail> getAuditTrail(@RequestParam String changeType,
+                                            @RequestParam(required = false) String searchKeyword,
                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate) {
 
-        return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
+        return auditTrailService.getAuditTrail(changeType, searchKeyword, startDate, endDate);
     }
 
     @GetMapping("/board/notice/search")
