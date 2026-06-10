@@ -5,6 +5,8 @@ import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { CLIENT_MENUS_BY_SECTION, type ClientSection } from '@/apps/client/data/clientMenus';
+import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 
 type ClientSidebarProps = {
@@ -15,6 +17,7 @@ type ClientSidebarProps = {
 export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
     mutation: {
       onSuccess: () => navigate('/client/login', { replace: true }),
@@ -26,6 +29,8 @@ export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
 
   const menus = activeSection ? (CLIENT_MENUS_BY_SECTION[activeSection] ?? []) : [];
   const sectionLabel = menus[0]?.label ?? '';
+  const userName = getAuthUserDisplayName(user, '사용자');
+  const userRole = getAuthUserRoleLabel(user, 'CLIENT');
 
   return (
     <Sidebar>
@@ -61,10 +66,10 @@ export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
         onNavigate={navigate}
       />
 
-      {/* ---- 사용자 푸터 (임시 데이터) ---- */}
+      {/* ---- 사용자 푸터 ---- */}
       <SidebarUser
-        userName="홍길동"
-        userRole="매장 관리자"
+        userName={userName}
+        userRole={userRole}
         onLogout={() => logoutMutate()}
         isLoggingOut={isPending}
       />
