@@ -8,6 +8,8 @@ import { StoreInfoPage } from '@/apps/client/pages/store/info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/store/ClientUserPage';
 import { StoreTableInfoPage } from '@/apps/client/pages/store/tables/StoreTableInfoPage';
 import { QRCodeManagePage } from '@/apps/client/pages/store/qr/QRCodeManagePage';
+import { MenuManagePage } from '@/apps/client/pages/menu/MenuManagePage';
+import { OptionManagePage } from '@/apps/client/pages/menu/OptionManagePage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -44,21 +46,11 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'menu/categories',
-        element: (
-          <ClientPlaceholderPage
-            title="메뉴 관리"
-            description="판매 메뉴와 카테고리를 관리하는 화면입니다."
-          />
-        ),
+        element: <MenuManagePage />,
       },
       {
         path: 'menu/options',
-        element: (
-          <ClientPlaceholderPage
-            title="옵션 관리"
-            description="메뉴 옵션 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <OptionManagePage />,
       },
       {
         path: 'order/current',

@@ -1,0 +1,29 @@
+.option-manage-page {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.option-manage-page__grid {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.option-manage-page__group-table {
+  min-width: 42rem;
+}
+
+.option-manage-page__item-table {
+  min-width: 52rem;
+}
+
+.option-manage-page__modal-fields {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 80rem) {
+  .option-manage-page__grid {
+    grid-template-columns: minmax(34rem, 0.95fr) minmax(42rem, 1.05fr);
+    align-items: start;
+  }
+}

@@ -100,7 +100,11 @@ export function SelectableTableRow({
         : { onClick: onSelect };
 
   return (
-    <tr className={selected ? 'is-selected' : undefined} {...eventProps}>
+    <tr
+      className={selected ? 'is-selected' : undefined}
+      aria-selected={onSelect == null ? undefined : selected}
+      {...eventProps}
+    >
       {children}
     </tr>
   );

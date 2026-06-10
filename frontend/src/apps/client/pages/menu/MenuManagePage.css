@@ -1,0 +1,28 @@
+.menu-manage-page {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.menu-manage-page__grid {
+  display: grid;
+  gap: var(--spacing-5);
+}
+
+.menu-manage-page__table-actions .btn::after {
+  content: '';
+}
+
+.menu-manage-page__category-table {
+  min-width: 36rem;
+}
+
+.menu-manage-page__menu-table {
+  min-width: 50rem;
+}
+
+@media (min-width: 76rem) {
+  .menu-manage-page__grid {
+    grid-template-columns: minmax(24rem, 0.75fr) minmax(38rem, 1.25fr);
+    align-items: start;
+  }
+}
