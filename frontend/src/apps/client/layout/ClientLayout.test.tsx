@@ -79,4 +79,13 @@ describe('ClientLayout', () => {
     expect(useClientLayoutStore.getState().isSidebarOpen).toBe(true);
     expect(screen.getByText('store info content')).toBeInTheDocument();
   });
+
+  it('shows page navigation from the current route', async () => {
+    renderLayout('/client/store/info');
+
+    const pageNavigation = await screen.findByRole('navigation', { name: '현재 페이지 위치' });
+    expect(within(pageNavigation).getByText('매장')).toBeInTheDocument();
+    expect(within(pageNavigation).getByText('매장 정보 관리')).toBeInTheDocument();
+    expect(within(pageNavigation).getByText('매장 기본 정보')).toBeInTheDocument();
+  });
 });

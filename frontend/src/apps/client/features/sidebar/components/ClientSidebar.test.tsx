@@ -59,10 +59,10 @@ describe('ClientSidebar', () => {
   it('shows all top-level menus while keeping unmatched groups folded', () => {
     renderSidebar();
 
-    expect(screen.getByRole('button', { name: '매장 관리' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '메뉴 관리' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '주문 관리' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '결제 관리' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '매장' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '메뉴' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '주문' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '결제' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '게시판' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '매장 정보 관리' })).not.toBeInTheDocument();
   });

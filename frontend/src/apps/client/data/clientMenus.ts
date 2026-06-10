@@ -3,11 +3,17 @@ import type { SidebarNavDepth1 } from '@/shared/components/sidebar/types';
 
 export type ClientSection = 'store' | 'menu' | 'order' | 'payment' | 'board';
 
+export type ClientMenuBreadcrumb = {
+  depth1: string;
+  depth2: string;
+  depth3: string;
+};
+
 export const CLIENT_SECTIONS: { key: ClientSection; label: string }[] = [
-  { key: 'store', label: '매장 관리' },
-  { key: 'menu', label: '메뉴 관리' },
-  { key: 'order', label: '주문 관리' },
-  { key: 'payment', label: '결제 관리' },
+  { key: 'store', label: '매장' },
+  { key: 'menu', label: '메뉴' },
+  { key: 'order', label: '주문' },
+  { key: 'payment', label: '결제' },
   { key: 'board', label: '게시판' },
 ];
 
@@ -146,4 +152,21 @@ export function findClientExpandedMenuKeys(pathname: string) {
     depth1Key: null,
     depth2Key: null,
   };
+}
+
+export function findClientMenuBreadcrumb(pathname: string): ClientMenuBreadcrumb | null {
+  for (const depth1 of CLIENT_SIDEBAR_MENUS) {
+    for (const group of depth1.groups) {
+      const item = group.items.find((menuItem) => menuItem.path === pathname);
+      if (item) {
+        return {
+          depth1: depth1.label,
+          depth2: group.label,
+          depth3: item.label,
+        };
+      }
+    }
+  }
+
+  return null;
 }

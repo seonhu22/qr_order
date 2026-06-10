@@ -2,8 +2,13 @@ import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import '@/apps/client/layout/ClientLayout.css';
 import { ClientHeader } from '@/apps/client/features/header/components/ClientHeader';
+import { ClientPageNavigation } from '@/apps/client/features/navigation/components/ClientPageNavigation';
 import { ClientSidebar } from '@/apps/client/features/sidebar/components/ClientSidebar';
-import { findClientSectionByPath, type ClientSection } from '@/apps/client/data/clientMenus';
+import {
+  findClientMenuBreadcrumb,
+  findClientSectionByPath,
+  type ClientSection,
+} from '@/apps/client/data/clientMenus';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 
 export function ClientLayout() {
@@ -15,6 +20,7 @@ export function ClientLayout() {
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const toggleSidebar = useClientLayoutStore((s) => s.toggleSidebar);
   const setActiveSection = useClientLayoutStore((s) => s.setActiveSection);
+  const breadcrumb = findClientMenuBreadcrumb(location.pathname);
 
   useEffect(() => {
     const nextSection = findClientSectionByPath(location.pathname);
@@ -62,6 +68,7 @@ export function ClientLayout() {
           />
         </header>
         <main className="client-layout__main">
+          <ClientPageNavigation breadcrumb={breadcrumb} />
           <Outlet />
         </main>
       </div>
