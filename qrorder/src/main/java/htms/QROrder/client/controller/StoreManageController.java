@@ -24,6 +24,7 @@ public class StoreManageController {
     private final QRCodeService qrCodeService;
     private final TableGuiService tableGuiService;
 
+    // 유저 정보 관리
     @GetMapping("/user_manage/search")
     public List<ClientUserResponse> getClientUser(@RequestParam(required = false) String searchKeyword,
                                                     HttpSession session) {
@@ -97,6 +98,7 @@ public class StoreManageController {
         );
     }
 
+    // 매정 정보 관리
     @GetMapping("/store_info/pwd_chk")
     public boolean pwdChk(@RequestParam String pwd,
                             HttpSession session) {
@@ -132,6 +134,7 @@ public class StoreManageController {
         );
     }
 
+    // 테이블 관리
     @GetMapping("/table_info/search")
     public List<TableInfoResponse> getTableInfo(HttpSession session) {
 
@@ -157,6 +160,7 @@ public class StoreManageController {
         );
     }
 
+    // QR 코드 관리
     @GetMapping("/qr_code/search")
     public List<QRCodeResponse> getQRCode(HttpSession session) {
 
@@ -182,6 +186,7 @@ public class StoreManageController {
         );
     }
 
+    // 테이블 배치
     @GetMapping("/table_gui/search")
     public List<TableGuiResponse> getTableGui(HttpSession session) {
 

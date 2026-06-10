@@ -44,6 +44,7 @@
         <if test="paymentStatus != null and paymentStatus != ''">
             and om.order_status = #{paymentStatus}
         </if>
+        and om.insert_datetime::date between #{startDate} and #{endDate}
         and om.sys_plant_cd = #{sysPlantCd}
     </select>
 

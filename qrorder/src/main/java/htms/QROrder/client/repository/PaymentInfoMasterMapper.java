@@ -10,5 +10,5 @@ import java.util.List;
 
 @Mapper
 public interface PaymentInfoMasterMapper {
-    List<PaymentInfoMasterResponse> getPaymentInfoMaster(String paymentStatus, String sysPlantCd);
+    List<PaymentInfoMasterResponse> getPaymentInfoMaster(String paymentStatus, String startDate, String endDate, String sysPlantCd);
 }

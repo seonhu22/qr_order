@@ -9,5 +9,7 @@ public class LoginResponse {
     private String userId;
     private String userName;
     private String sysPlantCd;
+    private String role;
+    private String staffRole;
     private boolean initPwdRequired;
 }
