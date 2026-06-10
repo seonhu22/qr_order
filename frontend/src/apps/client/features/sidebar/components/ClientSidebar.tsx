@@ -1,24 +1,46 @@
 import '@/apps/client/features/sidebar/styles/ClientSidebarHeader.css';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { CLIENT_MENUS_BY_SECTION, type ClientSection } from '@/apps/client/data/clientMenus';
+import {
+  CLIENT_SIDEBAR_MENUS,
+  findClientExpandedMenuKeys,
+} from '@/shared/menu/clientNavigation';
+import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
+import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
+import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 
-type ClientSidebarProps = {
-  activeSection: ClientSection | null;
-  onClose: () => void;
-};
-
-export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
+export function ClientSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
+  const { user } = useAuth();
+  const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
+    mutation: {
+      onSuccess: () => navigate('/client/login', { replace: true }),
+      onError: () => navigate('/client/login', { replace: true }),
+    },
+  });
 
-  const { expandedDepth1Keys, expandedDepth2Keys, toggleDepth1, toggleDepth2 } = useSidebarExpand();
+  const {
+    expandedDepth1Keys,
+    expandedDepth2Keys,
+    toggleDepth1,
+    toggleDepth2,
+    resetTo,
+  } = useSidebarExpand();
 
-  const menus = activeSection ? (CLIENT_MENUS_BY_SECTION[activeSection] ?? []) : [];
-  const sectionLabel = menus[0]?.label ?? '';
+  const userName = getAuthUserDisplayName(user, '사용자');
+  const userRole = getAuthUserRoleLabel(user, 'CLIENT');
+
+  useEffect(() => {
+    const { depth1Key, depth2Key } = findClientExpandedMenuKeys(location.pathname);
+    resetTo(depth1Key, depth2Key);
+  }, [location.pathname, resetTo]);
 
   return (
     <Sidebar>
@@ -29,23 +51,15 @@ export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
           type="button"
           className="client-sidebar-header__close"
           aria-label="사이드바 닫기"
-          onClick={onClose}
+          onClick={closeSidebar}
         >
           <Icon id="i-close" size={16} />
         </button>
       </div>
 
-      {/* ---- 섹션 레이블 ---- */}
-      {sectionLabel && (
-        <div className="client-sidebar-section">
-          <span className="client-sidebar-section__label">{sectionLabel}</span>
-        </div>
-      )}
-
       {/* ---- 내비게이션 ---- */}
       <SidebarNav
-        menus={menus}
-        showDepth1={false}
+        menus={CLIENT_SIDEBAR_MENUS}
         expandedDepth1Keys={expandedDepth1Keys}
         expandedDepth2Keys={expandedDepth2Keys}
         currentPathname={location.pathname}
@@ -54,11 +68,12 @@ export function ClientSidebar({ activeSection, onClose }: ClientSidebarProps) {
         onNavigate={navigate}
       />
 
-      {/* ---- 사용자 푸터 (임시 데이터) ---- */}
+      {/* ---- 사용자 푸터 ---- */}
       <SidebarUser
-        userName="홍길동"
-        userRole="매장 관리자"
-        onLogout={() => navigate('/client/login')}
+        userName={userName}
+        userRole={userRole}
+        onLogout={() => logoutMutate()}
+        isLoggingOut={isPending}
       />
     </Sidebar>
   );

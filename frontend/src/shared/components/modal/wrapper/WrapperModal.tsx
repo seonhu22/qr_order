@@ -1,7 +1,5 @@
 // src/shared/components/modal/wrapper/WrapperModal.tsx
 
-// TODO : Portal 적용하여 DOM 트리 최상단에 렌더링하도록 개선
-// TODO : Dimmed 기능 확인 필요
 /**
  * @fileoverview 공용 모달 레이아웃 래퍼 컴포넌트
  *
@@ -11,6 +9,8 @@
  * - `layout="notice"`일 때는 닫기 버튼을 숨기고 icon, title, subtitle을 가운데 정렬한다.
  * - footer는 액션 객체 존재 여부에 따라 버튼을 렌더링한다.
  * - 버튼의 외형은 공용 Button이 담당하고, modal은 배치용 스타일만 유지한다.
+ * - createPortal로 DOM 최상단(document.body)에 렌더링한다.
+ * - 모달이 열려 있는 동안 body 스크롤을 잠그고, 닫히면 이전 상태로 복원한다.
  * - ESC·overlay 클릭은 항상 `onClose`를 호출한다. dirty 판단과 경고 모달 표시는 호출부가 담당한다.
  *
  * @example
@@ -37,6 +37,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/button';
 import { MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
 import '../base/modal.css';
@@ -51,12 +52,15 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
 
+let bodyScrollLockCount = 0;
+let previousBodyOverflow = '';
+
 /**
  * 공용 모달 래퍼를 렌더링한다.
  *
  * @param {WrapperModalProps} props 모달 렌더링에 필요한 속성
  * @param {boolean} props.open 모달 노출 여부
- * @param {boolean} [props.isDirty=false] 폼에 입력값이 있으면 true — ESC·overlay 닫기를 막는다
+ * @param {boolean} [props.isDirty=false] 호출부가 dirty 확인 흐름을 구성할 때 전달하는 상태값. WrapperModal은 직접 닫기를 막지 않는다
  * @param {'default' | 'notice'} [props.layout='default'] 상단 레이아웃 방식
  * @param {'sm' | 'md' | 'lg' | 'xl'} [props.size='sm'] 모달 폭 크기
  * @param {string} [props.title] 모달 제목
@@ -71,7 +75,7 @@ const FOCUSABLE_SELECTOR = [
  */
 export function WrapperModal({
   open,
-  isDirty = false,
+  isDirty: _isDirty = false,
   layout = 'default',
   size = 'sm',
   title,
@@ -86,6 +90,25 @@ export function WrapperModal({
   onClose,
 }: WrapperModalProps) {
   const dialogRef = useRef<HTMLElement>(null);
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null);
+
+  /* ─── body 스크롤 잠금 ─── */
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+
+    if (bodyScrollLockCount === 0) {
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+    bodyScrollLockCount += 1;
+
+    return () => {
+      bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+      if (bodyScrollLockCount === 0) {
+        document.body.style.overflow = previousBodyOverflow;
+      }
+    };
+  }, [open]);
 
   /* ─── ESC 닫기 ─── */
   useEffect(() => {
@@ -100,6 +123,22 @@ export function WrapperModal({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [open, onClose]);
+
+  /* ─── 직전 포커스 저장/복원 ─── */
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+
+    previousFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    return () => {
+      const previousFocusedElement = previousFocusedElementRef.current;
+      if (previousFocusedElement && document.contains(previousFocusedElement)) {
+        previousFocusedElement.focus();
+      }
+      previousFocusedElementRef.current = null;
+    };
+  }, [open]);
 
   /* ─── 포커스 트랩 + 첫 입력 필드 자동 포커스 ─── */
   useEffect(() => {
@@ -185,7 +224,11 @@ export function WrapperModal({
   const hasPrimaryAction = Boolean(primaryAction);
   const hasSecondaryAction = Boolean(secondaryAction);
 
-  return (
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const modal = (
     <div
       className="base-modal-overlay"
       role="presentation"
@@ -280,4 +323,6 @@ export function WrapperModal({
       </section>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

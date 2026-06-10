@@ -25,7 +25,7 @@ export type ConfirmModalTone = 'info' | 'success' | 'danger' | 'edit';
 
 export interface ModalCommonProps {
   open: boolean;
-  /** 폼에 입력값이 있으면 true — overlay 클릭·ESC 닫기를 막는다 */
+  /** 호출부가 dirty 확인 흐름을 구성할 때 전달하는 상태값. WrapperModal은 직접 닫기를 막지 않는다 */
   isDirty?: boolean;
   size?: ModalSize;
   layout?: WrapperModalLayout;

@@ -259,7 +259,7 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 |---|---|---|
 | 사이드바 | `ClientSidebar` | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
 | 헤더 | `ClientHeader` | 어드민 헤더와 동일한 CSS 패턴 |
-| 레이아웃 상태 | `ClientLayout` (useState) | 어드민의 Zustand store 대신 로컬 state로 단순화 |
+| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정 |
 
 ### 임시로 정한 사항
 
@@ -276,5 +276,55 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 - [ ] `clientMenus.ts` 임시 데이터를 백엔드 메뉴 API 응답으로 교체
 - [ ] `SidebarUser`의 `userName` · `userRole`을 클라이언트 auth 상태에서 읽도록 교체
 - [ ] 로그아웃 동작을 `useAuthLogoutMutation` 패턴으로 교체
-- [ ] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
-- [ ] 실제 메뉴 경로에 맞게 `ClientRoutes.jsx` child route 추가
+- [x] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
+- [x] `clientLayoutStore` 도입: 사이드바 열림, 활성 섹션 UI 상태만 관리
+- [ ] 주문 데이터는 TanStack Query로 관리하고, Zustand에는 주문 화면 UI 상태만 둔다
+- [x] 실제 메뉴 경로에 맞게 `ClientRoutes.tsx` child route 추가
+
+상세 추적 문서: [Client Zustand Policy](./client-zustand-policy.md)
+
+---
+
+## ADR-008 — 신규 앱은 Admin 폴더 규칙을 미러링한다
+
+**날짜**: 2026-06-10
+**상태**: 채택
+
+### 배경
+
+`feature/initClientApp` 진행 중 Client 앱이 Admin과 다른 폴더 구조로 분기할 위험이 드러났다. `apps/client/`에 Admin에 없는 `data/` 폴더가 생겼고, feature 내부 분할(`api/`, `hooks/`, `utils/`, `mock/` 등)과 페이지 상태 훅(`use{Feature}PageState`) 패턴이 명시되지 않은 채 컴포넌트만 쌓이고 있었다.
+
+명세화 없이 누적되면 작업자별 패턴이 갈라지고 코드 리뷰에서 매번 폴더 위치를 결정해야 한다. 향후 Consumer 등 추가 앱이 생길 때마다 같은 비용이 반복된다.
+
+### 검토한 방식
+
+**패턴 1 — 앱별 독자 구조**
+각 앱이 자유로운 폴더 구조를 가진다. 도메인 특성에 맞게 최적화 가능. 단, 일관성이 깨져 학습 곡선과 리뷰 비용이 증가하고 `shared/` 승격 기준이 모호해진다.
+
+**패턴 2 — Admin 규칙 미러링 (채택)**
+Admin 골격(`pages / features / layout / hooks / stores / contexts / routes`)과 feature 분할 규칙을 그대로 따른다. 일관성·학습 비용·`shared/` 승격 판단이 단순해지고, 메뉴 카탈로그 API 같은 향후 패턴 도입 시 Admin과 동일한 전이 경로를 그대로 쓸 수 있다.
+
+### 결정
+
+Admin 규칙 미러링을 채택한다.
+
+- 앱 레벨 디렉터리: `pages / features / layout / hooks / stores / contexts / routes` 동일
+- feature 내부 분할: `components / hooks / api / utils / mock / types.ts / constants.ts` 중 필요한 것만
+- UI shell feature(header/sidebar/brand/navigation)는 `components/` + `styles/`만으로 충분
+- Admin에 없는 폴더(`data/` 등) 신설 금지 — 다른 앱과 공용이면 `shared/`로
+- 사적 폴더(`_components`), 라우트 그룹 `(group)` 사용 금지
+- 페이지 상태 훅은 `use{Feature}PageState.ts` 패턴, 반환 `{ data, status, actions, uiProps }`
+
+세부 규칙은 프로젝트 루트 `CLAUDE.md` §5 "Client 앱 폴더 규칙" 참조.
+
+### 영향
+
+본 ADR 채택과 동시에 Client 앱에 적용했다.
+
+- `apps/client/data/clientMenus.ts` → `shared/menu/clientNavigation.ts`로 이전
+- `apps/client/hooks/`, `apps/client/contexts/` 빈 폴더 + `.gitkeep` 생성
+- import 경로 5개 갱신 (`ClientLayout`, `ClientPageNavigation`, `ClientSidebar`, `ClientHeader`, `clientLayoutStore`)
+- `CLAUDE.md` §5 추가
+- Client 범위 vitest 4 파일 / 13 테스트 통과
+
+향후 신규 앱(Consumer 등)을 추가할 때 첫 PR에 이 골격을 포함한다.

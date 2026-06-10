@@ -8,8 +8,8 @@
 - [2. `tsconfig.json`](#2-tsconfigjson)
 - [3. `eslint.config.js`](#3-eslintconfigjs)
 - [4. `.prettierrc.json`](#4-prettierrcjson)
-- [5. `src/main.jsx`](#5-srcmainjsx)
-- [6. `src/App.jsx`](#6-srcappjsx)
+- [5. `src/main.tsx`](#5-srcmaintsx)
+- [6. `src/App.tsx`](#6-srcapptsx)
 - [7. `src/shared/styles/*`](#7-srcsharedstyles)
 - [8. `src/shared/components/*/index.ts`](#8-srcsharedcomponentsindexts)
 - [9. `src/test/*`](#9-srctest)
@@ -60,7 +60,7 @@
 
 ---
 
-## 5. `src/main.jsx`
+## 5. `src/main.tsx`
 
 - React 앱 진입점
 - `import.meta.env`를 기준으로 MSW 활성화 여부를 판단
@@ -68,7 +68,7 @@
 
 ---
 
-## 6. `src/App.jsx`
+## 6. `src/App.tsx`
 
 - `BrowserRouter`, `QueryClientProvider`, `AuthProvider`를 앱 최상단에 연결
 - 라우팅, 서버 상태 관리, 인증 컨텍스트의 시작점 역할

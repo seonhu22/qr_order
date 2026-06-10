@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
+import { queryKeys } from '@/shared/api/queryKeys';
 import {
   mapToNoticeManageRow,
   useNoticeManageQuery,
@@ -13,17 +14,6 @@ import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import { useNoticeManageModalFlow } from './useNoticeManageModalFlow';
 import type { NoticeEditorRow } from './useNoticeManageModalFlow';
 import type { NoticeManageRow } from '../types';
-
-async function refetchOrThrow<TError>(
-  refetch: () => Promise<{ isError: boolean; error: TError | null }>,
-  errorMessage: string,
-) {
-  const result = await refetch();
-
-  if (result.isError) {
-    throw result.error instanceof Error ? result.error : new Error(errorMessage);
-  }
-}
 
 export function useNoticeManagePageState() {
   const queryClient = useQueryClient();
@@ -84,7 +74,7 @@ export function useNoticeManagePageState() {
     } else {
       await updateMutation.mutateAsync({ data });
     }
-    await refetchOrThrow(noticeQuery.refetch, '저장 후 공지사항 목록을 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.notice.lists });
 
     const fileUlid = editorRow.fileUlid?.trim();
     if (!isCreateMode && fileUlid) {
@@ -103,7 +93,7 @@ export function useNoticeManagePageState() {
     // }
     const noticeRequests = targets.map((row) => ({ sysId: row.sysId }));
     await deleteMutation.mutateAsync({ data: noticeRequests });
-    await refetchOrThrow(noticeQuery.refetch, '삭제 후 공지사항 목록을 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.notice.lists });
     setCheckedIds([]);
     return targets.length;
   };

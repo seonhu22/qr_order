@@ -112,7 +112,7 @@ describe('NoticeManagePage', () => {
     fireEvent.click(within(saveConfirmDialog).getByRole('button', { name: '확인' }));
 
     expect(await screen.findByText('저장되었습니다.')).toBeInTheDocument();
-    expect(receivedFormData?.get('noticeTitle')).toBe('점검 공지 수정');
-    expect(receivedFormData?.has('sysId')).toBe(false);
+    expect((receivedFormData as FormData | null)?.get('noticeTitle')).toBe('점검 공지 수정');
+    expect((receivedFormData as FormData | null)?.has('sysId')).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import { useChangeHistoryPageState } from './useChangeHistoryPageState';
 const useChangeHistoryQueryMock = vi.fn();
 const mapToChangeHistoryRowMock = vi.fn();
 const useAdminMenuCatalogQueryMock = vi.fn();
+const changeHistoryRefetchMock = vi.fn();
 
 vi.mock('../api/changeHistoryApi', () => ({
   useChangeHistoryQuery: (...args: unknown[]) => useChangeHistoryQueryMock(...args),
@@ -20,6 +21,7 @@ describe('useChangeHistoryPageState', () => {
     useChangeHistoryQueryMock.mockReset();
     mapToChangeHistoryRowMock.mockReset();
     useAdminMenuCatalogQueryMock.mockReset();
+    changeHistoryRefetchMock.mockReset();
 
     useChangeHistoryQueryMock.mockReturnValue({
       data: [
@@ -29,6 +31,7 @@ describe('useChangeHistoryPageState', () => {
       ],
       isLoading: false,
       isError: false,
+      refetch: changeHistoryRefetchMock,
     });
 
     mapToChangeHistoryRowMock.mockImplementation((item: { auditFlag?: string; menuNm?: string; auditTrailContents?: string; insertDatetime?: string }, index: number) => ({
@@ -186,6 +189,16 @@ describe('useChangeHistoryPageState', () => {
         insertDatetime: '2026-04-27T11:00:00',
       },
     ]);
+  });
+
+  it('refetches when searching again with the same conditions', () => {
+    const { result } = renderHook(() => useChangeHistoryPageState());
+
+    act(() => {
+      result.current.actions.handleSearch();
+    });
+
+    expect(changeHistoryRefetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('sets a validation error when the end date is earlier than the start date', () => {

@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAccessLogPageState } from './useAccessLogPageState';
 
@@ -7,6 +7,7 @@ const useAccessLogDetailQueryMock = vi.fn();
 const mapToAccessLogMasterRowMock = vi.fn();
 const mapToAccessLogDetailRowMock = vi.fn();
 const useAdminMenuCatalogQueryMock = vi.fn();
+const masterRefetchMock = vi.fn();
 
 vi.mock('../api/accessLogApi', () => ({
   useAccessLogMasterQuery: (...args: unknown[]) => useAccessLogMasterQueryMock(...args),
@@ -26,11 +27,13 @@ describe('useAccessLogPageState', () => {
     mapToAccessLogMasterRowMock.mockReset();
     mapToAccessLogDetailRowMock.mockReset();
     useAdminMenuCatalogQueryMock.mockReset();
+    masterRefetchMock.mockReset();
 
     useAccessLogMasterQueryMock.mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
+      refetch: masterRefetchMock,
     });
 
     useAccessLogDetailQueryMock.mockReturnValue({
@@ -81,5 +84,15 @@ describe('useAccessLogPageState', () => {
         menuCloseDatetime: '',
       },
     ]);
+  });
+
+  it('refetches when searching again with the same conditions', () => {
+    const { result } = renderHook(() => useAccessLogPageState());
+
+    act(() => {
+      result.current.actions.handleSearch();
+    });
+
+    expect(masterRefetchMock).toHaveBeenCalledTimes(1);
   });
 });
