@@ -181,7 +181,8 @@ function buildSidebarMenusForSection(sectionNode: AdminMenuTreeNode): SidebarNav
 }
 
 export function buildAdminMenuTree(items: readonly MenuCatalogItem[]): AdminMenuTreeNode[] {
-  const normalizedItems = dedupeMenuItems(items);
+  // treeLevel 0은 구분을 위한 ROOT 마커 항목이므로 트리 구성에서 제외한다.
+  const normalizedItems = dedupeMenuItems(items.filter((item) => item.treeLevel !== 0));
   const itemByMenuCd = new Map(normalizedItems.map((item) => [item.menuCd, item]));
   const nodeByMenuCd = new Map<string, AdminMenuTreeNode>();
   const roots: AdminMenuTreeNode[] = [];
