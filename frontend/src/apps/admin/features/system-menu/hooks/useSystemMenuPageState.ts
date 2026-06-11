@@ -119,6 +119,9 @@ function getNodeDepth(nodes: MenuNode[], targetId: string, depth = 0): number {
   return -1;
 }
 
+/** 트리에서 허용되는 최대 depth(0-based). 이 값 이상이면 자식 추가/저장을 막는다. */
+const MAX_MENU_DEPTH = 4;
+
 /**
  * targetId 노드를 같은 부모 내에서 한 칸 위로 이동한다.
  * 이미 첫 번째이면 아무 것도 하지 않는다.
@@ -197,19 +200,21 @@ function collectNodeErrors(nodes: MenuNode[]): NodeFieldErrors {
     code: new Set<string>(),
     name: new Set<string>(),
     path: new Set<string>(),
+    depth: new Set<string>(),
   };
 
-  function traverse(list: MenuNode[]) {
+  function traverse(list: MenuNode[], depth: number) {
     for (const node of list) {
       if (!node.data?.code?.trim()) errors.code.add(node.id);
       if (!node.data?.name?.trim()) errors.name.add(node.id);
       if (node.data?.path?.trim() && (node.children?.length ?? 0) > 0) {
         errors.path.add(node.id);
       }
-      if (node.children?.length) traverse(node.children);
+      if (depth >= MAX_MENU_DEPTH) errors.depth.add(node.id);
+      if (node.children?.length) traverse(node.children, depth + 1);
     }
   }
-  traverse(nodes);
+  traverse(nodes, 0);
   return errors;
 }
 
@@ -218,7 +223,27 @@ const emptyErrors = (): NodeFieldErrors => ({
   code: new Set<string>(),
   name: new Set<string>(),
   path: new Set<string>(),
+  depth: new Set<string>(),
 });
+
+/**
+ * targetIds에 해당하는 노드들의 조상 노드 id를 모두 수집한다.
+ * 접혀 있는 트리에서도 오류 노드가 보이도록 펼칠 때 사용한다.
+ */
+function collectAncestorIds(nodes: MenuNode[], targetIds: Set<string>): string[] {
+  const ancestorIds = new Set<string>();
+
+  function traverse(list: MenuNode[], ancestors: string[]) {
+    for (const node of list) {
+      if (targetIds.has(node.id)) {
+        ancestors.forEach((id) => ancestorIds.add(id));
+      }
+      if (node.children?.length) traverse(node.children, [...ancestors, node.id]);
+    }
+  }
+  traverse(nodes, []);
+  return [...ancestorIds];
+}
 
 /**
  * originalNodes 중 서버에서 로드된 노드(sysId 있음)가
@@ -279,10 +304,10 @@ export function useSystemMenuPageState() {
   /** 증가할 때마다 TreeMenu를 강제 리마운트해 확장 상태를 초기화한다. */
   const [treeKey, setTreeKey] = useState(0);
   /**
-   * 하위추가 시 부모 노드 하나만 정확히 펼치는 신호.
-   * n 카운터가 바뀌면 같은 id라도 useEffect가 다시 발동한다.
+   * 특정 노드들을 강제로 펼치는 신호 (하위추가 시 부모 노드, 저장 오류 시 오류 노드의 조상 노드).
+   * n 카운터가 바뀌면 같은 ids라도 useEffect가 다시 발동한다.
    */
-  const [expandTrigger, setExpandTrigger] = useState<{ id: string; n: number } | null>(null);
+  const [expandTrigger, setExpandTrigger] = useState<{ ids: string[]; n: number } | null>(null);
 
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -375,7 +400,9 @@ export function useSystemMenuPageState() {
    * 2. 메뉴주소(path)가 없을 것 (path 있으면 리프 노드로 간주)
    * 3. 최대 4depth(treeLevel 0~4)까지만 자식 추가 가능 — depth 0~3은 자식 추가 가능, depth 4(treeLevel 4)는 리프
    */
-  const canAddChild = Boolean(selectedNode && !selectedNode.data?.path && selectedDepth < 4);
+  const canAddChild = Boolean(
+    selectedNode && !selectedNode.data?.path && selectedDepth < MAX_MENU_DEPTH,
+  );
   const canDelete = Boolean(selectedId);
   const canMoveUp = Boolean(selectedId && canNodeMoveUp(nodes, selectedId));
   const canMoveDown = Boolean(selectedId && canNodeMoveDown(nodes, selectedId));
@@ -428,7 +455,8 @@ export function useSystemMenuPageState() {
    * 부모 노드가 접혀 있으면 자동으로 펼친다.
    */
   const handleAddChild = () => {
-    if (!selectedId || !canAddChild) return;
+    // canAddChild가 비활성화 처리에서 풀리는 오류가 있더라도 depth 제한을 한 번 더 강제한다.
+    if (!selectedId || !canAddChild || selectedDepth >= MAX_MENU_DEPTH) return;
     const newNode = createNewMenuNode(
       selectedNode?.data?.code,
       (selectedNode?.children?.length ?? 0) + 1,
@@ -436,7 +464,7 @@ export function useSystemMenuPageState() {
     setNodes((prev) => addChildNode(prev, selectedId, newNode));
     setSelectedId(newNode.id);
     // 부모 노드 하나만 펼치는 신호를 보낸다. n 증가로 이미 목록에 있어도 반드시 발동.
-    setExpandTrigger((prev) => ({ id: selectedId, n: (prev?.n ?? 0) + 1 }));
+    setExpandTrigger((prev) => ({ ids: [selectedId], n: (prev?.n ?? 0) + 1 }));
   };
 
   /** 행삭제: 선택된 노드와 하위 전체를 제거한다. */
@@ -463,7 +491,10 @@ export function useSystemMenuPageState() {
     setNodes(cloneMenuNodes(originalNodes));
     setSelectedId('');
     setNodeErrors(emptyErrors());
-    setDefaultExpandedIds(collectExpandedIds(originalNodes));
+    // 최초 로드 시와 동일하게 전체 접힌 상태로 되돌린다.
+    setDefaultExpandedIds([]);
+    // 남아있는 펼침 신호가 리마운트 후 다시 적용되어 일부만 펼쳐지는 것을 방지한다.
+    setExpandTrigger(null);
     setTreeKey((prev) => prev + 1);
   };
 
@@ -489,16 +520,31 @@ export function useSystemMenuPageState() {
     const errors = collectNodeErrors(nodes);
     const hasEmpty = errors.code.size > 0 || errors.name.size > 0;
     const hasPathConflict = errors.path.size > 0;
+    const hasDepthExceeded = errors.depth.size > 0;
 
-    if (hasEmpty || hasPathConflict) {
+    if (hasEmpty || hasPathConflict || hasDepthExceeded) {
       const messages: string[] = [];
       if (hasEmpty) messages.push('빈값을 채워주세요.');
       if (hasPathConflict) messages.push('하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.');
+      if (hasDepthExceeded) {
+        messages.push('최대 depth를 초과한 메뉴가 있습니다.\n트리 구조를 수정한 후 다시 시도해주세요.');
+      }
+      const errorIds = new Set([
+        ...errors.code,
+        ...errors.name,
+        ...errors.path,
+        ...errors.depth,
+      ]);
+      const ancestorIds = collectAncestorIds(nodes, errorIds);
+
       setNotice({
         title: '알림',
         validationItems: messages,
         onConfirm: () => {
           setNodeErrors(errors);
+          if (ancestorIds.length > 0) {
+            setExpandTrigger((prev) => ({ ids: ancestorIds, n: (prev?.n ?? 0) + 1 }));
+          }
           setNotice(null);
         },
       });

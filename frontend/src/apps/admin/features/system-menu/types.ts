@@ -47,9 +47,11 @@ export type MenuNode = TreeMenuNode<MenuData>;
  * @property code  - 메뉴코드가 비어 있는 노드 ID 집합
  * @property name  - 메뉴 명이 비어 있는 노드 ID 집합
  * @property path  - 자식이 있는데 메뉴주소가 설정된 노드 ID 집합 (충돌)
+ * @property depth - 최대 depth를 초과한 노드 ID 집합
  */
 export type NodeFieldErrors = {
   code: Set<string>;
   name: Set<string>;
   path: Set<string>;
+  depth: Set<string>;
 };
