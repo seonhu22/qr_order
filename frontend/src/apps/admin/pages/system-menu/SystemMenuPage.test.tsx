@@ -51,7 +51,7 @@ describe('SystemMenuPage', () => {
         menuNm: '시스템',
         parentMenuCd: ROOT_PARENT_MENU_CD,
         ordNo: 1,
-        treeLevel: 1,
+        treeLevel: 0,
       },
       {
         sysId: 'menu-1',
@@ -59,7 +59,7 @@ describe('SystemMenuPage', () => {
         menuNm: '메뉴 관리',
         parentMenuCd: 'SYS',
         ordNo: 1,
-        treeLevel: 2,
+        treeLevel: 1,
         menuUrl: '/admin/system/menu',
       },
     ];
@@ -112,7 +112,7 @@ describe('SystemMenuPage', () => {
           menuNm: '메뉴 관리 수정',
           parentMenuCd: 'SYS',
           ordNo: 1,
-          treeLevel: 2,
+          treeLevel: 1,
           menuUrl: '/admin/system/menu',
         },
       ],
@@ -148,7 +148,7 @@ describe('SystemMenuPage', () => {
         menuNm: '신규 루트',
         parentMenuCd: ROOT_PARENT_MENU_CD,
         ordNo: 2,
-        treeLevel: 1,
+        treeLevel: 0,
         menuUrl: '/admin/new-root',
       }),
     ]);
@@ -180,7 +180,7 @@ describe('SystemMenuPage', () => {
         menuNm: '신규 루트',
         parentMenuCd: ROOT_PARENT_MENU_CD,
         ordNo: 2,
-        treeLevel: 1,
+        treeLevel: 0,
         menuUrl: '/admin/new-root',
       },
     ];
@@ -260,7 +260,7 @@ describe('SystemMenuPage', () => {
           menuNm: '메뉴 관리',
           parentMenuCd: 'SYS',
           ordNo: 1,
-          treeLevel: 2,
+          treeLevel: 1,
           menuUrl: '/admin/system/menu',
         },
       ],

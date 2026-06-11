@@ -106,7 +106,7 @@ function findNode(nodes: MenuNode[], id: string): MenuNode | undefined {
 
 /**
  * 특정 id 노드의 depth(0-based)를 반환한다. 찾지 못하면 -1.
- * - 0 → 1depth (루트), 1 → 2depth, …
+ * - 0 → 0depth (루트, ADMIN/CLIENT), 1 → 1depth, …
  */
 function getNodeDepth(nodes: MenuNode[], targetId: string, depth = 0): number {
   for (const node of nodes) {
@@ -373,7 +373,7 @@ export function useSystemMenuPageState() {
    * 하위 추가 가능 조건:
    * 1. 선택된 노드가 있을 것
    * 2. 메뉴주소(path)가 없을 것 (path 있으면 리프 노드로 간주)
-   * 3. 최대 5단계(depth 0~3)까지만 자식 추가 가능 — depth 4(5depth)는 리프
+   * 3. 최대 4depth(treeLevel 0~4)까지만 자식 추가 가능 — depth 0~3은 자식 추가 가능, depth 4(treeLevel 4)는 리프
    */
   const canAddChild = Boolean(selectedNode && !selectedNode.data?.path && selectedDepth < 4);
   const canDelete = Boolean(selectedId);

@@ -32,7 +32,7 @@ export type MenuData = {
   path?: string;
   /** 화면 정렬 순서 */
   ordNo: number;
-  /** 트리 깊이. 루트는 1 */
+  /** 트리 깊이. 루트(ADMIN/CLIENT)는 0 */
   treeLevel?: number;
   /** 신규 행 여부 — 서버에 저장되지 않은 상태 */
   isNew?: boolean;
