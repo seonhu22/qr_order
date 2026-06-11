@@ -7,6 +7,8 @@
  * - 저장 확인 흐름(requestSave → confirmSave)과 안내 모달(notice)을 관리한다.
  * - 초기화 dirty guard: 편집 중인 내용이 있으면 확인 후 초기화한다.
  * - 저장 전 삭제 항목 확인: 서버 로드된 노드가 삭제된 경우 목록을 보여주고 확인한다.
+ * - depth 제한(MAX_MENU_DEPTH=4): 0~3depth만 하위 추가 가능. 4depth 이상 노드가 있으면
+ *   저장을 막고, 필드 에러(보더)를 표시하며, 접혀 있던 조상 노드를 자동으로 펼쳐 보여준다.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
