@@ -11,6 +11,7 @@ public class NoticeResponse {
     private String useYn;
     private String fileUlid;
     private String insertUserId;
+    private String insertUserNm;
     private String insertDatetime;
     private String modifyDatetime;
     private String modifyUserId;
