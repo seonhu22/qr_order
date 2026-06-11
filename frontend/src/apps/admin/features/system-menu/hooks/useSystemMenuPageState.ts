@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { findMenuByIdentity } from '@/apps/admin/features/sidebar/utils/adminMenuCatalogNav';
 import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 import {
   buildMenuRequest,
@@ -100,6 +101,20 @@ function findNode(nodes: MenuNode[], id: string): MenuNode | undefined {
     if (node.id === id) return node;
     if (node.children) {
       const found = findNode(node.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 특정 id 노드가 속한 형제 배열(같은 부모의 children, 또는 루트 배열)을 찾아 반환한다.
+ */
+function findSiblings(nodes: MenuNode[], id: string): MenuNode[] | undefined {
+  if (nodes.some((node) => node.id === id)) return nodes;
+  for (const node of nodes) {
+    if (node.children?.length) {
+      const found = findSiblings(node.children, id);
       if (found) return found;
     }
   }
@@ -469,11 +484,18 @@ export function useSystemMenuPageState() {
     setExpandTrigger((prev) => ({ ids: [selectedId], n: (prev?.n ?? 0) + 1 }));
   };
 
-  /** 행삭제: 선택된 노드와 하위 전체를 제거한다. */
+  /**
+   * 행삭제: 선택된 노드와 하위 전체를 제거한다.
+   *
+   * 삭제 후에는 같은 부모(형제) 내에서 다음 노드, 없으면 이전 노드를 선택해
+   * 같은 위치를 기준으로 연속 삭제할 수 있게 한다.
+   */
   const handleDelete = () => {
     if (!selectedId) return;
+    const siblings = findSiblings(nodes, selectedId);
+    const nextSelectedId = siblings ? getNextSelectedId(siblings, selectedId) : '';
     setNodes((prev) => removeNode(prev, selectedId));
-    setSelectedId('');
+    setSelectedId(nextSelectedId);
   };
 
   /** 위로 이동: 같은 부모 내에서 한 칸 위로. */

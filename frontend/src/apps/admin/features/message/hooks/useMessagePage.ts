@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import type { MessagePageViewModel, MessageRow, MessageRowErrors } from '../types';
 import {
   buildMessageRequest,
@@ -200,8 +201,9 @@ export function useMessagePage(): MessagePageViewModel {
       return;
     }
 
+    const nextSelectedId = getNextSelectedId(rows, selectedRowId);
     setDraftRows((prev) => prev.filter((row) => row.id !== selectedRowId));
-    setSelectedRowId('');
+    setSelectedRowId(nextSelectedId);
   };
 
   /**

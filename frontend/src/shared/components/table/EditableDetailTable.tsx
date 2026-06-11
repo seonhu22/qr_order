@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FeedbackVariant } from '@/shared/components/feedback';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import { DetailTableActions } from './TableActionGroups';
 import { TableBodyRenderer } from './TableBodyRenderer';
 import { TableCard } from './TableCard';
@@ -187,8 +188,9 @@ export function EditableDetailTable<
               setSelectedDetailId(onAddRow());
             }}
             onDeleteRow={() => {
+              const nextSelectedId = getNextSelectedId(rows, effectiveSelectedDetailId);
               onDeleteRow(effectiveSelectedDetailId || undefined);
-              setSelectedDetailId('');
+              setSelectedDetailId(nextSelectedId);
             }}
             onSave={onSave}
           />
