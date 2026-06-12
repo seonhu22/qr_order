@@ -35,9 +35,9 @@ export function SimpleDefaultModal({
       onClose={onClose}
     >
       {customDescription ? (
-        <p className="base-modal__description simple-default-modal__description">
+        <div className="base-modal__description simple-default-modal__description">
           {customDescription}
-        </p>
+        </div>
       ) : null}
     </WrapperModal>
   );

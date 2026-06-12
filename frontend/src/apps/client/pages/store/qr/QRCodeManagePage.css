@@ -2,3 +2,9 @@
   display: grid;
   gap: var(--spacing-5);
 }
+
+.qr-code-manage-page__modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
