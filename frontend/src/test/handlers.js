@@ -2,6 +2,37 @@ import { http, HttpResponse } from 'msw';
 
 let currentUser = null;
 const failedAttempts = {};
+const initialTableInfoRows = [
+  { sysId: 'table-1', tableNum: 1, tableName: '테이블 1번', tableQty: 4, useYn: 'Y' },
+  { sysId: 'table-2', tableNum: 2, tableName: '테이블 2번', tableQty: 4, useYn: 'N' },
+  { sysId: 'table-3', tableNum: 3, tableName: '단체석 3번', tableQty: 6, useYn: 'Y' },
+];
+
+let tableInfoRows = initialTableInfoRows.map((row) => ({ ...row }));
+let nextTableInfoSeq = 4;
+
+function resetTableInfoRows() {
+  tableInfoRows = initialTableInfoRows.map((row) => ({ ...row }));
+  nextTableInfoSeq = 4;
+}
+
+function normalizeTableInfoItem(item) {
+  return {
+    sysId: item.sysId,
+    tableNum: Number(item.tableNum),
+    tableName: item.tableName,
+    tableQty: Number(item.tableQty),
+    useYn: item.useYn ?? 'Y',
+  };
+}
+
+function createTableInfoRow(item) {
+  const row = normalizeTableInfoItem(item);
+  return {
+    ...row,
+    sysId: row.sysId || `table-${nextTableInfoSeq++}`,
+  };
+}
 
 export const handlers = [
   http.get('/api/auth/me', () => {
@@ -92,6 +123,40 @@ export const handlers = [
       currentUser = { ...currentUser, initPwdRequired: false };
     }
     return HttpResponse.json({ success: true, message: '비밀번호가 변경되었습니다.' });
+  }),
+
+  http.post('/api/test/table-info/reset', () => {
+    resetTableInfoRows();
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.get('/api/client/store_manage/table_info/search', () => {
+    return HttpResponse.json(tableInfoRows.map((row) => ({ ...row })));
+  }),
+
+  http.post('/api/client/store_manage/table_info/save', async ({ request }) => {
+    const body = await request.json();
+    const newItems = body?.newItems ?? [];
+    const updateItems = body?.updateItems ?? [];
+    const delItems = body?.delItems ?? [];
+    const deletedSysIds = new Set(delItems.map((item) => item.sysId).filter(Boolean));
+    const existingRows = new Map(tableInfoRows.map((row) => [row.sysId, row]));
+
+    tableInfoRows = tableInfoRows
+      .filter((row) => !deletedSysIds.has(row.sysId))
+      .map((row) => {
+        const updateItem = updateItems.find((item) => item.sysId === row.sysId);
+        return updateItem ? { ...row, ...normalizeTableInfoItem(updateItem) } : row;
+      });
+
+    newItems.forEach((item) => {
+      const row = createTableInfoRow(item);
+      if (!existingRows.has(row.sysId) && !deletedSysIds.has(row.sysId)) {
+        tableInfoRows.push(row);
+      }
+    });
+
+    return HttpResponse.json({ success: true, message: '저장되었습니다.' });
   }),
 
   http.post('/api/auth/logout', () => {
