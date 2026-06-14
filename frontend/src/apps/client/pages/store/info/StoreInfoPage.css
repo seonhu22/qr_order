@@ -5,32 +5,6 @@
   flex-direction: column;
 }
 
-.store-info-page__form-shell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  min-height: 16rem;
-  padding: var(--spacing-card-y) var(--spacing-card-x);
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-}
-
-.store-info-page__title {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: var(--typography-size-h1);
-  font-weight: var(--typography-weight-strong);
-  line-height: var(--typography-leading-heading);
-}
-
-.store-info-page__description {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--typography-size-ui);
-  line-height: var(--typography-leading-body);
-}
-
 .store-info-access-modal__icon {
   display: inline-flex;
   align-items: center;

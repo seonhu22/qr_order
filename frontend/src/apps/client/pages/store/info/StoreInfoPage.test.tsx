@@ -9,7 +9,7 @@ describe('StoreInfoPage', () => {
 
     expect(screen.getByRole('dialog', { name: '매장 정보 접근 인증' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('비밀번호를 입력하세요')).toBeInTheDocument();
-    expect(screen.queryByText('매장 정보를 확인할 수 있습니다.')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '매장 정보' })).not.toBeInTheDocument();
   });
 
   it('requires a password before confirming access', async () => {
@@ -21,7 +21,7 @@ describe('StoreInfoPage', () => {
     expect(screen.getByText('비밀번호를 입력해주세요.')).toBeInTheDocument();
   });
 
-  it('shows the read only form shell after password confirmation', async () => {
+  it('renders the store info form card after password confirmation', async () => {
     const user = userEvent.setup();
     render(<StoreInfoPage />);
 
@@ -29,6 +29,22 @@ describe('StoreInfoPage', () => {
     await user.click(screen.getByRole('button', { name: '확인' }));
 
     expect(screen.queryByRole('dialog', { name: '매장 정보 접근 인증' })).not.toBeInTheDocument();
-    expect(screen.getByText('매장 정보를 확인할 수 있습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '매장 정보' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/상호명/)).toHaveValue('쌀국수 먹고싶다');
+    expect(screen.getByLabelText('정보 수정')).not.toBeChecked();
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled();
+  });
+
+  it('enables the save button when 정보 수정 is checked', async () => {
+    const user = userEvent.setup();
+    render(<StoreInfoPage />);
+
+    await user.type(screen.getByPlaceholderText('비밀번호를 입력하세요'), '1234');
+    await user.click(screen.getByRole('button', { name: '확인' }));
+
+    await user.click(screen.getByLabelText('정보 수정'));
+
+    expect(screen.getByLabelText('정보 수정')).toBeChecked();
+    expect(screen.getByRole('button', { name: '저장' })).toBeEnabled();
   });
 });
