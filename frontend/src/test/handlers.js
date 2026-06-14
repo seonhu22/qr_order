@@ -31,11 +31,21 @@ export const handlers = [
 
     if (body.userId === 'a' && body.userPassword === '1') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'ADMIN', initPwdRequired: true };
+      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'ADMIN', initPwdRequired: false };
       return HttpResponse.json({
         success: true,
         message: '로그인 성공',
-        data: { userId: 'a', userNm: '일반 관리자', role: 'ADMIN' },
+        data: currentUser,
+      });
+    }
+
+    if (body.userId === 'b' && body.userPassword === '1') {
+      failedAttempts[body.userId] = 0;
+      currentUser = { userId: 'b', userNm: '초기 비밀번호 관리자', role: 'ADMIN', initPwdRequired: true };
+      return HttpResponse.json({
+        success: true,
+        message: '로그인 성공',
+        data: currentUser,
       });
     }
 
