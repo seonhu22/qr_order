@@ -1,12 +1,10 @@
 package htms.QROrder.auth.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.dto.EmailValidRequest;
+import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
-import htms.QROrder.common.dto.EmailRequest;
-import htms.QROrder.common.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +28,7 @@ public class SignUpService {
 
     private final SignUpMapper signUpMapper;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final EmailValidService emailValidService;
 
     @Value("${nts.api.service-key}")
     private String ntsServiceKey;
@@ -44,46 +40,31 @@ public class SignUpService {
         }
     }
 
-    public void newUser(SignUpRequest signUpRequest,
-                            HttpServletRequest request) {
+    public void newUser(SignUpRequest signUpRequest, HttpServletRequest request) {
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        EmailValidRequest  emailValidRequest = new EmailValidRequest();
-
         String signUpSysId = UlidCreator.getUlid().toString();
         String emailSysId = UlidCreator.getUlid().toString();
-        String password = passwordEncoder.encode(signUpRequest.getPassword());
-        String passwordChk = passwordEncoder.encode(signUpRequest.getPasswordChk());
         String encodeEmailSysId = passwordEncoder.encode(emailSysId);
 
         signUpRequest.setSysId(signUpSysId);
+        signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+        signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
+
+        String validCode = emailValidService.sendSignupCode(signUpRequest.getEmail(), signUpRequest.getUserNm());
+
+        EmailValidRequest emailValidRequest = new EmailValidRequest();
         emailValidRequest.setSysId(emailSysId);
         emailValidRequest.setLinkSysId(signUpSysId);
         emailValidRequest.setEncodeSysId(encodeEmailSysId);
-        signUpRequest.setPassword(password);
-        signUpRequest.setPasswordChk(passwordChk);
+        emailValidRequest.setValidCode(validCode);
 
         signUpMapper.newPlant(signUpRequest);
         signUpMapper.newUser(signUpRequest);
         signUpMapper.newEmailChk(emailValidRequest);
-
-        int port = request.getServerPort();
-        String baseUrl = request.getScheme() + "://" + request.getServerName()
-                + (port == 80 || port == 443 ? "" : ":" + port);
-        String encodedToken = URLEncoder.encode(encodeEmailSysId, StandardCharsets.UTF_8);
-        String validLink = baseUrl + "/api/auth/email_valid/new_user/" + encodedToken;
-        EmailRequest emailRequest = new EmailRequest();
-        emailRequest.setTo(signUpRequest.getEmail());
-        emailRequest.setSubject("[QROrder] 이메일 인증");
-        emailRequest.setBody("안녕하세요, " + signUpRequest.getUserNm() + "님.\n\n" +
-                "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n\n" +
-                validLink + "\n\n" +
-                "본 메일은 발신 전용입니다.");
-
-        emailService.sendEmail(emailRequest);
     }
 
     public boolean idDuplicateChk(String userId) {
