@@ -52,7 +52,7 @@
             #{signUpRequest.userPassword},
             #{signUpRequest.email} ,
             'N',
-            'N',
+            'Y',
             0,
             'N',
             #{userId},

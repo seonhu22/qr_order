@@ -72,6 +72,9 @@ dependencies {
 	implementation 'org.apache.poi:poi:5.3.0'
 	implementation 'org.apache.poi:poi-ooxml:5.3.0'
 
+	// 이메일 발송 (JavaMailSender)
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 	// 테스트
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
