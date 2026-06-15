@@ -1,5 +1,5 @@
 import '@/apps/client/features/sidebar/styles/ClientSidebarHeader.css';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
@@ -17,6 +17,7 @@ export function ClientSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { guardedNavigate, requestLeaveConfirm } = useGuardedNavigate();
+  const isSidebarOpen = useClientLayoutStore((s) => s.isSidebarOpen);
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const activeSection = useClientLayoutStore((s) => s.activeSection);
   const { currentSection, currentMenus, menusBySection } = useClientNavigationMenus();
@@ -33,6 +34,7 @@ export function ClientSidebar() {
     expandedDepth2Keys,
     toggleDepth1,
     toggleDepth2,
+    ensureOpen,
     resetTo,
   } = useSidebarExpand();
 
@@ -46,10 +48,39 @@ export function ClientSidebar() {
   // 표시할 섹션이 없는 경우(예: /client/main) 전체 섹션의 메뉴를 펼쳐서 보여준다.
   const displayedMenus = sectionMenus.length > 0 ? sectionMenus : Object.values(menusBySection).flat();
 
+  // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
+  const pathnameRef = useRef(location.pathname);
+  const displayedMenusRef = useRef(displayedMenus);
+  useLayoutEffect(() => {
+    pathnameRef.current = location.pathname;
+    displayedMenusRef.current = displayedMenus;
+  });
+
+  // URL 변경 시 현재 페이지 그룹 열기 (다른 열린 그룹은 유지)
   useEffect(() => {
     const { depth1Key, depth2Key } = findClientExpandedMenuKeys(location.pathname, displayedMenus);
+    if (!depth1Key) return;
+    ensureOpen(depth1Key, depth2Key);
+  }, [displayedMenus, ensureOpen, location.pathname]);
+
+  // 사이드바가 열릴 때 현재 페이지 그룹만 남기고 나머지 닫기
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const { depth1Key, depth2Key } = findClientExpandedMenuKeys(
+      pathnameRef.current,
+      displayedMenusRef.current,
+    );
     resetTo(depth1Key, depth2Key);
-  }, [displayedMenus, location.pathname, resetTo]);
+  }, [isSidebarOpen, resetTo]);
+
+  // 섹션 전환 시 expand 상태 초기화
+  useEffect(() => {
+    const { depth1Key, depth2Key } = findClientExpandedMenuKeys(
+      pathnameRef.current,
+      displayedMenusRef.current,
+    );
+    resetTo(depth1Key, depth2Key);
+  }, [activeSection, resetTo]);
 
   const handleLogoutClick = () => {
     requestLeaveConfirm({
