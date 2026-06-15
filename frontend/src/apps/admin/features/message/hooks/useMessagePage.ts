@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import type { MessagePageViewModel, MessageRow, MessageRowErrors } from '../types';
 import {
@@ -83,6 +84,8 @@ export function useMessagePage(): MessagePageViewModel {
     const request = buildMessageRequest(draftRows, baseRows);
     return hasMessageChanges(request);
   }, [baseRows, draftRows]);
+
+  usePreventLeave(isDirty);
 
   const rows = useMemo(() => {
     const keyword = appliedKeyword.trim().toLowerCase();

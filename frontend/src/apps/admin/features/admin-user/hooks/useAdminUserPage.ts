@@ -18,6 +18,7 @@ import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   buildAdminUserRequest,
   getPlantSelectOptionsWithFallback,
@@ -109,6 +110,8 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     baseRows,
     plantOptions,
   });
+
+  usePreventLeave(isDirty);
 
   const handleKeywordChange = (value: string) => {
     setDraftKeyword(value);

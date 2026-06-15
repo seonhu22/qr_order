@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToCouponRow,
   useCouponQuery,
@@ -67,6 +68,8 @@ export function useCouponManagePageState() {
     onSaveRow: handleSaveRow,
     onDeleteRows: handleDeleteRows,
   });
+
+  usePreventLeave(modalFlow.isDirty);
 
   const modalProps = {
     editor: {

@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { findMenuByIdentity } from '@/apps/admin/features/sidebar/utils/adminMenuCatalogNav';
 import { useAdminMenuCatalogQuery } from '@/shared/menu/useAdminMenuCatalogQuery';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import type { MenuData, MenuNode, NodeFieldErrors } from '../types';
 import {
@@ -382,6 +383,8 @@ export function useSystemMenuPageState() {
     () => JSON.stringify(nodes) !== JSON.stringify(originalNodes),
     [nodes, originalNodes],
   );
+
+  usePreventLeave(isDirty);
 
   const selectedNode = selectedId ? findNode(nodes, selectedId) : undefined;
   const selectedDepth = selectedId ? getNodeDepth(nodes, selectedId) : -1;

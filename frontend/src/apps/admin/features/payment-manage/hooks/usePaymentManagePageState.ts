@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToPaymentRateRow,
   useDeletePaymentRatesMutation,
@@ -63,6 +64,8 @@ export function usePaymentManagePageState() {
     onSaveRow: handleSaveRow,
     onDeleteRows: handleDeleteRows,
   });
+
+  usePreventLeave(modalFlow.isDirty);
 
   const modalProps = {
     editor: {
