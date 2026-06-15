@@ -14,6 +14,7 @@ public class PaymentInfoMasterItem {
     private String tableInfo;
     private String paymentType;
     private String orderStatus;
+    private Integer orderNum;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDatetime;
     private Integer totalPrice;
