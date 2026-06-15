@@ -8,3 +8,11 @@ export const CLIENT_USER_AUTHORITY_LABELS: Record<string, string> = {
   ADMIN: '관리자',
   STAFF: '스태프',
 };
+
+/**
+ * 권한 선택 콤보박스 옵션 — 등록/수정 모달에서 사용
+ */
+export const CLIENT_USER_AUTHORITY_OPTIONS = [
+  { value: 'ADMIN', label: CLIENT_USER_AUTHORITY_LABELS.ADMIN },
+  { value: 'STAFF', label: CLIENT_USER_AUTHORITY_LABELS.STAFF },
+];

@@ -5,12 +5,16 @@
 import {
   useDelClientUser,
   useGetClientUser,
+  useNewClientUser,
   useResetPwd,
+  useUpdateClientUser,
 } from '@/generated/store-manage-controller/store-manage-controller';
+import type { ClientUserRequest } from '@/generated/types/clientUserRequest';
 import type { ClientUserResponse } from '@/generated/types/clientUserResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import { CLIENT_USER_AUTHORITY_LABELS } from '../constants';
+import type { ClientUserEditorRow } from '../hooks/useClientUserModalFlow';
 import type { ClientUser } from '../types';
 
 /**
@@ -57,5 +61,27 @@ export function useDeleteClientUsersMutation() {
     mutateAsync: async (rows: ClientUser[]) =>
       mutation.mutateAsync({ data: rows.map((row) => ({ sysId: row.sysId })) }),
     isPending: mutation.isPending,
+  };
+}
+
+function mapToClientUserRequest(row: ClientUserEditorRow): ClientUserRequest {
+  return {
+    sysId: row.sysId,
+    userId: row.userId,
+    userNm: row.userName,
+    userRole: row.authorityCode,
+  };
+}
+
+export function useSaveClientUserMutation() {
+  const createMutation = useNewClientUser();
+  const updateMutation = useUpdateClientUser();
+
+  return {
+    mutateAsync: async (row: ClientUserEditorRow, isCreateMode: boolean) => {
+      const data = mapToClientUserRequest(row);
+      return isCreateMode ? createMutation.mutateAsync({ data }) : updateMutation.mutateAsync({ data });
+    },
+    isPending: createMutation.isPending || updateMutation.isPending,
   };
 }
