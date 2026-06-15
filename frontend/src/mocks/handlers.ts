@@ -48,6 +48,11 @@ import { getPopupControllerMock } from '../generated/popup-controller/popup-cont
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
+import { CLIENT_USER_MOCK_ROWS } from '../apps/client/features/client-user/mock/clientUserMock';
+import {
+  getDelClientUserMockHandler,
+  getResetPwdMockHandler,
+} from '../generated/store-manage-controller/store-manage-controller.msw';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -100,6 +105,22 @@ const couponOverrideHandler = http.get(
             row.couponNm?.toLowerCase().includes(keyword),
         )
       : COUPON_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
+
+const clientUserOverrideHandler = http.get(
+  '*/api/client/store_manage/user_manage/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? CLIENT_USER_MOCK_ROWS.filter(
+          (row) =>
+            row.userId?.toLowerCase().includes(keyword) ||
+            row.userNm?.toLowerCase().includes(keyword),
+        )
+      : CLIENT_USER_MOCK_ROWS;
     return HttpResponse.json(filtered);
   },
 );
@@ -310,6 +331,7 @@ export const handlers = [
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
+  clientUserOverrideHandler,
   menuOverrideHandler,
   noticeOverrideHandler,
   qnaOverrideHandler,
@@ -321,4 +343,6 @@ export const handlers = [
   ...getLogControllerMock(),
   ...getMainControllerMock(),
   ...getPopupControllerMock(),
+  getResetPwdMockHandler(),
+  getDelClientUserMockHandler(),
 ];
