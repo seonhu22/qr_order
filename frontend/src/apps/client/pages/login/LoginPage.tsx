@@ -13,6 +13,12 @@ import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-control
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
 import {
+  buildSignupBusinessVerificationPayload,
+  getSignupBusinessVerificationErrorMessage,
+  isSignupBusinessVerificationError,
+  useSignupBusinessVerificationMutation,
+} from '@/apps/client/features/signup/api/signupBusinessVerificationApi';
+import {
   getAuthResponseData,
   hasInitialPasswordRequirementSignal,
   isInitialPasswordChangeRequired,
@@ -64,11 +70,6 @@ async function verifyFindPasswordCode(data: { userId: string; verifyCode: string
 // 아이디 중복 확인 (API 미정, 임시 통과 처리)
 async function checkDuplicateId(_data: { userId: string }) {
   return { success: true, available: true } as { success: boolean; available: boolean; message?: string };
-}
-
-// 사업자 인증 (API 미정, 임시 통과 처리)
-async function verifyBusiness(_data: { businessNo: string; representativeName: string; openDate: string }) {
-  return { success: true, message: undefined } as { success: boolean; message?: string };
 }
 
 // 회원가입 (API 미정, 임시 엔드포인트)
@@ -268,37 +269,42 @@ export default function LoginPage() {
     },
   });
 
-  const { mutate: verifyBusinessMutate, isPending: isBusinessPending } = useMutation({
-    mutationFn: verifyBusiness,
-    onSuccess: (data) => {
-      if (data.success) {
-        setResultModal({
-          open: true,
-          title: '인증 완료',
-          description: '사업자 인증이 완료되었습니다.',
-          onConfirm: () => {
-            setResultModal((prev) => ({ ...prev, open: false }));
-            setStep('signup');
-          },
-        });
-      } else {
-        setResultModal({
-          open: true,
-          title: '인증 실패',
-          description: data.message ?? '사업자 정보를 확인해주세요.',
-          onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
-        });
-      }
-    },
-    onError: () => {
-      setResultModal({
-        open: true,
-        title: '서버 오류',
-        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
-        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
-      });
-    },
-  });
+  const { mutate: verifyBusinessMutate, isPending: isBusinessPending } =
+    useSignupBusinessVerificationMutation({
+      mutation: {
+        onSuccess: (data) => {
+          if (data.success) {
+            setBusinessError('');
+            setResultModal({
+              open: true,
+              title: '인증 완료',
+              description: data.message ?? '사업자 인증이 완료되었습니다.',
+              onConfirm: () => {
+                setResultModal((prev) => ({ ...prev, open: false }));
+                setStep('signup');
+              },
+            });
+            return;
+          }
+
+          setResultModal({
+            open: true,
+            title: '인증 실패',
+            description: data.message ?? '사업자 정보를 확인해주세요.',
+            onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+          });
+        },
+        onError: (error) => {
+          setBusinessError('');
+          setResultModal({
+            open: true,
+            title: '인증 실패',
+            description: getSignupBusinessVerificationErrorMessage(error),
+            onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+          });
+        },
+      },
+    });
 
   const { mutate: checkIdMutate, isPending: isIdCheckPending } = useMutation({
     mutationFn: checkDuplicateId,
@@ -388,7 +394,18 @@ export default function LoginPage() {
   const handleBusinessSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setBusinessError('');
-    verifyBusinessMutate({ businessNo, representativeName: businessRepName, openDate });
+    const payload = buildSignupBusinessVerificationPayload({
+      businessNo,
+      businessRepName,
+      openDate,
+    });
+
+    if (isSignupBusinessVerificationError(payload)) {
+      setBusinessError(payload.message);
+      return;
+    }
+
+    verifyBusinessMutate({ data: payload });
   };
 
   const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
@@ -639,7 +656,7 @@ export default function LoginPage() {
               <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-consent')}>
                 이전
               </Button>
-              <Button type="submit" size="lg" loading={isBusinessPending}>
+              <Button type="submit" size="lg" loading={isBusinessPending} disabled={isBusinessPending}>
                 {isBusinessPending ? '처리 중...' : '인증하기'}
               </Button>
             </div>

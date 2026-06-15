@@ -55,6 +55,33 @@ const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '03': 'D',
 };
 
+const signupBusinessVerificationOverrideHandler = http.post(
+  '*/api/auth/signup/new/chkBRN',
+  async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as {
+      businessRegiNum?: unknown;
+      userNm?: unknown;
+      businessRegiDate?: unknown;
+    };
+
+    if (
+      typeof body.businessRegiNum !== 'string' ||
+      !/^\d{10}$/.test(body.businessRegiNum) ||
+      typeof body.userNm !== 'string' ||
+      !body.userNm.trim() ||
+      typeof body.businessRegiDate !== 'string' ||
+      !body.businessRegiDate
+    ) {
+      return HttpResponse.json(
+        { success: false, message: '사업자등록 정보가 일치하지 않습니다.' },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json({ success: true, message: '사업자 인증 완료.' });
+  },
+);
+
 function toMockDate(value: string | null) {
   return value ? new Date(value.replace(' ', 'T')).getTime() : null;
 }
@@ -277,6 +304,7 @@ const settingsHandlers = [
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
   ...authHandlers,
+  signupBusinessVerificationOverrideHandler,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
