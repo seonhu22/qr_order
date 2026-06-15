@@ -1,7 +1,8 @@
 # Sidebar 컴포넌트 가이드
 
-> 라우터·스토어·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음.  
+> 라우터·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음.
 > 어드민·사용자 등 앱별 사이드바를 동일한 UI 기반 위에 구성할 수 있다.
+> `SidebarUser`는 로그아웃 확인 모달 분기를 위해 이탈방지 공용 스토어(`preventLeaveStore`)를 참조한다.
 
 ## 목차
 
@@ -24,7 +25,7 @@ shared/components/sidebar/
   Sidebar.css
   SidebarNav.tsx    ← 3계층 nav (props 기반, 라우터·스토어 비의존)
   SidebarNav.css
-  SidebarUser.tsx   ← 사용자 푸터 (props 기반, auth 비의존, 로그아웃 모달 내장)
+  SidebarUser.tsx   ← 사용자 푸터 (props 기반, auth 비의존, 이탈방지 스토어 참조, 로그아웃 모달 내장)
   SidebarUser.css
 ```
 
@@ -46,7 +47,7 @@ import { SidebarNav } from '@/shared/components/sidebar/SidebarNav';
 |---|---|
 | `Sidebar` | `--sb-*` CSS 변수 컨텍스트 제공 + flex 셸 컨테이너. `children`으로 내부를 자유롭게 구성 |
 | `SidebarNav` | 3계층(Depth1 > Depth2 > Depth3) 트리 내비게이션. 메뉴 데이터·펼침 상태를 props로 수신 |
-| `SidebarUser` | 아바타·이름·역할·로그아웃 버튼 푸터. 로그아웃 확인 모달을 내부에서 처리하고 `onLogout` 콜백 호출 |
+| `SidebarUser` | 아바타·이름·역할·로그아웃 버튼 푸터. 미저장 변경(`isDirty`)이 없을 때만 자체 로그아웃 확인 모달을 처리하고, 있을 때는 곧바로 `onLogout` 콜백 호출 |
 
 ---
 
@@ -141,8 +142,12 @@ type SidebarUserProps = {
 };
 ```
 
-로그아웃 확인 모달(`WrapperModal`)은 `SidebarUser` 내부에서 관리한다.  
-확인 버튼 클릭 시 `onLogout`을 호출하고, 이후 처리(navigate 등)는 호출부가 담당한다.
+로그아웃 확인 모달(`WrapperModal`)은 `SidebarUser` 내부에서 관리하되, `preventLeaveStore`의 `isDirty`에 따라 분기한다.
+
+- `isDirty === false`: 자체 모달("로그아웃 하시겠습니까?")을 띄우고, 확인 시 `onLogout`을 호출한다.
+- `isDirty === true`: 자체 모달을 띄우지 않고 곧바로 `onLogout`을 호출해, 호출부의 `requestLeaveConfirm`이 띄우는 이탈방지 확인 모달("저장하지 않은 내용 확인")이 먼저 노출되도록 한다.
+
+이후 처리(navigate 등)는 호출부가 담당한다.
 
 ---
 
