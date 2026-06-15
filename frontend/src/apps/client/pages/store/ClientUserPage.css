@@ -19,3 +19,10 @@
   color: var(--color-brand-default);
   font-weight: var(--typography-weight-heading);
 }
+
+/* 유저 등록/수정 에디터 모달 폼 */
+.client-user-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
