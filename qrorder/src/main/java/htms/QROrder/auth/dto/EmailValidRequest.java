@@ -7,4 +7,6 @@ public class EmailValidRequest {
     private String sysId;
     private String linkSysId;
     private String encodeSysId;
+    private String validCode;
+    private String email;
 }

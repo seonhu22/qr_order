@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.auth.repository.SignUpMapper">
@@ -52,7 +52,7 @@
             #{signUpRequest.userPassword},
             #{signUpRequest.email} ,
             'N',
-            'Y',
+            'N',
             0,
             'N',
             #{userId},
@@ -66,21 +66,19 @@
             sys_id ,
             link_sys_id ,
             encode_sys_id ,
+            valid_code ,
             email_valid_yn ,
-            insert_user_id ,
             insert_datetime
         )
         values (
-            #{signUpRequest.sysId},
-            #{signUpRequest.linkSysId},
-            #{signUpRequest.encodeSysId},
+            #{sysId},
+            #{linkSysId},
+            #{encodeSysId},
+            #{validCode},
             'N',
-            #{userId},
             now()
         )
     </insert>
-
-
 
     <select id="idDuplicateChk" resultType="boolean">
         select
@@ -94,9 +92,9 @@
     <update id="emailValid">
         update sys_email_valid set
             email_valid_yn = 'Y',
-            modify_datetime = now(),
+            modify_datetime = now()
         where 1=1
-        and encode_sys_id = #{encodeSysID}
+        and encode_sys_id = #{encodeSysId}
     </update>
 
 </mapper>
