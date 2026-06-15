@@ -7,3 +7,9 @@
   min-height: 0;
   flex: 1;
 }
+
+/* 테이블 카드 단일 영역 — 남은 높이를 모두 채움 */
+.client-user-page > .client-user-table {
+  flex: 1;
+  min-height: 0;
+}
