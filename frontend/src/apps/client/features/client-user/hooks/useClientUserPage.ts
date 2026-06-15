@@ -18,14 +18,15 @@ import {
   useResetClientUserPasswordMutation,
   useSaveClientUserMutation,
 } from '../api/clientUserApi';
+import type {
+  ClientUserNoticeState,
+  ClientUserPageViewModel,
+  ClientUserPasswordResetTarget,
+} from '../types';
 import { useClientUserModalFlow } from './useClientUserModalFlow';
 import type { ClientUserEditorRow } from './useClientUserModalFlow';
 
-type ClientUserNoticeState = { title: string; description: string; helperText?: string } | null;
-
-type ClientUserPasswordResetTarget = { sysId: string; userId: string };
-
-export function useClientUserPage() {
+export function useClientUserPage(): ClientUserPageViewModel {
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
