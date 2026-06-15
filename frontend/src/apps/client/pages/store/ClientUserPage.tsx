@@ -40,6 +40,8 @@ export function ClientUserPage() {
         <ClientUserTable
           rows={data.rows}
           selectedRowIds={uiProps.selectedRowIds}
+          isLoading={status.isLoading || status.isFetching}
+          isError={status.isError}
           onToggleRow={actions.handleToggleRow}
           onToggleAll={actions.handleToggleAll}
           onCreate={actions.handleCreate}
@@ -167,6 +169,7 @@ export function ClientUserPage() {
         open={!!uiProps.noticeState}
         title={uiProps.noticeState?.title ?? '알림'}
         description={uiProps.noticeState?.description}
+        helperText={uiProps.noticeState?.helperText}
         onClose={actions.closeNotice}
       />
     </>

@@ -21,7 +21,7 @@ import {
 import { useClientUserModalFlow } from './useClientUserModalFlow';
 import type { ClientUserEditorRow } from './useClientUserModalFlow';
 
-type ClientUserNoticeState = { title: string; description: string } | null;
+type ClientUserNoticeState = { title: string; description: string; helperText?: string } | null;
 
 type ClientUserPasswordResetTarget = { sysId: string; userId: string };
 
@@ -112,6 +112,7 @@ export function useClientUserPage() {
       setNoticeState({
         title: '알림',
         description: '비밀번호가 초기화되었습니다.',
+        helperText: '초기 비밀번호는 SN111111 입니다.',
       });
     } catch (error) {
       setPasswordResetTarget(null);
@@ -141,7 +142,9 @@ export function useClientUserPage() {
     data: { rows },
     status: {
       isLoading: userQuery.isLoading,
+      isFetching: userQuery.isFetching,
       isError: userQuery.isError,
+      error: userQuery.error,
       isDeleting: isConfirmingDelete,
       isResettingPassword: resetPasswordMutation.isPending,
     },
