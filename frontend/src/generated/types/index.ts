@@ -28,6 +28,8 @@ export * from './dailySale';
 export * from './dateTime';
 export * from './downloadAllFileParams';
 export * from './downloadFileParams';
+export * from './emailRequest';
+export * from './emailValidRequest';
 export * from './fileIO';
 export * from './fileInfo';
 export * from './fileRequest';

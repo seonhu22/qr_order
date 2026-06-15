@@ -11,6 +11,7 @@ export interface PaymentInfoMasterResponse {
   tableInfo?: string;
   paymentType?: string;
   orderStatus?: string;
+  orderNum?: number;
   orderDatetime?: string;
   totalPrice?: number;
 }

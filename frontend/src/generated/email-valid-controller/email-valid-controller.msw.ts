@@ -23,11 +23,39 @@ import type {
 } from '.././types';
 
 
+export const getPwdChangeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getSendPwdChangeCodeResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
 export const getNewUserEmailValidResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 
+export const getPwdChangeMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/auth/email_valid/pwd_change', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPwdChangeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSendPwdChangeCodeMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/auth/email_valid/pwd_change/send', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSendPwdChangeCodeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getNewUserEmailValidMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
-  return http.post('*/api/auth/email_valid/new_user/:encodeSysId', async (info) => {await delay(1000);
+  return http.post('*/api/auth/email_valid/new_user', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
@@ -38,5 +66,7 @@ export const getNewUserEmailValidMockHandler = (overrideResponse?: CommonRespons
   }, options)
 }
 export const getEmailValidControllerMock = () => [
+  getPwdChangeMockHandler(),
+  getSendPwdChangeCodeMockHandler(),
   getNewUserEmailValidMockHandler()
 ]
