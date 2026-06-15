@@ -4,12 +4,9 @@ import '@/apps/client/layout/ClientLayout.css';
 import { ClientHeader } from '@/apps/client/features/header/components/ClientHeader';
 import { ClientPageNavigation } from '@/apps/client/features/navigation/components/ClientPageNavigation';
 import { ClientSidebar } from '@/apps/client/features/sidebar/components/ClientSidebar';
-import {
-  findClientMenuBreadcrumb,
-  findClientSectionByPath,
-  type ClientSection,
-} from '@/shared/menu/clientNavigation';
+import type { ClientSection } from '@/shared/menu/clientNavigation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
+import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
 
 export function ClientLayout() {
   const location = useLocation();
@@ -20,20 +17,20 @@ export function ClientLayout() {
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const toggleSidebar = useClientLayoutStore((s) => s.toggleSidebar);
   const setActiveSection = useClientLayoutStore((s) => s.setActiveSection);
-  const breadcrumb = findClientMenuBreadcrumb(location.pathname);
+  const { headerSections, currentSection, breadcrumb } = useClientNavigationMenus();
 
   useEffect(() => {
-    const nextSection = findClientSectionByPath(location.pathname);
-    const currentSection = useClientLayoutStore.getState().activeSection;
-    if (nextSection === currentSection) {
+    const nextSection = currentSection;
+    const storedSection = useClientLayoutStore.getState().activeSection;
+    if (nextSection === storedSection) {
       return;
     }
 
     setActiveSection(nextSection);
-    if (nextSection && currentSection === null) {
+    if (nextSection && storedSection === null) {
       openSidebar();
     }
-  }, [location.pathname, openSidebar, setActiveSection]);
+  }, [currentSection, location.pathname, openSidebar, setActiveSection]);
 
   const handleSectionChange = (section: ClientSection) => {
     setActiveSection(section);
@@ -61,6 +58,7 @@ export function ClientLayout() {
         <header className="client-layout__header">
           <ClientHeader
             activeSection={activeSection}
+            sections={headerSections}
             isSidebarOpen={isSidebarOpen}
             onSectionChange={handleSectionChange}
             onToggleSidebar={toggleSidebar}
