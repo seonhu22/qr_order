@@ -8,7 +8,7 @@
 
 import './ClientUserPage.css';
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
-import { ConfirmModal, DeleteConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
+import { DeleteConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientUserTable } from '@/apps/client/features/client-user/components/ClientUserTable';
 import { useClientUserPage } from '@/apps/client/features/client-user/hooks/useClientUserPage';
 
@@ -53,11 +53,16 @@ export function ClientUserPage() {
         onClose={actions.closeDeleteConfirm}
       />
 
-      <ConfirmModal
+      <SimpleDefaultModal
         open={uiProps.passwordResetTarget !== null}
-        tone="info"
-        title="비밀번호를 초기화 하시겠습니까?"
-        description={`${uiProps.passwordResetTarget?.userId ?? ''} 비밀번호를 초기화 하시겠습니까?`}
+        description={
+          <>
+            <strong className="client-user-reset-modal__account-id">
+              {uiProps.passwordResetTarget?.userId}
+            </strong>
+            {' 비밀번호를 초기화 하시겠습니까?'}
+          </>
+        }
         primaryAction={{ loading: status.isResettingPassword, onClick: actions.confirmResetPassword }}
         secondaryAction={{ disabled: status.isResettingPassword, onClick: actions.closePasswordResetConfirm }}
         onClose={actions.closePasswordResetConfirm}
