@@ -11,10 +11,12 @@ import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/auth
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
+import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 
 export function ClientSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { guardedNavigate, requestLeaveConfirm } = useGuardedNavigate();
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const activeSection = useClientLayoutStore((s) => s.activeSection);
   const { currentSection, currentMenus, menusBySection } = useClientNavigationMenus();
@@ -49,6 +51,16 @@ export function ClientSidebar() {
     resetTo(depth1Key, depth2Key);
   }, [displayedMenus, location.pathname, resetTo]);
 
+  const handleLogoutClick = () => {
+    requestLeaveConfirm({
+      type: 'custom',
+      title: '로그아웃하시겠습니까?',
+      description: '저장하지 않은 내용이 있습니다.\n로그아웃하면 변경사항이 사라집니다.',
+      confirmLabel: '로그아웃',
+      onConfirm: () => logoutMutate(),
+    });
+  };
+
   return (
     <Sidebar>
       {/* ---- 헤더 ---- */}
@@ -73,14 +85,14 @@ export function ClientSidebar() {
         currentPathname={location.pathname}
         onToggleDepth1={toggleDepth1}
         onToggleDepth2={toggleDepth2}
-        onNavigate={navigate}
+        onNavigate={guardedNavigate}
       />
 
       {/* ---- 사용자 푸터 ---- */}
       <SidebarUser
         userName={userName}
         userRole={userRole}
-        onLogout={() => logoutMutate()}
+        onLogout={handleLogoutClick}
         isLoggingOut={isPending}
       />
     </Sidebar>

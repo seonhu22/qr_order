@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import '@/apps/client/layout/ClientLayout.css';
 import { ClientHeader } from '@/apps/client/features/header/components/ClientHeader';
 import { ClientPageNavigation } from '@/apps/client/features/navigation/components/ClientPageNavigation';
@@ -7,10 +7,14 @@ import { ClientSidebar } from '@/apps/client/features/sidebar/components/ClientS
 import type { ClientSection } from '@/shared/menu/clientNavigation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
+import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
+import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 
 export function ClientLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
+    useGuardedNavigate();
+  const isCustomLeaveAction = pendingLeaveAction?.type === 'custom';
   const isSidebarOpen = useClientLayoutStore((s) => s.isSidebarOpen);
   const activeSection = useClientLayoutStore((s) => s.activeSection);
   const openSidebar = useClientLayoutStore((s) => s.openSidebar);
@@ -38,9 +42,10 @@ export function ClientLayout() {
   };
 
   const handleHomeClick = () => {
-    navigate('/client/main');
-    setActiveSection(null);
-    closeSidebar();
+    guardedNavigate('/client/main', undefined, () => {
+      setActiveSection(null);
+      closeSidebar();
+    });
   };
 
   return (
@@ -70,6 +75,28 @@ export function ClientLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmModal
+        open={pendingLeaveAction !== null}
+        tone="info"
+        title={
+          isCustomLeaveAction
+            ? pendingLeaveAction.title ?? '확인'
+            : '다른 화면으로 이동하시겠습니까?'
+        }
+        description={
+          isCustomLeaveAction
+            ? pendingLeaveAction.description
+            : '저장하지 않은 내용이 있습니다.\n이동하면 변경사항이 사라집니다.'
+        }
+        helperText={isCustomLeaveAction ? pendingLeaveAction.helperText : undefined}
+        onClose={cancelPendingLeaveAction}
+        primaryAction={{
+          label: isCustomLeaveAction ? pendingLeaveAction.confirmLabel ?? '확인' : '이동',
+          onClick: confirmPendingLeaveAction,
+        }}
+        secondaryAction={{ onClick: cancelPendingLeaveAction }}
+      />
     </div>
   );
 }
