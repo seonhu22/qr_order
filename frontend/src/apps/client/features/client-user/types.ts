@@ -8,6 +8,7 @@
 
 export type ClientUser = {
   id: string;
+  sysId?: string;
   userId: string;
   userName: string;
   authorityCode: string;
