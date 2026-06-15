@@ -25,11 +25,15 @@ export const clientRoutes: RouteObject[] = [
         element: <MainPage />,
       },
       {
-        path: 'store/info',
+        path: 'store/user/management',
+        element: <ClientUserPage />,
+      },
+      {
+        path: 'store/info/base',
         element: <StoreInfoPage />,
       },
       {
-        path: 'store/tables',
+        path: 'store/table/management',
         element: (
           <ClientPlaceholderPage
             title="테이블 관리"
@@ -38,20 +42,25 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'store/qr',
+        path: 'store/table/qr',
         element: (
           <ClientPlaceholderPage
-            title="QR 관리"
+            title="QR 코드 관리"
             description="테이블별 QR 정보를 관리하는 화면입니다."
           />
         ),
       },
       {
-        path: 'store/users',
-        element: <ClientUserPage />,
+        path: 'store/table/layout',
+        element: (
+          <ClientPlaceholderPage
+            title="테이블 배치 관리"
+            description="매장 테이블 배치를 관리하는 화면입니다."
+          />
+        ),
       },
       {
-        path: 'menu/categories',
+        path: 'menu/info/management',
         element: (
           <ClientPlaceholderPage
             title="메뉴 관리"
@@ -60,7 +69,7 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'menu/options',
+        path: 'menu/info/option',
         element: (
           <ClientPlaceholderPage
             title="옵션 관리"
@@ -69,25 +78,7 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'order/current',
-        element: (
-          <ClientPlaceholderPage
-            title="실시간 주문 조회"
-            description="접수된 주문 실시간 목록을 조회하는 화면입니다."
-          />
-        ),
-      },
-      {
-        path: 'order/status',
-        element: (
-          <ClientPlaceholderPage
-            title="주문 상태 관리"
-            description="접수, 조리중, 서빙완료, 취소 상태를 관리하는 화면입니다."
-          />
-        ),
-      },
-      {
-        path: 'order/history',
+        path: 'order/history/list',
         element: (
           <ClientPlaceholderPage
             title="주문 이력 조회"
@@ -96,7 +87,16 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'payment/list',
+        path: 'order/status/management',
+        element: (
+          <ClientPlaceholderPage
+            title="주문 상태 관리"
+            description="접수, 조리중, 서빙완료, 취소 상태를 관리하는 화면입니다."
+          />
+        ),
+      },
+      {
+        path: 'payment/status/list',
         element: (
           <ClientPlaceholderPage
             title="결제 목록 조회"
@@ -105,7 +105,7 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'settlement',
+        path: 'payment/calculation/list',
         element: (
           <ClientPlaceholderPage
             title="정산 조회"
@@ -114,7 +114,7 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'board/notice',
+        path: 'board/notice/list',
         element: (
           <ClientPlaceholderPage
             title="공지사항 조회"
@@ -123,7 +123,7 @@ export const clientRoutes: RouteObject[] = [
         ),
       },
       {
-        path: 'board/qna',
+        path: 'board/inquiry/management',
         element: (
           <ClientPlaceholderPage
             title="문의사항 관리"
