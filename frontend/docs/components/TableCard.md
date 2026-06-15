@@ -661,6 +661,26 @@ import { EditTableButton } from '@/shared/components/button';
 
 ## 5. 페이지별 오버라이드
 
+### 카드 높이 채우기
+
+페이지에 테이블 카드가 1개뿐이면 남은 높이를 모두 채운다. 카드가 여러 개면 동일 비율로 분할한다
+(`AdminMainLayout.css`의 `.admin-main-layout-page__content > *` 패턴 참고).
+
+페이지 컨테이너가 이미 `display: flex; flex-direction: column; flex: 1; min-height: 0;`이라면,
+`TableCard`에 전달한 feature 클래스에 다음을 추가한다:
+
+```css
+/* ClientUserPage.css */
+.client-user-page > .client-user-table {
+  flex: 1;
+  min-height: 0;
+}
+```
+
+`TableCard`(`.common-code-card`)는 이미 `display: flex; flex-direction: column; min-height: 0; overflow: hidden`이고
+내부 `.common-table-wrap`이 `flex: 1`이므로, 위 오버라이드만으로 카드가 페이지 남은 높이를 채우고
+테이블 내용이 길어지면 카드 안에서 스크롤된다.
+
 ### 가로 스크롤 설정
 
 컬럼이 많거나 날짜·긴 텍스트가 포함되어 셀이 압축될 경우 가로 스크롤을 추가한다.
