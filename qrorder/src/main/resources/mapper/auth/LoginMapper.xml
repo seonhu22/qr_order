@@ -16,6 +16,7 @@
         from sys_user su
         where 1=1
         and su.user_id = #{userId}
+        and su.delete_yn = 'N'
     </select>
 
     <update id="initPwd">
@@ -24,6 +25,7 @@
             user_password = #{initPwdRequest.password}
         where 1=1
         and user_id = #{userId}
+        and su.delete_yn = 'N'
     </update>
 
     <update id="pwdIncorrectCntIncrease">
@@ -47,5 +49,6 @@
             init_yn = 'N'
         where 1=1
         and user_id = #{userId}
+        and su.delete_yn = 'N'
     </update>
 </mapper>

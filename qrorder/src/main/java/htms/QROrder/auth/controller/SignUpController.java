@@ -3,6 +3,7 @@ package htms.QROrder.auth.controller;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +31,10 @@ public class SignUpController {
     }
 
     @PostMapping("/signup/new")
-    public ResponseEntity<CommonResponse> newUser(@RequestBody SignUpRequest signUpRequest){
+    public ResponseEntity<CommonResponse> newUser(@RequestBody SignUpRequest signUpRequest,
+                                                    HttpServletRequest request){
 
-        signUpService.newUser(signUpRequest);
+        signUpService.newUser(signUpRequest, request);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
