@@ -45,7 +45,7 @@
                 #{item.userId},
                 #{item.userNm},
                 #{tempPwd},
-                'N',
+                'Y',
                 0,
                 #{item.plantCd},
                 'N',
