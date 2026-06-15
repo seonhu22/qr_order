@@ -10,12 +10,16 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToClientUserModel,
   useClientUserQuery,
   useDeleteClientUsersMutation,
   useResetClientUserPasswordMutation,
+  useSaveClientUserMutation,
 } from '../api/clientUserApi';
+import { useClientUserModalFlow } from './useClientUserModalFlow';
+import type { ClientUserEditorRow } from './useClientUserModalFlow';
 
 type ClientUserNoticeState = { title: string; description: string } | null;
 
@@ -36,6 +40,7 @@ export function useClientUserPage() {
   const userQuery = useClientUserQuery(appliedKeyword.trim());
   const deleteMutation = useDeleteClientUsersMutation();
   const resetPasswordMutation = useResetClientUserPasswordMutation();
+  const saveMutation = useSaveClientUserMutation();
 
   const rows = useMemo(() => (userQuery.data ?? []).map(mapToClientUserModel), [userQuery.data]);
 
@@ -117,6 +122,21 @@ export function useClientUserPage() {
     }
   };
 
+  const handleSaveRow = async (row: ClientUserEditorRow, isCreateMode: boolean) => {
+    await saveMutation.mutateAsync(row, isCreateMode);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.clientUser.lists });
+  };
+
+  const modalFlow = useClientUserModalFlow({ onSaveRow: handleSaveRow, onNotice: setNoticeState });
+
+  usePreventLeave(modalFlow.isDirty);
+
+  const handleEdit = (rowId: string) => {
+    const target = rows.find((row) => row.id === rowId);
+    if (!target) return;
+    modalFlow.openEditModal(target);
+  };
+
   return {
     data: { rows },
     status: {
@@ -132,6 +152,22 @@ export function useClientUserPage() {
       selectedDeleteCount: selectedRowIds.size,
       passwordResetTarget,
       noticeState,
+      editor: {
+        open: modalFlow.isEditorOpen,
+        isDirty: modalFlow.isDirty,
+        isCreateMode: modalFlow.isCreateMode,
+        isUserIdReadonly: modalFlow.isUserIdReadonly,
+        editingRow: modalFlow.editingRow,
+        editorErrors: modalFlow.editorErrors,
+      },
+      saveConfirm: {
+        open: modalFlow.isSaveConfirmOpen,
+        isCreateMode: modalFlow.isCreateMode,
+        isLoading: modalFlow.isConfirming,
+      },
+      dirtyWarning: {
+        open: modalFlow.isDirtyWarningOpen,
+      },
     },
     actions: {
       handleKeywordChange: setDraftKeyword,
@@ -139,8 +175,8 @@ export function useClientUserPage() {
       handleReset,
       handleToggleRow: toggleRow,
       handleToggleAll: toggleAll,
-      handleCreate: () => {},
-      handleEdit: () => {},
+      handleCreate: modalFlow.openCreateModal,
+      handleEdit,
       handleDelete: requestDelete,
       confirmDelete,
       closeDeleteConfirm: () => setIsDeleteConfirmOpen(false),
@@ -148,6 +184,14 @@ export function useClientUserPage() {
       confirmResetPassword,
       closePasswordResetConfirm: () => setPasswordResetTarget(null),
       closeNotice: () => setNoticeState(null),
+      changeEditingField: modalFlow.changeEditingField,
+      requestSave: modalFlow.requestSave,
+      confirmSave: modalFlow.confirmSave,
+      confirmEdit: modalFlow.confirmSave,
+      closeEditorModal: modalFlow.closeEditorModal,
+      forceCloseEditorModal: modalFlow.forceCloseEditorModal,
+      closeSaveConfirm: modalFlow.closeSaveConfirm,
+      closeDirtyWarning: modalFlow.closeDirtyWarning,
     },
   };
 }
