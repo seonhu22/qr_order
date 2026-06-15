@@ -397,33 +397,38 @@ export function mapToPlantStatusRow(res: PlantStatusResponse): PlantStatusRow {
 **datetime-local 날짜 범위 필터가 있는 경우**
 
 > 추가일: 2026-04-21
+> 수정일: 2026-06-15 - draft 상태/검증/자동 종료일시 채움을 공용 훅 `useQueryDateRangeDraft`로 통일
 
-`AccessLog`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
+`AccessLog`, `ChangeHistory`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
 
 - 필터 입력 타입은 `type="datetime-local"` 사용 (날짜+시간 선택)
-- draft 상태(`draftStartDate`, `draftEndDate`)를 분리하고 조회 버튼 클릭 시에만 `searchParams`에 반영
-- 날짜 범위 유효성 검사 규칙:
+- draft 상태(`draftStartDate`, `draftEndDate`, `dateRangeError`)와 핸들러는 공용 훅 `useQueryDateRangeDraft(maxRangeDays?)`(`@/shared/hooks/useQueryDateRangeDraft`)로 관리하고, 조회 버튼 클릭 시에만 `searchParams`에 반영한다.
+- 시작일시를 변경하면 `maxRangeDays`(기본 7일) 내에서 가능한 가장 늦은 종료일시를 자동으로 채워준다. 계산된 종료일시가 현재 시각보다 미래면 오늘 날짜에 시작 시각을 적용한 값으로 대체하고, 그 값마저 미래면 현재 시각으로 대체한다(`getAutoEndDate`).
+- 날짜 범위 유효성 검사 규칙(`useQueryDateRangeDraft` 내부에서 처리):
   - 종료일시가 시작일시보다 이전이면 에러
-  - 최대 조회 기간(예: 7일)을 초과하면 에러
+  - 최대 조회 기간(`maxRangeDays`)을 초과하면 에러
   - 에러가 있으면 `handleSearch` 내부에서 조회를 막고 에러 메시지를 filter 컴포넌트에 전달
-- 페이지 진입 시 기본값(현재 시각 기준 7일 전 ~ 현재)으로 즉시 조회
-- API로 전달하는 datetime 포맷: `YYYY-MM-DDTHH:MM:SS` (`toApiDatetime` 유틸로 변환)
+- 페이지 진입 시 기본값(현재 시각 기준 `maxRangeDays`일 전 ~ 현재)으로 즉시 조회
+- API로 전달하는 datetime 포맷: `YYYY-MM-DD HH:MM:SS` (`createQueryDateRangeParams` / `toQueryDateTimeParam` 유틸로 변환)
+- 화면마다 조회 제한이 다른 경우(1주/1개월/1년 등) `useQueryDateRangeDraft(maxRangeDays)`에 일수를 전달하면 자동 채움/검증에 동일하게 적용된다.
 
 ```ts
 // hooks/useAccessLogPageState.ts
-const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
+const {
+  draftStartDate,
+  draftEndDate,
+  dateRangeError,
+  handleStartDateChange,
+  handleEndDateChange,
+  resetDraftDateRange,
+  validateDraftDateRange,
+} = useQueryDateRangeDraft(); // 다른 제한이 필요하면 maxRangeDays 인자로 전달
 
-function toApiDatetime(value: string) {
-  return value ? `${value}:00` : '';
-}
+const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
 const handleSearch = () => {
-  if (!validateDateRange(draftStartDate, draftEndDate)) return;
-  setSearchParams({
-    startDate: toApiDatetime(draftStartDate),
-    endDate: toApiDatetime(draftEndDate),
-    searchKeyword: draftKeyword,
-  });
+  if (!validateDraftDateRange()) return;
+  setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
 };
 ```
 
