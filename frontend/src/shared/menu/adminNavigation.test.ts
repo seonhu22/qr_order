@@ -200,4 +200,72 @@ describe('adminNavigation', () => {
     expect(navigation.currentMenu?.menuNm).toBe('중복1');
     expect(navigation.headerSections.map((section) => section.section)).toContain('selfLoop');
   });
+  it('filters header and sidebar data by the requested 0depth root menu', () => {
+    const mixedRootCatalog = createMenuCatalog([
+      {
+        sysId: '20',
+        menuCd: 'ADMIN',
+        menuNm: 'Admin',
+        parentMenuCd: 'ROOT',
+        ordNo: 1,
+        treeLevel: 0,
+      },
+      {
+        sysId: '21',
+        menuCd: 'CLIENT',
+        menuNm: 'Client',
+        parentMenuCd: 'ROOT',
+        ordNo: 2,
+        treeLevel: 0,
+      },
+      {
+        sysId: '22',
+        menuCd: 'adminSystem',
+        menuNm: 'Admin System',
+        parentMenuCd: 'ADMIN',
+        ordNo: 1,
+        treeLevel: 1,
+      },
+      {
+        sysId: '23',
+        menuCd: 'adminUsers',
+        menuNm: 'Admin Users',
+        parentMenuCd: 'adminSystem',
+        ordNo: 1,
+        treeLevel: 2,
+        menuUrl: '/admin/users',
+      },
+      {
+        sysId: '24',
+        menuCd: 'clientStore',
+        menuNm: 'Client Store',
+        parentMenuCd: 'CLIENT',
+        ordNo: 1,
+        treeLevel: 1,
+      },
+      {
+        sysId: '25',
+        menuCd: 'clientOrders',
+        menuNm: 'Client Orders',
+        parentMenuCd: 'clientStore',
+        ordNo: 1,
+        treeLevel: 2,
+        menuUrl: '/client/orders',
+      },
+    ]);
+
+    const navigation = createAdminNavigationData(mixedRootCatalog.items, '/admin/users', {
+      rootMenuCd: 'ADMIN',
+    });
+
+    expect(navigation.headerSections).toEqual([
+      { section: 'adminSystem', label: 'Admin System' },
+    ]);
+    expect(Object.keys(navigation.menusBySection)).toEqual(['adminSystem']);
+    expect(navigation.currentSection).toBe('adminSystem');
+    expect(navigation.currentNavigation?.itemKey).toBe('adminUsers');
+    expect(navigation.currentMenus[0].groups[0].items.map((item) => item.key)).toEqual([
+      'adminUsers',
+    ]);
+  });
 });

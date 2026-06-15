@@ -209,6 +209,27 @@ const headerActions = (
 > </div>
 > ```
 
+> **행삭제 후 선택 이동 규칙** — 추가일: 2026-06-11
+>
+> 행삭제 시 선택을 비우지 않고, 삭제된 행의 다음 행을 선택한다.
+> 다음 행이 없으면(마지막 행 삭제) 이전 행을 선택하고, 행이 1개뿐이었으면 선택을 비운다.
+> 이렇게 하면 같은 위치를 기준으로 여러 행을 연속해서 삭제할 수 있다.
+>
+> 공용 헬퍼 `getNextSelectedId(rows, deletedId)` (`@/shared/utils/rowSelection`)로 계산한다.
+>
+> ```tsx
+> onDeleteRow={() => {
+>   const nextSelectedId = getNextSelectedId(rows, selectedId);
+>   onDeleteRow(selectedId || undefined);
+>   setSelectedId(nextSelectedId);
+> }}
+> ```
+>
+> **트리** (`SystemMenuTree`)는 선택된 노드가 속한 형제 배열(같은 부모의 `children`, 또는 루트 배열) 기준으로
+> `getNextSelectedId`를 적용한다. 하위 노드까지 함께 삭제되더라도 형제 배열에서의 위치만 기준으로 삼는다.
+>
+> 적용 대상: `CommonCodeDetailTable`, `RuleDetailTable`, `AdminUserTable`, `MessageTable`, `SystemMenuTree`
+
 > **행추가 테이블 저장 검증 규칙** — 추가일: 2026-04-29
 >
 > 행추가/행삭제가 있는 인라인 편집 테이블은 셀 내부에 필드별 안내 문구를 둘 공간이 부족하므로,

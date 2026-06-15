@@ -328,3 +328,40 @@ Admin 규칙 미러링을 채택한다.
 - Client 범위 vitest 4 파일 / 13 테스트 통과
 
 향후 신규 앱(Consumer 등)을 추가할 때 첫 PR에 이 골격을 포함한다.
+
+---
+
+## ADR-009 — 이탈방지 가드: `useBlocker` 대신 커스텀 guarded navigate
+
+**날짜**: 2026-06-15
+**상태**: 채택
+
+### 배경
+
+편집형 페이지(AdminUser, CommonCode, RuleManagement, Notice, Coupon, PaymentManage, SystemMenu, Message)에서 저장하지 않은 변경(dirty) 상태로 메뉴 이동/새로고침/로그아웃을 하면 변경 내용이 사라진다. react-router의 `useBlocker`가 표준 해법이지만 data router(`createBrowserRouter` + `RouterProvider`) 전용이고, 본 프로젝트는 `<BrowserRouter>`(선언형)을 사용 중이다.
+
+### 검토한 방식
+
+**패턴 1 — data router로 전환 후 `useBlocker` 사용**
+표준적이지만 라우터 정의 전체를 `createBrowserRouter` 구조로 옮겨야 해 변경 범위가 크고, 기존 `<Outlet>` 기반 레이아웃과 얽힌 부분이 많아 이번 범위에는 과도하다.
+
+**패턴 2 — `beforeunload` + 커스텀 guarded navigate (채택)**
+새로고침/탭 닫기는 `beforeunload`, 인앱 이동은 코드베이스 전체가 `<Link>` 없이 `navigate(...)` 호출만 쓴다는 점을 이용해 `navigate`를 감싸는 훅 + zustand 공용 store로 가로챈다. 라우터 구조 변경 없이 적용 가능하다.
+
+### 결정
+
+패턴 2를 채택한다. `preventLeaveStore` + `usePreventLeave` + `useGuardedNavigate` 3종 세트로 구성하고, dirty를 노출하는 8개 페이지 상태 훅에 `usePreventLeave(isDirty)` 1줄씩 추가하는 방식으로 통일한다.
+
+### 알려진 제한사항
+
+- 브라우저 뒤로/앞으로가기 버튼은 가드하지 않음 (history stack 조작 필요, fragile)
+- `beforeunload` 확인창 문구는 브라우저 기본값 (커스터마이징 불가)
+- 단일 dirty-source 전제: 동시에 두 개 이상의 편집 화면이 dirty를 등록하는 구조는 지원하지 않음 (현재 라우팅 구조상 발생하지 않음)
+
+### 향후 전환 경로
+
+data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 필요해지는 경우) `useGuardedNavigate`의 인터페이스(`guardedNavigate`/`pendingLeaveAction` 등)는 유지한 채 내부 구현만 `useBlocker` 기반으로 교체 가능하도록 설계했다.
+
+### 적용 방법
+
+훅 사용법, 적용 대상 8개 페이지, `onNavigate`/`requestLeaveConfirm` 패턴은 [`operations.md`](./operations.md) §5-14 참고.

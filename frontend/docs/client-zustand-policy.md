@@ -37,6 +37,6 @@ Client 앱에서 Zustand를 어디까지 사용할지 추적하기 위한 문서
 ## 구현 체크
 
 - `apps/client/stores/clientLayoutStore.ts`에 둔다.
-- `shared/stores`는 client/admin 공용 상태가 생길 때만 사용한다.
+- `shared/stores`는 client/admin 공용 상태가 생길 때만 사용한다. (예: 이탈방지 가드 `shared/stores/preventLeaveStore.ts` — [`operations.md` §5-14](./operations.md#14-페이지-이탈방지미저장-변경-경고는-usepreventleave--useguardednavigate를-사용한다) 참고)
 - `persist`는 적용하지 않는다. 새로고침 후 레이아웃 UI 상태는 초기화한다.
 - `ClientLayout`의 prop drilling은 store 구독으로 줄인다.

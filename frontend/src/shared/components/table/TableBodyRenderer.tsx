@@ -5,6 +5,7 @@ import {
   TableHeaderCell,
 } from '@/shared/components/table/TableBodyParts';
 import {
+  TableCellAuthorityBadge,
   TableCellChangeTypeBadge,
   TableCellCheckbox,
   TableCellEditButton,
@@ -16,6 +17,7 @@ import {
   TableCellUseYnBadge,
 } from '@/shared/components/table/TableCells';
 import type {
+  AuthorityBadgeCellModel,
   ChangeTypeBadgeCellModel,
   CheckboxCellModel,
   CustomCellModel,
@@ -103,6 +105,9 @@ const cellRenderers: CellRendererMap = {
   ),
   licensePeriodBadge: (cell: LicensePeriodBadgeCellModel) => (
     <TableCellLicensePeriodBadge value={cell.value} />
+  ),
+  authorityBadge: (cell: AuthorityBadgeCellModel) => (
+    <TableCellAuthorityBadge code={cell.code} label={cell.label} />
   ),
 };
 

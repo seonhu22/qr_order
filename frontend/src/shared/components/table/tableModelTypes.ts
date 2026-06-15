@@ -87,6 +87,14 @@ export type LicensePeriodBadgeCellModel = {
   value: LicensePeriodBadgeValue;
 };
 
+export type AuthorityBadgeCellModel = {
+  type: 'authorityBadge';
+  /** 백엔드 권한 코드 (예: 'ADMIN', 'ADMIN_OWNER', 'STAFF') */
+  code: string;
+  /** 표시 라벨 (공통 콤보 또는 도메인 라벨 매핑값) */
+  label: string;
+};
+
 export type CustomCellModel = {
   type: 'custom';
   render: () => ReactNode;
@@ -103,6 +111,7 @@ export type SharedTableCell =
   | ChangeTypeBadgeCellModel
   | ExpirationStatusBadgeCellModel
   | LicensePeriodBadgeCellModel
+  | AuthorityBadgeCellModel
   | CustomCellModel;
 
 export type SharedTableRow = {

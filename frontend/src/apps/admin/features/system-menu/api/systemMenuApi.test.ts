@@ -13,10 +13,18 @@ import {
 
 const menus: Menu[] = [
   {
+    sysId: 'admin',
+    menuCd: 'ADMIN',
+    menuNm: '관리자',
+    parentMenuCd: ROOT_PARENT_MENU_CD,
+    ordNo: 1,
+    treeLevel: 0,
+  },
+  {
     sysId: 'sys-1',
     menuCd: 'SYS',
     menuNm: '시스템',
-    parentMenuCd: ROOT_PARENT_MENU_CD,
+    parentMenuCd: 'ADMIN',
     ordNo: 1,
     treeLevel: 1,
   },
@@ -42,22 +50,36 @@ const menus: Menu[] = [
 
 describe('systemMenuApi', () => {
   it('builds a sorted menu tree from server menu rows', () => {
-    const tree = buildMenuTree([menus[2], menus[0], menus[1]]);
+    const tree = buildMenuTree([menus[3], menus[1], menus[0], menus[2]]);
 
     expect(tree).toHaveLength(1);
     expect(tree[0]).toMatchObject({
+      id: 'admin',
+      label: 'ADMIN',
+      data: {
+        sysId: 'admin',
+        parentMenuCd: ROOT_PARENT_MENU_CD,
+        code: 'ADMIN',
+        name: '관리자',
+        ordNo: 1,
+        treeLevel: 0,
+      },
+    });
+
+    const sysNode = tree[0].children?.[0];
+    expect(sysNode).toMatchObject({
       id: 'sys-1',
       label: 'SYS',
       data: {
         sysId: 'sys-1',
-        parentMenuCd: ROOT_PARENT_MENU_CD,
+        parentMenuCd: 'ADMIN',
         code: 'SYS',
         name: '시스템',
         ordNo: 1,
         treeLevel: 1,
       },
     });
-    expect(tree[0].children?.map((node) => node.data?.code)).toEqual(['MENU', 'COMMON_CODE']);
+    expect(sysNode?.children?.map((node) => node.data?.code)).toEqual(['MENU', 'COMMON_CODE']);
   });
 
   it('flattens tree nodes with numeric ordNo, treeLevel, and parent menu code', () => {
@@ -66,10 +88,19 @@ describe('systemMenuApi', () => {
 
     expect(payloads).toEqual([
       {
+        sysId: 'admin',
+        menuCd: 'ADMIN',
+        menuNm: '관리자',
+        parentMenuCd: ROOT_PARENT_MENU_CD,
+        ordNo: 1,
+        treeLevel: 0,
+        menuUrl: undefined,
+      },
+      {
         sysId: 'sys-1',
         menuCd: 'SYS',
         menuNm: '시스템',
-        parentMenuCd: ROOT_PARENT_MENU_CD,
+        parentMenuCd: 'ADMIN',
         ordNo: 1,
         treeLevel: 1,
         menuUrl: undefined,
@@ -109,27 +140,33 @@ describe('systemMenuApi', () => {
 
   it('splits new, updated, and deleted menu nodes into save request arrays', () => {
     const originalTree = buildMenuTree(menus);
+    const sysNode = originalTree[0].children![0];
     const currentTree: MenuNode[] = [
       {
         ...originalTree[0],
         children: [
           {
-            ...originalTree[0].children![0],
-            data: {
-              ...originalTree[0].children![0].data!,
-              name: '메뉴 관리 수정',
-            },
-          },
-          {
-            id: 'new-1',
-            label: '',
-            data: {
-              code: 'NEW_MENU',
-              name: '신규 메뉴',
-              path: '/admin/new-menu',
-              ordNo: 0,
-              isNew: true,
-            },
+            ...sysNode,
+            children: [
+              {
+                ...sysNode.children![0],
+                data: {
+                  ...sysNode.children![0].data!,
+                  name: '메뉴 관리 수정',
+                },
+              },
+              {
+                id: 'new-1',
+                label: '',
+                data: {
+                  code: 'NEW_MENU',
+                  name: '신규 메뉴',
+                  path: '/admin/new-menu',
+                  ordNo: 0,
+                  isNew: true,
+                },
+              },
+            ],
           },
         ],
       },
@@ -177,10 +214,55 @@ describe('systemMenuApi', () => {
     const request = buildMenuRequest([], originalTree);
 
     expect(request.delItems?.map((item) => item.menuCd)).toEqual([
+      'ADMIN',
       'SYS',
       'MENU',
       'COMMON_CODE',
     ]);
+  });
+
+  it('treats menus with circular parentMenuCd references as separate roots instead of looping infinitely', () => {
+    const cyclicMenus: Menu[] = [
+      {
+        sysId: 'a-1',
+        menuCd: 'A',
+        menuNm: 'A',
+        parentMenuCd: 'B',
+        ordNo: 1,
+        treeLevel: 5,
+      },
+      {
+        sysId: 'b-1',
+        menuCd: 'B',
+        menuNm: 'B',
+        parentMenuCd: 'A',
+        ordNo: 1,
+        treeLevel: 5,
+      },
+    ];
+
+    const tree = buildMenuTree(cyclicMenus);
+
+    expect(tree.map((node) => node.data?.code)).toEqual(['A', 'B']);
+    expect(() => flattenMenuNodes(tree)).not.toThrow();
+  });
+
+  it('does not duplicate a node in the tree when its menuCd appears in multiple rows', () => {
+    const duplicateMenus: Menu[] = [
+      ...menus,
+      {
+        sysId: 'dup-1',
+        menuCd: 'COMMON_CODE',
+        menuNm: '공통코드(중복)',
+        parentMenuCd: 'INVALID_PARENT',
+        ordNo: 3,
+        treeLevel: 5,
+      },
+    ];
+
+    const tree = buildMenuTree(duplicateMenus);
+
+    expect(tree.map((node) => node.data?.code)).toEqual(['ADMIN', 'COMMON_CODE']);
   });
 
   it('marks saved new nodes as persisted so they are not sent as new again', () => {

@@ -274,6 +274,17 @@
   color: var(--color-text-disabled);
 }
 
+/* 권한 배지 — 관리자(brand) / 스태프(neutral) */
+.status-badge--admin {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-active);
+}
+
+.status-badge--staff {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
 /* 인라인 편집 InputBase */
 .common-table__input {
   width: 100%;

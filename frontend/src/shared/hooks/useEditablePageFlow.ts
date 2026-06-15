@@ -14,7 +14,7 @@ import { startTransition, useState, type ReactNode } from 'react';
 import { useFilterDirtyCheck } from './useFilterDirtyCheck';
 
 export type EditablePageSimpleModalState = {
-  type?: 'passwordResetConfirm';
+  type?: 'passwordResetConfirm' | 'requiredFieldNotice';
   userId?: string;
   description: ReactNode;
   helperText?: string;
@@ -109,6 +109,7 @@ export function useEditablePageFlow({
   const requestSave = () => {
     if (onValidateRequiredFields && !onValidateRequiredFields()) {
       setSimpleModalState({
+        type: 'requiredFieldNotice',
         ...requiredFieldNotice,
         onConfirm: () => {
           onApplyRequiredFieldErrors?.();

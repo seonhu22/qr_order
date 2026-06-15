@@ -3,7 +3,8 @@
  *
  * @description
  * 아바타·이름·역할·로그아웃 버튼을 렌더한다.
- * 로그아웃 확인 모달은 내부에서 처리하고, 확인 시 onLogout 콜백을 호출한다.
+ * 미저장 변경(isDirty)이 없을 때만 자체 로그아웃 확인 모달을 띄우고, 확인 시 onLogout 콜백을 호출한다.
+ * 미저장 변경이 있을 때는 자체 모달 없이 onLogout을 바로 호출해, 이탈방지 확인 모달(앱 셸)이 먼저 뜨도록 한다.
  * auth·router에 의존하지 않으므로 어드민·사용자 양쪽에서 재사용 가능.
  *
  * @module shared/components/sidebar/SidebarUser
@@ -13,6 +14,7 @@ import { useState } from 'react';
 import './SidebarUser.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
+import { usePreventLeaveStore } from '@/shared/stores/preventLeaveStore';
 
 
 type SidebarUserProps = {
@@ -44,6 +46,17 @@ export function SidebarUser({
   isLoggingOut = false,
 }: SidebarUserProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const isDirty = usePreventLeaveStore((s) => s.isDirty);
+
+  const handleLogoutClick = () => {
+    // 미저장 변경이 있으면 이탈방지 확인 모달이 먼저 뜨도록 자체 모달을 건너뛴다.
+    if (isDirty) {
+      onLogout();
+      return;
+    }
+
+    setModalOpen(true);
+  };
 
   return (
     <>
@@ -59,7 +72,7 @@ export function SidebarUser({
           type="button"
           className="sidebar-user__logout"
           aria-label="로그아웃"
-          onClick={() => setModalOpen(true)}
+          onClick={handleLogoutClick}
         >
           <Icon id="i-logout" size={16} />
         </button>

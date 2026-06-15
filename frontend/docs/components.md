@@ -490,7 +490,8 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ## 12. 사이드바 컴포넌트 (Sidebar)
 
-라우터·스토어·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음(`Sidebar` / `SidebarNav` / `SidebarUser`).  
+라우터·auth에 의존하지 않는 순수 props 기반 사이드바 컴포넌트 모음(`Sidebar` / `SidebarNav` / `SidebarUser`).
+`SidebarUser`는 로그아웃 확인 모달 분기를 위해 이탈방지 공용 스토어(`preventLeaveStore`)를 참조한다.
 상세 사용법·Props·어드민 어댑터 패턴은 [docs/components/Sidebar.md](./components/Sidebar.md) 참고.
 
 ---

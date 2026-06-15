@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToNoticeManageRow,
   useNoticeManageQuery,
@@ -103,6 +104,8 @@ export function useNoticeManagePageState() {
     onSaveRow: handleSaveRow,
     onDeleteRows: handleDeleteRows,
   });
+
+  usePreventLeave(modalFlow.isDirty);
 
   const editingFileUlid =
     !modalFlow.isCreateMode && modalFlow.isEditorOpen
