@@ -1,13 +1,25 @@
 // 클라이언트 메뉴 데이터 — 실제 화면 구현 전에도 라우트와 URL 규칙은 이 파일을 기준으로 맞춘다.
 import type { SidebarNavDepth1 } from '@/shared/components/sidebar/types';
+import { createAdminNavigationData } from '@/shared/menu/adminNavigation';
+import type { MenuCatalogItem } from '@/shared/menu/menuCatalog';
 
-export type ClientSection = 'store' | 'menu' | 'order' | 'payment' | 'board';
+export type ClientSection = string;
 
 export type ClientMenuBreadcrumb = {
   depth1: string;
   depth2: string;
   depth3: string;
 };
+
+export type ClientNavigationData = {
+  headerSections: { key: ClientSection; label: string }[];
+  menusBySection: Record<string, SidebarNavDepth1[]>;
+  currentSection: ClientSection | null;
+  currentMenus: SidebarNavDepth1[];
+  breadcrumb: ClientMenuBreadcrumb | null;
+};
+
+export const CLIENT_ROOT_MENU_CD = 'CLIENT';
 
 export const CLIENT_SECTIONS: { key: ClientSection; label: string }[] = [
   { key: 'store', label: '매장' },
@@ -136,8 +148,11 @@ export function findClientSectionByPath(pathname: string): ClientSection | null 
   return null;
 }
 
-export function findClientExpandedMenuKeys(pathname: string) {
-  for (const depth1 of CLIENT_SIDEBAR_MENUS) {
+export function findClientExpandedMenuKeys(
+  pathname: string,
+  menus: readonly SidebarNavDepth1[] = CLIENT_SIDEBAR_MENUS,
+) {
+  for (const depth1 of menus) {
     for (const group of depth1.groups) {
       if (group.items.some((item) => item.path === pathname)) {
         return {
@@ -169,4 +184,46 @@ export function findClientMenuBreadcrumb(pathname: string): ClientMenuBreadcrumb
   }
 
   return null;
+}
+
+function createFallbackClientNavigationData(pathname: string): ClientNavigationData {
+  const currentSection = findClientSectionByPath(pathname);
+
+  return {
+    headerSections: CLIENT_SECTIONS,
+    menusBySection: CLIENT_MENUS_BY_SECTION,
+    currentSection,
+    currentMenus: currentSection ? CLIENT_MENUS_BY_SECTION[currentSection] ?? [] : [],
+    breadcrumb: findClientMenuBreadcrumb(pathname),
+  };
+}
+
+export function createClientNavigationData(
+  items: readonly MenuCatalogItem[],
+  pathname: string,
+): ClientNavigationData {
+  const navigation = createAdminNavigationData(items, pathname, {
+    rootMenuCd: CLIENT_ROOT_MENU_CD,
+  });
+
+  if (navigation.headerSections.length === 0) {
+    return createFallbackClientNavigationData(pathname);
+  }
+
+  return {
+    headerSections: navigation.headerSections.map(({ section, label }) => ({
+      key: section,
+      label,
+    })),
+    menusBySection: navigation.menusBySection,
+    currentSection: navigation.currentSection,
+    currentMenus: navigation.currentMenus,
+    breadcrumb: navigation.breadcrumb
+      ? {
+          depth1: navigation.breadcrumb.depth1,
+          depth2: navigation.breadcrumb.depth2,
+          depth3: navigation.breadcrumb.current,
+        }
+      : null,
+  };
 }
