@@ -19,7 +19,10 @@ public class EmailValidService {
     private final EmailValidMapper emailValidMapper;
     private final EmailService emailService;
 
-    public String sendSignupCode(String email, String userName) {
+    public String sendSignupCode(String email,
+                                    String userName,
+                                    String userId,
+                                    String sysPlantCd) {
 
         String validCode = generateValidCode();
 
@@ -30,7 +33,7 @@ public class EmailValidService {
                 "아래 인증 코드를 입력해주세요.\n\n" +
                 "인증 코드: " + validCode + "\n\n" +
                 "본 메일은 발신 전용입니다.");
-        emailService.sendEmail(emailRequest);
+        emailService.sendEmail(emailRequest, userId, sysPlantCd);
 
         return validCode;
     }
@@ -48,7 +51,9 @@ public class EmailValidService {
         emailValidMapper.newUserEmailValid(email);
     }
 
-    public void sendPwdChangeCode(String email) {
+    public void sendPwdChangeCode(String email,
+                                    String userId,
+                                    String sysPlantCd) {
 
         if (!emailValidMapper.userExistsByEmail(email)) {
             throw new EmailValidException("존재하지 않는 이메일입니다.");
@@ -63,10 +68,11 @@ public class EmailValidService {
         emailRequest.setBody("아래 인증 코드를 입력해주세요.\n\n" +
                 "인증 코드: " + validCode + "\n\n" +
                 "본 메일은 발신 전용입니다.");
-        emailService.sendEmail(emailRequest);
+        emailService.sendEmail(emailRequest, userId, sysPlantCd);
     }
 
-    public void pwdChange(String email, String validCode) {
+    public void pwdChange(String email,
+                            String validCode) {
 
         if (!emailValidMapper.codeExist(email)) {
             throw new EmailValidException("인증 정보가 유효하지 않습니다.");

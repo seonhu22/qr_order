@@ -1,8 +1,10 @@
 package htms.QROrder.auth.controller;
 
+import htms.QROrder.auth.domain.Login;
 import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.service.EmailValidService;
 import htms.QROrder.common.dto.CommonResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +32,12 @@ public class EmailValidController {
     }
 
     @PostMapping("/email_valid/pwd_change/send")
-    public ResponseEntity<CommonResponse> sendPwdChangeCode(@RequestBody EmailValidRequest emailValidRequest) {
+    public ResponseEntity<CommonResponse> sendPwdChangeCode(@RequestBody EmailValidRequest emailValidRequest,
+                                                                HttpSession session) {
 
-        emailValidService.sendPwdChangeCode(emailValidRequest.getEmail());
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        emailValidService.sendPwdChangeCode(emailValidRequest.getEmail(), loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

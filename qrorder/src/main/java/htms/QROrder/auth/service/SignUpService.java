@@ -40,7 +40,9 @@ public class SignUpService {
         }
     }
 
-    public void newUser(SignUpRequest signUpRequest, HttpServletRequest request) {
+    public void newUser(SignUpRequest signUpRequest,
+                            String userId,
+                            String sysPlantCd) {
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
@@ -54,7 +56,8 @@ public class SignUpService {
         signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
-        String validCode = emailValidService.sendSignupCode(signUpRequest.getEmail(), signUpRequest.getUserNm());
+
+        String validCode = emailValidService.sendSignupCode(signUpRequest.getEmail(), signUpRequest.getUserNm(), userId, sysPlantCd);
 
         EmailValidRequest emailValidRequest = new EmailValidRequest();
         emailValidRequest.setSysId(emailSysId);
