@@ -404,6 +404,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/store_manage/user_manage/update": {
         parameters: {
             query?: never;
@@ -996,7 +1012,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/email_valid/new_user/{encodeSysId}": {
+    "/api/auth/email_valid/pwd_change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pwdChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/email_valid/pwd_change/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendPwdChangeCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/email_valid/new_user": {
         parameters: {
             query?: never;
             header?: never;
@@ -1983,6 +2031,12 @@ export interface components {
             newPwd: string;
             chkNewPwd: string;
         };
+        EmailRequest: {
+            to?: string[];
+            cc?: string[];
+            subject?: string;
+            body?: string;
+        };
         ClientUserRequest: {
             sysId?: string;
             userId?: string;
@@ -2026,9 +2080,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2230,6 +2284,13 @@ export interface components {
             password: string;
             chkPassword: string;
         };
+        EmailValidRequest: {
+            sysId?: string;
+            linkSysId?: string;
+            encodeSysId?: string;
+            validCode?: string;
+            email?: string;
+        };
         PlantStatusResponse: {
             sysId?: string;
             plantCd?: string;
@@ -2344,9 +2405,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2408,6 +2469,8 @@ export interface components {
             tableInfo?: string;
             paymentType?: string;
             orderStatus?: string;
+            /** Format: int32 */
+            orderNum?: number;
             /** Format: date-time */
             orderDatetime?: string;
             /** Format: int32 */
@@ -3144,6 +3207,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    sendEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
             };
         };
     };
@@ -4029,16 +4116,66 @@ export interface operations {
             };
         };
     };
+    pwdChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailValidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    sendPwdChangeCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailValidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
     newUserEmailValid: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                encodeSysId: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailValidRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

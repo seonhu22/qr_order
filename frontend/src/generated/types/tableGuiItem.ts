@@ -14,6 +14,6 @@ export interface TableGuiItem {
   height?: number;
   width?: number;
   tableType?: string;
-  xcoordinate?: number;
   ycoordinate?: number;
+  xcoordinate?: number;
 }
