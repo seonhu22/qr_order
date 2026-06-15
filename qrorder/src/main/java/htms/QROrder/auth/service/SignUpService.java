@@ -1,10 +1,11 @@
 package htms.QROrder.auth.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.dto.EmailValidRequest;
+import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class SignUpService {
 
     private final SignUpMapper signUpMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailValidService emailValidService;
 
     @Value("${nts.api.service-key}")
     private String ntsServiceKey;
@@ -38,26 +40,27 @@ public class SignUpService {
         }
     }
 
-    public void newUser(SignUpRequest signUpRequest) {
+    public void newUser(SignUpRequest signUpRequest, HttpServletRequest request) {
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        EmailValidRequest  emailValidRequest = new EmailValidRequest();
-
         String signUpSysId = UlidCreator.getUlid().toString();
         String emailSysId = UlidCreator.getUlid().toString();
-        String password = passwordEncoder.encode(signUpRequest.getPassword());
-        String passwordChk = passwordEncoder.encode(signUpRequest.getPasswordChk());
         String encodeEmailSysId = passwordEncoder.encode(emailSysId);
 
         signUpRequest.setSysId(signUpSysId);
+        signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+        signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
+
+        String validCode = emailValidService.sendSignupCode(signUpRequest.getEmail(), signUpRequest.getUserNm());
+
+        EmailValidRequest emailValidRequest = new EmailValidRequest();
         emailValidRequest.setSysId(emailSysId);
         emailValidRequest.setLinkSysId(signUpSysId);
         emailValidRequest.setEncodeSysId(encodeEmailSysId);
-        signUpRequest.setPassword(password);
-        signUpRequest.setPasswordChk(passwordChk);
+        emailValidRequest.setValidCode(validCode);
 
         signUpMapper.newPlant(signUpRequest);
         signUpMapper.newUser(signUpRequest);
