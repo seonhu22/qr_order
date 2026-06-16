@@ -5,7 +5,7 @@ import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 import { StoreInfoPage } from '@/apps/client/pages/store/info/StoreInfoPage';
-import { ClientUserPage } from '@/apps/client/pages/store/ClientUserPage';
+import { ClientUserPage } from '@/apps/client/pages/store/user/ClientUserPage';
 
 export const clientRoutes: RouteObject[] = [
   {
