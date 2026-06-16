@@ -1,22 +1,71 @@
 import './StoreInfoPage.css';
-import { FormEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
 import { TextInput } from '@/shared/components/input';
-import { WrapperModal } from '@/shared/components/modal';
+import { EditConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
 import { StoreInfoFormCard } from '@/apps/client/features/store-info/components/StoreInfoFormCard';
-import { STORE_INFO_MOCK } from '@/apps/client/features/store-info/mock/storeInfoMock';
+import {
+  STORE_INFO_MOCK,
+  STORE_INFO_MOCK_ROWS,
+} from '@/apps/client/features/store-info/mock/storeInfoMock';
+import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import type { StoreInfo, StoreInfoFieldKey } from '@/apps/client/features/store-info/types';
+import {
+  pwdChk,
+  useSaveStoreInfo,
+} from '@/generated/store-manage-controller/store-manage-controller';
+import type { LocalTime } from '@/generated/types/localTime';
+import type { StoreInfoRequest } from '@/generated/types/storeInfoRequest';
+
+function parseTime(time: string): LocalTime {
+  const [h, m] = time.split(':').map(Number);
+  return { hour: h ?? 0, minute: m ?? 0 };
+}
+
+function toStoreInfoRequest(values: StoreInfo): StoreInfoRequest {
+  return {
+    sysId: STORE_INFO_MOCK_ROWS[0]?.sysId,
+    storeName: values.storeName,
+    address: values.address,
+    phoneNumber: Number(values.contactPhone.replace(/[^0-9]/g, '')) || undefined,
+    emergencyPhoneNumber: Number(values.emergencyPhone.replace(/[^0-9]/g, '')) || undefined,
+    email: values.email,
+    openTime: values.businessHoursStart ? parseTime(values.businessHoursStart) : undefined,
+    closeTime: values.businessHoursEnd ? parseTime(values.businessHoursEnd) : undefined,
+  };
+}
+
+type NoticeState = { title: string; description: string } | null;
 
 export function StoreInfoPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [storeInfo, setStoreInfo] = useState<StoreInfo>(STORE_INFO_MOCK);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [originalValues, setOriginalValues] = useState<StoreInfo | null>(null);
+  const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const [isDirtyWarningOpen, setIsDirtyWarningOpen] = useState(false);
+  const [noticeState, setNoticeState] = useState<NoticeState>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const setHideBreadcrumb = useClientLayoutStore((s) => s.setHideBreadcrumb);
+  const saveMutation = useSaveStoreInfo();
+
+  const isDirty =
+    isEditMode && originalValues !== null && JSON.stringify(storeInfo) !== JSON.stringify(originalValues);
+
+  usePreventLeave(isDirty);
+
+  useEffect(() => {
+    setHideBreadcrumb(!isAuthenticated);
+    return () => setHideBreadcrumb(false);
+  }, [isAuthenticated, setHideBreadcrumb]);
+
+  const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
 
     if (!password.trim()) {
@@ -24,61 +73,143 @@ export function StoreInfoPage() {
       return;
     }
 
-    setPasswordError('');
-    setIsAuthenticated(true);
-    setPassword('');
+    setIsSubmitting(true);
+    try {
+      const result = await pwdChk({ pwd: password });
+      if (result === true) {
+        setPasswordError('');
+        setIsAuthenticated(true);
+        setPassword('');
+      } else {
+        setPasswordError('비밀번호가 올바르지 않습니다.');
+      }
+    } catch {
+      setPasswordError('인증 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleEditMode = (next: boolean) => {
+    if (!next && isDirty) {
+      setIsDirtyWarningOpen(true);
+      return;
+    }
+    if (next) {
+      setOriginalValues({ ...storeInfo });
+    } else {
+      setOriginalValues(null);
+    }
+    setIsEditMode(next);
   };
 
   const handleChangeField = (key: StoreInfoFieldKey, value: string) => {
     setStoreInfo((prev) => ({ ...prev, [key]: value }));
   };
 
-  return (
-    <section className="store-info-page" aria-label="매장 기본 정보">
-      {isAuthenticated ? (
+  const handleDiscardChanges = () => {
+    setIsDirtyWarningOpen(false);
+    setStoreInfo(originalValues!);
+    setOriginalValues(null);
+    setIsEditMode(false);
+  };
+
+  const handleSaveConfirm = async () => {
+    try {
+      await saveMutation.mutateAsync({ data: toStoreInfoRequest(storeInfo) });
+      setIsSaveConfirmOpen(false);
+      setIsEditMode(false);
+      setOriginalValues(null);
+      setNoticeState({ title: '알림', description: '저장되었습니다.' });
+    } catch (error) {
+      setIsSaveConfirmOpen(false);
+      setNoticeState({
+        title: '오류',
+        description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
+      });
+    }
+  };
+
+  if (isAuthenticated) {
+    return (
+      <section className="store-info-page" aria-label="매장 기본 정보">
         <StoreInfoFormCard
           values={storeInfo}
           isEditMode={isEditMode}
-          onToggleEditMode={setIsEditMode}
+          onToggleEditMode={handleToggleEditMode}
           onChangeField={handleChangeField}
-          onSave={() => {}}
+          onSave={() => setIsSaveConfirmOpen(true)}
         />
-      ) : null}
 
-      <WrapperModal
-        closeOnOverlayClick={false}
-        icon={
-          <span className="store-info-access-modal__icon" aria-hidden="true">
-            <Icon id="i-lock" size={24} />
-          </span>
-        }
-        layout="notice"
-        open={!isAuthenticated}
-        size="md"
-        subtitle="매장 정보를 확인하려면 비밀번호를 입력해주세요."
-        title="매장 정보 접근 인증"
-        onClose={() => {}}
-      >
-        <form className="store-info-access-modal__form" onSubmit={handleSubmit}>
-          <TextInput
-            id="store-info-access-password"
-            type="password"
-            size="lg"
-            placeholder="비밀번호를 입력하세요"
-            showPasswordToggle
-            value={password}
-            errorText={passwordError}
-            aria-label="비밀번호"
-            onChange={(event) => {
-              setPassword(event.target.value);
-              if (passwordError) setPasswordError('');
-            }}
-          />
-          <Button className="store-info-access-modal__submit" size="lg" type="submit">
-            확인
-          </Button>
-        </form>
-      </WrapperModal>
+        <EditConfirmModal
+          open={isSaveConfirmOpen}
+          description="수정된 내용을 저장하시겠습니까?"
+          primaryAction={{ loading: saveMutation.isPending, onClick: handleSaveConfirm }}
+          secondaryAction={{ disabled: saveMutation.isPending, onClick: () => setIsSaveConfirmOpen(false) }}
+          onClose={() => setIsSaveConfirmOpen(false)}
+        />
+
+        <SimpleDefaultModal
+          open={isDirtyWarningOpen}
+          title="알림"
+          description="페이지를 나가시겠습니까?"
+          helperText="수정하신 내용이 저장되지 않았습니다."
+          primaryAction={{ label: '확인', onClick: handleDiscardChanges }}
+          secondaryAction={{ onClick: () => setIsDirtyWarningOpen(false) }}
+          onClose={() => setIsDirtyWarningOpen(false)}
+        />
+
+        <SimpleDefaultModal
+          open={!!noticeState}
+          title={noticeState?.title ?? '알림'}
+          description={noticeState?.description}
+          onClose={() => setNoticeState(null)}
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section className="store-info-page" aria-label="매장 기본 정보">
+      <div className="store-info-auth-wrapper">
+        <div className="store-info-auth-card">
+          <div className="store-info-auth-card__body">
+            <div className="store-info-auth-card__notice">
+              <span className="store-info-auth-icon" aria-hidden="true">
+                <Icon id="i-lock" size={24} />
+              </span>
+              <h3 className="store-info-auth-card__title">매장 정보 접근 인증</h3>
+              <p className="store-info-auth-card__subtitle">
+                매장 정보를 확인하려면 비밀번호를 입력해주세요.
+              </p>
+            </div>
+            <form className="store-info-auth-form" onSubmit={handleSubmit}>
+              <TextInput
+                id="store-info-access-password"
+                type="password"
+                size="lg"
+                placeholder="비밀번호를 입력하세요"
+                showPasswordToggle
+                value={password}
+                errorText={passwordError}
+                aria-label="비밀번호"
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  if (passwordError) setPasswordError('');
+                }}
+              />
+              <Button
+                className="store-info-auth-form__submit"
+                size="lg"
+                type="submit"
+                loading={isSubmitting}
+              >
+                확인
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
