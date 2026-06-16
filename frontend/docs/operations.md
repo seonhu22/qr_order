@@ -695,6 +695,28 @@ Admin feature를 기준으로 Client(추후 Consumer)의 동일 feature를 구�
 
 적용 예시: `AdminUser` ↔ `ClientUser` — ViewModel 타입, 모달 플로우, 테이블 loading/error 처리, 테스트 4종(`*Api.test`, `use*ModalFlow.test`, `use*Page.test`, `*Table.test`)을 동일한 구조로 미러링했다.
 
+### 셸 레이아웃 공유 규칙
+
+> 추가일: 2026-06-16
+
+어드민/클라이언트 대쉬보드는 셸 레이아웃이 통일돼 있다. 브레드크럼, 간격 등 셸 공통 요소는 앱 구분 없이 동일한 컴포넌트와 토큰을 사용한다.
+
+**브레드크럼 네비게이션**
+
+항상 `src/shared/components/navigation/PageNavigation`을 사용한다. 어드민 또는 클라이언트에서 별도 브레드크럼 JSX/CSS를 새로 작성하지 않는다.
+
+- `AdminMainNavigation`: 라우트 정보를 해석한 뒤 `<PageNavigation>`에 위임한다.
+- `ClientPageNavigation`: `breadcrumb` prop을 받아 null 체크 후 `<PageNavigation>`에 위임한다.
+
+**레이아웃 gap**
+
+브레드크럼 ↔ 첫 번째 콘텐츠(검색 카드·테이블) 간격은 `--spacing-8`(16px)로 통일한다.
+
+| 앱 | 위치 | 값 |
+|---|---|---|
+| Admin | `admin-main-layout-page` — `gap` | `var(--spacing-8)` |
+| Client | `client-layout__main` — `gap` | `var(--spacing-8)` |
+
 ---
 
 ## 관련 문서

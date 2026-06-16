@@ -16,7 +16,8 @@
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
 - [11. 상태 처리와 에러 페이지 (StatusHandling)](#11-상태-처리와-에러-페이지-statushandling)
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
-- [13. 첨부파일 컴포넌트 (FileAttachment)](#13-첨부파일-컴포넌트-fileattachment)
+- [13. 브레드크럼 컴포넌트 (PageNavigation)](#13-브레드크럼-컴포넌트-pagenavigation)
+- [14. 첨부파일 컴포넌트 (FileAttachment)](#14-첨부파일-컴포넌트-fileattachment)
 
 ---
 
@@ -188,6 +189,10 @@ shared/components/
     types.ts              ← SidebarNavItem, SidebarNavGroup, SidebarNavDepth1 타입
     Sidebar.tsx           ← 컨테이너 (--sb-* CSS 변수 제공 + flex 셸)
     Sidebar.css
+    SidebarHeader.tsx     ← 사이드바 헤더 (brand 슬롯 + 닫기 버튼)
+    SidebarHeader.css
+    SidebarSection.tsx    ← depth1 섹션 타이틀 (어드민·클라이언트 공통)
+    SidebarSection.css
     SidebarNav.tsx        ← 3계층 nav (props 기반, 라우터·스토어 비의존)
     SidebarNav.css
     SidebarUser.tsx       ← 사용자 푸터 (props 기반, auth 비의존, 로그아웃 모달 내장)
@@ -209,6 +214,10 @@ shared/components/
     types.ts              ← ErrorPageTemplate props/action 타입
     ErrorPageTemplate.tsx ← 403/404/500 공통 화면 템플릿
     ErrorPageTemplate.css
+  navigation/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    PageNavigation.tsx    ← 어드민·클라이언트 공통 브레드크럼 컴포넌트
+    PageNavigation.css
 ```
 
 #### modal/ 계층 원칙
@@ -334,8 +343,9 @@ import { ToggleInput } from '@/shared/components/toggle';
 import { FormAlert } from '@/shared/components/form-alert';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TreeMenu } from '@/shared/components/treeMenu';
-import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { Sidebar, SidebarHeader, SidebarSection, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { ConfirmModal, WrapperModal } from '@/shared/components/modal';
+import { PageNavigation } from '@/shared/components/navigation';
 import { Icon } from '@/shared/assets/icons/Icon';
 
 // 금지 — 내부 파일 직접 참조
@@ -496,7 +506,27 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ---
 
-## 13. 첨부파일 컴포넌트 (FileAttachment)
+## 13. 브레드크럼 컴포넌트 (PageNavigation)
+
+`src/shared/components/navigation/PageNavigation.tsx`
+
+어드민·클라이언트 대쉬보드 공통 브레드크럼 컴포넌트. 두 앱의 셸 레이아웃이 통일되어 있으므로 브레드크럼 JSX와 CSS도 이 컴포넌트 하나로 관리한다.
+
+| prop | 타입 | 설명 |
+|---|---|---|
+| `depth1` | `string` | 1단계 메뉴명 |
+| `depth2` | `string` | 2단계 메뉴명 |
+| `current` | `string` | 현재 페이지명 (굵게 표시) |
+
+**사용 규칙**
+
+- 어드민에서 직접 사용하지 말 것 — `AdminMainNavigation`이 라우트 정보 해석 후 위임한다.
+- 클라이언트에서 직접 사용하지 말 것 — `ClientPageNavigation`이 null 체크 후 위임한다.
+- 새 앱(Consumer 등)에서 브레드크럼이 필요하면 앱 전용 thin wrapper를 만들어 `PageNavigation`에 위임한다. 직접 CSS를 재작성하지 않는다.
+
+---
+
+## 14. 첨부파일 컴포넌트 (FileAttachment)
 
 등록·수정·상세 화면에서 사용하는 첨부파일 입력, 다운로드 목록, 제약 안내 컴포넌트 모음이다.
 컴포넌트 사용법은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.
