@@ -85,8 +85,10 @@ export function useStoreTablePage(): StoreTablePageViewModel {
   const rows = useMemo(() => {
     const keyword = appliedKeyword.trim().toLowerCase();
     if (!keyword) return draftRows;
-    return draftRows.filter((row) =>
-      [row.tableNum, row.tableName].some((value) => value.toLowerCase().includes(keyword)),
+    return draftRows.filter(
+      (row) =>
+        row.isNew ||
+        [row.tableNum, row.tableName].some((value) => value.toLowerCase().includes(keyword)),
     );
   }, [appliedKeyword, draftRows]);
 
