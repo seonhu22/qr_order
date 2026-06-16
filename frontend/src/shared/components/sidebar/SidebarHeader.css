@@ -1,0 +1,46 @@
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.9375rem; /* 63px — 토큰 없음 */
+  padding: 0 var(--spacing-8);
+  flex-shrink: 0;
+}
+
+/* Brand 사이즈 오버라이드 (사이드바 전용) */
+.sidebar-header .admin-brand {
+  gap: var(--spacing-5);
+}
+
+.sidebar-header .admin-brand__icon-box {
+  width: var(--height-component-sm);
+  height: var(--height-component-sm);
+}
+
+.sidebar-header .admin-brand__name {
+  font-size: var(--font-size-lg);
+  line-height: 1.75rem;
+}
+
+.sidebar-header__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  padding: var(--spacing-2);
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+  transition:
+    background-color var(--transition-ui),
+    color var(--transition-ui);
+}
+
+.sidebar-header__close:hover {
+  background-color: var(--sb-overlay);
+  color: var(--sb-text-normal);
+}
