@@ -185,7 +185,7 @@ export function useStoreTablePage(): StoreTablePageViewModel {
       isFetching: tableQuery.isFetching,
       isError: tableQuery.isError,
       error: tableQuery.error,
-      isSaving: saveStoreTableMutation.isPending,
+      isSaving: saveStoreTableMutation.isPending || editableFlow.state.isConfirmingSave,
     },
     actions: {
       handleKeywordChange,
