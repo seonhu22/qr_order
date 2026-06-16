@@ -333,7 +333,7 @@ Admin 규칙 미러링을 채택한다.
 
 > 추가일: 2026-06-15
 
-폴더 구조 미러링뿐 아니라, 동일 도메인 feature의 로직·흐름·ViewModel·테스트 커버리지도 Admin과 Client(추후 Consumer)가 동일하게 유지한다(차이는 권한·메뉴 노출 범위로 한정). 상세 기준은 [operations.md §8 Admin/Client 기능 패리티 원칙](./operations.md#8-adminclient-기능-패리티-원칙) 참고.
+폴더 구조 미러링뿐 아니라, 동일 도메인 feature의 로직·흐름·ViewModel·테스트 커버리지도 Admin과 Client(추후 Consumer)가 동일하게 유지한다(차이는 권한·메뉴 노출 범위로 한정). 상세 기준은 [Admin/Client 패리티](./operations/app-parity.md) 참고.
 
 ---
 

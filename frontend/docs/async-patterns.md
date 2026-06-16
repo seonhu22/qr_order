@@ -201,7 +201,7 @@ function toRequestPayload(values: FormModel): EntityRequest { ... }
 ```
 
 - DTO 변환이 단순하면 page 상단 private 함수로 둬도 된다.
-- 여러 곳에서 재사용되면 `features/<feature>/api/` 계층으로 분리한다 ([operations.md §5-6](./operations.md#6-api-wrapper의-변환-함수-이름은-방향이-드러나게-통일한다) 참고).
+- 여러 곳에서 재사용되면 `features/<feature>/api/` 계층으로 분리한다 ([API 응답·호출 정책](./operations/api-response-policy.md) 참고).
 
 ### 접근 인증 게이트
 
