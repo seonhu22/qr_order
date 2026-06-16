@@ -6,6 +6,7 @@ import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
+import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -34,12 +35,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/table/management',
-        element: (
-          <ClientPlaceholderPage
-            title="테이블 관리"
-            description="매장 테이블 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <StoreTableManagementPage />,
       },
       {
         path: 'store/table/qr',
