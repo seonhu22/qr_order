@@ -708,6 +708,14 @@ Admin feature를 기준으로 Client(추후 Consumer)의 동일 feature를 구�
 - `AdminMainNavigation`: 라우트 정보를 해석한 뒤 `<PageNavigation>`에 위임한다.
 - `ClientPageNavigation`: `breadcrumb` prop을 받아 null 체크 후 `<PageNavigation>`에 위임한다.
 
+**사이드바 헤더**
+
+사이드바 헤더는 항상 `src/shared/components/sidebar/SidebarHeader`를 사용한다. 앱별로 헤더 JSX를 새로 작성하지 않는다.
+
+- `brand`: 앱 로고/브랜드 노드를 주입한다.
+- `onClose`: 사이드바 닫기 콜백을 주입한다.
+- 앱별 어댑터(`AdminSidebarHeader`, `ClientSidebarHeader` 등)는 스토어·이벤트 연결만 담당하고 UI 마크업은 `SidebarHeader`에 위임한다.
+
 **레이아웃 gap**
 
 브레드크럼 ↔ 첫 번째 콘텐츠(검색 카드·테이블) 간격은 `--spacing-8`(16px)로 통일한다.
