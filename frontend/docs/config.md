@@ -1,6 +1,6 @@
 # 주요 설정 파일 설명
 
-> 주요 설정 파일(vite.config.js · tsconfig.json · ESLint · Prettier 등) 역할과 인증 구조를 다룬다.
+> Vite, TypeScript, ESLint, Prettier, 앱 진입점, 테스트·정적 파일 설정의 역할을 요약한다. 전체 문서 지도는 [README.md](./README.md)를 기준으로 본다.
 
 ## 목차
 
@@ -14,7 +14,7 @@
 - [8. `src/shared/components/*/index.ts`](#8-srcsharedcomponentsindexts)
 - [9. `src/test/*`](#9-srctest)
 - [10. `public/*`](#10-public)
-- [11. 인증 구조](#11-인증-구조)
+- [11. 관련 문서](#11-관련-문서)
 
 ---
 
@@ -117,30 +117,13 @@
 
 ---
 
-## 11. 인증 구조
-
-로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책은 별도 문서로 관리한다.
-
-→ [`docs/auth.md`](./auth.md)
-
----
-
-## 12. 전체 문서 목록
+## 11. 관련 문서
 
 | 문서 | 내용 |
 |---|---|
-| [`architecture.md`](./architecture.md) | 폴더 구조, 레이어 역할, 네이밍 규칙 |
-| [`operations.md`](./operations.md) | 개발 원칙, 페이지 구조 표준, CRUD 화면 리팩토링 규칙 |
-| [`async-patterns.md`](./async-patterns.md) | Mutation 결과 안내 모달, generated API 직접 호출, 단일 엔티티 폼 화면 패턴 |
-| [`api-codegen.md`](./api-codegen.md) | OpenAPI 코드 생성, MSW 핸들러 오버라이드, mock 파일 양식 |
-| [`components.md`](./components.md) | 공용 컴포넌트 사용 가이드 |
-| [`design-tokens.md`](./design-tokens.md) | 디자인 토큰 목록 및 사용 규칙 |
-| [`auth.md`](./auth.md) | 로그인 흐름, 인증 상태 관리, 비밀번호 정책 |
-| [`query-cache-policy.md`](./query-cache-policy.md) | TanStack Query 캐시 정책 |
-| [`client-zustand-policy.md`](./client-zustand-policy.md) | 클라이언트 앱 Zustand 전역 상태 관리 정책 |
-| [`combo-api-policy.md`](./combo-api-policy.md) | 검색용·저장용 콤보 API 분리 기준 |
-| [`decisions.md`](./decisions.md) | 주요 설계 결정 기록 (ADR) |
-| [`libraries.md`](./libraries.md) | 주요 라이브러리 목록 및 선택 근거 |
-| [`troubleshooting.md`](./troubleshooting.md) | 자주 발생하는 문제와 해결 방법 |
-| [`admin-navigation.md`](./admin-navigation.md) | 어드민 메뉴·내비게이션 구조 |
-| [`file-attachment-policy.md`](./file-attachment-policy.md) | 파일 첨부 정책 |
+| [문서 지도](./README.md) | 전체 문서 입구 |
+| [아키텍처](./architecture.md) | 폴더 구조, 레이어 역할, 라우팅 기준 |
+| [운영 원칙](./operations.md) | 상태 관리, API 호출, 리팩토링, 페이지 패턴 |
+| [공용 컴포넌트](./components.md) | shared component 작성 규칙과 상세 컴포넌트 문서 |
+| [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 비밀번호 정책 |
+| [라이브러리](./libraries.md) | 테스트 도구와 주요 라이브러리 선택 근거 |

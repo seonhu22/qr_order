@@ -1,6 +1,6 @@
 # 공용 컴포넌트 작성 규칙
 
-> `shared/components` 작성 규칙(3-레이어 패턴, 스타일·타입 규칙), FeedbackState 사용법, 모달 작성 원칙을 다룬다.
+> `shared/components` 문서의 부모 문서다. 공통 작성 규칙은 이 문서에 두고, 컴포넌트별 상세 사용법은 `docs/components/*` 문서로 분기한다.
 
 ## 목차
 
@@ -18,6 +18,18 @@
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
 - [13. 브레드크럼 컴포넌트 (PageNavigation)](#13-브레드크럼-컴포넌트-pagenavigation)
 - [14. 첨부파일 컴포넌트 (FileAttachment)](#14-첨부파일-컴포넌트-fileattachment)
+
+---
+
+## 상세 문서
+
+| 문서 | 내용 |
+|---|---|
+| [TableCard](./components/TableCard.md) | 테이블 카드 사용 패턴과 CSS 레퍼런스 |
+| [TreeMenu](./components/TreeMenu.md) | 트리 메뉴 사용 패턴과 CSS 레퍼런스 |
+| [StatusHandling](./components/StatusHandling.md) | 401/403/404/500 상태 처리와 에러 페이지 |
+| [Sidebar](./components/Sidebar.md) | 사이드바 공용 컴포넌트와 앱별 어댑터 기준 |
+| [FileAttachment](./components/FileAttachment.md) | 첨부파일 입력·다운로드 UI 기준 |
 
 ---
 
