@@ -132,6 +132,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
     }
 
     await saveUsersMutation.mutateAsync(request);
+    resetKeywords();
     await queryClient.invalidateQueries({
       queryKey: queryKeys.adminUser.lists,
     });

@@ -107,6 +107,7 @@ export function useStoreTablePage(): StoreTablePageViewModel {
       const request = buildStoreTableRequest(draftRows, baseRows);
       if (!hasStoreTableChanges(request)) return 'unchanged';
       await saveStoreTableMutation.mutateAsync(request);
+      resetKeywords();
       await queryClient.invalidateQueries({ queryKey: queryKeys.storeTable.lists });
       return 'saved';
     },

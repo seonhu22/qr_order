@@ -64,6 +64,42 @@ const handleSearch = () => {
 - `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달
 - `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
 
+### 조회 중 행추가
+
+검색어가 적용된 상태(`appliedKeyword`가 있는 상태)에서 행추가를 하면 새 행이 필터에 걸려 화면에 나타나지 않는다.
+`isNew` 행은 필터 조건과 무관하게 항상 표시되도록 예외 처리한다.
+
+```ts
+const rows = useMemo(() => {
+  const keyword = appliedKeyword.trim().toLowerCase();
+  if (!keyword) return draftRows;
+  return draftRows.filter(
+    (row) =>
+      row.isNew ||
+      [row.field1, row.field2].some((value) => value.toLowerCase().includes(keyword)),
+  );
+}, [appliedKeyword, draftRows]);
+```
+
+서버사이드 필터링 페이지(예: `AdminUserPage`)는 새 행이 로컬 `draftRows`에 추가되므로 이 처리가 불필요하다.
+
+### 저장 후 검색어 초기화 및 전체 목록 재조회
+
+저장 성공 후 검색어가 남아 있으면 방금 저장한 행이 필터에 걸려 목록에서 사라질 수 있다.
+`onSaveChanges` 콜백에서 `mutateAsync` 직후, `invalidateQueries` 앞에 `resetKeywords()`를 호출한다.
+
+```ts
+onSaveChanges: async () => {
+  // ...변경 없으면 'unchanged' 반환...
+  await saveMutation.mutateAsync(request);
+  resetKeywords();                                        // 검색어 초기화
+  await queryClient.invalidateQueries({ queryKey: ... }); // 전체 목록 재조회
+  return 'saved';
+},
+```
+
+`resetKeywords()`를 `invalidateQueries` 앞에 두는 이유: 서버사이드 필터 페이지에서 새 query key(`''`)가 즉시 무효화되어 refetch가 한 번으로 끝난다.
+
 ### `isSaving` 구성 기준
 
 `SaveConfirmModal`의 스피너는 mutation이 완료된 뒤에도 `invalidateQueries` + 상태 업데이트가 완료될 때까지 유지돼야 한다.

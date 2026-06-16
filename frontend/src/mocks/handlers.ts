@@ -8,8 +8,6 @@ import {
   getDelPaymentMockHandler,
   getDelPlantMockHandler,
   getDelRuleMasterMockHandler,
-  getGetAdminUserMockHandler,
-  getGetMessageMockHandler,
   getGetPaymentCouponMockHandler,
   getGetPaymentMockHandler,
   getGetPlantStatusMockHandler,
@@ -45,6 +43,8 @@ import { getFileControllerMock } from '../generated/file-controller/file-control
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
 import { getMainControllerMock } from '../generated/main-controller/main-controller.msw';
 import { getPopupControllerMock } from '../generated/popup-controller/popup-controller.msw';
+import { ADMIN_USER_MOCK_ROWS } from '../apps/admin/features/admin-user/mock/adminUserMock';
+import { MESSAGE_MOCK_ROWS } from '../apps/admin/features/message/mock/messageMock';
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
@@ -113,6 +113,40 @@ const couponOverrideHandler = http.get(
             row.couponNm?.toLowerCase().includes(keyword),
         )
       : COUPON_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
+
+const adminUserOverrideHandler = http.get(
+  '*/api/system/settings/adminuser/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? ADMIN_USER_MOCK_ROWS.filter(
+          (row) =>
+            row.userId?.toLowerCase().includes(keyword) ||
+            row.userNm?.toLowerCase().includes(keyword) ||
+            row.plantNm?.toLowerCase().includes(keyword),
+        )
+      : ADMIN_USER_MOCK_ROWS;
+    return HttpResponse.json(filtered);
+  },
+);
+
+const messageOverrideHandler = http.get(
+  '*/api/system/settings/message/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+    const filtered = keyword
+      ? MESSAGE_MOCK_ROWS.filter(
+          (row) =>
+            row.msgCd?.toLowerCase().includes(keyword) ||
+            row.msgNm?.toLowerCase().includes(keyword) ||
+            row.msgDescription?.toLowerCase().includes(keyword),
+        )
+      : MESSAGE_MOCK_ROWS;
     return HttpResponse.json(filtered);
   },
 );
@@ -329,10 +363,8 @@ const settingsHandlers = [
   getSearchPlantMockHandler(),
   getGetPaymentCouponMockHandler(),
   getGetPaymentMockHandler(),
-  getGetMessageMockHandler(),
   getSearchCommonMockHandler(),
   getSearchCommonDetailMockHandler(),
-  getGetAdminUserMockHandler(),
   getUpdateQnaMockHandler(),
   getUpdateNoticeMockHandler(),
   getNewNoticeMockHandler(),
@@ -349,6 +381,8 @@ export const handlers = [
   paymentOverrideHandler,
   plantStatusOverrideHandler,
   couponOverrideHandler,
+  adminUserOverrideHandler,
+  messageOverrideHandler,
   clientUserOverrideHandler,
   menuOverrideHandler,
   noticeOverrideHandler,
