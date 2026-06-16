@@ -1,10 +1,8 @@
-import '@/apps/client/features/sidebar/styles/ClientSidebarHeader.css';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { Sidebar, SidebarNav, SidebarSection, SidebarUser } from '@/shared/components/sidebar';
 import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
-import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
-import { Icon } from '@/shared/assets/icons/Icon';
+import { ClientSidebarHeader } from '@/apps/client/features/sidebar/components/ClientSidebarHeader';
 import { findClientExpandedMenuKeys } from '@/shared/menu/clientNavigation';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
@@ -18,7 +16,6 @@ export function ClientSidebar() {
   const navigate = useNavigate();
   const { guardedNavigate, requestLeaveConfirm } = useGuardedNavigate();
   const isSidebarOpen = useClientLayoutStore((s) => s.isSidebarOpen);
-  const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const activeSection = useClientLayoutStore((s) => s.activeSection);
   const { currentSection, currentMenus, menusBySection } = useClientNavigationMenus();
   const { user } = useAuth();
@@ -47,6 +44,8 @@ export function ClientSidebar() {
   const sectionMenus = displayedSection ? menusBySection[displayedSection] ?? [] : currentMenus;
   // 표시할 섹션이 없는 경우(예: /client/main) 전체 섹션의 메뉴를 펼쳐서 보여준다.
   const displayedMenus = sectionMenus.length > 0 ? sectionMenus : Object.values(menusBySection).flat();
+
+  const sectionLabel = displayedSection && sectionMenus.length > 0 ? (sectionMenus[0]?.label ?? '') : '';
 
   // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
   const pathnameRef = useRef(location.pathname);
@@ -94,20 +93,8 @@ export function ClientSidebar() {
 
   return (
     <Sidebar>
-      {/* ---- 헤더 ---- */}
-      <div className="client-sidebar-header">
-        <ClientBrand />
-        <button
-          type="button"
-          className="client-sidebar-header__close"
-          aria-label="사이드바 닫기"
-          onClick={closeSidebar}
-        >
-          <Icon id="i-close" size={16} />
-        </button>
-      </div>
-
-      {/* ---- 내비게이션 ---- */}
+      <ClientSidebarHeader />
+      {sectionLabel && <SidebarSection label={sectionLabel} />}
       <SidebarNav
         menus={displayedMenus}
         showDepth1={!displayedSection}
@@ -118,8 +105,6 @@ export function ClientSidebar() {
         onToggleDepth2={toggleDepth2}
         onNavigate={guardedNavigate}
       />
-
-      {/* ---- 사용자 푸터 ---- */}
       <SidebarUser
         userName={userName}
         userRole={userRole}
