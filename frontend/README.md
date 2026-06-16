@@ -21,7 +21,7 @@
 
 본 문서는 `frontend` 프로젝트를 처음 전달받은 팀원이 개발 환경을 스스로 구성하고, 실행·점검·테스트까지 수행할 수 있도록 작성한 설정 가이드이다.
 
-상세한 내용은 [`docs/`](./docs/) 하위 문서를 참고한다.
+상세한 내용은 [`docs/README.md`](./docs/README.md)를 문서 지도로 삼아 필요한 부모 문서와 상세 문서를 찾아본다.
 
 ---
 
@@ -225,10 +225,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 | 문서 | 내용 |
 |---|---|
+| [`docs/README.md`](./docs/README.md) | 프론트엔드 문서 지도, 작업 주제별 부모 문서 진입점 |
 | [`docs/architecture.md`](./docs/architecture.md) | 동작 구조, 폴더 구조, 라우트, 레이아웃 패턴 |
 | [`docs/design-tokens.md`](./docs/design-tokens.md) | 디자인 토큰 시스템, 컬러·타이포그래피 참고표 |
 | [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, 타입/배럴 파일 규칙 |
-| [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
+| [`docs/operations.md`](./docs/operations.md) | 운영 원칙과 상태/API/리팩토링/페이지 패턴 상세 문서 입구 |
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명 |
 | [`docs/auth.md`](./docs/auth.md) | 인증 구조, 쿼리 키 분리, init_yn 비밀번호 강제 변경 흐름 |
@@ -238,7 +239,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
-공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 참고한다.
+공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 부모 문서로 보고, 컴포넌트별 상세 문서는 그 문서의 `상세 문서` 섹션에서 찾는다.
 
 상태 처리 작성 기준:
 - 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
@@ -260,10 +261,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 | 추가할 내용 | 작성 위치 |
 |---|---|
+| 문서 위치를 찾기 위한 최상위 지도 | `docs/README.md` |
 | 폴더 구조, 라우트, 레이아웃 패턴 변경 | `architecture.md` |
 | 디자인 토큰 추가·변경, 스타일 원칙 | `design-tokens.md` |
 | 공용 컴포넌트 작성 규칙, 새 컴포넌트 사용법 | `components.md` |
-| 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md` |
+| 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md`와 `operations/*` |
 | 라이브러리 추가·교체 이유 | `libraries.md` |
 | 설정 파일 변경 | `config.md` |
 | 인증 흐름, 쿼리 키, 비밀번호 변경 정책 변경 | `auth.md` |
@@ -275,7 +277,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 - 같은 내용을 두 파일에 나눠 쓰지 않는다.
 - 다른 파일 내용이 필요하면 링크로 참조한다.
-  - 예: `→ [operations.md #1](./operations.md#1-서버-상태와-ui-상태를-분리한다) 참고`
+  - 예: `→ [상태 관리 정책](./operations/state-policy.md) 참고`
 - 중복이 발견되면 한쪽을 삭제하고 링크로 대체한다.
 
 ### 추가 시기
