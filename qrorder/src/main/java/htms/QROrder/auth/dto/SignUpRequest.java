@@ -16,4 +16,5 @@ public class SignUpRequest {
     private String passwordChk;
     private String email;
     private Integer phoneNumber;
+    private String validCode;
 }

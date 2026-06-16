@@ -1,10 +1,9 @@
 package htms.QROrder.auth.controller;
 
-import htms.QROrder.auth.domain.Login;
 import htms.QROrder.auth.dto.SignUpRequest;
+import htms.QROrder.auth.exception.EmailValidException;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +31,36 @@ public class SignUpController {
         );
     }
 
+    @GetMapping("/signup/new/chkEmailValid")
+    public boolean chkEmailValid(@RequestParam String email,
+                                    @RequestParam String validCode,
+                                    HttpSession session){
+
+        String sessionEmail = (String) session.getAttribute("signupEmail");
+        String sessionCode = (String) session.getAttribute("signupValidCode");
+
+        return sessionEmail != null
+                && sessionEmail.equals(email)
+                && validCode.equals(sessionCode);
+    }
+
     @PostMapping("/signup/new")
     public ResponseEntity<CommonResponse> newUser(@RequestBody SignUpRequest signUpRequest,
                                                     HttpSession session){
 
-        Login loginUser = (Login) session.getAttribute("loginUser");
+        String sessionEmail = (String) session.getAttribute("signupEmail");
+        String sessionCode = (String) session.getAttribute("signupValidCode");
 
-        signUpService.newUser(signUpRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
+        if (sessionEmail == null
+                || !sessionEmail.equals(signUpRequest.getEmail())
+                || !sessionCode.equals(signUpRequest.getValidCode())) {
+            throw new EmailValidException("이메일 인증을 먼저 완료해주세요.");
+        }
+
+        signUpService.newUser(signUpRequest);
+
+        session.removeAttribute("signupEmail");
+        session.removeAttribute("signupValidCode");
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -52,18 +74,5 @@ public class SignUpController {
     public boolean idDuplicateChk(@RequestParam String userId) {
 
         return signUpService.idDuplicateChk(userId);
-    }
-
-    @PostMapping("/signup/email_valid/{encodeSysId}")
-    public ResponseEntity<CommonResponse> emailValid(@PathVariable String encodeSysId){
-
-        signUpService.emailValid(encodeSysId);
-
-        return ResponseEntity.ok(
-                CommonResponse.builder()
-                        .success(true)
-                        .message("이메일 인증 완료.")
-                        .build()
-        );
     }
 }

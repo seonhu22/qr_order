@@ -19,48 +19,33 @@ public class EmailValidService {
     private final EmailValidMapper emailValidMapper;
     private final EmailService emailService;
 
-    public String sendSignupCode(String email,
-                                    String userName,
-                                    String userId,
-                                    String sysPlantCd) {
+    public String sendUserEmailValid(String email,
+                                        String userId,
+                                        String sysPlantCd) {
 
         String validCode = generateValidCode();
 
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setTo(List.of(email));
         emailRequest.setSubject("[QROrder] 이메일 인증");
-        emailRequest.setBody("안녕하세요, " + userName + "님.\n\n" +
-                "아래 인증 코드를 입력해주세요.\n\n" +
+        emailRequest.setBody("아래 인증 코드를 입력해주세요.\n\n" +
                 "인증 코드: " + validCode + "\n\n" +
                 "본 메일은 발신 전용입니다.");
+
         emailService.sendEmail(emailRequest, userId, sysPlantCd);
 
         return validCode;
     }
 
-    public void newUserEmailValid(String email, String validCode) {
-
-        if (!emailValidMapper.codeExist(email)) {
-            throw new EmailValidException("인증 정보가 유효하지 않습니다.");
-        }
-
-        if (!emailValidMapper.codeMatch(email, validCode)) {
-            throw new EmailValidException("인증 코드가 일치하지 않습니다.");
-        }
-
-        emailValidMapper.newUserEmailValid(email);
-    }
-
-    public void sendPwdChangeCode(String email,
+    public String sendPwdChangeCode(String email,
                                     String userId,
                                     String sysPlantCd) {
 
-        if (!emailValidMapper.userExistsByEmail(email)) {
-            throw new EmailValidException("존재하지 않는 이메일입니다.");
+        if (!emailValidMapper.userEmailMatchChk(email, userId)) {
+            throw new EmailValidException("아이디와 이메일이 일치하지 않습니다.");
         }
 
         String validCode = generateValidCode();
-        emailValidMapper.updateValidCode(email, validCode);
 
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setTo(List.of(email));
@@ -69,20 +54,8 @@ public class EmailValidService {
                 "인증 코드: " + validCode + "\n\n" +
                 "본 메일은 발신 전용입니다.");
         emailService.sendEmail(emailRequest, userId, sysPlantCd);
-    }
 
-    public void pwdChange(String email,
-                            String validCode) {
-
-        if (!emailValidMapper.codeExist(email)) {
-            throw new EmailValidException("인증 정보가 유효하지 않습니다.");
-        }
-
-        if (!emailValidMapper.codeMatch(email, validCode)) {
-            throw new EmailValidException("인증 코드가 일치하지 않습니다.");
-        }
-
-        emailValidMapper.pwdChange(email);
+        return validCode;
     }
 
     private String generateValidCode() {
