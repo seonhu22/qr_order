@@ -222,6 +222,7 @@ const myFeatureOverrideHandler = http.get('*/api/.../search', ({ request }) => {
 - CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema`로 명세를 갱신한 뒤 `npm run generate` 결과까지 함께 커밋해야 한다.
 - `operationId`가 없는 API는 함수명이 지저분하게 생성된다. 백엔드에 `operationId` 명시를 요청한다.
 - PR 리뷰 시 `src/generated/` 변경분은 명세 변경에 의한 것이므로 별도 커밋으로 분리하면 리뷰 노이즈를 줄일 수 있다.
+- **mutation 핸들러는 `handlers.ts`에 개별 등록해야 한다.** `getXxxControllerMock()` 같은 일괄 등록 함수가 없는 컨트롤러의 경우, generated `.msw.ts`에 핸들러 함수가 있더라도 `handlers.ts` import와 배열 등록을 모두 직접 추가하지 않으면 MSW가 가로채지 않는다. 누락 시 요청이 실제 백엔드로 fall-through → 401 → "로그인 인증이 만료되었습니다." 리다이렉트 발생. 신규 API 추가 후 mock 모드에서 반드시 확인할 것.
 
 ---
 

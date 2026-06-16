@@ -64,6 +64,20 @@ const handleSearch = () => {
 - `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달
 - `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
 
+### `isSaving` 구성 기준
+
+`SaveConfirmModal`의 스피너는 mutation이 완료된 뒤에도 `invalidateQueries` + 상태 업데이트가 완료될 때까지 유지돼야 한다.
+`mutation.isPending`만으로는 mutation 완료 시점에 스피너가 꺼지고 "저장되었습니다." 모달이 뜨기 전 버튼이 활성화되는 gap이 생긴다.
+
+`use<Feature>Page`에서 `isSaving`을 아래와 같이 합산한다.
+
+```ts
+isSaving: saveFeatureMutation.isPending || editableFlow.state.isConfirmingSave,
+```
+
+- `editableFlow.state.isConfirmingSave`는 `confirmSave()` 전체 async 구간(`mutateAsync` + `invalidateQueries` + 상태 업데이트)에 걸쳐 `true`로 유지된다.
+- `SaveConfirmModal`의 `primaryAction.loading`과 `secondaryAction.disabled`에는 `status.isSaving`을 전달한다.
+
 ## 모달 CRUD 화면
 
 행 직접 편집 없이 모달을 통해 등록/수정/삭제하는 목록 화면의 표준이다.
