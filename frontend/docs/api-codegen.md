@@ -168,6 +168,52 @@ export const handlers = [
 - 목업 파일은 `features/<feature>/mock/` 에 두고 `import` 해서 사용한다.
 - 검색어 필터링이 있는 API라면 `searchKeyword` 파라미터도 함께 처리한다.
 
+### 목업 파일 작성 양식
+
+목업 데이터는 반드시 **generated 응답 타입**으로 typed한다. 화면 모델(StoreInfo 등)이 아닌 API 응답 타입을 사용해야 MSW 핸들러가 실제 서버 응답과 동일한 형태를 반환한다.
+
+```ts
+// features/<feature>/mock/<feature>Mock.ts
+
+import type { MyFeatureResponse } from '@/generated/types/myFeatureResponse';
+
+// MSW 핸들러용 — API 응답 형식으로 typed
+export const MY_FEATURE_MOCK_ROWS: MyFeatureResponse[] = [
+  {
+    sysId: 'row-001',
+    name: '샘플 이름',
+    // ... API 응답 필드
+  },
+];
+```
+
+- 배열 엔드포인트는 `Response[]`, 단일 엔드포인트는 `Response` 타입을 사용한다.
+- 화면 전용 초기값이 별도로 필요하면 화면 모델 타입으로 추가 export 가능하지만, **MSW 핸들러에 주입하는 상수는 반드시 generated 타입 기준**이다.
+- 파일 내 export 네이밍: `MY_FEATURE_MOCK_ROWS` (리스트), `MY_FEATURE_MOCK` (단일)
+
+**handlers.ts 주입 방식:**
+
+```ts
+// mocks/handlers.ts
+
+import { MY_FEATURE_MOCK_ROWS } from '../apps/.../features/my-feature/mock/myFeatureMock';
+import { getGetMyFeatureMockHandler } from '../generated/my-controller/my-controller.msw';
+
+// generated 핸들러 팩토리에 고정 데이터 주입
+const myFeatureOverrideHandler = getGetMyFeatureMockHandler(MY_FEATURE_MOCK_ROWS);
+
+// 또는 검색·필터링 로직이 필요한 경우 직접 작성
+const myFeatureOverrideHandler = http.get('*/api/.../search', ({ request }) => {
+  const keyword = new URL(request.url).searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? MY_FEATURE_MOCK_ROWS.filter((row) => row.name?.toLowerCase().includes(keyword))
+    : MY_FEATURE_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+```
+
+단순 고정 데이터면 `getGetMyFeatureMockHandler(rows)` 형태로 주입하고, 검색·필터·조건 분기가 필요하면 직접 `http.get` 핸들러를 작성한다.
+
 ---
 
 ## 주의사항

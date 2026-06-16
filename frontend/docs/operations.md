@@ -700,3 +700,4 @@ Admin feature를 기준으로 Client(추후 Consumer)의 동일 feature를 구�
 ## 관련 문서
 
 - [콤보 API 사용 기준](./combo-api-policy.md): 검색용 콤보와 저장용 콤보의 API 분리 기준
+- [비동기 데이터 연동 패턴](./async-patterns.md): Mutation 결과 안내 모달, generated API 직접 호출, 단일 엔티티 폼 화면
