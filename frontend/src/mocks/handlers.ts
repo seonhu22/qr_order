@@ -55,9 +55,11 @@ import {
   getDelClientUserMockHandler,
   getGetStoreInfoMockHandler,
   getGetTableInfo1MockHandler,
+  getNewClientUserMockHandler,
   getNewTableInfoMockHandler,
   getResetPwdMockHandler,
   getSaveStoreInfoMockHandler,
+  getUpdateClientUserMockHandler,
 } from '../generated/store-manage-controller/store-manage-controller.msw';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
@@ -361,6 +363,8 @@ export const handlers = [
   ...getPopupControllerMock(),
   getResetPwdMockHandler(),
   getDelClientUserMockHandler(),
+  getNewClientUserMockHandler(),
+  getUpdateClientUserMockHandler(),
   storeInfoOverrideHandler,
   pwdChkOverrideHandler,
   getSaveStoreInfoMockHandler(),

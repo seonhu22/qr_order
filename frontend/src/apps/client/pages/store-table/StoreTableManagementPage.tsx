@@ -25,7 +25,7 @@ export function StoreTableManagementPage() {
           rows={data.rows}
           selectedRowId={uiProps.selectedRowId}
           rowErrors={data.rowErrors}
-          isLoading={status.isLoading || !!status.isFetching}
+          isLoading={status.isLoading}
           isError={status.isError}
           isSaving={status.isSaving}
           onSelectRow={actions.handleSelectRow}

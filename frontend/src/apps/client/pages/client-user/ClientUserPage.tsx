@@ -40,7 +40,7 @@ export function ClientUserPage() {
         <ClientUserTable
           rows={data.rows}
           selectedRowIds={uiProps.selectedRowIds}
-          isLoading={status.isLoading || status.isFetching}
+          isLoading={status.isLoading}
           isError={status.isError}
           onToggleRow={actions.handleToggleRow}
           onToggleAll={actions.handleToggleAll}
