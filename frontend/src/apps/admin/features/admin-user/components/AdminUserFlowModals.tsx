@@ -37,8 +37,9 @@ export function AdminUserFlowModals({
   onConfirmSimpleModal,
 }: AdminUserFlowModalsProps) {
   const simpleModalState: AdminUserSimpleModalState = state.simpleModalState;
+  const isPasswordResetConfirm = simpleModalState?.type === 'passwordResetConfirm';
   const simpleDescription =
-    simpleModalState?.type === 'passwordResetConfirm' ? (
+    isPasswordResetConfirm ? (
       <>
         <strong className="admin-user-reset-modal__account-id">
           {simpleModalState.userId}
@@ -76,7 +77,7 @@ export function AdminUserFlowModals({
             : undefined
         }
         secondaryAction={
-          simpleModalState?.onConfirm
+          isPasswordResetConfirm
             ? { disabled: isResettingPassword, onClick: onCloseSimpleModal }
             : undefined
         }

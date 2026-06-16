@@ -27,6 +27,36 @@ const baseRows: AdminUserRow[] = [
   },
 ];
 
+const multiRowBase: AdminUserRow[] = [
+  {
+    id: 'row-1',
+    sysId: 'sys-1',
+    userId: 'admin01',
+    userName: '관리자 1',
+    plantCd: 'PLANT-001',
+    plantName: '본사',
+    isNew: false,
+  },
+  {
+    id: 'row-2',
+    sysId: 'sys-2',
+    userId: 'admin02',
+    userName: '관리자 2',
+    plantCd: 'PLANT-001',
+    plantName: '본사',
+    isNew: false,
+  },
+  {
+    id: 'row-3',
+    sysId: 'sys-3',
+    userId: 'admin03',
+    userName: '관리자 3',
+    plantCd: 'PLANT-001',
+    plantName: '본사',
+    isNew: false,
+  },
+];
+
 const plantOptions: SelectOption[] = [
   { value: 'PLANT-001', label: '본사' },
   { value: 'PLANT-002', label: '판교점' },
@@ -118,5 +148,32 @@ describe('useAdminUserListState', () => {
     expect(result.current.rows).toEqual([]);
     expect(result.current.selectedRowId).toBe('');
     expect(result.current.isDirty).toBe(true);
+  });
+
+  it('selects the next row after deleting a middle row, and the previous row after deleting the last row', () => {
+    const { result } = renderHook(() =>
+      useAdminUserListState({
+        baseRows: multiRowBase,
+        plantOptions,
+      }),
+    );
+
+    act(() => {
+      result.current.selectRow('row-2');
+    });
+
+    act(() => {
+      result.current.deleteSelectedRow();
+    });
+
+    expect(result.current.rows.map((row) => row.id)).toEqual(['row-1', 'row-3']);
+    expect(result.current.selectedRowId).toBe('row-3');
+
+    act(() => {
+      result.current.deleteSelectedRow();
+    });
+
+    expect(result.current.rows.map((row) => row.id)).toEqual(['row-1']);
+    expect(result.current.selectedRowId).toBe('row-1');
   });
 });

@@ -3,6 +3,7 @@ import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input'
 import type { SelectOption } from '@/shared/components/input';
 import { EditTableButton, PasswordResetButton } from '@/shared/components/button';
 import {
+  AuthorityBadge,
   ChangeTypeBadge,
   ExpirationStatusBadge,
   LicensePeriodBadge,
@@ -68,6 +69,11 @@ type TableCellExpirationStatusBadgeProps = {
 
 type TableCellLicensePeriodBadgeProps = {
   value: LicensePeriodBadgeValue;
+};
+
+type TableCellAuthorityBadgeProps = {
+  code: string;
+  label: string;
 };
 
 /**
@@ -203,4 +209,11 @@ export function TableCellLicensePeriodBadge({
   value,
 }: TableCellLicensePeriodBadgeProps) {
   return <LicensePeriodBadge value={value} />;
+}
+
+/**
+ * 권한 배지 셀.
+ */
+export function TableCellAuthorityBadge({ code, label }: TableCellAuthorityBadgeProps) {
+  return <AuthorityBadge code={code} label={label} />;
 }

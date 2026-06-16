@@ -9,8 +9,8 @@ import {
 import {
   createDefaultQueryDateRangeDraft,
   createQueryDateRangeParams,
-  validateQueryDateRange,
 } from '@/shared/utils/queryDateRange';
+import { useQueryDateRangeDraft } from '@/shared/hooks/useQueryDateRangeDraft';
 import { areQueryParamsEqual } from '@/shared/utils/queryParams';
 
 function createChangeHistorySearchParams(
@@ -27,27 +27,21 @@ function createChangeHistorySearchParams(
 }
 
 export function useChangeHistoryPageState() {
-  const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
   const [draftAuditFlag, setDraftAuditFlag] = useState('ALL');
   const [draftKeyword, setDraftKeyword] = useState('');
-  const [draftStartDate, setDraftStartDate] = useState(defaultDateRange.startDate);
-  const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
-  const [dateRangeError, setDateRangeError] = useState('');
+  const {
+    draftStartDate,
+    draftEndDate,
+    dateRangeError,
+    handleStartDateChange,
+    handleEndDateChange,
+    resetDraftDateRange,
+    validateDraftDateRange,
+  } = useQueryDateRangeDraft();
 
   const [searchParams, setSearchParams] = useState(() =>
-    createChangeHistorySearchParams(defaultDateRange.startDate, defaultDateRange.endDate),
+    createChangeHistorySearchParams(draftStartDate, draftEndDate),
   );
-
-  const validateDateRange = (start: string, end: string): boolean => {
-    const nextError = validateQueryDateRange(start, end);
-    setDateRangeError(nextError);
-
-    if (nextError) {
-      return false;
-    }
-
-    return true;
-  };
 
   const query = useChangeHistoryQuery({
     startDate: searchParams.startDate,
@@ -80,7 +74,7 @@ export function useChangeHistoryPageState() {
   );
 
   const handleSearch = () => {
-    if (!validateDateRange(draftStartDate, draftEndDate)) return;
+    if (!validateDraftDateRange()) return;
     const nextParams = createChangeHistorySearchParams(
       draftStartDate,
       draftEndDate,
@@ -95,12 +89,10 @@ export function useChangeHistoryPageState() {
   };
 
   const handleReset = () => {
-    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setDraftAuditFlag('ALL');
     setDraftKeyword('');
-    setDraftStartDate(nextDefaultDateRange.startDate);
-    setDraftEndDate(nextDefaultDateRange.endDate);
-    setDateRangeError('');
+    resetDraftDateRange();
+    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setSearchParams(
       createChangeHistorySearchParams(nextDefaultDateRange.startDate, nextDefaultDateRange.endDate),
     );
@@ -117,14 +109,8 @@ export function useChangeHistoryPageState() {
       handleReset,
       handleKeywordChange: setDraftKeyword,
       handleAuditFlagChange: setDraftAuditFlag,
-      handleStartDateChange: (value: string) => {
-        setDraftStartDate(value);
-        if (value && draftEndDate) validateDateRange(value, draftEndDate);
-      },
-      handleEndDateChange: (value: string) => {
-        setDraftEndDate(value);
-        if (draftStartDate) validateDateRange(draftStartDate, value);
-      },
+      handleStartDateChange,
+      handleEndDateChange,
     },
     uiProps: {
       draftAuditFlag,

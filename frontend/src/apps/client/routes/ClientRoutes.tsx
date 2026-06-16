@@ -4,6 +4,8 @@ import { ClientLayout } from '@/apps/client/layout/ClientLayout';
 import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
+import { StoreInfoPage } from '@/apps/client/pages/store/info/StoreInfoPage';
+import { ClientUserPage } from '@/apps/client/pages/store/ClientUserPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -24,12 +26,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/info',
-        element: (
-          <ClientPlaceholderPage
-            title="매장 기본 정보"
-            description="매장의 기본 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <StoreInfoPage />,
       },
       {
         path: 'store/tables',
@@ -51,12 +48,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/users',
-        element: (
-          <ClientPlaceholderPage
-            title="유저 정보 관리"
-            description="유저를 생성하고 권한을 관리하는 화면입니다."
-          />
-        ),
+        element: <ClientUserPage />,
       },
       {
         path: 'menu/categories',

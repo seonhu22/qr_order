@@ -23,6 +23,7 @@ import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
+import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 
 function getErrorStatus(error: unknown): number | undefined {
   if (!error || typeof error !== 'object' || !('status' in error)) {
@@ -36,6 +37,7 @@ function getErrorStatus(error: unknown): number | undefined {
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { guardedNavigate, requestLeaveConfirm } = useGuardedNavigate();
 
   const isSidebarOpen = useAdminLayoutStore((s) => s.isSidebarOpen);
   const activeSection = useAdminLayoutStore((s) => s.activeSection);
@@ -110,6 +112,16 @@ export function AdminSidebar() {
 
   const sectionLabel = displayedMenus[0]?.label ?? displayedSection ?? '';
 
+  const handleLogoutClick = () => {
+    requestLeaveConfirm({
+      type: 'custom',
+      title: '로그아웃하시겠습니까?',
+      description: '저장하지 않은 내용이 있습니다.\n로그아웃하면 변경사항이 사라집니다.',
+      confirmLabel: '로그아웃',
+      onConfirm: () => logoutMutate(),
+    });
+  };
+
   return (
     <Sidebar>
       <AdminSidebarHeader />
@@ -129,13 +141,13 @@ export function AdminSidebar() {
           currentPathname={location.pathname}
           onToggleDepth1={toggleDepth1}
           onToggleDepth2={toggleDepth2}
-          onNavigate={navigate}
+          onNavigate={guardedNavigate}
         />
       )}
       <SidebarUser
         userName={userName}
         userRole={userRole}
-        onLogout={() => logoutMutate()}
+        onLogout={handleLogoutClick}
         isLoggingOut={isPending}
       />
     </Sidebar>

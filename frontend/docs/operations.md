@@ -355,6 +355,77 @@ const flow = useEditablePageFlow({
 
 ---
 
+### 14. 페이지 이탈방지(미저장 변경 경고)는 `usePreventLeave` / `useGuardedNavigate`를 사용한다
+
+> 추가일: 2026-06-15
+
+편집형 페이지에서 저장하지 않은 변경(dirty) 상태로 ① 다른 메뉴/홈으로 이동, ② 새로고침/탭·창 닫기,
+③ 로그아웃을 시도하면 `shared/stores/preventLeaveStore`(zustand) 기반의 공용 이탈방지 가드를 거친다.
+
+**1) 페이지 상태 훅에서 `usePreventLeave(isDirty)` 등록**
+
+```ts
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
+
+// isDirty가 확정되는 지점 바로 아래에 1줄 추가
+usePreventLeave(isDirty);
+```
+
+- `isDirty === true`인 동안만 `beforeunload`를 등록해 새로고침/탭·창 닫기를 경고한다(문구는 브라우저 기본값).
+- 저장이 완료되어 각 훅이 `isDirty`를 `false`로 되돌리면 별도 처리 없이 가드가 자동 해제된다.
+- unmount 시에도 자동으로 dirty 상태를 해제한다.
+- 페이지 안에 별도의 추가/수정 모달(예: `useCodeMasterModalFlow`)이 있다면 그 모달의 `isDirty`도 페이지 `isDirty`에 OR로 포함해야 한다. 모달만 열어 입력 중인 상태에서 새로고침해도 경고가 떠야 한다. (적용 예: `useCommonCodePageState`, `useRuleManagementPage`는 `isDetailDirty || masterFlow.isDirty`)
+
+**2) 메뉴/홈 이동은 `guardedNavigate`로 처리**
+
+```ts
+const { guardedNavigate } = useGuardedNavigate();
+
+guardedNavigate('/admin/main', undefined, () => {
+  setActiveSection(null);
+  closeSidebar();
+});
+```
+
+- `isDirty === false`면 즉시 이동하고 `onNavigate` 콜백을 실행한다.
+- `isDirty === true`면 이동을 보류하고 `ConfirmModal`을 띄운다. **`onNavigate`로 넘긴 부수효과(섹션 초기화, 사이드바 닫기 등)는 사용자가 "이동"을 확인한 뒤에만 실행되며, 취소 시에는 전혀 실행되지 않는다.**
+
+**3) 로그아웃 등 navigate가 아닌 액션은 `requestLeaveConfirm`으로 처리**
+
+```ts
+const { requestLeaveConfirm } = useGuardedNavigate();
+
+const handleLogoutClick = () => {
+  requestLeaveConfirm({
+    type: 'custom',
+    title: '로그아웃하시겠습니까?',
+    description: '저장하지 않은 내용이 있습니다.\n로그아웃하면 변경사항이 사라집니다.',
+    confirmLabel: '로그아웃',
+    onConfirm: () => logoutMutate(),
+  });
+};
+```
+
+- `isDirty === false`면 즉시 `onConfirm()`을 실행하므로, 변경사항이 없을 때는 기존과 동일하게 즉시 로그아웃된다.
+
+**4) `ConfirmModal`은 앱 셸(`AdminLayout`/`ClientLayout`)에서 1곳만 렌더링**
+
+`useGuardedNavigate()`가 반환하는 `pendingLeaveAction`/`confirmPendingLeaveAction`/`cancelPendingLeaveAction`을
+레이아웃에서 구독해 `ConfirmModal` 1개로 처리한다. Sidebar/Header에서 호출한 `guardedNavigate`/`requestLeaveConfirm`은
+같은 zustand store를 공유하므로 레이아웃의 모달에 즉시 반영된다.
+
+**알려진 제한사항**
+
+- 브라우저 뒤로/앞으로가기 버튼은 가드하지 않는다(`<BrowserRouter>` history stack 조작이 필요해 fragile).
+- `beforeunload` 확인창 문구는 브라우저 기본값이며 커스터마이징할 수 없다.
+- 한 시점에 하나의 dirty source만 존재한다고 가정한다(여러 화면이 동시에 dirty를 등록하는 구조는 미지원).
+
+적용 위치: `useMessagePage`, `useCommonCodePageState`, `useAdminUserPage`, `useRuleManagementPage`, `useCouponManagePageState`, `usePaymentManagePageState`, `useNoticeManagePageState`, `useSystemMenuPageState`
+
+설계 배경(`useBlocker` 대신 guarded navigate를 선택한 이유, 검토했던 대안)은 [`decisions.md`](./decisions.md) ADR-009 참고.
+
+---
+
 ## 6. Filter 페이지 추천 표준
 
 필터(조회) 컴포넌트가 들어가는 페이지는 아래 표준을 기본으로 사용한다.
@@ -397,33 +468,38 @@ export function mapToPlantStatusRow(res: PlantStatusResponse): PlantStatusRow {
 **datetime-local 날짜 범위 필터가 있는 경우**
 
 > 추가일: 2026-04-21
+> 수정일: 2026-06-15 - draft 상태/검증/자동 종료일시 채움을 공용 훅 `useQueryDateRangeDraft`로 통일
 
-`AccessLog`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
+`AccessLog`, `ChangeHistory`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
 
 - 필터 입력 타입은 `type="datetime-local"` 사용 (날짜+시간 선택)
-- draft 상태(`draftStartDate`, `draftEndDate`)를 분리하고 조회 버튼 클릭 시에만 `searchParams`에 반영
-- 날짜 범위 유효성 검사 규칙:
+- draft 상태(`draftStartDate`, `draftEndDate`, `dateRangeError`)와 핸들러는 공용 훅 `useQueryDateRangeDraft(maxRangeDays?)`(`@/shared/hooks/useQueryDateRangeDraft`)로 관리하고, 조회 버튼 클릭 시에만 `searchParams`에 반영한다.
+- 시작일시를 변경하면 `maxRangeDays`(기본 7일) 내에서 가능한 가장 늦은 종료일시를 자동으로 채워준다. 계산된 종료일시가 현재 시각보다 미래면 오늘 날짜에 시작 시각을 적용한 값으로 대체하고, 그 값마저 미래면 현재 시각으로 대체한다(`getAutoEndDate`).
+- 날짜 범위 유효성 검사 규칙(`useQueryDateRangeDraft` 내부에서 처리):
   - 종료일시가 시작일시보다 이전이면 에러
-  - 최대 조회 기간(예: 7일)을 초과하면 에러
+  - 최대 조회 기간(`maxRangeDays`)을 초과하면 에러
   - 에러가 있으면 `handleSearch` 내부에서 조회를 막고 에러 메시지를 filter 컴포넌트에 전달
-- 페이지 진입 시 기본값(현재 시각 기준 7일 전 ~ 현재)으로 즉시 조회
-- API로 전달하는 datetime 포맷: `YYYY-MM-DDTHH:MM:SS` (`toApiDatetime` 유틸로 변환)
+- 페이지 진입 시 기본값(현재 시각 기준 `maxRangeDays`일 전 ~ 현재)으로 즉시 조회
+- API로 전달하는 datetime 포맷: `YYYY-MM-DD HH:MM:SS` (`createQueryDateRangeParams` / `toQueryDateTimeParam` 유틸로 변환)
+- 화면마다 조회 제한이 다른 경우(1주/1개월/1년 등) `useQueryDateRangeDraft(maxRangeDays)`에 일수를 전달하면 자동 채움/검증에 동일하게 적용된다.
 
 ```ts
 // hooks/useAccessLogPageState.ts
-const [searchParams, setSearchParams] = useState<SearchParams>(makeDefaultSearchParams);
+const {
+  draftStartDate,
+  draftEndDate,
+  dateRangeError,
+  handleStartDateChange,
+  handleEndDateChange,
+  resetDraftDateRange,
+  validateDraftDateRange,
+} = useQueryDateRangeDraft(); // 다른 제한이 필요하면 maxRangeDays 인자로 전달
 
-function toApiDatetime(value: string) {
-  return value ? `${value}:00` : '';
-}
+const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
 const handleSearch = () => {
-  if (!validateDateRange(draftStartDate, draftEndDate)) return;
-  setSearchParams({
-    startDate: toApiDatetime(draftStartDate),
-    endDate: toApiDatetime(draftEndDate),
-    searchKeyword: draftKeyword,
-  });
+  if (!validateDraftDateRange()) return;
+  setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
 };
 ```
 
