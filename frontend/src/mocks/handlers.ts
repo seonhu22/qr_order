@@ -50,9 +50,12 @@ import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
 import { CLIENT_USER_MOCK_ROWS } from '../apps/client/features/client-user/mock/clientUserMock';
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
+import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import {
   getDelClientUserMockHandler,
   getGetStoreInfoMockHandler,
+  getGetTableInfo1MockHandler,
+  getNewTableInfoMockHandler,
   getResetPwdMockHandler,
   getSaveStoreInfoMockHandler,
 } from '../generated/store-manage-controller/store-manage-controller.msw';
@@ -113,6 +116,8 @@ const couponOverrideHandler = http.get(
 );
 
 const storeInfoOverrideHandler = getGetStoreInfoMockHandler(STORE_INFO_MOCK_ROWS);
+
+const storeTableOverrideHandler = getGetTableInfo1MockHandler(STORE_TABLE_MOCK_ROWS);
 
 const pwdChkOverrideHandler = http.get('*/api/client/store_manage/store_info/pwd_chk', ({ request }) => {
   const url = new URL(request.url);
@@ -359,4 +364,6 @@ export const handlers = [
   storeInfoOverrideHandler,
   pwdChkOverrideHandler,
   getSaveStoreInfoMockHandler(),
+  storeTableOverrideHandler,
+  getNewTableInfoMockHandler(),
 ];
