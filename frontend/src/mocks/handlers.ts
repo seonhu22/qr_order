@@ -70,7 +70,7 @@ const signupBusinessVerificationOverrideHandler = http.post(
       typeof body.userNm !== 'string' ||
       !body.userNm.trim() ||
       typeof body.businessRegiDate !== 'string' ||
-      !body.businessRegiDate
+      !/^\d{8}$/.test(body.businessRegiDate)
     ) {
       return HttpResponse.json(
         { success: false, message: '사업자등록 정보가 일치하지 않습니다.' },

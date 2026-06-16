@@ -17,7 +17,7 @@ describe('signupBusinessVerificationApi', () => {
     expect(payload).toEqual({
       businessRegiNum: '1234567890',
       userNm: '홍길동',
-      businessRegiDate: '2026-06-15',
+      businessRegiDate: '20260615',
     });
   });
 
@@ -58,6 +58,19 @@ describe('signupBusinessVerificationApi', () => {
     expect(result).toEqual({
       field: 'openDate',
       message: '개업일을 선택해주세요.',
+    });
+  });
+
+  it('returns validation error before API call when open date format is invalid', () => {
+    const result = buildSignupBusinessVerificationPayload({
+      businessNo: '1234567890',
+      businessRepName: '홍길동',
+      openDate: '2026-6-1',
+    });
+
+    expect(result).toEqual({
+      field: 'openDate',
+      message: '개업일자를 확인해주세요.',
     });
   });
 
