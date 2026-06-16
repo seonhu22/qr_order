@@ -49,9 +49,12 @@ import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/pa
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
 import { CLIENT_USER_MOCK_ROWS } from '../apps/client/features/client-user/mock/clientUserMock';
+import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import {
   getDelClientUserMockHandler,
+  getGetStoreInfoMockHandler,
   getResetPwdMockHandler,
+  getSaveStoreInfoMockHandler,
 } from '../generated/store-manage-controller/store-manage-controller.msw';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
@@ -108,6 +111,14 @@ const couponOverrideHandler = http.get(
     return HttpResponse.json(filtered);
   },
 );
+
+const storeInfoOverrideHandler = getGetStoreInfoMockHandler(STORE_INFO_MOCK_ROWS);
+
+const pwdChkOverrideHandler = http.get('*/api/client/store_manage/store_info/pwd_chk', ({ request }) => {
+  const url = new URL(request.url);
+  const pwd = url.searchParams.get('pwd');
+  return HttpResponse.json(pwd === '1');
+});
 
 const clientUserOverrideHandler = http.get(
   '*/api/client/store_manage/user_manage/search',
@@ -345,4 +356,7 @@ export const handlers = [
   ...getPopupControllerMock(),
   getResetPwdMockHandler(),
   getDelClientUserMockHandler(),
+  storeInfoOverrideHandler,
+  pwdChkOverrideHandler,
+  getSaveStoreInfoMockHandler(),
 ];
