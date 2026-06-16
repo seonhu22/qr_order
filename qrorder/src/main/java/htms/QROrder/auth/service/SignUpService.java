@@ -1,11 +1,9 @@
 package htms.QROrder.auth.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +26,6 @@ public class SignUpService {
 
     private final SignUpMapper signUpMapper;
     private final PasswordEncoder passwordEncoder;
-    private final EmailValidService emailValidService;
 
     @Value("${nts.api.service-key}")
     private String ntsServiceKey;
@@ -40,41 +37,23 @@ public class SignUpService {
         }
     }
 
-    public void newUser(SignUpRequest signUpRequest, HttpServletRequest request) {
+    public void newUser(SignUpRequest signUpRequest) {
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        String signUpSysId = UlidCreator.getUlid().toString();
-        String emailSysId = UlidCreator.getUlid().toString();
-        String encodeEmailSysId = passwordEncoder.encode(emailSysId);
-
-        signUpRequest.setSysId(signUpSysId);
+        signUpRequest.setSysId(UlidCreator.getUlid().toString());
         signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
-        String validCode = emailValidService.sendSignupCode(signUpRequest.getEmail(), signUpRequest.getUserNm());
-
-        EmailValidRequest emailValidRequest = new EmailValidRequest();
-        emailValidRequest.setSysId(emailSysId);
-        emailValidRequest.setLinkSysId(signUpSysId);
-        emailValidRequest.setEncodeSysId(encodeEmailSysId);
-        emailValidRequest.setValidCode(validCode);
-
         signUpMapper.newPlant(signUpRequest);
         signUpMapper.newUser(signUpRequest);
-        signUpMapper.newEmailChk(emailValidRequest);
     }
 
     public boolean idDuplicateChk(String userId) {
 
         return signUpMapper.idDuplicateChk(userId);
-    }
-
-    public void emailValid(String encodeSysId) {
-
-        signUpMapper.emailValid(encodeSysId);
     }
 
     private boolean chkBusinessRegistrationNumberAPI(SignUpRequest signUpRequest) {

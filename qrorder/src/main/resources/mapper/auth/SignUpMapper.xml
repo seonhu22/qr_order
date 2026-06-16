@@ -51,32 +51,13 @@
             #{signUpRequest.userNm},
             #{signUpRequest.userPassword},
             #{signUpRequest.email} ,
-            'N',
+            'Y',
             'N',
             0,
             'N',
             #{userId},
             now(),
             #{signUpRequest.businessRegiNum}
-        )
-    </insert>
-
-    <insert id="newEmailChk">
-        insert into sys_email_valid (
-            sys_id ,
-            link_sys_id ,
-            encode_sys_id ,
-            valid_code ,
-            email_valid_yn ,
-            insert_datetime
-        )
-        values (
-            #{sysId},
-            #{linkSysId},
-            #{encodeSysId},
-            #{validCode},
-            'N',
-            now()
         )
     </insert>
 
@@ -89,12 +70,5 @@
         and delete_yn = 'N'
     </select>
 
-    <update id="emailValid">
-        update sys_email_valid set
-            email_valid_yn = 'Y',
-            modify_datetime = now()
-        where 1=1
-        and encode_sys_id = #{encodeSysId}
-    </update>
 
 </mapper>

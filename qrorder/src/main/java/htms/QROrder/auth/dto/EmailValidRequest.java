@@ -9,4 +9,5 @@ public class EmailValidRequest {
     private String encodeSysId;
     private String validCode;
     private String email;
+    private String userId;
 }
