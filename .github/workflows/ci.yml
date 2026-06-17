@@ -72,6 +72,11 @@ jobs:
 
       - name: Verify generated files are committed
         run: |
+          echo "=== Node version ==="
+          node --version
+          echo "=== Changed files ==="
+          git diff --name-status -- frontend/src/generated
+          echo "=== Full diff ==="
           git diff -- frontend/src/generated
           git diff --exit-code -- frontend/src/generated || (echo "::error::Codegen 결과가 최신이 아닙니다. frontend에서 'npm run generate'를 실행한 뒤 frontend/src/generated 변경사항을 커밋하세요." && exit 1)
 
