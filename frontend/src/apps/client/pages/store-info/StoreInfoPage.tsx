@@ -143,7 +143,8 @@ export function StoreInfoPage() {
 
         <EditConfirmModal
           open={isSaveConfirmOpen}
-          description="수정된 내용을 저장하시겠습니까?"
+          title="수정하시겠습니까?"
+          description="변경된 내용이 저장됩니다."
           primaryAction={{ loading: saveMutation.isPending, onClick: handleSaveConfirm }}
           secondaryAction={{ disabled: saveMutation.isPending, onClick: () => setIsSaveConfirmOpen(false) }}
           onClose={() => setIsSaveConfirmOpen(false)}
