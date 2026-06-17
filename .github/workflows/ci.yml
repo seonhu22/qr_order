@@ -76,8 +76,12 @@ jobs:
           node --version
           echo "=== Changed files ==="
           git diff --name-status -- frontend/src/generated
-          echo "=== Full diff ==="
-          git diff -- frontend/src/generated
+          echo "=== Sample diff (auth-api-controller.ts first 50 lines) ==="
+          git diff -- frontend/src/generated/auth-api-controller/auth-api-controller.ts | head -50
+          echo "=== CRLF check on committed file ==="
+          git show HEAD:frontend/src/generated/auth-api-controller/auth-api-controller.ts | cat -A | head -5
+          echo "=== CRLF check on generated file ==="
+          cat -A frontend/src/generated/auth-api-controller/auth-api-controller.ts | head -5
           git diff --exit-code -- frontend/src/generated || (echo "::error::Codegen 결과가 최신이 아닙니다. frontend에서 'npm run generate'를 실행한 뒤 frontend/src/generated 변경사항을 커밋하세요." && exit 1)
 
   backend-test:
