@@ -61,6 +61,12 @@ export type EditButtonCellModel = {
   onClick: React.ComponentProps<'button'>['onClick'];
 };
 
+export type PrintButtonCellModel = {
+  type: 'printButton';
+  ariaLabel: string;
+  onClick: React.ComponentProps<'button'>['onClick'];
+};
+
 export type PasswordResetButtonCellModel = {
   type: 'passwordResetButton';
   disabled?: boolean;
@@ -106,6 +112,7 @@ export type SharedTableCell =
   | CheckboxCellModel
   | SelectCellModel
   | EditButtonCellModel
+  | PrintButtonCellModel
   | PasswordResetButtonCellModel
   | UseYnBadgeCellModel
   | ChangeTypeBadgeCellModel

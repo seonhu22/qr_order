@@ -20,6 +20,8 @@ import {
   SaveTableButton,
   MoveUpTableButton,
   MoveDownTableButton,
+  PrintListTableButton,
+  PrintRowTableButton,
   ResetFilterButton,
   ResetTableButton,
   SearchFilterButton,
@@ -544,13 +546,24 @@ export default function ButtonGuide() {
         <Row label="테이블 행 수정 아이콘 (EditTableButton)">
           <EditTableButton ariaLabel="수정" onClick={() => {}} />
         </Row>
+        <Row label="QR 출력 (QrCodeManagementTable 내부 구성)">
+          <AddRowTableButton onClick={() => {}} />
+          <DeleteRowTableButton onClick={() => {}} />
+          <PrintListTableButton onClick={() => {}} />
+          <SaveTableButton onClick={() => {}} />
+        </Row>
+        <Row label="테이블 행 QR 출력 아이콘 (PrintRowTableButton)">
+          <PrintRowTableButton ariaLabel="QR 출력" onClick={() => {}} />
+        </Row>
         <Row label="disabled 상태">
           <CreateTableButton disabled />
           <DeleteTableButton disabled />
           <EditTableButton ariaLabel="수정 비활성" disabled />
+          <PrintRowTableButton ariaLabel="QR 출력 비활성" disabled />
           <MoveUpTableButton ariaLabel="위로 이동 비활성" disabled />
           <AddChildRowTableButton disabled />
           <ResetTableButton disabled />
+          <PrintListTableButton disabled />
           <SaveTableButton loading />
         </Row>
       </Section>

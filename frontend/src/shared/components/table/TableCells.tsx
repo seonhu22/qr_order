@@ -1,7 +1,7 @@
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
-import { EditTableButton, PasswordResetButton } from '@/shared/components/button';
+import { EditTableButton, PasswordResetButton, PrintRowTableButton } from '@/shared/components/button';
 import {
   AuthorityBadge,
   ChangeTypeBadge,
@@ -48,6 +48,11 @@ type TableCellSelectProps = {
 type TableCellEditButtonProps = {
   ariaLabel: string;
   onClick: React.ComponentProps<typeof EditTableButton>['onClick'];
+};
+
+type TableCellPrintButtonProps = {
+  ariaLabel: string;
+  onClick: React.ComponentProps<typeof PrintRowTableButton>['onClick'];
 };
 
 type TableCellPasswordResetButtonProps = {
@@ -167,6 +172,13 @@ export function TableCellSelect({
  */
 export function TableCellEditButton({ ariaLabel, onClick }: TableCellEditButtonProps) {
   return <EditTableButton ariaLabel={ariaLabel} onClick={onClick} />;
+}
+
+/**
+ * 테이블 QR 출력 아이콘 셀.
+ */
+export function TableCellPrintButton({ ariaLabel, onClick }: TableCellPrintButtonProps) {
+  return <PrintRowTableButton ariaLabel={ariaLabel} onClick={onClick} />;
 }
 
 /**
