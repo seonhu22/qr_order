@@ -64,6 +64,53 @@ const handleSearch = () => {
 - `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달
 - `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
 
+### 행 선택은 자동으로 첫 행을 선택하지 않는다
+
+페이지 로드, 조회, 초기화 시 `selectedRowId`를 목록의 첫 행으로 자동 지정하지 않는다. 사용자가 직접 행을 클릭했을 때만 선택 상태가 된다. 기존 선택이 갱신된 목록에도 여전히 존재하면 유지하고, 없으면 선택을 해제한다.
+
+```ts
+setSelectedRowId((prev) => (prev && nextRows.some((row) => row.id === prev) ? prev : ''));
+```
+
+`fetchedRows[0]?.id ?? ''` 같은 fallback을 쓰지 않는다 — 행추가 직후처럼 의도적으로 새 행을 선택하는 경우(`handleAddRow`)는 예외다.
+
+### 저장 전 같은 값 중복 검증
+
+같은 필드 값이 여러 행에서 중복되면 안 되는 화면(예: `QrCode`의 테이블 번호)은 빈값 검증과 별개로 중복 검증을 추가한다. 중복된 모든 행을 에러로 표시한다(두 번째 행만이 아니라).
+
+```ts
+function getDuplicateRowErrors(rows: Row[]): RowErrors {
+  const counts = new Map<string, number>();
+  rows.forEach((row) => {
+    const value = row.field.trim();
+    if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
+  });
+
+  return Object.fromEntries(
+    rows
+      .filter((row) => (counts.get(row.field.trim()) ?? 0) > 1)
+      .map((row) => [row.id, { field: true }] as const),
+  );
+}
+```
+
+`handleSave`에서 빈값 검증 → 중복 검증 순서로 확인하고, 각각 별도 안내 모달을 띄운다.
+
+### 다른 feature의 등록 데이터를 select 옵션으로 재사용
+
+`QrCode`의 "테이블 번호" 콤보박스처럼 다른 feature에 이미 등록된 데이터를 옵션으로 보여줘야 하면, 그 feature의 query 훅을 그대로 재사용한다(`useStoreTableQuery()`). 별도 API나 중복 옵션 목록을 새로 만들지 않는다.
+
+```ts
+const storeTableQuery = useStoreTableQuery();
+const tableNumOptions = useMemo(
+  () =>
+    (storeTableQuery.data ?? [])
+      .filter((item) => item.tableNum != null)
+      .map((item) => ({ value: String(item.tableNum), label: String(item.tableNum) })),
+  [storeTableQuery.data],
+);
+```
+
 ### 조회 중 행추가
 
 검색어가 적용된 상태(`appliedKeyword`가 있는 상태)에서 행추가를 하면 새 행이 필터에 걸려 화면에 나타나지 않는다.

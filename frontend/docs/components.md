@@ -399,7 +399,7 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 13. 저장·삭제 확인 모달은 편집 모달 위에 쌓이는 방식(stack)으로 동작한다. 확인 클릭 시 작업이 완료된 후 두 모달이 함께 닫힌다. 취소 클릭 시 확인 모달만 닫히고 편집 모달은 유지된다.
 14. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
 15. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
-16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
+16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다. 삭제가 아닌 다른 선택 기반 일괄 액션(예: `QrCode`의 일괄 출력 확인 모달)에도 같은 분기 원칙을 적용한다 — 1건이면 `description` 없이 제목만, 2건 이상이면 "총 N건이 출력됩니다." 같은 건수 안내를 추가한다.
 17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 단순 안내 문구를 합칠 때만 `messages.join('\n')` 형태로 사용한다.
 18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
 19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
