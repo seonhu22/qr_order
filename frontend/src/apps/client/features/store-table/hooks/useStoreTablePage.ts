@@ -69,10 +69,7 @@ export function useStoreTablePage(): StoreTablePageViewModel {
     setBaseRows(nextRows);
     setDraftRows(cloneRows(fetchedRows));
     setRowErrors({});
-    setSelectedRowId((prev) => {
-      if (prev && nextRows.some((row) => row.id === prev)) return prev;
-      return nextRows[0]?.id ?? '';
-    });
+    setSelectedRowId((prev) => (prev && nextRows.some((row) => row.id === prev) ? prev : ''));
   }, [fetchedRows]);
 
   const isDirty = useMemo(() => {
@@ -96,7 +93,7 @@ export function useStoreTablePage(): StoreTablePageViewModel {
     resetKeywords();
     setBaseRows(cloneRows(fetchedRows));
     setDraftRows(cloneRows(fetchedRows));
-    setSelectedRowId(fetchedRows[0]?.id ?? '');
+    setSelectedRowId('');
   };
 
   const editableFlow = useEditablePageFlow({
