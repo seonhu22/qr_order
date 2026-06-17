@@ -64,6 +64,14 @@ const handleSearch = () => {
 - `use<Feature>Flow`: 삭제 확인, 비밀번호 초기화, 도메인 전용 부가 모달
 - `use<Feature>Page`: list state + shared flow + feature flow + API wrapper 조합
 
+### 행삭제는 확인 모달 없이 즉시 draft에서 제거한다
+
+`StoreTable` / `QrCode` / `Message` / `AdminUser` 같은 인라인 편집 테이블의 행삭제 버튼은 `DeleteConfirmModal` 없이 즉시 `draftRows`에서 행을 제거한다. 삭제는 서버에 바로 반영되지 않고 "저장" 버튼을 눌러야 영구 반영되며, 그 시점에 `SaveConfirmModal`로 한 번 확인받는다. 즉 삭제 확인은 저장 확인 단계에 합쳐져 있다.
+
+이와 달리 클릭 즉시 서버에 영구 삭제 mutation을 호출하는 화면(모달 CRUD 화면의 마스터 목록, `ClientUser`의 체크박스 다중선택 삭제)은 되돌릴 수 없으므로 `DeleteConfirmModal`로 먼저 확인받는다.
+
+새 인라인 편집 테이블을 만들 때 행삭제에 `DeleteConfirmModal`을 추가할지 고민된다면: draft 상태에서 저장 전까지 되돌릴 수 있으면 추가하지 않는다.
+
 ### 행 선택은 자동으로 첫 행을 선택하지 않는다
 
 페이지 로드, 조회, 초기화 시 `selectedRowId`를 목록의 첫 행으로 자동 지정하지 않는다. 사용자가 직접 행을 클릭했을 때만 선택 상태가 된다. 기존 선택이 갱신된 목록에도 여전히 존재하면 유지하고, 없으면 선택을 해제한다.
