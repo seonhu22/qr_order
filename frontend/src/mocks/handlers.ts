@@ -17,10 +17,8 @@ import {
   getNewPaymentMockHandler,
   getNewPlantMockHandler,
   getNewRuleMasterMockHandler,
-  getSaveAdminUserMockHandler,
   getSaveCommonDetailMockHandler,
   getSaveMenuMockHandler,
-  getSaveMessageMockHandler,
   getSavePaymentCouponMockHandler,
   getSearchCommonDetailMockHandler,
   getSearchCommonMockHandler,
@@ -56,11 +54,13 @@ import {
   getGetStoreInfoMockHandler,
   getGetTableInfo1MockHandler,
   getNewClientUserMockHandler,
-  getNewTableInfoMockHandler,
   getResetPwdMockHandler,
   getSaveStoreInfoMockHandler,
   getUpdateClientUserMockHandler,
 } from '../generated/store-manage-controller/store-manage-controller.msw';
+import type { TableInfoRequest } from '../generated/types/tableInfoRequest';
+import type { MessageRequest } from '../generated/types/messageRequest';
+import type { AdminUserRequest } from '../generated/types/adminUserRequest';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -134,6 +134,30 @@ const adminUserOverrideHandler = http.get(
   },
 );
 
+const adminUserSaveOverrideHandler = http.post(
+  '*/api/system/settings/adminuser/save',
+  async ({ request }) => {
+    const body = (await request.json()) as AdminUserRequest;
+
+    body.newItems?.forEach((item) => {
+      ADMIN_USER_MOCK_ROWS.push({
+        ...item,
+        sysId: `admin-${Date.now()}-${ADMIN_USER_MOCK_ROWS.length}`,
+      });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = ADMIN_USER_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = ADMIN_USER_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) ADMIN_USER_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+
 const messageOverrideHandler = http.get(
   '*/api/system/settings/message/search',
   ({ request }) => {
@@ -151,9 +175,54 @@ const messageOverrideHandler = http.get(
   },
 );
 
+const messageSaveOverrideHandler = http.post(
+  '*/api/system/settings/message/save',
+  async ({ request }) => {
+    const body = (await request.json()) as MessageRequest;
+
+    body.newItems?.forEach((item) => {
+      MESSAGE_MOCK_ROWS.push({ ...item, sysId: `msg-${Date.now()}-${MESSAGE_MOCK_ROWS.length}` });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = MESSAGE_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = MESSAGE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) MESSAGE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+
 const storeInfoOverrideHandler = getGetStoreInfoMockHandler(STORE_INFO_MOCK_ROWS);
 
 const storeTableOverrideHandler = getGetTableInfo1MockHandler(STORE_TABLE_MOCK_ROWS);
+
+const storeTableSaveOverrideHandler = http.post(
+  '*/api/client/store_manage/table_info/save',
+  async ({ request }) => {
+    const body = (await request.json()) as TableInfoRequest;
+
+    body.newItems?.forEach((item) => {
+      STORE_TABLE_MOCK_ROWS.push({
+        ...item,
+        sysId: `table-${Date.now()}-${STORE_TABLE_MOCK_ROWS.length}`,
+      });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = STORE_TABLE_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = STORE_TABLE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) STORE_TABLE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
 
 const pwdChkOverrideHandler = http.get('*/api/client/store_manage/store_info/pwd_chk', ({ request }) => {
   const url = new URL(request.url);
@@ -350,13 +419,11 @@ const settingsHandlers = [
   getUpdatePaymentMockHandler(),
   getNewPaymentMockHandler(),
   getDelPaymentMockHandler(),
-  getSaveMessageMockHandler(),
   getSaveMenuMockHandler(),
   getUpdateCommonMasterMockHandler(),
   getNewCommonMasterMockHandler(),
   getDelCommonMasterMockHandler(),
   getSaveCommonDetailMockHandler(),
-  getSaveAdminUserMockHandler(),
   getGetRuleMasterMockHandler(),
   getGetRuleDetailMockHandler(),
   getGetPlantStatusMockHandler(),
@@ -382,7 +449,9 @@ export const handlers = [
   plantStatusOverrideHandler,
   couponOverrideHandler,
   adminUserOverrideHandler,
+  adminUserSaveOverrideHandler,
   messageOverrideHandler,
+  messageSaveOverrideHandler,
   clientUserOverrideHandler,
   menuOverrideHandler,
   noticeOverrideHandler,
@@ -403,5 +472,5 @@ export const handlers = [
   pwdChkOverrideHandler,
   getSaveStoreInfoMockHandler(),
   storeTableOverrideHandler,
-  getNewTableInfoMockHandler(),
+  storeTableSaveOverrideHandler,
 ];

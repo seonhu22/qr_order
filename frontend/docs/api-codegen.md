@@ -214,6 +214,40 @@ const myFeatureOverrideHandler = http.get('*/api/.../search', ({ request }) => {
 
 단순 고정 데이터면 `getGetMyFeatureMockHandler(rows)` 형태로 주입하고, 검색·필터·조건 분기가 필요하면 직접 `http.get` 핸들러를 작성한다.
 
+### 저장(POST) 결과가 화면에 반영되게 만들기
+
+generated 저장 mutation 핸들러(`getSaveXxxMockHandler()`)는 성공/실패를 랜덤(Faker)으로 응답할 뿐, 목업 배열을 실제로 바꾸지 않는다. 그래서 행추가 후 저장하면 `invalidateQueries`로 재조회가 일어나도 새 행이 보이지 않는다.
+
+행추가/수정/삭제가 실제로 목록에 반영되도록 테스트하려면, 저장 POST 핸들러를 직접 작성해서 `newItems`/`updateItems`/`delItems`를 목업 배열에 in-place로 반영한다.
+
+```ts
+// mocks/handlers.ts
+const myFeatureSaveOverrideHandler = http.post(
+  '*/api/.../my-feature/save',
+  async ({ request }) => {
+    const body = (await request.json()) as MyFeatureRequest;
+
+    body.newItems?.forEach((item) => {
+      MY_FEATURE_MOCK_ROWS.push({ ...item, sysId: `my-feature-${Date.now()}-${MY_FEATURE_MOCK_ROWS.length}` });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = MY_FEATURE_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = MY_FEATURE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) MY_FEATURE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+```
+
+- `newItems`는 보통 `sysId`가 없는 상태로 오므로 mock에서 직접 생성해 부여한다.
+- generated 저장 핸들러를 이 방식으로 대체했다면 `getSaveXxxMockHandler` import/등록을 `handlers.ts`에서 제거한다(같은 경로에 두 핸들러를 동시에 두지 않는다 — MSW는 첫 매칭만 쓰므로 우리 핸들러가 위에 있으면 동작은 하지만 죽은 import가 남는다).
+- 로딩 스피너(`isSaving`) 동작까지 확인하려면 핸들러 안에 `await delay(1000)`(msw의 `delay`)을 추가했다가 확인 후 제거한다. 평소엔 즉시 응답하는 게 개발 흐름상 더 편하므로 delay는 기본적으로 넣지 않는다.
+
 ---
 
 ## 주의사항
