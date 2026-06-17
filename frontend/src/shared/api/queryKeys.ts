@@ -10,6 +10,7 @@ const plantStatusListsKey = ['settings', 'plantStatus', 'list'] as const;
 const couponListsKey = ['settings', 'coupon', 'list'] as const;
 const clientUserListsKey = ['client', 'storeUser', 'list'] as const;
 const storeTableListsKey = ['client', 'storeTable', 'list'] as const;
+const qrCodeListsKey = ['client', 'qrCode', 'list'] as const;
 const ruleMasterListsKey = ['settings', 'rule', 'masters'] as const;
 const ruleDetailListsKey = ['settings', 'rule', 'details'] as const;
 const accessLogMasterListsKey = ['settings', 'accessLog', 'masters'] as const;
@@ -101,5 +102,8 @@ export const queryKeys = {
   },
   storeTable: {
     lists: storeTableListsKey,
+  },
+  qrCode: {
+    lists: qrCodeListsKey,
   },
 } as const;

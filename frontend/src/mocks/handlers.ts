@@ -49,6 +49,7 @@ import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/coup
 import { CLIENT_USER_MOCK_ROWS } from '../apps/client/features/client-user/mock/clientUserMock';
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
+import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
 import {
   getDelClientUserMockHandler,
   getGetStoreInfoMockHandler,
@@ -61,6 +62,7 @@ import {
 import type { TableInfoRequest } from '../generated/types/tableInfoRequest';
 import type { MessageRequest } from '../generated/types/messageRequest';
 import type { AdminUserRequest } from '../generated/types/adminUserRequest';
+import type { QrCodeRequest } from '../apps/client/features/qr-code/api/qrCodeApi';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -218,6 +220,34 @@ const storeTableSaveOverrideHandler = http.post(
     body.delItems?.forEach((item) => {
       const index = STORE_TABLE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
       if (index !== -1) STORE_TABLE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+
+const qrCodeOverrideHandler = http.get('*/api/client/store_manage/table_qr/search', () => {
+  return HttpResponse.json(QR_CODE_MOCK_ROWS);
+});
+
+const qrCodeSaveOverrideHandler = http.post(
+  '*/api/client/store_manage/table_qr/save',
+  async ({ request }) => {
+    const body = (await request.json()) as QrCodeRequest;
+
+    body.newItems?.forEach((item) => {
+      QR_CODE_MOCK_ROWS.push({
+        ...item,
+        sysId: `qr-code-${Date.now()}-${QR_CODE_MOCK_ROWS.length}`,
+      });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = QR_CODE_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = QR_CODE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) QR_CODE_MOCK_ROWS.splice(index, 1);
     });
 
     return HttpResponse.json({ success: true });
@@ -473,4 +503,6 @@ export const handlers = [
   getSaveStoreInfoMockHandler(),
   storeTableOverrideHandler,
   storeTableSaveOverrideHandler,
+  qrCodeOverrideHandler,
+  qrCodeSaveOverrideHandler,
 ];

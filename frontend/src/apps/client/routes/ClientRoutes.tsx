@@ -7,6 +7,7 @@ import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPla
 import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
+import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -39,12 +40,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/table/qr',
-        element: (
-          <ClientPlaceholderPage
-            title="QR 코드 관리"
-            description="테이블별 QR 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <QrCodeManagementPage />,
       },
       {
         path: 'store/table/layout',
