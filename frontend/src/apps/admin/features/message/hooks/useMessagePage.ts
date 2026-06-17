@@ -54,7 +54,7 @@ export function useMessagePage(): MessagePageViewModel {
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
-  const messageQuery = useMessageQuery(appliedKeyword.trim());
+  const messageQuery = useMessageQuery();
   const saveMessagesMutation = useSaveMessagesMutation();
   const fetchedRows = useMemo(
     () => (messageQuery.data ?? []).map(mapToMessageModel),

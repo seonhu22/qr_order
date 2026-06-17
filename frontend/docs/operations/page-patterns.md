@@ -81,7 +81,20 @@ const rows = useMemo(() => {
 }, [appliedKeyword, draftRows]);
 ```
 
-서버사이드 필터링 페이지(예: `AdminUserPage`)는 새 행이 로컬 `draftRows`에 추가되므로 이 처리가 불필요하다.
+### 검색은 항상 클라이언트 필터링, 쿼리 키는 검색어와 무관하게 고정
+
+`StoreTable` / `Message` / `AdminUser` 모두 `use<Feature>Query()`는 검색어 파라미터 없이 고정 쿼리 키(`<feature>.lists`)만 쓰고, 검색은 위의 `rows` useMemo에서 전부 클라이언트 사이드로 처리한다.
+
+```ts
+// 쿼리: 검색어 무관, 항상 같은 키
+export function useMessageQuery() {
+  return useGetMessage(undefined, {
+    query: { queryKey: queryKeys.message.lists, ...queryPolicies.adminCrudList },
+  });
+}
+```
+
+검색어를 쿼리 키에 포함시키면(`queryKeys.message.list(searchKeyword)` 식) 저장 흐름의 `resetKeywords()`(내부적으로 `startTransition`)와 `invalidateQueries`가 서로 다른 시점의 쿼리 키를 바라보게 되는 타이밍 이슈가 생길 수 있다. 고정 키 + 클라이언트 필터링으로 통일하면 `invalidateQueries`가 항상 단일 쿼리만 정확히 갱신하므로 이 문제 자체가 발생하지 않는다.
 
 ### 저장 후 검색어 초기화 및 전체 목록 재조회
 

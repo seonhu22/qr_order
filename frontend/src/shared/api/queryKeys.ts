@@ -48,11 +48,9 @@ export const queryKeys = {
   },
   adminUser: {
     lists: adminUserListsKey,
-    list: (searchKeyword = '') => [...adminUserListsKey, { searchKeyword }] as const,
   },
   message: {
     lists: messageListsKey,
-    list: (searchKeyword = '') => [...messageListsKey, { searchKeyword }] as const,
   },
   payment: {
     lists: paymentListsKey,

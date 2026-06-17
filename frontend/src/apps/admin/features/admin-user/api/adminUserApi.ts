@@ -105,10 +105,10 @@ export function hasAdminUserChanges(request: AdminUserRequest) {
 /**
  * 관리자 목록 조회 wrapper hook
  */
-export function useAdminUserQuery(searchKeyword = '') {
-  return useGetAdminUser(searchKeyword ? { searchKeyword } : undefined, {
+export function useAdminUserQuery() {
+  return useGetAdminUser(undefined, {
     query: {
-      queryKey: queryKeys.adminUser.list(searchKeyword),
+      queryKey: queryKeys.adminUser.lists,
       ...queryPolicies.adminCrudList,
     },
   });
