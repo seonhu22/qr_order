@@ -404,6 +404,11 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
 19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
 20. 행추가/행삭제가 있는 인라인 편집 테이블의 저장 검증 안내는 개수에 따라 모달을 나눈다. 검증 안내가 1개면 `SimpleDefaultModal`, 2개 이상이면 `ValidationNoticeModal`을 사용한다. 이 규칙은 셀 내부에 필드별 안내 문구를 둘 공간이 부족한 행추가 테이블 전용이며, 일반 등록/수정 폼 모달은 기존처럼 필드 옆 `errorText`를 사용한다.
+21. `SaveConfirmModal`/`EditConfirmModal`은 항상 `title`에 질문을, `description`에 부연 설명을 넣는다. `ConfirmModal`(조회/초기화)·`DeleteConfirmModal`과 같은 구조다. `title` 기본값("저장 확인"/"수정 확인")에 의존하지 않는다.
+    - `SaveConfirmModal`: `title="저장하시겠습니까?"` / `description="입력하신 내용을 저장합니다."`
+    - `EditConfirmModal`: `title="수정하시겠습니까?"` / `description="변경된 내용이 저장됩니다."`
+    - 화면별 엔티티명을 넣어 문구를 다르게 만들지 않는다(예: "OOO 상세를 저장하시겠습니까?" 금지) — title과 의미가 중복되고 화면마다 문구가 달라진다.
+    - 저장 완료 안내(`savedNotice`)도 기본값 "저장되었습니다."를 그대로 쓴다. 화면별로 다른 문구("저장 완료되었습니다." 등)로 덮어쓰지 않는다.
 
 ```tsx
 <SimpleDefaultModal
