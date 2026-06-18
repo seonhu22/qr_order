@@ -33,7 +33,7 @@ shared/components/table/
 ```ts
 type TableCardProps = {
   ariaLabel: string;          // 필수 — article의 aria-label
-  title?: string;             // 카드 헤더 타이틀. 생략 시 header 미렌더링
+  title?: ReactNode;          // 카드 헤더 타이틀. 생략 시 header 미렌더링. 제목 옆 라벨을 붙이려면 ReactNode로 조합한다
   actions?: ReactNode;        // 헤더 우측 액션 버튼 영역
   actionsClassName?: string;  // 액션 div에 추가할 클래스
   className?: string;         // 카드 루트(article)에 추가할 클래스
@@ -575,6 +575,74 @@ statusText={{
 - `common-table--detail`은 `thead`/`tbody`가 `display: block`이므로 `colgroup`이 무효
 - `className`에 너비 클래스를 적용하면 해당 컬럼의 `th`와 모든 `td` 너비가 함께 고정됨
 - 마스터 테이블의 사용여부 컬럼과 같은 폭이 필요하면 `common-table__col--md`를 사용한다.
+
+### EditableDetailColumn — select / action 컬럼 타입, 숫자 입력
+
+> 추가일: 2026-06-18
+
+`EditableDetailColumn.type`은 `'text' | 'boolean' | 'select' | 'action'`을 지원한다.
+
+```ts
+export type EditableDetailColumn = {
+  key: string;
+  label: string;
+  type: 'text' | 'boolean' | 'select' | 'action';
+  required?: boolean;
+  readOnlyOnExisting?: boolean;
+  className?: string;
+  inputType?: 'text' | 'number';   // type: 'text'일 때 입력 형식
+  options?: SelectOption[];        // type: 'select'일 때 선택지
+};
+```
+
+- `type: 'text'` + `inputType: 'number'` — 가격처럼 숫자만 입력받는 컬럼. `InputBase`에 `type="number"`를 그대로 전달한다(다른 숫자 입력 폼과 동일한 방식).
+- `type: 'select'` — Y/N 같은 콤보 입력 컬럼. `options`는 필수로 전달한다. **Y/N처럼 짧은 값이면 `className: 'common-table__col--md'`로 폭을 고정한다.** `className`을 생략하면 다른 `text` 컬럼과 동일하게 남는 너비를 나눠 가져 콤보가 불필요하게 넓어 보인다(`AdminUserTable`의 사업장 콤보처럼 값 길이가 가변적인 경우에만 생략한다).
+- `type: 'action'` — 값이 없는 행 단위 버튼 컬럼(예: 수정). `actions.onEditRow`가 호출된다. 폭을 고정하려면 `className: 'common-table__col--action'`을 함께 지정한다(§4 컬럼 너비 클래스 참고).
+
+```ts
+// MenuDetailTable 컬럼 예시
+{ key: 'menuPrice', label: '메뉴 가격', type: 'text', required: true, inputType: 'number' },
+{ key: 'optionUseYn', label: '상세옵션 사용', type: 'select', options: USE_YN_OPTIONS, className: 'common-table__col--md' },
+{ key: 'edit', label: '', type: 'action', className: 'common-table__col--action' },
+```
+
+```tsx
+<EditableDetailTable
+  // ...
+  actions={{
+    // ...
+    onEditRow: (row) => openDetailModal(row),
+  }}
+/>
+```
+
+- `select` 컬럼은 마스터 테이블의 사용여부 배지와 달리 콤보 자체이므로, "사용/미사용"처럼 2글자 이상 라벨이 필요하면 `options`에 직접 라벨을 넣는다(§4 상태 배지의 Y/N 배지와는 별개 규칙).
+- `action` 컬럼은 마스터 테이블의 고정 `edit` 컬럼과 달리 `columns` 배열에 직접 선언해야 노출된다 — 컬럼을 빼면 버튼도 사라진다.
+
+### 카드 제목 옆 라벨 — `titleBadge`
+
+> 추가일: 2026-06-18
+
+`EditableDetailTable`의 `table.titleBadge`로 제목(h2) 옆에 선택된 마스터 라벨 등을 붙일 수 있다.
+`actions`(행추가/삭제/저장 버튼 영역)가 아니라 **제목과 같은 위치**에 렌더링되므로, 액션 버튼과 분리해서 표시해야 하는 라벨에 사용한다.
+
+```tsx
+<EditableDetailTable
+  table={{
+    title: '메뉴 관리',
+    titleBadge: selectedCategory ? (
+      <span className="menu-management-table__category-badge">{selectedCategory.name}</span>
+    ) : undefined,
+    ariaLabel: '메뉴 관리',
+    tableAriaLabel: '메뉴 관리 테이블',
+  }}
+  // ...
+/>
+```
+
+- `titleBadge`가 있으면 내부적으로 `title`과 함께 `TableCard`의 `title`(ReactNode) prop으로 합쳐 전달된다.
+- 배지 자체의 시각 스타일은 `AccessLogDetailTable`의 `access-log-table__user-badge`처럼 feature CSS에서 정의한다(공용 컴포넌트로 제공하지 않음).
+- 마스터 클릭마다 선택값이 바뀌는 화면이라면 `selectedMaster`가 없을 때 `titleBadge`를 `undefined`로 둔다.
 
 ### 테이블 수정 버튼
 

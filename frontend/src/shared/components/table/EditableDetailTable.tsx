@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { FeedbackVariant } from '@/shared/components/feedback';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import { getNextSelectedId } from '@/shared/utils/rowSelection';
@@ -8,14 +9,19 @@ import { TableCard } from './TableCard';
 import { TableCardContentState } from './TableCardContentState';
 import type {
   EditableDetailColumn,
+  EditableDetailMasterRow,
   EditableDetailRow,
-  EditableMasterRow,
 } from './editableTableTypes';
 import type { SharedTableColumn, SharedTableRow } from './tableModelTypes';
 
-type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends EditableDetailRow> = {
+type EditableDetailTableProps<
+  TMaster extends EditableDetailMasterRow,
+  TRow extends EditableDetailRow,
+> = {
   table: {
     title?: string;
+    /** 제목 옆(헤더 액션 영역)에 표시할 배지 — 선택된 마스터 라벨 등 */
+    titleBadge?: ReactNode;
     ariaLabel: string;
     tableAriaLabel: string;
     footnote?: string;
@@ -46,6 +52,8 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
     onMoveUp: (rowId?: string) => void;
     onMoveDown: (rowId?: string) => void;
     onSave: () => void;
+    /** type: 'action' 컬럼의 행 단위 버튼 클릭 핸들러. */
+    onEditRow?: (row: TRow) => void;
   };
 };
 
@@ -57,7 +65,7 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
  * 행 선택·필드 편집·행 이동·저장 이벤트를 표준화된 테이블 모델로 변환해 처리한다.
  */
 export function EditableDetailTable<
-  TMaster extends EditableMasterRow,
+  TMaster extends EditableDetailMasterRow,
   TRow extends EditableDetailRow,
 >({
   table,
@@ -69,6 +77,7 @@ export function EditableDetailTable<
 }: EditableDetailTableProps<TMaster, TRow>) {
   const {
     title,
+    titleBadge,
     ariaLabel,
     tableAriaLabel,
     footnote,
@@ -90,6 +99,7 @@ export function EditableDetailTable<
     onMoveUp,
     onMoveDown,
     onSave,
+    onEditRow,
   } = actions;
   const [selectedDetailId, setSelectedDetailId] = useState('');
   const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
@@ -148,6 +158,33 @@ export function EditableDetailTable<
           ];
         }
 
+        if (column.type === 'select') {
+          return [
+            column.key,
+            {
+              type: 'select',
+              value: typeof value === 'string' ? value : '',
+              options: column.options ?? [],
+              isError: Boolean(rowErrors[row.id]?.[column.key]),
+              onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
+            },
+          ];
+        }
+
+        if (column.type === 'action') {
+          return [
+            column.key,
+            {
+              type: 'editButton',
+              ariaLabel,
+              onClick: (event) => {
+                event.stopPropagation();
+                onEditRow?.(row);
+              },
+            },
+          ];
+        }
+
         const isReadonly = column.readOnlyOnExisting && !row.isNew;
 
         return [
@@ -158,6 +195,7 @@ export function EditableDetailTable<
             className: `common-table__input${isReadonly ? ' common-table__input--readonly-code' : ''}`,
             controlState: isReadonly ? 'readonly' : rowErrors[row.id]?.[column.key] ? 'error' : '',
             readOnly: isReadonly,
+            inputType: column.inputType,
             value: typeof value === 'string' ? value : '',
             ariaLabel,
             onClearError: () => onClearRowError(row.id, column.key),
@@ -170,7 +208,16 @@ export function EditableDetailTable<
 
   return (
     <TableCard
-      title={title}
+      title={
+        titleBadge ? (
+          <>
+            {title}
+            {titleBadge}
+          </>
+        ) : (
+          title
+        )
+      }
       ariaLabel={ariaLabel}
       actionsClassName="common-code-card__actions--detail"
       actions={
