@@ -1,6 +1,6 @@
 import { useChkBRN } from '@/generated/sign-up-controller/sign-up-controller';
 import type { ChkBRNMutationResult } from '@/generated/sign-up-controller/sign-up-controller';
-import { HttpError } from '@/shared/lib/httpClient';
+import { getSignupApiErrorMessage } from './signupApiUtils';
 
 export type SignupBusinessVerificationForm = {
   businessNo: string;
@@ -29,10 +29,6 @@ type SignupBusinessVerificationMutationOptions = {
     onError?: (error: unknown) => void;
   };
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object';
-}
 
 export function buildSignupBusinessVerificationPayload(
   form: SignupBusinessVerificationForm,
@@ -66,24 +62,7 @@ export function isSignupBusinessVerificationError(
 }
 
 export function getSignupBusinessVerificationErrorMessage(error: unknown): string {
-  if (
-    error instanceof HttpError &&
-    isRecord(error.payload) &&
-    typeof error.payload.message === 'string' &&
-    error.payload.message.trim()
-  ) {
-    return error.payload.message;
-  }
-
-  if (error instanceof HttpError && error.message.trim()) {
-    return error.message;
-  }
-
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-
-  return '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+  return getSignupApiErrorMessage(error);
 }
 
 export function useSignupBusinessVerificationMutation(
