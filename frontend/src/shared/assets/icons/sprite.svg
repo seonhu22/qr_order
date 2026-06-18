@@ -173,6 +173,44 @@
             <path d="M6 18H4C3.45 18 2.92 17.79 2.54 17.41C2.16 17.04 1.95 16.53 1.95 16V11C1.95 10.47 2.16 9.96 2.54 9.59C2.92 9.21 3.45 9 4 9H20C20.55 9 21.08 9.21 21.46 9.59C21.84 9.96 22.05 10.47 22.05 11V16C22.05 16.53 21.84 17.04 21.46 17.41C21.08 17.79 20.55 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
+        <!-- 카운터/계산대 -->
+        <symbol id="i-cashier" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9H21V20H3V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 9V6C7 4.34315 8.34315 3 10 3H14C15.6569 3 17 4.34315 17 6V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 14H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 출입문 -->
+        <symbol id="i-door" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M5 3H19V21H5V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="15" cy="12" r="1" fill="currentColor"/>
+        </symbol>
+        <!-- 주방 -->
+        <symbol id="i-kitchen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M3 4H21V20H3V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="10" r="2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="15" cy="10" r="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 17H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <!-- 화장실 -->
+        <symbol id="i-restroom" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M7 3H17V9H7V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 9H18V17C18 18.6569 16.6569 20 15 20H9C7.34315 20 6 18.6569 6 17V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 좌석 -->
+        <symbol id="i-seat" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M6 11V5C6 3.89543 6.89543 3 8 3H16C17.1046 3 18 3.89543 18 5V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 11H20V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 18V21M18 18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <!-- 드래그 핸들 -->
+        <symbol id="i-drag-handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <circle cx="9" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="18" r="1.5" fill="currentColor"/>
+            <circle cx="15" cy="18" r="1.5" fill="currentColor"/>
+        </symbol>
         <!-- QR 코드 -->
         <symbol id="i-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <path d="M3 11H11V3H3V11ZM5 5H9V9H5V5ZM13 3V11H21V3H13ZM19 9H15V5H19V9ZM3 21H11V13H3V21ZM5 15H9V19H5V15ZM18 13H21V16H18V13ZM16 13H18V15H16V13ZM13 15H16V18H13V15ZM15 17H18V21H15V17ZM18 17H21V19H18V17ZM13 19H15V21H13V19ZM19 19H21V21H19V19Z"
