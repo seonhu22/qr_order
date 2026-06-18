@@ -1,4 +1,4 @@
-import type { AdminUserResponse } from '@/generated/settings-controller/settings-controller';
+import type { AdminUserResponse } from '@/generated/types/adminUserResponse';
 
 export const ADMIN_USER_MOCK_ROWS: AdminUserResponse[] = [
   { sysId: 'admin-001', userId: 'kim.admin',  userNm: '김관리자', plantCd: 'PLT-001', plantNm: '강남 1호점' },
