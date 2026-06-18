@@ -31,6 +31,8 @@ import { EditableDetailTable } from '@/shared/components/table/EditableDetailTab
 import { SimpleDefaultModal, ValidationNoticeModal } from '@/shared/components/modal';
 import type { EditableDetailColumn, EditableDetailRow } from '@/shared/components/table/editableTableTypes';
 import type { EditableMasterRow } from '@/shared/components/table/editableTableTypes';
+import { InputBase, InputWrapper } from '@/shared/components/input';
+import type { SelectOption } from '@/shared/components/input';
 import './devStyles/TableGuide.css';
 
 /* =====================================================
@@ -355,42 +357,169 @@ function EditableDetailTableExample() {
   );
 }
 
+/* =====================================================
+ * 섹션 3-b — EditableDetailTable: select/action 컬럼 + titleBadge
+ * MenuDetailTable(메뉴 관리) 패턴
+ * =====================================================
+ *
+ * - type: 'text' + inputType: 'number' — 숫자만 입력받는 컬럼(가격 등)
+ * - type: 'select' — Y/N 같은 콤보 컬럼, options 필수
+ * - type: 'action' — 값 없는 행 단위 버튼 컬럼, actions.onEditRow 호출
+ * - table.titleBadge — 제목(h2) 옆에 선택된 마스터 라벨을 표시(actions 영역과는 분리)
+ */
+const USE_YN_SELECT_OPTIONS: SelectOption[] = [
+  { value: 'Y', label: '사용' },
+  { value: 'N', label: '미사용' },
+];
+
+const ADVANCED_DETAIL_COLUMNS: EditableDetailColumn[] = [
+  { key: 'menuName', label: '메뉴명', type: 'text', required: true },
+  { key: 'menuPrice', label: '메뉴 가격', type: 'text', required: true, inputType: 'number' },
+  {
+    key: 'useYn',
+    label: '메뉴 사용',
+    type: 'select',
+    options: USE_YN_SELECT_OPTIONS,
+    className: 'common-table__col--md',
+  },
+  { key: 'edit', label: '', type: 'action', className: 'common-table__col--action' },
+];
+
+const INITIAL_ADVANCED_ROWS: SampleDetailRow[] = [
+  { id: 'm1', ordNo: 1, values: { menuName: '아메리카노', menuPrice: '4000', useYn: 'Y' } },
+  { id: 'm2', ordNo: 2, values: { menuName: '카페라떼', menuPrice: '4500', useYn: 'Y' } },
+];
+
+function AdvancedDetailTableExample() {
+  const [rows, setRows] = useState<SampleDetailRow[]>(INITIAL_ADVANCED_ROWS);
+  const [hasSelectedMaster, setHasSelectedMaster] = useState(true);
+  const [lastEditedRowName, setLastEditedRowName] = useState('');
+
+  return (
+    <div className="table-guide__advanced-detail">
+      <label className="table-guide__saving-toggle table-guide__saving-toggle--standalone">
+        <input
+          type="checkbox"
+          checked={hasSelectedMaster}
+          onChange={(event) => setHasSelectedMaster(event.target.checked)}
+        />
+        마스터 선택 상태 (titleBadge 노출 여부)
+      </label>
+      {lastEditedRowName && (
+        <p className="table-guide__validation-desc">
+          마지막으로 &quot;수정&quot; 버튼을 클릭한 행: {lastEditedRowName}
+        </p>
+      )}
+      <EditableDetailTable
+        table={{
+          title: '메뉴 관리',
+          titleBadge: hasSelectedMaster ? (
+            <span className="table-guide__title-badge">음료</span>
+          ) : undefined,
+          ariaLabel: '메뉴 관리',
+          tableAriaLabel: '메뉴 관리 테이블',
+        }}
+        statusText={{ loadingTitle: '메뉴를 불러오는 중입니다.' }}
+        data={{
+          selectedMaster: hasSelectedMaster ? INITIAL_MASTER_ROWS[0] : null,
+          rows,
+          columns: ADVANCED_DETAIL_COLUMNS,
+          rowErrors: {},
+        }}
+        status={{ isLoading: false, isSaving: false }}
+        actions={{
+          showMoveActions: false,
+          onChangeValue: (rowId: string, key: string, value: string | boolean) =>
+            setRows((prev) =>
+              prev.map((r) => r.id === rowId ? { ...r, values: { ...r.values, [key]: value } } : r),
+            ),
+          onClearRowError: () => {},
+          onAddRow: () => {
+            const id = `new-${Date.now()}`;
+            setRows((prev) => [
+              ...prev,
+              { id, ordNo: prev.length + 1, isNew: true, values: { menuName: '', menuPrice: '', useYn: 'Y' } },
+            ]);
+            return id;
+          },
+          onDeleteRow: (rowId?: string) =>
+            setRows((prev) => prev.filter((r) => r.id !== rowId)),
+          onMoveUp: () => {},
+          onMoveDown: () => {},
+          onEditRow: (row) => setLastEditedRowName(String(row.values.menuName)),
+          onSave: () => {},
+        }}
+      />
+    </div>
+  );
+}
+
 function InlineValidationGuidelineExample() {
   const [activeModal, setActiveModal] = useState<'single' | 'multiple' | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [demoCode, setDemoCode] = useState('');
+  const [demoCodeError, setDemoCodeError] = useState(false);
+
+  const handleSave = (scenario: 'single' | 'multiple') => {
+    if (demoCode.trim()) {
+      setDemoCodeError(false);
+      return;
+    }
+
+    setActiveModal(scenario);
+  };
+
+  const confirmValidation = () => {
+    setDemoCodeError(true);
+    setActiveModal(null);
+  };
 
   return (
     <>
       <div className="table-guide__validation-rule">
-        <div>
-          <p className="table-guide__validation-title">행추가 테이블 저장 검증</p>
-          <p className="table-guide__validation-desc">
-            행추가/행삭제가 있는 인라인 편집 테이블은 저장 클릭 시 안내 모달을 먼저 띄우고,
-            확인 후 해당 필드에 error 스타일을 표시한다.
-          </p>
-        </div>
-        <ol className="table-guide__validation-flow">
-          <li>저장 클릭</li>
-          <li>검증 안내 모달 표시</li>
-          <li>확인 클릭</li>
-          <li>필드 error 스타일 표시</li>
-        </ol>
-        <div className="table-guide__validation-actions">
-          <button
-            className="table-guide__button"
-            type="button"
-            onClick={() => setActiveModal('single')}
+        <div className="table-guide__validation-demo">
+          <InputWrapper
+            label="코드"
+            inputId="table-guide-validation-demo-code"
+            required
+            errorText={demoCodeError ? '코드를 채워주세요.' : undefined}
           >
-            검증 1개
-          </button>
-          <button
-            className="table-guide__button"
-            type="button"
-            onClick={() => setActiveModal('multiple')}
-          >
-            검증 여러 개
-          </button>
+            <InputBase
+              id="table-guide-validation-demo-code"
+              size="sm"
+              value={demoCode}
+              controlState={demoCodeError ? 'error' : ''}
+              placeholder="비워둔 채 저장을 눌러보세요"
+              onChange={(event) => {
+                setDemoCode(event.target.value);
+                setDemoCodeError(false);
+              }}
+            />
+          </InputWrapper>
+          <div className="table-guide__validation-actions">
+            <button
+              className="table-guide__button"
+              type="button"
+              onClick={() => handleSave('single')}
+            >
+              저장 (검증 안내 1개)
+            </button>
+            <button
+              className="table-guide__button"
+              type="button"
+              onClick={() => handleSave('multiple')}
+            >
+              저장 (검증 안내 여러 개)
+            </button>
+          </div>
+          <ol className="table-guide__validation-flow">
+            <li>저장 클릭</li>
+            <li>검증 안내 모달 표시</li>
+            <li>확인 클릭</li>
+            <li>필드 error 스타일 표시</li>
+          </ol>
         </div>
+
         <div className="table-guide__action-preview" aria-label="저장 중 테이블 버튼 상태">
           <div className="table-guide__action-preview-header">
             <span>테이블 버튼 상태</span>
@@ -423,6 +552,7 @@ function InlineValidationGuidelineExample() {
         open={activeModal === 'single'}
         title="알림"
         description="빈값을 채워주세요."
+        primaryAction={{ label: '확인', onClick: confirmValidation }}
         onClose={() => setActiveModal(null)}
       />
 
@@ -433,6 +563,7 @@ function InlineValidationGuidelineExample() {
           '빈값을 채워주세요.',
           '하위 메뉴가 있는 항목은 메뉴주소를 비워주세요.',
         ]}
+        primaryAction={{ label: '확인', onClick: confirmValidation }}
         onClose={() => setActiveModal(null)}
       />
     </>
@@ -600,6 +731,14 @@ export default function TableGuide() {
         desc="CommonCodeDetailTable 패턴. 행 선택 + 이동 + 행추가/삭제 + 인라인 편집 + 저장. columns prop으로 text/boolean 컬럼 타입 지정"
       >
         <EditableDetailTableExample />
+      </Section>
+
+      {/* 3-b. EditableDetailTable — select/action 컬럼 + titleBadge */}
+      <Section
+        title="EditableDetailTable — select/action 컬럼, 제목 옆 라벨(titleBadge)"
+        desc="MenuDetailTable(메뉴 관리) 패턴. inputType: 'number'로 숫자 전용 입력, type: 'select'로 콤보 컬럼, type: 'action'으로 행 단위 수정 버튼, table.titleBadge로 제목 옆 선택 라벨을 표시한다."
+      >
+        <AdvancedDetailTableExample />
       </Section>
 
       <Section
