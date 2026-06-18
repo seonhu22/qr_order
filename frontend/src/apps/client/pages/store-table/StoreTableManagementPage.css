@@ -1,0 +1,12 @@
+.store-table-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
+
+.store-table-management-page > .store-table-management-table {
+  flex: 1;
+  min-height: 0;
+}

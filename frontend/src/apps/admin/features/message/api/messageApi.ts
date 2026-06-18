@@ -63,10 +63,10 @@ export function hasMessageChanges(request: MessageRequest) {
   return Boolean(request.newItems?.length || request.updateItems?.length || request.delItems?.length);
 }
 
-export function useMessageQuery(searchKeyword = '') {
-  return useGetMessage(searchKeyword ? { searchKeyword } : undefined, {
+export function useMessageQuery() {
+  return useGetMessage(undefined, {
     query: {
-      queryKey: queryKeys.message.list(searchKeyword),
+      queryKey: queryKeys.message.lists,
       ...queryPolicies.adminCrudList,
     },
   });

@@ -22,109 +22,115 @@ export type ClientNavigationData = {
 export const CLIENT_ROOT_MENU_CD = 'CLIENT';
 
 export const CLIENT_SECTIONS: { key: ClientSection; label: string }[] = [
-  { key: 'store', label: '매장' },
-  { key: 'menu', label: '메뉴' },
-  { key: 'order', label: '주문' },
-  { key: 'payment', label: '결제' },
-  { key: 'board', label: '게시판' },
+  { key: 'STO', label: '매장' },
+  { key: 'MNU', label: '메뉴' },
+  { key: 'ORD', label: '주문' },
+  { key: 'PAY', label: '결제' },
+  { key: 'CBRD', label: '게시판' },
 ];
 
 export const CLIENT_MENUS_BY_SECTION: Record<ClientSection, SidebarNavDepth1[]> = {
-  store: [
+  STO: [
     {
-      key: 'store-root',
+      key: 'STO',
       label: '매장',
       groups: [
         {
-          key: 'store-user-manage',
+          key: 'STO_USR',
           label: '유저 관리',
-          items: [{ key: 'store-users', label: '유저 정보 관리', path: '/client/store/users' }],
+          items: [
+            { key: 'STO_USR_MNG', label: '유저 정보 관리', path: '/client/store/user/management' },
+          ],
         },
         {
-          key: 'store-info-manage',
+          key: 'STO_INFO',
           label: '매장 정보 관리',
-          items: [{ key: 'store-info', label: '매장 기본 정보', path: '/client/store/info' }],
+          items: [{ key: 'STO_INFO_BASE', label: '매장 기본 정보', path: '/client/store/info/base' }],
         },
         {
-          key: 'store-table-manage',
+          key: 'STO_TBL',
           label: '테이블 정보 관리',
           items: [
-            { key: 'store-tables', label: '테이블 관리', path: '/client/store/tables' },
-            { key: 'store-qr', label: 'QR코드 관리', path: '/client/store/qr' },
+            { key: 'STO_TBL_MNG', label: '테이블 관리', path: '/client/store/table/management' },
+            { key: 'STO_TBL_QR', label: 'QR 코드 관리', path: '/client/store/table/qr' },
+            { key: 'STO_TBL_LAY', label: '테이블 배치 관리', path: '/client/store/table/layout' },
           ],
         },
       ],
     },
   ],
-  menu: [
+  MNU: [
     {
-      key: 'menu-root',
+      key: 'MNU',
       label: '메뉴',
       groups: [
         {
-          key: 'menu-info-manage',
+          key: 'MNU_INFO',
           label: '메뉴 정보 관리',
           items: [
-            { key: 'menu-categories', label: '메뉴 관리', path: '/client/menu/categories' },
-            { key: 'menu-options', label: '옵션 관리', path: '/client/menu/options' },
+            { key: 'MNU_INFO_MNG', label: '메뉴 관리', path: '/client/menu/info/management' },
+            { key: 'MNU_INFO_OPT', label: '옵션 관리', path: '/client/menu/info/option' },
           ],
         },
       ],
     },
   ],
-  order: [
+  ORD: [
     {
-      key: 'order-root',
+      key: 'ORD',
       label: '주문',
       groups: [
         {
-          key: 'order-current-manage',
-          label: '주문 현황',
-          items: [
-            { key: 'order-current', label: '실시간 주문 조회', path: '/client/order/current' },
-            { key: 'order-status', label: '주문 상태 관리', path: '/client/order/status' },
-          ],
+          key: 'ORD_HIS',
+          label: '주문 이력',
+          items: [{ key: 'ORD_HIS_LST', label: '주문 이력 조회', path: '/client/order/history/list' }],
         },
         {
-          key: 'order-history-manage',
-          label: '주문 이력',
-          items: [{ key: 'order-history', label: '주문 이력 조회', path: '/client/order/history' }],
+          key: 'ORD_STT',
+          label: '주문 현황',
+          items: [
+            { key: 'ORD_STT_MNG', label: '주문 상태 관리', path: '/client/order/status/management' },
+          ],
         },
       ],
     },
   ],
-  payment: [
+  PAY: [
     {
-      key: 'payment-root',
+      key: 'PAY',
       label: '결제',
       groups: [
         {
-          key: 'payment-status',
+          key: 'PAY_STT',
           label: '결제 현황',
-          items: [{ key: 'payment-list', label: '결제 목록 조회', path: '/client/payment/list' }],
+          items: [{ key: 'PAY_STT_LST', label: '결제 목록 조회', path: '/client/payment/status/list' }],
         },
         {
-          key: 'settlement-manage',
+          key: 'PAY_CAL',
           label: '정산 관리',
-          items: [{ key: 'settlement', label: '정산 조회', path: '/client/settlement' }],
+          items: [
+            { key: 'PAY_CAL_LST', label: '정산 조회', path: '/client/payment/calculation/list' },
+          ],
         },
       ],
     },
   ],
-  board: [
+  CBRD: [
     {
-      key: 'board-root',
+      key: 'CBRD',
       label: '게시판',
       groups: [
         {
-          key: 'board-notice-manage',
+          key: 'CBRD_NTC',
           label: '공지사항',
-          items: [{ key: 'board-notice', label: '공지사항 조회', path: '/client/board/notice' }],
+          items: [{ key: 'CBRD_NTC_LST', label: '공지사항 조회', path: '/client/board/notice/list' }],
         },
         {
-          key: 'board-qna-manage',
+          key: 'CBRD_QNA',
           label: '문의사항',
-          items: [{ key: 'board-qna', label: '문의사항', path: '/client/board/qna' }],
+          items: [
+            { key: 'CBRD_QNA_MNG', label: '문의사항 관리', path: '/client/board/inquiry/management' },
+          ],
         },
       ],
     },

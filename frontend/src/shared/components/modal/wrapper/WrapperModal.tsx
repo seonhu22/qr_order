@@ -152,7 +152,9 @@ export function WrapperModal({
     const firstInput = allFocusable.find(
       (el) => !el.classList.contains('base-modal__close'),
     );
-    firstInput?.focus();
+    // 모달을 연 키 입력(예: Enter)의 keyup이 막 포커스된 버튼에 떨어져
+    // 즉시 클릭되는 것을 막기 위해 다음 tick으로 포커스를 미룬다.
+    const focusTimer = window.setTimeout(() => firstInput?.focus(), 0);
 
     // Tab / Shift+Tab 포커스 트랩
     const handleTab = (e: KeyboardEvent) => {
@@ -180,7 +182,10 @@ export function WrapperModal({
     };
 
     window.addEventListener('keydown', handleTab);
-    return () => window.removeEventListener('keydown', handleTab);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleTab);
+    };
   }, [open]);
 
   if (!open) {

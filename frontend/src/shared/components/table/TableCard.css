@@ -285,6 +285,16 @@
   color: var(--color-text-secondary);
 }
 
+/* 권한 배지는 2글자 이상 텍스트를 표시하므로 feature 전용 배지(기본) 사이즈를 사용한다 */
+.status-badge--admin,
+.status-badge--staff {
+  height: auto;
+  min-width: 0;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: var(--typography-weight-ui);
+}
+
 /* 인라인 편집 InputBase */
 .common-table__input {
   width: 100%;

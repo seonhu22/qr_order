@@ -54,7 +54,7 @@ export function useMessagePage(): MessagePageViewModel {
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
-  const messageQuery = useMessageQuery(appliedKeyword.trim());
+  const messageQuery = useMessageQuery();
   const saveMessagesMutation = useSaveMessagesMutation();
   const fetchedRows = useMemo(
     () => (messageQuery.data ?? []).map(mapToMessageModel),
@@ -96,8 +96,10 @@ export function useMessagePage(): MessagePageViewModel {
     }
 
     /* 조회 버튼을 눌러 적용된 검색어(appliedKeyword) 기준으로 필터링한다. */
-    return draftRows.filter((row) =>
-      [row.code, row.name, row.content].some((value) => value.toLowerCase().includes(keyword)),
+    return draftRows.filter(
+      (row) =>
+        row.isNew ||
+        [row.code, row.name, row.content].some((value) => value.toLowerCase().includes(keyword)),
     );
   }, [appliedKeyword, draftRows]);
 
@@ -123,6 +125,7 @@ export function useMessagePage(): MessagePageViewModel {
       }
 
       await saveMessagesMutation.mutateAsync(request);
+      resetKeywords();
       await queryClient.invalidateQueries({
         queryKey: queryKeys.message.lists,
       });

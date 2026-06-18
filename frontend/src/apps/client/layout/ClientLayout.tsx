@@ -21,6 +21,7 @@ export function ClientLayout() {
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const toggleSidebar = useClientLayoutStore((s) => s.toggleSidebar);
   const setActiveSection = useClientLayoutStore((s) => s.setActiveSection);
+  const hideBreadcrumb = useClientLayoutStore((s) => s.hideBreadcrumb);
   const { headerSections, currentSection, breadcrumb } = useClientNavigationMenus();
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export function ClientLayout() {
           />
         </header>
         <main className="client-layout__main">
-          <ClientPageNavigation breadcrumb={breadcrumb} />
+          {!hideBreadcrumb && <ClientPageNavigation breadcrumb={breadcrumb} />}
           <Outlet />
         </main>
       </div>

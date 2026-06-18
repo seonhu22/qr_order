@@ -14,6 +14,7 @@
 - [10. 자주 발생하는 문제](#10-자주-발생하는-문제)
 - [11. 참고 문서](#11-참고-문서)
 - [12. 문서 작성 원칙](#12-문서-작성-원칙)
+- [13. 진행 중 작업 — 테이블 배치 관리 다음 단계](#13-진행-중-작업--테이블-배치-관리-다음-단계)
 
 ---
 
@@ -21,7 +22,7 @@
 
 본 문서는 `frontend` 프로젝트를 처음 전달받은 팀원이 개발 환경을 스스로 구성하고, 실행·점검·테스트까지 수행할 수 있도록 작성한 설정 가이드이다.
 
-상세한 내용은 [`docs/`](./docs/) 하위 문서를 참고한다.
+상세한 내용은 [`docs/README.md`](./docs/README.md)를 문서 지도로 삼아 필요한 부모 문서와 상세 문서를 찾아본다.
 
 ---
 
@@ -225,10 +226,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 | 문서 | 내용 |
 |---|---|
+| [`docs/README.md`](./docs/README.md) | 프론트엔드 문서 지도, 작업 주제별 부모 문서 진입점 |
 | [`docs/architecture.md`](./docs/architecture.md) | 동작 구조, 폴더 구조, 라우트, 레이아웃 패턴 |
 | [`docs/design-tokens.md`](./docs/design-tokens.md) | 디자인 토큰 시스템, 컬러·타이포그래피 참고표 |
 | [`docs/components.md`](./docs/components.md) | 공용 컴포넌트 작성 규칙, 타입/배럴 파일 규칙 |
-| [`docs/operations.md`](./docs/operations.md) | 운영 원칙, 리팩토링 규칙, Filter 표준 |
+| [`docs/operations.md`](./docs/operations.md) | 운영 원칙과 상태/API/리팩토링/페이지 패턴 상세 문서 입구 |
 | [`docs/libraries.md`](./docs/libraries.md) | 라이브러리 선정 이유, 테스트 도구 구성 |
 | [`docs/config.md`](./docs/config.md) | 주요 설정 파일 설명 |
 | [`docs/auth.md`](./docs/auth.md) | 인증 구조, 쿼리 키 분리, init_yn 비밀번호 강제 변경 흐름 |
@@ -238,7 +240,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
-공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 참고한다.
+공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 부모 문서로 보고, 컴포넌트별 상세 문서는 그 문서의 `상세 문서` 섹션에서 찾는다.
 
 상태 처리 작성 기준:
 - 401 로그인 리다이렉트와 403/404/500 에러 페이지 라우팅 분기 기준은 [`docs/architecture.md §6`](./docs/architecture.md#6-상태-처리-라우팅-기준)을 참고한다.
@@ -260,10 +262,11 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 | 추가할 내용 | 작성 위치 |
 |---|---|
+| 문서 위치를 찾기 위한 최상위 지도 | `docs/README.md` |
 | 폴더 구조, 라우트, 레이아웃 패턴 변경 | `architecture.md` |
 | 디자인 토큰 추가·변경, 스타일 원칙 | `design-tokens.md` |
 | 공용 컴포넌트 작성 규칙, 새 컴포넌트 사용법 | `components.md` |
-| 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md` |
+| 개발·설계 원칙, 리팩토링 규칙, 페이지 표준 | `operations.md`와 `operations/*` |
 | 라이브러리 추가·교체 이유 | `libraries.md` |
 | 설정 파일 변경 | `config.md` |
 | 인증 흐름, 쿼리 키, 비밀번호 변경 정책 변경 | `auth.md` |
@@ -275,7 +278,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 - 같은 내용을 두 파일에 나눠 쓰지 않는다.
 - 다른 파일 내용이 필요하면 링크로 참조한다.
-  - 예: `→ [operations.md #1](./operations.md#1-서버-상태와-ui-상태를-분리한다) 참고`
+  - 예: `→ [상태 관리 정책](./operations/state-policy.md) 참고`
 - 중복이 발견되면 한쪽을 삭제하고 링크로 대체한다.
 
 ### 추가 시기
@@ -287,3 +290,22 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 - 날짜가 있는 항목은 `> 추가일: YYYY-MM-DD` 형식으로 표기한다.
 - CSS 값은 px 대신 토큰 이름을 명시한다 (`--spacing-2` 등).
 - 코드 예시는 꼭 필요한 경우에만 작성하고, 토큰·규칙 목록은 글머리 기호로 표현한다.
+
+---
+
+## 13. 진행 중 작업 — 테이블 배치 관리 다음 단계
+
+> 추가일: 2026-06-18
+
+`/client/store/table/layout`(`features/table-layout`, `pages/table-layout`)는 레이아웃·카드·사이즈별(작게/보통/크게) 배치 아이템 디자인까지 완료됐다. 실제 드래그앤드롭·클릭배치 이벤트를 연결하기 전에 정리하거나 추가해야 할 항목은 다음과 같다. 작업이 끝나면 이 섹션은 제거한다.
+
+- `@dnd-kit/core` 설치 — 터치/마우스/펜을 `PointerSensor`로 통일 처리(네이티브 HTML5 DnD는 터치 미지원)
+- `features/table-layout/types.ts`에 `PlacedItem` 타입 추가 (현재 `FacilityKind`/`LayoutSize`만 정의됨)
+- `useTableLayoutPage` 훅 신설 — 배치 상태(`placedItems`), 드래그 종료/클릭배치/삭제 처리
+- 내부시설 드래그(`useDraggable`) · 테이블 리스트 클릭 배치 · 캔버스 `useDroppable` 연결
+- 배치된 테이블은 좌측 "테이블 리스트"에서 비활성화 처리, 캔버스에서 삭제 시 다시 활성화
+- 캔버스 안 재배치 시 좌표 clamp 로직 + `ResizeObserver`로 캔버스 크기 변화(창 크기/회전) 대응
+- 드래그 가능한 요소·캔버스에 `touch-action: none; user-select: none;` 적용
+- `usePreventLeave(isDirty)` 재사용해 이탈 방지 (새로 구현하지 않음)
+- 헤더의 리셋/초기화/저장 버튼에 동작 연결 (현재 `onClick` 없음)
+- mock GET/POST 핸들러 추가(`mocks/handlers.ts`) + `queryKeys.ts`에 `tableLayout` 쿼리 키 추가, 배치 데이터 영속화

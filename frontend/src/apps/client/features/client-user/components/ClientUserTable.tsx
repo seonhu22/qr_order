@@ -7,7 +7,7 @@
  */
 
 import './ClientUserTable.css';
-import { TableBodyRenderer, TableCard } from '@/shared/components/table';
+import { TableBodyRenderer, TableCard, TableCardContentState } from '@/shared/components/table';
 import { CreateTableButton, DeleteTableButton } from '@/shared/components/button';
 import type { ClientUser } from '../types';
 import {
@@ -19,6 +19,8 @@ import {
 type ClientUserTableProps = {
   rows: ClientUser[];
   selectedRowIds: Set<string>;
+  isLoading: boolean;
+  isError: boolean;
   onToggleRow: (rowId: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
   onCreate: () => void;
@@ -30,6 +32,8 @@ type ClientUserTableProps = {
 export function ClientUserTable({
   rows,
   selectedRowIds,
+  isLoading,
+  isError,
   onToggleRow,
   onToggleAll,
   onCreate,
@@ -62,13 +66,19 @@ export function ClientUserTable({
       }
       className="client-user-table"
     >
-      <TableBodyRenderer
-        tableAriaLabel="유저 정보 목록 테이블"
-        columns={columns}
-        rows={tableRows}
-        headerCellOverrides={headerOverrides}
-        emptyMessage="조회된 유저가 없습니다."
-      />
+      <TableCardContentState
+        isLoading={isLoading}
+        isError={isError}
+        loadingTitle="유저 정보 목록을 불러오는 중입니다."
+      >
+        <TableBodyRenderer
+          tableAriaLabel="유저 정보 목록 테이블"
+          columns={columns}
+          rows={tableRows}
+          headerCellOverrides={headerOverrides}
+          emptyMessage="조회된 유저가 없습니다."
+        />
+      </TableCardContentState>
     </TableCard>
   );
 }

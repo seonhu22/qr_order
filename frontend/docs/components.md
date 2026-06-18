@@ -1,6 +1,6 @@
 # 공용 컴포넌트 작성 규칙
 
-> `shared/components` 작성 규칙(3-레이어 패턴, 스타일·타입 규칙), FeedbackState 사용법, 모달 작성 원칙을 다룬다.
+> `shared/components` 문서의 부모 문서다. 공통 작성 규칙은 이 문서에 두고, 컴포넌트별 상세 사용법은 `docs/components/*` 문서로 분기한다.
 
 ## 목차
 
@@ -9,14 +9,28 @@
 - [3. 스타일 규칙](#3-스타일-규칙)
 - [4. 타입 규칙](#4-타입-규칙)
 - [5. 신규 컴포넌트 추가 절차](#5-신규-컴포넌트-추가-절차)
-- [6. 모달 작성 시 추가 원칙](#6-모달-작성-시-추가-원칙)
+- [6. 모달 컴포넌트 (Modal)](#6-모달-컴포넌트-modal)
 - [7. 개발 전용 가이드 페이지](#7-개발-전용-가이드-페이지)
 - [8. 테이블 카드 컴포넌트 (TableCard)](#8-테이블-카드-컴포넌트-tablecard)
 - [9. 트리 메뉴 컴포넌트 (TreeMenu)](#9-트리-메뉴-컴포넌트-treemenu)
 - [10. 피드백 컴포넌트 (FeedbackState)](#10-피드백-컴포넌트-feedbackstate)
 - [11. 상태 처리와 에러 페이지 (StatusHandling)](#11-상태-처리와-에러-페이지-statushandling)
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
-- [13. 첨부파일 컴포넌트 (FileAttachment)](#13-첨부파일-컴포넌트-fileattachment)
+- [13. 브레드크럼 컴포넌트 (PageNavigation)](#13-브레드크럼-컴포넌트-pagenavigation)
+- [14. 첨부파일 컴포넌트 (FileAttachment)](#14-첨부파일-컴포넌트-fileattachment)
+
+---
+
+## 상세 문서
+
+| 문서 | 내용 |
+|---|---|
+| [Modal](./components/Modal.md) | 모달 폴더 구조, 계층 원칙, 작성 규칙 21가지 |
+| [TableCard](./components/TableCard.md) | 테이블 카드 사용 패턴과 CSS 레퍼런스 |
+| [TreeMenu](./components/TreeMenu.md) | 트리 메뉴 사용 패턴과 CSS 레퍼런스 |
+| [StatusHandling](./components/StatusHandling.md) | 401/403/404/500 상태 처리와 에러 페이지 |
+| [Sidebar](./components/Sidebar.md) | 사이드바 공용 컴포넌트와 앱별 어댑터 기준 |
+| [FileAttachment](./components/FileAttachment.md) | 첨부파일 입력·다운로드 UI 기준 |
 
 ---
 
@@ -188,6 +202,10 @@ shared/components/
     types.ts              ← SidebarNavItem, SidebarNavGroup, SidebarNavDepth1 타입
     Sidebar.tsx           ← 컨테이너 (--sb-* CSS 변수 제공 + flex 셸)
     Sidebar.css
+    SidebarHeader.tsx     ← 사이드바 헤더 (brand 슬롯 + 닫기 버튼)
+    SidebarHeader.css
+    SidebarSection.tsx    ← depth1 섹션 타이틀 (어드민·클라이언트 공통)
+    SidebarSection.css
     SidebarNav.tsx        ← 3계층 nav (props 기반, 라우터·스토어 비의존)
     SidebarNav.css
     SidebarUser.tsx       ← 사용자 푸터 (props 기반, auth 비의존, 로그아웃 모달 내장)
@@ -209,27 +227,13 @@ shared/components/
     types.ts              ← ErrorPageTemplate props/action 타입
     ErrorPageTemplate.tsx ← 403/404/500 공통 화면 템플릿
     ErrorPageTemplate.css
+  navigation/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    PageNavigation.tsx    ← 어드민·클라이언트 공통 브레드크럼 컴포넌트
+    PageNavigation.css
 ```
 
-#### modal/ 계층 원칙
-
-| 폴더 | 역할 | 수정 빈도 |
-|---|---|---|
-| `wrapper/` | DOM 분리(Portal), 오버레이, ESC·배경 클릭 닫기 — 인프라만 담당 | 거의 없음 |
-| `base/` | 타입·상수·스타일 정의 — 골격 계약 | 타입 추가 시 |
-| `template/` | 비즈니스 목적 모달 — DTO 연결, 저장/수정/삭제 흐름 | 화면 추가 시마다 |
-
-- `wrapper/`와 `base/`는 직접 수정하는 경우가 드물다. 새 모달 필요 시 `template/`에 추가한다.
-- 외부에서 import할 때는 반드시 `modal/index.ts`를 통한다.
-
-```ts
-// 올바른 import
-import { ConfirmModal, WrapperModal } from '@/shared/components/modal';
-import type { ModalSize, ConfirmModalProps } from '@/shared/components/modal';
-
-// 금지 — 내부 파일 직접 참조
-import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
-```
+modal/ 계층 원칙·작성 규칙은 [docs/components/Modal.md](./components/Modal.md) 참고.
 
 ---
 
@@ -248,17 +252,7 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 Base와 Wrapper는 다른 컴포넌트에서 재사용할 수 있도록 독립적으로 설계한다.
 예를 들어 `Select`, `Checkbox` 등 신규 컴포넌트 작성 시 `InputWrapper`를 그대로 재사용한다.
 
-### 모달 컴포넌트
-
-모달은 이 원칙을 더 엄격하게 적용한다.
-
-| 레이어 | 역할 | 예시 |
-|---|---|---|
-| **Wrapper** | Portal, Overlay, Dimmed, ESC/배경 클릭 닫기 같은 인프라 처리 | `WrapperModal` |
-| **Base** | 타입·상수·스타일 같은 골격 계약 정의 | `modalType.ts`, `modal.constants.ts`, `modal.css` |
-| **완성형** | DTO 연결, 저장/수정/상세 같은 비즈니스 처리 | `SaveModal`, `UpdateModal`, `DetailModal` |
-
-즉 모달은 단순 시각 컴포넌트가 아니라, 공통 인프라와 공통 골격, 비즈니스 목적을 분리해서 관리해야 한다.
+모달은 이 원칙을 더 엄격하게 적용한다. 레이어별 역할은 [docs/components/Modal.md §2](./components/Modal.md#2-계층-원칙) 참고.
 
 ---
 
@@ -334,8 +328,9 @@ import { ToggleInput } from '@/shared/components/toggle';
 import { FormAlert } from '@/shared/components/form-alert';
 import { FeedbackState } from '@/shared/components/feedback';
 import { TreeMenu } from '@/shared/components/treeMenu';
-import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { Sidebar, SidebarHeader, SidebarSection, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import { ConfirmModal, WrapperModal } from '@/shared/components/modal';
+import { PageNavigation } from '@/shared/components/navigation';
 import { Icon } from '@/shared/assets/icons/Icon';
 
 // 금지 — 내부 파일 직접 참조
@@ -360,41 +355,11 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 
 ---
 
-## 6. 모달 작성 시 추가 원칙
+## 6. 모달 컴포넌트 (Modal)
 
-1. `wrapper`는 DOM 분리와 overlay 동작만 담당한다.
-2. `base`는 시각적 골격만 담당한다.
-3. `template`는 실제 DTO와 연결되는 비즈니스 목적 모달만 담당한다.
-4. 저장/수정/삭제 흐름은 가능하면 template 계층에서 명확히 분리한다.
-5. 폼을 포함한 모달은 현재 `wrapper / base / template` 계층을 기준으로 작성하고, 검증/전송 규칙이 반복되면 그때 form 전용 base를 별도 파일로 분리한다.
-6. Audit Trail을 위한 변경 전/후 데이터 비교 로직은 template 계층에서 수행한다.
-7. 모달 폼 안의 Input·Select 크기는 `md`로 통일한다.
-8. `SelectInput` 드롭다운은 `createPortal`로 `document.body`에 렌더되므로 모달 안에서도 `overflow: hidden`에 잘리지 않는다.
-9. `SelectInput` 드롭다운은 `ArrowDown/Up`, `Home/End`, `Enter/Space`, `Escape` 키보드 네비게이션을 지원한다. 트리거 버튼의 기본 포커스 아웃라인(파란 테두리)은 `.select-control__trigger:focus { outline: none }`으로 제거되어 있다.
-10. `SelectInput` 드롭다운 위치는 트리거 클릭(`handleToggle`) 시점에 동기적으로 미리 계산된다. 첫 클릭에 드롭다운이 올바른 위치에 즉시 표시되며, 테이블 행 클릭 선택과 SelectInput 클릭이 겹치는 상황에서도 한 번의 클릭으로 정상 동작한다.
-11. 입력값이 원본과 달라진 상태(dirty)에서 ESC·overlay 클릭·닫기 버튼을 누르면 경고 모달("페이지를 나가시겠습니까?")을 먼저 표시한다. `WrapperModal`은 항상 `onClose`를 호출하고, dirty 판단과 경고 모달 표시는 호출부(`closeEditorModal`)가 담당한다.
-12. 모달이 열릴 때 닫기 버튼을 제외한 첫 번째 입력 필드에 자동으로 포커스가 이동하며, Tab/Shift+Tab은 모달 내부에서만 순환한다.
-13. 저장·삭제 확인 모달은 편집 모달 위에 쌓이는 방식(stack)으로 동작한다. 확인 클릭 시 작업이 완료된 후 두 모달이 함께 닫힌다. 취소 클릭 시 확인 모달만 닫히고 편집 모달은 유지된다.
-14. 저장·삭제 버튼의 로딩 상태는 외부 prop(`isSaving`, `isDeleting`) 대신 훅 내부 state(예: `isConfirming`, `isConfirmingDelete`)로 관리한다. 부모 mutation의 `isPending`과 훅 state 간 타이밍 차이로 버튼이 일시적으로 활성화되는 현상을 방지하기 위해서다. 저장 훅(`useCommonCodeDetailTableFlow` 등)에도 동일하게 적용한다.
-15. `ConfirmModal`·`DeleteConfirmModal`은 `description`(본문, secondary 색상)과 `helperText`(보조 안내, tertiary 색상)를 분리해서 전달할 수 있다. `SimpleDefaultModal`과 동일한 패턴이다.
-16. 삭제 확인 모달의 `description`은 단건·다건을 구분한다. 1건이면 "선택한 항목을 삭제하면 복구할 수 없습니다.", 2건 이상이면 "선택한 N건의 항목을 삭제하면 복구할 수 없습니다."로 표시한다.
-17. 모달 `description`에 `\n`을 삽입하면 줄바꿈이 그대로 표시된다. `modal.css`의 `.base-modal__description`에 `white-space: pre-line`이 적용되어 있기 때문이다. 단순 안내 문구를 합칠 때만 `messages.join('\n')` 형태로 사용한다.
-18. 저장 전 삭제 항목이 있을 때는 `DeleteListConfirmModal`을 사용한다. `items: { code: string; name: string }[]`를 전달하면 목록을 렌더하고 총 건수를 리스트 상단 우측에 표시한다. 확인 클릭 시 `SaveConfirmModal`을 거치지 않고 바로 저장 로직을 실행한다.
-19. `SimpleDefaultModal`의 `description`은 문자열 또는 `ReactNode`를 받을 수 있다. 문장 일부를 강조해야 할 때만 `ReactNode`를 사용하고, 강조 색상은 semantic token을 참조한 feature class로 지정한다.
-20. 행추가/행삭제가 있는 인라인 편집 테이블의 저장 검증 안내는 개수에 따라 모달을 나눈다. 검증 안내가 1개면 `SimpleDefaultModal`, 2개 이상이면 `ValidationNoticeModal`을 사용한다. 이 규칙은 셀 내부에 필드별 안내 문구를 둘 공간이 부족한 행추가 테이블 전용이며, 일반 등록/수정 폼 모달은 기존처럼 필드 옆 `errorText`를 사용한다.
+`src/shared/components/modal/`
 
-```tsx
-<SimpleDefaultModal
-  open={open}
-  description={(
-    <>
-      <strong className="admin-user-reset-modal__account-id">admin01</strong>
-      {' 비밀번호를 초기화 하시겠습니까?'}
-    </>
-  )}
-  onClose={onClose}
-/>
-```
+`WrapperModal` + `template/` 완성형 모달 모음. 폴더 구조, 계층 원칙, 작성 규칙 21가지는 [docs/components/Modal.md](./components/Modal.md) 참고.
 
 ---
 
@@ -496,7 +461,27 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 
 ---
 
-## 13. 첨부파일 컴포넌트 (FileAttachment)
+## 13. 브레드크럼 컴포넌트 (PageNavigation)
+
+`src/shared/components/navigation/PageNavigation.tsx`
+
+어드민·클라이언트 대쉬보드 공통 브레드크럼 컴포넌트. 두 앱의 셸 레이아웃이 통일되어 있으므로 브레드크럼 JSX와 CSS도 이 컴포넌트 하나로 관리한다.
+
+| prop | 타입 | 설명 |
+|---|---|---|
+| `depth1` | `string` | 1단계 메뉴명 |
+| `depth2` | `string` | 2단계 메뉴명 |
+| `current` | `string` | 현재 페이지명 (굵게 표시) |
+
+**사용 규칙**
+
+- 어드민에서 직접 사용하지 말 것 — `AdminMainNavigation`이 라우트 정보 해석 후 위임한다.
+- 클라이언트에서 직접 사용하지 말 것 — `ClientPageNavigation`이 null 체크 후 위임한다.
+- 새 앱(Consumer 등)에서 브레드크럼이 필요하면 앱 전용 thin wrapper를 만들어 `PageNavigation`에 위임한다. 직접 CSS를 재작성하지 않는다.
+
+---
+
+## 14. 첨부파일 컴포넌트 (FileAttachment)
 
 등록·수정·상세 화면에서 사용하는 첨부파일 입력, 다운로드 목록, 제약 안내 컴포넌트 모음이다.
 컴포넌트 사용법은 [docs/components/FileAttachment.md](./components/FileAttachment.md) 참고.

@@ -1,74 +1,15 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.auth.repository.EmailValidMapper">
 
-    <select id="codeExist" resultType="boolean">
-        select
-            count(*) > 0
-        from sys_email_valid sev
-        inner join sys_user su
-            on su.sys_id = sev.link_sys_id
-        where su.email = #{email}
-        and sev.email_valid_yn = 'N'
-    </select>
-
-    <select id="codeMatch" resultType="boolean">
-        select
-            count(*) > 0
-        from sys_email_valid sev
-        inner join sys_user su
-            on su.sys_id = sev.link_sys_id
-        where su.email = #{email}
-        and sev.valid_code = #{validCode}
-        and sev.email_valid_yn = 'N'
-    </select>
-
-    <select id="userExistsByEmail" resultType="boolean">
+    <select id="userEmailMatchChk" resultType="boolean">
         select
             count(*) > 0
         from sys_user
-        where email = #{email}
-        and delete_yn = 'N'
+        where 1=1
+        and email = #{email}
+        and user_id = #{userId}
     </select>
-
-    <update id="newUserEmailValid">
-        update sys_email_valid set
-            email_valid_yn = 'Y',
-            modify_datetime = now()
-        where link_sys_id = (
-            select sys_id
-            from sys_user
-            where email = #{email}
-            and delete_yn = 'N'
-        )
-        and email_valid_yn = 'N'
-    </update>
-
-    <update id="updateValidCode">
-        update sys_email_valid set
-            valid_code = #{validCode},
-            email_valid_yn = 'N',
-            modify_datetime = now()
-        where link_sys_id = (
-            select sys_id
-            from sys_user
-            where email = #{email}
-            and delete_yn = 'N'
-        )
-    </update>
-
-    <update id="pwdChange">
-        update sys_email_valid set
-            email_valid_yn = 'Y',
-            modify_datetime = now()
-        where link_sys_id = (
-            select sys_id
-            from sys_user
-            where email = #{email}
-            and delete_yn = 'N'
-        )
-        and email_valid_yn = 'N'
-    </update>
 
 </mapper>

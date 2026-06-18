@@ -1,0 +1,39 @@
+.table-layout-canvas-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-layout-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background-image: radial-gradient(var(--color-bg-app) 1.5px, transparent 1.5px);
+  background-position: 0 0;
+}
+
+.table-layout-canvas__item {
+  position: absolute;
+}
+
+.table-layout-canvas__item--table-example {
+  top: var(--spacing-6);
+  left: var(--spacing-6);
+}
+
+.table-layout-canvas__item--facility-example {
+  top: var(--spacing-6);
+  left: 18rem;
+}
+
+.table-layout-canvas--small {
+  background-size: var(--spacing-6) var(--spacing-6);
+}
+
+.table-layout-canvas--medium {
+  background-size: var(--spacing-7) var(--spacing-7);
+}
+
+.table-layout-canvas--large {
+  background-size: var(--spacing-8) var(--spacing-8);
+}

@@ -1,0 +1,28 @@
+/* 클라이언트 유저 관리 페이지 — 검색 카드 + 목록 카드 두 영역만 세로 정렬 */
+
+.client-user-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+/* 테이블 카드 단일 영역 — 남은 높이를 모두 채움 */
+.client-user-page > .client-user-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 비밀번호 초기화 모달 — 대상 계정 아이디 강조 */
+.client-user-reset-modal__account-id {
+  color: var(--color-brand-default);
+  font-weight: var(--typography-weight-heading);
+}
+
+/* 유저 등록/수정 에디터 모달 폼 */
+.client-user-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}

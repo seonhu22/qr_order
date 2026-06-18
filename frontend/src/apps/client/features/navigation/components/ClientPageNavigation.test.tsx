@@ -14,7 +14,7 @@ describe('ClientPageNavigation', () => {
       />,
     );
 
-    expect(screen.getByRole('navigation', { name: '현재 페이지 위치' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: '현재 위치' })).toBeInTheDocument();
     expect(screen.getByText('매장')).toBeInTheDocument();
     expect(screen.getByText('유저 관리')).toBeInTheDocument();
     expect(screen.getByText('유저 정보 관리')).toBeInTheDocument();
@@ -23,6 +23,6 @@ describe('ClientPageNavigation', () => {
   it('renders nothing when breadcrumb is missing', () => {
     render(<ClientPageNavigation breadcrumb={null} />);
 
-    expect(screen.queryByRole('navigation', { name: '현재 페이지 위치' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: '현재 위치' })).not.toBeInTheDocument();
   });
 });

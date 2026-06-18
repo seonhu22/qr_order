@@ -12,4 +12,5 @@ export interface EmailValidRequest {
   encodeSysId?: string;
   validCode?: string;
   email?: string;
+  userId?: string;
 }

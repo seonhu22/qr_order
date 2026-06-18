@@ -37,7 +37,7 @@ function renderSidebar(initialPath = '/client/main') {
               element={<ClientSidebar />}
             />
             <Route
-              path="/client/store/info"
+              path="/client/store/info/base"
               element={<ClientSidebar />}
             />
             <Route path="/client/login" element={<div>client login destination</div>} />
@@ -68,7 +68,7 @@ describe('ClientSidebar', () => {
   });
 
   it('opens the matching depth2 group for the current url', async () => {
-    renderSidebar('/client/store/info');
+    renderSidebar('/client/store/info/base');
 
     expect(await screen.findByRole('button', { name: '매장 정보 관리' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '매장 기본 정보' })).toHaveAttribute(

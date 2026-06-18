@@ -8,6 +8,9 @@ const messageListsKey = ['settings', 'message', 'list'] as const;
 const paymentListsKey = ['settings', 'payment', 'list'] as const;
 const plantStatusListsKey = ['settings', 'plantStatus', 'list'] as const;
 const couponListsKey = ['settings', 'coupon', 'list'] as const;
+const clientUserListsKey = ['client', 'storeUser', 'list'] as const;
+const storeTableListsKey = ['client', 'storeTable', 'list'] as const;
+const qrCodeListsKey = ['client', 'qrCode', 'list'] as const;
 const ruleMasterListsKey = ['settings', 'rule', 'masters'] as const;
 const ruleDetailListsKey = ['settings', 'rule', 'details'] as const;
 const accessLogMasterListsKey = ['settings', 'accessLog', 'masters'] as const;
@@ -46,11 +49,9 @@ export const queryKeys = {
   },
   adminUser: {
     lists: adminUserListsKey,
-    list: (searchKeyword = '') => [...adminUserListsKey, { searchKeyword }] as const,
   },
   message: {
     lists: messageListsKey,
-    list: (searchKeyword = '') => [...messageListsKey, { searchKeyword }] as const,
   },
   payment: {
     lists: paymentListsKey,
@@ -63,6 +64,10 @@ export const queryKeys = {
   coupon: {
     lists: couponListsKey,
     list: (searchKeyword = '') => [...couponListsKey, { searchKeyword }] as const,
+  },
+  clientUser: {
+    lists: clientUserListsKey,
+    list: (searchKeyword = '') => [...clientUserListsKey, { searchKeyword }] as const,
   },
   rule: {
     masterLists: ruleMasterListsKey,
@@ -94,5 +99,11 @@ export const queryKeys = {
   qna: {
     lists: qnaListsKey,
     list: (searchKeyword = '') => [...qnaListsKey, { searchKeyword }] as const,
+  },
+  storeTable: {
+    lists: storeTableListsKey,
+  },
+  qrCode: {
+    lists: qrCodeListsKey,
   },
 } as const;

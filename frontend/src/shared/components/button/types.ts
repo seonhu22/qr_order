@@ -26,6 +26,7 @@ import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'reac
  * - `icon`      : 정사각형 아이콘 전용 버튼
  * - `icon-text` : 아이콘 + 텍스트 조합 (secondary 스타일)
  * - `toggle`    : 선택 가능한 토글 버튼
+ * - `segment`   : 회색 배경 그룹 안에서 선택된 항목만 흰 배경 — 세그먼트 컨트롤
  */
 export type ButtonVariant =
   | 'primary'
@@ -37,7 +38,8 @@ export type ButtonVariant =
   | 'link'
   | 'icon'
   | 'icon-text'
-  | 'toggle';
+  | 'toggle'
+  | 'segment';
 
 /**
  * 버튼 크기
@@ -74,7 +76,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    */
   loading?: boolean;
   /**
-   * 선택 상태 — `toggle` 변형에서 사용
+   * 선택 상태 — `toggle`/`segment` 변형에서 사용
    * @default false
    */
   selected?: boolean;
@@ -103,10 +105,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   /**
    * 시각적 변형 (기본: `'primary'`)
-   * icon · toggle 변형은 LinkButton 에서 사용하지 않음
+   * icon · toggle · segment 변형은 LinkButton 에서 사용하지 않음
    * @default 'primary'
    */
-  variant?: Exclude<ButtonVariant, 'icon' | 'toggle'>;
+  variant?: Exclude<ButtonVariant, 'icon' | 'toggle' | 'segment'>;
   /**
    * 크기 (기본: `'md'`)
    * @default 'md'
