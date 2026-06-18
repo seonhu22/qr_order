@@ -39,7 +39,6 @@ export function buildSignupBusinessVerificationPayload(
 ): SignupBusinessVerificationPayload | SignupBusinessVerificationError {
   const digits = form.businessNo.replace(/\D/g, '');
   const businessRepName = form.businessRepName.trim();
-  const businessRegiDate = form.openDate.replace(/\D/g, '');
 
   if (digits.length !== 10) {
     return { field: 'businessNo', message: '사업자등록번호 10자리를 입력해주세요.' };
@@ -53,14 +52,10 @@ export function buildSignupBusinessVerificationPayload(
     return { field: 'openDate', message: '개업일을 선택해주세요.' };
   }
 
-  if (businessRegiDate.length !== 8) {
-    return { field: 'openDate', message: '개업일자를 확인해주세요.' };
-  }
-
   return {
     businessRegiNum: digits,
     userNm: businessRepName,
-    businessRegiDate,
+    businessRegiDate: form.openDate,
   };
 }
 
