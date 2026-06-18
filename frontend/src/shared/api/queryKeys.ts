@@ -17,6 +17,8 @@ const accessLogMasterListsKey = ['settings', 'accessLog', 'masters'] as const;
 const changeHistoryListsKey = ['settings', 'changeHistory', 'list'] as const;
 const noticeListsKey = ['board', 'notice', 'list'] as const;
 const qnaListsKey = ['board', 'qna', 'list'] as const;
+const menuManagementMasterListsKey = ['client', 'menuManagement', 'masters'] as const;
+const menuManagementDetailListsKey = ['client', 'menuManagement', 'details'] as const;
 
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
@@ -105,5 +107,11 @@ export const queryKeys = {
   },
   qrCode: {
     lists: qrCodeListsKey,
+  },
+  menuManagement: {
+    masterLists: menuManagementMasterListsKey,
+    detailLists: menuManagementDetailListsKey,
+    masters: (searchKeyword = '') => [...menuManagementMasterListsKey, { searchKeyword }] as const,
+    details: (masterId = '') => [...menuManagementDetailListsKey, masterId] as const,
   },
 } as const;
