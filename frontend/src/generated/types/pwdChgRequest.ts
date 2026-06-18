@@ -5,8 +5,9 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { Menu } from './menu';
 
-export type SaveMenuParams = {
-arg0: Menu[];
-};
+export interface PwdChgRequest {
+  userId?: string;
+  pwd?: string;
+  pwdConfirm?: string;
+}

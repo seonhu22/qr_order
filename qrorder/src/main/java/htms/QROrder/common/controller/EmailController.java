@@ -1,8 +1,10 @@
 package htms.QROrder.common.controller;
 
+import htms.QROrder.auth.domain.Login;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.common.dto.EmailRequest;
 import htms.QROrder.common.service.EmailService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +19,12 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping("/send")
-    public ResponseEntity<CommonResponse> sendEmail(@RequestBody EmailRequest emailRequest){
+    public ResponseEntity<CommonResponse> sendEmail(@RequestBody EmailRequest emailRequest,
+                                                        HttpSession session) {
 
-        emailService.sendEmail(emailRequest);
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        emailService.sendEmail(emailRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

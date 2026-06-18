@@ -143,14 +143,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
       return useMutation(mutationOptions, queryClient);
     }
-    export const newUserEmailValid = (
+    export const reSendPwdChangeCode = (
     emailValidRequest: EmailValidRequest,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
       
       return httpClient<CommonResponse>(
-      {url: `/api/auth/email_valid/new_user`, method: 'POST',
+      {url: `/api/auth/email_valid/pwd_change/re_send`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: emailValidRequest, signal
     },
@@ -159,11 +159,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   
 
 
-export const getNewUserEmailValidMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof newUserEmailValid>>, TError,{data: EmailValidRequest}, TContext> => {
+export const getReSendPwdChangeCodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reSendPwdChangeCode>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof reSendPwdChangeCode>>, TError,{data: EmailValidRequest}, TContext> => {
 
-const mutationKey = ['newUserEmailValid'];
+const mutationKey = ['reSendPwdChangeCode'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -173,10 +173,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newUserEmailValid>>, {data: EmailValidRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reSendPwdChangeCode>>, {data: EmailValidRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  newUserEmailValid(data,requestOptions)
+          return  reSendPwdChangeCode(data,requestOptions)
         }
 
         
@@ -184,20 +184,136 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type NewUserEmailValidMutationResult = NonNullable<Awaited<ReturnType<typeof newUserEmailValid>>>
-    export type NewUserEmailValidMutationBody = EmailValidRequest
-    export type NewUserEmailValidMutationError = unknown
+    export type ReSendPwdChangeCodeMutationResult = NonNullable<Awaited<ReturnType<typeof reSendPwdChangeCode>>>
+    export type ReSendPwdChangeCodeMutationBody = EmailValidRequest
+    export type ReSendPwdChangeCodeMutationError = unknown
 
-    export const useNewUserEmailValid = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+    export const useReSendPwdChangeCode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reSendPwdChangeCode>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof newUserEmailValid>>,
+        Awaited<ReturnType<typeof reSendPwdChangeCode>>,
         TError,
         {data: EmailValidRequest},
         TContext
       > => {
 
-      const mutationOptions = getNewUserEmailValidMutationOptions(options);
+      const mutationOptions = getReSendPwdChangeCodeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const sendUserEmailValid = (
+    emailValidRequest: EmailValidRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/auth/email_valid/new_user/send`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: emailValidRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getSendUserEmailValidMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext> => {
+
+const mutationKey = ['sendUserEmailValid'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendUserEmailValid>>, {data: EmailValidRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendUserEmailValid(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendUserEmailValidMutationResult = NonNullable<Awaited<ReturnType<typeof sendUserEmailValid>>>
+    export type SendUserEmailValidMutationBody = EmailValidRequest
+    export type SendUserEmailValidMutationError = unknown
+
+    export const useSendUserEmailValid = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendUserEmailValid>>,
+        TError,
+        {data: EmailValidRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getSendUserEmailValidMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const reSendUserEmailValid = (
+    emailValidRequest: EmailValidRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/auth/email_valid/new_user/re_send`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: emailValidRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getReSendUserEmailValidMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reSendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof reSendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext> => {
+
+const mutationKey = ['reSendUserEmailValid'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reSendUserEmailValid>>, {data: EmailValidRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reSendUserEmailValid(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReSendUserEmailValidMutationResult = NonNullable<Awaited<ReturnType<typeof reSendUserEmailValid>>>
+    export type ReSendUserEmailValidMutationBody = EmailValidRequest
+    export type ReSendUserEmailValidMutationError = unknown
+
+    export const useReSendUserEmailValid = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reSendUserEmailValid>>, TError,{data: EmailValidRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reSendUserEmailValid>>,
+        TError,
+        {data: EmailValidRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getReSendUserEmailValidMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

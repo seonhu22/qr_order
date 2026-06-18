@@ -932,7 +932,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/signup/email_valid/{encodeSysId}": {
+    "/api/auth/pwd_change": {
         parameters: {
             query?: never;
             header?: never;
@@ -941,7 +941,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["emailValid"];
+        post: operations["changePwd"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1044,7 +1044,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/email_valid/new_user": {
+    "/api/auth/email_valid/pwd_change/re_send": {
         parameters: {
             query?: never;
             header?: never;
@@ -1053,7 +1053,39 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["newUserEmailValid"];
+        post: operations["reSendPwdChangeCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/email_valid/new_user/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendUserEmailValid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/email_valid/new_user/re_send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reSendUserEmailValid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1748,6 +1780,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/signup/new/chkEmailValid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chkEmailValid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup/idDuplicateChk": {
         parameters: {
             query?: never;
@@ -2080,9 +2128,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2275,6 +2323,12 @@ export interface components {
             email?: string;
             /** Format: int32 */
             phoneNumber?: number;
+            validCode?: string;
+        };
+        PwdChgRequest: {
+            userId?: string;
+            pwd?: string;
+            pwdConfirm?: string;
         };
         LoginRequest: {
             userId: string;
@@ -2290,6 +2344,7 @@ export interface components {
             encodeSysId?: string;
             validCode?: string;
             email?: string;
+            userId?: string;
         };
         PlantStatusResponse: {
             sysId?: string;
@@ -2343,8 +2398,6 @@ export interface components {
             qnaTitle?: string;
             writeUsername?: string;
             qnaDescription?: string;
-            /** Format: date-time */
-            writeDatetime?: string;
             fileUlid?: string;
             answerYn?: string;
             answerUserName?: string;
@@ -2359,8 +2412,6 @@ export interface components {
             startDate?: string;
             useYn?: string;
             fileUlid?: string;
-            insertUserId?: string;
-            insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
         };
@@ -2405,9 +2456,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -3998,16 +4049,18 @@ export interface operations {
             };
         };
     };
-    emailValid: {
+    changePwd: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                encodeSysId: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PwdChgRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -4164,7 +4217,55 @@ export interface operations {
             };
         };
     };
-    newUserEmailValid: {
+    reSendPwdChangeCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailValidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    sendUserEmailValid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailValidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    reSendUserEmailValid: {
         parameters: {
             query?: never;
             header?: never;
@@ -5129,6 +5230,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClientNoticeResponse"][];
+                };
+            };
+        };
+    };
+    chkEmailValid: {
+        parameters: {
+            query: {
+                email: string;
+                validCode: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": boolean;
                 };
             };
         };
