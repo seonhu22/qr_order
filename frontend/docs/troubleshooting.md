@@ -51,3 +51,29 @@
   - SQL `where` 조건
   - `delete_yn`, `use_yn`, join 조건
   - 서버가 연결한 DB와 내가 보는 DB가 같은지
+
+### 저장 후 테이블이 로딩 상태로 깜빡임
+
+- 의미: 저장 완료 후 `invalidateQueries`가 background refetch를 트리거하면서 테이블이 다시 로딩 UI로 진입함
+- 원인: `isLoading={query.isLoading || query.isFetching}` 형태로 `isFetching`을 포함했을 때 발생
+  - `isLoading`: 캐시 없는 최초 로딩에만 `true`
+  - `isFetching`: 백그라운드 refetch 포함 모든 fetch 중 `true` → 저장 후에도 `true`가 됨
+- 수정: `isFetching` 제거, `isLoading={query.isLoading}`만 사용
+
+### 저장 후 로그인 만료(401) 리다이렉트
+
+- mock 모드(`npm run dev:mock`)에서 특정 저장 API 호출 시 "로그인 인증이 만료되었습니다." 모달이 뜨며 로그인 화면으로 이동함
+- 원인: `src/mocks/handlers.ts`에 해당 mutation 핸들러가 등록되지 않아 MSW가 가로채지 못하고 실제 백엔드로 fall-through → 개발 환경 백엔드가 401 반환 → `httpClient`가 `notifyUnauthorized()` 호출
+- 우선 확인:
+  - `src/generated/{controller}/{controller}.msw.ts`에 해당 핸들러 함수가 존재하는지
+  - `src/mocks/handlers.ts` import에 해당 함수가 포함됐는지
+  - `handlers` 배열에 실제로 등록됐는지(`import`만 하고 배열에 추가 안 하는 경우 주의)
+- 참고: generated MSW 핸들러 중 조회(GET)는 `getXxxControllerMock()`처럼 일괄 등록되기도 하지만, 등록 및 mutation(POST/PUT/DELETE) 핸들러는 개별 등록 대상인 경우가 많으므로 신규 API 추가 시 반드시 확인
+
+### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
+
+- 증상: 편집 중(`isDirty`) 검색창에서 **Enter**로 조회하면 "조회하시겠습니까?" 확인 모달이 떴다가 즉시 사라지고 조회가 그대로 실행됨. 같은 동작을 조회 버튼 **클릭**으로 하면 정상적으로 모달이 유지됨.
+- 원인: `WrapperModal`의 포커스 트랩 `useEffect`가 모달이 열리자마자(`open` 변경 시점) 첫 번째 버튼(확인 버튼)에 동기적으로 `focus()`를 건다. 모달을 열게 한 Enter 키 입력의 `keyup`이 아직 처리되기 전이면, 이 keyup이 막 포커스된 확인 버튼에 떨어져 버튼을 즉시 클릭시켜 버린다.
+- 재현/디버깅 방법: `useFilterDirtyCheck`의 `requestSearch`/`confirmFilterAction`에 `console.log`를 추가해 보면, `isDirty=true`로 모달이 열린 직후 사용자 클릭 없이 `confirmFilterAction`이 곧바로 호출되는 것을 확인할 수 있다(Playwright로 로그인 → 행추가 → 검색창 Enter 흐름을 재현해서 검증함).
+- 수정: `WrapperModal.tsx`의 자동 포커스를 `setTimeout(() => firstInput?.focus(), 0)`으로 한 tick 미뤄서, 모달을 연 키 입력이 완전히 끝난 뒤에야 포커스가 이동하도록 함(`focusTimer`는 cleanup에서 `clearTimeout`).
+- 주의: 이 컴포넌트는 모든 `ConfirmModal`/`SaveConfirmModal`/`SimpleDefaultModal` 등의 공용 베이스이므로, 비슷하게 "키 입력으로 연 모달이 의도치 않게 즉시 닫힌다"는 증상이 보이면 가장 먼저 이 포커스 트랩을 의심한다.

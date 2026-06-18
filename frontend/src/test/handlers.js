@@ -2,89 +2,8 @@ import { http, HttpResponse } from 'msw';
 
 let currentUser = null;
 const failedAttempts = {};
-const mockMenus = [
-  {
-    sysId: 'menu-root-admin',
-    menuCd: 'ADMIN',
-    menuNm: 'Admin',
-    parentMenuCd: 'ROOT',
-    ordNo: '1',
-    treeLevel: '0',
-  },
-  {
-    sysId: 'menu-root-client',
-    menuCd: 'CLIENT',
-    menuNm: 'Client',
-    parentMenuCd: 'ROOT',
-    ordNo: '2',
-    treeLevel: '0',
-  },
-  {
-    sysId: 'menu-admin-system',
-    menuCd: 'adminSystem',
-    menuNm: 'Admin System',
-    parentMenuCd: 'ADMIN',
-    ordNo: '1',
-    treeLevel: '1',
-  },
-  {
-    sysId: 'menu-admin-users',
-    menuCd: 'adminUsers',
-    menuNm: 'Admin Users',
-    parentMenuCd: 'adminSystem',
-    menuUrl: '/admin/users',
-    ordNo: '1',
-    treeLevel: '2',
-  },
-  {
-    sysId: 'menu-client-store',
-    menuCd: 'store',
-    menuNm: 'Store',
-    parentMenuCd: 'CLIENT',
-    ordNo: '1',
-    treeLevel: '1',
-  },
-  {
-    sysId: 'menu-client-store-info',
-    menuCd: 'storeInfoManage',
-    menuNm: 'Store Info',
-    parentMenuCd: 'store',
-    ordNo: '1',
-    treeLevel: '2',
-  },
-  {
-    sysId: 'menu-client-store-info-page',
-    menuCd: 'storeInfo',
-    menuNm: 'Store Info Detail',
-    parentMenuCd: 'storeInfoManage',
-    menuUrl: '/client/store/info',
-    ordNo: '1',
-    treeLevel: '3',
-  },
-  {
-    sysId: 'menu-client-order',
-    menuCd: 'order',
-    menuNm: 'Order',
-    parentMenuCd: 'CLIENT',
-    ordNo: '2',
-    treeLevel: '1',
-  },
-  {
-    sysId: 'menu-client-order-history',
-    menuCd: 'orderHistory',
-    menuNm: 'Order History',
-    parentMenuCd: 'order',
-    menuUrl: '/client/order/history',
-    ordNo: '1',
-    treeLevel: '2',
-  },
-];
 
 export const handlers = [
-  http.get('/api/system/settings/menu/search', () => {
-    return HttpResponse.json(mockMenus);
-  }),
-
   http.get('/api/auth/me', () => {
     if (!currentUser) {
       return HttpResponse.json({ success: false }, { status: 401 });

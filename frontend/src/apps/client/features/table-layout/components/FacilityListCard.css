@@ -1,0 +1,42 @@
+.facility-list-card {
+  flex-shrink: 0;
+  height: 16rem;
+}
+
+.facility-list-card__list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-height: 0;
+  padding: var(--spacing-3);
+  margin: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.facility-list-card__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-height: 2.4rem;
+  padding: 0 var(--spacing-4);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+
+.facility-list-card__icon {
+  display: inline-flex;
+  color: var(--color-text-secondary);
+}
+
+.facility-list-card__label {
+  flex: 1;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+}
+
+.facility-list-card__drag-handle {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+}

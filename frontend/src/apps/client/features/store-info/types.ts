@@ -13,7 +13,8 @@ export type StoreInfo = {
   address: string;
   contactPhone: string;
   emergencyPhone: string;
-  businessHours: string;
+  businessHoursStart: string;
+  businessHoursEnd: string;
   email: string;
 };
 
@@ -25,7 +26,7 @@ export type StoreInfoFieldMeta = {
   required: boolean;
   /** 사업자 인증 기반 정보는 항상 read-only */
   editable: boolean;
-  inputType?: 'text' | 'email' | 'tel';
+  inputType?: 'text' | 'email' | 'tel' | 'time';
 };
 
 export const STORE_INFO_FIELDS: StoreInfoFieldMeta[] = [
@@ -35,6 +36,7 @@ export const STORE_INFO_FIELDS: StoreInfoFieldMeta[] = [
   { key: 'address',        label: '주소',            required: false, editable: false },
   { key: 'contactPhone',   label: '연락처',          required: true,  editable: true, inputType: 'tel' },
   { key: 'emergencyPhone', label: '비상용 연락처',   required: false, editable: true, inputType: 'tel' },
-  { key: 'businessHours',  label: '영업시간',        required: true,  editable: true },
+  { key: 'businessHoursStart', label: '영업 시작 시간', required: true,  editable: true, inputType: 'time' },
+  { key: 'businessHoursEnd',   label: '영업 종료 시간', required: true,  editable: true, inputType: 'time' },
   { key: 'email',          label: '이메일',          required: true,  editable: true, inputType: 'email' },
 ];

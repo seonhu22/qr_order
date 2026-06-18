@@ -32,7 +32,7 @@ function renderLayout(initialPath = '/client/main') {
           <Routes>
             <Route path="/client" element={<ClientLayout />}>
               <Route path="main" element={<div>main content</div>} />
-              <Route path="store/info" element={<div>store info content</div>} />
+              <Route path="store/info/base" element={<div>store info content</div>} />
             </Route>
           </Routes>
         </MemoryRouter>
@@ -63,7 +63,7 @@ describe('ClientLayout', () => {
     const headerNav = screen.getByRole('navigation', { name: '상단 메뉴' });
     await user.click(within(headerNav).getByRole('button', { name: '매장' }));
 
-    expect(useClientLayoutStore.getState().activeSection).toBe('store');
+    expect(useClientLayoutStore.getState().activeSection).toBe('STO');
     expect(useClientLayoutStore.getState().isSidebarOpen).toBe(true);
     expect(screen.getByLabelText('사이드 내비게이션')).not.toHaveClass(
       'client-layout__sidebar--closed',
@@ -71,17 +71,17 @@ describe('ClientLayout', () => {
   });
 
   it('syncs the active section from the current route', async () => {
-    renderLayout('/client/store/info');
+    renderLayout('/client/store/info/base');
 
     await waitFor(() => {
-      expect(useClientLayoutStore.getState().activeSection).toBe('store');
+      expect(useClientLayoutStore.getState().activeSection).toBe('STO');
     });
     expect(useClientLayoutStore.getState().isSidebarOpen).toBe(true);
     expect(screen.getByText('store info content')).toBeInTheDocument();
   });
 
   it('shows page navigation from the current route', async () => {
-    renderLayout('/client/store/info');
+    renderLayout('/client/store/info/base');
 
     const pageNavigation = await screen.findByRole('navigation', { name: '현재 페이지 위치' });
     expect(within(pageNavigation).getByText('매장')).toBeInTheDocument();

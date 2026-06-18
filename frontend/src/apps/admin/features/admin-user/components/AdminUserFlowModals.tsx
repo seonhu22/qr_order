@@ -54,7 +54,8 @@ export function AdminUserFlowModals({
     <>
       <SaveConfirmModal
         open={state.isSaveConfirmOpen}
-        description="저장하시겠습니까?"
+        title="저장하시겠습니까?"
+        description="입력하신 내용을 저장합니다."
         primaryAction={{
           label: '확인',
           loading: isSaving,

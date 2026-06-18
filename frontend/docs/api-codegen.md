@@ -168,6 +168,86 @@ export const handlers = [
 - 목업 파일은 `features/<feature>/mock/` 에 두고 `import` 해서 사용한다.
 - 검색어 필터링이 있는 API라면 `searchKeyword` 파라미터도 함께 처리한다.
 
+### 목업 파일 작성 양식
+
+목업 데이터는 반드시 **generated 응답 타입**으로 typed한다. 화면 모델(StoreInfo 등)이 아닌 API 응답 타입을 사용해야 MSW 핸들러가 실제 서버 응답과 동일한 형태를 반환한다.
+
+```ts
+// features/<feature>/mock/<feature>Mock.ts
+
+import type { MyFeatureResponse } from '@/generated/types/myFeatureResponse';
+
+// MSW 핸들러용 — API 응답 형식으로 typed
+export const MY_FEATURE_MOCK_ROWS: MyFeatureResponse[] = [
+  {
+    sysId: 'row-001',
+    name: '샘플 이름',
+    // ... API 응답 필드
+  },
+];
+```
+
+- 배열 엔드포인트는 `Response[]`, 단일 엔드포인트는 `Response` 타입을 사용한다.
+- 화면 전용 초기값이 별도로 필요하면 화면 모델 타입으로 추가 export 가능하지만, **MSW 핸들러에 주입하는 상수는 반드시 generated 타입 기준**이다.
+- 파일 내 export 네이밍: `MY_FEATURE_MOCK_ROWS` (리스트), `MY_FEATURE_MOCK` (단일)
+
+**handlers.ts 주입 방식:**
+
+```ts
+// mocks/handlers.ts
+
+import { MY_FEATURE_MOCK_ROWS } from '../apps/.../features/my-feature/mock/myFeatureMock';
+import { getGetMyFeatureMockHandler } from '../generated/my-controller/my-controller.msw';
+
+// generated 핸들러 팩토리에 고정 데이터 주입
+const myFeatureOverrideHandler = getGetMyFeatureMockHandler(MY_FEATURE_MOCK_ROWS);
+
+// 또는 검색·필터링 로직이 필요한 경우 직접 작성
+const myFeatureOverrideHandler = http.get('*/api/.../search', ({ request }) => {
+  const keyword = new URL(request.url).searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? MY_FEATURE_MOCK_ROWS.filter((row) => row.name?.toLowerCase().includes(keyword))
+    : MY_FEATURE_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+```
+
+단순 고정 데이터면 `getGetMyFeatureMockHandler(rows)` 형태로 주입하고, 검색·필터·조건 분기가 필요하면 직접 `http.get` 핸들러를 작성한다.
+
+### 저장(POST) 결과가 화면에 반영되게 만들기
+
+generated 저장 mutation 핸들러(`getSaveXxxMockHandler()`)는 성공/실패를 랜덤(Faker)으로 응답할 뿐, 목업 배열을 실제로 바꾸지 않는다. 그래서 행추가 후 저장하면 `invalidateQueries`로 재조회가 일어나도 새 행이 보이지 않는다.
+
+행추가/수정/삭제가 실제로 목록에 반영되도록 테스트하려면, 저장 POST 핸들러를 직접 작성해서 `newItems`/`updateItems`/`delItems`를 목업 배열에 in-place로 반영한다.
+
+```ts
+// mocks/handlers.ts
+const myFeatureSaveOverrideHandler = http.post(
+  '*/api/.../my-feature/save',
+  async ({ request }) => {
+    const body = (await request.json()) as MyFeatureRequest;
+
+    body.newItems?.forEach((item) => {
+      MY_FEATURE_MOCK_ROWS.push({ ...item, sysId: `my-feature-${Date.now()}-${MY_FEATURE_MOCK_ROWS.length}` });
+    });
+    body.updateItems?.forEach((item) => {
+      const target = MY_FEATURE_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) Object.assign(target, item);
+    });
+    body.delItems?.forEach((item) => {
+      const index = MY_FEATURE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
+      if (index !== -1) MY_FEATURE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+```
+
+- `newItems`는 보통 `sysId`가 없는 상태로 오므로 mock에서 직접 생성해 부여한다.
+- generated 저장 핸들러를 이 방식으로 대체했다면 `getSaveXxxMockHandler` import/등록을 `handlers.ts`에서 제거한다(같은 경로에 두 핸들러를 동시에 두지 않는다 — MSW는 첫 매칭만 쓰므로 우리 핸들러가 위에 있으면 동작은 하지만 죽은 import가 남는다).
+- 로딩 스피너(`isSaving`) 동작까지 확인하려면 핸들러 안에 `await delay(1000)`(msw의 `delay`)을 추가했다가 확인 후 제거한다. 평소엔 즉시 응답하는 게 개발 흐름상 더 편하므로 delay는 기본적으로 넣지 않는다.
+
 ---
 
 ## 주의사항
@@ -176,6 +256,7 @@ export const handlers = [
 - CI는 `openapi.json`을 자동 갱신하지 않는다. 백엔드 API가 바뀌면 프론트가 `npm run generate:schema`로 명세를 갱신한 뒤 `npm run generate` 결과까지 함께 커밋해야 한다.
 - `operationId`가 없는 API는 함수명이 지저분하게 생성된다. 백엔드에 `operationId` 명시를 요청한다.
 - PR 리뷰 시 `src/generated/` 변경분은 명세 변경에 의한 것이므로 별도 커밋으로 분리하면 리뷰 노이즈를 줄일 수 있다.
+- **mutation 핸들러는 `handlers.ts`에 개별 등록해야 한다.** `getXxxControllerMock()` 같은 일괄 등록 함수가 없는 컨트롤러의 경우, generated `.msw.ts`에 핸들러 함수가 있더라도 `handlers.ts` import와 배열 등록을 모두 직접 추가하지 않으면 MSW가 가로채지 않는다. 누락 시 요청이 실제 백엔드로 fall-through → 401 → "로그인 인증이 만료되었습니다." 리다이렉트 발생. 신규 API 추가 후 mock 모드에서 반드시 확인할 것.
 
 ---
 

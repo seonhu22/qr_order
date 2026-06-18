@@ -278,6 +278,25 @@
   border-color: var(--color-brand-hover);
 }
 
+/* segment — 기본 (미선택) */
+.btn--segment {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+.btn--segment:hover:not(:disabled):not(.btn--disabled):not(.btn--loading):not(.btn--selected) {
+  color: var(--color-text-primary);
+}
+.btn--segment:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* segment — 선택됨: 회색 그룹 배경 안에서 흰 배경으로 떠오름 */
+.btn--segment.btn--selected {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
 
 /* =====================================================
  * 내부 요소 (.btn__*)
