@@ -8,6 +8,7 @@ import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
+import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -44,12 +45,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'store/table/layout',
-        element: (
-          <ClientPlaceholderPage
-            title="테이블 배치 관리"
-            description="매장 테이블 배치를 관리하는 화면입니다."
-          />
-        ),
+        element: <TableLayoutPage />,
       },
       {
         path: 'menu/info/management',
