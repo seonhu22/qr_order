@@ -8,7 +8,7 @@
  * @module dev/ButtonGuide
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, LinkButton } from '@/shared/components/button';
 import {
   AddChildRowTableButton,
@@ -78,6 +78,70 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
       {children}
       <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-tertiary)' }}>{label}</span>
+    </div>
+  );
+}
+
+/**
+ * segment 변형의 실제 사용 패턴 — 슬라이딩 인디케이터.
+ * `apps/client/features/table-layout/components/LayoutSizeToggle.tsx`와 동일한 구조다.
+ * 흰 배경은 인디케이터가 담당하고, 버튼 자체의 선택 배경은 투명 처리한다.
+ */
+function SegmentSlideDemo() {
+  const options = ['작게', '보통', '크게'] as const;
+  const [value, setValue] = useState<typeof options[number]>('보통');
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const groupEl = groupRef.current;
+    if (!groupEl) return;
+    const index = options.indexOf(value);
+    const buttonEl = groupEl.querySelectorAll('button')[index];
+    if (!buttonEl) return;
+    const groupRect = groupEl.getBoundingClientRect();
+    const buttonRect = buttonEl.getBoundingClientRect();
+    setIndicatorStyle({ left: buttonRect.left - groupRect.left, width: buttonRect.width });
+  }, [value]);
+
+  return (
+    <div
+      ref={groupRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        gap: 4,
+        padding: 4,
+        background: 'var(--color-bg-muted)',
+        borderRadius: 'var(--radius-md)',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          bottom: 4,
+          left: 0,
+          background: 'var(--color-bg-surface)',
+          borderRadius: 'var(--radius-button)',
+          boxShadow: 'var(--shadow-card)',
+          transition: 'transform var(--transition-ui), width var(--transition-ui)',
+          transform: `translateX(${indicatorStyle.left}px)`,
+          width: indicatorStyle.width,
+        }}
+      />
+      {options.map((label) => (
+        <Button
+          key={label}
+          variant="segment"
+          size="md"
+          selected={value === label}
+          onClick={() => setValue(label)}
+          style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
+        >
+          {label}
+        </Button>
+      ))}
     </div>
   );
 }
@@ -205,6 +269,9 @@ export default function ButtonGuide() {
           >
             다크
           </Button>
+        </Row>
+        <Row label="segment — 슬라이딩 인디케이터 (TableLayoutPage 배치 크기 토글, 클릭해보세요)">
+          <SegmentSlideDemo />
         </Row>
       </Section>
 
