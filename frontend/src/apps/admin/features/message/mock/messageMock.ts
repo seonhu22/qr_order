@@ -1,4 +1,4 @@
-import type { Message } from '@/generated/settings-controller/settings-controller';
+import type { Message } from '@/generated/types/message';
 
 export const MESSAGE_MOCK_ROWS: Message[] = [
   { sysId: 'msg-001', msgCd: 'ERR_AUTH_001',  msgNm: '인증 오류',   msgDescription: '로그인 인증이 만료되었습니다.' },

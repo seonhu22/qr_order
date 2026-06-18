@@ -2398,6 +2398,8 @@ export interface components {
             qnaTitle?: string;
             writeUsername?: string;
             qnaDescription?: string;
+            /** Format: date-time */
+            writeDatetime?: string;
             fileUlid?: string;
             answerYn?: string;
             answerUserName?: string;
@@ -2412,6 +2414,8 @@ export interface components {
             startDate?: string;
             useYn?: string;
             fileUlid?: string;
+            insertUserId?: string;
+            insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
         };
