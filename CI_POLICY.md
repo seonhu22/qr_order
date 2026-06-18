@@ -37,7 +37,10 @@ npm install
 
 - GitHub Actions는 Pull Request와 `main` 또는 `master` 브랜치 push 시 아래 검사를 실행합니다.
 - `Gitleaks` 시크릿 스캔
-- `frontend` 빌드: `npm ci && npm run build`
+- `frontend` 빌드: Node.js 24 기준 `npm ci && npm run build`
+  - `ubuntu-latest`, `macos-latest`, `windows-latest`에서 모두 실행합니다.
+  - Vite, Rolldown, esbuild, lightningcss처럼 OS별 네이티브 패키지를 사용하는 의존성 충돌을 미리 확인하기 위함입니다.
+- `frontend` 코드 생성 결과 확인: 커밋된 `openapi.json` 기준으로 generated 파일 drift 검사
 - `qrorder` 백엔드 검증: `./gradlew test`
 
 ## CI 및 운영 시크릿
