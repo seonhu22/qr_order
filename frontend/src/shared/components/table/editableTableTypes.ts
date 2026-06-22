@@ -28,10 +28,12 @@ export type EditableDetailColumn = {
   required?: boolean;
   readOnlyOnExisting?: boolean;
   className?: string;
-  /** type: 'text'일 때 입력 형식. 기본값은 'text'. */
-  inputType?: 'text' | 'number';
+  /** type: 'text'일 때 입력 형식. 기본값은 'text'. 'number-grouped'는 천단위 콤마로 표시하고 저장값은 숫자 문자열로 유지한다. */
+  inputType?: 'text' | 'number' | 'number-grouped';
   /** type: 'select'일 때 선택지. */
   options?: SelectOption[];
+  /** type: 'select'일 때 미선택 상태에 보일 placeholder. */
+  placeholder?: string;
 };
 
 /**

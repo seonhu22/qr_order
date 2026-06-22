@@ -14,6 +14,11 @@ import type {
 } from './editableTableTypes';
 import type { SharedTableColumn, SharedTableRow } from './tableModelTypes';
 
+function formatGroupedNumberDisplay(rawValue: string): string {
+  const digits = rawValue.replace(/\D/g, '');
+  return digits ? Number(digits).toLocaleString('ko-KR') : '';
+}
+
 type EditableDetailTableProps<
   TMaster extends EditableDetailMasterRow,
   TRow extends EditableDetailRow,
@@ -24,6 +29,8 @@ type EditableDetailTableProps<
     titleBadge?: ReactNode;
     ariaLabel: string;
     tableAriaLabel: string;
+    /** 카드 헤더와 테이블 사이에 표시할 안내문구(SystemMenuTree 패턴). */
+    guideText?: ReactNode;
     footnote?: string;
     emptyRowsText?: string;
   };
@@ -41,6 +48,14 @@ type EditableDetailTableProps<
   status: {
     isLoading: boolean;
     isSaving: boolean;
+  };
+  /**
+   * 행 선택을 부모가 제어해야 할 때 사용한다(예: 이 테이블의 선택된 행이 다른 테이블의 조회 조건이 되는 경우).
+   * 전달하지 않으면 기존처럼 컴포넌트 내부 state로 선택을 관리한다.
+   */
+  selection?: {
+    selectedRowId: string;
+    onSelectRow: (id: string) => void;
   };
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
   actions: {
@@ -72,6 +87,7 @@ export function EditableDetailTable<
   statusText,
   data,
   status,
+  selection,
   getInputAriaLabel,
   actions,
 }: EditableDetailTableProps<TMaster, TRow>) {
@@ -80,6 +96,7 @@ export function EditableDetailTable<
     titleBadge,
     ariaLabel,
     tableAriaLabel,
+    guideText,
     footnote,
     emptyRowsText = '상세 항목이 없습니다.',
   } = table;
@@ -101,7 +118,9 @@ export function EditableDetailTable<
     onSave,
     onEditRow,
   } = actions;
-  const [selectedDetailId, setSelectedDetailId] = useState('');
+  const [internalSelectedDetailId, setInternalSelectedDetailId] = useState('');
+  const selectedDetailId = selection ? selection.selectedRowId : internalSelectedDetailId;
+  const setSelectedDetailId = selection ? selection.onSelectRow : setInternalSelectedDetailId;
   const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
     ? selectedDetailId
     : '';
@@ -165,6 +184,7 @@ export function EditableDetailTable<
               type: 'select',
               value: typeof value === 'string' ? value : '',
               options: column.options ?? [],
+              placeholder: column.placeholder,
               isError: Boolean(rowErrors[row.id]?.[column.key]),
               onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
             },
@@ -186,6 +206,8 @@ export function EditableDetailTable<
         }
 
         const isReadonly = column.readOnlyOnExisting && !row.isNew;
+        const isGroupedNumber = column.inputType === 'number-grouped';
+        const rawValue = typeof value === 'string' ? value : '';
 
         return [
           column.key,
@@ -195,11 +217,16 @@ export function EditableDetailTable<
             className: `common-table__input${isReadonly ? ' common-table__input--readonly-code' : ''}`,
             controlState: isReadonly ? 'readonly' : rowErrors[row.id]?.[column.key] ? 'error' : '',
             readOnly: isReadonly,
-            inputType: column.inputType,
-            value: typeof value === 'string' ? value : '',
+            inputType: isGroupedNumber ? 'text' : column.inputType,
+            value: isGroupedNumber ? formatGroupedNumberDisplay(rawValue) : rawValue,
             ariaLabel,
             onClearError: () => onClearRowError(row.id, column.key),
-            onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
+            onChange: (nextValue: string) =>
+              onChangeValue(
+                row.id,
+                column.key,
+                isGroupedNumber ? nextValue.replace(/\D/g, '') : nextValue,
+              ),
           },
         ];
       }),
@@ -254,6 +281,7 @@ export function EditableDetailTable<
         emptyClassName="common-code-card__empty"
       >
         <>
+          {guideText ? <p className="common-code-card__guide-text">{guideText}</p> : null}
           {/* layout-contents: display:contents 로 레이아웃에 투명 — common-table-wrap 이 직접 flex 자식이 된다 */}
           <div ref={tableBodyRef} className="layout-contents">
             <TableBodyRenderer
