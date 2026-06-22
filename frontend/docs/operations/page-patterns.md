@@ -212,3 +212,14 @@ isSaving: saveFeatureMutation.isPending || editableFlow.state.isConfirmingSave,
   -> 선택 있음 -> DeleteConfirmModal
   -> 삭제 실행 -> 결과 안내
 ```
+
+### draft에만 반영되는 행 단위 상세설정 모달
+
+`MenuManagement`의 메뉴 상세설정 모달처럼, 인라인 편집 테이블의 행을 모달로 한 번 더 편집하되 실제 저장 API 호출은 외부 테이블의 "저장" 버튼에서만 일어나는 경우가 있다. 이 모달은 `/admin/system/common-code`(`useCodeMasterModalFlow`)의 등록/수정 모달과 동일한 확인/로딩/안내 UX를 따르되, "확인" 클릭이 실제 mutation을 호출하지 않고 draft 행 값을 그대로 commit(이미 입력 시점에 반영됨)한다는 점만 다르다.
+
+- 모달을 열 때 행 snapshot을 떠서 dirty 판정과 "닫기" 시 되돌리기에 사용한다.
+- 입력 필드는 외부 테이블과 같은 `onChangeValue`로 즉시 draft에 반영한다(모달 전용 별도 상태를 만들지 않음).
+- "확인": dirty가 아니면 바로 닫는다. dirty면 `EditConfirmModal`로 확인받고, `confirmDetailEditor`를 `async`로 작성해 `isConfirming` 동안 primaryAction을 `loading` 상태로 둔 뒤(`useCodeMasterModalFlow.confirmSave`와 동일한 형태), 완료되면 모달을 닫고 "저장되었습니다." `SimpleDefaultModal` 안내를 띄운다. 현재는 실제 API가 없어 `await Promise.resolve()`로 자리만 잡아 두고, 추후 백엔드 연동 시 그 자리에 실제 save mutation을 추가한다.
+- "닫기"·헤더 닫기 버튼(`X`)·ESC·오버레이 클릭은 모두 같은 핸들러로 연결해 dirty 경고를 동일하게 받는다 — 헤더 닫기만 예외로 빠지지 않게 한다.
+- dirty 경고에서 "확인"(나가기)을 누르면 snapshot으로 행 값을 되돌린다.
+- 한 줄에 들어가는 필드 수는 가로 길이가 짧은 select 2개라도 임의로 grid 2열에 묶지 않고, 다른 필드와 동일하게 전체 폭으로 쌓는다.
