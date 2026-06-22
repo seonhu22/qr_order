@@ -53,6 +53,53 @@ const handleSearch = () => {
 - 마스터 클릭 시 `selectedRow` 상태로 관리하고 같은 행 재클릭 시 선택 해제
 - 디테일 조회 훅은 `enabled: Boolean(sysId)`로 제어
 
+## 마스터 1 + 디테일 2단 세로 스택 레이아웃
+
+> 추가일: 2026-06-22
+
+`MenuOptionManagementPage`(옵션 관리)처럼 좌측 마스터 1개를 선택하면 우측에 디테일 테이블 2개가 세로로 이어지는 화면(메뉴 선택 → 옵션 그룹 로드 → 옵션 그룹 선택 → 옵션 항목 로드)은 위 좌우 분할 패턴을 확장한다.
+
+- 마스터는 기존 좌우 분할과 동일하게 `flex: 2`인 `article`
+- 우측은 `flex: 4`인 래퍼 `div`(`<feature>-page__detail-stack`)를 두고 그 안을 `flex-direction: column`으로 세로 분할
+- 디테일 스택 내부 두 `article`은 각각 `flex: 1; min-height: 0; overflow: hidden`
+- 두 번째 디테일 테이블의 "마스터"는 첫 번째 디테일 테이블에서 선택된 행이다. `EditableDetailTable`은 기본적으로 행 선택을 내부 state로 관리하므로, 이 선택값을 다음 테이블에 전달하려면 `selection`(컨트롤드 선택) prop으로 부모가 선택 상태를 들고 있어야 한다([TableCard.md](../components/TableCard.md) §EditableDetailTable — 컨트롤드 선택 참고).
+
+```css
+.menu-option-page__layout {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.menu-option-page__layout > article:first-child { flex: 2; min-height: 0; overflow: hidden; }
+
+.menu-option-page__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 4;
+  min-height: 0;
+  overflow: hidden;
+}
+.menu-option-page__detail-stack > article { flex: 1; min-height: 0; overflow: hidden; }
+```
+
+### 상위 선택값이 하위 테이블 컬럼을 바꿀 때 저장 순서 보장
+
+> 추가일: 2026-06-22
+
+옵션 그룹의 "옵션/수량"처럼 한 테이블의 선택값이 다른(하위) 테이블의 컬럼 구성을 바꾸는 경우, 상위만 저장하고 하위를 그대로 두면 화면에 보이는 컬럼과 실제 저장된 값이 어긋난 채로 DB에 남을 수 있다(예: 고객 화면에 "수량 설정" UI가 노출되는데 정작 수량 제한 값은 비어 있는 상태).
+
+- 컬럼이 **새로 생기는** 방향으로 값이 바뀌면(예: "수량 설정"으로 변경) 해당 그룹에 "하위 테이블 정리 필요" 플래그를 남긴다.
+- 그 플래그가 있는 동안은 상위(그룹) 저장을 막고 안내한다. 하위(항목) 테이블을 먼저 저장(필수값 검증 통과)해야 플래그가 풀린다.
+- 컬럼이 **사라지는** 방향으로 바뀔 때는(예: "주문 옵션"으로 변경) 막을 필요가 없다 — 새로 필수값이 생기는 게 아니기 때문이다.
+- 새로 필수값이 되는 필드는 임의 기본값(예: `0`)을 채우지 않고 비워 둔다. 하위 테이블의 `required` 검증이 저장 시 실제 값 입력을 강제하도록 맡긴다.
+- 차단 플래그는 "값이 실제로 바뀌었는지"(dirty)가 아니라 "필수값 검증을 통과해 저장을 시도했는지"로 해제한다. 비어있던 값을 다시 비우는 경우처럼 dirty가 안 잡히는 케이스가 있기 때문이다.
+
+적용 예: `MenuOptionManagementPage` / `useMenuOptionManagementPage.ts`의 `groupIdNeedingDetailSync`.
+
 ## 편집형 CRUD 화면
 
 대상: `CommonCode`, `AdminUser` 같은 draft/저장/삭제가 있는 목록
