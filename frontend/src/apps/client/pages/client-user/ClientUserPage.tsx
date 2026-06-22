@@ -57,7 +57,7 @@ export function ClientUserPage() {
         isDirty={uiProps.editor.isDirty}
         title={uiProps.editor.isCreateMode ? '유저 등록' : '유저 수정'}
         size="md"
-        primaryAction={{ label: '저장', onClick: actions.requestSave }}
+        primaryAction={{ label: '확인', onClick: actions.requestSave }}
         secondaryAction={{ onClick: actions.closeEditorModal }}
         onClose={actions.closeEditorModal}
       >
