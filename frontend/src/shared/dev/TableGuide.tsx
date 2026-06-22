@@ -418,6 +418,7 @@ function AdvancedDetailTableExample() {
           ) : undefined,
           ariaLabel: '메뉴 관리',
           tableAriaLabel: '메뉴 관리 테이블',
+          guideText: '※ 카드 헤더와 테이블 사이에 표시하는 안내문구(table.guideText)',
         }}
         statusText={{ loadingTitle: '메뉴를 불러오는 중입니다.' }}
         data={{
@@ -736,7 +737,7 @@ export default function TableGuide() {
       {/* 3-b. EditableDetailTable — select/action 컬럼 + titleBadge */}
       <Section
         title="EditableDetailTable — select/action 컬럼, 제목 옆 라벨(titleBadge)"
-        desc="MenuDetailTable(메뉴 관리) 패턴. inputType: 'number'로 숫자 전용 입력, type: 'select'로 콤보 컬럼, type: 'action'으로 행 단위 수정 버튼, table.titleBadge로 제목 옆 선택 라벨을 표시한다."
+        desc="MenuDetailTable(메뉴 관리) 패턴. inputType: 'number'로 숫자 전용 입력, type: 'select'로 콤보 컬럼, type: 'action'으로 행 단위 수정 버튼, table.titleBadge로 제목 옆 선택 라벨을 표시한다. table.guideText로 카드 헤더와 테이블 사이에 안내문구(SystemMenuTree 패턴)를 표시할 수 있다."
       >
         <AdvancedDetailTableExample />
       </Section>
