@@ -21,6 +21,8 @@ export type MenuDetailRow = {
   masterId: string;
   ordNo: number;
   isNew?: boolean;
+  /** 첨부파일 그룹 ID. 첨부파일 API에는 `linkSysId`로 전달한다. */
+  fileUlid?: string;
   values: Record<string, string>;
 };
 

@@ -6,6 +6,7 @@ import {
   useNewMenuMaster,
   useUpdateMenuMaster,
 } from '@/generated/menu-manage-controller/menu-manage-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import type { MenuDetailItem } from '@/generated/types/menuDetailItem';
 import type { MenuDetailRequest } from '@/generated/types/menuDetailRequest';
 import type { MenuMasterRequest } from '@/generated/types/menuMasterRequest';
@@ -58,6 +59,7 @@ export function createBlankMenuDetailValues(): MenuDetailRow['values'] {
   return {
     menuName: '',
     menuPrice: '',
+    menuDescription: '',
     optionUseYn: 'N',
     useYn: 'Y',
   };
@@ -86,9 +88,11 @@ export function mapToMenuDetailRow(menuDetail: MenuDetailResponse): MenuDetailRo
     sysId: menuDetail.sysId,
     masterId: menuDetail.linkSysId ?? '',
     ordNo: menuDetail.ordNo ?? 0,
+    fileUlid: menuDetail.fileUlid,
     values: {
       menuName: menuDetail.menuName ?? '',
       menuPrice: menuDetail.menuPrice != null ? String(menuDetail.menuPrice) : '',
+      menuDescription: menuDetail.menuDescription ?? '',
       optionUseYn: menuDetail.optionUseYn === 'Y' ? 'Y' : 'N',
       useYn: menuDetail.useYn === 'N' ? 'N' : 'Y',
     },
@@ -101,8 +105,10 @@ export function mapToMenuDetailPayload(row: MenuDetailRow): MenuDetailItem {
     linkSysId: row.masterId,
     menuName: row.values.menuName ?? '',
     menuPrice: Number(row.values.menuPrice) || 0,
+    menuDescription: row.values.menuDescription ?? '',
     optionUseYn: row.values.optionUseYn ?? 'N',
     useYn: row.values.useYn ?? 'Y',
+    fileUlid: row.fileUlid,
     ordNo: row.ordNo,
   };
 }
@@ -112,6 +118,7 @@ function isSameMenuDetailRow(a: MenuDetailRow, b: MenuDetailRow) {
     a.masterId === b.masterId &&
     a.values.menuName === b.values.menuName &&
     a.values.menuPrice === b.values.menuPrice &&
+    a.values.menuDescription === b.values.menuDescription &&
     a.values.optionUseYn === b.values.optionUseYn &&
     a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
@@ -219,4 +226,9 @@ export function useSaveMenuDetailsMutation() {
     mutateAsync: async (request: MenuDetailRequest) => mutation.mutateAsync(request),
     isPending: mutation.isPending,
   };
+}
+
+export function useMenuDetailAttachFileQuery(fileUlid: string | undefined) {
+  const trimmed = fileUlid?.trim() ?? '';
+  return useGetAttachFile({ linkSysId: trimmed }, { query: { enabled: trimmed.length > 0 } });
 }
