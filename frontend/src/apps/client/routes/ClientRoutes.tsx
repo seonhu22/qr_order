@@ -7,6 +7,7 @@ import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPla
 import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
 import { MenuManagementPage } from '@/apps/client/pages/menu-management/MenuManagementPage';
+import { MenuOptionManagementPage } from '@/apps/client/pages/menu-option/MenuOptionManagementPage';
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
@@ -54,12 +55,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'menu/info/option',
-        element: (
-          <ClientPlaceholderPage
-            title="옵션 관리"
-            description="메뉴 옵션 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <MenuOptionManagementPage />,
       },
       {
         path: 'order/history/list',
