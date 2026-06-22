@@ -60,12 +60,31 @@ public class SignUpService {
         try {
             RestTemplate restTemplate = new RestTemplate();
 
-            String url = "https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=" + ntsServiceKey;
+            String url = "https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=" + ntsServiceKey;
+
+            String businessRegiNum = signUpRequest.getBusinessRegiNum() == null
+                    ? ""
+                    : signUpRequest.getBusinessRegiNum().replaceAll("\\D", "");
+            String userNm = signUpRequest.getUserNm() == null
+                    ? ""
+                    : signUpRequest.getUserNm().trim();
+
+            if (businessRegiNum.length() != 10) {
+                throw new BusinessRegiException("사업자등록번호 10자리를 입력해주세요.");
+            }
+
+            if (signUpRequest.getBusinessRegiDate() == null) {
+                throw new BusinessRegiException("개업일을 입력해주세요.");
+            }
+
+            if (userNm.isEmpty()) {
+                throw new BusinessRegiException("대표자명을 입력해주세요.");
+            }
 
             Map<String, Object> business = new HashMap<>();
-            business.put("b_no", signUpRequest.getBusinessRegiNum());
+            business.put("b_no", businessRegiNum);
             business.put("start_dt", signUpRequest.getBusinessRegiDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
-            business.put("p_nm", signUpRequest.getUserNm());
+            business.put("p_nm", userNm);
             business.put("p_nm2", "");
             business.put("b_nm", "");
             business.put("corp_no", "");
