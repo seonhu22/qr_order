@@ -19,6 +19,9 @@ const noticeListsKey = ['board', 'notice', 'list'] as const;
 const qnaListsKey = ['board', 'qna', 'list'] as const;
 const menuManagementMasterListsKey = ['client', 'menuManagement', 'masters'] as const;
 const menuManagementDetailListsKey = ['client', 'menuManagement', 'details'] as const;
+const menuOptionMasterListsKey = ['client', 'menuOption', 'masters'] as const;
+const menuOptionGroupListsKey = ['client', 'menuOption', 'groups'] as const;
+const menuOptionDetailListsKey = ['client', 'menuOption', 'details'] as const;
 
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
@@ -113,5 +116,13 @@ export const queryKeys = {
     detailLists: menuManagementDetailListsKey,
     masters: (searchKeyword = '') => [...menuManagementMasterListsKey, { searchKeyword }] as const,
     details: (masterId = '') => [...menuManagementDetailListsKey, masterId] as const,
+  },
+  menuOption: {
+    masterLists: menuOptionMasterListsKey,
+    groupLists: menuOptionGroupListsKey,
+    detailLists: menuOptionDetailListsKey,
+    masters: (searchKeyword = '') => [...menuOptionMasterListsKey, { searchKeyword }] as const,
+    groups: (masterId = '') => [...menuOptionGroupListsKey, masterId] as const,
+    details: (groupId = '') => [...menuOptionDetailListsKey, groupId] as const,
   },
 } as const;
