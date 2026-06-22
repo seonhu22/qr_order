@@ -487,6 +487,7 @@ statusText={{
 | `.common-code-card__text-action` | `Button(variant="text")` | 행추가/행삭제 텍스트 버튼의 padding 조정 |
 | `.common-code-card__empty` | `TableCardContentState(isEmpty)` | header 없는 카드에서 빈 상태를 카드 전체 높이에 맞춤 |
 | `.common-code-card__footnote` | `p` | 테이블 하단 안내 문구 |
+| `.common-code-card__guide-text` | `p` | 카드 헤더와 테이블 사이 안내 문구(`EditableDetailTable`의 `table.guideText`) |
 
 ### 테이블
 
@@ -618,6 +619,68 @@ export type EditableDetailColumn = {
 
 - `select` 컬럼은 마스터 테이블의 사용여부 배지와 달리 콤보 자체이므로, "사용/미사용"처럼 2글자 이상 라벨이 필요하면 `options`에 직접 라벨을 넣는다(§4 상태 배지의 Y/N 배지와는 별개 규칙).
 - `action` 컬럼은 마스터 테이블의 고정 `edit` 컬럼과 달리 `columns` 배열에 직접 선언해야 노출된다 — 컬럼을 빼면 버튼도 사라진다.
+
+### EditableDetailTable — 컨트롤드 선택(`selection`)
+
+> 추가일: 2026-06-22
+
+`EditableDetailTable`은 기본적으로 행 선택을 내부 `useState`로 관리한다(위/아래 이동·삭제 대상 판단용). 이 테이블의 선택된 행이 **다른 테이블의 조회 조건**이 되어야 하면(예: 옵션 그룹에서 선택한 행이 옵션 항목 조회 조건이 되는 경우), `selection` prop으로 부모가 선택 상태를 직접 제어한다.
+
+```tsx
+<EditableDetailTable
+  // ...
+  selection={{
+    selectedRowId: uiProps.selectedGroupId,
+    onSelectRow: actions.handleSelectGroup,
+  }}
+/>
+```
+
+- `selection`을 전달하지 않으면 기존처럼 컴포넌트 내부 state로 동작한다(하위 호환).
+- 행추가/행삭제 시 내부적으로 호출하는 선택 변경(`setSelectedDetailId`)도 `selection.onSelectRow`로 그대로 위임되므로, 행삭제 후 다음 행 자동 선택 같은 기존 동작은 컨트롤드 모드에서도 동일하게 유지된다.
+- 적용 예: `MenuOptionGroupTable`(옵션 관리) — [page-patterns.md §마스터 1 + 디테일 2단 세로 스택 레이아웃](../operations/page-patterns.md) 참고.
+
+### EditableDetailColumn — `placeholder`, `number-grouped`
+
+> 추가일: 2026-06-22
+
+- `type: 'select'` 컬럼에 `placeholder`를 지정하면, 값이 비어 있을 때(`''`) 선택 안내 문구가 표시된다. 기본 선택값을 강제로 채우지 않고 사용자가 직접 선택하게 해야 하는 콤보 컬럼에 사용한다.
+
+  ```ts
+  { key: 'inputType', label: '옵션/수량', type: 'select', options: INPUT_TYPE_OPTIONS, placeholder: '선택하세요', required: true }
+  ```
+
+- `type: 'text'`의 `inputType`에 `'number-grouped'`를 추가하면, 입력값을 천단위 콤마로 표시하면서 저장값은 순수 숫자 문자열로 유지한다(`formatMenuPriceDisplay` 류의 로직을 컬럼 옵션 한 줄로 대체). 가격처럼 숫자만 받지만 콤마 표시가 필요한 컬럼에 사용한다.
+
+  ```ts
+  { key: 'menuOptionPrice', label: '옵션 가격', type: 'text', required: true, inputType: 'number-grouped' }
+  ```
+
+  순수 숫자만 받고 콤마 표시가 필요 없으면 기존처럼 `inputType: 'number'`를 그대로 쓴다.
+
+### 카드 헤더와 테이블 사이 안내문구 — `table.guideText`
+
+> 추가일: 2026-06-22
+
+`SystemMenuTree`(메뉴 관리)의 "타이틀-테이블 사이 안내문구" 패턴을 `EditableDetailTable`에 `table.guideText`로 일반화했다. 카드 헤더(타이틀)와 테이블 본문 사이에 항상 보이는 정책성 안내문구를 넣을 때 사용한다(예: 입력 제약 안내). 행 데이터 유무와 무관하게 로딩/에러가 아닌 정상 상태에서 항상 노출된다.
+
+```tsx
+<EditableDetailTable
+  table={{
+    title: '옵션 항목',
+    guideText: (
+      <>※ 옵션설명 및 이미지 등록은 상세페이지를 이용해 주세요. / 수량 설정은 1회 구매 제한 수량입니다.</>
+    ),
+    ariaLabel: '옵션 항목',
+    tableAriaLabel: '옵션 항목 테이블',
+  }}
+  // ...
+/>
+```
+
+- 스타일은 `.common-code-card__guide-text`(`TableCard.css`)에 공용으로 정의되어 있어 별도 page CSS가 필요 없다.
+- 테이블 바닥의 `footnote`(§4 CSS 클래스 레퍼런스)와 위치만 다르다 — `guideText`는 헤더 바로 아래, `footnote`는 테이블 본문 아래에 표시된다.
+- 적용 예: `MenuOptionDetailTable`(옵션 관리).
 
 ### 카드 제목 옆 라벨 — `titleBadge`
 
