@@ -207,6 +207,16 @@
 .common-table__col--md { width: 8rem; }     /* 128px */
 .common-table__col--lg { width: 10rem; }    /* 160px */
 
+/* 카드 헤더와 테이블 사이 안내문구 (EditableDetailTable table.guideText) */
+.common-code-card__guide-text {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-6);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-app);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
 /* 체크박스 · 버튼 · 뱃지가 있는 th/td는 항상 중앙 정렬 */
 .common-table th:has(.common-table__checkbox),
 .common-table td:has(.common-table__checkbox),

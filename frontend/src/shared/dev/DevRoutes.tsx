@@ -17,6 +17,7 @@ import DevLayout from './DevLayout';
 import InputGuide from './InputGuide';
 import ModalGuide from './ModalGuide';
 import SelectGuide from './SelectGuide';
+import FilterGuide from './FilterGuide';
 import ButtonGuide from './ButtonGuide';
 import CheckboxGuide from './CheckboxGuide';
 import RadioGuide from './RadioGuide';
@@ -39,6 +40,7 @@ export const devRoutes = [
       { path: 'input',  element: <InputGuide /> },
       { path: 'modal',  element: <ModalGuide /> },
       { path: 'select', element: <SelectGuide /> },
+      { path: 'filter', element: <FilterGuide /> },
       { path: 'button',   element: <ButtonGuide /> },
       { path: 'checkbox', element: <CheckboxGuide /> },
       { path: 'radio',    element: <RadioGuide /> },

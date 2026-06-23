@@ -197,6 +197,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 - 테이블/카드 UI는 [`docs/components/TableCard.md`](./docs/components/TableCard.md)를 우선 따른다.
 - 상태 처리, 401 리다이렉트, 403/404/500 에러 페이지 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)를 따른다.
+- 검색폼(필터카드)을 새로 만들 때는 `/dev/filter` 가이드와 [`docs/operations/page-patterns.md`](./docs/operations/page-patterns.md)의 날짜range·기간 프리셋·`SelectInput` 규약을 먼저 확인한다.
 - 개발 전용 가이드 라우트는 인증 없이 등록되어 있으므로, 운영 화면 코드와 섞이지 않도록 주의한다.
 
 ---

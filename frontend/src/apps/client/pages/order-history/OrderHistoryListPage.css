@@ -1,0 +1,121 @@
+/* 주문 이력 조회 페이지 — 검색 카드 + 목록 카드 두 영역만 세로 정렬 */
+
+.order-history-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+.order-history-page > .order-history-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── 검색 폼 ── */
+.order-history-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.order-history-filters__keyword-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.order-history-filters__keyword {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.order-history-filters__status-filter {
+  flex-shrink: 0;
+  width: 9rem;
+}
+
+.order-history-filters__date-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.order-history-filters__preset {
+  flex-shrink: 0;
+  width: 9rem;
+}
+
+.order-history-filters__date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.order-history-filters__date-range .input-wrapper {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.order-history-filters__date-sep {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-ui);
+  flex-shrink: 0;
+}
+
+.order-history-filters__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.order-history-filters__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+}
+
+.order-history-filters__hint {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 주문상태 배지 ── */
+.order-history-status-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+}
+
+.order-history-status-badge--received {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.order-history-status-badge--cooking {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.order-history-status-badge--served {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.order-history-status-badge--cancelled {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}

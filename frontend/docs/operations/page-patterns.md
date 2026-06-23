@@ -43,6 +43,35 @@ const handleSearch = () => {
 };
 ```
 
+### 기본 조회기간과 최대 허용기간이 다른 경우
+
+`useQueryDateRangeDraft(maxRangeDays)`는 "초기값 offset"과 "검증 최대일수"에 같은 `maxRangeDays`를 쓴다. `OrderHistory`/`PaymentStatus`(기본 7일 / 최대 365일)처럼 두 값이 다르면 이 훅을 그대로 쓸 수 없으므로, 공용 `shared/hooks/useDateRangePresetDraft.ts`를 쓴다. `defaultRangeDays`/`maxRangeDays`를 인자로 분리해서 받고, 내부적으로는 `shared/utils/queryDateRange.ts`의 `createDefaultQueryDateRangeDraft`/`validateQueryDateRange`를 서로 다른 인자로 호출한다. feature에서 기본값만 다르게 호출하는 thin wrapper를 두는 패턴은 `useOrderHistoryDateRangeDraft.ts` 참고.
+
+### 기간 프리셋 콤보 (이번 주 / 이번 달 / 최근 1년)
+
+기간 조회 화면에 "오늘 기준 최근 N일" 프리셋 콤보를 추가할 때의 패턴이다(`useDateRangePresetDraft`, 사용처: `OrderHistory`, `PaymentStatus`).
+
+- 프리셋 선택 시 시작·종료일시를 한 번에 계산해 채운다(`getDateTimeLocalDaysAgo(days)` + `getCurrentDateTimeLocal()`).
+- 프리셋이 선택된 상태에서 시작일시를 바꾸면 종료일시를 `getAutoEndDate(value, days)`로, 종료일시를 바꾸면 시작일시를 `getAutoStartDate(value, days)`로 자동 재계산해 항상 프리셋 일수를 유지한다. `getAutoStartDate`는 `getAutoEndDate`의 대칭 버전으로 `shared/utils/queryDateRange.ts`에 있다.
+- "직접 선택"(프리셋 없음) 상태에서는 자동 계산을 하지 않고 입력값을 최대 허용일수로만 검증한다.
+
+**`SelectInput` 사용 시 주의 — 빈 문자열 value 옵션은 무효 처리된다**
+
+`SelectInput`은 `options` 중 `value`가 빈 문자열(`''`)인 항목을 유효하지 않은 옵션으로 간주해 자동으로 제외한다(`SelectInput.tsx`의 `normalizedOptions` 로직). "전체"나 "직접 선택"처럼 빈 값을 표현하는 옵션을 추가할 때 `value: ''`을 쓰면 드롭다운에서 옵션 자체가 사라지는 버그가 생긴다.
+
+- 빈 값이 필요한 옵션은 `'ALL'`, `'direct'` 같은 비어 있지 않은 sentinel 값을 쓴다.
+- 데이터 계층(검색 파라미터를 만드는 지점)에서 sentinel 값을 실제 빈 문자열로 변환한다.
+
+```ts
+// 잘못된 예 — 'value: ""' 옵션이 SelectInput에서 자동 제외됨
+{ value: '', label: '전체' }
+
+// 올바른 예
+{ value: 'ALL', label: '전체' }
+// ...
+orderStatus: draftOrderStatus === 'ALL' ? '' : draftOrderStatus,
+```
+
 ## 좌우 분할 마스터-디테일 조회 화면
 
 편집 없이 마스터 클릭 시 우측 디테일이 바뀌는 조회 화면은 아래 패턴을 따른다.
@@ -52,6 +81,81 @@ const handleSearch = () => {
 - 두 `article`은 각각 `flex: 1`로 동일 비율 차지
 - 마스터 클릭 시 `selectedRow` 상태로 관리하고 같은 행 재클릭 시 선택 해제
 - 디테일 조회 훅은 `enabled: Boolean(sysId)`로 제어
+
+### 디테일이 테이블이 아니라 읽기전용 label-input 폼인 경우
+
+> 추가일: 2026-06-23
+
+`PaymentStatus`(결제 목록 조회)처럼 디테일 영역이 행 목록이 아니라 "주문번호/결제상태/취소사유…" 같은 단일 레코드를 보여주는 화면은 위 좌우 분할 구조는 그대로 두고 우측 `article`의 내용만 폼으로 바꾼다.
+
+- 마스터 미선택 상태는 `TableCardContentState`의 `isEmpty` + `emptyVariant="select"` + `emptyDescription="좌측 목록에서 항목을 선택하면 ...를 조회할 수 있습니다."`로 분기한다(`AccessLogDetailTable`과 동일한 분기 방식, 내용만 폼으로 교체).
+- 필드는 완성형 컴포넌트(`TextInput`/`TextareaInput`)에 `readOnly`만 주고 직접 렌더한다. `controlState`는 컴포넌트가 `readOnly`로부터 자동 계산하므로 별도로 넘기지 않는다. `InputWrapper`로 다시 감싸지 않는다 — `TextInput`/`TextareaInput`은 이미 내부적으로 `InputWrapper`를 포함한 완성형이라 이중으로 감싸면 레이블이 중복 렌더된다.
+- 레이블 위치는 기본값(top)을 쓰고, 필드는 한 줄에 하나씩 세로로 쌓는다. `StoreInfoFormCard.tsx`(`apps/client/features/store-info/components/StoreInfoFormCard.tsx`)의 정렬·간격(`gap: var(--spacing-9); padding: var(--spacing-10);`)을 기준으로 따른다. 긴 텍스트(여러 줄)는 `TextareaInput`을 쓴다.
+- read-only 필드는 `.input-control[data-state='readonly']`/`.textarea-control[data-state='readonly']` 배경을 `--color-bg-muted`로 강조해 입력 불가 상태임을 시각적으로 드러낸다(`StoreInfoFormCard.css`와 동일).
+- 상세 응답이 배열로 오는 API(예: `GetPaymentInfoDetail`)는 mapper에서 첫 번째 요소만 꺼내 단일 객체로 변환한다(`mapToPaymentStatusDetail` 참고) — 배열인 이유가 불명확하면 그 가정을 주석과 ADR 체크리스트에 남긴다.
+- 필드가 특정 상태에서만 의미가 있으면(예: 결제수단·취소사유는 결제완료 건에만 의미가 있음) 값이 있어도 무시하고 항상 `'-'`를 표시하는 포맷 함수를 컴포넌트에 둔다(`formatPaymentType`/`formatCancelField` 참고). mock 데이터 자체도 해당 상태에서는 의미 있는 값을 비워 둬서(또는 `'-'`로 채워서) 화면 로직과 데이터가 어긋나지 않게 한다.
+- 여러 줄 항목 리스트(예: 주문 내역)는 별도 리스트 렌더링 컴포넌트를 만들지 않고, API가 줄바꿈(`\n`)으로 구분된 문자열을 내려준다고 가정해 `TextareaInput`에 그대로 표시한다. mock도 "항목명 X 수량 ( 옵션 ) 금액" 형식의 줄을 `\n`으로 이어붙여 동일하게 보이게 한다.
+
+## 가로 통계 카드 N개 (요약 지표)
+
+> 추가일: 2026-06-23
+
+`Settlement`(정산 조회)처럼 검색폼 아래에 "총 결제 금액/취소 금액/할인 금액/주문 건수/순 매출" 같은 핵심 지표를 가로로 나열하는 화면의 패턴이다.
+
+- `features/<feature>/components/<Feature>SummaryCards.tsx`에 5개(또는 N개) `<article>`을 `display:flex`로 나란히 배치하고 각 카드는 `flex:1`로 동일 비율을 차지한다.
+- 카드 구성은 항상 동일하다: 컬러 아이콘 박스(`<Icon>` + 배경색) → 라벨(작게) → 값+단위(굵게, 단위는 보조 텍스트색) → 캡션(작게, 보조색).
+- 마지막(가장 중요한) 카드만 강조 배경(`--color-brand-default` + 흰 텍스트)으로 차별화한다. 나머지 카드의 아이콘 박스 배경은 `--color-status-{success,warning,error,info}-bg`/`--color-brand-subtle`처럼 의미에 맞는 semantic 토큰만 쓴다 — 원시 hex를 새로 만들지 않는다.
+- 아이콘 색은 `--color-status-{success,info}-text`(어두운 톤, 본문 텍스트용)가 아니라 `--color-status-{success,info}-default`(밝은 톤)를 쓴다. `-text`는 가독성을 위해 일부러 어둡게 조정된 값이라 Figma의 원색(예: emerald `#10B981`, blue `#3B82F6`)과 달라 보인다 — `-default`가 원색 primitive 토큰과 그대로 매핑된다.
+- 음수로 보여줘야 하는 값(취소·할인 금액 등)은 데이터에는 양수로 두고 화면에서 `-` 부호만 붙인다(부호 컨벤션이 백엔드와 확정되지 않았다면 ADR에 가정을 남긴다).
+- 통계 카드 아래에 계산식 등 한 줄 안내문구를 둘 때는 `border-left: 2px solid var(--color-brand-default)` + 나머지 3면 `var(--border-1) solid var(--color-border-default)`로 좌측 강조 바 형태를 쓴다(`SettlementListPage.css`의 `__formula-hint` 참고).
+- Figma에 있는 아이콘이 `shared/assets/icons/sprite.svg`에 없으면 새로 추가한다 — 추가 방법은 [`components.md`](../components.md)의 "신규 아이콘 추가 방법" 참고.
+
+## 마스터 1 + 디테일 2단 세로 스택 레이아웃
+
+> 추가일: 2026-06-22
+
+`MenuOptionManagementPage`(옵션 관리)처럼 좌측 마스터 1개를 선택하면 우측에 디테일 테이블 2개가 세로로 이어지는 화면(메뉴 선택 → 옵션 그룹 로드 → 옵션 그룹 선택 → 옵션 항목 로드)은 위 좌우 분할 패턴을 확장한다.
+
+- 마스터는 기존 좌우 분할과 동일하게 `flex: 2`인 `article`
+- 우측은 `flex: 4`인 래퍼 `div`(`<feature>-page__detail-stack`)를 두고 그 안을 `flex-direction: column`으로 세로 분할
+- 디테일 스택 내부 두 `article`은 각각 `flex: 1; min-height: 0; overflow: hidden`
+- 두 번째 디테일 테이블의 "마스터"는 첫 번째 디테일 테이블에서 선택된 행이다. `EditableDetailTable`은 기본적으로 행 선택을 내부 state로 관리하므로, 이 선택값을 다음 테이블에 전달하려면 `selection`(컨트롤드 선택) prop으로 부모가 선택 상태를 들고 있어야 한다([TableCard.md](../components/TableCard.md) §EditableDetailTable — 컨트롤드 선택 참고).
+
+```css
+.menu-option-page__layout {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.menu-option-page__layout > article:first-child { flex: 2; min-height: 0; overflow: hidden; }
+
+.menu-option-page__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 4;
+  min-height: 0;
+  overflow: hidden;
+}
+.menu-option-page__detail-stack > article { flex: 1; min-height: 0; overflow: hidden; }
+```
+
+### 상위 선택값이 하위 테이블 컬럼을 바꿀 때 저장 순서 보장
+
+> 추가일: 2026-06-22
+
+옵션 그룹의 "옵션/수량"처럼 한 테이블의 선택값이 다른(하위) 테이블의 컬럼 구성을 바꾸는 경우, 상위만 저장하고 하위를 그대로 두면 화면에 보이는 컬럼과 실제 저장된 값이 어긋난 채로 DB에 남을 수 있다(예: 고객 화면에 "수량 설정" UI가 노출되는데 정작 수량 제한 값은 비어 있는 상태).
+
+- 컬럼이 **새로 생기는** 방향으로 값이 바뀌면(예: "수량 설정"으로 변경) 해당 그룹에 "하위 테이블 정리 필요" 플래그를 남긴다.
+- 그 플래그가 있는 동안은 상위(그룹) 저장을 막고 안내한다. 하위(항목) 테이블을 먼저 저장(필수값 검증 통과)해야 플래그가 풀린다.
+- 컬럼이 **사라지는** 방향으로 바뀔 때는(예: "주문 옵션"으로 변경) 막을 필요가 없다 — 새로 필수값이 생기는 게 아니기 때문이다.
+- 새로 필수값이 되는 필드는 임의 기본값(예: `0`)을 채우지 않고 비워 둔다. 하위 테이블의 `required` 검증이 저장 시 실제 값 입력을 강제하도록 맡긴다.
+- 차단 플래그는 "값이 실제로 바뀌었는지"(dirty)가 아니라 "필수값 검증을 통과해 저장을 시도했는지"로 해제한다. 비어있던 값을 다시 비우는 경우처럼 dirty가 안 잡히는 케이스가 있기 때문이다.
+
+적용 예: `MenuOptionManagementPage` / `useMenuOptionManagementPage.ts`의 `groupIdNeedingDetailSync`.
 
 ## 편집형 CRUD 화면
 
@@ -212,3 +316,14 @@ isSaving: saveFeatureMutation.isPending || editableFlow.state.isConfirmingSave,
   -> 선택 있음 -> DeleteConfirmModal
   -> 삭제 실행 -> 결과 안내
 ```
+
+### draft에만 반영되는 행 단위 상세설정 모달
+
+`MenuManagement`의 메뉴 상세설정 모달처럼, 인라인 편집 테이블의 행을 모달로 한 번 더 편집하되 실제 저장 API 호출은 외부 테이블의 "저장" 버튼에서만 일어나는 경우가 있다. 이 모달은 `/admin/system/common-code`(`useCodeMasterModalFlow`)의 등록/수정 모달과 동일한 확인/로딩/안내 UX를 따르되, "확인" 클릭이 실제 mutation을 호출하지 않고 draft 행 값을 그대로 commit(이미 입력 시점에 반영됨)한다는 점만 다르다.
+
+- 모달을 열 때 행 snapshot을 떠서 dirty 판정과 "닫기" 시 되돌리기에 사용한다.
+- 입력 필드는 외부 테이블과 같은 `onChangeValue`로 즉시 draft에 반영한다(모달 전용 별도 상태를 만들지 않음).
+- "확인": dirty가 아니면 바로 닫는다. dirty면 `EditConfirmModal`로 확인받고, `confirmDetailEditor`를 `async`로 작성해 `isConfirming` 동안 primaryAction을 `loading` 상태로 둔 뒤(`useCodeMasterModalFlow.confirmSave`와 동일한 형태), 완료되면 모달을 닫고 "저장되었습니다." `SimpleDefaultModal` 안내를 띄운다. 현재는 실제 API가 없어 `await Promise.resolve()`로 자리만 잡아 두고, 추후 백엔드 연동 시 그 자리에 실제 save mutation을 추가한다.
+- "닫기"·헤더 닫기 버튼(`X`)·ESC·오버레이 클릭은 모두 같은 핸들러로 연결해 dirty 경고를 동일하게 받는다 — 헤더 닫기만 예외로 빠지지 않게 한다.
+- dirty 경고에서 "확인"(나가기)을 누르면 snapshot으로 행 값을 되돌린다.
+- 한 줄에 들어가는 필드 수는 가로 길이가 짧은 select 2개라도 임의로 grid 2열에 묶지 않고, 다른 필드와 동일하게 전체 폭으로 쌓는다.

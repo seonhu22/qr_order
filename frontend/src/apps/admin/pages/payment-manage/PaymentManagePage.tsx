@@ -18,6 +18,11 @@ const RATE_UNIT_OPTIONS = [
   { value: '달러', label: '달러' },
 ];
 
+function formatRateAmountDisplay(rawValue: string): string {
+  const digits = rawValue.replace(/\D/g, '');
+  return digits ? Number(digits).toLocaleString('ko-KR') : '';
+}
+
 export function PaymentManagePage() {
   const { data, status, uiProps, actions } = usePaymentManagePageState();
   const { modalProps } = uiProps;
@@ -117,14 +122,13 @@ export function PaymentManagePage() {
           >
             <InputBase
               id="payment-rate-amount"
-              type="number"
-              min="0"
+              inputMode="numeric"
               size="md"
-              value={modalProps.editor.editingRow?.rateAmount ?? ''}
+              value={formatRateAmountDisplay(modalProps.editor.editingRow?.rateAmount ?? '')}
               required
               controlState={modalProps.editor.editorErrors.rateAmount ? 'error' : ''}
               placeholder="결제 요금을 입력하세요"
-              onChange={(e) => actions.changeEditingField('rateAmount', e.target.value)}
+              onChange={(e) => actions.changeEditingField('rateAmount', e.target.value.replace(/\D/g, ''))}
             />
           </InputWrapper>
 
