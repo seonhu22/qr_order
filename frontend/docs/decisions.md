@@ -474,3 +474,29 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
 - [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
 - [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토
+
+---
+
+## ADR-013 — 정산 조회: 백엔드 API는 실재하나 부호·날짜 포맷 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/calculation/list` 화면은 Figma(node 977:462)와 실제 백엔드 API(`getSettlement`, `payment-manage-controller.ts`)가 필드 단위로 정확히 일치한다. 다만 다음 두 가지는 응답 스키마만으로 확정할 수 없어 임시로 가정했다.
+
+1. **`cancelPrice`/`discountPice`(오타 그대로) 부호**: 백엔드가 양수 금액으로 내려준다고 가정하고, 화면(통계 카드·안내문구)에서 `-` 부호를 붙여 표시한다. 음수로 내려온다면 이중 부호가 생긴다.
+2. **`DailySale.groupDate` 포맷**: 날짜만(`YYYY-MM-DD`)인지 날짜+시간인지 명세에 없다. 화면 요구사항(`YYYY-MM-DD HH:MM`)에 맞춰 `mapToSettlementRow`의 `formatSettlementDate`가 시간 정보가 있으면 그대로 쓰고, 없으면 `00:00`을 붙여 항상 같은 포맷으로 표시한다.
+3. **`DailySale`에 할인 필드 없음**: 일별 행에는 할인액이 없어 `dayNetPrice`가 상위 `netPrice`(할인 차감 포함)와 다른 기준(할인 미차감)일 수 있다. 화면 테이블의 "순 매출" 컬럼은 `dayNetPrice`를 그대로 쓰므로, 상위 카드의 "순 매출"과 테이블 합계가 정확히 일치하지 않을 수 있다.
+
+### 결정
+
+위 가정으로 화면을 완성한다. mock(`mock/settlementMock.ts`)은 일별 합계가 상위 집계와 실제로 맞물리도록 `buildSettlementMockResponse`로 계산해서 구성하고, `src/mocks/handlers.ts`의 오버라이드 핸들러가 날짜 필터링 후에도 합계가 깨지지 않도록 동일 함수로 재계산한다.
+
+### 연동 시 체크리스트
+
+- [ ] `cancelPrice`/`discountPice`의 실제 부호 컨벤션을 백엔드와 확인
+- [ ] `groupDate`가 날짜만인지 날짜+시간인지 확인 후 `formatSettlementDate` 단순화
+- [ ] 일별 할인액 추적 필요 여부 확인 — 필요하면 `DailySale`에 필드 추가 요청
+- [ ] `mock/settlementMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러를 실제 검증 후 유지/제거 결정

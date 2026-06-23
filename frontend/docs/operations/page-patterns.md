@@ -96,6 +96,20 @@ orderStatus: draftOrderStatus === 'ALL' ? '' : draftOrderStatus,
 - 필드가 특정 상태에서만 의미가 있으면(예: 결제수단·취소사유는 결제완료 건에만 의미가 있음) 값이 있어도 무시하고 항상 `'-'`를 표시하는 포맷 함수를 컴포넌트에 둔다(`formatPaymentType`/`formatCancelField` 참고). mock 데이터 자체도 해당 상태에서는 의미 있는 값을 비워 둬서(또는 `'-'`로 채워서) 화면 로직과 데이터가 어긋나지 않게 한다.
 - 여러 줄 항목 리스트(예: 주문 내역)는 별도 리스트 렌더링 컴포넌트를 만들지 않고, API가 줄바꿈(`\n`)으로 구분된 문자열을 내려준다고 가정해 `TextareaInput`에 그대로 표시한다. mock도 "항목명 X 수량 ( 옵션 ) 금액" 형식의 줄을 `\n`으로 이어붙여 동일하게 보이게 한다.
 
+## 가로 통계 카드 N개 (요약 지표)
+
+> 추가일: 2026-06-23
+
+`Settlement`(정산 조회)처럼 검색폼 아래에 "총 결제 금액/취소 금액/할인 금액/주문 건수/순 매출" 같은 핵심 지표를 가로로 나열하는 화면의 패턴이다.
+
+- `features/<feature>/components/<Feature>SummaryCards.tsx`에 5개(또는 N개) `<article>`을 `display:flex`로 나란히 배치하고 각 카드는 `flex:1`로 동일 비율을 차지한다.
+- 카드 구성은 항상 동일하다: 컬러 아이콘 박스(`<Icon>` + 배경색) → 라벨(작게) → 값+단위(굵게, 단위는 보조 텍스트색) → 캡션(작게, 보조색).
+- 마지막(가장 중요한) 카드만 강조 배경(`--color-brand-default` + 흰 텍스트)으로 차별화한다. 나머지 카드의 아이콘 박스 배경은 `--color-status-{success,warning,error,info}-bg`/`--color-brand-subtle`처럼 의미에 맞는 semantic 토큰만 쓴다 — 원시 hex를 새로 만들지 않는다.
+- 아이콘 색은 `--color-status-{success,info}-text`(어두운 톤, 본문 텍스트용)가 아니라 `--color-status-{success,info}-default`(밝은 톤)를 쓴다. `-text`는 가독성을 위해 일부러 어둡게 조정된 값이라 Figma의 원색(예: emerald `#10B981`, blue `#3B82F6`)과 달라 보인다 — `-default`가 원색 primitive 토큰과 그대로 매핑된다.
+- 음수로 보여줘야 하는 값(취소·할인 금액 등)은 데이터에는 양수로 두고 화면에서 `-` 부호만 붙인다(부호 컨벤션이 백엔드와 확정되지 않았다면 ADR에 가정을 남긴다).
+- 통계 카드 아래에 계산식 등 한 줄 안내문구를 둘 때는 `border-left: 2px solid var(--color-brand-default)` + 나머지 3면 `var(--border-1) solid var(--color-border-default)`로 좌측 강조 바 형태를 쓴다(`SettlementListPage.css`의 `__formula-hint` 참고).
+- Figma에 있는 아이콘이 `shared/assets/icons/sprite.svg`에 없으면 새로 추가한다 — 추가 방법은 [`components.md`](../components.md)의 "신규 아이콘 추가 방법" 참고.
+
 ## 마스터 1 + 디테일 2단 세로 스택 레이아웃
 
 > 추가일: 2026-06-22

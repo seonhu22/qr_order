@@ -68,7 +68,7 @@ shared/
     queryKeys.ts          ← TanStack Query key 상수 모음
   assets/
     icons/
-      sprite.svg          ← 모든 아이콘을 하나로 합친 SVG 스프라이트 (직접 수정 금지)
+      sprite.svg          ← 모든 아이콘을 하나로 합친 SVG 스프라이트 (신규 추가는 §"shared/assets/icons/" 절 참고)
       Icon.tsx            ← <Icon id="..." size={N} /> 컴포넌트
   auth/
     AuthContext.tsx        ← 인증 컨텍스트 타입 정의
@@ -115,8 +115,18 @@ shared/
 
 아이콘은 SVG 스프라이트 방식으로 관리한다.
 
-- `sprite.svg`: 모든 아이콘 심볼을 하나의 파일로 합쳐 관리한다. 직접 수정하지 않는다.
+- `sprite.svg`: 모든 아이콘 심볼을 하나의 파일로 합쳐 관리한다. 기존 심볼을 임의로 고치거나 깨뜨리지 않는다.
 - `Icon.tsx`: `<Icon id="아이콘ID" size={20} />` 형태로 사용한다.
+
+**신규 아이콘 추가 방법** (자동 생성 도구 없음 — Figma MCP로 가져온 SVG를 직접 추가한다)
+
+1. Figma MCP(`get_design_context`)로 아이콘이 포함된 노드를 읽으면 응답에 `https://www.figma.com/api/mcp/asset/...` 형태의 URL이 함께 나온다. 이 URL을 `curl`로 받으면 실제 SVG(path) 내용을 그대로 얻을 수 있다(7일 내 유효).
+2. `sprite.svg`의 `</defs>` 바로 앞에 새 `<symbol id="i-새이름" viewBox="...">`를 추가한다. viewBox는 기존 심볼들이 다 다르므로(`i-eye-off`는 21x21 등) 원본 SVG의 viewBox를 그대로 써도 된다 — `<use>`가 비율대로 스케일한다.
+3. `fill`/`stroke` 값은 모두 `currentColor`로 바꾼다(Figma가 내려준 `var(--fill-0, #HEX)` 같은 기본값은 지운다) — 색은 부모의 CSS `color`로 제어한다(`Icon` 컴포넌트 컨벤션).
+4. Figma 레이어에 `rotate`/`scale` 같은 CSS transform이 걸려 있으면(예: `-scale-y-100 rotate-180`), 같은 시각 결과가 나오도록 SVG `<g transform="...">`로 옮겨준다.
+5. 아이콘이 여러 벡터(sub-layer)로 나뉘어 있으면 각 벡터의 Figma 내 위치(inset %)를 보고 `<g transform="translate(x,y)">`로 배치한다 — 픽셀 단위로 정확히 맞추기보다 시각적으로 합리적인 위치면 충분하다.
+
+사용 예: `i-card`/`i-return`/`i-sale`/`i-shop`/`i-trend-up`(정산 조회 통계 카드, 2026-06-23 추가) 참고.
 
 ```tsx
 import { Icon } from '@/shared/assets/icons/Icon';
