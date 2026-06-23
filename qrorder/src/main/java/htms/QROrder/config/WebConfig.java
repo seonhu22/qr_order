@@ -26,6 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/auth/signup/**",
                         "/api/auth/email_valid/new_user/**",
                         "/api/auth/email_valid/pwd_change/send",
+                        "/api/auth/email_valid/pwd_change/re_send",
                         "/api/auth/email_valid/pwd_change",
                         "/api/auth/pwd_change",
                         "/api/qr/**",
