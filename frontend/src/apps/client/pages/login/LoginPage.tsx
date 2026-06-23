@@ -46,6 +46,22 @@ import {
 } from '@/apps/client/features/signup/api/signupNewUserApi';
 import { getSignupApiErrorMessage } from '@/apps/client/features/signup/api/signupApiUtils';
 import {
+  buildSendPwdChangeCodeRequest,
+  isSendPwdChangeCodeValidationError,
+  useReSendPwdChangeCodeMutation,
+  useSendPwdChangeCodeMutation,
+} from '@/apps/client/features/password-reset/api/sendPwdChangeCodeApi';
+import {
+  buildVerifyPwdChangeRequest,
+  isVerifyPwdChangeValidationError,
+  useVerifyPwdChangeMutation,
+} from '@/apps/client/features/password-reset/api/verifyPwdChangeApi';
+import {
+  buildChangePwdRequest,
+  isChangePwdValidationError,
+  useChangePwdMutation,
+} from '@/apps/client/features/password-reset/api/changePwdApi';
+import {
   getAuthResponseData,
   hasInitialPasswordRequirementSignal,
   isInitialPasswordChangeRequired,
@@ -62,6 +78,7 @@ type Step =
   | 'signup-complete'
   | 'find-password'
   | 'find-password-verify'
+  | 'find-password-reset'
   | 'find-password-complete';
 
 function formatBusinessNo(value: string): string {
@@ -139,6 +156,8 @@ export default function LoginPage() {
   const [findEmail, setFindEmail] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [findError, setFindError] = useState('');
+  const [resetPw, setResetPw] = useState('');
+  const [resetPwConfirm, setResetPwConfirm] = useState('');
 
   // 이메일 인증 타이머
   useEffect(() => {
@@ -328,7 +347,16 @@ export default function LoginPage() {
 
   const { mutate: signupMutate, isPending: isSignupPending } = useSignupNewUserMutation();
 
+  const { mutate: sendPwdChangeCodeMutate, isPending: isFindSendPending } =
+    useSendPwdChangeCodeMutation();
+  const { mutate: reSendPwdChangeCodeMutate, isPending: isFindResendPending } =
+    useReSendPwdChangeCodeMutation();
+  const { mutate: verifyPwdChangeMutate, isPending: isFindVerifyPending } =
+    useVerifyPwdChangeMutation();
+  const { mutate: changePwdMutate, isPending: isResetPending } = useChangePwdMutation();
+
   const isEmailCodePending = isEmailSendPending || isEmailResendPending;
+  const isFindSendingCode = isFindSendPending || isFindResendPending;
 
   const handleEmailCodeSuccess = () => {
     setEmailError('');
@@ -434,14 +462,6 @@ export default function LoginPage() {
     });
   };
 
-  const isFindPending = false;
-  const isVerifyPending = false;
-
-  /*
-   * 비밀번호 찾기 API 연결은 다음 PR에서 진행한다.
-   * 예정 경로: /api/auth/email_valid/pwd_change/send, /api/auth/email_valid/pwd_change, /api/auth/pwd_change
-   */
-
   const handleLoginSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setLoginError('');
@@ -485,12 +505,101 @@ export default function LoginPage() {
 
   const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    setFindError('비밀번호 찾기 기능은 준비 중입니다.');
+    setFindError('');
+    const payload = buildSendPwdChangeCodeRequest({ userId: findId, email: findEmail });
+
+    if (isSendPwdChangeCodeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    sendPwdChangeCodeMutate(
+      { data: payload },
+      {
+        onSuccess: () => {
+          setVerifyCode('');
+          setStep('find-password-verify');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드 발송에 실패했습니다.'));
+        },
+      },
+    );
+  };
+
+  const handleResendVerifyCode = () => {
+    setFindError('');
+    const payload = buildSendPwdChangeCodeRequest({ userId: findId, email: findEmail });
+
+    if (isSendPwdChangeCodeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    reSendPwdChangeCodeMutate(
+      { data: payload },
+      {
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드 재발송에 실패했습니다.'));
+        },
+      },
+    );
   };
 
   const handleVerifyCodeSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    setFindError('비밀번호 찾기 기능은 준비 중입니다.');
+    setFindError('');
+    const payload = buildVerifyPwdChangeRequest({ email: findEmail, validCode: verifyCode });
+
+    if (isVerifyPwdChangeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    verifyPwdChangeMutate(
+      { data: payload },
+      {
+        onSuccess: () => {
+          setResetPw('');
+          setResetPwConfirm('');
+          setStep('find-password-reset');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드가 일치하지 않습니다.'));
+        },
+      },
+    );
+  };
+
+  const handleResetPasswordSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setFindError('');
+    const payload = buildChangePwdRequest({
+      userId: findId,
+      pwd: resetPw,
+      pwdConfirm: resetPwConfirm,
+    });
+
+    if (isChangePwdValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    changePwdMutate(
+      { data: payload },
+      {
+        onSuccess: (data) => {
+          if (data.success) {
+            setStep('find-password-complete');
+            return;
+          }
+          setFindError(data.message ?? '비밀번호 변경에 실패했습니다.');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '비밀번호 변경에 실패했습니다.'));
+        },
+      },
+    );
   };
 
   const handleSignupSubmit = (e: { preventDefault: () => void }) => {
@@ -551,6 +660,8 @@ export default function LoginPage() {
     setFindEmail('');
     setVerifyCode('');
     setFindError('');
+    setResetPw('');
+    setResetPwConfirm('');
   };
 
   const isWide = step !== 'login' && step !== 'change-password';
@@ -572,7 +683,9 @@ export default function LoginPage() {
                   ? '비밀번호 찾기'
                   : step === 'find-password-verify'
                     ? '인증 코드 확인'
-                    : '비밀번호 찾기 완료';
+                    : step === 'find-password-reset'
+                      ? '새 비밀번호 설정'
+                      : '비밀번호 찾기 완료';
 
   return (
     <main className="login-page login-page--client">
@@ -1101,8 +1214,8 @@ export default function LoginPage() {
               <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
                 취소
               </Button>
-              <Button type="submit" size="lg" loading={isFindPending}>
-                {isFindPending ? '처리 중...' : '인증 코드 받기'}
+              <Button type="submit" size="lg" loading={isFindSendPending}>
+                {isFindSendPending ? '처리 중...' : '인증 코드 받기'}
               </Button>
             </div>
           </form>
@@ -1135,6 +1248,16 @@ export default function LoginPage() {
                 onChange={(e) => setVerifyCode(e.target.value)}
                 isError={!!findError}
               />
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                loading={isFindResendPending}
+                disabled={isFindSendingCode}
+                onClick={handleResendVerifyCode}
+              >
+                인증 코드 재전송
+              </Button>
             </div>
 
             <div className="login-card__consent-actions">
@@ -1149,8 +1272,63 @@ export default function LoginPage() {
               >
                 이전
               </Button>
-              <Button type="submit" size="lg" loading={isVerifyPending}>
-                {isVerifyPending ? '확인 중...' : '확인'}
+              <Button type="submit" size="lg" loading={isFindVerifyPending}>
+                {isFindVerifyPending ? '확인 중...' : '확인'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 비밀번호 찾기 — 새 비밀번호 입력 ── */}
+        {step === 'find-password-reset' && (
+          <form className="login-card__body" onSubmit={handleResetPasswordSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">새 비밀번호 설정</h1>
+              <p className="login-card__subheading">사용할 새 비밀번호를 입력해주세요.</p>
+            </div>
+
+            {findError && (
+              <FormAlert
+                type="error"
+                description={findError}
+                dismissible
+                onDismiss={() => setFindError('')}
+              />
+            )}
+
+            <div className="login-card__fields">
+              <TextInput
+                label="새 비밀번호"
+                placeholder="새 비밀번호를 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="reset-pw"
+                autoComplete="new-password"
+                value={resetPw}
+                onChange={(e) => setResetPw(e.target.value)}
+                isError={!!findError}
+              />
+              <TextInput
+                label="비밀번호 확인"
+                placeholder="비밀번호를 다시 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="reset-pw-confirm"
+                autoComplete="new-password"
+                value={resetPwConfirm}
+                onChange={(e) => setResetPwConfirm(e.target.value)}
+                isError={!!findError}
+              />
+            </div>
+
+            <div className="login-card__consent-actions">
+              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
+                취소
+              </Button>
+              <Button type="submit" size="lg" loading={isResetPending}>
+                {isResetPending ? '변경 중...' : '비밀번호 변경'}
               </Button>
             </div>
           </form>
@@ -1160,11 +1338,11 @@ export default function LoginPage() {
         {step === 'find-password-complete' && (
           <div className="login-card__body">
             <div className="login-card__title">
-              <h1 className="login-card__heading">인증 완료</h1>
+              <h1 className="login-card__heading">비밀번호 변경 완료</h1>
             </div>
             <div className="login-card__locked-messages">
-              <p className="login-card__subheading">인증이 완료되었습니다.</p>
-              <p className="login-card__locked-desc">임시 비밀번호가 이메일로 발송되었습니다.</p>
+              <p className="login-card__subheading">비밀번호가 변경되었습니다.</p>
+              <p className="login-card__locked-desc">새 비밀번호로 다시 로그인해주세요.</p>
             </div>
             <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
               로그인하러 가기
