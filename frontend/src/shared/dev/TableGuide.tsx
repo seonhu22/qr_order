@@ -31,7 +31,7 @@ import { EditableDetailTable } from '@/shared/components/table/EditableDetailTab
 import { SimpleDefaultModal, ValidationNoticeModal } from '@/shared/components/modal';
 import type { EditableDetailColumn, EditableDetailRow } from '@/shared/components/table/editableTableTypes';
 import type { EditableMasterRow } from '@/shared/components/table/editableTableTypes';
-import { InputBase, InputWrapper } from '@/shared/components/input';
+import { InputBase, InputWrapper, TextInput, TextareaInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
 import './devStyles/TableGuide.css';
 
@@ -680,6 +680,106 @@ function ColumnSizeGuidelineExample() {
 }
 
 /* =====================================================
+ * 섹션 7 — 마스터-디테일: 디테일이 읽기전용 label-input 폼인 경우
+ * PaymentStatus(결제 목록 조회) 패턴
+ * =====================================================
+ *
+ * - 좌측 마스터는 일반 TableCard + 행 클릭 선택(is-selected), 같은 행 재클릭 시 선택 해제
+ * - 우측 디테일은 EditableDetailTable이 아니라 TextInput/TextareaInput을 readOnly로 직접 나열
+ * - 미선택 상태는 TableCardContentState의 emptyVariant="select"로 분기
+ * - 상태(결제완료가 아님)에 따라 일부 필드를 "-"로 표시
+ * - 여러 줄 텍스트(주문 내역)는 줄바꿈 문자열을 그대로 textarea에 표시해 항목별 한 줄 리스트로 보이게 한다
+ */
+type GuidePaymentStatus = 'PAID' | 'UNPAID' | 'DINING';
+
+type GuideMasterRow = { id: string; orderNo: string; status: GuidePaymentStatus };
+
+type GuideDetail = { orderNo: string; status: GuidePaymentStatus; cancelReason: string; items: string };
+
+const GUIDE_STATUS_LABEL: Record<GuidePaymentStatus, string> = {
+  PAID: '결제완료',
+  UNPAID: '미결제',
+  DINING: '식사중',
+};
+
+const GUIDE_MASTER_ROWS: GuideMasterRow[] = [
+  { id: 'g1', orderNo: '1001', status: 'PAID' },
+  { id: 'g2', orderNo: '1002', status: 'UNPAID' },
+  { id: 'g3', orderNo: '1003', status: 'DINING' },
+];
+
+const GUIDE_DETAIL_MAP: Record<string, GuideDetail> = {
+  g1: {
+    orderNo: '1001',
+    status: 'PAID',
+    cancelReason: '고객 요청',
+    items: '쌀국수 X 1 ( 곱배기 x1 , 고기추가 x1 , 국물많이 ) 14,900원\n반미 X 1 ( 고수 x1 ) 6,900원',
+  },
+  g2: { orderNo: '1002', status: 'UNPAID', cancelReason: '', items: '라떼 X 1 4,900원' },
+  g3: { orderNo: '1003', status: 'DINING', cancelReason: '', items: '파스타 X 1 6,900원\n콜라 X 1 2,000원' },
+};
+
+/** 취소 사유는 결제완료(PAID) 건에만 의미가 있다 — 그 외 상태는 항상 "-"로 표시한다. */
+function formatGuideCancelField(detail: GuideDetail | null) {
+  if (!detail) return '';
+  if (detail.status !== 'PAID') return '-';
+  return detail.cancelReason.trim() ? detail.cancelReason : '-';
+}
+
+function MasterDetailFormExample() {
+  const [selectedId, setSelectedId] = useState('');
+  const detail = selectedId ? GUIDE_DETAIL_MAP[selectedId] ?? null : null;
+
+  return (
+    <div className="table-guide__master-detail-form">
+      <TableCard title="결제 목록" ariaLabel="결제 목록 (가이드)" className="table-guide__master-table">
+        <div className="common-table-wrap">
+          <table className="common-table" aria-label="결제 목록 테이블 (가이드)">
+            <colgroup><col /><col /></colgroup>
+            <thead>
+              <tr>
+                <th scope="col">주문번호</th>
+                <th scope="col">결제 상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GUIDE_MASTER_ROWS.map((row) => (
+                <tr
+                  key={row.id}
+                  className={row.id === selectedId ? 'is-selected' : undefined}
+                  onClick={() => setSelectedId((prev) => (prev === row.id ? '' : row.id))}
+                >
+                  <td className="common-table__mono">{row.orderNo}</td>
+                  <td className="common-table__cell--center">{GUIDE_STATUS_LABEL[row.status]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </TableCard>
+
+      <TableCard title="결제 목록 상세" ariaLabel="결제 목록 상세 (가이드)">
+        <TableCardContentState
+          isLoading={false}
+          isError={false}
+          isEmpty={!detail}
+          loadingTitle=""
+          emptyVariant="select"
+          emptyDescription="좌측 목록에서 항목을 선택하면 상세를 조회할 수 있습니다."
+        >
+          <div className="table-guide__detail-form">
+            <TextInput label="주문번호" readOnly value={detail?.orderNo ?? ''} />
+            <TextInput label="결제 상태" readOnly value={detail ? GUIDE_STATUS_LABEL[detail.status] : ''} />
+            <TextInput label="취소 사유" readOnly value={formatGuideCancelField(detail)} />
+            <TextareaInput label="주문 내역" readOnly rows={4} value={detail?.items ?? ''} />
+          </div>
+        </TableCardContentState>
+      </TableCard>
+    </div>
+  );
+}
+
+/* =====================================================
  * TableGuide
  * ===================================================== */
 
@@ -800,6 +900,14 @@ export default function TableGuide() {
             </TableCardContentState>
           </TableCard>
         </div>
+      </Section>
+
+      {/* 7. 마스터-디테일 — 디테일이 읽기전용 label-input 폼인 경우 */}
+      <Section
+        title="마스터-디테일 — 디테일이 읽기전용 label-input 폼인 경우"
+        desc="PaymentStatus(결제 목록 조회) 패턴. 우측 디테일이 테이블이 아니라 TextInput/TextareaInput을 readOnly로 나열한 폼. 미선택 상태는 emptyVariant=&quot;select&quot;로 분기하고, 상태에 따라 일부 필드를 &quot;-&quot;로 표시하며, 여러 줄 텍스트는 줄바꿈 문자열을 그대로 표시해 항목별 한 줄 리스트로 보이게 한다."
+      >
+        <MasterDetailFormExample />
       </Section>
     </div>
   );

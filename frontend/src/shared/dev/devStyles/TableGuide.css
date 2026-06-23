@@ -237,6 +237,29 @@
   gap: var(--spacing-4);
 }
 
+/* 마스터-디테일(읽기전용 폼) 예시 — 좌우 동일 비율 */
+.table-guide__master-detail-form {
+  display: flex;
+  gap: var(--spacing-8);
+  min-height: 22rem;
+}
+
+.table-guide__master-detail-form > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.table-guide__master-table .common-table tbody tr {
+  cursor: pointer;
+}
+
+.table-guide__detail-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-9);
+  padding: var(--spacing-10);
+}
+
 .table-guide__title-badge {
   display: inline-flex;
   align-items: center;
