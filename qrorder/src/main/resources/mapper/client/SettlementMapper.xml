@@ -87,9 +87,6 @@
         WHERE 1=1
         and om.sys_plant_cd = #{sysPlantCd}
         AND DATE(om.insert_datetime) BETWEEN #{settlementRequest.searchStartDate} AND #{settlementRequest.searchEndDate}
-        <if test="settlementRequest.paymentType != null and settlementRequest.paymentType != ''">
-            AND om.payment_type = #{settlementRequest.paymentType}
-        </if>
         GROUP BY DATE(om.insert_datetime)
         ORDER BY DATE(om.insert_datetime)
     </select>
