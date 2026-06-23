@@ -23,6 +23,7 @@ const menuOptionMasterListsKey = ['client', 'menuOption', 'masters'] as const;
 const menuOptionGroupListsKey = ['client', 'menuOption', 'groups'] as const;
 const menuOptionDetailListsKey = ['client', 'menuOption', 'details'] as const;
 const orderHistoryListsKey = ['client', 'orderHistory', 'list'] as const;
+const paymentStatusMasterListsKey = ['client', 'paymentStatus', 'masters'] as const;
 
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
@@ -134,5 +135,11 @@ export const queryKeys = {
       searchKeyword?: string;
       orderStatus?: string;
     }) => [...orderHistoryListsKey, params] as const,
+  },
+  paymentStatus: {
+    masterLists: paymentStatusMasterListsKey,
+    masters: (params: { paymentStatus: string; startDate: string; endDate: string }) =>
+      [...paymentStatusMasterListsKey, params] as const,
+    details: (masterSysId = '') => ['client', 'paymentStatus', 'details', masterSysId] as const,
   },
 } as const;

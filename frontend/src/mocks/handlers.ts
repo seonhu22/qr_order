@@ -47,6 +47,10 @@ import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/pa
 import { PLANT_STATUS_MOCK_ROWS } from '../apps/admin/features/plant-status/mock/plantStatusMock';
 import { COUPON_MOCK_ROWS } from '../apps/admin/features/coupon-manage/mock/couponManageMock';
 import { CLIENT_USER_MOCK_ROWS } from '../apps/client/features/client-user/mock/clientUserMock';
+import {
+  PAYMENT_STATUS_DETAIL_MOCK,
+  PAYMENT_STATUS_MASTER_MOCK,
+} from '../apps/client/features/payment-status/mock/paymentStatusMock';
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
@@ -337,6 +341,34 @@ const menuCategoryDeleteOverrideHandler = http.post(
       if (index !== -1) MENU_CATEGORY_MOCK_ROWS.splice(index, 1);
     });
     return HttpResponse.json({ success: true });
+  },
+);
+
+const paymentStatusMasterOverrideHandler = http.get(
+  '*/api/client/payment_manage/history/master/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const paymentStatus = url.searchParams.get('paymentStatus') ?? '';
+    const startMs = toMockDate(url.searchParams.get('startDate'));
+    const endMs = toMockDate(url.searchParams.get('endDate'));
+
+    const filtered = PAYMENT_STATUS_MASTER_MOCK.filter((row) => {
+      const matchesStatus = paymentStatus ? row.orderStatus === paymentStatus : true;
+      const rowMs = toMockDate(row.orderDatetime ?? '');
+      const matchesStart = startMs !== null && rowMs !== null ? rowMs >= startMs : true;
+      const matchesEnd = endMs !== null && rowMs !== null ? rowMs <= endMs : true;
+      return matchesStatus && matchesStart && matchesEnd;
+    });
+
+    return HttpResponse.json(filtered);
+  },
+);
+
+const paymentStatusDetailOverrideHandler = http.get(
+  '*/api/client/payment_manage/history/detail/search/:masterSysId',
+  ({ params }) => {
+    const filtered = PAYMENT_STATUS_DETAIL_MOCK.filter((row) => row.sysId === params.masterSysId);
+    return HttpResponse.json(filtered);
   },
 );
 
@@ -669,6 +701,8 @@ export const handlers = [
   messageOverrideHandler,
   messageSaveOverrideHandler,
   clientUserOverrideHandler,
+  paymentStatusMasterOverrideHandler,
+  paymentStatusDetailOverrideHandler,
   menuCategoryOverrideHandler,
   menuCategoryNewOverrideHandler,
   menuCategoryUpdateOverrideHandler,
