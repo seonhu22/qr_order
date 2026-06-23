@@ -23,13 +23,19 @@ public class PwdChgController {
                                                         HttpSession session) {
 
         Boolean verified = (Boolean) session.getAttribute("pwdChangeVerified");
-        if (!Boolean.TRUE.equals(verified)) {
+        String verifiedUserId = (String) session.getAttribute("pwdChangeVerifiedUserId");
+
+        if (!Boolean.TRUE.equals(verified) || verifiedUserId == null) {
             throw new EmailValidException("이메일 인증을 먼저 완료해주세요.");
+        }
+        if (!verifiedUserId.equals(pwdChgRequest.getUserId())) {
+            throw new EmailValidException("인증된 사용자와 요청 사용자가 일치하지 않습니다.");
         }
 
         pwdChgService.changePwd(pwdChgRequest);
 
         session.removeAttribute("pwdChangeVerified");
+        session.removeAttribute("pwdChangeVerifiedUserId");
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

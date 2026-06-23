@@ -62,10 +62,12 @@ public class EmailValidController {
 
         session.removeAttribute("pwdChangeEmail");
         session.removeAttribute("pwdChangeValidCode");
+        session.removeAttribute("pwdChangeUserId");
 
         String validCode = emailValidService.sendPwdChangeCode(emailValidRequest.getEmail(), emailValidRequest.getUserId(), "CHGPWD");
         session.setAttribute("pwdChangeEmail", emailValidRequest.getEmail());
         session.setAttribute("pwdChangeValidCode", validCode);
+        session.setAttribute("pwdChangeUserId", emailValidRequest.getUserId());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -81,10 +83,12 @@ public class EmailValidController {
 
         session.removeAttribute("pwdChangeEmail");
         session.removeAttribute("pwdChangeValidCode");
+        session.removeAttribute("pwdChangeUserId");
 
         String validCode = emailValidService.sendPwdChangeCode(emailValidRequest.getEmail(), emailValidRequest.getUserId(), "CHGPWD");
         session.setAttribute("pwdChangeEmail", emailValidRequest.getEmail());
         session.setAttribute("pwdChangeValidCode", validCode);
+        session.setAttribute("pwdChangeUserId", emailValidRequest.getUserId());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -107,9 +111,16 @@ public class EmailValidController {
             throw new EmailValidException("인증 코드가 일치하지 않습니다.");
         }
 
+        String verifiedUserId = (String) session.getAttribute("pwdChangeUserId");
+        if (verifiedUserId == null) {
+            throw new EmailValidException("인증 코드가 일치하지 않습니다.");
+        }
+
         session.removeAttribute("pwdChangeEmail");
         session.removeAttribute("pwdChangeValidCode");
+        session.removeAttribute("pwdChangeUserId");
         session.setAttribute("pwdChangeVerified", true);
+        session.setAttribute("pwdChangeVerifiedUserId", verifiedUserId);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

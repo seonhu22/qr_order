@@ -39,6 +39,9 @@ public class SignUpService {
 
     public void newUser(SignUpRequest signUpRequest) {
 
+        signUpRequest.setBusinessRegiNum(signUpRequest.getBusinessRegiNum().replaceAll("\\D", ""));
+        signUpRequest.setUserNm(signUpRequest.getUserNm().trim());
+
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
