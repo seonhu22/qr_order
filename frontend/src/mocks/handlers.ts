@@ -51,6 +51,10 @@ import {
   PAYMENT_STATUS_DETAIL_MOCK,
   PAYMENT_STATUS_MASTER_MOCK,
 } from '../apps/client/features/payment-status/mock/paymentStatusMock';
+import {
+  SETTLEMENT_DAILY_SALES_MOCK,
+  buildSettlementMockResponse,
+} from '../apps/client/features/settlement/mock/settlementMock';
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
@@ -369,6 +373,24 @@ const paymentStatusDetailOverrideHandler = http.get(
   ({ params }) => {
     const filtered = PAYMENT_STATUS_DETAIL_MOCK.filter((row) => row.sysId === params.masterSysId);
     return HttpResponse.json(filtered);
+  },
+);
+
+const settlementOverrideHandler = http.get(
+  '*/api/client/payment_manage/settlement/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const startMs = toMockDate(url.searchParams.get('searchStartDate'));
+    const endMs = toMockDate(url.searchParams.get('searchEndDate'));
+
+    const filteredDailySales = SETTLEMENT_DAILY_SALES_MOCK.filter((row) => {
+      const rowMs = toMockDate(row.groupDate ?? '');
+      const matchesStart = startMs !== null && rowMs !== null ? rowMs >= startMs : true;
+      const matchesEnd = endMs !== null && rowMs !== null ? rowMs <= endMs : true;
+      return matchesStart && matchesEnd;
+    });
+
+    return HttpResponse.json(buildSettlementMockResponse(filteredDailySales));
   },
 );
 
@@ -703,6 +725,7 @@ export const handlers = [
   clientUserOverrideHandler,
   paymentStatusMasterOverrideHandler,
   paymentStatusDetailOverrideHandler,
+  settlementOverrideHandler,
   menuCategoryOverrideHandler,
   menuCategoryNewOverrideHandler,
   menuCategoryUpdateOverrideHandler,

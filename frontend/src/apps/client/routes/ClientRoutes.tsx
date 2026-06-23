@@ -13,6 +13,7 @@ import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManageme
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
 import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHistoryListPage';
 import { PaymentStatusListPage } from '@/apps/client/pages/payment-status/PaymentStatusListPage';
+import { SettlementListPage } from '@/apps/client/pages/settlement/SettlementListPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -78,12 +79,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'payment/calculation/list',
-        element: (
-          <ClientPlaceholderPage
-            title="정산 조회"
-            description="매장 정산 정보를 조회하는 화면입니다."
-          />
-        ),
+        element: <SettlementListPage />,
       },
       {
         path: 'board/notice/list',
