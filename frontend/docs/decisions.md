@@ -446,3 +446,31 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] `mock/orderHistoryMock.ts` 제거, `api/orderHistoryApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
 - [ ] `npm run generate:schema` + `npm run generate`로 타입 동기화
 - [ ] `OrderHistoryStatus`/`OrderHistoryPaymentStatus` 코드값이 백엔드 enum과 일치하는지 확인 후 라벨 매핑 갱신
+
+---
+
+## ADR-012 — 결제 목록 조회: 백엔드 API는 실재하나 일부 계약이 불명확, 임시 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/status/list` 화면은 `order-history`와 달리 실제 백엔드 API(`getPaymentInfoMaster`, `getPaymentInfoDetail` — `payment-manage-controller.ts`)가 존재하고 화면 필드와도 잘 맞는다. 다만 OpenAPI 명세에 enum이나 관계 필드가 노출되지 않아 아래 세 가지는 프론트에서 임시로 가정하고 진행했다.
+
+1. **결제상태 코드값**: `GetPaymentInfoMasterParams.paymentStatus`와 응답의 `orderStatus`(필드명은 orderStatus이지만 실제로는 결제상태) 모두 `string`만 노출돼 있어, 화면 요구사항(결제완료/미결제/식사중)에 맞춰 `PAID`/`UNPAID`/`DINING`을 임시로 정했다.
+2. **"전체" 필터 시 빈 문자열 전송**: `paymentStatus`가 필수 파라미터라 "전체" 선택 시 빈 문자열(`''`)을 보낸다. 백엔드가 빈 값을 "전체 조회"로 처리하는지는 미확인.
+3. **상세 응답의 배열 의미**: `getPaymentInfoDetail`은 `PaymentInfoDetailResponse[]`(배열)를 반환하지만 화면은 단일 레코드 폼이라 첫 번째 요소만 사용한다(`mapToPaymentStatusDetail`). 배열인 이유(여러 취소 이력 등)는 불명확.
+4. **결제완료 전용 필드**: 결제수단(`paymentType`)과 취소사유/취소상세사유(`cancelReason`/`cancelDescription`)는 결제완료(PAID) 건에만 의미가 있다고 가정해, 미결제·식사중 건은 값이 있어도 화면에서 항상 `'-'`로 표시한다(`formatPaymentType`/`formatCancelField`). 백엔드가 실제로 이 필드들을 PAID 건에만 채우는지는 미확인.
+
+### 결정
+
+위 세 가지를 임시 가정으로 두고 화면을 완성한다. mock은 `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts`의 오버라이드 핸들러로 큐레이션해, orval이 자동 생성한 faker 기반 무작위 응답 대신 의미 있는 결제상태 값으로 개발 환경에서 화면을 확인할 수 있게 한다.
+
+### 연동 시 체크리스트
+
+- [ ] 결제상태 enum 실제 코드값을 백엔드와 확정하고 `PaymentStatusCode`/라벨 매핑 갱신
+- [ ] "전체" 필터 시 빈 문자열 처리 여부를 백엔드와 확인(처리 안 하면 별도 "전체 조회" 엔드포인트/파라미터 필요)
+- [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
+- [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
+- [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토

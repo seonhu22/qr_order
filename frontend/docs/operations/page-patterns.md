@@ -45,11 +45,11 @@ const handleSearch = () => {
 
 ### 기본 조회기간과 최대 허용기간이 다른 경우
 
-`useQueryDateRangeDraft(maxRangeDays)`는 "초기값 offset"과 "검증 최대일수"에 같은 `maxRangeDays`를 쓴다. `OrderHistory`(기본 7일 / 최대 365일)처럼 두 값이 다르면 이 훅을 그대로 쓸 수 없으므로, feature 전용 날짜range draft 훅을 새로 작성한다(`useOrderHistoryDateRangeDraft.ts` 참고). 내부적으로는 `shared/utils/queryDateRange.ts`의 `createDefaultQueryDateRangeDraft`/`validateQueryDateRange`를 서로 다른 인자로 호출하는 식으로 분리한다.
+`useQueryDateRangeDraft(maxRangeDays)`는 "초기값 offset"과 "검증 최대일수"에 같은 `maxRangeDays`를 쓴다. `OrderHistory`/`PaymentStatus`(기본 7일 / 최대 365일)처럼 두 값이 다르면 이 훅을 그대로 쓸 수 없으므로, 공용 `shared/hooks/useDateRangePresetDraft.ts`를 쓴다. `defaultRangeDays`/`maxRangeDays`를 인자로 분리해서 받고, 내부적으로는 `shared/utils/queryDateRange.ts`의 `createDefaultQueryDateRangeDraft`/`validateQueryDateRange`를 서로 다른 인자로 호출한다. feature에서 기본값만 다르게 호출하는 thin wrapper를 두는 패턴은 `useOrderHistoryDateRangeDraft.ts` 참고.
 
 ### 기간 프리셋 콤보 (이번 주 / 이번 달 / 최근 1년)
 
-기간 조회 화면에 "오늘 기준 최근 N일" 프리셋 콤보를 추가할 때의 패턴이다(`OrderHistory` 참고).
+기간 조회 화면에 "오늘 기준 최근 N일" 프리셋 콤보를 추가할 때의 패턴이다(`useDateRangePresetDraft`, 사용처: `OrderHistory`, `PaymentStatus`).
 
 - 프리셋 선택 시 시작·종료일시를 한 번에 계산해 채운다(`getDateTimeLocalDaysAgo(days)` + `getCurrentDateTimeLocal()`).
 - 프리셋이 선택된 상태에서 시작일시를 바꾸면 종료일시를 `getAutoEndDate(value, days)`로, 종료일시를 바꾸면 시작일시를 `getAutoStartDate(value, days)`로 자동 재계산해 항상 프리셋 일수를 유지한다. `getAutoStartDate`는 `getAutoEndDate`의 대칭 버전으로 `shared/utils/queryDateRange.ts`에 있다.
@@ -81,6 +81,20 @@ orderStatus: draftOrderStatus === 'ALL' ? '' : draftOrderStatus,
 - 두 `article`은 각각 `flex: 1`로 동일 비율 차지
 - 마스터 클릭 시 `selectedRow` 상태로 관리하고 같은 행 재클릭 시 선택 해제
 - 디테일 조회 훅은 `enabled: Boolean(sysId)`로 제어
+
+### 디테일이 테이블이 아니라 읽기전용 label-input 폼인 경우
+
+> 추가일: 2026-06-23
+
+`PaymentStatus`(결제 목록 조회)처럼 디테일 영역이 행 목록이 아니라 "주문번호/결제상태/취소사유…" 같은 단일 레코드를 보여주는 화면은 위 좌우 분할 구조는 그대로 두고 우측 `article`의 내용만 폼으로 바꾼다.
+
+- 마스터 미선택 상태는 `TableCardContentState`의 `isEmpty` + `emptyVariant="select"` + `emptyDescription="좌측 목록에서 항목을 선택하면 ...를 조회할 수 있습니다."`로 분기한다(`AccessLogDetailTable`과 동일한 분기 방식, 내용만 폼으로 교체).
+- 필드는 완성형 컴포넌트(`TextInput`/`TextareaInput`)에 `readOnly`만 주고 직접 렌더한다. `controlState`는 컴포넌트가 `readOnly`로부터 자동 계산하므로 별도로 넘기지 않는다. `InputWrapper`로 다시 감싸지 않는다 — `TextInput`/`TextareaInput`은 이미 내부적으로 `InputWrapper`를 포함한 완성형이라 이중으로 감싸면 레이블이 중복 렌더된다.
+- 레이블 위치는 기본값(top)을 쓰고, 필드는 한 줄에 하나씩 세로로 쌓는다. `StoreInfoFormCard.tsx`(`apps/client/features/store-info/components/StoreInfoFormCard.tsx`)의 정렬·간격(`gap: var(--spacing-9); padding: var(--spacing-10);`)을 기준으로 따른다. 긴 텍스트(여러 줄)는 `TextareaInput`을 쓴다.
+- read-only 필드는 `.input-control[data-state='readonly']`/`.textarea-control[data-state='readonly']` 배경을 `--color-bg-muted`로 강조해 입력 불가 상태임을 시각적으로 드러낸다(`StoreInfoFormCard.css`와 동일).
+- 상세 응답이 배열로 오는 API(예: `GetPaymentInfoDetail`)는 mapper에서 첫 번째 요소만 꺼내 단일 객체로 변환한다(`mapToPaymentStatusDetail` 참고) — 배열인 이유가 불명확하면 그 가정을 주석과 ADR 체크리스트에 남긴다.
+- 필드가 특정 상태에서만 의미가 있으면(예: 결제수단·취소사유는 결제완료 건에만 의미가 있음) 값이 있어도 무시하고 항상 `'-'`를 표시하는 포맷 함수를 컴포넌트에 둔다(`formatPaymentType`/`formatCancelField` 참고). mock 데이터 자체도 해당 상태에서는 의미 있는 값을 비워 둬서(또는 `'-'`로 채워서) 화면 로직과 데이터가 어긋나지 않게 한다.
+- 여러 줄 항목 리스트(예: 주문 내역)는 별도 리스트 렌더링 컴포넌트를 만들지 않고, API가 줄바꿈(`\n`)으로 구분된 문자열을 내려준다고 가정해 `TextareaInput`에 그대로 표시한다. mock도 "항목명 X 수량 ( 옵션 ) 금액" 형식의 줄을 `\n`으로 이어붙여 동일하게 보이게 한다.
 
 ## 마스터 1 + 디테일 2단 세로 스택 레이아웃
 
