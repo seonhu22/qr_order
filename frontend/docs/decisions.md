@@ -410,3 +410,39 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] `npm run generate:schema` + `npm run generate`로 타입 재생성
 - [ ] `mapToMenuOptionGroupPayload`/`mapToMenuOptionDetailPayload`에 두 필드 추가, dirty 비교 로직도 갱신
 - [ ] 프론트 전용 필드라는 JSDoc 주석 제거
+
+---
+
+## ADR-011 — 주문 이력 조회: 백엔드 API 미정, 프론트 mock 우선 구현
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 API 확정 후 연동 예정)
+
+### 배경
+
+`/client/order/history/list` 화면(주문번호·테이블 번호·주문 상태·결제 상태·주문일자 목록) 구현 중 기존에 생성된 `getOrderHistory`(`/api/client/order_manage/history/search`) API를 확인한 결과, 이 화면 용도와 맞지 않았다.
+
+- `orderStatus`를 필수 단일값 파라미터로 받는다 — 목록 전체 조회가 아니라 특정 상태 1건의 상태 변경 히스토리 조회용으로 보인다.
+- 응답(`OrderMasterHistoryItem`)에 화면에 필요한 주문번호·결제상태 필드가 없다.
+
+### 검토한 방식
+
+**패턴 1 — 기존 API를 변형해 사용**: `orderStatus`를 빈 값/임의값으로 호출하거나 주문번호를 `sysId`로 대체. 화면이 원래 요청한 데이터 구조를 만족시키지 못한다.
+
+**패턴 2 — 프론트 mock 우선 구현 (채택)**: ADR-004/005/006/010과 동일한 선례. UI·검색·필터 로직은 모두 구현하되, 데이터는 mock 배열을 필터링해 제공한다.
+
+### 결정
+
+패턴 2를 채택한다.
+
+- `apps/client/features/order-history/mock/orderHistoryMock.ts`의 정적 데이터를 `api/orderHistoryApi.ts`의 `queryFn`(`filterOrderHistoryMock`, 테스트 가능하도록 export)에서 날짜범위·키워드·주문상태로 필터링해 반환한다.
+- 네트워크 호출이 없으므로 MSW 핸들러를 별도로 만들지 않았다.
+- 검색폼의 상태 필터는 주문상태 1개만 둔다(결제상태 필터는 화면에서 제외 — 결제상태는 목록 컬럼에 일반 텍스트로만 노출).
+- `OrderHistoryStatus`(`RECEIVED`/`COOKING`/`SERVED`/`CANCELLED`), `OrderHistoryPaymentStatus`(`PENDING`/`PAID`/`UNPAID`/`REFUNDED`) 코드값은 임시로 정한 것이며 백엔드 enum과 일치 여부 확인이 필요하다.
+
+### 연동 시 체크리스트
+
+- [ ] 실제 주문 이력 조회 API(주문번호/결제상태 포함) 백엔드와 확정
+- [ ] `mock/orderHistoryMock.ts` 제거, `api/orderHistoryApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
+- [ ] `npm run generate:schema` + `npm run generate`로 타입 동기화
+- [ ] `OrderHistoryStatus`/`OrderHistoryPaymentStatus` 코드값이 백엔드 enum과 일치하는지 확인 후 라벨 매핑 갱신

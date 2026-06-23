@@ -43,6 +43,35 @@ const handleSearch = () => {
 };
 ```
 
+### 기본 조회기간과 최대 허용기간이 다른 경우
+
+`useQueryDateRangeDraft(maxRangeDays)`는 "초기값 offset"과 "검증 최대일수"에 같은 `maxRangeDays`를 쓴다. `OrderHistory`(기본 7일 / 최대 365일)처럼 두 값이 다르면 이 훅을 그대로 쓸 수 없으므로, feature 전용 날짜range draft 훅을 새로 작성한다(`useOrderHistoryDateRangeDraft.ts` 참고). 내부적으로는 `shared/utils/queryDateRange.ts`의 `createDefaultQueryDateRangeDraft`/`validateQueryDateRange`를 서로 다른 인자로 호출하는 식으로 분리한다.
+
+### 기간 프리셋 콤보 (이번 주 / 이번 달 / 최근 1년)
+
+기간 조회 화면에 "오늘 기준 최근 N일" 프리셋 콤보를 추가할 때의 패턴이다(`OrderHistory` 참고).
+
+- 프리셋 선택 시 시작·종료일시를 한 번에 계산해 채운다(`getDateTimeLocalDaysAgo(days)` + `getCurrentDateTimeLocal()`).
+- 프리셋이 선택된 상태에서 시작일시를 바꾸면 종료일시를 `getAutoEndDate(value, days)`로, 종료일시를 바꾸면 시작일시를 `getAutoStartDate(value, days)`로 자동 재계산해 항상 프리셋 일수를 유지한다. `getAutoStartDate`는 `getAutoEndDate`의 대칭 버전으로 `shared/utils/queryDateRange.ts`에 있다.
+- "직접 선택"(프리셋 없음) 상태에서는 자동 계산을 하지 않고 입력값을 최대 허용일수로만 검증한다.
+
+**`SelectInput` 사용 시 주의 — 빈 문자열 value 옵션은 무효 처리된다**
+
+`SelectInput`은 `options` 중 `value`가 빈 문자열(`''`)인 항목을 유효하지 않은 옵션으로 간주해 자동으로 제외한다(`SelectInput.tsx`의 `normalizedOptions` 로직). "전체"나 "직접 선택"처럼 빈 값을 표현하는 옵션을 추가할 때 `value: ''`을 쓰면 드롭다운에서 옵션 자체가 사라지는 버그가 생긴다.
+
+- 빈 값이 필요한 옵션은 `'ALL'`, `'direct'` 같은 비어 있지 않은 sentinel 값을 쓴다.
+- 데이터 계층(검색 파라미터를 만드는 지점)에서 sentinel 값을 실제 빈 문자열로 변환한다.
+
+```ts
+// 잘못된 예 — 'value: ""' 옵션이 SelectInput에서 자동 제외됨
+{ value: '', label: '전체' }
+
+// 올바른 예
+{ value: 'ALL', label: '전체' }
+// ...
+orderStatus: draftOrderStatus === 'ALL' ? '' : draftOrderStatus,
+```
+
 ## 좌우 분할 마스터-디테일 조회 화면
 
 편집 없이 마스터 클릭 시 우측 디테일이 바뀌는 조회 화면은 아래 패턴을 따른다.
