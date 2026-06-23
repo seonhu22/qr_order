@@ -11,6 +11,7 @@ import { MenuOptionManagementPage } from '@/apps/client/pages/menu-option/MenuOp
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
+import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHistoryListPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -59,12 +60,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'order/history/list',
-        element: (
-          <ClientPlaceholderPage
-            title="주문 이력 조회"
-            description="완료된 주문 이력을 조회하는 화면입니다."
-          />
-        ),
+        element: <OrderHistoryListPage />,
       },
       {
         path: 'order/status/management',
