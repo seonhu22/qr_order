@@ -15,7 +15,11 @@ import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 export { mapFileResponseToServerFile };
 
-export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryManageRow {
+export type InquiryManageResponse = QnaResponse & {
+  insertDatetime?: string;
+};
+
+export function mapToInquiryManageRow(res: InquiryManageResponse, index: number): InquiryManageRow {
   const answerStatus: InquiryAnswerStatus = res.answerYn === 'Y' ? 'answered' : 'pending';
   return {
     id: res.sysId ?? `inquiry-${index}`,
@@ -25,7 +29,7 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
     content: res.qnaDescription ?? '-',
     plant: '-',
     registrant: res.writeUsername ?? '-',
-    registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
+    registeredAt: formatDateTimeForDisplay(res.insertDatetime) || '-',
     updatedAt: '-',
     answeredAt:
       answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',

@@ -10,8 +10,57 @@ import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
+import type { ChkEmailValidParams } from '@/generated/types/chkEmailValidParams';
+import type { CommonResponse } from '@/generated/types/commonResponse';
+import type { EmailValidRequest } from '@/generated/types/emailValidRequest';
+import type { SignUpRequest } from '@/generated/types/signUpRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
+import {
+  buildSignupBusinessVerificationPayload,
+  getSignupBusinessVerificationErrorMessage,
+  isSignupBusinessVerificationError,
+  useSignupBusinessVerificationMutation,
+} from '@/apps/client/features/signup/api/signupBusinessVerificationApi';
+import {
+  buildSignupEmailCodeRequest,
+  isSignupEmailCodeValidationError,
+  useSignupEmailCodeResendMutation,
+  useSignupEmailCodeSendMutation,
+} from '@/apps/client/features/signup/api/signupEmailCodeApi';
+import {
+  buildSignupEmailVerifyParams,
+  isSignupEmailVerifyValidationError,
+  useSignupEmailVerifyMutation,
+} from '@/apps/client/features/signup/api/signupEmailVerifyApi';
+import {
+  buildSignupIdDuplicateParams,
+  isSignupIdDuplicateValidationError,
+  mapIdDuplicateResult,
+  useSignupIdDuplicateMutation,
+} from '@/apps/client/features/signup/api/signupIdDuplicateApi';
+import {
+  buildSignupNewUserRequest,
+  isSignupNewUserValidationError,
+  useSignupNewUserMutation,
+} from '@/apps/client/features/signup/api/signupNewUserApi';
+import { getSignupApiErrorMessage } from '@/apps/client/features/signup/api/signupApiUtils';
+import {
+  buildSendPwdChangeCodeRequest,
+  isSendPwdChangeCodeValidationError,
+  useReSendPwdChangeCodeMutation,
+  useSendPwdChangeCodeMutation,
+} from '@/apps/client/features/password-reset/api/sendPwdChangeCodeApi';
+import {
+  buildVerifyPwdChangeRequest,
+  isVerifyPwdChangeValidationError,
+  useVerifyPwdChangeMutation,
+} from '@/apps/client/features/password-reset/api/verifyPwdChangeApi';
+import {
+  buildChangePwdRequest,
+  isChangePwdValidationError,
+  useChangePwdMutation,
+} from '@/apps/client/features/password-reset/api/changePwdApi';
 import {
   getAuthResponseData,
   hasInitialPasswordRequirementSignal,
@@ -20,7 +69,17 @@ import {
 
 const SAVED_ID_KEY = 'client_saved_userId';
 
-type Step = 'login' | 'change-password' | 'signup-consent' | 'signup-business' | 'signup' | 'signup-complete' | 'find-password' | 'find-password-verify' | 'find-password-complete';
+type Step =
+  | 'login'
+  | 'change-password'
+  | 'signup-consent'
+  | 'signup-business'
+  | 'signup'
+  | 'signup-complete'
+  | 'find-password'
+  | 'find-password-verify'
+  | 'find-password-reset'
+  | 'find-password-complete';
 
 function formatBusinessNo(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -29,56 +88,12 @@ function formatBusinessNo(value: string): string {
   return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
 }
 
-async function clientInitPwdActive(data: { password: string; chkPassword: string; userId: string }) {
-  const res = await fetch('/api/client/auth/init-pwd-active', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-  return res.json() as Promise<{ success: boolean; message?: string }>;
-}
-
-// 비밀번호 찾기 — 아이디·이메일 제출 (API 미정, 임시 엔드포인트)
-async function findPassword(data: { userId: string; email: string }) {
-  const res = await fetch('/api/client/auth/find-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-  return res.json() as Promise<{ success: boolean; message?: string }>;
-}
-
-// 비밀번호 찾기 — 인증 코드 확인 (API 미정, 임시 엔드포인트)
-async function verifyFindPasswordCode(data: { userId: string; verifyCode: string }) {
-  const res = await fetch('/api/client/auth/find-password/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-  return res.json() as Promise<{ success: boolean; message?: string }>;
-}
-
-// 아이디 중복 확인 (API 미정, 임시 통과 처리)
-async function checkDuplicateId(_data: { userId: string }) {
-  return { success: true, available: true } as { success: boolean; available: boolean; message?: string };
-}
-
-// 사업자 인증 (API 미정, 임시 통과 처리)
-async function verifyBusiness(_data: { businessNo: string; representativeName: string; openDate: string }) {
-  return { success: true, message: undefined } as { success: boolean; message?: string };
-}
-
-// 회원가입 (API 미정, 임시 엔드포인트)
-async function clientSignup(data: {
-  userId: string;
+async function clientInitPwdActive(data: {
   password: string;
-  businessNo: string;
-  email: string;
+  chkPassword: string;
+  userId: string;
 }) {
-  const res = await fetch('/api/client/auth/signup', {
+  const res = await fetch('/api/client/auth/init-pwd-active', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -104,9 +119,12 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [changePasswordError, setChangePasswordError] = useState('');
-  const [resultModal, setResultModal] = useState<{ open: boolean; title: string; description: string; onConfirm: () => void }>(
-    { open: false, title: '', description: '', onConfirm: () => {} },
-  );
+  const [resultModal, setResultModal] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
   // 동의
   const [consentChecked, setConsentChecked] = useState(false);
@@ -138,6 +156,8 @@ export default function LoginPage() {
   const [findEmail, setFindEmail] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [findError, setFindError] = useState('');
+  const [resetPw, setResetPw] = useState('');
+  const [resetPwConfirm, setResetPwConfirm] = useState('');
 
   // 이메일 인증 타이머
   useEffect(() => {
@@ -146,8 +166,7 @@ export default function LoginPage() {
     return () => clearTimeout(id);
   }, [emailTimerSeconds]);
 
-  const formatTimer = (s: number) =>
-    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const formatTimer = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
   const handleSendEmailCode = () => {
     if (!email) {
@@ -161,20 +180,28 @@ export default function LoginPage() {
     setEmailError('');
     setEmailVerifyCode('');
     setEmailCodeError('');
-    // TODO: 이메일 인증 코드 발송 API 연결
-    setEmailSent(true);
-    setEmailTimerSeconds(300);
+    const payload = buildSignupEmailCodeRequest(email);
+
+    if (isSignupEmailCodeValidationError(payload)) {
+      setEmailError(payload.message);
+      return;
+    }
+
+    const variables = { data: payload };
+
+    runEmailCodeSend(variables, emailSent);
   };
 
   const handleVerifyEmailCode = () => {
-    if (!emailVerifyCode) {
-      setEmailCodeError('인증 코드를 입력해주세요.');
+    const params = buildSignupEmailVerifyParams(email, emailVerifyCode);
+
+    if (isSignupEmailVerifyValidationError(params)) {
+      setEmailCodeError(params.message);
       return;
     }
-    // TODO: 이메일 인증 코드 확인 API 연결 (현재 임시 통과)
-    setEmailVerified(true);
-    setEmailTimerSeconds(0);
+
     setEmailCodeError('');
+    runEmailVerify(params);
   };
 
   const emailFieldDisabled = emailSent && !emailVerified && emailTimerSeconds > 0;
@@ -213,7 +240,9 @@ export default function LoginPage() {
           }
 
           if (isInitialPasswordChangeRequired(responseData)) {
-            setLoggedInUserId(typeof responseData?.userId === 'string' ? responseData.userId : userId);
+            setLoggedInUserId(
+              typeof responseData?.userId === 'string' ? responseData.userId : userId,
+            );
             setUserPassword('');
             setStep('change-password');
           } else {
@@ -268,102 +297,170 @@ export default function LoginPage() {
     },
   });
 
-  const { mutate: verifyBusinessMutate, isPending: isBusinessPending } = useMutation({
-    mutationFn: verifyBusiness,
-    onSuccess: (data) => {
-      if (data.success) {
-        setResultModal({
-          open: true,
-          title: '인증 완료',
-          description: '사업자 인증이 완료되었습니다.',
-          onConfirm: () => {
-            setResultModal((prev) => ({ ...prev, open: false }));
-            setStep('signup');
-          },
-        });
-      } else {
-        setResultModal({
-          open: true,
-          title: '인증 실패',
-          description: data.message ?? '사업자 정보를 확인해주세요.',
-          onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
-        });
-      }
-    },
-    onError: () => {
+  const { mutate: verifyBusinessMutate, isPending: isBusinessPending } =
+    useSignupBusinessVerificationMutation({
+      mutation: {
+        onSuccess: (data) => {
+          if (data.success) {
+            setBusinessError('');
+            setResultModal({
+              open: true,
+              title: '인증 완료',
+              description: data.message ?? '사업자 인증이 완료되었습니다.',
+              onConfirm: () => {
+                setResultModal((prev) => ({ ...prev, open: false }));
+                setStep('signup');
+              },
+            });
+            return;
+          }
+
+          setResultModal({
+            open: true,
+            title: '인증 실패',
+            description: data.message ?? '사업자 정보를 확인해주세요.',
+            onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+          });
+        },
+        onError: (error) => {
+          setBusinessError('');
+          setResultModal({
+            open: true,
+            title: '인증 실패',
+            description: getSignupBusinessVerificationErrorMessage(error),
+            onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+          });
+        },
+      },
+    });
+
+  const { mutate: checkIdMutate, isPending: isIdCheckPending } = useSignupIdDuplicateMutation();
+
+  const { mutate: sendEmailCodeMutate, isPending: isEmailSendPending } =
+    useSignupEmailCodeSendMutation();
+
+  const { mutate: resendEmailCodeMutate, isPending: isEmailResendPending } =
+    useSignupEmailCodeResendMutation();
+
+  const { mutate: verifyEmailCodeMutate, isPending: isEmailVerifyPending } =
+    useSignupEmailVerifyMutation();
+
+  const { mutate: signupMutate, isPending: isSignupPending } = useSignupNewUserMutation();
+
+  const { mutate: sendPwdChangeCodeMutate, isPending: isFindSendPending } =
+    useSendPwdChangeCodeMutation();
+  const { mutate: reSendPwdChangeCodeMutate, isPending: isFindResendPending } =
+    useReSendPwdChangeCodeMutation();
+  const { mutate: verifyPwdChangeMutate, isPending: isFindVerifyPending } =
+    useVerifyPwdChangeMutation();
+  const { mutate: changePwdMutate, isPending: isResetPending } = useChangePwdMutation();
+
+  const isEmailCodePending = isEmailSendPending || isEmailResendPending;
+  const isFindSendingCode = isFindSendPending || isFindResendPending;
+
+  const handleEmailCodeSuccess = () => {
+    setEmailError('');
+    setEmailSent(true);
+    setEmailTimerSeconds(300);
+  };
+
+  const handleEmailCodeError = (error: unknown) => {
+    setEmailError(getSignupApiErrorMessage(error, '이메일 인증 코드 발송에 실패했습니다.'));
+  };
+
+  const handleIdDuplicateSuccess = (isDuplicated: boolean) => {
+    setIdCheckStatus(mapIdDuplicateResult(isDuplicated));
+  };
+
+  const handleIdDuplicateError = () => {
+    setIdCheckStatus('idle');
+    setSignupError('아이디 중복 확인에 실패했습니다.');
+  };
+
+  const handleEmailVerifySuccess = (isValid: boolean) => {
+    if (!isValid) {
+      setEmailCodeError('인증 코드가 일치하지 않습니다.');
+      return;
+    }
+
+    setEmailVerified(true);
+    setEmailTimerSeconds(0);
+    setEmailCodeError('');
+  };
+
+  const handleEmailVerifyError = (error: unknown) => {
+    setEmailCodeError(getSignupApiErrorMessage(error, '인증 코드 확인에 실패했습니다.'));
+  };
+
+  const handleSignupSuccess = (data: CommonResponse) => {
+    if (data.success) {
       setResultModal({
         open: true,
-        title: '서버 오류',
-        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
-        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+        title: '가입 완료',
+        description: '회원가입이 완료되었습니다.\n로그인 후 서비스를 이용하실 수 있습니다.',
+        onConfirm: () => {
+          setResultModal((prev) => ({ ...prev, open: false }));
+          setStep('signup-complete');
+        },
       });
-    },
-  });
+      return;
+    }
 
-  const { mutate: checkIdMutate, isPending: isIdCheckPending } = useMutation({
-    mutationFn: checkDuplicateId,
-    onSuccess: (data) => {
-      setIdCheckStatus(data.available ? 'available' : 'taken');
-    },
-    onError: () => {
+    setSignupError(data.message ?? '회원가입에 실패했습니다.');
+  };
+
+  const handleSignupError = (error: unknown) => {
+    setResultModal({
+      open: true,
+      title: '서버 오류',
+      description: getSignupApiErrorMessage(error),
+      onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+    });
+  };
+
+  const runIdDuplicateCheck = (nextSignupId: string) => {
+    const params = buildSignupIdDuplicateParams(nextSignupId);
+
+    if (isSignupIdDuplicateValidationError(params)) {
+      setSignupError(params.message);
       setIdCheckStatus('idle');
-    },
-  });
+      return;
+    }
 
-  const { mutate: findPasswordMutate, isPending: isFindPending } = useMutation({
-    mutationFn: findPassword,
-    onSuccess: (data) => {
-      if (data.success) {
-        setStep('find-password-verify');
-      } else {
-        setFindError(data.message ?? '입력하신 정보를 확인해주세요.');
-      }
-    },
-    onError: () => {
-      setFindError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-    },
-  });
+    setSignupError('');
+    checkIdMutate(params, {
+      onSuccess: handleIdDuplicateSuccess,
+      onError: handleIdDuplicateError,
+    });
+  };
 
-  const { mutate: verifyCodeMutate, isPending: isVerifyPending } = useMutation({
-    mutationFn: verifyFindPasswordCode,
-    onSuccess: (data) => {
-      if (data.success) {
-        setStep('find-password-complete');
-      } else {
-        setFindError(data.message ?? '인증 코드를 확인해주세요.');
-      }
-    },
-    onError: () => {
-      setFindError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-    },
-  });
+  const runEmailCodeSend = (variables: { data: EmailValidRequest }, resend: boolean) => {
+    const options = {
+      onSuccess: handleEmailCodeSuccess,
+      onError: handleEmailCodeError,
+    };
 
-  const { mutate: signupMutate, isPending: isSignupPending } = useMutation({
-    mutationFn: clientSignup,
-    onSuccess: (data) => {
-      if (data.success) {
-        setResultModal({
-          open: true,
-          title: '가입 완료',
-          description: '회원가입이 완료되었습니다.\n로그인 후 서비스를 이용하실 수 있습니다.',
-          onConfirm: () => {
-            setResultModal((prev) => ({ ...prev, open: false }));
-            setStep('signup-complete');
-          },
-        });
-      } else {
-        setSignupError(data.message ?? '회원가입에 실패했습니다.');
-      }
-    },
-    onError: () => {
-      setResultModal({
-        open: true,
-        title: '서버 오류',
-        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
-        onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
-      });
-    },
-  });
+    if (resend) {
+      resendEmailCodeMutate(variables, options);
+      return;
+    }
+
+    sendEmailCodeMutate(variables, options);
+  };
+
+  const runEmailVerify = (params: ChkEmailValidParams) => {
+    verifyEmailCodeMutate(params, {
+      onSuccess: handleEmailVerifySuccess,
+      onError: handleEmailVerifyError,
+    });
+  };
+
+  const runSignup = (request: { data: SignUpRequest }) => {
+    signupMutate(request, {
+      onSuccess: handleSignupSuccess,
+      onError: handleSignupError,
+    });
+  };
 
   const handleLoginSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -382,25 +479,127 @@ export default function LoginPage() {
       setChangePasswordError('비밀번호가 일치하지 않습니다.');
       return;
     }
-    changePasswordMutate({ password: newPassword, chkPassword: newPasswordConfirm, userId: loggedInUserId });
+    changePasswordMutate({
+      password: newPassword,
+      chkPassword: newPasswordConfirm,
+      userId: loggedInUserId,
+    });
   };
 
   const handleBusinessSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setBusinessError('');
-    verifyBusinessMutate({ businessNo, representativeName: businessRepName, openDate });
+    const payload = buildSignupBusinessVerificationPayload({
+      businessNo,
+      businessRepName,
+      openDate,
+    });
+
+    if (isSignupBusinessVerificationError(payload)) {
+      setBusinessError(payload.message);
+      return;
+    }
+
+    verifyBusinessMutate({ data: payload });
   };
 
   const handleFindPasswordSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setFindError('');
-    findPasswordMutate({ userId: findId, email: findEmail });
+    const payload = buildSendPwdChangeCodeRequest({ userId: findId, email: findEmail });
+
+    if (isSendPwdChangeCodeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    sendPwdChangeCodeMutate(
+      { data: payload },
+      {
+        onSuccess: () => {
+          setVerifyCode('');
+          setStep('find-password-verify');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드 발송에 실패했습니다.'));
+        },
+      },
+    );
+  };
+
+  const handleResendVerifyCode = () => {
+    setFindError('');
+    const payload = buildSendPwdChangeCodeRequest({ userId: findId, email: findEmail });
+
+    if (isSendPwdChangeCodeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    reSendPwdChangeCodeMutate(
+      { data: payload },
+      {
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드 재발송에 실패했습니다.'));
+        },
+      },
+    );
   };
 
   const handleVerifyCodeSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setFindError('');
-    verifyCodeMutate({ userId: findId, verifyCode });
+    const payload = buildVerifyPwdChangeRequest({ email: findEmail, validCode: verifyCode });
+
+    if (isVerifyPwdChangeValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    verifyPwdChangeMutate(
+      { data: payload },
+      {
+        onSuccess: () => {
+          setResetPw('');
+          setResetPwConfirm('');
+          setStep('find-password-reset');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '인증 코드가 일치하지 않습니다.'));
+        },
+      },
+    );
+  };
+
+  const handleResetPasswordSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setFindError('');
+    const payload = buildChangePwdRequest({
+      userId: findId,
+      pwd: resetPw,
+      pwdConfirm: resetPwConfirm,
+    });
+
+    if (isChangePwdValidationError(payload)) {
+      setFindError(payload.message);
+      return;
+    }
+
+    changePwdMutate(
+      { data: payload },
+      {
+        onSuccess: (data) => {
+          if (data.success) {
+            setStep('find-password-complete');
+            return;
+          }
+          setFindError(data.message ?? '비밀번호 변경에 실패했습니다.');
+        },
+        onError: (error) => {
+          setFindError(getSignupApiErrorMessage(error, '비밀번호 변경에 실패했습니다.'));
+        },
+      },
+    );
   };
 
   const handleSignupSubmit = (e: { preventDefault: () => void }) => {
@@ -418,39 +617,86 @@ export default function LoginPage() {
       setSignupError('비밀번호가 일치하지 않습니다.');
       return;
     }
-    signupMutate({ userId: signupId, password: signupPw, businessNo, email });
+
+    const request = buildSignupNewUserRequest({
+      businessNo,
+      businessRepName,
+      openDate,
+      signupId,
+      signupPw,
+      signupPwConfirm,
+      email,
+      emailVerifyCode,
+    });
+
+    if (isSignupNewUserValidationError(request)) {
+      setSignupError(request.message);
+      return;
+    }
+
+    runSignup({ data: request });
   };
 
   const goToLogin = () => {
     setStep('login');
     setConsentChecked(false);
-    setBusinessNo(''); setBusinessRepName(''); setOpenDate(''); setBusinessError('');
-    setSignupId(''); setIdCheckStatus('idle'); setSignupPw(''); setSignupPwConfirm('');
-    setEmail(''); setEmailError(''); setEmailSent(false); setEmailVerified(false);
-    setEmailTimerSeconds(0); setEmailVerifyCode(''); setEmailCodeError('');
+    setBusinessNo('');
+    setBusinessRepName('');
+    setOpenDate('');
+    setBusinessError('');
+    setSignupId('');
+    setIdCheckStatus('idle');
+    setSignupPw('');
+    setSignupPwConfirm('');
+    setEmail('');
+    setEmailError('');
+    setEmailSent(false);
+    setEmailVerified(false);
+    setEmailTimerSeconds(0);
+    setEmailVerifyCode('');
+    setEmailCodeError('');
     setSignupError('');
-    setFindId(''); setFindEmail(''); setVerifyCode(''); setFindError('');
+    setFindId('');
+    setFindEmail('');
+    setVerifyCode('');
+    setFindError('');
+    setResetPw('');
+    setResetPwConfirm('');
   };
 
   const isWide = step !== 'login' && step !== 'change-password';
 
   const ariaLabel =
-    step === 'login' ? '로그인'
-    : step === 'change-password' ? '비밀번호 변경'
-    : step === 'signup-consent' ? '개인정보 동의'
-    : step === 'signup-business' ? '사업자 인증'
-    : step === 'signup' ? '회원가입'
-    : step === 'signup-complete' ? '가입 완료'
-    : step === 'find-password' ? '비밀번호 찾기'
-    : step === 'find-password-verify' ? '인증 코드 확인'
-    : '비밀번호 찾기 완료';
+    step === 'login'
+      ? '로그인'
+      : step === 'change-password'
+        ? '비밀번호 변경'
+        : step === 'signup-consent'
+          ? '개인정보 동의'
+          : step === 'signup-business'
+            ? '사업자 인증'
+            : step === 'signup'
+              ? '회원가입'
+              : step === 'signup-complete'
+                ? '가입 완료'
+                : step === 'find-password'
+                  ? '비밀번호 찾기'
+                  : step === 'find-password-verify'
+                    ? '인증 코드 확인'
+                    : step === 'find-password-reset'
+                      ? '새 비밀번호 설정'
+                      : '비밀번호 찾기 완료';
 
   return (
     <main className="login-page login-page--client">
       <span className="login-page__deco login-page__deco--top-right" aria-hidden="true" />
       <span className="login-page__deco login-page__deco--bottom-left" aria-hidden="true" />
 
-      <div className={`login-card${isWide ? ' login-card--wide' : ''}`} role="region" aria-label={ariaLabel}>
+      <div
+        className={`login-card${isWide ? ' login-card--wide' : ''}`}
+        role="region"
+        aria-label={ariaLabel}
+      >
         <header className="login-card__header">
           <ClientBrand />
         </header>
@@ -464,7 +710,12 @@ export default function LoginPage() {
             </div>
 
             {loginError && (
-              <FormAlert type="error" description={loginError} dismissible onDismiss={() => setLoginError('')} />
+              <FormAlert
+                type="error"
+                description={loginError}
+                dismissible
+                onDismiss={() => setLoginError('')}
+              />
             )}
 
             <div className="login-card__fields">
@@ -493,17 +744,38 @@ export default function LoginPage() {
             </div>
 
             <div className="login-card__options">
-              <CheckboxInput label="아이디 저장" size="sm" checked={saveId} onChange={(checked) => setSaveId(checked)} />
-              <Button type="button" variant="link" size="sm" onClick={() => setStep('find-password')}>
+              <CheckboxInput
+                label="아이디 저장"
+                size="sm"
+                checked={saveId}
+                onChange={(checked) => setSaveId(checked)}
+              />
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={() => setStep('find-password')}
+              >
                 비밀번호 찾기
               </Button>
             </div>
 
             <div className="login-card__button-group">
-              <Button type="submit" size="lg" className="login-card__submit" disabled={isLoginPending}>
+              <Button
+                type="submit"
+                size="lg"
+                className="login-card__submit"
+                disabled={isLoginPending}
+              >
                 {isLoginPending ? '로그인 중...' : '로그인'}
               </Button>
-              <Button type="button" variant="outline" size="lg" className="login-card__submit" onClick={() => setStep('signup-consent')}>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="login-card__submit"
+                onClick={() => setStep('signup-consent')}
+              >
                 회원가입
               </Button>
             </div>
@@ -519,7 +791,12 @@ export default function LoginPage() {
             </div>
 
             {changePasswordError && (
-              <FormAlert type="error" description={changePasswordError} dismissible onDismiss={() => setChangePasswordError('')} />
+              <FormAlert
+                type="error"
+                description={changePasswordError}
+                dismissible
+                onDismiss={() => setChangePasswordError('')}
+              />
             )}
 
             <div className="login-card__fields">
@@ -547,7 +824,12 @@ export default function LoginPage() {
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 isError={!!changePasswordError}
               />
-              <Button type="submit" size="lg" className="login-card__submit" disabled={isChangePending}>
+              <Button
+                type="submit"
+                size="lg"
+                className="login-card__submit"
+                disabled={isChangePending}
+              >
                 {isChangePending ? '변경 중...' : '변경하기'}
               </Button>
             </div>
@@ -559,7 +841,9 @@ export default function LoginPage() {
           <div className="login-card__body">
             <div className="login-card__title">
               <h1 className="login-card__heading">개인정보 수집·이용 동의</h1>
-              <p className="login-card__subheading">서비스 이용을 위해 아래 내용을 확인하고 동의해 주세요.</p>
+              <p className="login-card__subheading">
+                서비스 이용을 위해 아래 내용을 확인하고 동의해 주세요.
+              </p>
             </div>
             <div className="login-card__consent-box">
               <p className="login-card__consent-section-title">수집 항목</p>
@@ -569,7 +853,9 @@ export default function LoginPage() {
               <p className="login-card__consent-text">회원 식별, 서비스 제공, 계정 관리</p>
 
               <p className="login-card__consent-section-title">보유 기간</p>
-              <p className="login-card__consent-text">회원 탈퇴 시까지 (관계 법령에 따라 일정 기간 보관될 수 있음)</p>
+              <p className="login-card__consent-text">
+                회원 탈퇴 시까지 (관계 법령에 따라 일정 기간 보관될 수 있음)
+              </p>
 
               <p className="login-card__consent-notice">
                 위 동의를 거부할 권리가 있으나, 거부 시 서비스 이용이 제한됩니다.
@@ -586,7 +872,12 @@ export default function LoginPage() {
               <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
                 취소
               </Button>
-              <Button type="button" size="lg" disabled={!consentChecked} onClick={() => setStep('signup-business')}>
+              <Button
+                type="button"
+                size="lg"
+                disabled={!consentChecked}
+                onClick={() => setStep('signup-business')}
+              >
                 동의 후 계속
               </Button>
             </div>
@@ -602,7 +893,12 @@ export default function LoginPage() {
             </div>
 
             {businessError && (
-              <FormAlert type="error" description={businessError} dismissible onDismiss={() => setBusinessError('')} />
+              <FormAlert
+                type="error"
+                description={businessError}
+                dismissible
+                onDismiss={() => setBusinessError('')}
+              />
             )}
 
             <div className="login-card__signup-grid">
@@ -636,10 +932,20 @@ export default function LoginPage() {
             </div>
 
             <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-consent')}>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => setStep('signup-consent')}
+              >
                 이전
               </Button>
-              <Button type="submit" size="lg" loading={isBusinessPending}>
+              <Button
+                type="submit"
+                size="lg"
+                loading={isBusinessPending}
+                disabled={isBusinessPending}
+              >
                 {isBusinessPending ? '처리 중...' : '인증하기'}
               </Button>
             </div>
@@ -654,7 +960,12 @@ export default function LoginPage() {
               <p className="login-card__subheading">서비스 이용을 위한 계정을 생성합니다.</p>
             </div>
             {signupError && (
-              <FormAlert type="error" description={signupError} dismissible onDismiss={() => setSignupError('')} />
+              <FormAlert
+                type="error"
+                description={signupError}
+                dismissible
+                onDismiss={() => setSignupError('')}
+              />
             )}
 
             <div className="login-card__signup-grid">
@@ -663,7 +974,9 @@ export default function LoginPage() {
                 inputId="signup-id"
                 label="아이디"
                 required
-                successText={idCheckStatus === 'available' ? '사용 가능한 아이디입니다.' : undefined}
+                successText={
+                  idCheckStatus === 'available' ? '사용 가능한 아이디입니다.' : undefined
+                }
                 errorText={idCheckStatus === 'taken' ? '이미 사용 중인 아이디입니다.' : undefined}
               >
                 <div className="login-card__id-check-row">
@@ -673,10 +986,16 @@ export default function LoginPage() {
                     placeholder="아이디를 입력하세요"
                     autoComplete="username"
                     value={signupId}
-                    onChange={(e) => { setSignupId(e.target.value); setIdCheckStatus('idle'); }}
+                    onChange={(e) => {
+                      setSignupId(e.target.value);
+                      setIdCheckStatus('idle');
+                    }}
                     controlState={
-                      idCheckStatus === 'taken' ? 'error' :
-                      idCheckStatus === 'available' ? 'success' : ''
+                      idCheckStatus === 'taken'
+                        ? 'error'
+                        : idCheckStatus === 'available'
+                          ? 'success'
+                          : ''
                     }
                   />
                   <Button
@@ -685,7 +1004,7 @@ export default function LoginPage() {
                     variant="outline"
                     loading={isIdCheckPending}
                     disabled={!signupId || isIdCheckPending}
-                    onClick={() => checkIdMutate({ userId: signupId })}
+                    onClick={() => runIdDuplicateCheck(signupId)}
                   >
                     중복확인
                   </Button>
@@ -739,14 +1058,26 @@ export default function LoginPage() {
                     autoComplete="email"
                     value={email}
                     disabled={emailFieldDisabled}
-                    controlState={emailError ? 'error' : emailVerified ? 'success' : emailFieldDisabled ? 'disabled' : ''}
-                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                    controlState={
+                      emailError
+                        ? 'error'
+                        : emailVerified
+                          ? 'success'
+                          : emailFieldDisabled
+                            ? 'disabled'
+                            : ''
+                    }
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError('');
+                    }}
                   />
                   <Button
                     type="button"
                     size="lg"
                     variant="outline"
-                    disabled={emailVerified}
+                    loading={isEmailCodePending}
+                    disabled={emailVerified || isEmailCodePending}
                     onClick={handleSendEmailCode}
                   >
                     {emailSent && emailTimerSeconds > 0 ? '재전송' : '인증'}
@@ -770,14 +1101,20 @@ export default function LoginPage() {
                           placeholder="인증 코드를 입력하세요"
                           value={emailVerifyCode}
                           disabled={emailTimerSeconds === 0}
-                          controlState={emailCodeError ? 'error' : emailTimerSeconds === 0 ? 'disabled' : ''}
-                          onChange={(e) => { setEmailVerifyCode(e.target.value); setEmailCodeError(''); }}
+                          controlState={
+                            emailCodeError ? 'error' : emailTimerSeconds === 0 ? 'disabled' : ''
+                          }
+                          onChange={(e) => {
+                            setEmailVerifyCode(e.target.value);
+                            setEmailCodeError('');
+                          }}
                         />
                         <Button
                           type="button"
                           size="lg"
                           variant="outline"
-                          disabled={emailTimerSeconds === 0}
+                          loading={isEmailVerifyPending}
+                          disabled={emailTimerSeconds === 0 || isEmailVerifyPending}
                           onClick={handleVerifyEmailCode}
                         >
                           확인
@@ -801,7 +1138,12 @@ export default function LoginPage() {
             </div>
 
             <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={() => setStep('signup-business')}>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => setStep('signup-business')}
+              >
                 이전
               </Button>
               <Button type="submit" size="lg" loading={isSignupPending}>
@@ -836,7 +1178,12 @@ export default function LoginPage() {
             </div>
 
             {findError && (
-              <FormAlert type="error" description={findError} dismissible onDismiss={() => setFindError('')} />
+              <FormAlert
+                type="error"
+                description={findError}
+                dismissible
+                onDismiss={() => setFindError('')}
+              />
             )}
 
             <div className="login-card__fields">
@@ -864,9 +1211,11 @@ export default function LoginPage() {
             </div>
 
             <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>취소</Button>
-              <Button type="submit" size="lg" loading={isFindPending}>
-                {isFindPending ? '처리 중...' : '인증 코드 받기'}
+              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
+                취소
+              </Button>
+              <Button type="submit" size="lg" loading={isFindSendPending}>
+                {isFindSendPending ? '처리 중...' : '인증 코드 받기'}
               </Button>
             </div>
           </form>
@@ -881,7 +1230,12 @@ export default function LoginPage() {
             </div>
 
             {findError && (
-              <FormAlert type="error" description={findError} dismissible onDismiss={() => setFindError('')} />
+              <FormAlert
+                type="error"
+                description={findError}
+                dismissible
+                onDismiss={() => setFindError('')}
+              />
             )}
 
             <div className="login-card__fields">
@@ -894,12 +1248,87 @@ export default function LoginPage() {
                 onChange={(e) => setVerifyCode(e.target.value)}
                 isError={!!findError}
               />
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                loading={isFindResendPending}
+                disabled={isFindSendingCode}
+                onClick={handleResendVerifyCode}
+              >
+                인증 코드 재전송
+              </Button>
             </div>
 
             <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={() => { setFindError(''); setStep('find-password'); }}>이전</Button>
-              <Button type="submit" size="lg" loading={isVerifyPending}>
-                {isVerifyPending ? '확인 중...' : '확인'}
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => {
+                  setFindError('');
+                  setStep('find-password');
+                }}
+              >
+                이전
+              </Button>
+              <Button type="submit" size="lg" loading={isFindVerifyPending}>
+                {isFindVerifyPending ? '확인 중...' : '확인'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── 비밀번호 찾기 — 새 비밀번호 입력 ── */}
+        {step === 'find-password-reset' && (
+          <form className="login-card__body" onSubmit={handleResetPasswordSubmit}>
+            <div className="login-card__title">
+              <h1 className="login-card__heading">새 비밀번호 설정</h1>
+              <p className="login-card__subheading">사용할 새 비밀번호를 입력해주세요.</p>
+            </div>
+
+            {findError && (
+              <FormAlert
+                type="error"
+                description={findError}
+                dismissible
+                onDismiss={() => setFindError('')}
+              />
+            )}
+
+            <div className="login-card__fields">
+              <TextInput
+                label="새 비밀번호"
+                placeholder="새 비밀번호를 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="reset-pw"
+                autoComplete="new-password"
+                value={resetPw}
+                onChange={(e) => setResetPw(e.target.value)}
+                isError={!!findError}
+              />
+              <TextInput
+                label="비밀번호 확인"
+                placeholder="비밀번호를 다시 입력하세요"
+                type="password"
+                showPasswordToggle
+                size="lg"
+                id="reset-pw-confirm"
+                autoComplete="new-password"
+                value={resetPwConfirm}
+                onChange={(e) => setResetPwConfirm(e.target.value)}
+                isError={!!findError}
+              />
+            </div>
+
+            <div className="login-card__consent-actions">
+              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
+                취소
+              </Button>
+              <Button type="submit" size="lg" loading={isResetPending}>
+                {isResetPending ? '변경 중...' : '비밀번호 변경'}
               </Button>
             </div>
           </form>
@@ -909,11 +1338,11 @@ export default function LoginPage() {
         {step === 'find-password-complete' && (
           <div className="login-card__body">
             <div className="login-card__title">
-              <h1 className="login-card__heading">인증 완료</h1>
+              <h1 className="login-card__heading">비밀번호 변경 완료</h1>
             </div>
             <div className="login-card__locked-messages">
-              <p className="login-card__subheading">인증이 완료되었습니다.</p>
-              <p className="login-card__locked-desc">임시 비밀번호가 이메일로 발송되었습니다.</p>
+              <p className="login-card__subheading">비밀번호가 변경되었습니다.</p>
+              <p className="login-card__locked-desc">새 비밀번호로 다시 로그인해주세요.</p>
             </div>
             <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
               로그인하러 가기
