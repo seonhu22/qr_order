@@ -1,6 +1,8 @@
 import { http, HttpResponse } from 'msw';
 import { handlers as authHandlers } from '../test/handlers';
 import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
+import { INQUIRY_MOCK_ROWS } from '../apps/client/features/inquiry/mock/inquiryMock';
+import type { ClientQnaRequest } from '../generated/types/clientQnaRequest';
 import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
 import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
 import {
@@ -627,6 +629,34 @@ const qnaOverrideHandler = http.get('*/api/system/settings/board/qna/search', ({
   return HttpResponse.json(filtered);
 });
 
+const clientInquiryOverrideHandler = http.get('*/api/client/board/qna/search', ({ request }) => {
+  const url = new URL(request.url);
+  const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
+  const filtered = keyword
+    ? INQUIRY_MOCK_ROWS.filter(
+        (row) =>
+          row.qnaTitle?.toLowerCase().includes(keyword) ||
+          row.qnaDescription?.toLowerCase().includes(keyword),
+      )
+    : INQUIRY_MOCK_ROWS;
+  return HttpResponse.json(filtered);
+});
+
+const clientInquiryNewOverrideHandler = http.post(
+  '*/api/client/board/qna/new',
+  async ({ request }) => {
+    const body = (await request.json()) as ClientQnaRequest;
+    INQUIRY_MOCK_ROWS.push({
+      ...body,
+      sysId: `inquiry-${Date.now()}`,
+      writeUserName: '점주01',
+      writeDatetime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      answerYn: 'N',
+    });
+    return HttpResponse.json({ success: true });
+  },
+);
+
 const auditTrailOverrideHandler = http.get(
   '*/api/system/settings/log/audittrail',
   ({ request }) => {
@@ -676,6 +706,19 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
         ordNo: 2,
         fileExt: 'pdf',
         pdfYn: 'Y',
+      },
+    ]);
+  }
+  if (linkSysId === 'file-uuid-client-inquiry-1') {
+    return HttpResponse.json([
+      {
+        sysId: 'client-inquiry-attach-1',
+        originalFileNm: '결제오류_스크린샷.png',
+        fileSize: '204800',
+        filePath: '/upload/client/qna/2026/06/screenshot.png',
+        ordNo: 1,
+        fileExt: 'png',
+        pdfYn: 'N',
       },
     ]);
   }
@@ -770,6 +813,8 @@ export const handlers = [
   menuOverrideHandler,
   noticeOverrideHandler,
   qnaOverrideHandler,
+  clientInquiryOverrideHandler,
+  clientInquiryNewOverrideHandler,
   auditTrailOverrideHandler,
   attachFileOverrideHandler,
   ...settingsHandlers,
