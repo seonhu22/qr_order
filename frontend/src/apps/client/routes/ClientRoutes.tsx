@@ -14,6 +14,7 @@ import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPag
 import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHistoryListPage';
 import { PaymentStatusListPage } from '@/apps/client/pages/payment-status/PaymentStatusListPage';
 import { SettlementListPage } from '@/apps/client/pages/settlement/SettlementListPage';
+import { NoticeListPage } from '@/apps/client/pages/notice/NoticeListPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -83,12 +84,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'board/notice/list',
-        element: (
-          <ClientPlaceholderPage
-            title="공지사항 조회"
-            description="점주용 공지사항을 조회하는 화면입니다."
-          />
-        ),
+        element: <NoticeListPage />,
       },
       {
         path: 'board/inquiry/management',
