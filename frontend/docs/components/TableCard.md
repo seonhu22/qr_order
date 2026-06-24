@@ -136,6 +136,36 @@ const headerActions = (
 
 ---
 
+> **행 클릭형 테이블의 키보드/포커스 접근성** — 추가일: 2026-06-24
+>
+> 행에 별도 수정·액션 버튼 없이 `<tr onClick>`만으로 모달이나 디테일을 여는 테이블(`NoticeListTable`, `AccessLogMasterTable` 등)은 기본적으로 Tab 포커스가 가지 않고 Enter/Space로도 열 수 없다.
+>
+> 공용 훅 `useClickableRow`(`@/shared/hooks/useClickableRow`)로 해결한다. `TableCard`/`SelectableTableRow` 컴포넌트는 수정하지 않고, 각 feature 테이블의 `<tr>`에 `getRowProps`를 spread한다.
+>
+> ```tsx
+> const { getRowProps } = useClickableRow<Row>(onRowClick);
+>
+> rows.map((row) => (
+>   <tr key={row.id} {...getRowProps(row, `${row.title} 상세 보기`)}>
+>     ...
+>   </tr>
+> ))
+> ```
+>
+> - `is-selected` 같은 다른 className과 함께 써도 무방하다(`AccessLogMasterTable` 참고).
+> - 행에 이미 `EditTableButton` 같은 별도 액션 버튼이 있는 테이블(`NoticeManageTable` 등)은 버튼 자체가 포커스·Enter를 지원하므로 적용 대상이 아니다.
+> - 포커스 표시는 `TableCard.css`가 아니라 페이지 CSS에서 `role='button'`인 행에만 추가한다 — 일반 읽기전용 행까지 영향받지 않도록 범위를 좁힌다.
+>   ```css
+>   /* NoticeListPage.css, AccessLogPage.css 참고 */
+>   .my-feature-table .common-table tbody tr[role='button']:focus-visible {
+>     outline: var(--border-2) solid var(--color-border-focus);
+>     outline-offset: -2px;
+>   }
+>   ```
+> - `overflow: auto`인 `.common-table-wrap` 자체도 브라우저가 키보드 스크롤을 위해 암묵적으로 포커스 가능하게 만든다. 부모(`.common-code-card`)가 `overflow: hidden`이라 바깥쪽 outline은 잘리거나 내부 행과 겹쳐 보이므로, `TableCard.css`에서 Button과 동일한 `inset var(--focus-ring-brand)` box-shadow 링으로 전역 통일했다. 이 부분은 별도 처리가 필요 없다.
+
+---
+
 ### 패턴 C — 인라인 행 편집 (CommonCodeDetailTable)
 
 행 클릭 선택 + 행추가/삭제 + 위아래 이동 + InputBase·CheckboxInput 인라인 편집.
