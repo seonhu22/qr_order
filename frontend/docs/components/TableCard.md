@@ -138,9 +138,11 @@ const headerActions = (
 
 > **행 클릭형 테이블의 키보드/포커스 접근성** — 추가일: 2026-06-24
 >
-> 행에 별도 수정·액션 버튼 없이 `<tr onClick>`만으로 모달이나 디테일을 여는 테이블(`NoticeListTable`, `AccessLogMasterTable` 등)은 기본적으로 Tab 포커스가 가지 않고 Enter/Space로도 열 수 없다.
+> 행 클릭으로 선택·모달·디테일을 여는 테이블은 기본적으로 Tab 포커스가 가지 않고 Enter/Space로도 열 수 없다. 두 가지 구현 경로가 있다.
 >
-> 공용 훅 `useClickableRow`(`@/shared/hooks/useClickableRow`)로 해결한다. `TableCard`/`SelectableTableRow` 컴포넌트는 수정하지 않고, 각 feature 테이블의 `<tr>`에 `getRowProps`를 spread한다.
+> **`TableBodyRenderer`/`EditableDetailTable`(즉 `SharedTableRow.onSelect`)를 쓰는 테이블** — `MenuCategoryMasterTable`, `MenuOptionMasterTable`, `MenuOptionGroupTable` 등 대부분의 마스터/디테일 테이블이 여기 해당한다. `onSelect`가 있는 행은 `SelectableTableRow`(`TableBodyParts.tsx`)가 자동으로 `tabIndex={0}`/`role="button"`/Enter·Space `onKeyDown`을 부여하므로 feature 쪽에서 따로 할 일이 없다. 체크박스·수정 버튼처럼 행 안의 다른 포커스 요소와 별개로, 행 자체도 하나의 Tab 정류장이 된다.
+>
+> **`TableCard` 안에 `<table>`을 직접 작성하는 테이블** — `<tr onClick>`만으로 모달이나 디테일을 여는 커스텀 마크업 테이블(`NoticeListTable`, `AccessLogMasterTable` 등)은 공용 훅 `useClickableRow`(`@/shared/hooks/useClickableRow`)로 해결한다. `TableCard`/`SelectableTableRow` 컴포넌트는 수정하지 않고, 각 feature 테이블의 `<tr>`에 `getRowProps`를 spread한다.
 >
 > ```tsx
 > const { getRowProps } = useClickableRow<Row>(onRowClick);
@@ -152,17 +154,33 @@ const headerActions = (
 > ))
 > ```
 >
-> - `is-selected` 같은 다른 className과 함께 써도 무방하다(`AccessLogMasterTable` 참고).
-> - 행에 이미 `EditTableButton` 같은 별도 액션 버튼이 있는 테이블(`NoticeManageTable` 등)은 버튼 자체가 포커스·Enter를 지원하므로 적용 대상이 아니다.
-> - 포커스 표시는 `TableCard.css`가 아니라 페이지 CSS에서 `role='button'`인 행에만 추가한다 — 일반 읽기전용 행까지 영향받지 않도록 범위를 좁힌다.
+> - `is-selected` 같은 다른 className과 함께 써도 무방하다(`AccessLogMasterTable`, `MenuCategoryMasterTable` 참고).
+> - 행에 이미 `EditTableButton` 같은 별도 액션 버튼이 있는 테이블(`NoticeManageTable` 등)이라도, 행 자체의 선택 동작(`onSelect`)이 따로 있으면 위 두 경로 중 하나를 적용한다. 행에 선택 동작이 전혀 없고 버튼만 있는 테이블(`InquiryManageTable` 등)은 버튼 자체가 포커스·Enter를 지원하므로 적용 대상이 아니다.
+> - 포커스 표시는 두 경로 모두 `TableCard.css`에 전역으로 정의돼 있다 — `useClickableRow`/`SelectableTableRow` 둘 다 같은 `role="button"`을 행에 부여하므로 한 selector로 같이 처리된다. 새로 추가할 필요가 없다.
 >   ```css
->   /* NoticeListPage.css, AccessLogPage.css 참고 */
->   .my-feature-table .common-table tbody tr[role='button']:focus-visible {
->     outline: var(--border-2) solid var(--color-border-focus);
->     outline-offset: -2px;
+>   /* TableCard.css */
+>   .common-table tbody tr[role='button']:focus-visible {
+>     outline: none; /* 브라우저 기본 포커스 outline 억제 — 안 쓰면 배경색과 함께 같이 나타난다 */
+>     background-color: rgba(255, 107, 43, 0.03); /* is-selected(0.06)보다 옅게 — "선택됨"과 구분 */
 >   }
 >   ```
 > - `overflow: auto`인 `.common-table-wrap` 자체도 브라우저가 키보드 스크롤을 위해 암묵적으로 포커스 가능하게 만든다. 부모(`.common-code-card`)가 `overflow: hidden`이라 바깥쪽 outline은 잘리거나 내부 행과 겹쳐 보이므로, `TableCard.css`에서 Button과 동일한 `inset var(--focus-ring-brand)` box-shadow 링으로 전역 통일했다. 이 부분은 별도 처리가 필요 없다.
+>
+> **행 `onKeyDown`은 반드시 `event.target === event.currentTarget`을 먼저 확인한다.**
+>
+> 행 안에 `PasswordResetButton`/토글 버튼처럼 자체적으로 Enter에 반응하는 네이티브 `<button>`이 있으면, 그 버튼에 포커스가 있을 때 누른 Enter의 `keydown`이 버블링되어 부모 `<tr>`의 `onKeyDown`까지 올라온다. 이때 행 핸들러가 타깃을 구분하지 않고 바로 `preventDefault()`를 호출하면, 버튼의 기본 동작(클릭)이 막히고 대신 행 선택만 일어난다 — 즉 "버튼에 포커스가 있는데 Enter를 누르면 버튼이 아니라 행이 반응하는" 버그가 생긴다.
+>
+> ```tsx
+> const handleKeyDown = (event: KeyboardEvent<HTMLTableRowElement>) => {
+>   if (event.target !== event.currentTarget) return; // 행 내부 다른 요소에서 올라온 이벤트는 무시
+>   if (event.key === 'Enter' || event.key === ' ') {
+>     event.preventDefault();
+>     onSelect();
+>   }
+> };
+> ```
+>
+> `SelectableTableRow`(`TableBodyParts.tsx`)와 `TreeItem`(`treeMenu/TreeItem.tsx`) 모두 이 가드를 적용해 두었다. 행 단위 `onKeyDown`을 새로 작성할 일이 있으면 이 가드를 빠뜨리지 않는다.
 
 ---
 
