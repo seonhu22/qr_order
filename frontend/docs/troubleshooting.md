@@ -70,6 +70,13 @@
   - `handlers` 배열에 실제로 등록됐는지(`import`만 하고 배열에 추가 안 하는 경우 주의)
 - 참고: generated MSW 핸들러 중 조회(GET)는 `getXxxControllerMock()`처럼 일괄 등록되기도 하지만, 등록 및 mutation(POST/PUT/DELETE) 핸들러는 개별 등록 대상인 경우가 많으므로 신규 API 추가 시 반드시 확인
 
+### 네이티브 a/button/input 포커스·호버 색상이 브랜드 컬러가 아니라 파란색으로 보임
+
+- 증상: `Button`/`Checkbox`처럼 자체 CSS로 포커스를 override하는 공용 컴포넌트가 아닌, 일반 `<a>`/`<button>`/`<input>`/`<select>`/`<textarea>`의 포커스 외곽선과 링크 hover 색이 브랜드 오렌지가 아니라 `#3b82f6`(파란색)로 보임
+- 원인: `reset.css`가 `var(--input-focus-border, #3b82f6)`/`var(--input-focus-border)`를 참조하는데, `--input-focus-border` 토큰 자체가 `semantic-tokens.css`에 정의돼 있지 않았다. CSS 커스텀 프로퍼티가 미정의면 fallback(`#3b82f6`)으로 빠지거나(`outline`), fallback이 없는 선언(`a:hover { color: var(--input-focus-border) }`)은 무효 처리되어 아무 변화도 안 보인다
+- 수정: `semantic-tokens.css`에 `--input-focus-border: var(--color-border-focus);`를 추가해 브랜드 포커스 컬러와 동일하게 연결함(`Button`/`Checkbox` 등 컴포넌트별 override와 같은 값으로 통일)
+- 참고: `--input-focus-border`는 `reset.css`의 네이티브 엘리먼트 포커스·호버 전용 별칭(alias)이다. 새 컴포넌트에서 포커스 스타일이 필요하면 이 토큰을 직접 참조하지 말고 `--focus-ring-brand`/`--color-border-focus`를 쓴다.
+
 ### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
 
 - 증상: 편집 중(`isDirty`) 검색창에서 **Enter**로 조회하면 "조회하시겠습니까?" 확인 모달이 떴다가 즉시 사라지고 조회가 그대로 실행됨. 같은 동작을 조회 버튼 **클릭**으로 하면 정상적으로 모달이 유지됨.
