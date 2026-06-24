@@ -201,6 +201,14 @@
   box-shadow: inset var(--border-2) 0 0 var(--color-brand-default);
 }
 
+/* 키보드 포커스 — SelectableTableRow가 onSelect로 role="button"/tabIndex을 부여한 행.
+   outline은 셀 경계선과 겹쳐 보여서 배경색 강조로 대체한다.
+   is-selected(rgba(255, 107, 43, 0.06))보다 옅게 둬서 "선택됨"과 "포커스만 받음"을 구분한다. */
+.common-table tbody tr[role='button']:focus-visible {
+  outline: none;
+  background-color: rgba(255, 107, 43, 0.03);
+}
+
 /* 체크박스 컬럼 고정 너비 */
 .common-table__col--checkbox {
   width: var(--spacing-14); /* 48px / 3rem */

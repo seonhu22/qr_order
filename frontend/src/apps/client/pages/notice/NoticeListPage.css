@@ -13,12 +13,6 @@
   min-height: 0;
 }
 
-/* 키보드 포커스 — 행 전체가 모달 오픈용 버튼 역할(useClickableRow)일 때의 포커스 표시 */
-.notice-list-table .common-table tbody tr[role='button']:focus-visible {
-  outline: var(--border-2) solid var(--color-border-focus);
-  outline-offset: -2px;
-}
-
 /* ── 상세 모달 본문 ── */
 .notice-list-detail {
   display: flex;
