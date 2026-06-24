@@ -91,9 +91,11 @@
   background: var(--color-bg-hover);
 }
 
+/* outline은 셀 경계선과 겹쳐 보이므로 배경색 강조로 대체한다(common-table과 동일 패턴).
+   is-selected(--color-bg-selected)보다 옅게 둬서 "선택됨"과 구분한다. */
 .tree-item__row:focus-visible {
-  outline: var(--border-2) solid var(--color-border-focus);
-  outline-offset: -0.125rem;
+  outline: none;
+  background: rgba(255, 107, 43, 0.03);
 }
 
 /* 선택 상태 — 배경 + 좌측 브랜드 보더 (common-table 동일 패턴) */
