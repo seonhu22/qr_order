@@ -52,6 +52,12 @@
   cursor: default;
 }
 
+/* 키보드 포커스 — 마스터 행(useClickableRow)만 표시 */
+.access-log-master-table .common-table tbody tr[role='button']:focus-visible {
+  outline: var(--border-2) solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
 /* ── 필터 카드 ── */
 .access-log-filters {
   display: flex;

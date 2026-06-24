@@ -72,6 +72,15 @@
   overflow: auto;
 }
 
+/* overflow: auto인 스크롤 컨테이너는 브라우저가 키보드 스크롤을 위해
+   암묵적으로 포커스 가능하게 만든다. 부모(.common-code-card)가 overflow: hidden이라
+   바깥쪽 outline은 잘려서 안 보이거나 내부 행과 겹쳐 보이므로, Button과 동일하게
+   inset box-shadow 링으로 통일한다. */
+.common-table-wrap:focus-visible {
+  outline: none;
+  box-shadow: inset var(--focus-ring-brand);
+}
+
 /* 테이블 헤더 고정 — 기본 테이블은 common-table-wrap 안에서 sticky */
 .common-table thead th {
   position: sticky;

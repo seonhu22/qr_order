@@ -1,5 +1,6 @@
 import { TableCard } from '@/shared/components/table';
 import { TableCardContentState } from '@/shared/components/table/TableCardContentState';
+import { useClickableRow } from '@/shared/hooks/useClickableRow';
 import type { AccessLogMasterRow } from '../types';
 
 type AccessLogMasterTableProps = {
@@ -17,6 +18,8 @@ export function AccessLogMasterTable({
   selectedId,
   onSelectRow,
 }: AccessLogMasterTableProps) {
+  const { getRowProps } = useClickableRow<AccessLogMasterRow>(onSelectRow);
+
   return (
     <TableCard title="접속 로그 목록" ariaLabel="접속 로그 목록" className="access-log-master-table">
       <TableCardContentState
@@ -50,7 +53,7 @@ export function AccessLogMasterTable({
                   <tr
                     key={row.id}
                     className={row.id === selectedId ? 'is-selected' : undefined}
-                    onClick={() => onSelectRow(row)}
+                    {...getRowProps(row, `${row.userId} 접속 이력 상세 보기`)}
                   >
                     <td>{row.userId}</td>
                     <td className="common-table__cell--center">{row.userNm}</td>

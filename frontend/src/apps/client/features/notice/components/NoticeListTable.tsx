@@ -1,4 +1,5 @@
 import { TableCard, TableCardContentState } from '@/shared/components/table';
+import { useClickableRow } from '@/shared/hooks/useClickableRow';
 import type { NoticeListRow } from '../types';
 
 type NoticeListTableProps = {
@@ -16,6 +17,8 @@ export function NoticeListTable({
   className,
   onRowClick,
 }: NoticeListTableProps) {
+  const { getRowProps } = useClickableRow<NoticeListRow>(onRowClick);
+
   return (
     <TableCard title="공지사항 목록" ariaLabel="공지사항 목록" className={className}>
       <TableCardContentState
@@ -48,7 +51,7 @@ export function NoticeListTable({
                 </tr>
               ) : (
                 rows.map((row, index) => (
-                  <tr key={row.id} onClick={() => onRowClick(row)}>
+                  <tr key={row.id} {...getRowProps(row, `${row.title} 상세 보기`)}>
                     <td className="common-table__cell--center">{index + 1}</td>
                     <td
                       className="common-table__cell--left common-table__cell--truncate"
