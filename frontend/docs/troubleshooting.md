@@ -77,6 +77,13 @@
 - 수정: `semantic-tokens.css`에 `--input-focus-border: var(--color-border-focus);`를 추가해 브랜드 포커스 컬러와 동일하게 연결함(`Button`/`Checkbox` 등 컴포넌트별 override와 같은 값으로 통일)
 - 참고: `--input-focus-border`는 `reset.css`의 네이티브 엘리먼트 포커스·호버 전용 별칭(alias)이다. 새 컴포넌트에서 포커스 스타일이 필요하면 이 토큰을 직접 참조하지 말고 `--focus-ring-brand`/`--color-border-focus`를 쓴다.
 
+### `Icon` + 텍스트를 같은 색상 배너에 넣으면 아이콘이 의도보다 어둡게 보임
+
+- 증상: `FormAlert--success`처럼 아이콘과 텍스트를 같은 success 계열로 칠했는데, 직접 만든 배너는 두 색이 똑같이 어두워 보여서 기존 컴포넌트와 톤이 다르게 느껴짐
+- 원인: `Icon`(`shared/assets/icons/Icon.tsx`)은 `className`만 받는 raw `<svg>`이고 내부 `<use>`가 `currentColor`를 그대로 쓴다. 아이콘과 텍스트를 한 wrapper에 넣고 wrapper에만 `color`를 주면 아이콘도 텍스트와 같은 색으로 상속된다. 그런데 `FormAlert.css`는 아이콘에 `--color-status-success-default`(밝은 톤), 텍스트에 `--color-status-success-text`(어두운 톤)를 **따로** 지정해서 의도적으로 두 색을 분리해 둔 상태다
+- 수정: wrapper에 텍스트 색만 주고, 아이콘은 `Icon`이 렌더한 `svg`를 직접 선택해 `--color-status-success-default`로 덮어쓴다(`InquiryManagementPage.css`의 `.inquiry-detail-answered-banner__left svg` 참고). `Icon`에 `className`을 넘겨 받을 수 있으면 그 클래스로 선택하는 쪽이 더 명확하다
+- 참고: 상태 배너에 아이콘 + 텍스트를 같이 쓸 때는 항상 `FormAlert.css`의 `-default`(아이콘)/`-text`(텍스트) 분리 패턴을 기준으로 맞춘다.
+
 ### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
 
 - 증상: 편집 중(`isDirty`) 검색창에서 **Enter**로 조회하면 "조회하시겠습니까?" 확인 모달이 떴다가 즉시 사라지고 조회가 그대로 실행됨. 같은 동작을 조회 버튼 **클릭**으로 하면 정상적으로 모달이 유지됨.
