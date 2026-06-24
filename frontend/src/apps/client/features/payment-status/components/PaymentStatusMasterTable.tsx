@@ -1,4 +1,5 @@
 import { TableCard, TableCardContentState } from '@/shared/components/table';
+import { useClickableRow } from '@/shared/hooks/useClickableRow';
 import type { PaymentStatusMasterRow } from '../types';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatusMasterRow['paymentStatus'], string> = {
@@ -30,6 +31,8 @@ export function PaymentStatusMasterTable({
   selectedId,
   onSelectRow,
 }: PaymentStatusMasterTableProps) {
+  const { getRowProps } = useClickableRow<PaymentStatusMasterRow>(onSelectRow);
+
   return (
     <TableCard title="결제 목록" ariaLabel="결제 목록" className="payment-status-master-table">
       <TableCardContentState
@@ -58,7 +61,7 @@ export function PaymentStatusMasterTable({
                   <tr
                     key={row.id}
                     className={row.id === selectedId ? 'is-selected' : undefined}
-                    onClick={() => onSelectRow(row)}
+                    {...getRowProps(row, `${row.orderNo} 결제 상세 보기`)}
                   >
                     <td className="common-table__mono">{row.orderNo}</td>
                     <td className="common-table__cell--center">{formatPaymentType(row)}</td>
