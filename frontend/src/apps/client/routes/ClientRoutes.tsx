@@ -15,6 +15,7 @@ import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHis
 import { PaymentStatusListPage } from '@/apps/client/pages/payment-status/PaymentStatusListPage';
 import { SettlementListPage } from '@/apps/client/pages/settlement/SettlementListPage';
 import { NoticeListPage } from '@/apps/client/pages/notice/NoticeListPage';
+import { InquiryManagementPage } from '@/apps/client/pages/inquiry/InquiryManagementPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -88,12 +89,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'board/inquiry/management',
-        element: (
-          <ClientPlaceholderPage
-            title="문의사항 관리"
-            description="문의사항을 조회하고 관리하는 화면입니다."
-          />
-        ),
+        element: <InquiryManagementPage />,
       },
     ],
   },
