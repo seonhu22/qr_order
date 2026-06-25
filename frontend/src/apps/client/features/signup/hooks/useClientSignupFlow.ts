@@ -12,6 +12,7 @@ import {
   isSignupBusinessVerificationError,
   useSignupBusinessVerificationMutation,
 } from '../api/signupBusinessVerificationApi';
+import { shouldBypassBusinessVerificationError } from '../api/signupBusinessVerificationBypass';
 import {
   buildSignupEmailCodeRequest,
   isSignupEmailCodeValidationError,
@@ -92,6 +93,27 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
           });
         },
         onError: (error) => {
+          // TODO(QA-bypass): 백엔드 사업자 인증 테스트 데이터 확보 시 본 분기 제거.
+          // docs/qa-bypass-business-verification.md 참고.
+          // import.meta.env.DEV 가드를 call-site에 두는 이유: production build에서
+          // minifier가 함수 반환값을 추적 못하므로, 직접 inline해야 branch 전체가 dead-code 제거됨.
+          if (import.meta.env.DEV && shouldBypassBusinessVerificationError(error)) {
+            console.warn(
+              '[QA bypass] 사업자 인증 400 응답 우회. VITE_BYPASS_BUSINESS_VERIFICATION=true',
+            );
+            setBusinessError('');
+            modal.showSuccess({
+              title: 'QA 모드',
+              description:
+                '사업자 인증 오류를 우회했습니다.\n실제 인증 없이 다음 단계로 진행합니다.',
+              onConfirm: () => {
+                modal.close();
+                goToStep('signup');
+              },
+            });
+            return;
+          }
+
           setBusinessError('');
           modal.showError({
             title: '인증 실패',
