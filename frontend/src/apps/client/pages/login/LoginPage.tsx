@@ -68,6 +68,7 @@ import {
 } from '@/shared/auth/initPassword';
 
 const SAVED_ID_KEY = 'client_saved_userId';
+const PASSWORD_RESET_STATE_KEY = 'client_password_reset_state';
 
 type Step =
   | 'login'
@@ -80,6 +81,53 @@ type Step =
   | 'find-password-verify'
   | 'find-password-reset'
   | 'find-password-complete';
+
+type PasswordResetStep = Extract<
+  Step,
+  'find-password' | 'find-password-verify' | 'find-password-reset'
+>;
+
+type PasswordResetState = {
+  step: PasswordResetStep;
+  userId: string;
+  email: string;
+};
+
+const PASSWORD_RESET_STEPS = new Set<Step>([
+  'find-password',
+  'find-password-verify',
+  'find-password-reset',
+]);
+
+function isPasswordResetStep(step: string): step is PasswordResetStep {
+  return PASSWORD_RESET_STEPS.has(step as Step);
+}
+
+function readPasswordResetState(): PasswordResetState | null {
+  try {
+    const raw = sessionStorage.getItem(PASSWORD_RESET_STATE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<PasswordResetState>;
+    if (!parsed.step || !isPasswordResetStep(parsed.step)) return null;
+
+    return {
+      step: parsed.step,
+      userId: typeof parsed.userId === 'string' ? parsed.userId : '',
+      email: typeof parsed.email === 'string' ? parsed.email : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePasswordResetState(state: PasswordResetState) {
+  sessionStorage.setItem(PASSWORD_RESET_STATE_KEY, JSON.stringify(state));
+}
+
+function clearPasswordResetState() {
+  sessionStorage.removeItem(PASSWORD_RESET_STATE_KEY);
+}
 
 function formatBusinessNo(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -105,8 +153,9 @@ async function clientInitPwdActive(data: {
 export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const initialPasswordResetState = readPasswordResetState();
 
-  const [step, setStep] = useState<Step>('login');
+  const [step, setStep] = useState<Step>(initialPasswordResetState?.step ?? 'login');
 
   // 로그인 필드
   const [userId, setUserId] = useState(() => localStorage.getItem(SAVED_ID_KEY) ?? '');
@@ -152,8 +201,8 @@ export default function LoginPage() {
   const [emailCodeError, setEmailCodeError] = useState('');
 
   // 비밀번호 찾기 필드
-  const [findId, setFindId] = useState('');
-  const [findEmail, setFindEmail] = useState('');
+  const [findId, setFindId] = useState(initialPasswordResetState?.userId ?? '');
+  const [findEmail, setFindEmail] = useState(initialPasswordResetState?.email ?? '');
   const [verifyCode, setVerifyCode] = useState('');
   const [findError, setFindError] = useState('');
   const [resetPw, setResetPw] = useState('');
@@ -518,6 +567,11 @@ export default function LoginPage() {
       {
         onSuccess: () => {
           setVerifyCode('');
+          writePasswordResetState({
+            step: 'find-password-verify',
+            userId: payload.userId ?? '',
+            email: payload.email ?? '',
+          });
           setStep('find-password-verify');
         },
         onError: (error) => {
@@ -539,6 +593,13 @@ export default function LoginPage() {
     reSendPwdChangeCodeMutate(
       { data: payload },
       {
+        onSuccess: () => {
+          writePasswordResetState({
+            step: 'find-password-verify',
+            userId: payload.userId ?? '',
+            email: payload.email ?? '',
+          });
+        },
         onError: (error) => {
           setFindError(getSignupApiErrorMessage(error, '인증 코드 재발송에 실패했습니다.'));
         },
@@ -562,6 +623,11 @@ export default function LoginPage() {
         onSuccess: () => {
           setResetPw('');
           setResetPwConfirm('');
+          writePasswordResetState({
+            step: 'find-password-reset',
+            userId: findId.trim(),
+            email: findEmail.trim(),
+          });
           setStep('find-password-reset');
         },
         onError: (error) => {
@@ -590,6 +656,7 @@ export default function LoginPage() {
       {
         onSuccess: (data) => {
           if (data.success) {
+            clearPasswordResetState();
             setStep('find-password-complete');
             return;
           }
@@ -638,6 +705,7 @@ export default function LoginPage() {
   };
 
   const goToLogin = () => {
+    clearPasswordResetState();
     setStep('login');
     setConsentChecked(false);
     setBusinessNo('');
@@ -1267,6 +1335,11 @@ export default function LoginPage() {
                 size="lg"
                 onClick={() => {
                   setFindError('');
+                  writePasswordResetState({
+                    step: 'find-password',
+                    userId: findId.trim(),
+                    email: findEmail.trim(),
+                  });
                   setStep('find-password');
                 }}
               >
