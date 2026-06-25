@@ -5,11 +5,11 @@
 
     <update id="chgPwd">
         update sys_user set
-            user_password = #{pwdChgRequest.pwd},
-            modify_user_id = #{pwdChgRequest.userId},
+            user_password = #{pwd},
+            modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
-        and user_id = #{pwdChgRequest.userId}
+        and user_id = #{userId}
     </update>
 
 </mapper>
