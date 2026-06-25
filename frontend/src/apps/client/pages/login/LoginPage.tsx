@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
-import { TextInput, InputWrapper, InputBase } from '@/shared/components/input';
-import { Button } from '@/shared/components/button';
-import { FormAlert } from '@/shared/components/form-alert';
-import { CheckboxInput } from '@/shared/components/checkbox';
 import { SimpleDefaultModal } from '@/shared/components/modal';
 import { ClientBrand } from '@/apps/client/features/brand/components/ClientBrand';
-import { Icon } from '@/shared/assets/icons/Icon';
 import { getCurrentUser } from '@/generated/auth-api-controller/auth-api-controller';
 import type { ChkEmailValidParams } from '@/generated/types/chkEmailValidParams';
 import type { CommonResponse } from '@/generated/types/commonResponse';
@@ -16,6 +11,24 @@ import type { EmailValidRequest } from '@/generated/types/emailValidRequest';
 import type { SignUpRequest } from '@/generated/types/signUpRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useAuthLoginMutation } from '@/shared/auth/hooks/useAuthLoginMutation';
+import { useInitPwdActiveMutation } from '@/shared/auth/hooks/useInitPwdActiveMutation';
+import type { Step } from '@/apps/client/features/login/types';
+import { getAriaLabel } from '@/apps/client/features/login/utils/getAriaLabel';
+import { LoginForm } from '@/apps/client/features/login/components/LoginForm';
+import { ChangePasswordForm } from '@/apps/client/features/login/components/ChangePasswordForm';
+import { SignupConsent } from '@/apps/client/features/signup/components/SignupConsent';
+import { SignupBusinessForm } from '@/apps/client/features/signup/components/SignupBusinessForm';
+import { SignupForm } from '@/apps/client/features/signup/components/SignupForm';
+import { SignupComplete } from '@/apps/client/features/signup/components/SignupComplete';
+import { FindPasswordForm } from '@/apps/client/features/password-reset/components/FindPasswordForm';
+import { FindPasswordVerify } from '@/apps/client/features/password-reset/components/FindPasswordVerify';
+import { FindPasswordReset } from '@/apps/client/features/password-reset/components/FindPasswordReset';
+import { FindPasswordComplete } from '@/apps/client/features/password-reset/components/FindPasswordComplete';
+import {
+  clearPasswordResetState,
+  readPasswordResetState,
+  writePasswordResetState,
+} from '@/apps/client/features/password-reset/utils/passwordResetStorage';
 import {
   buildSignupBusinessVerificationPayload,
   getSignupBusinessVerificationErrorMessage,
@@ -68,93 +81,13 @@ import {
 } from '@/shared/auth/initPassword';
 
 const SAVED_ID_KEY = 'client_saved_userId';
-const PASSWORD_RESET_STATE_KEY = 'client_password_reset_state';
-
-type Step =
-  | 'login'
-  | 'change-password'
-  | 'signup-consent'
-  | 'signup-business'
-  | 'signup'
-  | 'signup-complete'
-  | 'find-password'
-  | 'find-password-verify'
-  | 'find-password-reset'
-  | 'find-password-complete';
-
-type PasswordResetStep = Extract<
-  Step,
-  'find-password' | 'find-password-verify' | 'find-password-reset'
->;
-
-type PasswordResetState = {
-  step: PasswordResetStep;
-  userId: string;
-  email: string;
-};
-
-const PASSWORD_RESET_STEPS = new Set<Step>([
-  'find-password',
-  'find-password-verify',
-  'find-password-reset',
-]);
-
-function isPasswordResetStep(step: string): step is PasswordResetStep {
-  return PASSWORD_RESET_STEPS.has(step as Step);
-}
-
-function readPasswordResetState(): PasswordResetState | null {
-  try {
-    const raw = sessionStorage.getItem(PASSWORD_RESET_STATE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as Partial<PasswordResetState>;
-    if (!parsed.step || !isPasswordResetStep(parsed.step)) return null;
-
-    return {
-      step: parsed.step,
-      userId: typeof parsed.userId === 'string' ? parsed.userId : '',
-      email: typeof parsed.email === 'string' ? parsed.email : '',
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writePasswordResetState(state: PasswordResetState) {
-  sessionStorage.setItem(PASSWORD_RESET_STATE_KEY, JSON.stringify(state));
-}
-
-function clearPasswordResetState() {
-  sessionStorage.removeItem(PASSWORD_RESET_STATE_KEY);
-}
-
-function formatBusinessNo(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-}
-
-async function clientInitPwdActive(data: {
-  password: string;
-  chkPassword: string;
-  userId: string;
-}) {
-  const res = await fetch('/api/client/auth/init-pwd-active', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-  return res.json() as Promise<{ success: boolean; message?: string }>;
-}
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const initialPasswordResetState = readPasswordResetState();
 
+  // Step
   const [step, setStep] = useState<Step>(initialPasswordResetState?.step ?? 'login');
 
   // 로그인 필드
@@ -214,8 +147,6 @@ export default function LoginPage() {
     const id = setTimeout(() => setEmailTimerSeconds((s) => s - 1), 1000);
     return () => clearTimeout(id);
   }, [emailTimerSeconds]);
-
-  const formatTimer = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
   const handleSendEmailCode = () => {
     if (!email) {
@@ -311,40 +242,40 @@ export default function LoginPage() {
     },
   });
 
-  const { mutate: changePasswordMutate, isPending: isChangePending } = useMutation({
-    mutationFn: clientInitPwdActive,
-    onSuccess: (data) => {
-      if (data.success) {
-        setResultModal({
-          open: true,
-          title: '알림',
-          description: '비밀번호가 성공적으로 변경되었습니다.\n새 비밀번호로 다시 로그인해주세요.',
-          onConfirm: () => {
-            setResultModal((prev) => ({ ...prev, open: false }));
-            setStep('login');
-            setNewPassword('');
-            setNewPasswordConfirm('');
-            setChangePasswordError('');
-          },
-        });
-      } else {
-        setResultModal({
-          open: true,
-          title: '비밀번호 변경 실패',
-          description: data.message ?? '비밀번호 변경에 실패했습니다.',
-          onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
-        });
-      }
-    },
-    onError: () => {
+  const { mutate: changePasswordMutate, isPending: isChangePending } = useInitPwdActiveMutation();
+
+  const handleChangePasswordSuccess = (data: { success?: boolean; message?: string | null }) => {
+    if (data.success) {
+      setResultModal({
+        open: true,
+        title: '알림',
+        description: '비밀번호가 성공적으로 변경되었습니다.\n새 비밀번호로 다시 로그인해주세요.',
+        onConfirm: () => {
+          setResultModal((prev) => ({ ...prev, open: false }));
+          setStep('login');
+          setNewPassword('');
+          setNewPasswordConfirm('');
+          setChangePasswordError('');
+        },
+      });
+    } else {
       setResultModal({
         open: true,
         title: '비밀번호 변경 실패',
-        description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+        description: data.message ?? '비밀번호 변경에 실패했습니다.',
         onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
       });
-    },
-  });
+    }
+  };
+
+  const handleChangePasswordError = () => {
+    setResultModal({
+      open: true,
+      title: '비밀번호 변경 실패',
+      description: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+      onConfirm: () => setResultModal((prev) => ({ ...prev, open: false })),
+    });
+  };
 
   const { mutate: verifyBusinessMutate, isPending: isBusinessPending } =
     useSignupBusinessVerificationMutation({
@@ -528,11 +459,16 @@ export default function LoginPage() {
       setChangePasswordError('비밀번호가 일치하지 않습니다.');
       return;
     }
-    changePasswordMutate({
-      password: newPassword,
-      chkPassword: newPasswordConfirm,
-      userId: loggedInUserId,
-    });
+    changePasswordMutate(
+      {
+        data: { password: newPassword, chkPassword: newPasswordConfirm },
+        params: { userId: loggedInUserId },
+      },
+      {
+        onSuccess: handleChangePasswordSuccess,
+        onError: handleChangePasswordError,
+      },
+    );
   };
 
   const handleBusinessSubmit = (e: { preventDefault: () => void }) => {
@@ -733,27 +669,17 @@ export default function LoginPage() {
   };
 
   const isWide = step !== 'login' && step !== 'change-password';
+  const ariaLabel = getAriaLabel(step);
 
-  const ariaLabel =
-    step === 'login'
-      ? '로그인'
-      : step === 'change-password'
-        ? '비밀번호 변경'
-        : step === 'signup-consent'
-          ? '개인정보 동의'
-          : step === 'signup-business'
-            ? '사업자 인증'
-            : step === 'signup'
-              ? '회원가입'
-              : step === 'signup-complete'
-                ? '가입 완료'
-                : step === 'find-password'
-                  ? '비밀번호 찾기'
-                  : step === 'find-password-verify'
-                    ? '인증 코드 확인'
-                    : step === 'find-password-reset'
-                      ? '새 비밀번호 설정'
-                      : '비밀번호 찾기 완료';
+  const handleVerifyCodeBack = () => {
+    setFindError('');
+    writePasswordResetState({
+      step: 'find-password',
+      userId: findId.trim(),
+      email: findEmail.trim(),
+    });
+    setStep('find-password');
+  };
 
   return (
     <main className="login-page login-page--client">
@@ -769,659 +695,149 @@ export default function LoginPage() {
           <ClientBrand />
         </header>
 
-        {/* ── 로그인 ── */}
         {step === 'login' && (
-          <form className="login-card__body" onSubmit={handleLoginSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">로그인</h1>
-              <p className="login-card__subheading">계정 정보를 입력하여 로그인하세요.</p>
-            </div>
-
-            {loginError && (
-              <FormAlert
-                type="error"
-                description={loginError}
-                dismissible
-                onDismiss={() => setLoginError('')}
-              />
-            )}
-
-            <div className="login-card__fields">
-              <TextInput
-                label="아이디"
-                placeholder="아이디를 입력하세요"
-                size="lg"
-                id="login-id"
-                autoComplete="username"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                isError={!!loginError}
-              />
-              <TextInput
-                label="비밀번호"
-                placeholder="비밀번호를 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="login-pw"
-                autoComplete="current-password"
-                value={userPassword}
-                onChange={(e) => setUserPassword(e.target.value)}
-                isError={!!loginError}
-              />
-            </div>
-
-            <div className="login-card__options">
-              <CheckboxInput
-                label="아이디 저장"
-                size="sm"
-                checked={saveId}
-                onChange={(checked) => setSaveId(checked)}
-              />
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={() => setStep('find-password')}
-              >
-                비밀번호 찾기
-              </Button>
-            </div>
-
-            <div className="login-card__button-group">
-              <Button
-                type="submit"
-                size="lg"
-                className="login-card__submit"
-                disabled={isLoginPending}
-              >
-                {isLoginPending ? '로그인 중...' : '로그인'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="login-card__submit"
-                onClick={() => setStep('signup-consent')}
-              >
-                회원가입
-              </Button>
-            </div>
-          </form>
+          <LoginForm
+            userId={userId}
+            userPassword={userPassword}
+            saveId={saveId}
+            loginError={loginError}
+            isPending={isLoginPending}
+            onUserIdChange={setUserId}
+            onUserPasswordChange={setUserPassword}
+            onSaveIdChange={setSaveId}
+            onClearError={() => setLoginError('')}
+            onSubmit={handleLoginSubmit}
+            onGoFindPassword={() => setStep('find-password')}
+            onGoSignup={() => setStep('signup-consent')}
+          />
         )}
 
-        {/* ── 비밀번호 변경 (초기 비밀번호) ── */}
         {step === 'change-password' && (
-          <form className="login-card__body" onSubmit={handleChangePasswordSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">비밀번호 변경</h1>
-              <p className="login-card__subheading">초기 비밀번호를 변경해주세요.</p>
-            </div>
-
-            {changePasswordError && (
-              <FormAlert
-                type="error"
-                description={changePasswordError}
-                dismissible
-                onDismiss={() => setChangePasswordError('')}
-              />
-            )}
-
-            <div className="login-card__fields">
-              <TextInput
-                label="새 비밀번호"
-                placeholder="새 비밀번호를 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="change-pw"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                isError={!!changePasswordError}
-              />
-              <TextInput
-                label="비밀번호 확인"
-                placeholder="비밀번호를 다시 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="change-pw-confirm"
-                autoComplete="new-password"
-                value={newPasswordConfirm}
-                onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                isError={!!changePasswordError}
-              />
-              <Button
-                type="submit"
-                size="lg"
-                className="login-card__submit"
-                disabled={isChangePending}
-              >
-                {isChangePending ? '변경 중...' : '변경하기'}
-              </Button>
-            </div>
-          </form>
+          <ChangePasswordForm
+            newPassword={newPassword}
+            newPasswordConfirm={newPasswordConfirm}
+            changePasswordError={changePasswordError}
+            isPending={isChangePending}
+            onNewPasswordChange={setNewPassword}
+            onNewPasswordConfirmChange={setNewPasswordConfirm}
+            onClearError={() => setChangePasswordError('')}
+            onSubmit={handleChangePasswordSubmit}
+          />
         )}
 
-        {/* ── 개인정보 동의 ── */}
         {step === 'signup-consent' && (
-          <div className="login-card__body">
-            <div className="login-card__title">
-              <h1 className="login-card__heading">개인정보 수집·이용 동의</h1>
-              <p className="login-card__subheading">
-                서비스 이용을 위해 아래 내용을 확인하고 동의해 주세요.
-              </p>
-            </div>
-            <div className="login-card__consent-box">
-              <p className="login-card__consent-section-title">수집 항목</p>
-              <p className="login-card__consent-text">아이디, 비밀번호, 사업자 등록번호, 이메일</p>
-
-              <p className="login-card__consent-section-title">수집 목적</p>
-              <p className="login-card__consent-text">회원 식별, 서비스 제공, 계정 관리</p>
-
-              <p className="login-card__consent-section-title">보유 기간</p>
-              <p className="login-card__consent-text">
-                회원 탈퇴 시까지 (관계 법령에 따라 일정 기간 보관될 수 있음)
-              </p>
-
-              <p className="login-card__consent-notice">
-                위 동의를 거부할 권리가 있으나, 거부 시 서비스 이용이 제한됩니다.
-              </p>
-            </div>
-
-            <CheckboxInput
-              label="개인정보 수집·이용에 동의합니다 (필수)"
-              checked={consentChecked}
-              onChange={(checked) => setConsentChecked(checked)}
-            />
-
-            <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
-                취소
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                disabled={!consentChecked}
-                onClick={() => setStep('signup-business')}
-              >
-                동의 후 계속
-              </Button>
-            </div>
-          </div>
+          <SignupConsent
+            consentChecked={consentChecked}
+            onConsentChange={setConsentChecked}
+            onCancel={goToLogin}
+            onNext={() => setStep('signup-business')}
+          />
         )}
 
-        {/* ── 사업자 인증 ── */}
         {step === 'signup-business' && (
-          <form className="login-card__body" onSubmit={handleBusinessSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">사업자 인증</h1>
-              <p className="login-card__subheading">사업자 정보를 입력하여 인증을 진행해주세요.</p>
-            </div>
-
-            {businessError && (
-              <FormAlert
-                type="error"
-                description={businessError}
-                dismissible
-                onDismiss={() => setBusinessError('')}
-              />
-            )}
-
-            <div className="login-card__signup-grid">
-              <TextInput
-                label="사업자 등록번호"
-                placeholder="000-00-00000"
-                size="lg"
-                id="biz-no"
-                value={businessNo}
-                onChange={(e) => setBusinessNo(formatBusinessNo(e.target.value))}
-                required
-              />
-              <TextInput
-                label="대표자명"
-                placeholder="대표자명을 입력하세요"
-                size="lg"
-                id="biz-rep-name"
-                value={businessRepName}
-                onChange={(e) => setBusinessRepName(e.target.value)}
-                required
-              />
-              <TextInput
-                label="개업일자"
-                type="date"
-                size="lg"
-                id="biz-open-date"
-                value={openDate}
-                onChange={(e) => setOpenDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="login-card__consent-actions">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={() => setStep('signup-consent')}
-              >
-                이전
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                loading={isBusinessPending}
-                disabled={isBusinessPending}
-              >
-                {isBusinessPending ? '처리 중...' : '인증하기'}
-              </Button>
-            </div>
-          </form>
+          <SignupBusinessForm
+            businessNo={businessNo}
+            businessRepName={businessRepName}
+            openDate={openDate}
+            businessError={businessError}
+            isPending={isBusinessPending}
+            onBusinessNoChange={setBusinessNo}
+            onBusinessRepNameChange={setBusinessRepName}
+            onOpenDateChange={setOpenDate}
+            onClearError={() => setBusinessError('')}
+            onPrev={() => setStep('signup-consent')}
+            onSubmit={handleBusinessSubmit}
+          />
         )}
 
-        {/* ── 회원가입 (유저 정보) ── */}
         {step === 'signup' && (
-          <form className="login-card__body" onSubmit={handleSignupSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">회원가입</h1>
-              <p className="login-card__subheading">서비스 이용을 위한 계정을 생성합니다.</p>
-            </div>
-            {signupError && (
-              <FormAlert
-                type="error"
-                description={signupError}
-                dismissible
-                onDismiss={() => setSignupError('')}
-              />
-            )}
-
-            <div className="login-card__signup-grid">
-              {/* 아이디 */}
-              <InputWrapper
-                inputId="signup-id"
-                label="아이디"
-                required
-                successText={
-                  idCheckStatus === 'available' ? '사용 가능한 아이디입니다.' : undefined
-                }
-                errorText={idCheckStatus === 'taken' ? '이미 사용 중인 아이디입니다.' : undefined}
-              >
-                <div className="login-card__id-check-row">
-                  <InputBase
-                    id="signup-id"
-                    size="lg"
-                    placeholder="아이디를 입력하세요"
-                    autoComplete="username"
-                    value={signupId}
-                    onChange={(e) => {
-                      setSignupId(e.target.value);
-                      setIdCheckStatus('idle');
-                    }}
-                    controlState={
-                      idCheckStatus === 'taken'
-                        ? 'error'
-                        : idCheckStatus === 'available'
-                          ? 'success'
-                          : ''
-                    }
-                  />
-                  <Button
-                    type="button"
-                    size="lg"
-                    variant="outline"
-                    loading={isIdCheckPending}
-                    disabled={!signupId || isIdCheckPending}
-                    onClick={() => runIdDuplicateCheck(signupId)}
-                  >
-                    중복확인
-                  </Button>
-                </div>
-              </InputWrapper>
-
-              {/* 비밀번호 */}
-              <TextInput
-                label="비밀번호"
-                placeholder="비밀번호를 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="signup-pw"
-                autoComplete="new-password"
-                value={signupPw}
-                onChange={(e) => setSignupPw(e.target.value)}
-                isError={!!signupError}
-                required
-              />
-
-              {/* 비밀번호 확인 */}
-              <TextInput
-                label="비밀번호 확인"
-                placeholder="비밀번호를 다시 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="signup-pw-confirm"
-                autoComplete="new-password"
-                value={signupPwConfirm}
-                onChange={(e) => setSignupPwConfirm(e.target.value)}
-                isError={!!signupError}
-                required
-              />
-
-              {/* ── 이메일 인증 (하단) ── */}
-              <InputWrapper
-                inputId="signup-email"
-                label="이메일"
-                required
-                errorText={emailError || undefined}
-                successText={emailVerified ? '이메일 인증이 완료되었습니다.' : undefined}
-              >
-                <div className="login-card__id-check-row">
-                  <InputBase
-                    id="signup-email"
-                    type="email"
-                    size="lg"
-                    placeholder="이메일을 입력하세요"
-                    autoComplete="email"
-                    value={email}
-                    disabled={emailFieldDisabled}
-                    controlState={
-                      emailError
-                        ? 'error'
-                        : emailVerified
-                          ? 'success'
-                          : emailFieldDisabled
-                            ? 'disabled'
-                            : ''
-                    }
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setEmailError('');
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    size="lg"
-                    variant="outline"
-                    loading={isEmailCodePending}
-                    disabled={emailVerified || isEmailCodePending}
-                    onClick={handleSendEmailCode}
-                  >
-                    {emailSent && emailTimerSeconds > 0 ? '재전송' : '인증'}
-                  </Button>
-                </div>
-              </InputWrapper>
-
-              {emailSent && !emailVerified && (
-                <>
-                  <InputWrapper
-                    inputId="signup-email-code"
-                    label="인증 코드"
-                    required
-                    errorText={emailCodeError || undefined}
-                  >
-                    <>
-                      <div className="login-card__id-check-row">
-                        <InputBase
-                          id="signup-email-code"
-                          size="lg"
-                          placeholder="인증 코드를 입력하세요"
-                          value={emailVerifyCode}
-                          disabled={emailTimerSeconds === 0}
-                          controlState={
-                            emailCodeError ? 'error' : emailTimerSeconds === 0 ? 'disabled' : ''
-                          }
-                          onChange={(e) => {
-                            setEmailVerifyCode(e.target.value);
-                            setEmailCodeError('');
-                          }}
-                        />
-                        <Button
-                          type="button"
-                          size="lg"
-                          variant="outline"
-                          loading={isEmailVerifyPending}
-                          disabled={emailTimerSeconds === 0 || isEmailVerifyPending}
-                          onClick={handleVerifyEmailCode}
-                        >
-                          확인
-                        </Button>
-                      </div>
-                      {emailTimerSeconds > 0 ? (
-                        <span className="signup-timer">
-                          <Icon id="i-clock" size={13} />
-                          남은 시간 {formatTimer(emailTimerSeconds)}
-                        </span>
-                      ) : (
-                        <span className="signup-timer signup-timer--expired">
-                          <Icon id="i-clock" size={13} />
-                          인증 시간이 만료되었습니다. 이메일을 다시 입력 후 재시도해주세요.
-                        </span>
-                      )}
-                    </>
-                  </InputWrapper>
-                </>
-              )}
-            </div>
-
-            <div className="login-card__consent-actions">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={() => setStep('signup-business')}
-              >
-                이전
-              </Button>
-              <Button type="submit" size="lg" loading={isSignupPending}>
-                {isSignupPending ? '처리 중...' : '가입하기'}
-              </Button>
-            </div>
-          </form>
+          <SignupForm
+            signupId={signupId}
+            signupPw={signupPw}
+            signupPwConfirm={signupPwConfirm}
+            signupError={signupError}
+            idCheckStatus={idCheckStatus}
+            isIdCheckPending={isIdCheckPending}
+            email={email}
+            emailError={emailError}
+            emailVerified={emailVerified}
+            emailFieldDisabled={emailFieldDisabled}
+            emailSent={emailSent}
+            emailTimerSeconds={emailTimerSeconds}
+            emailVerifyCode={emailVerifyCode}
+            emailCodeError={emailCodeError}
+            isEmailCodePending={isEmailCodePending}
+            isEmailVerifyPending={isEmailVerifyPending}
+            isSignupPending={isSignupPending}
+            onSignupIdChange={(value) => {
+              setSignupId(value);
+              setIdCheckStatus('idle');
+            }}
+            onSignupPwChange={setSignupPw}
+            onSignupPwConfirmChange={setSignupPwConfirm}
+            onEmailChange={(value) => {
+              setEmail(value);
+              setEmailError('');
+            }}
+            onEmailVerifyCodeChange={(value) => {
+              setEmailVerifyCode(value);
+              setEmailCodeError('');
+            }}
+            onClearSignupError={() => setSignupError('')}
+            onIdDuplicateCheck={() => runIdDuplicateCheck(signupId)}
+            onSendEmailCode={handleSendEmailCode}
+            onVerifyEmailCode={handleVerifyEmailCode}
+            onPrev={() => setStep('signup-business')}
+            onSubmit={handleSignupSubmit}
+          />
         )}
 
-        {/* ── 가입 완료 ── */}
-        {step === 'signup-complete' && (
-          <div className="login-card__body">
-            <div className="login-card__title">
-              <h1 className="login-card__heading">가입 완료</h1>
-            </div>
-            <div className="login-card__locked-messages">
-              <p className="login-card__subheading">회원가입이 완료되었습니다.</p>
-              <p className="login-card__locked-desc">로그인 후 서비스를 이용할 수 있습니다.</p>
-            </div>
-            <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
-              로그인하러 가기
-            </Button>
-          </div>
-        )}
+        {step === 'signup-complete' && <SignupComplete onGoLogin={goToLogin} />}
 
-        {/* ── 비밀번호 찾기 — 아이디·이메일 입력 ── */}
         {step === 'find-password' && (
-          <form className="login-card__body" onSubmit={handleFindPasswordSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">비밀번호 찾기</h1>
-              <p className="login-card__subheading">가입 시 등록한 아이디와 이메일을 입력하세요.</p>
-            </div>
-
-            {findError && (
-              <FormAlert
-                type="error"
-                description={findError}
-                dismissible
-                onDismiss={() => setFindError('')}
-              />
-            )}
-
-            <div className="login-card__fields">
-              <TextInput
-                label="아이디"
-                placeholder="아이디를 입력하세요"
-                size="lg"
-                id="find-id"
-                autoComplete="username"
-                value={findId}
-                onChange={(e) => setFindId(e.target.value)}
-                isError={!!findError}
-              />
-              <TextInput
-                label="이메일"
-                placeholder="이메일을 입력하세요"
-                type="email"
-                size="lg"
-                id="find-email"
-                autoComplete="email"
-                value={findEmail}
-                onChange={(e) => setFindEmail(e.target.value)}
-                isError={!!findError}
-              />
-            </div>
-
-            <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
-                취소
-              </Button>
-              <Button type="submit" size="lg" loading={isFindSendPending}>
-                {isFindSendPending ? '처리 중...' : '인증 코드 받기'}
-              </Button>
-            </div>
-          </form>
+          <FindPasswordForm
+            findId={findId}
+            findEmail={findEmail}
+            findError={findError}
+            isPending={isFindSendPending}
+            onFindIdChange={setFindId}
+            onFindEmailChange={setFindEmail}
+            onClearError={() => setFindError('')}
+            onCancel={goToLogin}
+            onSubmit={handleFindPasswordSubmit}
+          />
         )}
 
-        {/* ── 비밀번호 찾기 — 인증 코드 입력 ── */}
         {step === 'find-password-verify' && (
-          <form className="login-card__body" onSubmit={handleVerifyCodeSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">인증 코드 확인</h1>
-              <p className="login-card__subheading">이메일로 발송된 인증 코드를 입력하세요.</p>
-            </div>
-
-            {findError && (
-              <FormAlert
-                type="error"
-                description={findError}
-                dismissible
-                onDismiss={() => setFindError('')}
-              />
-            )}
-
-            <div className="login-card__fields">
-              <TextInput
-                label="인증 코드"
-                placeholder="인증 코드를 입력하세요"
-                size="lg"
-                id="verify-code"
-                value={verifyCode}
-                onChange={(e) => setVerifyCode(e.target.value)}
-                isError={!!findError}
-              />
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                loading={isFindResendPending}
-                disabled={isFindSendingCode}
-                onClick={handleResendVerifyCode}
-              >
-                인증 코드 재전송
-              </Button>
-            </div>
-
-            <div className="login-card__consent-actions">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={() => {
-                  setFindError('');
-                  writePasswordResetState({
-                    step: 'find-password',
-                    userId: findId.trim(),
-                    email: findEmail.trim(),
-                  });
-                  setStep('find-password');
-                }}
-              >
-                이전
-              </Button>
-              <Button type="submit" size="lg" loading={isFindVerifyPending}>
-                {isFindVerifyPending ? '확인 중...' : '확인'}
-              </Button>
-            </div>
-          </form>
+          <FindPasswordVerify
+            verifyCode={verifyCode}
+            findError={findError}
+            isVerifyPending={isFindVerifyPending}
+            isResendPending={isFindResendPending}
+            isSendingCode={isFindSendingCode}
+            onVerifyCodeChange={setVerifyCode}
+            onClearError={() => setFindError('')}
+            onResend={handleResendVerifyCode}
+            onBack={handleVerifyCodeBack}
+            onSubmit={handleVerifyCodeSubmit}
+          />
         )}
 
-        {/* ── 비밀번호 찾기 — 새 비밀번호 입력 ── */}
         {step === 'find-password-reset' && (
-          <form className="login-card__body" onSubmit={handleResetPasswordSubmit}>
-            <div className="login-card__title">
-              <h1 className="login-card__heading">새 비밀번호 설정</h1>
-              <p className="login-card__subheading">사용할 새 비밀번호를 입력해주세요.</p>
-            </div>
-
-            {findError && (
-              <FormAlert
-                type="error"
-                description={findError}
-                dismissible
-                onDismiss={() => setFindError('')}
-              />
-            )}
-
-            <div className="login-card__fields">
-              <TextInput
-                label="새 비밀번호"
-                placeholder="새 비밀번호를 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="reset-pw"
-                autoComplete="new-password"
-                value={resetPw}
-                onChange={(e) => setResetPw(e.target.value)}
-                isError={!!findError}
-              />
-              <TextInput
-                label="비밀번호 확인"
-                placeholder="비밀번호를 다시 입력하세요"
-                type="password"
-                showPasswordToggle
-                size="lg"
-                id="reset-pw-confirm"
-                autoComplete="new-password"
-                value={resetPwConfirm}
-                onChange={(e) => setResetPwConfirm(e.target.value)}
-                isError={!!findError}
-              />
-            </div>
-
-            <div className="login-card__consent-actions">
-              <Button type="button" variant="outline" size="lg" onClick={goToLogin}>
-                취소
-              </Button>
-              <Button type="submit" size="lg" loading={isResetPending}>
-                {isResetPending ? '변경 중...' : '비밀번호 변경'}
-              </Button>
-            </div>
-          </form>
+          <FindPasswordReset
+            resetPw={resetPw}
+            resetPwConfirm={resetPwConfirm}
+            findError={findError}
+            isPending={isResetPending}
+            onResetPwChange={setResetPw}
+            onResetPwConfirmChange={setResetPwConfirm}
+            onClearError={() => setFindError('')}
+            onCancel={goToLogin}
+            onSubmit={handleResetPasswordSubmit}
+          />
         )}
 
-        {/* ── 비밀번호 찾기 완료 ── */}
-        {step === 'find-password-complete' && (
-          <div className="login-card__body">
-            <div className="login-card__title">
-              <h1 className="login-card__heading">비밀번호 변경 완료</h1>
-            </div>
-            <div className="login-card__locked-messages">
-              <p className="login-card__subheading">비밀번호가 변경되었습니다.</p>
-              <p className="login-card__locked-desc">새 비밀번호로 다시 로그인해주세요.</p>
-            </div>
-            <Button type="button" size="lg" className="login-card__submit" onClick={goToLogin}>
-              로그인하러 가기
-            </Button>
-          </div>
-        )}
+        {step === 'find-password-complete' && <FindPasswordComplete onGoLogin={goToLogin} />}
       </div>
 
       <p className="login-copyright">© 2026 QRorder. All rights reserved.</p>
