@@ -4,6 +4,7 @@ import htms.QROrder.audit.domain.TableInfo;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.audit.service.ErrorService;
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -37,6 +38,14 @@ public class AuditController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ResponseEntity<CommonResponse> handleException(RuntimeException e, HttpServletRequest request) {
+        if (e instanceof BusinessRegiException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(CommonResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build());
+        }
+
         HttpSession session = request.getSession(false);
 
         String menuCd = null;

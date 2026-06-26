@@ -6,9 +6,16 @@ import { MainPage } from '@/apps/client/pages/main/MainPage';
 import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
+import { MenuManagementPage } from '@/apps/client/pages/menu-management/MenuManagementPage';
+import { MenuOptionManagementPage } from '@/apps/client/pages/menu-option/MenuOptionManagementPage';
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
+import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHistoryListPage';
+import { PaymentStatusListPage } from '@/apps/client/pages/payment-status/PaymentStatusListPage';
+import { SettlementListPage } from '@/apps/client/pages/settlement/SettlementListPage';
+import { NoticeListPage } from '@/apps/client/pages/notice/NoticeListPage';
+import { InquiryManagementPage } from '@/apps/client/pages/inquiry/InquiryManagementPage';
 
 export const clientRoutes: RouteObject[] = [
   {
@@ -49,30 +56,15 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'menu/info/management',
-        element: (
-          <ClientPlaceholderPage
-            title="메뉴 관리"
-            description="판매 메뉴와 카테고리를 관리하는 화면입니다."
-          />
-        ),
+        element: <MenuManagementPage />,
       },
       {
         path: 'menu/info/option',
-        element: (
-          <ClientPlaceholderPage
-            title="옵션 관리"
-            description="메뉴 옵션 정보를 관리하는 화면입니다."
-          />
-        ),
+        element: <MenuOptionManagementPage />,
       },
       {
         path: 'order/history/list',
-        element: (
-          <ClientPlaceholderPage
-            title="주문 이력 조회"
-            description="완료된 주문 이력을 조회하는 화면입니다."
-          />
-        ),
+        element: <OrderHistoryListPage />,
       },
       {
         path: 'order/status/management',
@@ -85,39 +77,19 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'payment/status/list',
-        element: (
-          <ClientPlaceholderPage
-            title="결제 목록 조회"
-            description="주문 결제 내역을 조회하는 화면입니다."
-          />
-        ),
+        element: <PaymentStatusListPage />,
       },
       {
         path: 'payment/calculation/list',
-        element: (
-          <ClientPlaceholderPage
-            title="정산 조회"
-            description="매장 정산 정보를 조회하는 화면입니다."
-          />
-        ),
+        element: <SettlementListPage />,
       },
       {
         path: 'board/notice/list',
-        element: (
-          <ClientPlaceholderPage
-            title="공지사항 조회"
-            description="점주용 공지사항을 조회하는 화면입니다."
-          />
-        ),
+        element: <NoticeListPage />,
       },
       {
         path: 'board/inquiry/management',
-        element: (
-          <ClientPlaceholderPage
-            title="문의사항 관리"
-            description="문의사항을 조회하고 관리하는 화면입니다."
-          />
-        ),
+        element: <InquiryManagementPage />,
       },
     ],
   },

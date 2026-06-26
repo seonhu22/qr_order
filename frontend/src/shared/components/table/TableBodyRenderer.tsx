@@ -69,6 +69,7 @@ const cellRenderers: CellRendererMap = {
       className={cell.className}
       controlState={cell.controlState}
       readOnly={cell.readOnly}
+      inputType={cell.inputType}
       onChange={cell.onChange}
       onClearError={cell.onClearError}
     />

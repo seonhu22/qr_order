@@ -17,6 +17,15 @@ const accessLogMasterListsKey = ['settings', 'accessLog', 'masters'] as const;
 const changeHistoryListsKey = ['settings', 'changeHistory', 'list'] as const;
 const noticeListsKey = ['board', 'notice', 'list'] as const;
 const qnaListsKey = ['board', 'qna', 'list'] as const;
+const menuManagementMasterListsKey = ['client', 'menuManagement', 'masters'] as const;
+const menuManagementDetailListsKey = ['client', 'menuManagement', 'details'] as const;
+const menuOptionMasterListsKey = ['client', 'menuOption', 'masters'] as const;
+const menuOptionGroupListsKey = ['client', 'menuOption', 'groups'] as const;
+const menuOptionDetailListsKey = ['client', 'menuOption', 'details'] as const;
+const orderHistoryListsKey = ['client', 'orderHistory', 'list'] as const;
+const paymentStatusMasterListsKey = ['client', 'paymentStatus', 'masters'] as const;
+const settlementListsKey = ['client', 'settlement', 'list'] as const;
+const clientInquiryListsKey = ['client', 'inquiry', 'list'] as const;
 
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
@@ -105,5 +114,42 @@ export const queryKeys = {
   },
   qrCode: {
     lists: qrCodeListsKey,
+  },
+  menuManagement: {
+    masterLists: menuManagementMasterListsKey,
+    detailLists: menuManagementDetailListsKey,
+    masters: (searchKeyword = '') => [...menuManagementMasterListsKey, { searchKeyword }] as const,
+    details: (masterId = '') => [...menuManagementDetailListsKey, masterId] as const,
+  },
+  menuOption: {
+    masterLists: menuOptionMasterListsKey,
+    groupLists: menuOptionGroupListsKey,
+    detailLists: menuOptionDetailListsKey,
+    masters: (searchKeyword = '') => [...menuOptionMasterListsKey, { searchKeyword }] as const,
+    groups: (masterId = '') => [...menuOptionGroupListsKey, masterId] as const,
+    details: (groupId = '') => [...menuOptionDetailListsKey, groupId] as const,
+  },
+  orderHistory: {
+    lists: orderHistoryListsKey,
+    list: (params: {
+      startDate: string;
+      endDate: string;
+      searchKeyword?: string;
+      orderStatus?: string;
+    }) => [...orderHistoryListsKey, params] as const,
+  },
+  paymentStatus: {
+    masterLists: paymentStatusMasterListsKey,
+    masters: (params: { paymentStatus: string; startDate: string; endDate: string }) =>
+      [...paymentStatusMasterListsKey, params] as const,
+    details: (masterSysId = '') => ['client', 'paymentStatus', 'details', masterSysId] as const,
+  },
+  settlement: {
+    lists: settlementListsKey,
+    detail: (params: { startDate: string; endDate: string }) => [...settlementListsKey, params] as const,
+  },
+  clientInquiry: {
+    lists: clientInquiryListsKey,
+    list: (searchKeyword = '') => [...clientInquiryListsKey, { searchKeyword }] as const,
   },
 } as const;

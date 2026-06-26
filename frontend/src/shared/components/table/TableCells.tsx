@@ -24,6 +24,7 @@ type TableCellInputProps = {
   className?: string;
   controlState?: '' | 'readonly' | 'error' | 'success' | 'disabled';
   readOnly?: boolean;
+  inputType?: 'text' | 'number';
   onChange: (value: string) => void;
   onClearError?: () => void;
 };
@@ -95,6 +96,7 @@ export function TableCellInput({
   className = 'common-table__input',
   controlState = '',
   readOnly = false,
+  inputType = 'text',
   onChange,
   onClearError,
 }: TableCellInputProps) {
@@ -102,6 +104,7 @@ export function TableCellInput({
     <InputWrapper inputId={inputId}>
       <InputBase
         id={inputId}
+        type={inputType}
         size="sm"
         className={className}
         controlState={controlState}

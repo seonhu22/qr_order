@@ -9,7 +9,7 @@ import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
 import { isInitialPasswordChangeRequired } from '@/shared/auth/initPassword';
-import { resolveLoginPath } from '@/shared/auth/authRedirect';
+import { isLoginPath, resolveLoginPath } from '@/shared/auth/authRedirect';
 
 /**
  * 인증이 필요한 관리자 라우트를 보호한다.
@@ -61,6 +61,7 @@ function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: 
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
   const isPasswordChangeRequired = isAuthenticated && isInitialPasswordChangeRequired(user);
   const publicClientRoutes = clientRoutes.filter((route) => route.path === '/client/login');
   const protectedClientRoutes = clientRoutes.filter((route) => route.path !== '/client/login');
@@ -68,11 +69,18 @@ function AppRoutes() {
   const routes = useRoutes([
     {
       path: '/',
-      element: <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />,
+      element: (
+        <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />
+      ),
     },
     {
       path: '/admin/login',
-      element: isAuthenticated && !isPasswordChangeRequired ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+      element:
+        isAuthenticated && !isPasswordChangeRequired ? (
+          <Navigate to="/admin/main" replace />
+        ) : (
+          <LoginPage />
+        ),
     },
     {
       path: '/admin/forbidden',
@@ -93,11 +101,13 @@ function AppRoutes() {
 
     {
       path: '*',
-      element: <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />,
+      element: (
+        <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />
+      ),
     },
   ]);
 
-  if (isLoading) {
+  if (isLoading && !isLoginPath(location.pathname)) {
     return <LoadingScreen />;
   }
 
