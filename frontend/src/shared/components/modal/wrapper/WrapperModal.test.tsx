@@ -71,6 +71,22 @@ describe('WrapperModal', () => {
     expect(screen.queryByRole('button', { name: '닫기' })).not.toBeInTheDocument();
   });
 
+  it('renders through a portal into document.body', () => {
+    const container = document.createElement('div');
+
+    render(
+      <WrapperModal
+        open
+        title="Portal Modal"
+        onClose={vi.fn()}
+      />,
+      { container },
+    );
+
+    expect(container.querySelector('.base-modal-overlay')).toBeNull();
+    expect(document.body.querySelector('.base-modal-overlay')).toBeInTheDocument();
+  });
+
   it('renders the notice layout without the top close button and with two footer actions', () => {
     renderModal({
       layout: 'notice',
@@ -122,6 +138,48 @@ describe('WrapperModal', () => {
     fireEvent.click(screen.getByRole('dialog').parentElement as HTMLElement);
 
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('locks body scroll while open and restores it on unmount', () => {
+    document.body.style.overflow = 'auto';
+
+    const { unmount } = render(
+      <WrapperModal
+        open
+        title="스크롤 잠금"
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(document.body.style.overflow).toBe('hidden');
+
+    unmount();
+
+    expect(document.body.style.overflow).toBe('auto');
+    document.body.style.overflow = '';
+  });
+
+  it('restores focus to the previously focused element on unmount', () => {
+    const trigger = document.createElement('button');
+    trigger.textContent = 'open modal';
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const { unmount } = render(
+      <WrapperModal
+        open
+        title="포커스 복원"
+        primaryAction={{ label: '확인' }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(document.activeElement).not.toBe(trigger);
+
+    unmount();
+
+    expect(document.activeElement).toBe(trigger);
+    trigger.remove();
   });
 
   it('renders button state from action config', () => {

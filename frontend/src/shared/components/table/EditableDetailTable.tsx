@@ -1,22 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { FeedbackVariant } from '@/shared/components/feedback';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import { DetailTableActions } from './TableActionGroups';
 import { TableBodyRenderer } from './TableBodyRenderer';
 import { TableCard } from './TableCard';
 import { TableCardContentState } from './TableCardContentState';
 import type {
   EditableDetailColumn,
+  EditableDetailMasterRow,
   EditableDetailRow,
-  EditableMasterRow,
 } from './editableTableTypes';
 import type { SharedTableColumn, SharedTableRow } from './tableModelTypes';
 
-type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends EditableDetailRow> = {
+function formatGroupedNumberDisplay(rawValue: string): string {
+  const digits = rawValue.replace(/\D/g, '');
+  return digits ? Number(digits).toLocaleString('ko-KR') : '';
+}
+
+type EditableDetailTableProps<
+  TMaster extends EditableDetailMasterRow,
+  TRow extends EditableDetailRow,
+> = {
   table: {
     title?: string;
+    /** 제목 옆(헤더 액션 영역)에 표시할 배지 — 선택된 마스터 라벨 등 */
+    titleBadge?: ReactNode;
     ariaLabel: string;
     tableAriaLabel: string;
+    /** 카드 헤더와 테이블 사이에 표시할 안내문구(SystemMenuTree 패턴). */
+    guideText?: ReactNode;
     footnote?: string;
     emptyRowsText?: string;
   };
@@ -35,6 +49,14 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
     isLoading: boolean;
     isSaving: boolean;
   };
+  /**
+   * 행 선택을 부모가 제어해야 할 때 사용한다(예: 이 테이블의 선택된 행이 다른 테이블의 조회 조건이 되는 경우).
+   * 전달하지 않으면 기존처럼 컴포넌트 내부 state로 선택을 관리한다.
+   */
+  selection?: {
+    selectedRowId: string;
+    onSelectRow: (id: string) => void;
+  };
   getInputAriaLabel?: (row: TRow, column: EditableDetailColumn) => string;
   actions: {
     showMoveActions?: boolean;
@@ -45,6 +67,8 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
     onMoveUp: (rowId?: string) => void;
     onMoveDown: (rowId?: string) => void;
     onSave: () => void;
+    /** type: 'action' 컬럼의 행 단위 버튼 클릭 핸들러. */
+    onEditRow?: (row: TRow) => void;
   };
 };
 
@@ -56,20 +80,23 @@ type EditableDetailTableProps<TMaster extends EditableMasterRow, TRow extends Ed
  * 행 선택·필드 편집·행 이동·저장 이벤트를 표준화된 테이블 모델로 변환해 처리한다.
  */
 export function EditableDetailTable<
-  TMaster extends EditableMasterRow,
+  TMaster extends EditableDetailMasterRow,
   TRow extends EditableDetailRow,
 >({
   table,
   statusText,
   data,
   status,
+  selection,
   getInputAriaLabel,
   actions,
 }: EditableDetailTableProps<TMaster, TRow>) {
   const {
     title,
+    titleBadge,
     ariaLabel,
     tableAriaLabel,
+    guideText,
     footnote,
     emptyRowsText = '상세 항목이 없습니다.',
   } = table;
@@ -89,8 +116,11 @@ export function EditableDetailTable<
     onMoveUp,
     onMoveDown,
     onSave,
+    onEditRow,
   } = actions;
-  const [selectedDetailId, setSelectedDetailId] = useState('');
+  const [internalSelectedDetailId, setInternalSelectedDetailId] = useState('');
+  const selectedDetailId = selection ? selection.selectedRowId : internalSelectedDetailId;
+  const setSelectedDetailId = selection ? selection.onSelectRow : setInternalSelectedDetailId;
   const effectiveSelectedDetailId = rows.some((row) => row.id === selectedDetailId)
     ? selectedDetailId
     : '';
@@ -147,7 +177,37 @@ export function EditableDetailTable<
           ];
         }
 
+        if (column.type === 'select') {
+          return [
+            column.key,
+            {
+              type: 'select',
+              value: typeof value === 'string' ? value : '',
+              options: column.options ?? [],
+              placeholder: column.placeholder,
+              isError: Boolean(rowErrors[row.id]?.[column.key]),
+              onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
+            },
+          ];
+        }
+
+        if (column.type === 'action') {
+          return [
+            column.key,
+            {
+              type: 'editButton',
+              ariaLabel,
+              onClick: (event) => {
+                event.stopPropagation();
+                onEditRow?.(row);
+              },
+            },
+          ];
+        }
+
         const isReadonly = column.readOnlyOnExisting && !row.isNew;
+        const isGroupedNumber = column.inputType === 'number-grouped';
+        const rawValue = typeof value === 'string' ? value : '';
 
         return [
           column.key,
@@ -157,10 +217,16 @@ export function EditableDetailTable<
             className: `common-table__input${isReadonly ? ' common-table__input--readonly-code' : ''}`,
             controlState: isReadonly ? 'readonly' : rowErrors[row.id]?.[column.key] ? 'error' : '',
             readOnly: isReadonly,
-            value: typeof value === 'string' ? value : '',
+            inputType: isGroupedNumber ? 'text' : column.inputType,
+            value: isGroupedNumber ? formatGroupedNumberDisplay(rawValue) : rawValue,
             ariaLabel,
             onClearError: () => onClearRowError(row.id, column.key),
-            onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
+            onChange: (nextValue: string) =>
+              onChangeValue(
+                row.id,
+                column.key,
+                isGroupedNumber ? nextValue.replace(/\D/g, '') : nextValue,
+              ),
           },
         ];
       }),
@@ -169,7 +235,16 @@ export function EditableDetailTable<
 
   return (
     <TableCard
-      title={title}
+      title={
+        titleBadge ? (
+          <>
+            {title}
+            {titleBadge}
+          </>
+        ) : (
+          title
+        )
+      }
       ariaLabel={ariaLabel}
       actionsClassName="common-code-card__actions--detail"
       actions={
@@ -187,8 +262,9 @@ export function EditableDetailTable<
               setSelectedDetailId(onAddRow());
             }}
             onDeleteRow={() => {
+              const nextSelectedId = getNextSelectedId(rows, effectiveSelectedDetailId);
               onDeleteRow(effectiveSelectedDetailId || undefined);
-              setSelectedDetailId('');
+              setSelectedDetailId(nextSelectedId);
             }}
             onSave={onSave}
           />
@@ -205,6 +281,7 @@ export function EditableDetailTable<
         emptyClassName="common-code-card__empty"
       >
         <>
+          {guideText ? <p className="common-code-card__guide-text">{guideText}</p> : null}
           {/* layout-contents: display:contents 로 레이아웃에 투명 — common-table-wrap 이 직접 flex 자식이 된다 */}
           <div ref={tableBodyRef} className="layout-contents">
             <TableBodyRenderer

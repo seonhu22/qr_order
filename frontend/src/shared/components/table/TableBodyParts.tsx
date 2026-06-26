@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 type RequiredHeaderLabelProps = {
   label: string;
@@ -85,6 +85,8 @@ export function TableHeaderCell({
  * @description
  * 기존의 `is-selected` 클래스와 선택 이벤트만 공통화한다.
  * 이벤트 트리거는 click / mouseDown 중 호출부가 고른다.
+ * `onSelect`가 있으면 체크박스·수정 버튼 같은 행 내부 다른 포커스 요소와 별개로
+ * 행 자체도 Tab/Enter/Space로 선택할 수 있어야 하므로 `tabIndex`/`role="button"`을 추가한다.
  */
 export function SelectableTableRow({
   selected = false,
@@ -92,15 +94,32 @@ export function SelectableTableRow({
   selectOn = 'click',
   children,
 }: SelectableTableRowProps) {
-  const eventProps =
-    onSelect == null
-      ? undefined
-      : selectOn === 'mouseDown'
-        ? { onMouseDown: onSelect }
-        : { onClick: onSelect };
+  if (onSelect == null) {
+    return <tr className={selected ? 'is-selected' : undefined}>{children}</tr>;
+  }
+
+  const eventProps = selectOn === 'mouseDown' ? { onMouseDown: onSelect } : { onClick: onSelect };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTableRowElement>) => {
+    // 체크박스·수정 버튼 같은 행 내부 다른 포커스 요소에서 올라온(bubble) 키 입력은 무시한다.
+    // 무시하지 않으면 preventDefault가 그 요소의 기본 Enter/Space 동작(버튼 클릭 등)을 막아버린다.
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelect();
+    }
+  };
 
   return (
-    <tr className={selected ? 'is-selected' : undefined} {...eventProps}>
+    <tr
+      className={selected ? 'is-selected' : undefined}
+      tabIndex={0}
+      role="button"
+      onKeyDown={handleKeyDown}
+      {...eventProps}
+    >
       {children}
     </tr>
   );

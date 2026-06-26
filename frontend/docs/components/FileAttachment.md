@@ -75,6 +75,19 @@ const [fileState, setFileState] = useState<FileChangeState>({
 />
 ```
 
+`maxFiles: 1`처럼 파일당 최대 용량과 전체 최대 용량이 같은 정책이면, 자동 생성 힌트의 "전체 최대 ○○MB" 문구가 "파일당 최대"와 같은 값을 중복 표시해 한 줄을 넘기기 쉽다. 이때는 `maxTotalSize`를 뺀 `FileHint`를 직접 전달해 한 줄 안에 들어오게 한다.
+
+```tsx
+<FileInputGroup
+  variant="button"
+  maxFiles={1}
+  maxFileSizeMB={10}
+  maxTotalSizeMB={10}
+  hint={<FileHint variant="simple" maxSize="10MB" maxCount={1} allowedExts={['JPG', 'PNG']} />}
+  onChange={setFileState}
+/>
+```
+
 ## FileDownloadList
 
 다운로드 API 호출 방식은 화면이 결정한다.

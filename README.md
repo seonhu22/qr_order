@@ -113,5 +113,6 @@ npm run dev:real
 
 ## 참고 문서
 
-- frontend/README.md: 프론트엔드 개발 가이드
-- qrorder/: 백엔드 프로젝트
+- [frontend/README.md](./frontend/README.md): 프론트엔드 실행·개발 가이드
+- [frontend/docs/README.md](./frontend/docs/README.md): 프론트엔드 문서 지도
+- [qrorder/](./qrorder/): 백엔드 프로젝트

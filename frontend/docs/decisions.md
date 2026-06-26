@@ -259,7 +259,7 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 |---|---|---|
 | 사이드바 | `ClientSidebar` | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
 | 헤더 | `ClientHeader` | 어드민 헤더와 동일한 CSS 패턴 |
-| 레이아웃 상태 | `ClientLayout` (useState) | 어드민의 Zustand store 대신 로컬 state로 단순화 |
+| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정 |
 
 ### 임시로 정한 사항
 
@@ -276,5 +276,227 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 - [ ] `clientMenus.ts` 임시 데이터를 백엔드 메뉴 API 응답으로 교체
 - [ ] `SidebarUser`의 `userName` · `userRole`을 클라이언트 auth 상태에서 읽도록 교체
 - [ ] 로그아웃 동작을 `useAuthLogoutMutation` 패턴으로 교체
-- [ ] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
-- [ ] 실제 메뉴 경로에 맞게 `ClientRoutes.jsx` child route 추가
+- [x] `ClientLayout`의 로컬 state를 Zustand store로 전환 필요 여부 검토
+- [x] `clientLayoutStore` 도입: 사이드바 열림, 활성 섹션 UI 상태만 관리
+- [ ] 주문 데이터는 TanStack Query로 관리하고, Zustand에는 주문 화면 UI 상태만 둔다
+- [x] 실제 메뉴 경로에 맞게 `ClientRoutes.tsx` child route 추가
+
+상세 추적 문서: [Client Zustand Policy](./client-zustand-policy.md)
+
+---
+
+## ADR-008 — 신규 앱은 Admin 폴더 규칙을 미러링한다
+
+**날짜**: 2026-06-10
+**상태**: 채택
+
+### 배경
+
+`feature/initClientApp` 진행 중 Client 앱이 Admin과 다른 폴더 구조로 분기할 위험이 드러났다. `apps/client/`에 Admin에 없는 `data/` 폴더가 생겼고, feature 내부 분할(`api/`, `hooks/`, `utils/`, `mock/` 등)과 페이지 상태 훅(`use{Feature}PageState`) 패턴이 명시되지 않은 채 컴포넌트만 쌓이고 있었다.
+
+명세화 없이 누적되면 작업자별 패턴이 갈라지고 코드 리뷰에서 매번 폴더 위치를 결정해야 한다. 향후 Consumer 등 추가 앱이 생길 때마다 같은 비용이 반복된다.
+
+### 검토한 방식
+
+**패턴 1 — 앱별 독자 구조**
+각 앱이 자유로운 폴더 구조를 가진다. 도메인 특성에 맞게 최적화 가능. 단, 일관성이 깨져 학습 곡선과 리뷰 비용이 증가하고 `shared/` 승격 기준이 모호해진다.
+
+**패턴 2 — Admin 규칙 미러링 (채택)**
+Admin 골격(`pages / features / layout / hooks / stores / contexts / routes`)과 feature 분할 규칙을 그대로 따른다. 일관성·학습 비용·`shared/` 승격 판단이 단순해지고, 메뉴 카탈로그 API 같은 향후 패턴 도입 시 Admin과 동일한 전이 경로를 그대로 쓸 수 있다.
+
+### 결정
+
+Admin 규칙 미러링을 채택한다.
+
+- 앱 레벨 디렉터리: `pages / features / layout / hooks / stores / contexts / routes` 동일
+- feature 내부 분할: `components / hooks / api / utils / mock / types.ts / constants.ts` 중 필요한 것만
+- UI shell feature(header/sidebar/brand/navigation)는 `components/` + `styles/`만으로 충분
+- Admin에 없는 폴더(`data/` 등) 신설 금지 — 다른 앱과 공용이면 `shared/`로
+- 사적 폴더(`_components`), 라우트 그룹 `(group)` 사용 금지
+- 페이지 상태 훅은 `use{Feature}PageState.ts` 패턴, 반환 `{ data, status, actions, uiProps }`
+
+세부 규칙은 프로젝트 루트 `CLAUDE.md` §5 "Client 앱 폴더 규칙" 참조.
+
+### 영향
+
+본 ADR 채택과 동시에 Client 앱에 적용했다.
+
+- `apps/client/data/clientMenus.ts` → `shared/menu/clientNavigation.ts`로 이전
+- `apps/client/hooks/`, `apps/client/contexts/` 빈 폴더 + `.gitkeep` 생성
+- import 경로 5개 갱신 (`ClientLayout`, `ClientPageNavigation`, `ClientSidebar`, `ClientHeader`, `clientLayoutStore`)
+- `CLAUDE.md` §5 추가
+- Client 범위 vitest 4 파일 / 13 테스트 통과
+
+향후 신규 앱(Consumer 등)을 추가할 때 첫 PR에 이 골격을 포함한다.
+
+### 추가 — 기능 로직 패리티
+
+> 추가일: 2026-06-15
+
+폴더 구조 미러링뿐 아니라, 동일 도메인 feature의 로직·흐름·ViewModel·테스트 커버리지도 Admin과 Client(추후 Consumer)가 동일하게 유지한다(차이는 권한·메뉴 노출 범위로 한정). 상세 기준은 [Admin/Client 패리티](./operations/app-parity.md) 참고.
+
+---
+
+## ADR-009 — 이탈방지 가드: `useBlocker` 대신 커스텀 guarded navigate
+
+**날짜**: 2026-06-15
+**상태**: 채택
+
+### 배경
+
+편집형 페이지(AdminUser, CommonCode, RuleManagement, Notice, Coupon, PaymentManage, SystemMenu, Message)에서 저장하지 않은 변경(dirty) 상태로 메뉴 이동/새로고침/로그아웃을 하면 변경 내용이 사라진다. react-router의 `useBlocker`가 표준 해법이지만 data router(`createBrowserRouter` + `RouterProvider`) 전용이고, 본 프로젝트는 `<BrowserRouter>`(선언형)을 사용 중이다.
+
+### 검토한 방식
+
+**패턴 1 — data router로 전환 후 `useBlocker` 사용**
+표준적이지만 라우터 정의 전체를 `createBrowserRouter` 구조로 옮겨야 해 변경 범위가 크고, 기존 `<Outlet>` 기반 레이아웃과 얽힌 부분이 많아 이번 범위에는 과도하다.
+
+**패턴 2 — `beforeunload` + 커스텀 guarded navigate (채택)**
+새로고침/탭 닫기는 `beforeunload`, 인앱 이동은 코드베이스 전체가 `<Link>` 없이 `navigate(...)` 호출만 쓴다는 점을 이용해 `navigate`를 감싸는 훅 + zustand 공용 store로 가로챈다. 라우터 구조 변경 없이 적용 가능하다.
+
+### 결정
+
+패턴 2를 채택한다. `preventLeaveStore` + `usePreventLeave` + `useGuardedNavigate` 3종 세트로 구성하고, dirty를 노출하는 8개 페이지 상태 훅에 `usePreventLeave(isDirty)` 1줄씩 추가하는 방식으로 통일한다.
+
+### 알려진 제한사항
+
+- 브라우저 뒤로/앞으로가기 버튼은 가드하지 않음 (history stack 조작 필요, fragile)
+- `beforeunload` 확인창 문구는 브라우저 기본값 (커스터마이징 불가)
+- 단일 dirty-source 전제: 동시에 두 개 이상의 편집 화면이 dirty를 등록하는 구조는 지원하지 않음 (현재 라우팅 구조상 발생하지 않음)
+
+### 향후 전환 경로
+
+data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 필요해지는 경우) `useGuardedNavigate`의 인터페이스(`guardedNavigate`/`pendingLeaveAction` 등)는 유지한 채 내부 구현만 `useBlocker` 기반으로 교체 가능하도록 설계했다.
+
+### 적용 방법
+
+훅 사용법, 적용 대상 8개 페이지, `onNavigate`/`requestLeaveConfirm` 패턴은 [`operations.md`](./operations.md) §5-14 참고.
+
+---
+
+## ADR-010 — 옵션 관리: 백엔드에 없는 필드는 프론트 우선 구현, 저장 시 미전송
+
+**날짜**: 2026-06-22
+**상태**: 임시 (백엔드 필드 추가 후 연동 예정)
+
+### 배경
+
+옵션 관리(`MenuOptionManagementPage`) 화면 설계 중 백엔드 DTO/DB를 직접 확인한 결과, 요청된 컬럼 중 두 개가 아직 없었다.
+
+- 옵션 그룹 "사용여부": `store_menu_option_group` 테이블에 `use_yn` 컬럼은 있으나, 조회/등록/수정 API(`MenuOptionGroupResponse/Request`, MyBatis 쿼리)에는 빠져 있다.
+- 옵션 항목 "기본 선택" 체크박스: DB·API 어디에도 해당 컬럼이 없다.
+
+### 검토한 방식
+
+**패턴 1 — 백엔드도 같이 수정**: DB 컬럼(기본선택) 추가 + Java DTO/MyBatis/openapi 재생성까지 진행. 데이터가 끝까지 일관되지만 백엔드 변경이 함께 필요해 이번 프론트 작업 범위를 벗어난다.
+
+**패턴 2 — 이번 작업에서 제외**: 컬럼 자체를 빼고 나머지 필드만 구현. 단순하지만 사용자가 원래 요청한 화면 구성을 그대로 만들 수 없다.
+
+**패턴 3 — 프론트만 우선 구현 (채택)**: UI 컬럼/모달 필드는 만들되, 해당 값은 저장 시 백엔드로 전송하지 않는다.
+
+### 결정
+
+패턴 3을 채택한다.
+
+- `MenuOptionGroupRow.values.useYn`, `MenuOptionDetailRow.values.defaultYn`은 프론트 전용 필드로 유지한다.
+- `mapToMenuOptionGroupPayload` / `mapToMenuOptionDetailPayload`에서 두 필드를 제외하고 매핑한다.
+- dirty 비교(`isSameMenuOptionGroupRow`)에서 `useYn`은 비교하지 않는다(저장 대상이 아니므로 변경으로 취급할 이유가 없음).
+- 타입 정의에 `@property` JSDoc으로 "백엔드 API에 아직 노출되지 않은 프론트 전용 필드. 저장 시 전송하지 않는다"를 명시해, 추후 합류하는 개발자가 백엔드 코드를 보지 않고도 이유를 알 수 있게 한다.
+
+### 연동 시 체크리스트
+
+- [ ] `store_menu_option_group.use_yn`을 `MenuOptionGroupResponse`/`MenuOptionGroupRequest`/관련 MyBatis 쿼리(조회·등록·수정)에 노출
+- [ ] 옵션 항목 "기본 선택" 컬럼을 `store_menu_option_detail`에 추가하고 동일하게 DTO/쿼리에 노출
+- [ ] `npm run generate:schema` + `npm run generate`로 타입 재생성
+- [ ] `mapToMenuOptionGroupPayload`/`mapToMenuOptionDetailPayload`에 두 필드 추가, dirty 비교 로직도 갱신
+- [ ] 프론트 전용 필드라는 JSDoc 주석 제거
+
+---
+
+## ADR-011 — 주문 이력 조회: 백엔드 API 미정, 프론트 mock 우선 구현
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 API 확정 후 연동 예정)
+
+### 배경
+
+`/client/order/history/list` 화면(주문번호·테이블 번호·주문 상태·결제 상태·주문일자 목록) 구현 중 기존에 생성된 `getOrderHistory`(`/api/client/order_manage/history/search`) API를 확인한 결과, 이 화면 용도와 맞지 않았다.
+
+- `orderStatus`를 필수 단일값 파라미터로 받는다 — 목록 전체 조회가 아니라 특정 상태 1건의 상태 변경 히스토리 조회용으로 보인다.
+- 응답(`OrderMasterHistoryItem`)에 화면에 필요한 주문번호·결제상태 필드가 없다.
+
+### 검토한 방식
+
+**패턴 1 — 기존 API를 변형해 사용**: `orderStatus`를 빈 값/임의값으로 호출하거나 주문번호를 `sysId`로 대체. 화면이 원래 요청한 데이터 구조를 만족시키지 못한다.
+
+**패턴 2 — 프론트 mock 우선 구현 (채택)**: ADR-004/005/006/010과 동일한 선례. UI·검색·필터 로직은 모두 구현하되, 데이터는 mock 배열을 필터링해 제공한다.
+
+### 결정
+
+패턴 2를 채택한다.
+
+- `apps/client/features/order-history/mock/orderHistoryMock.ts`의 정적 데이터를 `api/orderHistoryApi.ts`의 `queryFn`(`filterOrderHistoryMock`, 테스트 가능하도록 export)에서 날짜범위·키워드·주문상태로 필터링해 반환한다.
+- 네트워크 호출이 없으므로 MSW 핸들러를 별도로 만들지 않았다.
+- 검색폼의 상태 필터는 주문상태 1개만 둔다(결제상태 필터는 화면에서 제외 — 결제상태는 목록 컬럼에 일반 텍스트로만 노출).
+- `OrderHistoryStatus`(`RECEIVED`/`COOKING`/`SERVED`/`CANCELLED`), `OrderHistoryPaymentStatus`(`PENDING`/`PAID`/`UNPAID`/`REFUNDED`) 코드값은 임시로 정한 것이며 백엔드 enum과 일치 여부 확인이 필요하다.
+
+### 연동 시 체크리스트
+
+- [ ] 실제 주문 이력 조회 API(주문번호/결제상태 포함) 백엔드와 확정
+- [ ] `mock/orderHistoryMock.ts` 제거, `api/orderHistoryApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
+- [ ] `npm run generate:schema` + `npm run generate`로 타입 동기화
+- [ ] `OrderHistoryStatus`/`OrderHistoryPaymentStatus` 코드값이 백엔드 enum과 일치하는지 확인 후 라벨 매핑 갱신
+
+---
+
+## ADR-012 — 결제 목록 조회: 백엔드 API는 실재하나 일부 계약이 불명확, 임시 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/status/list` 화면은 `order-history`와 달리 실제 백엔드 API(`getPaymentInfoMaster`, `getPaymentInfoDetail` — `payment-manage-controller.ts`)가 존재하고 화면 필드와도 잘 맞는다. 다만 OpenAPI 명세에 enum이나 관계 필드가 노출되지 않아 아래 세 가지는 프론트에서 임시로 가정하고 진행했다.
+
+1. **결제상태 코드값**: `GetPaymentInfoMasterParams.paymentStatus`와 응답의 `orderStatus`(필드명은 orderStatus이지만 실제로는 결제상태) 모두 `string`만 노출돼 있어, 화면 요구사항(결제완료/미결제/식사중)에 맞춰 `PAID`/`UNPAID`/`DINING`을 임시로 정했다.
+2. **"전체" 필터 시 빈 문자열 전송**: `paymentStatus`가 필수 파라미터라 "전체" 선택 시 빈 문자열(`''`)을 보낸다. 백엔드가 빈 값을 "전체 조회"로 처리하는지는 미확인.
+3. **상세 응답의 배열 의미**: `getPaymentInfoDetail`은 `PaymentInfoDetailResponse[]`(배열)를 반환하지만 화면은 단일 레코드 폼이라 첫 번째 요소만 사용한다(`mapToPaymentStatusDetail`). 배열인 이유(여러 취소 이력 등)는 불명확.
+4. **결제완료 전용 필드**: 결제수단(`paymentType`)과 취소사유/취소상세사유(`cancelReason`/`cancelDescription`)는 결제완료(PAID) 건에만 의미가 있다고 가정해, 미결제·식사중 건은 값이 있어도 화면에서 항상 `'-'`로 표시한다(`formatPaymentType`/`formatCancelField`). 백엔드가 실제로 이 필드들을 PAID 건에만 채우는지는 미확인.
+
+### 결정
+
+위 세 가지를 임시 가정으로 두고 화면을 완성한다. mock은 `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts`의 오버라이드 핸들러로 큐레이션해, orval이 자동 생성한 faker 기반 무작위 응답 대신 의미 있는 결제상태 값으로 개발 환경에서 화면을 확인할 수 있게 한다.
+
+### 연동 시 체크리스트
+
+- [ ] 결제상태 enum 실제 코드값을 백엔드와 확정하고 `PaymentStatusCode`/라벨 매핑 갱신
+- [ ] "전체" 필터 시 빈 문자열 처리 여부를 백엔드와 확인(처리 안 하면 별도 "전체 조회" 엔드포인트/파라미터 필요)
+- [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
+- [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
+- [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토
+
+---
+
+## ADR-013 — 정산 조회: 백엔드 API는 실재하나 부호·날짜 포맷 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/calculation/list` 화면은 Figma(node 977:462)와 실제 백엔드 API(`getSettlement`, `payment-manage-controller.ts`)가 필드 단위로 정확히 일치한다. 다만 다음 두 가지는 응답 스키마만으로 확정할 수 없어 임시로 가정했다.
+
+1. **`cancelPrice`/`discountPice`(오타 그대로) 부호**: 백엔드가 양수 금액으로 내려준다고 가정하고, 화면(통계 카드·안내문구)에서 `-` 부호를 붙여 표시한다. 음수로 내려온다면 이중 부호가 생긴다.
+2. **`DailySale.groupDate` 포맷**: 날짜만(`YYYY-MM-DD`)인지 날짜+시간인지 명세에 없다. 화면 요구사항(`YYYY-MM-DD HH:MM`)에 맞춰 `mapToSettlementRow`의 `formatSettlementDate`가 시간 정보가 있으면 그대로 쓰고, 없으면 `00:00`을 붙여 항상 같은 포맷으로 표시한다.
+3. **`DailySale`에 할인 필드 없음**: 일별 행에는 할인액이 없어 `dayNetPrice`가 상위 `netPrice`(할인 차감 포함)와 다른 기준(할인 미차감)일 수 있다. 화면 테이블의 "순 매출" 컬럼은 `dayNetPrice`를 그대로 쓰므로, 상위 카드의 "순 매출"과 테이블 합계가 정확히 일치하지 않을 수 있다.
+
+### 결정
+
+위 가정으로 화면을 완성한다. mock(`mock/settlementMock.ts`)은 일별 합계가 상위 집계와 실제로 맞물리도록 `buildSettlementMockResponse`로 계산해서 구성하고, `src/mocks/handlers.ts`의 오버라이드 핸들러가 날짜 필터링 후에도 합계가 깨지지 않도록 동일 함수로 재계산한다.
+
+### 연동 시 체크리스트
+
+- [ ] `cancelPrice`/`discountPice`의 실제 부호 컨벤션을 백엔드와 확인
+- [ ] `groupDate`가 날짜만인지 날짜+시간인지 확인 후 `formatSettlementDate` 단순화
+- [ ] 일별 할인액 추적 필요 여부 확인 — 필요하면 `DailySale`에 필드 추가 요청
+- [ ] `mock/settlementMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러를 실제 검증 후 유지/제거 결정

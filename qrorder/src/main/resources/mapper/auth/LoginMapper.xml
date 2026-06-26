@@ -11,10 +11,12 @@
             su.password_fail_cnt,
             su.init_yn,
             su.email_valid_yn,
-            su.sys_plant_cd
+            su.plant_cd as sys_plant_cd ,
+            su.user_role
         from sys_user su
         where 1=1
         and su.user_id = #{userId}
+        and su.delete_yn = 'N'
     </select>
 
     <update id="initPwd">
@@ -23,6 +25,7 @@
             user_password = #{initPwdRequest.password}
         where 1=1
         and user_id = #{userId}
+        and delete_yn = 'N'
     </update>
 
     <update id="pwdIncorrectCntIncrease">
@@ -46,5 +49,6 @@
             init_yn = 'N'
         where 1=1
         and user_id = #{userId}
+        and delete_yn = 'N'
     </update>
 </mapper>

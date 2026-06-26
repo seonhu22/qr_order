@@ -8,4 +8,6 @@
 
 export type GetPaymentInfoMasterParams = {
 paymentStatus: string;
+startDate: string;
+endDate: string;
 };

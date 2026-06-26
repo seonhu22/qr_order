@@ -1,9 +1,10 @@
 import '@/apps/client/features/header/styles/ClientHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
-import { CLIENT_SECTIONS, type ClientSection } from '@/apps/client/data/clientMenus';
+import type { ClientSection } from '@/shared/menu/clientNavigation';
 
 type ClientHeaderProps = {
   activeSection: ClientSection | null;
+  sections: { key: ClientSection; label: string }[];
   isSidebarOpen: boolean;
   onSectionChange: (section: ClientSection) => void;
   onToggleSidebar: () => void;
@@ -12,6 +13,7 @@ type ClientHeaderProps = {
 
 export function ClientHeader({
   activeSection,
+  sections,
   isSidebarOpen,
   onSectionChange,
   onToggleSidebar,
@@ -43,7 +45,7 @@ export function ClientHeader({
       <div className="client-header__divider" aria-hidden="true" />
 
       <nav className="client-header__nav" aria-label="상단 메뉴">
-        {CLIENT_SECTIONS.map(({ key, label }) => (
+        {sections.map(({ key, label }) => (
           <button
             key={key}
             type="button"

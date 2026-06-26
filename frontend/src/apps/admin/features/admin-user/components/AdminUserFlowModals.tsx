@@ -37,8 +37,9 @@ export function AdminUserFlowModals({
   onConfirmSimpleModal,
 }: AdminUserFlowModalsProps) {
   const simpleModalState: AdminUserSimpleModalState = state.simpleModalState;
+  const isPasswordResetConfirm = simpleModalState?.type === 'passwordResetConfirm';
   const simpleDescription =
-    simpleModalState?.type === 'passwordResetConfirm' ? (
+    isPasswordResetConfirm ? (
       <>
         <strong className="admin-user-reset-modal__account-id">
           {simpleModalState.userId}
@@ -53,7 +54,8 @@ export function AdminUserFlowModals({
     <>
       <SaveConfirmModal
         open={state.isSaveConfirmOpen}
-        description="저장하시겠습니까?"
+        title="저장하시겠습니까?"
+        description="입력하신 내용을 저장합니다."
         primaryAction={{
           label: '확인',
           loading: isSaving,
@@ -76,7 +78,7 @@ export function AdminUserFlowModals({
             : undefined
         }
         secondaryAction={
-          simpleModalState?.onConfirm
+          isPasswordResetConfirm
             ? { disabled: isResettingPassword, onClick: onCloseSimpleModal }
             : undefined
         }

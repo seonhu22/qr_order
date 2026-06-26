@@ -1,0 +1,12 @@
+.qr-code-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
+
+.qr-code-management-page > .qr-code-management-table {
+  flex: 1;
+  min-height: 0;
+}

@@ -8,32 +8,32 @@ const catalog = createMenuCatalog([
     menuCd: 'system',
     menuNm: '시스템',
     parentMenuCd: 'ROOT',
-    ordNo: '1',
-    treeLevel: '1',
+    ordNo: 1,
+    treeLevel: 1,
   },
   {
     sysId: '2',
     menuCd: 'systemManagement',
     menuNm: '시스템 관리',
     parentMenuCd: 'system',
-    ordNo: '2',
-    treeLevel: '2',
+    ordNo: 2,
+    treeLevel: 2,
   },
   {
     sysId: '3',
     menuCd: 'board',
     menuNm: '게시판',
     parentMenuCd: 'ROOT',
-    ordNo: '3',
-    treeLevel: '1',
+    ordNo: 3,
+    treeLevel: 1,
   },
   {
     sysId: '4',
     menuCd: 'commonCode',
     menuNm: '공통코드 관리',
     parentMenuCd: 'systemManagement',
-    ordNo: '1',
-    treeLevel: '3',
+    ordNo: 1,
+    treeLevel: 3,
     menuUrl: '/admin/system/common-code',
   },
   {
@@ -41,16 +41,16 @@ const catalog = createMenuCatalog([
     menuCd: 'notice',
     menuNm: '공지사항',
     parentMenuCd: 'board',
-    ordNo: '1',
-    treeLevel: '2',
+    ordNo: 1,
+    treeLevel: 2,
   },
   {
     sysId: '6',
     menuCd: 'noticeManage',
     menuNm: '공지사항 관리',
     parentMenuCd: 'notice',
-    ordNo: '1',
-    treeLevel: '3',
+    ordNo: 1,
+    treeLevel: 3,
     menuUrl: '/admin/notice/manage',
   },
 ]);
@@ -103,8 +103,8 @@ describe('adminNavigation', () => {
         menuCd: item.menuCd,
         menuNm: item.menuNm,
         parentMenuCd: item.parentMenuCd,
-        ordNo: String(item.ordNo),
-        treeLevel: String(item.treeLevel),
+        ordNo: item.ordNo,
+        treeLevel: item.treeLevel,
         menuUrl: item.path || undefined,
       })),
       {
@@ -112,8 +112,8 @@ describe('adminNavigation', () => {
         menuCd: 'commonCodeEditor',
         menuNm: '공통코드 편집',
         parentMenuCd: 'commonCode',
-        ordNo: '1',
-        treeLevel: '4',
+        ordNo: 1,
+        treeLevel: 4,
         menuUrl: '/admin/system/common-code/edit',
       },
     ]);
@@ -137,8 +137,8 @@ describe('adminNavigation', () => {
         menuCd: item.menuCd,
         menuNm: item.menuNm,
         parentMenuCd: item.parentMenuCd,
-        ordNo: String(item.ordNo),
-        treeLevel: String(item.treeLevel),
+        ordNo: item.ordNo,
+        treeLevel: item.treeLevel,
         menuUrl: item.path || undefined,
       })),
       {
@@ -146,8 +146,8 @@ describe('adminNavigation', () => {
         menuCd: 'emptySection',
         menuNm: '빈 섹션',
         parentMenuCd: 'ROOT',
-        ordNo: '4',
-        treeLevel: '1',
+        ordNo: 4,
+        treeLevel: 1,
       },
     ]);
 
@@ -163,16 +163,16 @@ describe('adminNavigation', () => {
         menuCd: 'system',
         menuNm: '시스템',
         parentMenuCd: 'ROOT',
-        ordNo: '1',
-        treeLevel: '1',
+        ordNo: 1,
+        treeLevel: 1,
       },
       {
         sysId: '11',
         menuCd: 'dupMenu',
         menuNm: '중복1',
         parentMenuCd: 'system',
-        ordNo: '1',
-        treeLevel: '2',
+        ordNo: 1,
+        treeLevel: 2,
         menuUrl: '/admin/system/dup-1',
       },
       {
@@ -180,8 +180,8 @@ describe('adminNavigation', () => {
         menuCd: 'dupMenu',
         menuNm: '중복2',
         parentMenuCd: 'system',
-        ordNo: '2',
-        treeLevel: '2',
+        ordNo: 2,
+        treeLevel: 2,
         menuUrl: '/admin/system/dup-2',
       },
       {
@@ -189,8 +189,8 @@ describe('adminNavigation', () => {
         menuCd: 'selfLoop',
         menuNm: '셀프 루프',
         parentMenuCd: 'selfLoop',
-        ordNo: '3',
-        treeLevel: '2',
+        ordNo: 3,
+        treeLevel: 2,
         menuUrl: '/admin/system/self-loop',
       },
     ]);
@@ -199,5 +199,73 @@ describe('adminNavigation', () => {
 
     expect(navigation.currentMenu?.menuNm).toBe('중복1');
     expect(navigation.headerSections.map((section) => section.section)).toContain('selfLoop');
+  });
+  it('filters header and sidebar data by the requested 0depth root menu', () => {
+    const mixedRootCatalog = createMenuCatalog([
+      {
+        sysId: '20',
+        menuCd: 'ADMIN',
+        menuNm: 'Admin',
+        parentMenuCd: 'ROOT',
+        ordNo: 1,
+        treeLevel: 0,
+      },
+      {
+        sysId: '21',
+        menuCd: 'CLIENT',
+        menuNm: 'Client',
+        parentMenuCd: 'ROOT',
+        ordNo: 2,
+        treeLevel: 0,
+      },
+      {
+        sysId: '22',
+        menuCd: 'adminSystem',
+        menuNm: 'Admin System',
+        parentMenuCd: 'ADMIN',
+        ordNo: 1,
+        treeLevel: 1,
+      },
+      {
+        sysId: '23',
+        menuCd: 'adminUsers',
+        menuNm: 'Admin Users',
+        parentMenuCd: 'adminSystem',
+        ordNo: 1,
+        treeLevel: 2,
+        menuUrl: '/admin/users',
+      },
+      {
+        sysId: '24',
+        menuCd: 'clientStore',
+        menuNm: 'Client Store',
+        parentMenuCd: 'CLIENT',
+        ordNo: 1,
+        treeLevel: 1,
+      },
+      {
+        sysId: '25',
+        menuCd: 'clientOrders',
+        menuNm: 'Client Orders',
+        parentMenuCd: 'clientStore',
+        ordNo: 1,
+        treeLevel: 2,
+        menuUrl: '/client/orders',
+      },
+    ]);
+
+    const navigation = createAdminNavigationData(mixedRootCatalog.items, '/admin/users', {
+      rootMenuCd: 'ADMIN',
+    });
+
+    expect(navigation.headerSections).toEqual([
+      { section: 'adminSystem', label: 'Admin System' },
+    ]);
+    expect(Object.keys(navigation.menusBySection)).toEqual(['adminSystem']);
+    expect(navigation.currentSection).toBe('adminSystem');
+    expect(navigation.currentNavigation?.itemKey).toBe('adminUsers');
+    expect(navigation.currentMenus[0].groups[0].items.map((item) => item.key)).toEqual([
+      'adminUsers',
+    ]);
   });
 });

@@ -20,13 +20,16 @@ public class PaymentManageController {
     private final PaymentInfoDetailService paymentInfoDetailService;
     private final SettlementService settlementService;
 
+    // 결제 목록 조회
     @GetMapping("/history/master/search")
     public List<PaymentInfoMasterResponse> getPaymentInfoMaster(@RequestParam String paymentStatus,
+                                                                    @RequestParam String startDate,
+                                                                    @RequestParam String endDate,
                                                                     HttpSession session) {
 
         Login login = (Login) session.getAttribute("loginUser");
 
-        return paymentInfoMasterService.getPaymentInfoMaster(paymentStatus, login.getSysPlantCd());
+        return paymentInfoMasterService.getPaymentInfoMaster(paymentStatus, startDate, endDate, login.getSysPlantCd());
     }
 
     @GetMapping("/history/detail/search/{masterSysId}")
@@ -35,6 +38,7 @@ public class PaymentManageController {
         return paymentInfoDetailService.getPaymentInfoDetail(masterSysId);
     }
 
+    // 정산 조회
     @GetMapping("/settlement/search")
     public SettlementResponse getSettlement(@RequestBody SettlementRequest settlementRequest,
                                 HttpSession session) {

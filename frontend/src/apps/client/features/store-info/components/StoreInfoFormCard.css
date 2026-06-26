@@ -1,0 +1,66 @@
+/* 매장 정보 폼 카드 — figma node 880:2851 기반.
+   페이지 높이에 카드를 맞추고 본문만 내부 스크롤되도록 한다.
+   header / footer 는 항상 보이게 고정. */
+
+.store-info-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-surface);
+  overflow: hidden;
+}
+
+.store-info-card__header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: var(--spacing-4) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+}
+
+.store-info-card__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+}
+
+/* 본문 — 카드 내부 세로 스크롤 영역 */
+.store-info-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-9);
+  min-height: 0;
+  padding: var(--spacing-10);
+  overflow-y: auto;
+}
+
+/* read-only 필드 시각 강조 — figma의 #f8fafc 배경 */
+.store-info-card__field .input-control[data-state='readonly'] {
+  background-color: var(--color-bg-muted);
+}
+
+/* 헤더 "정보 수정" 체크박스 — 단일 행 레이블이므로 세로 중앙 정렬 */
+.store-info-card__header .checkbox-control__row {
+  align-items: center;
+}
+
+.store-info-card__header .checkbox-control__box {
+  margin-top: 0;
+}
+
+/* 푸터 — 카드 하단 고정, 저장 버튼 우측 정렬 */
+.store-info-card__footer {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  padding: var(--spacing-9) var(--spacing-10) var(--spacing-10);
+  border-top: var(--border-1) solid var(--color-border-divider);
+}

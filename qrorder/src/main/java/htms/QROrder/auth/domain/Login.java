@@ -12,4 +12,5 @@ public class Login {
     private String initYn;
     private String emailValidYn;
     private String sysPlantCd;
+    private String userRole;
 }

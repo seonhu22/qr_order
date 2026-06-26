@@ -2,6 +2,7 @@ import { useGetMessage, useSaveMessage } from '@/generated/settings-controller/s
 import type { Message } from '@/generated/types/message';
 import type { MessageRequest } from '@/generated/types/messageRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { MessageRow } from '../types';
 
 export function mapToMessageModel(message: Message): MessageRow {
@@ -62,10 +63,11 @@ export function hasMessageChanges(request: MessageRequest) {
   return Boolean(request.newItems?.length || request.updateItems?.length || request.delItems?.length);
 }
 
-export function useMessageQuery(searchKeyword = '') {
-  return useGetMessage(searchKeyword ? { searchKeyword } : undefined, {
+export function useMessageQuery() {
+  return useGetMessage(undefined, {
     query: {
-      queryKey: queryKeys.message.list(searchKeyword),
+      queryKey: queryKeys.message.lists,
+      ...queryPolicies.adminCrudList,
     },
   });
 }

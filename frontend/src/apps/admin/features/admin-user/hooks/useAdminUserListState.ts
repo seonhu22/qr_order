@@ -13,6 +13,7 @@
 
 import { useMemo, useState } from 'react';
 import type { SelectOption } from '@/shared/components/input';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import { buildAdminUserRequest, hasAdminUserChanges } from '../api/adminUserApi';
 import type { AdminUserRow, AdminUserRowErrors } from '../types';
 
@@ -156,8 +157,9 @@ export function useAdminUserListState({
       return false;
     }
 
+    const nextSelectedId = getNextSelectedId(rows, normalizedSelectedRowId);
     updateRows((prev) => prev.filter((row) => row.id !== normalizedSelectedRowId));
-    setSelectedRowId('');
+    setSelectedRowId(nextSelectedId);
     return true;
   };
 

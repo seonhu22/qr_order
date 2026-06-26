@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useEditablePageFlow } from '@/shared/hooks/useEditablePageFlow';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
+import { getNextSelectedId } from '@/shared/utils/rowSelection';
 import type { MessagePageViewModel, MessageRow, MessageRowErrors } from '../types';
 import {
   buildMessageRequest,
@@ -52,7 +54,7 @@ export function useMessagePage(): MessagePageViewModel {
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
-  const messageQuery = useMessageQuery(appliedKeyword.trim());
+  const messageQuery = useMessageQuery();
   const saveMessagesMutation = useSaveMessagesMutation();
   const fetchedRows = useMemo(
     () => (messageQuery.data ?? []).map(mapToMessageModel),
@@ -69,12 +71,7 @@ export function useMessagePage(): MessagePageViewModel {
     setBaseRows(nextRows);
     setDraftRows(cloneRows(fetchedRows));
     setRowErrors({});
-    setSelectedRowId((prev) => {
-      if (prev && nextRows.some((row) => row.id === prev)) {
-        return prev;
-      }
-      return nextRows[0]?.id ?? '';
-    });
+    setSelectedRowId((prev) => (prev && nextRows.some((row) => row.id === prev) ? prev : ''));
   }, [fetchedRows]);
 
   /* 저장 전후 비교 기준. true면 "저장되지 않은 내용"이 있다는 뜻이다. */
@@ -82,6 +79,8 @@ export function useMessagePage(): MessagePageViewModel {
     const request = buildMessageRequest(draftRows, baseRows);
     return hasMessageChanges(request);
   }, [baseRows, draftRows]);
+
+  usePreventLeave(isDirty);
 
   const rows = useMemo(() => {
     const keyword = appliedKeyword.trim().toLowerCase();
@@ -92,8 +91,10 @@ export function useMessagePage(): MessagePageViewModel {
     }
 
     /* 조회 버튼을 눌러 적용된 검색어(appliedKeyword) 기준으로 필터링한다. */
-    return draftRows.filter((row) =>
-      [row.code, row.name, row.content].some((value) => value.toLowerCase().includes(keyword)),
+    return draftRows.filter(
+      (row) =>
+        row.isNew ||
+        [row.code, row.name, row.content].some((value) => value.toLowerCase().includes(keyword)),
     );
   }, [appliedKeyword, draftRows]);
 
@@ -104,7 +105,7 @@ export function useMessagePage(): MessagePageViewModel {
     resetKeywords();
     setBaseRows(cloneRows(fetchedRows));
     setDraftRows(cloneRows(fetchedRows));
-    setSelectedRowId(fetchedRows[0]?.id ?? '');
+    setSelectedRowId('');
   };
 
   const editableFlow = useEditablePageFlow({
@@ -119,8 +120,9 @@ export function useMessagePage(): MessagePageViewModel {
       }
 
       await saveMessagesMutation.mutateAsync(request);
+      resetKeywords();
       await queryClient.invalidateQueries({
-        queryKey: queryKeys.message.list(appliedKeyword.trim()),
+        queryKey: queryKeys.message.lists,
       });
       return 'saved';
     },
@@ -200,8 +202,9 @@ export function useMessagePage(): MessagePageViewModel {
       return;
     }
 
+    const nextSelectedId = getNextSelectedId(rows, selectedRowId);
     setDraftRows((prev) => prev.filter((row) => row.id !== selectedRowId));
-    setSelectedRowId('');
+    setSelectedRowId(nextSelectedId);
   };
 
   /**

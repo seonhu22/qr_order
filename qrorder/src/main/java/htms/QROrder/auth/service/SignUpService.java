@@ -2,7 +2,6 @@ package htms.QROrder.auth.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.auth.dto.SignUpRequest;
-import htms.QROrder.auth.dto.EmailValidRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
 import lombok.RequiredArgsConstructor;
@@ -40,28 +39,19 @@ public class SignUpService {
 
     public void newUser(SignUpRequest signUpRequest) {
 
+        signUpRequest.setBusinessRegiNum(signUpRequest.getBusinessRegiNum().replaceAll("\\D", ""));
+        signUpRequest.setUserNm(signUpRequest.getUserNm().trim());
+
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        EmailValidRequest  emailValidRequest = new EmailValidRequest();
-
-        String signUpSysId = UlidCreator.getUlid().toString();
-        String emailSysId = UlidCreator.getUlid().toString();
-        String password = passwordEncoder.encode(signUpRequest.getPassword());
-        String passwordChk = passwordEncoder.encode(signUpRequest.getPasswordChk());
-        String encodeEmailSysId = passwordEncoder.encode(emailSysId);
-
-        signUpRequest.setSysId(signUpSysId);
-        emailValidRequest.setSysId(emailSysId);
-        emailValidRequest.setLinkSysId(signUpSysId);
-        emailValidRequest.setEncodeSysId(encodeEmailSysId);
-        signUpRequest.setPassword(password);
-        signUpRequest.setPasswordChk(passwordChk);
+        signUpRequest.setSysId(UlidCreator.getUlid().toString());
+        signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+        signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
         signUpMapper.newPlant(signUpRequest);
         signUpMapper.newUser(signUpRequest);
-        signUpMapper.newEmailChk(emailValidRequest);
     }
 
     public boolean idDuplicateChk(String userId) {
@@ -69,21 +59,31 @@ public class SignUpService {
         return signUpMapper.idDuplicateChk(userId);
     }
 
-    public void emailValid(String encodeSysId) {
-
-        signUpMapper.emailValid(encodeSysId);
-    }
-
     private boolean chkBusinessRegistrationNumberAPI(SignUpRequest signUpRequest) {
+        String businessRegiNum = signUpRequest.getBusinessRegiNum() == null
+                ? "" : signUpRequest.getBusinessRegiNum().replaceAll("\\D", "");
+        String userNm = signUpRequest.getUserNm() == null
+                ? "" : signUpRequest.getUserNm().trim();
+
+        if (businessRegiNum.length() != 10) {
+            throw new BusinessRegiException("사업자등록번호 10자리를 입력해주세요.");
+        }
+        if (signUpRequest.getBusinessRegiDate() == null) {
+            throw new BusinessRegiException("개업일을 입력해주세요.");
+        }
+        if (userNm.isEmpty()) {
+            throw new BusinessRegiException("대표자명을 입력해주세요.");
+        }
+
         try {
             RestTemplate restTemplate = new RestTemplate();
 
-            String url = "https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=" + ntsServiceKey;
+            String url = "https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=" + ntsServiceKey;
 
             Map<String, Object> business = new HashMap<>();
-            business.put("b_no", signUpRequest.getBusinessRegiNum());
+            business.put("b_no", businessRegiNum);
             business.put("start_dt", signUpRequest.getBusinessRegiDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
-            business.put("p_nm", signUpRequest.getUserNm());
+            business.put("p_nm", userNm);
             business.put("p_nm2", "");
             business.put("b_nm", "");
             business.put("corp_no", "");

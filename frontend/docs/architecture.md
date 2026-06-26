@@ -138,6 +138,7 @@ frontend/
 
 > `shared/` 상세 구조·`public/`·`assets/` 설명은 [`components.md` §1 폴더 구조](./components.md#1-폴더-구조) 참고
 > 주요 설정 파일 설명은 [`config.md`](./config.md) 참고
+> TanStack Query 캐시 기준은 [`query-cache-policy.md`](./query-cache-policy.md) 참고
 
 ---
 
@@ -145,7 +146,7 @@ frontend/
 
 | 폴더                | 역할                                              |
 | ------------------- | ------------------------------------------------- |
-| `apps/*/pages`      | 라우트 단위 화면 — 조립만 담당                    |
+| `apps/*/pages`      | 라우트 단위 화면 — 조립만 담당. 서브폴더는 feature 이름 기준 kebab-case 1단계 (예: `admin-user/`, `store-info/`, `client-user/`) |
 | `apps/*/features`   | 화면 내부 재사용 기능 단위 (hook, component, api) |
 | `apps/*/routes`     | 앱별 라우터 정의                                  |
 | `shared/components` | 공통 UI 컴포넌트                                  |
@@ -153,7 +154,7 @@ frontend/
 | `shared/lib`        | Query Client, fetch 래퍼 등 공용 인프라           |
 | `shared/pages`      | 여러 앱이 공유하는 라우트 단위 페이지             |
 | `shared/api`        | query key, 공용 API 계층                          |
-| `shared/stores`     | Zustand 전역 UI 상태                              |
+| `apps/*/stores`     | 앱별 Zustand UI 상태                              |
 | `shared/styles`     | 디자인 토큰 CSS 및 전역 스타일                    |
 | `mocks`             | MSW 브라우저 mock 구성                            |
 | `test`              | 테스트 설정 및 공통 테스트 유틸                   |

@@ -6,6 +6,17 @@ const useInquiryManageQueryMock = vi.fn();
 const useInquiryAnswerMutationMock = vi.fn();
 const mapToInquiryManageRowMock = vi.fn();
 const mutateAsyncMock = vi.fn();
+const invalidateQueriesMock = vi.fn();
+
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-query')>('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      invalidateQueries: invalidateQueriesMock,
+    }),
+  };
+});
 
 vi.mock('../api/inquiryManageApi', () => ({
   useInquiryManageQuery: (...args: unknown[]) => useInquiryManageQueryMock(...args),
@@ -24,6 +35,7 @@ describe('useInquiryManagePage', () => {
     useInquiryAnswerMutationMock.mockReset();
     mapToInquiryManageRowMock.mockReset();
     mutateAsyncMock.mockReset();
+    invalidateQueriesMock.mockReset();
 
     useInquiryManageQueryMock.mockReturnValue({
       data: [
@@ -38,10 +50,6 @@ describe('useInquiryManagePage', () => {
       isLoading: false,
       isFetching: false,
       isError: false,
-      refetch: vi.fn(async () => ({
-        isError: false,
-        error: null,
-      })),
     });
 
     useInquiryAnswerMutationMock.mockReturnValue({
@@ -86,18 +94,12 @@ describe('useInquiryManagePage', () => {
     ]);
   });
 
-  it('saves answer then refetches inquiry list', async () => {
-    const refetchMock = vi.fn(async () => ({
-      isError: false,
-      error: null,
-    }));
-
+  it('saves answer then invalidates inquiry list cache', async () => {
     useInquiryManageQueryMock.mockReturnValue({
       data: [],
       isLoading: false,
       isFetching: false,
       isError: false,
-      refetch: refetchMock,
     });
 
     const { result } = renderHook(() => useInquiryManagePage());
@@ -129,7 +131,9 @@ describe('useInquiryManagePage', () => {
         answerDescription: '답변 완료',
       },
     });
-    expect(refetchMock).toHaveBeenCalledTimes(1);
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({
+      queryKey: ['board', 'qna', 'list'],
+    });
   });
 
   it('throws when sysId is missing before answer save', async () => {

@@ -8,7 +8,7 @@
  * @module dev/ButtonGuide
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, LinkButton } from '@/shared/components/button';
 import {
   AddChildRowTableButton,
@@ -20,6 +20,8 @@ import {
   SaveTableButton,
   MoveUpTableButton,
   MoveDownTableButton,
+  PrintListTableButton,
+  PrintRowTableButton,
   ResetFilterButton,
   ResetTableButton,
   SearchFilterButton,
@@ -76,6 +78,70 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
       {children}
       <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-tertiary)' }}>{label}</span>
+    </div>
+  );
+}
+
+/**
+ * segment 변형의 실제 사용 패턴 — 슬라이딩 인디케이터.
+ * `apps/client/features/table-layout/components/LayoutSizeToggle.tsx`와 동일한 구조다.
+ * 흰 배경은 인디케이터가 담당하고, 버튼 자체의 선택 배경은 투명 처리한다.
+ */
+function SegmentSlideDemo() {
+  const options = ['작게', '보통', '크게'] as const;
+  const [value, setValue] = useState<typeof options[number]>('보통');
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const groupEl = groupRef.current;
+    if (!groupEl) return;
+    const index = options.indexOf(value);
+    const buttonEl = groupEl.querySelectorAll('button')[index];
+    if (!buttonEl) return;
+    const groupRect = groupEl.getBoundingClientRect();
+    const buttonRect = buttonEl.getBoundingClientRect();
+    setIndicatorStyle({ left: buttonRect.left - groupRect.left, width: buttonRect.width });
+  }, [value]);
+
+  return (
+    <div
+      ref={groupRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        gap: 4,
+        padding: 4,
+        background: 'var(--color-bg-muted)',
+        borderRadius: 'var(--radius-md)',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          bottom: 4,
+          left: 0,
+          background: 'var(--color-bg-surface)',
+          borderRadius: 'var(--radius-button)',
+          boxShadow: 'var(--shadow-card)',
+          transition: 'transform var(--transition-ui), width var(--transition-ui)',
+          transform: `translateX(${indicatorStyle.left}px)`,
+          width: indicatorStyle.width,
+        }}
+      />
+      {options.map((label) => (
+        <Button
+          key={label}
+          variant="segment"
+          size="md"
+          selected={value === label}
+          onClick={() => setValue(label)}
+          style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
+        >
+          {label}
+        </Button>
+      ))}
     </div>
   );
 }
@@ -203,6 +269,9 @@ export default function ButtonGuide() {
           >
             다크
           </Button>
+        </Row>
+        <Row label="segment — 슬라이딩 인디케이터 (TableLayoutPage 배치 크기 토글, 클릭해보세요)">
+          <SegmentSlideDemo />
         </Row>
       </Section>
 
@@ -544,13 +613,24 @@ export default function ButtonGuide() {
         <Row label="테이블 행 수정 아이콘 (EditTableButton)">
           <EditTableButton ariaLabel="수정" onClick={() => {}} />
         </Row>
+        <Row label="QR 출력 (QrCodeManagementTable 내부 구성)">
+          <AddRowTableButton onClick={() => {}} />
+          <DeleteRowTableButton onClick={() => {}} />
+          <PrintListTableButton onClick={() => {}} />
+          <SaveTableButton onClick={() => {}} />
+        </Row>
+        <Row label="테이블 행 QR 출력 아이콘 (PrintRowTableButton)">
+          <PrintRowTableButton ariaLabel="QR 출력" onClick={() => {}} />
+        </Row>
         <Row label="disabled 상태">
           <CreateTableButton disabled />
           <DeleteTableButton disabled />
           <EditTableButton ariaLabel="수정 비활성" disabled />
+          <PrintRowTableButton ariaLabel="QR 출력 비활성" disabled />
           <MoveUpTableButton ariaLabel="위로 이동 비활성" disabled />
           <AddChildRowTableButton disabled />
           <ResetTableButton disabled />
+          <PrintListTableButton disabled />
           <SaveTableButton loading />
         </Row>
       </Section>

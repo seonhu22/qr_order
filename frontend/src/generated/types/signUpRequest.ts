@@ -17,4 +17,5 @@ export interface SignUpRequest {
   passwordChk?: string;
   email?: string;
   phoneNumber?: number;
+  validCode?: string;
 }

@@ -1,10 +1,9 @@
 package htms.QROrder.auth.repository;
 
-import htms.QROrder.auth.dto.SignUpRequest;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface EmailValidMapper {
-    boolean codeExist(String encodeSysID);
-    void newUserEmailValid(String  encodeSysId);
+    boolean userEmailMatchChk(@Param("email") String email, @Param("userId") String userId);
 }

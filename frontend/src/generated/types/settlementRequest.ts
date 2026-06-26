@@ -7,7 +7,6 @@
  */
 
 export interface SettlementRequest {
-  paymentType?: string;
   searchStartDate?: string;
   searchEndDate?: string;
 }

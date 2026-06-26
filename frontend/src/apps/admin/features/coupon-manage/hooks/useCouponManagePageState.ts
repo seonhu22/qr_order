@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToCouponRow,
   useCouponQuery,
@@ -48,7 +49,7 @@ export function useCouponManagePageState() {
     const row = editorRowToCouponRow(editorRow);
     await saveMutation.mutateAsync(row, isCreateMode);
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.coupon.list(appliedKeyword.trim()),
+      queryKey: queryKeys.coupon.lists,
     });
   };
 
@@ -56,7 +57,7 @@ export function useCouponManagePageState() {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
     await deleteMutation.mutateAsync(targets);
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.coupon.list(appliedKeyword.trim()),
+      queryKey: queryKeys.coupon.lists,
     });
     setCheckedIds([]);
     return targets.length;
@@ -67,6 +68,8 @@ export function useCouponManagePageState() {
     onSaveRow: handleSaveRow,
     onDeleteRows: handleDeleteRows,
   });
+
+  usePreventLeave(modalFlow.isDirty);
 
   const modalProps = {
     editor: {

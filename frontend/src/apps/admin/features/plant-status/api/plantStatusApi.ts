@@ -1,6 +1,7 @@
 import { useGetPlantStatus } from '@/generated/settings-controller/settings-controller';
 import type { PlantStatusResponse } from '@/generated/types/plantStatusResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { PlantStatusRow } from '../types';
 
 function deriveLicenseMonths(start?: string, end?: string): number | null {
@@ -40,6 +41,7 @@ export function usePlantStatusQuery(searchKeyword = '', enabled = true) {
       query: {
         queryKey: queryKeys.plantStatus.list(searchKeyword),
         enabled,
+        ...queryPolicies.searchResult,
       },
     },
   );

@@ -49,6 +49,11 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+    // 토글 버튼·InputBase 같은 행 내부 다른 포커스 요소에서 올라온(bubble) 키 입력은 무시한다.
+    // 무시하지 않으면 preventDefault가 그 요소의 기본 동작(토글 버튼 클릭 등)을 막아버린다.
+    if (e.target !== e.currentTarget) {
+      return;
+    }
     if (e.key === 'Enter' && !isDisabled) {
       e.preventDefault();
       onSelect(node.id);

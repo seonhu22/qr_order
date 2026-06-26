@@ -61,6 +61,54 @@ export function createDefaultQueryDateRangeParams(maxRangeDays = MAX_QUERY_RANGE
   return createQueryDateRangeParams(startDate, endDate);
 }
 
+/**
+ * 시작일시를 기준으로 조회 제한(maxRangeDays) 내에서 가능한 가장 늦은 종료일시를 계산한다.
+ * 계산된 종료일시가 현재 시각보다 미래이면, 오늘 날짜에 시작 시각을 적용한 값으로 대체한다.
+ * 그 값마저 현재 시각보다 미래이면 현재 시각으로 대체한다.
+ */
+export function getAutoEndDate(startValue: string, maxRangeDays = MAX_QUERY_RANGE_DAYS) {
+  if (!startValue) {
+    return startValue;
+  }
+
+  const start = new Date(startValue);
+  if (Number.isNaN(start.getTime())) {
+    return startValue;
+  }
+
+  const maxEnd = new Date(start);
+  maxEnd.setDate(maxEnd.getDate() + maxRangeDays);
+
+  const now = new Date();
+  if (maxEnd <= now) {
+    return formatDateTimeLocal(maxEnd);
+  }
+
+  const cappedEnd = new Date(now);
+  cappedEnd.setHours(start.getHours(), start.getMinutes(), 0, 0);
+  return formatDateTimeLocal(cappedEnd > now ? now : cappedEnd);
+}
+
+/**
+ * 종료일시를 기준으로 조회 제한(maxRangeDays) 내에서 가능한 가장 빠른 시작일시를 계산한다.
+ * `getAutoEndDate`의 대칭 버전 — 종료일시 변경 시 시작일시를 자동으로 맞출 때 사용한다.
+ */
+export function getAutoStartDate(endValue: string, maxRangeDays = MAX_QUERY_RANGE_DAYS) {
+  if (!endValue) {
+    return endValue;
+  }
+
+  const end = new Date(endValue);
+  if (Number.isNaN(end.getTime())) {
+    return endValue;
+  }
+
+  const minStart = new Date(end);
+  minStart.setDate(minStart.getDate() - maxRangeDays);
+
+  return formatDateTimeLocal(minStart);
+}
+
 export function validateQueryDateRange(
   startDate: string,
   endDate: string,

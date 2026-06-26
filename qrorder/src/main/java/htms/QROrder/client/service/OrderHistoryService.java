@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +20,9 @@ public class OrderHistoryService {
 
     private final OrderHistoryMapper orderHistoryMapper;
 
-    public OrderHistoryResponse getOrderHistory(String orderStatus) {
+    public OrderHistoryResponse getOrderHistory(String orderStatus, LocalDate startDate, LocalDate endDate) {
 
-        List<OrderMasterHistoryItem> orderMasterHistory = setMasterTotalPriceData(orderHistoryMapper.getOrderMasterHistory(orderStatus));
+        List<OrderMasterHistoryItem> orderMasterHistory = setMasterTotalPriceData(orderHistoryMapper.getOrderMasterHistory(orderStatus, startDate, endDate));
         List<OrderDetailHistoryItem> orderDetailHistory = setDetailTotalPriceAndOptionData(getOrderDetailHistory(orderMasterHistory));
 
         OrderHistoryResponse orderHistoryResponse = new OrderHistoryResponse();

@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/api/queryKeys';
 import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import type { RuleDetailRow, RuleDetailSchema, RuleMasterRow } from '../types';
 import {
   buildRuleDetailRequest,
@@ -34,19 +37,8 @@ function createDraftDetailSchema(baseSchema: RuleDetailSchema): RuleDetailSchema
   };
 }
 
-// ? 자주 사용할 것 같음, 리펙토링 시 외부로 분리 고려
-async function refetchOrThrow<TError>(
-  refetch: () => Promise<{ isError: boolean; error: TError | null }>,
-  errorMessage: string,
-) {
-  const result = await refetch();
-
-  if (result.isError) {
-    throw result.error instanceof Error ? result.error : new Error(errorMessage);
-  }
-}
-
 export function useRuleManagementPage() {
+  const queryClient = useQueryClient();
   const orderedRowEditor = useOrderedRowEditor<RuleDetailRow>();
   const [checkedMasterIds, setCheckedMasterIds] = useState<string[]>([]);
   const [selectedMasterId, setSelectedMasterId] = useState('');
@@ -159,7 +151,7 @@ export function useRuleManagementPage() {
 
   const saveMaster = async (row: RuleMasterRow, isCreateMode: boolean) => {
     await saveMasterMutation.mutateAsync(row, isCreateMode);
-    await refetchOrThrow(mastersQuery.refetch, '저장 후 규칙 목록을 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.rule.masterLists });
   };
 
   const deleteMasters = async () => {
@@ -170,7 +162,7 @@ export function useRuleManagementPage() {
     }
 
     await deleteMastersMutation.mutateAsync(targets);
-    await refetchOrThrow(mastersQuery.refetch, '삭제 후 규칙 목록을 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.rule.masterLists });
 
     if (targets.some((row) => row.id === effectiveSelectedMasterId)) {
       setSelectedMasterId('');
@@ -254,7 +246,7 @@ export function useRuleManagementPage() {
     }
 
     await saveDetailsMutation.mutateAsync(request);
-    await refetchOrThrow(detailQuery.refetch, '저장 후 규칙 상세를 다시 조회하지 못했습니다.');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.rule.detailLists });
     setDraftDetailSchemasByMaster((prev) => {
       const next = { ...prev };
       delete next[selectedMaster.id];
@@ -289,6 +281,9 @@ export function useRuleManagementPage() {
     onSaveRow: saveMaster,
     onDeleteRows: deleteMasters,
   });
+
+  // 상세 테이블 변경 또는 마스터 추가/수정 모달의 미저장 변경 중 하나라도 있으면 이탈방지
+  usePreventLeave(isDetailDirty || masterFlow.isDirty);
 
   const detailFlow = useDetailTableSaveFlow({
     isDirty: isDetailDirty,

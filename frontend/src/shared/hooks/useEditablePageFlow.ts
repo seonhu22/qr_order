@@ -14,7 +14,7 @@ import { startTransition, useState, type ReactNode } from 'react';
 import { useFilterDirtyCheck } from './useFilterDirtyCheck';
 
 export type EditablePageSimpleModalState = {
-  type?: 'passwordResetConfirm';
+  type?: 'passwordResetConfirm' | 'requiredFieldNotice';
   userId?: string;
   description: ReactNode;
   helperText?: string;
@@ -24,6 +24,7 @@ export type EditablePageSimpleModalState = {
 export type EditablePageFlowState = {
   simpleModalState: EditablePageSimpleModalState;
   isSaveConfirmOpen: boolean;
+  isConfirmingSave: boolean;
   pendingFilterAction: 'search' | 'reset' | null;
 };
 
@@ -76,6 +77,7 @@ export function useEditablePageFlow({
 }: UseEditablePageFlowParams) {
   const [simpleModalState, setSimpleModalState] = useState<EditablePageSimpleModalState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const [isConfirmingSave, setIsConfirmingSave] = useState(false);
 
   const {
     pendingFilterAction,
@@ -109,6 +111,7 @@ export function useEditablePageFlow({
   const requestSave = () => {
     if (onValidateRequiredFields && !onValidateRequiredFields()) {
       setSimpleModalState({
+        type: 'requiredFieldNotice',
         ...requiredFieldNotice,
         onConfirm: () => {
           onApplyRequiredFieldErrors?.();
@@ -130,6 +133,7 @@ export function useEditablePageFlow({
    * 저장 확인 모달에서 실제 저장을 확정한다.
    */
   const confirmSave = async () => {
+    setIsConfirmingSave(true);
     try {
       const result = await onSaveChanges();
       setIsSaveConfirmOpen(false);
@@ -145,12 +149,15 @@ export function useEditablePageFlow({
       setSimpleModalState({
         description: error instanceof Error ? error.message : saveErrorMessage,
       });
+    } finally {
+      setIsConfirmingSave(false);
     }
   };
 
   const state: EditablePageFlowState = {
     simpleModalState,
     isSaveConfirmOpen,
+    isConfirmingSave,
     pendingFilterAction,
   };
 
