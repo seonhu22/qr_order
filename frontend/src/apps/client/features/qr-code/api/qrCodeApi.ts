@@ -81,14 +81,14 @@ export function hasQrCodeChanges(request: QrCodeRequest) {
 
 function getQrCodeList() {
   return httpClient<QrCodeResponse[]>({
-    url: '/api/client/store_manage/table_qr/search',
+    url: '/api/client/store_manage/qr_code/search',
     method: 'GET',
   });
 }
 
 function saveQrCode(request: QrCodeRequest) {
   return httpClient<{ success: boolean }>({
-    url: '/api/client/store_manage/table_qr/save',
+    url: '/api/client/store_manage/qr_code/save',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: request,

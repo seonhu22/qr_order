@@ -278,12 +278,12 @@ const storeTableSaveOverrideHandler = http.post(
   },
 );
 
-const qrCodeOverrideHandler = http.get('*/api/client/store_manage/table_qr/search', () => {
+const qrCodeOverrideHandler = http.get('*/api/client/store_manage/qr_code/search', () => {
   return HttpResponse.json(QR_CODE_MOCK_ROWS);
 });
 
 const qrCodeSaveOverrideHandler = http.post(
-  '*/api/client/store_manage/table_qr/save',
+  '*/api/client/store_manage/qr_code/save',
   async ({ request }) => {
     const body = (await request.json()) as QrCodeRequest;
 
