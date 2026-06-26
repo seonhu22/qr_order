@@ -1,0 +1,142 @@
+.order-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-10);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* 상태 변경 버튼 클릭으로 이동한 카드를 잠깐 강조해 어떤 카드가 움직였는지 알려준다 */
+@keyframes order-status-card-flash {
+  from {
+    background-color: var(--color-brand-subtle);
+  }
+  to {
+    background-color: var(--color-bg-surface);
+  }
+}
+
+.order-status-card--moved {
+  animation: order-status-card-flash 1.2s ease-out;
+}
+
+.order-status-card__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-status-card__order-no {
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.order-status-card__field-label {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-tertiary);
+}
+
+.order-status-card__time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+.order-status-card__table {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.order-status-card__menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-status-card__menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.order-status-card__menu-item-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: var(--typography-size-ui);
+}
+
+.order-status-card__menu-name {
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.order-status-card__menu-qty {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+/* 옵션 메뉴는 메인 메뉴 하단에 들어가되, 좌측 라인과 옅은 배경으로 메인 메뉴와 분리해 보여준다 */
+.order-status-card__option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-left: 0.125rem solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+  list-style: none;
+}
+
+.order-status-card__option-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-status-card__divider {
+  height: var(--border-1);
+  background-color: var(--color-border-default);
+}
+
+.order-status-card__total {
+  margin: 0;
+  text-align: right;
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.order-status-card__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
+}
+
+/* 4개가 한 줄에 딱 맞는 폭을 계산해서(컨테이너 100% 기준) 항상 같은 고정폭으로 쓴다.
+   %는 형제 개수가 아니라 컨테이너 기준이라, 1개/3개짜리 줄도 같은 폭을 쓰고 남는 공간은 비워둔다.
+   세로 크기는 패딩으로만 키운다. */
+.order-status-card__actions .btn {
+  flex: 0 0 calc((100% - 3 * var(--spacing-1)) / 4);
+  width: calc((100% - 3 * var(--spacing-1)) / 4);
+  height: auto;
+  padding: var(--spacing-6) var(--spacing-1);
+}

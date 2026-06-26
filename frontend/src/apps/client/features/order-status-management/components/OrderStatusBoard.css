@@ -1,0 +1,6 @@
+.order-status-board {
+  display: flex;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
