@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 @Data
 public class SettlementRequest {
-    private String paymentType;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate searchStartDate;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
