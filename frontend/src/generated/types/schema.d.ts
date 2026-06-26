@@ -2128,9 +2128,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2460,9 +2460,9 @@ export interface components {
             width?: number;
             tableType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2486,7 +2486,6 @@ export interface components {
             useYn?: string;
         };
         SettlementRequest: {
-            paymentType?: string;
             /** Format: date */
             searchStartDate?: string;
             /** Format: date */
