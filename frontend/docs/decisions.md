@@ -500,3 +500,38 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] `groupDate`가 날짜만인지 날짜+시간인지 확인 후 `formatSettlementDate` 단순화
 - [ ] 일별 할인액 추적 필요 여부 확인 — 필요하면 `DailySale`에 필드 추가 요청
 - [ ] `mock/settlementMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러를 실제 검증 후 유지/제거 결정
+
+---
+
+## ADR-014 — 주문 상태 관리(칸반 보드): 생성된 API가 echo-back 구조라 mock 우선 구현
+
+**날짜**: 2026-06-26
+**상태**: 임시 (백엔드 API 확정 후 연동 예정)
+
+### 배경
+
+`/client/order/status/management`(접수/조리중/서빙완료/취소 칸반 보드) 구현 중 `generated/order-manage-controller`에 취소·결제완료·미결제 처리 API가 이미 존재함을 확인했다. 다만 전부 주문 1건을 `header`/`body`/`footer`로 통째로 echo-back 받는 요청/응답 구조라, 이 화면이 보드에 쓰는 가벼운 행 데이터(`OrderBoardRow`)만으로는 바로 연동할 수 없었다.
+
+### 검토한 방식
+
+**패턴 1 — 생성 API에 맞춰 화면 데이터 모델을 `header`/`body`/`footer` 구조로 다시 설계**: 보드 카드가 매번 주문 상세 구조 전체를 들고 있어야 해서 카드/컬럼 렌더링이 불필요하게 무거워진다.
+
+**패턴 2 — 프론트 mock 우선 구현 (채택)**: ADR-004/005/006/010/011/012/013과 동일한 선례. 칸반 보드·모달 흐름(취소/결제/주문수정) UI는 전부 완성하고, 데이터는 `mock/orderStatusBoardMock.ts` 정적 배열을 로컬 state로 관리한다.
+
+### 결정
+
+패턴 2를 채택한다.
+
+- `api/orderStatusBoardApi.ts`의 `useOrderStatusBoardQuery`는 `fetchOrderStatusBoardMock`(정적 mock을 그대로 resolve)을 `queryFn`으로 쓴다.
+- 상태 변경(조리시작/서빙완료/이전/취소/결제완료/미결제/주문수정)은 React Query 캐시가 아니라 `useOrderStatusBoardPage`의 로컬 state에서 처리한다. "초기화" 버튼을 누르면 mock 조회 결과로 되돌린다.
+- 메뉴 카탈로그(`mock/menuCatalogMock.ts`)도 같은 이유로 이 페이지 전용 mock을 새로 만들었다(다른 feature의 메뉴 mock과 테마가 달라 혼용하지 않음).
+- 취소사유(`ORDER_CANCEL_REASON_OPTIONS`)·미결제사유(`ORDER_UNPAID_REASON_OPTIONS`) 콤보 옵션은 백엔드에 확정된 선택지 API가 없어 `constants.ts`에 임의로 정의했다.
+- 상세 화면 동작·생성 API와의 필드 대응 관계는 [`docs/page/order-status-management.md`](./page/order-status-management.md#mock--실제-api-전환-가이드)에 모아뒀다.
+
+### 연동 시 체크리스트
+
+- [ ] `getPaymentComplete`의 `sysId`가 주문 1건 단위인지 테이블 결제 세션 단위인지 백엔드와 확인 (`docs/page/order-status-management.md` "확인이 필요한 것" 참고)
+- [ ] `paymentComplete`/`cancelOrder`가 요구하는 `header`/`body`/`footer`를 보드 조회 API가 함께 내려주는지, 별도 상세 조회가 필요한지 확인
+- [ ] 메뉴 줄 단위 취소, 새 주문(메뉴 추가) 등록에 대응하는 API 확정 — 현재 candidate 없음
+- [ ] 취소/미결제 사유 코드가 백엔드 공통코드로 존재하면 `constants.ts`의 임의 옵션을 교체
+- [ ] `mock/orderStatusBoardMock.ts`, `mock/menuCatalogMock.ts` 제거, `api/orderStatusBoardApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
