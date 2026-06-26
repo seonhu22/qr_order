@@ -16,6 +16,7 @@ export type ClientNavigationData = {
   menusBySection: Record<string, SidebarNavDepth1[]>;
   currentSection: ClientSection | null;
   currentMenus: SidebarNavDepth1[];
+  currentMenuCd: string | undefined;
   breadcrumb: ClientMenuBreadcrumb | null;
 };
 
@@ -192,6 +193,19 @@ export function findClientMenuBreadcrumb(pathname: string): ClientMenuBreadcrumb
   return null;
 }
 
+export function findClientMenuCdByPath(pathname: string): string | undefined {
+  for (const depth1 of CLIENT_SIDEBAR_MENUS) {
+    for (const group of depth1.groups) {
+      const item = group.items.find((menuItem) => menuItem.path === pathname);
+      if (item) {
+        return item.key;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function createFallbackClientNavigationData(pathname: string): ClientNavigationData {
   const currentSection = findClientSectionByPath(pathname);
 
@@ -200,6 +214,7 @@ function createFallbackClientNavigationData(pathname: string): ClientNavigationD
     menusBySection: CLIENT_MENUS_BY_SECTION,
     currentSection,
     currentMenus: currentSection ? CLIENT_MENUS_BY_SECTION[currentSection] ?? [] : [],
+    currentMenuCd: findClientMenuCdByPath(pathname),
     breadcrumb: findClientMenuBreadcrumb(pathname),
   };
 }
@@ -224,6 +239,7 @@ export function createClientNavigationData(
     menusBySection: navigation.menusBySection,
     currentSection: navigation.currentSection,
     currentMenus: navigation.currentMenus,
+    currentMenuCd: navigation.currentMenu?.menuCd,
     breadcrumb: navigation.breadcrumb
       ? {
           depth1: navigation.breadcrumb.depth1,
