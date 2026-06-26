@@ -1,20 +1,89 @@
-import { STORE_INFO_MOCK_ROWS } from '../mock/storeInfoMock';
 import type { StoreInfo } from '../types';
+import type { StoreInfoResponse } from '@/generated/types/storeInfoResponse';
 import type { StoreInfoRequest } from '@/generated/types/storeInfoRequest';
+import type { LocalTime } from '@/generated/types/localTime';
 
 export type StoreInfoSaveRequest = Omit<StoreInfoRequest, 'openTime' | 'closeTime'> & {
   openTime?: string;
   closeTime?: string;
 };
 
+export const EMPTY_STORE_INFO: StoreInfo = {
+  storeName: '',
+  businessNumber: '',
+  ownerName: '',
+  address: '',
+  contactPhone: '',
+  emergencyPhone: '',
+  businessHoursStart: '',
+  businessHoursEnd: '',
+  email: '',
+};
+
+function formatPhoneForDisplay(value?: number): string {
+  const digits = value == null ? '' : String(value);
+  if (!digits) return '';
+
+  if (digits.length === 9 && digits.startsWith('2')) {
+    return `02-${digits.slice(1, 5)}-${digits.slice(5)}`;
+  }
+
+  if (digits.length === 10 && digits.startsWith('10')) {
+    return `010-${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+
+  if (digits.length === 11) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  }
+
+  return digits;
+}
+
+function isLocalTime(value: unknown): value is LocalTime {
+  return typeof value === 'object' && value !== null && ('hour' in value || 'minute' in value);
+}
+
+function formatTimeForDisplay(value?: LocalTime | string): string {
+  if (!value) return '';
+
+  if (typeof value === 'string') {
+    const [hour = '00', minute = '00'] = value.split(':');
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+  }
+
+  if (isLocalTime(value)) {
+    const hour = String(value.hour ?? 0).padStart(2, '0');
+    const minute = String(value.minute ?? 0).padStart(2, '0');
+    return `${hour}:${minute}`;
+  }
+
+  return '';
+}
+
 function formatTimeForRequest(time: string): string {
   const [hour = '00', minute = '00'] = time.split(':');
   return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 }
 
-export function toStoreInfoRequest(values: StoreInfo): StoreInfoSaveRequest {
+export function mapStoreInfoResponseToForm(response?: StoreInfoResponse): StoreInfo {
+  if (!response) return EMPTY_STORE_INFO;
+
   return {
-    sysId: STORE_INFO_MOCK_ROWS[0]?.sysId,
+    storeName: response.storeName ?? '',
+    businessNumber: '',
+    ownerName: '',
+    address: response.address ?? '',
+    contactPhone: formatPhoneForDisplay(response.phoneNumber),
+    emergencyPhone: formatPhoneForDisplay(response.emergencyPhoneNumber),
+    businessHoursStart: formatTimeForDisplay(response.openTime),
+    businessHoursEnd: formatTimeForDisplay(response.closeTime),
+    email: response.email ?? '',
+  };
+}
+
+export function toStoreInfoRequest(values: StoreInfo, sysId?: string): StoreInfoSaveRequest {
+  return {
+    sysId,
     storeName: values.storeName,
     address: values.address,
     phoneNumber: Number(values.contactPhone.replace(/[^0-9]/g, '')) || undefined,
