@@ -288,9 +288,32 @@ export function WrapperModal({
           {children ? <div className="base-modal__content">{children}</div> : null}
         </div>
 
-        <footer className="base-modal__footer">
-          {hasPrimaryAction && hasSecondaryAction ? (
-            <>
+        {(hasPrimaryAction || hasSecondaryAction) && (
+          <footer className="base-modal__footer">
+            {hasPrimaryAction && hasSecondaryAction ? (
+              <>
+                <Button
+                  loading={resolvedPrimaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedPrimaryAction.variant ?? 'primary'}
+                  disabled={resolvedPrimaryAction.disabled}
+                  type="button"
+                  onClick={handlePrimaryAction}
+                >
+                  {resolvedPrimaryAction.label ?? '확인'}
+                </Button>
+                <Button
+                  loading={resolvedSecondaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedSecondaryAction.variant ?? 'outline'}
+                  disabled={resolvedSecondaryAction.disabled}
+                  type="button"
+                  onClick={handleSecondaryAction}
+                >
+                  {resolvedSecondaryAction.label ?? '닫기'}
+                </Button>
+              </>
+            ) : (
               <Button
                 loading={resolvedPrimaryAction.loading}
                 size={buttonSize}
@@ -301,30 +324,9 @@ export function WrapperModal({
               >
                 {resolvedPrimaryAction.label ?? '확인'}
               </Button>
-              <Button
-                loading={resolvedSecondaryAction.loading}
-                size={buttonSize}
-                variant={resolvedSecondaryAction.variant ?? 'outline'}
-                disabled={resolvedSecondaryAction.disabled}
-                type="button"
-                onClick={handleSecondaryAction}
-              >
-                {resolvedSecondaryAction.label ?? '닫기'}
-              </Button>
-            </>
-          ) : hasPrimaryAction ? (
-            <Button
-              loading={resolvedPrimaryAction.loading}
-              size={buttonSize}
-              variant={resolvedPrimaryAction.variant ?? 'primary'}
-              disabled={resolvedPrimaryAction.disabled}
-              type="button"
-              onClick={handlePrimaryAction}
-            >
-              {resolvedPrimaryAction.label ?? '확인'}
-            </Button>
-          ) : null}
-        </footer>
+            )}
+          </footer>
+        )}
       </section>
     </div>
   );
