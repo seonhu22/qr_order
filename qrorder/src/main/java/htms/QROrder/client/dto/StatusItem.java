@@ -1,8 +1,10 @@
 package htms.QROrder.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -18,6 +20,8 @@ public class StatusItem {
         private Integer orderNum;
         private Integer tableNum;
         private LocalDateTime orderDatetime;
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime orderTime;
         private String orderStatus;
     }
 
