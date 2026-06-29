@@ -71,6 +71,7 @@ export function mapToMenuCategoryRow(item: MenuMasterResponse): MenuCategoryRow 
     sysId: item.sysId,
     name: item.categoryName ?? '',
     useYn: item.useYn === 'N' ? 'N' : 'Y',
+    ordNo: item.ordNo ?? 0,
   };
 }
 
@@ -79,6 +80,7 @@ export function mapToMenuCategoryPayload(row: MenuCategoryRow): MenuMasterReques
     sysId: row.sysId,
     categoryName: row.name,
     useYn: row.useYn,
+    ordNo: row.ordNo,
   };
 }
 
