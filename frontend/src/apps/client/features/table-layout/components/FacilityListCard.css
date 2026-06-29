@@ -23,6 +23,13 @@
   padding: 0 var(--spacing-4);
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-sm);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.facility-list-card__item--dragging {
+  opacity: 0.4;
 }
 
 .facility-list-card__icon {
