@@ -73,14 +73,17 @@ export const httpClient = async <T>(
   const searchParams = params
     ? '?' + new URLSearchParams(params as Record<string, string>).toString()
     : '';
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
 
   const response = await fetch(`${url}${searchParams}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers: isFormData
+      ? headers
+      : {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+    body: data !== undefined ? (isFormData ? data : JSON.stringify(data)) : undefined,
     credentials: 'include',
     signal,
   });
