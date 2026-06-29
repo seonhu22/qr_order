@@ -70,7 +70,7 @@
             count(*) > 0
         from store_menu_master
         where 1=1
-        and category_name = #{menuMasterRequest.categoryName}
+        and category_name = #{categoryName}
         and delete_yn = 'N'
     </select>
 
