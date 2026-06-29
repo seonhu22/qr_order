@@ -19,7 +19,8 @@ public class StatusItem {
         private String sysId;
         private Integer orderNum;
         private Integer tableNum;
-        private LocalDateTime orderDatetime;
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime orderDatetime;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
