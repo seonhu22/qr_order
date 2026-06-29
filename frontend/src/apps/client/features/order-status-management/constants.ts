@@ -8,6 +8,17 @@ export const ORDER_BOARD_COLUMNS: { status: OrderBoardStatus; label: string }[] 
   { status: 'CANCELLED', label: '취소' },
 ];
 
+/**
+ * 칸반 컬럼 숫자 라벨(`OrderStatusColumn.css`의 `.order-status-column__count`)과 같은 색상 매핑.
+ * 결제 처리 영수증·주문 수정 모달에서 주문 상태 배지(`.order-status-badge`)로 재사용한다.
+ */
+export const ORDER_BOARD_STATUS_BADGE_CLASS: Record<OrderBoardStatus, string> = {
+  RECEIVED: 'order-status-badge--received',
+  COOKING: 'order-status-badge--cooking',
+  SERVED: 'order-status-badge--served',
+  CANCELLED: 'order-status-badge--cancelled',
+};
+
 /** "이전" 버튼이 되돌리는 직전 상태. RECEIVED/CANCELLED는 되돌릴 곳이 없어 제외한다. */
 export const ORDER_BOARD_PREV_STATUS: Partial<Record<OrderBoardStatus, OrderBoardStatus>> = {
   COOKING: 'RECEIVED',

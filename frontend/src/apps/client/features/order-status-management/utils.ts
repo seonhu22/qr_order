@@ -1,5 +1,11 @@
 import { ORDER_BOARD_COLUMNS, ORDER_CANCEL_REASON_OPTIONS, ORDER_CANCEL_REASON_OTHER_VALUE } from './constants';
-import type { MenuCatalogItem, OrderBoardColumnData, OrderBoardMenuItem, OrderBoardRow } from './types';
+import type {
+  MenuCatalogItem,
+  OrderBoardColumnData,
+  OrderBoardMenuItem,
+  OrderBoardRow,
+  OrderBoardStatus,
+} from './types';
 
 function pad(value: number): string {
   return value.toString().padStart(2, '0');
@@ -21,6 +27,11 @@ export function formatOrderBoardTime(value: string): string {
 
 export function formatOrderBoardPrice(value: number): string {
   return `${value.toLocaleString('ko-KR')} 원`;
+}
+
+/** 칸반 컬럼 헤더와 같은 한글 라벨("접수"/"조리중"/"서빙완료"/"취소")을 돌려준다. */
+export function getOrderBoardStatusLabel(status: OrderBoardStatus): string {
+  return ORDER_BOARD_COLUMNS.find((column) => column.status === status)?.label ?? status;
 }
 
 function isToday(value: string): boolean {

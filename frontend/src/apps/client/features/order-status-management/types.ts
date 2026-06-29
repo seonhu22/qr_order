@@ -54,14 +54,29 @@ export type OrderBoardCardActions = {
   onCancel: (row: OrderBoardRow) => void;
   onEdit: (row: OrderBoardRow) => void;
   onShowCancelReason: (row: OrderBoardRow) => void;
+  /** 취소 컬럼에서 카드를 화면에서만 지운다(실제 데이터는 삭제하지 않음). */
+  onDismiss: (id: string) => void;
 };
 
-/** "주문 수정" 모달의 "메뉴 추가"에서 고를 수 있는 옵션 카탈로그 항목 */
+/** "주문 수정" 모달의 "메뉴 추가" > "옵션 추가"에서 고를 수 있는 옵션 카탈로그 항목 */
 export type MenuCatalogOption = {
   id: string;
   name: string;
   /** 옵션 1개당 가격 */
   unitPrice: number;
+};
+
+export type MenuCatalogOptionSelectionType = 'single' | 'multi';
+
+/**
+ * 옵션을 묶어서 보여줄 카테고리(예: "맵기 조절", "고기추가").
+ * - `single`: 카테고리 내에서 정확히 1개를 필수로 선택한다(라디오 동작, 기본값은 첫 옵션).
+ * - `multi`: 옵션별로 수량을 따로 선택한다(+/- 조절, 0개면 미선택).
+ */
+export type MenuCatalogOptionCategory = {
+  category: string;
+  selectionType: MenuCatalogOptionSelectionType;
+  options: MenuCatalogOption[];
 };
 
 /** "주문 수정" 모달의 "메뉴 추가"에서 고를 수 있는 메뉴 카탈로그 항목 */
@@ -72,5 +87,5 @@ export type MenuCatalogItem = {
   unitPrice: number;
   /** 메뉴 목록을 묶어서 보여줄 분류명(예: "메인 메뉴", "음료수") */
   category: string;
-  options: MenuCatalogOption[];
+  optionCategories: MenuCatalogOptionCategory[];
 };

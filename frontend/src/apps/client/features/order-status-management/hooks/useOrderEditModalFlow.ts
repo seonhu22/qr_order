@@ -13,6 +13,13 @@
  * - 메뉴 추가 모달은 카탈로그 목록 + "추가된 항목" 미리보기로 구성된다. 옵션이 없는 메뉴는 "추가" 클릭 즉시
  *   미리보기에 들어가고(같은 메뉴를 또 누르면 수량만 +1), 옵션이 있는 메뉴는 옵션 추가 모달이 한 단계 더 뜬다.
  *   미리보기에서 여러 메뉴를 모은 뒤 "확인"을 눌러야 그 메뉴들을 합친 새 주문 1건이 draft에 추가된다.
+ * - 옵션 추가 모달의 옵션 카테고리는 두 가지다. `single`(예: 맵기 조절)은 카테고리 내에서 정확히 1개를 필수로
+ *   선택하며, 옵션 추가 모달을 열 때 각 single 카테고리의 첫 옵션을 기본 선택해둔다. `multi`(예: 추가옵션)는
+ *   옵션별로 수량을 따로 선택하고(0개면 미선택), 메뉴 자체의 수량("주문 수량")과는 별개다.
+ * - 주문 수정/메뉴 추가/옵션 추가 3단계 모두 변경 내용이 있는 상태에서 닫으려 하면(닫기 버튼/ESC/배경 클릭)
+ *   `docs/components/Modal.md` #11 패턴과 동일하게 "페이지를 나가시겠습니까?" 경고를 먼저 띄운다 — `close*`는
+ *   dirty면 경고만 열고, 경고의 "확인"(`forceClose*`)을 눌러야 실제로 닫힌다. "확인"/"추가" 버튼으로 정상
+ *   진행할 때는 항상 `forceClose*`를 직접 불러 경고 없이 닫는다.
  */
 
 import { useState } from 'react';
@@ -22,15 +29,24 @@ import type { OrderBoardMenuItem, OrderBoardRow } from '../types';
 
 type OptionPickerState = {
   catalogMenuId: string;
+  /** 같은 옵션 조합으로 추가할 메뉴 수량("주문 수량" 박스) */
   quantity: number;
+  /** single 카테고리에서 선택된 옵션 id(카테고리당 정확히 1개) */
   selectedOptionIds: string[];
+  /** multi 카테고리 옵션별 선택 수량(옵션 id → 수량, 0이면 미선택) */
+  optionQuantities: Record<string, number>;
 };
 
 type UseOrderEditModalFlowParams = {
   onConfirmEdit: (originalOrderIds: string[], finalizedOrders: OrderBoardRow[]) => void;
 };
 
-const EMPTY_OPTION_PICKER: OptionPickerState = { catalogMenuId: '', quantity: 1, selectedOptionIds: [] };
+const EMPTY_OPTION_PICKER: OptionPickerState = {
+  catalogMenuId: '',
+  quantity: 1,
+  selectedOptionIds: [],
+  optionQuantities: {},
+};
 
 function cloneOrder(order: OrderBoardRow): OrderBoardRow {
   return {
@@ -64,28 +80,59 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   const [addedItems, setAddedItems] = useState<OrderBoardMenuItem[]>([]);
   const [optionPicker, setOptionPicker] = useState<OptionPickerState>(EMPTY_OPTION_PICKER);
 
+  /** 이탈방지(dirty 비교) 기준 — 각 단계를 열 때의 스냅샷과 현재 값을 비교한다. */
+  const [initialDraftOrdersSnapshot, setInitialDraftOrdersSnapshot] = useState('');
+  const [initialOptionPickerSnapshot, setInitialOptionPickerSnapshot] = useState('');
+  const [isEditorDirtyWarningOpen, setIsEditorDirtyWarningOpen] = useState(false);
+  const [isMenuPickerDirtyWarningOpen, setIsMenuPickerDirtyWarningOpen] = useState(false);
+  const [isOptionPickerDirtyWarningOpen, setIsOptionPickerDirtyWarningOpen] = useState(false);
+
+  const isEditorDirty = isEditorOpen && JSON.stringify(draftOrders) !== initialDraftOrdersSnapshot;
+  /** 미리보기에 무엇이라도 모여 있으면 닫을 때 잃을 변경이 있는 상태다. */
+  const isMenuPickerDirty = isMenuPickerOpen && addedItems.length > 0;
+  const isOptionPickerDirty = isOptionPickerOpen && JSON.stringify(optionPicker) !== initialOptionPickerSnapshot;
+
   const resetAll = () => {
     setTableNum('');
     setOriginalOrderIds([]);
     setDraftOrders([]);
     setAddedItems([]);
     setOptionPicker(EMPTY_OPTION_PICKER);
+    setInitialDraftOrdersSnapshot('');
+    setInitialOptionPickerSnapshot('');
   };
 
   const openEditModal = (initialOrders: OrderBoardRow[]) => {
+    const clonedOrders = initialOrders.map(cloneOrder);
     setTableNum(initialOrders[0]?.tableNum ?? '');
     setOriginalOrderIds(initialOrders.map((order) => order.id));
-    setDraftOrders(initialOrders.map(cloneOrder));
+    setDraftOrders(clonedOrders);
+    setInitialDraftOrdersSnapshot(JSON.stringify(clonedOrders));
     setIsEditorOpen(true);
   };
 
-  const closeEditor = () => {
+  /** 경고 없이 바로 닫는다 — "확인"으로 정상 진행할 때만 직접 호출한다. */
+  const forceCloseEditor = () => {
     setIsEditorOpen(false);
     setIsMenuPickerOpen(false);
     setIsOptionPickerOpen(false);
     setIsConfirmOpen(false);
+    setIsEditorDirtyWarningOpen(false);
+    setIsMenuPickerDirtyWarningOpen(false);
+    setIsOptionPickerDirtyWarningOpen(false);
     resetAll();
   };
+
+  /** 닫기 버튼/ESC/배경 클릭 — dirty면 경고 모달을 먼저 띄운다. */
+  const closeEditor = () => {
+    if (isEditorDirty) {
+      setIsEditorDirtyWarningOpen(true);
+      return;
+    }
+    forceCloseEditor();
+  };
+
+  const closeEditorDirtyWarning = () => setIsEditorDirtyWarningOpen(false);
 
   const cancelMenuLine = (orderId: string, menuId: string) => {
     setDraftOrders((prev) =>
@@ -103,12 +150,26 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     setIsMenuPickerOpen(true);
   };
 
-  const closeMenuPicker = () => {
+  /** 경고 없이 바로 닫는다 — "확인"으로 정상 진행할 때만 직접 호출한다. */
+  const forceCloseMenuPicker = () => {
     setIsMenuPickerOpen(false);
     setIsOptionPickerOpen(false);
     setAddedItems([]);
     setOptionPicker(EMPTY_OPTION_PICKER);
+    setIsMenuPickerDirtyWarningOpen(false);
+    setIsOptionPickerDirtyWarningOpen(false);
   };
+
+  /** 닫기 버튼/ESC/배경 클릭 — 추가된 항목이 있으면(dirty) 경고 모달을 먼저 띄운다. */
+  const closeMenuPicker = () => {
+    if (isMenuPickerDirty) {
+      setIsMenuPickerDirtyWarningOpen(true);
+      return;
+    }
+    forceCloseMenuPicker();
+  };
+
+  const closeMenuPickerDirtyWarning = () => setIsMenuPickerDirtyWarningOpen(false);
 
   /** 옵션이 없는 메뉴는 즉시 추가한다. 이미 추가된(옵션 없는) 같은 메뉴면 수량만 +1 한다. */
   const addSimpleCatalogMenu = (catalogMenuId: string) => {
@@ -137,35 +198,67 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     });
   };
 
-  /** 옵션이 있는 메뉴는 옵션 추가 모달을 한 단계 더 연다. */
+  /** 옵션이 있는 메뉴는 옵션 추가 모달을 한 단계 더 연다. single 카테고리는 필수 선택이라 첫 옵션을 기본 선택해둔다. */
   const clickAddCatalogMenu = (catalogMenuId: string) => {
     const catalogMenu = MENU_CATALOG_MOCK.find((menu) => menu.id === catalogMenuId);
     if (!catalogMenu) return;
 
-    if (catalogMenu.options.length === 0) {
+    if (catalogMenu.optionCategories.length === 0) {
       addSimpleCatalogMenu(catalogMenuId);
       return;
     }
 
-    setOptionPicker({ catalogMenuId, quantity: 1, selectedOptionIds: [] });
+    const defaultSelectedOptionIds = catalogMenu.optionCategories
+      .filter((group) => group.selectionType === 'single')
+      .map((group) => group.options[0]?.id)
+      .filter((id): id is string => Boolean(id));
+
+    const nextOptionPicker: OptionPickerState = {
+      catalogMenuId,
+      quantity: 1,
+      selectedOptionIds: defaultSelectedOptionIds,
+      optionQuantities: {},
+    };
+    setOptionPicker(nextOptionPicker);
+    setInitialOptionPickerSnapshot(JSON.stringify(nextOptionPicker));
     setIsOptionPickerOpen(true);
   };
 
-  const closeOptionPicker = () => {
+  /** 경고 없이 바로 닫는다 — "확인"으로 정상 진행할 때만 직접 호출한다. */
+  const forceCloseOptionPicker = () => {
     setIsOptionPickerOpen(false);
     setOptionPicker(EMPTY_OPTION_PICKER);
+    setIsOptionPickerDirtyWarningOpen(false);
   };
+
+  /** 닫기 버튼/ESC/배경 클릭 — 기본 선택에서 바뀐 내용이 있으면(dirty) 경고 모달을 먼저 띄운다. */
+  const closeOptionPicker = () => {
+    if (isOptionPickerDirty) {
+      setIsOptionPickerDirtyWarningOpen(true);
+      return;
+    }
+    forceCloseOptionPicker();
+  };
+
+  const closeOptionPickerDirtyWarning = () => setIsOptionPickerDirtyWarningOpen(false);
 
   const changeOptionPickerQuantity = (quantity: number) => {
     setOptionPicker((prev) => ({ ...prev, quantity: Math.max(1, quantity) }));
   };
 
-  const toggleOptionPickerOption = (optionId: string, checked: boolean) => {
+  /** single 카테고리는 필수 라디오 동작이라, 같은 카테고리의 다른 선택을 이 옵션으로 교체한다. */
+  const selectOptionPickerSingle = (categoryOptionIds: string[], optionId: string) => {
     setOptionPicker((prev) => ({
       ...prev,
-      selectedOptionIds: checked
-        ? [...prev.selectedOptionIds, optionId]
-        : prev.selectedOptionIds.filter((id) => id !== optionId),
+      selectedOptionIds: [...prev.selectedOptionIds.filter((id) => !categoryOptionIds.includes(id)), optionId],
+    }));
+  };
+
+  /** multi 카테고리는 옵션별로 수량을 따로 선택한다(0 미만으로는 내려가지 않음). */
+  const changeOptionPickerOptionQuantity = (optionId: string, quantity: number) => {
+    setOptionPicker((prev) => ({
+      ...prev,
+      optionQuantities: { ...prev.optionQuantities, [optionId]: Math.max(0, quantity) },
     }));
   };
 
@@ -174,18 +267,27 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     const catalogMenu = MENU_CATALOG_MOCK.find((menu) => menu.id === optionPicker.catalogMenuId);
     if (!catalogMenu) return;
 
+    const catalogOptions = catalogMenu.optionCategories.flatMap((group) => group.options);
+    const selectedOptions = catalogOptions.filter(
+      (option) =>
+        optionPicker.selectedOptionIds.includes(option.id) || (optionPicker.optionQuantities[option.id] ?? 0) > 0,
+    );
+
     const menuItem: OrderBoardMenuItem = {
       id: `${catalogMenu.id}-${Date.now()}`,
       name: catalogMenu.name,
       quantity: optionPicker.quantity,
       unitPrice: catalogMenu.unitPrice,
-      options: catalogMenu.options
-        .filter((option) => optionPicker.selectedOptionIds.includes(option.id))
-        .map((option) => ({ id: `${option.id}-${Date.now()}`, name: option.name, quantity: 1, unitPrice: option.unitPrice })),
+      options: selectedOptions.map((option) => ({
+        id: `${option.id}-${Date.now()}`,
+        name: option.name,
+        quantity: optionPicker.optionQuantities[option.id] ?? 1,
+        unitPrice: option.unitPrice,
+      })),
     };
 
     setAddedItems((prev) => [...prev, menuItem]);
-    closeOptionPicker();
+    forceCloseOptionPicker();
   };
 
   const cancelAddedItem = (itemId: string) => {
@@ -206,7 +308,7 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
       };
       setDraftOrders((prev) => [...prev, newOrder]);
     }
-    closeMenuPicker();
+    forceCloseMenuPicker();
   };
 
   const requestConfirm = () => {
@@ -247,16 +349,31 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     isNoticeOpen,
     addedItems,
     optionPicker,
+    /** 페이지 차원의 새로고침/탭 닫기 경고(`usePreventLeave`)에 합쳐 쓰는 3단계 dirty 상태. */
+    isEditorDirty,
+    isMenuPickerDirty,
+    isOptionPickerDirty,
+    /** 변경 내용 경고 모달(`SimpleDefaultModal`, "페이지를 나가시겠습니까?") open 상태 — 3단계 각각 따로 관리한다. */
+    isEditorDirtyWarningOpen,
+    isMenuPickerDirtyWarningOpen,
+    isOptionPickerDirtyWarningOpen,
     openEditModal,
     closeEditor,
+    forceCloseEditor,
+    closeEditorDirtyWarning,
     cancelMenuLine,
     openMenuPicker,
     closeMenuPicker,
+    forceCloseMenuPicker,
+    closeMenuPickerDirtyWarning,
     clickAddCatalogMenu,
     cancelAddedItem,
     closeOptionPicker,
+    forceCloseOptionPicker,
+    closeOptionPickerDirtyWarning,
     changeOptionPickerQuantity,
-    toggleOptionPickerOption,
+    selectOptionPickerSingle,
+    changeOptionPickerOptionQuantity,
     confirmOptionPicker,
     confirmMenuPicker,
     requestConfirm,
