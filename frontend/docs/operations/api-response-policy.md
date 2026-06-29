@@ -35,6 +35,21 @@ mapToCommonMasterPayload;
 
 `normalize`, `map`, `buildRequest` 같은 도메인 의미가 강한 유틸은 우선 feature 가까이에 둔다. 여러 기능에서 같은 입력/출력 계약으로 반복될 때만 shared 유틸로 올린다.
 
+## 조회 날짜 파라미터
+
+백엔드 조회 파라미터가 `LocalDate`이면 `yyyy-MM-dd`만 전송한다.
+
+- 사용 유틸: `toQueryDateParam`
+- 예: `2026-06-22T11:19` → `2026-06-22`
+- 적용 예: 결제이력, 정산, 주문이력 조회
+
+시간까지 필요한 API는 `toQueryDateTimeParam`을 사용한다.
+
+- 예: `2026-06-22T11:19` → `2026-06-22 11:19:00`
+- 적용 예: 접속 로그처럼 시간 범위가 필요한 조회
+
+날짜 파라미터 포맷은 화면 input 형식보다 백엔드 계약을 우선한다.
+
 ## 관련 문서
 
 - [API 코드 생성 가이드](../api-codegen.md)

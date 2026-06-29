@@ -35,6 +35,10 @@ export function toQueryDateTimeParam(value: string) {
   return value ? `${value.replace('T', ' ')}:00` : '';
 }
 
+export function toQueryDateParam(value: string) {
+  return value ? value.slice(0, 10) : '';
+}
+
 export function createDefaultQueryDateRangeDraft(
   maxRangeDays = MAX_QUERY_RANGE_DAYS,
 ): QueryDateRangeDraft {

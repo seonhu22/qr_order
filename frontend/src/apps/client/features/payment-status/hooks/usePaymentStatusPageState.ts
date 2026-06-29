@@ -9,7 +9,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { createDefaultQueryDateRangeDraft, toQueryDateTimeParam } from '@/shared/utils/queryDateRange';
+import { createDefaultQueryDateRangeDraft, toQueryDateParam } from '@/shared/utils/queryDateRange';
 import { useDateRangePresetDraft } from '@/shared/hooks/useDateRangePresetDraft';
 import {
   mapToPaymentStatusDetail,
@@ -28,8 +28,8 @@ function createSearchParams(
   paymentStatus: PaymentStatusFilterKey,
 ): PaymentStatusSearchParams {
   return {
-    startDate: toQueryDateTimeParam(startDate),
-    endDate: toQueryDateTimeParam(endDate),
+    startDate: toQueryDateParam(startDate),
+    endDate: toQueryDateParam(endDate),
     paymentStatus: paymentStatus === 'ALL' ? '' : paymentStatus,
   };
 }

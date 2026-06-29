@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { createDefaultQueryDateRangeDraft, toQueryDateTimeParam } from '@/shared/utils/queryDateRange';
+import { createDefaultQueryDateRangeDraft, toQueryDateParam } from '@/shared/utils/queryDateRange';
 import { useDateRangePresetDraft } from '@/shared/hooks/useDateRangePresetDraft';
 import { mapToSettlementRow, mapToSettlementSummary, useSettlementQuery } from '../api/settlementApi';
 import type { SettlementSearchParams } from '../types';
@@ -17,8 +17,8 @@ const MAX_RANGE_DAYS = 365;
 
 function createSearchParams(startDate: string, endDate: string): SettlementSearchParams {
   return {
-    startDate: toQueryDateTimeParam(startDate),
-    endDate: toQueryDateTimeParam(endDate),
+    startDate: toQueryDateParam(startDate),
+    endDate: toQueryDateParam(endDate),
   };
 }
 

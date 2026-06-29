@@ -9,7 +9,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { createDefaultQueryDateRangeDraft, toQueryDateTimeParam } from '@/shared/utils/queryDateRange';
+import { createDefaultQueryDateRangeDraft, toQueryDateParam } from '@/shared/utils/queryDateRange';
 import { areQueryParamsEqual } from '@/shared/utils/queryParams';
 import { useOrderHistoryQuery } from '../api/orderHistoryApi';
 import {
@@ -25,8 +25,8 @@ function createSearchParams(
   orderStatus: OrderHistoryStatusFilterKey,
 ): OrderHistorySearchParams {
   return {
-    startDate: toQueryDateTimeParam(startDate),
-    endDate: toQueryDateTimeParam(endDate),
+    startDate: toQueryDateParam(startDate),
+    endDate: toQueryDateParam(endDate),
     searchKeyword,
     orderStatus: orderStatus === 'ALL' ? '' : orderStatus,
   };
