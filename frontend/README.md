@@ -274,6 +274,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | API 코드 생성 흐름·명령어 변경 | `api-codegen.md` |
 | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 | `menu-access-log.md` |
 | 기술 선택의 배경과 근거 | `decisions.md` |
+| 화면 1개의 표기 규칙·모달 흐름·버튼 동작처럼 그 화면에만 해당하는 세부 동작 | `page/<화면명>.md` (예: `page/order-status-management.md`) |
 
 ### 중복 방지
 

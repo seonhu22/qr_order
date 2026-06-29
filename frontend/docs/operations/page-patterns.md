@@ -16,6 +16,20 @@
 
 서버 응답에 없는 필드는 API 레이어 mapper에서 파생한다. page나 component에서 계산하지 않는다.
 
+## 칸반 보드 화면
+
+대상: `OrderStatusManagement`(주문 상태 관리) 같은, 행을 상태값 기준 컬럼으로 나눠 보여주고 컬럼 간 상태 전환·여러 단계 모달 흐름이 함께 있는 화면.
+
+권장 구성:
+
+- `pages/<Feature>Page.tsx`: 조립만 담당
+- `features/<feature>/hooks/use<Feature>Page.ts`: 행 로컬 state + 컬럼 그룹핑(`useMemo`) + 카드 액션(`OrderBoardCardActions`)
+- `features/<feature>/components/<Feature>Column.tsx`, `<Feature>Card.tsx`: 컬럼/카드 단위 컴포넌트로 분리
+- 화면 전용 모달 흐름(취소/결제/수정처럼 단계가 여러 개인 경우)은 `useOrder*ModalFlow.ts`처럼 흐름별로 훅을 쪼갠다
+- 표기 규칙(어떤 행을 어떤 컬럼에 보여줄지), 모달 단계별 동작, 화면 전용 CSS 패턴은 화면 자체가 복잡해서 일반화하기보다 [화면별 동작 문서](../page/)에 그대로 기록한다 — 첫 worked example은 [`page/order-status-management.md`](../page/order-status-management.md)다.
+
+3겹 이상 모달이 쌓일 수 있는 화면(메뉴 추가 → 옵션 추가처럼)은 각 단계의 dirty를 따로 추적해 `WrapperModal`의 ESC 스택([`components/Modal.md` #22](../components/Modal.md))과 이탈방지([`dirty-guard.md`](./dirty-guard.md) "페이지 안의 추가/수정 모달이 별도 dirty를 갖는다면 페이지 `isDirty`와 OR로 합친다")를 함께 적용한다.
+
 ## datetime-local 날짜 범위 필터
 
 `AccessLog`, `ChangeHistory`처럼 기간 조회가 필수인 화면은 아래 패턴을 따른다.
