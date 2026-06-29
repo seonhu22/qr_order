@@ -14,7 +14,6 @@
 - [10. 자주 발생하는 문제](#10-자주-발생하는-문제)
 - [11. 참고 문서](#11-참고-문서)
 - [12. 문서 작성 원칙](#12-문서-작성-원칙)
-- [13. 진행 중 작업 — 테이블 배치 관리 다음 단계](#13-진행-중-작업--테이블-배치-관리-다음-단계)
 
 ---
 
@@ -292,22 +291,3 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 - 날짜가 있는 항목은 `> 추가일: YYYY-MM-DD` 형식으로 표기한다.
 - CSS 값은 px 대신 토큰 이름을 명시한다 (`--spacing-2` 등).
 - 코드 예시는 꼭 필요한 경우에만 작성하고, 토큰·규칙 목록은 글머리 기호로 표현한다.
-
----
-
-## 13. 진행 중 작업 — 테이블 배치 관리 다음 단계
-
-> 추가일: 2026-06-18
-
-`/client/store/table/layout`(`features/table-layout`, `pages/table-layout`)는 레이아웃·카드·사이즈별(작게/보통/크게) 배치 아이템 디자인까지 완료됐다. 실제 드래그앤드롭·클릭배치 이벤트를 연결하기 전에 정리하거나 추가해야 할 항목은 다음과 같다. 작업이 끝나면 이 섹션은 제거한다.
-
-- `@dnd-kit/core` 설치 — 터치/마우스/펜을 `PointerSensor`로 통일 처리(네이티브 HTML5 DnD는 터치 미지원)
-- `features/table-layout/types.ts`에 `PlacedItem` 타입 추가 (현재 `FacilityKind`/`LayoutSize`만 정의됨)
-- `useTableLayoutPage` 훅 신설 — 배치 상태(`placedItems`), 드래그 종료/클릭배치/삭제 처리
-- 내부시설 드래그(`useDraggable`) · 테이블 리스트 클릭 배치 · 캔버스 `useDroppable` 연결
-- 배치된 테이블은 좌측 "테이블 리스트"에서 비활성화 처리, 캔버스에서 삭제 시 다시 활성화
-- 캔버스 안 재배치 시 좌표 clamp 로직 + `ResizeObserver`로 캔버스 크기 변화(창 크기/회전) 대응
-- 드래그 가능한 요소·캔버스에 `touch-action: none; user-select: none;` 적용
-- `usePreventLeave(isDirty)` 재사용해 이탈 방지 (새로 구현하지 않음)
-- 헤더의 리셋/초기화/저장 버튼에 동작 연결 (현재 `onClick` 없음)
-- mock GET/POST 핸들러 추가(`mocks/handlers.ts`) + `queryKeys.ts`에 `tableLayout` 쿼리 키 추가, 배치 데이터 영속화
