@@ -11,14 +11,14 @@ import { OrderStatusBoard } from '@/apps/client/features/order-status-management
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
 import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-management/hooks/useOrderStatusBoardPage';
 import {
+  ORDER_BOARD_STATUS_BADGE_CLASS,
   ORDER_CANCEL_REASON_OPTIONS,
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
 import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
-import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
+import { DeleteConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
 import { SelectInput, TextareaInput, TextInput } from '@/shared/components/input';
-import { CheckboxGroup, CheckboxInput } from '@/shared/components/checkbox';
 import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
@@ -26,13 +26,14 @@ import {
   formatOrderBoardPrice,
   formatOrderBoardTime,
   formatOrderCancelReasonDisplay,
+  getOrderBoardStatusLabel,
   groupMenuCatalogByCategory,
 } from '@/apps/client/features/order-status-management/utils';
 
 const GROUPED_MENU_CATALOG = groupMenuCatalogByCategory(MENU_CATALOG_MOCK);
 
 export function OrderStatusManagementPage() {
-  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView } =
+  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, dismissConfirm } =
     useOrderStatusBoardPage();
   const groupedMenuCatalog = GROUPED_MENU_CATALOG;
   const pendingOptionPickerMenu = MENU_CATALOG_MOCK.find(
@@ -51,7 +52,7 @@ export function OrderStatusManagementPage() {
           <OrderStatusBoard
             columns={data.columns}
             actions={actions.cardActions}
-            lastMovedId={data.lastMovedId}
+            lastMovedIds={data.lastMovedIds}
           />
         )}
       </section>
@@ -139,6 +140,16 @@ export function OrderStatusManagementPage() {
         </div>
       </WrapperModal>
 
+      {/* ── 취소 컬럼 카드 삭제 확인(화면에서만 삭제) ── */}
+      <DeleteConfirmModal
+        open={dismissConfirm.targetId !== null}
+        description={'이 카드를 화면에서 삭제합니다.\n실제 주문 데이터는 삭제되지 않습니다.'}
+        helperText="정말 삭제하시겠습니까?"
+        primaryAction={{ label: '확인', onClick: dismissConfirm.confirm }}
+        secondaryAction={{ onClick: dismissConfirm.close }}
+        onClose={dismissConfirm.close}
+      />
+
       {/* ── 결제 처리 1단계: 결제완료/미결제/닫기 선택 ── */}
       <WrapperModal
         size="sm"
@@ -185,6 +196,9 @@ export function OrderStatusManagementPage() {
                 <div className="order-payment-receipt__order-row">
                   <span className="order-payment-receipt__order-no">
                     #{order.orderNo} <span className="order-cancel-modal__field-label">(주문번호)</span>
+                    <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
+                      {getOrderBoardStatusLabel(order.orderStatus)}
+                    </span>
                   </span>
                   <span className="order-payment-receipt__time">
                     <Icon id="i-clock" size={13} />
@@ -359,6 +373,9 @@ export function OrderStatusManagementPage() {
                   <div className="order-edit-modal__order-row">
                     <span className="order-edit-modal__order-no">
                       #{order.orderNo} <span className="order-cancel-modal__field-label">(주문번호)</span>
+                      <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
+                        {getOrderBoardStatusLabel(order.orderStatus)}
+                      </span>
                       {isNewOrder && <span className="order-edit-modal__new-badge">새 주문</span>}
                     </span>
                     <span className="order-edit-modal__time">
@@ -429,8 +446,28 @@ export function OrderStatusManagementPage() {
                 );
               })}
           </div>
+
+          <div className="order-edit-modal__total">
+            <span>총 합계</span>
+            <span>
+              {formatOrderBoardPrice(
+                editModal.draftOrders.reduce((sum, order) => sum + calculateOrderTotal(order), 0),
+              )}
+            </span>
+          </div>
         </div>
       </WrapperModal>
+
+      {/* ── 주문 수정 변경 내용 경고 ── */}
+      <SimpleDefaultModal
+        open={editModal.isEditorDirtyWarningOpen}
+        title="알림"
+        description="페이지를 나가시겠습니까?"
+        helperText="수정하신 내용이 저장되지 않았습니다."
+        primaryAction={{ label: '확인', onClick: editModal.forceCloseEditor }}
+        secondaryAction={{ onClick: editModal.closeEditorDirtyWarning }}
+        onClose={editModal.closeEditorDirtyWarning}
+      />
 
       {/* ── 주문 수정 확인 ── */}
       <WrapperModal
@@ -468,12 +505,20 @@ export function OrderStatusManagementPage() {
           <div className="order-menu-picker__catalog">
             {groupedMenuCatalog.map((group) => (
               <div key={group.category} className="order-menu-picker__category">
-                <p className="order-menu-picker__category-title">{group.category}</p>
+                <div className="order-menu-picker__category-header">
+                  <p className="order-menu-picker__category-title">{group.category}</p>
+                  <span className="order-menu-picker__category-count">{group.items.length}</span>
+                </div>
                 {group.items.map((item) => (
                   <div key={item.id} className="order-menu-picker__catalog-row">
                     <div className="order-menu-picker__catalog-thumb" aria-hidden="true" />
                     <div className="order-menu-picker__catalog-info">
-                      <p className="order-menu-picker__catalog-name">{item.name}</p>
+                      <p className="order-menu-picker__catalog-name">
+                        {item.name}
+                        {item.optionCategories.length > 0 && (
+                          <span className="order-menu-picker__catalog-option-count">옵션</span>
+                        )}
+                      </p>
                       <p className="order-menu-picker__catalog-price">{formatOrderBoardPrice(item.unitPrice)}</p>
                     </div>
                     <Button
@@ -541,38 +586,160 @@ export function OrderStatusManagementPage() {
         </div>
       </WrapperModal>
 
+      {/* ── 메뉴 추가 변경 내용 경고 ── */}
+      <SimpleDefaultModal
+        open={editModal.isMenuPickerDirtyWarningOpen}
+        title="알림"
+        description="페이지를 나가시겠습니까?"
+        helperText="추가된 항목이 저장되지 않았습니다."
+        primaryAction={{ label: '확인', onClick: editModal.forceCloseMenuPicker }}
+        secondaryAction={{ onClick: editModal.closeMenuPickerDirtyWarning }}
+        onClose={editModal.closeMenuPickerDirtyWarning}
+      />
+
       {/* ── 주문 수정 > 메뉴 추가 > 옵션 추가 ── */}
       <WrapperModal
-        size="sm"
+        size="md"
         open={editModal.isOptionPickerOpen}
         title="옵션 추가"
         primaryAction={{ label: '확인', onClick: editModal.confirmOptionPicker }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeOptionPicker }}
         onClose={editModal.closeOptionPicker}
       >
-        <div className="order-cancel-modal__form">
-          <p className="order-cancel-modal__notice-title">{pendingOptionPickerMenu?.name}</p>
-          <TextInput
-            label="수량"
-            type="number"
-            min={1}
-            value={String(editModal.optionPicker.quantity)}
-            onChange={(event) => editModal.changeOptionPickerQuantity(Number(event.target.value) || 1)}
-          />
-          {pendingOptionPickerMenu && pendingOptionPickerMenu.options.length > 0 && (
-            <CheckboxGroup label="옵션">
-              {pendingOptionPickerMenu.options.map((option) => (
-                <CheckboxInput
-                  key={option.id}
-                  label={`${option.name} (${formatOrderBoardPrice(option.unitPrice)})`}
-                  checked={editModal.optionPicker.selectedOptionIds.includes(option.id)}
-                  onChange={(checked) => editModal.toggleOptionPickerOption(option.id, checked)}
-                />
-              ))}
-            </CheckboxGroup>
-          )}
+        <div className="order-menu-picker">
+          <div className="order-menu-picker__catalog">
+            {pendingOptionPickerMenu?.optionCategories.map((group) => (
+              <div key={group.category} className="order-menu-picker__category">
+                <p className="order-menu-picker__category-title">{group.category}</p>
+                {group.options.map((option) => {
+                  if (group.selectionType === 'single') {
+                    const isSelected = editModal.optionPicker.selectedOptionIds.includes(option.id);
+                    return (
+                      <div key={option.id} className="order-menu-picker__catalog-row">
+                        <div className="order-menu-picker__catalog-thumb" aria-hidden="true" />
+                        <div className="order-menu-picker__catalog-info">
+                          <p className="order-menu-picker__catalog-name">{option.name}</p>
+                          <p className="order-menu-picker__catalog-price">
+                            {formatOrderBoardPrice(option.unitPrice)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected ? 'true' : 'false'}
+                          aria-label={option.name}
+                          className={
+                            isSelected
+                              ? 'order-option-picker__radio order-option-picker__radio--selected'
+                              : 'order-option-picker__radio'
+                          }
+                          onClick={() =>
+                            editModal.selectOptionPickerSingle(group.options.map((o) => o.id), option.id)
+                          }
+                        >
+                          {isSelected && <Icon id="i-check" size={11} />}
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  const optionQuantity = editModal.optionPicker.optionQuantities[option.id] ?? 0;
+                  return (
+                    <div key={option.id} className="order-menu-picker__catalog-row">
+                      <div className="order-menu-picker__catalog-thumb" aria-hidden="true" />
+                      <div className="order-menu-picker__catalog-info">
+                        <p className="order-menu-picker__catalog-name">{option.name}</p>
+                        <p className="order-menu-picker__catalog-price">
+                          {formatOrderBoardPrice(option.unitPrice)}
+                        </p>
+                      </div>
+                      {optionQuantity === 0 ? (
+                        <Button
+                          variant="tinted"
+                          size="sm"
+                          onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, 1)}
+                        >
+                          추가
+                        </Button>
+                      ) : (
+                        <div className="order-option-picker__stepper">
+                          <Button
+                            variant="tinted"
+                            size="sm"
+                            className="order-option-picker__stepper-btn"
+                            aria-label="수량 감소"
+                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity - 1)}
+                          >
+                            <Icon id="i-minus" size={11} />
+                          </Button>
+                          <span className="order-option-picker__stepper-count">{optionQuantity}</span>
+                          <Button
+                            variant="tinted"
+                            size="sm"
+                            className="order-option-picker__stepper-btn"
+                            aria-label="수량 증가"
+                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity + 1)}
+                          >
+                            <Icon id="i-plus" size={11} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="order-option-picker__quantity-box">
+            <p className="order-option-picker__quantity-title">주문 수량</p>
+            <p className="order-option-picker__quantity-desc">동일한 옵션으로 메뉴가 추가됩니다.</p>
+            {pendingOptionPickerMenu && (
+              <div className="order-menu-picker__catalog-row">
+                <div className="order-menu-picker__catalog-thumb" aria-hidden="true" />
+                <div className="order-menu-picker__catalog-info">
+                  <p className="order-menu-picker__catalog-name">{pendingOptionPickerMenu.name}</p>
+                  <p className="order-menu-picker__catalog-price">
+                    {formatOrderBoardPrice(pendingOptionPickerMenu.unitPrice)}
+                  </p>
+                </div>
+                <div className="order-option-picker__stepper">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="order-option-picker__stepper-btn"
+                    aria-label="수량 감소"
+                    onClick={() => editModal.changeOptionPickerQuantity(editModal.optionPicker.quantity - 1)}
+                  >
+                    <Icon id="i-minus" size={11} />
+                  </Button>
+                  <span className="order-option-picker__stepper-count">{editModal.optionPicker.quantity}</span>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="order-option-picker__stepper-btn"
+                    aria-label="수량 증가"
+                    onClick={() => editModal.changeOptionPickerQuantity(editModal.optionPicker.quantity + 1)}
+                  >
+                    <Icon id="i-plus" size={11} />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </WrapperModal>
+
+      {/* ── 옵션 추가 변경 내용 경고 ── */}
+      <SimpleDefaultModal
+        open={editModal.isOptionPickerDirtyWarningOpen}
+        title="알림"
+        description="페이지를 나가시겠습니까?"
+        helperText="선택하신 옵션이 저장되지 않았습니다."
+        primaryAction={{ label: '확인', onClick: editModal.forceCloseOptionPicker }}
+        secondaryAction={{ onClick: editModal.closeOptionPickerDirtyWarning }}
+        onClose={editModal.closeOptionPickerDirtyWarning}
+      />
     </>
   );
 }
