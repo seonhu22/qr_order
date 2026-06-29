@@ -30,7 +30,6 @@ describe('menuManagementApi', () => {
         id: 'menu-detail-1',
         masterId: 'category-1',
         ordNo: 1,
-        fileUlid: 'file-group-1',
         isNew: true,
         values: {
           menuName: '치즈버거',
@@ -51,7 +50,7 @@ describe('menuManagementApi', () => {
     expect(formData.get('newItems[0].menuDescription')).toBe('기본 치즈버거');
     expect(formData.get('newItems[0].optionUseYn')).toBe('N');
     expect(formData.get('newItems[0].useYn')).toBe('Y');
-    expect(formData.get('newItems[0].fileUlid')).toBe('file-group-1');
+    expect(formData.has('newItems[0].fileUlid')).toBe(false);
     expect(formData.get('newItems[0].ordNo')).toBe('1');
   });
 });

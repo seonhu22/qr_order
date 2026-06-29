@@ -220,8 +220,6 @@ export function useMenuManagementPage() {
       id: `menu-detail-${Date.now()}`,
       masterId: selectedCategory.id,
       ordNo: selectedDetailSchema.rows.length + 1,
-      // QA 회피용 crypto.randomUUID() 사용, 실제로는 서버에서 발급된 ulid를 사용해야 함
-      fileUlid: crypto.randomUUID(),
       isNew: true,
       values: createBlankMenuDetailValues(),
     };
