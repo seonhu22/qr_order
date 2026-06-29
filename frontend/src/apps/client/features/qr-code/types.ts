@@ -4,6 +4,9 @@ import type { EditablePageFlowState, EditablePageSimpleModalState } from '@/shar
 export type QrCodeRow = {
   id: string;
   sysId?: string;
+  linkSysId?: string;
+  url?: string;
+  useYn?: string;
   tableNum: string;
   remark: string;
   isNew: boolean;

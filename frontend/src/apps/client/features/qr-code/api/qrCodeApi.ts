@@ -13,8 +13,11 @@ import type { QrCodeRow } from '../types';
 
 export type QrCodeItem = {
   sysId?: string;
+  linkSysId?: string;
   tableNum?: number;
-  remark?: string;
+  description?: string;
+  url?: string;
+  useYn?: string;
 };
 
 export type QrCodeResponse = QrCodeItem;
@@ -29,8 +32,11 @@ export function mapToQrCodeModel(item: QrCodeResponse): QrCodeRow {
   return {
     id: item.sysId ?? `qr-code-${item.tableNum ?? Date.now()}`,
     sysId: item.sysId,
+    linkSysId: item.linkSysId,
+    url: item.url,
+    useYn: item.useYn ?? 'Y',
     tableNum: item.tableNum != null ? String(item.tableNum) : '',
-    remark: item.remark ?? '',
+    remark: item.description ?? '',
     isNew: false,
   };
 }
@@ -38,8 +44,11 @@ export function mapToQrCodeModel(item: QrCodeResponse): QrCodeRow {
 export function mapToQrCodePayload(row: QrCodeRow): QrCodeItem {
   return {
     sysId: row.sysId,
+    linkSysId: row.linkSysId,
     tableNum: row.tableNum ? Number(row.tableNum) : undefined,
-    remark: row.remark,
+    description: row.remark,
+    url: row.url,
+    useYn: row.useYn ?? 'Y',
   };
 }
 

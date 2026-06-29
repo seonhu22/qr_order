@@ -63,6 +63,13 @@ export function useQrCodePage(): QrCodePageViewModel {
       .filter((item) => item.tableNum != null)
       .map((item) => ({ value: String(item.tableNum), label: String(item.tableNum) }));
   }, [storeTableQuery.data]);
+  const tableSysIdByNum = useMemo(() => {
+    return new Map(
+      (storeTableQuery.data ?? [])
+        .filter((item) => item.tableNum != null && item.sysId)
+        .map((item) => [String(item.tableNum), item.sysId as string]),
+    );
+  }, [storeTableQuery.data]);
 
   const [baseRows, setBaseRows] = useState<QrCodeRow[]>([]);
   const [draftRows, setDraftRows] = useState<QrCodeRow[]>([]);
@@ -71,6 +78,7 @@ export function useQrCodePage(): QrCodePageViewModel {
   const [checkedRowIds, setCheckedRowIds] = useState<Set<string>>(new Set());
   const [printTargetRowIds, setPrintTargetRowIds] = useState<string[] | null>(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- 서버 조회 결과를 편집 가능한 draft 상태로 동기화한다. */
   useEffect(() => {
     const nextRows = cloneRows(fetchedRows);
     setBaseRows(nextRows);
@@ -78,6 +86,7 @@ export function useQrCodePage(): QrCodePageViewModel {
     setRowErrors({});
     setSelectedRowId((prev) => (prev && nextRows.some((row) => row.id === prev) ? prev : ''));
   }, [fetchedRows]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const isDirty = useMemo(() => {
     const request = buildQrCodeRequest(draftRows, baseRows);
@@ -127,7 +136,18 @@ export function useQrCodePage(): QrCodePageViewModel {
   };
 
   const handleChangeRowField = (rowId: string, key: 'tableNum' | 'remark', value: string) => {
-    setDraftRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
+    setDraftRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row;
+        if (key !== 'tableNum') return { ...row, [key]: value };
+
+        return {
+          ...row,
+          tableNum: value,
+          linkSysId: tableSysIdByNum.get(value) ?? '',
+        };
+      }),
+    );
     setRowErrors((prev) => {
       const current = prev[rowId];
       if (!current) return prev;
@@ -176,6 +196,8 @@ export function useQrCodePage(): QrCodePageViewModel {
   const handleAddRow = () => {
     const nextRow: QrCodeRow = {
       id: `qr-code-row-${Date.now()}`,
+      linkSysId: '',
+      useYn: 'Y',
       tableNum: '',
       remark: '',
       isNew: true,
