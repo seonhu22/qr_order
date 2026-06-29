@@ -5,10 +5,10 @@ import type { OrderBoardCardActions, OrderBoardColumnData } from '../types';
 type OrderStatusColumnProps = {
   column: OrderBoardColumnData;
   actions: OrderBoardCardActions;
-  lastMovedId: string | null;
+  lastMovedIds: string[];
 };
 
-export function OrderStatusColumn({ column, actions, lastMovedId }: OrderStatusColumnProps) {
+export function OrderStatusColumn({ column, actions, lastMovedIds }: OrderStatusColumnProps) {
   return (
     <section
       className={`order-status-column order-status-column--${column.status.toLowerCase()}`}
@@ -29,7 +29,7 @@ export function OrderStatusColumn({ column, actions, lastMovedId }: OrderStatusC
                 key={row.id}
                 row={row}
                 actions={actions}
-                isMoved={row.id === lastMovedId}
+                isMoved={lastMovedIds.includes(row.id)}
               />
             ))
           )}

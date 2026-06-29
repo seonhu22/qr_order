@@ -140,3 +140,27 @@
   height: auto;
   padding: var(--spacing-6) var(--spacing-1);
 }
+
+/* 취소 컬럼의 삭제(휴지통) 버튼만 위 1/4-폭 규칙 대신 정사각형 테두리 버튼으로 — 다른 버튼과 폭을 맞추지 않는다.
+   `.order-status-card__actions .btn`과 동일한 명시도(클래스 2개)를 맞춰야 폭/패딩이 덮어써진다.
+   높이는 고정값을 주지 않고 `.order-status-card__actions`의 기본 align-items: stretch로 옆 버튼(패딩 기반 auto-height)과
+   세로 크기를 맞춘 뒤, aspect-ratio로 가로를 그 높이에 맞춰 정사각형을 만든다. */
+.order-status-card__actions .order-status-card__dismiss {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+}
+
+.order-status-card__dismiss {
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+}
+
+.order-status-card__dismiss:hover:not(:disabled) {
+  border-color: var(--color-status-error-default);
+  background-color: var(--color-status-error-bg-subtle);
+  color: var(--color-status-error-default);
+}

@@ -5,14 +5,14 @@ import type { OrderBoardCardActions, OrderBoardColumnData } from '../types';
 type OrderStatusBoardProps = {
   columns: OrderBoardColumnData[];
   actions: OrderBoardCardActions;
-  lastMovedId: string | null;
+  lastMovedIds: string[];
 };
 
-export function OrderStatusBoard({ columns, actions, lastMovedId }: OrderStatusBoardProps) {
+export function OrderStatusBoard({ columns, actions, lastMovedIds }: OrderStatusBoardProps) {
   return (
     <div className="order-status-board">
       {columns.map((column) => (
-        <OrderStatusColumn key={column.status} column={column} actions={actions} lastMovedId={lastMovedId} />
+        <OrderStatusColumn key={column.status} column={column} actions={actions} lastMovedIds={lastMovedIds} />
       ))}
     </div>
   );

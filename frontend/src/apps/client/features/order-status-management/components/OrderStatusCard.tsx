@@ -107,9 +107,19 @@ export function OrderStatusCard({ row, actions, isMoved }: OrderStatusCardProps)
           </>
         )}
         {row.orderStatus === 'CANCELLED' && (
-          <Button variant="outline" size="sm" onClick={() => actions.onShowCancelReason(row)}>
-            취소사유
-          </Button>
+          <>
+            <Button variant="outline" size="sm" onClick={() => actions.onShowCancelReason(row)}>
+              취소사유
+            </Button>
+            <Button
+              variant="icon"
+              size="sm"
+              className="order-status-card__dismiss"
+              aria-label="삭제"
+              iconOnly={<Icon id="i-trash" size={13} />}
+              onClick={() => actions.onDismiss(row.id)}
+            />
+          </>
         )}
       </div>
     </article>
