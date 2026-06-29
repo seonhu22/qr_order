@@ -88,6 +88,7 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
     - `EditConfirmModal`: `title="수정하시겠습니까?"` / `description="변경된 내용이 저장됩니다."`
     - 화면별 엔티티명을 넣어 문구를 다르게 만들지 않는다(예: "OOO 상세를 저장하시겠습니까?" 금지) — title과 의미가 중복되고 화면마다 문구가 달라진다.
     - 저장 완료 안내(`savedNotice`)도 기본값 "저장되었습니다."를 그대로 쓴다. 화면별로 다른 문구("저장 완료되었습니다." 등)로 덮어쓰지 않는다.
+22. 모달이 여러 겹 쌓여 있을 때(편집 모달 위에 메뉴 추가, 그 위에 옵션 추가가 또 열리는 식) ESC는 항상 가장 위(가장 나중에 열린) 모달 1개만 닫는다. `WrapperModal`이 열려 있는 인스턴스를 mount 순서대로 모듈 스코프 스택에 쌓아두고, keydown 시점에 스택 맨 위인 인스턴스만 `onClose`를 호출한다(`WrapperModal.tsx`). 그 결과 ESC를 반복해서 누르면 13번 규칙처럼 위 모달부터 한 단계씩 닫히고, dirty 경고가 있는 단계는 11번 규칙대로 경고부터 뜬다. overlay 클릭은 DOM 쌓임 순서상 항상 맨 위 오버레이만 클릭 가능해 별도 처리가 필요 없다.
 
 ```tsx
 <SimpleDefaultModal
