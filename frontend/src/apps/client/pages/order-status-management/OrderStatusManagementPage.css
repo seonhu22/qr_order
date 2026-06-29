@@ -64,12 +64,6 @@
   color: var(--color-text-tertiary);
 }
 
-.order-cancel-modal__field-label {
-  font-size: var(--typography-size-caption);
-  font-weight: var(--typography-weight-body);
-  color: var(--color-text-tertiary);
-}
-
 /* ── 결제 처리 1단계 선택 모달 — WrapperModal의 기본 footer(2버튼) 대신 3버튼을 직접 둔다 */
 .order-payment-modal__actions {
   display: flex;

@@ -232,7 +232,7 @@ export function OrderStatusManagementPage() {
               <div key={order.id} className="order-payment-receipt__order">
                 <div className="order-payment-receipt__order-row">
                   <span className="order-payment-receipt__order-no">
-                    #{order.orderNo} <span className="order-cancel-modal__field-label">(주문번호)</span>
+                    #{order.orderNo}
                     <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
                       {getOrderBoardStatusLabel(order.orderStatus)}
                     </span>
@@ -409,7 +409,7 @@ export function OrderStatusManagementPage() {
                 >
                   <div className="order-edit-modal__order-row">
                     <span className="order-edit-modal__order-no">
-                      #{order.orderNo} <span className="order-cancel-modal__field-label">(주문번호)</span>
+                      #{order.orderNo}
                       <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
                         {getOrderBoardStatusLabel(order.orderStatus)}
                       </span>
