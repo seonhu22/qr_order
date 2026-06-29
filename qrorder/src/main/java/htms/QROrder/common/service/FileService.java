@@ -63,7 +63,9 @@ public class FileService {
                             String sysPlantCd,
                             String menuCd) {
 
-        List<FileIO> newItems = fileRequest.getNewItems();
+        List<FileIO> newItems = fileRequest.getNewItems().stream()
+                .filter(item -> item.getFile() != null && !item.getFile().isEmpty())
+                .collect(Collectors.toList());
         List<FileInfo> updateItems = fileRequest.getUpdateItems();
         List<FileInfo> delItems = fileRequest.getDelItems();
 
