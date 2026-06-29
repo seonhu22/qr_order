@@ -17,6 +17,7 @@ export { mapFileResponseToServerFile };
 type NoticeResponseWithMeta = NoticeResponse & {
   sysId?: string;
   insertUserId?: string;
+  insertUserNm?: string;
   insertDatetime?: string;
 };
 
@@ -25,7 +26,7 @@ export function mapToNoticeListRow(res: NoticeResponseWithMeta, index: number): 
     id: res.sysId || `notice-${index}`,
     title: res.noticeTitle ?? '-',
     content: res.noticeDescription ?? '-',
-    registrant: res.insertUserId ?? '-',
+    registrant: res.insertUserNm ?? '-',
     registeredAt: formatDateTimeForDisplay(res.insertDatetime).slice(0, 16) || '-',
     fileUlid: res.fileUlid,
   };
