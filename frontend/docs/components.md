@@ -128,6 +128,8 @@ shared/
 
 사용 예: `i-card`/`i-return`/`i-sale`/`i-shop`/`i-trend-up`(정산 조회 통계 카드, 2026-06-23 추가) 참고.
 
+`i-stairs`/`i-elevator`/`i-smoking`(테이블 배치 관리 내부시설, 2026-06-29 추가)은 Figma 소스 없이 직접 그린 예외 케이스다 — 위 1번(Figma MCP) 단계 없이 기존 심볼과 같은 24x24 viewBox·`currentColor` 스트로크 컨벤션만 맞춰 추가했다.
+
 ```tsx
 import { Icon } from '@/shared/assets/icons/Icon';
 
