@@ -46,7 +46,8 @@
 
 취소(`CANCELLED`) 컬럼 카드의 "취소사유" 버튼을 누르면 `WrapperModal`이 열린다. 입력 없이 보기만 하는 모달이라 버튼은 "닫기" 1개뿐이다(`primaryAction`만 전달하고 `secondaryAction`은 전달하지 않음).
 
-- 주문번호는 `TextInput`, 취소사유는 길어질 수 있어 `TextareaInput`(3행)에 각각 `readOnly`만 주고 그대로 렌더한다. 별도 "상세사유" 필드는 두지 않고, `formatOrderCancelReasonDisplay`가 코드값을 한글 라벨로 바꾼 뒤 "기타"일 때만 상세사유를 괄호로 붙여 취소사유 한 줄에 함께 보여준다(예: "기타 (배송 지연)").
+- 주문번호·취소일시는 `TextInput`, 취소사유는 길어질 수 있어 `TextareaInput`(3행)에 각각 `readOnly`만 주고 그대로 렌더한다. 별도 "상세사유" 필드는 두지 않고, `formatOrderCancelReasonDisplay`가 코드값을 한글 라벨로 바꾼 뒤 "기타"일 때만 상세사유를 괄호로 붙여 취소사유 한 줄에 함께 보여준다(예: "기타 (배송 지연)").
+- "취소일시"는 카드의 "취소시간 HH:MM"(`OrderStatusCard.tsx`)과 달리 날짜까지 보여준다 — `formatOrderBoardDateTime`(`utils.ts`)이 `row.cancelledAt`(없으면 `orderDatetime`)을 "YYYY-MM-DD HH:MM"으로 바꾼다. 날짜+시간을 함께 보여줄 때는 이 코드베이스의 "시작일시"/"종료일시" 컨벤션을 따라 "~일시"로 라벨을 짓는다(시간만 보여주는 카드 쪽은 "주문시간"/"취소시간"으로 유지).
 - 상태는 `useOrderStatusBoardPage`의 `cancelReasonView`(`{ row, close }`)가 관리하며, 별도 모달 흐름 훅 없이 선택된 행 하나만 로컬 state로 들고 있는다(취소 처리 흐름처럼 여러 단계가 없어서 단순 open/close로 충분하다).
 
 ### 취소 컬럼 카드 삭제(화면에서만)
@@ -134,7 +135,9 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 ## 카드 공통 필드
 
-상단부터 순서대로: 주문번호 + 주문시간(우측 정렬) → 테이블번호 → 주문리스트(메뉴명 + 수량, 옵션은 `↳`로 들여쓰기해 메뉴 하위에 표시) → 구분선 → 총 가격 → 상태별 버튼 그룹.
+상단부터 순서대로: 주문번호 + 시간(우측 정렬) → 테이블번호 → 주문리스트(메뉴명 + 수량, 옵션은 `↳`로 들여쓰기해 메뉴 하위에 표시) → 구분선 → 총 가격 → 상태별 버튼 그룹.
+
+시간 영역(`.order-status-card__time`, 시계 아이콘 + 텍스트)은 컬럼에 따라 기준 시각과 라벨이 다르다 — 접수/조리중/서빙완료는 "주문시간 HH:MM"(`row.orderDatetime`), 취소는 "취소시간 HH:MM"(`row.cancelledAt`, 없으면 `orderDatetime`으로 대체)을 보여준다(`OrderStatusCard.tsx`).
 
 ### 상태별 버튼 그룹 — 개수와 무관하게 같은 크기, 한 줄 고정
 

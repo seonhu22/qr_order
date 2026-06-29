@@ -25,6 +25,11 @@ export function formatOrderBoardTime(value: string): string {
   return value.slice(11, 16);
 }
 
+/** "YYYY-MM-DDTHH:mm:00" → "YYYY-MM-DD HH:MM". 취소사유 보기 모달처럼 날짜까지 함께 보여줄 때 쓴다. */
+export function formatOrderBoardDateTime(value: string): string {
+  return `${value.slice(0, 10)} ${value.slice(11, 16)}`;
+}
+
 export function formatOrderBoardPrice(value: number): string {
   return `${value.toLocaleString('ko-KR')} 원`;
 }

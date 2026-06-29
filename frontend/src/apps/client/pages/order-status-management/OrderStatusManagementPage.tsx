@@ -24,6 +24,7 @@ import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
   calculateOrderTotal,
+  formatOrderBoardDateTime,
   formatOrderBoardPrice,
   formatOrderBoardTime,
   formatOrderCancelReasonDisplay,
@@ -158,6 +159,15 @@ export function OrderStatusManagementPage() {
       >
         <div className="order-cancel-modal__form">
           <TextInput label="주문번호" readOnly value={cancelReasonView.row?.orderNo ?? ''} />
+          <TextInput
+            label="취소일시"
+            readOnly
+            value={
+              cancelReasonView.row
+                ? formatOrderBoardDateTime(cancelReasonView.row.cancelledAt ?? cancelReasonView.row.orderDatetime)
+                : ''
+            }
+          />
           <TextareaInput
             label="취소사유"
             readOnly

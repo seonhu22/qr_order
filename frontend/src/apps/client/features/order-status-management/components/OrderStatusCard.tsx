@@ -27,7 +27,9 @@ export function OrderStatusCard({ row, actions, isMoved }: OrderStatusCardProps)
         </span>
         <span className="order-status-card__time">
           <Icon id="i-clock" size={13} />
-          {formatOrderBoardTime(row.orderDatetime)}
+          {row.orderStatus === 'CANCELLED'
+            ? `취소시간 ${formatOrderBoardTime(row.cancelledAt ?? row.orderDatetime)}`
+            : `주문시간 ${formatOrderBoardTime(row.orderDatetime)}`}
         </span>
       </div>
 
