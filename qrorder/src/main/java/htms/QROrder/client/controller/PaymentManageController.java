@@ -42,8 +42,8 @@ public class PaymentManageController {
 
     // 정산 조회
     @GetMapping("/settlement/search")
-    public SettlementResponse getSettlement(@RequestBody SettlementRequest settlementRequest,
-                                HttpSession session) {
+    public SettlementResponse getSettlement(@ModelAttribute SettlementRequest settlementRequest,
+                                                HttpSession session) {
 
         Login login = (Login) session.getAttribute("loginUser");
 
