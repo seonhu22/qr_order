@@ -535,3 +535,35 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] 메뉴 줄 단위 취소, 새 주문(메뉴 추가) 등록에 대응하는 API 확정 — 현재 candidate 없음
 - [ ] 취소/미결제 사유 코드가 백엔드 공통코드로 존재하면 `constants.ts`의 임의 옵션을 교체
 - [ ] `mock/orderStatusBoardMock.ts`, `mock/menuCatalogMock.ts` 제거, `api/orderStatusBoardApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
+
+## ADR-015 — 테이블 배치 관리: dnd-kit 도입, 실제 `table_gui` API 재사용, 내부시설은 비영속
+
+**날짜**: 2026-06-29
+**상태**: 적용 완료 (내부시설 영속화·주문 화면 재사용은 후속 작업)
+
+### 배경
+
+`/client/store/table/layout` 화면에 마우스/터치 드래그·클릭 배치 이벤트를 연결하는 작업이었다. 시작 시점에는 README "진행 중 작업" 메모에 "mock GET/POST 핸들러 추가" 항목이 있었지만, 실제로는 백엔드에 `table_gui` 검색/저장 API(`TableGuiService`, `table_info.x_coordinate`/`y_coordinate`/`height`/`width` 컬럼)와 그에 대응하는 orval 생성 훅(`useGetTableGui`/`useSaveTableGui`)·MSW mock이 이미 존재하는 상태였다.
+
+### 검토한 방식
+
+**드래그 라이브러리 — `@dnd-kit/core`(채택) vs 직접 Pointer Events 구현**: 네이티브 HTML5 Drag & Drop은 터치를 지원하지 않아 제외했다. 직접 구현은 마우스/터치/스크롤 컨테이너 간 좌표 보정을 전부 손으로 처리해야 해서, `PointerSensor` + `useDraggable`/`useDroppable`/`DragOverlay`를 그대로 쓰는 `@dnd-kit/core`를 선택했다. 다만 내부시설의 자유 리사이즈는 dnd-kit이 지원하지 않아 커스텀 Pointer Events(`setPointerCapture`)로 별도 구현했다.
+
+**좌표 저장 방식 — 캔버스 기준 절대 px(채택) vs 캔버스 비율(%)**: `table_gui`가 정수 px 컬럼으로 좌표를 받기 때문에, 비율로 저장했다가 저장 시점에 px로 환산하는 추가 단계 없이 1:1로 맞추는 절대 px를 택했다. 캔버스 리사이즈 시 `ResizeObserver`로 기존 배치를 다시 클램프해 화면 밖으로 나가지 않게 한다.
+
+**영속화 범위 — 테이블만 `table_gui`로 실제 저장(채택) vs 시설까지 mock으로 영속화**: `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라, 테이블이 아닌 시설(카운터/문/주방 등)은 대응하는 행이 없어 저장할 수 없다. 시설까지 영속화하려면 백엔드 스키마 변경(시설용 행 또는 별도 테이블)이 필요해 이번 단계 범위에서 제외하고, 시설은 프론트 상태로만 유지하기로 했다(새로고침 시 사라짐, 의도된 동작).
+
+### 결정
+
+위 세 가지 모두 "(채택)" 표시한 방식으로 적용했다.
+
+- `features/table-layout/api/tableLayoutApi.ts`의 `useTableGuiQuery`/`useSaveTableGuiMutation`가 생성된 `useGetTableGui`/`useSaveTableGui`를 그대로 감싼다. `buildTableGuiRequest`가 draft/base 비교로 `newItems`/`updateItems`/`delItems`를 만든다.
+- `TableListCard`는 `table_info/search`(전체 테이블) 대신 `table_gui/search`(useYn='Y' + QR 등록된 테이블만) 결과를 그대로 쓴다 — 페이지 안내문("활성+QR 등록해야 목록에 표시됩니다")과 일치시키기 위함이다.
+- MSW mock은 자동 생성된 faker 응답 대신 `src/mocks/handlers.ts`의 `tableGuiOverrideHandler`/`tableGuiSaveOverrideHandler` + `mock/tableLayoutMock.ts`의 고정 데이터로 교체했다(다른 feature의 override 패턴과 동일).
+- 상세 동작은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md)에 모아뒀다.
+
+### 향후 작업
+
+- [ ] 주문 상태 관리(또는 별도 화면)에서 같은 `table_gui` 좌표를 읽기 전용으로 그려 테이블 클릭 시 주문이력/결제상태 이벤트를 여는 플로어플랜 뷰 추가 — 데이터 조회/필터링/클릭 매칭 키(`tableNum`)·주의사항은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md) "플로어플랜 재사용 시 데이터 처리 가이드" 참고
+- [ ] 내부시설 영속화가 필요해지면 백엔드와 스키마 협의
+- [ ] `tableType` 필드 활용처가 정해지면 `PlacedTableItem`에 반영
