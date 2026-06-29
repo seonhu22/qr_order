@@ -6,6 +6,7 @@
  * - 상태 계산은 `useOrderStatusBoardPage` feature hook에서 처리한다.
  */
 
+import { useEffect, useRef } from 'react';
 import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
@@ -39,6 +40,32 @@ export function OrderStatusManagementPage() {
   const pendingOptionPickerMenu = MENU_CATALOG_MOCK.find(
     (menu) => menu.id === editModal.optionPicker.catalogMenuId,
   );
+
+  /**
+   * "메뉴 추가"로 항목이 늘면(취소로 줄 때는 제외) 새로 추가된 줄(항상 맨 뒤)이 보이게 스크롤한다.
+   * `docs/components/TableCard.md`의 "행추가 후 자동 스크롤 규칙"과 동일하게 `scrollIntoView({ block: 'nearest' })`를
+   * 쓴다 — 이미 보이는 위치면 스크롤하지 않고, 필요할 때만 부드럽게 이동한다.
+   */
+  const addedItemsRef = useRef<HTMLDivElement>(null);
+  const prevAddedItemsCountRef = useRef(0);
+  useEffect(() => {
+    const container = addedItemsRef.current;
+    const prevCount = prevAddedItemsCountRef.current;
+    prevAddedItemsCountRef.current = editModal.addedItems.length;
+    if (!container || editModal.addedItems.length <= prevCount) return;
+    container.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [editModal.addedItems]);
+
+  /** "메뉴 추가"를 확정하면 새 주문(새 티켓)이 draftOrders 맨 뒤에 붙는다 — 같은 규칙으로 그 주문이 보이게 스크롤한다. */
+  const draftOrdersListRef = useRef<HTMLDivElement>(null);
+  const prevDraftOrdersCountRef = useRef(0);
+  useEffect(() => {
+    const container = draftOrdersListRef.current;
+    const prevCount = prevDraftOrdersCountRef.current;
+    prevDraftOrdersCountRef.current = editModal.draftOrders.length;
+    if (!container || editModal.draftOrders.length <= prevCount) return;
+    container.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [editModal.draftOrders]);
 
   return (
     <>
@@ -353,7 +380,7 @@ export function OrderStatusManagementPage() {
             </Button>
           </div>
 
-          <div className="order-edit-modal__order-list">
+          <div className="order-edit-modal__order-list" ref={draftOrdersListRef}>
             {editModal.draftOrders.every((order) => order.menuItems.length === 0) && (
               <p className="order-edit-modal__empty">
                 남아있는 메뉴가 없습니다. "메뉴 추가"로 새 주문을 등록해주세요.
@@ -534,7 +561,7 @@ export function OrderStatusManagementPage() {
             ))}
           </div>
 
-          <div className="order-menu-picker__added">
+          <div className="order-menu-picker__added" ref={addedItemsRef}>
             {editModal.addedItems.length === 0 ? (
               <p className="order-menu-picker__added-empty">추가된 항목이 없습니다.</p>
             ) : (
