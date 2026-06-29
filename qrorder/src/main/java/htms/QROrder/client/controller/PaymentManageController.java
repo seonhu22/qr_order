@@ -6,8 +6,10 @@ import htms.QROrder.client.service.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -23,8 +25,8 @@ public class PaymentManageController {
     // 결제 목록 조회
     @GetMapping("/history/master/search")
     public List<PaymentInfoMasterResponse> getPaymentInfoMaster(@RequestParam String paymentStatus,
-                                                                    @RequestParam String startDate,
-                                                                    @RequestParam String endDate,
+                                                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                                    @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
                                                                     HttpSession session) {
 
         Login login = (Login) session.getAttribute("loginUser");
