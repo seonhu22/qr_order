@@ -52,6 +52,10 @@ describe('printQrCodes', () => {
 
     vi.spyOn(document.body, 'appendChild').mockImplementation(((node: Node) => {
       if (node instanceof HTMLIFrameElement) {
+        Object.defineProperty(node, 'contentDocument', {
+          configurable: true,
+          value: document.implementation.createHTMLDocument('QR print'),
+        });
         Object.defineProperty(node, 'contentWindow', {
           configurable: true,
           value: {
@@ -94,20 +98,23 @@ describe('printQrCodes', () => {
 
   it('escapes table number and remark in print html', async () => {
     let capturedSrcdoc = '';
+    let afterPrintListener: EventListener | null = null;
     vi.spyOn(document.body, 'appendChild').mockImplementation(((node: Node) => {
       if (node instanceof HTMLIFrameElement) {
+        Object.defineProperty(node, 'contentDocument', {
+          configurable: true,
+          value: document.implementation.createHTMLDocument('QR print'),
+        });
         Object.defineProperty(node, 'contentWindow', {
           configurable: true,
           value: {
             focus: vi.fn(),
             print: () => {
               capturedSrcdoc = node.srcdoc;
-              node.dispatchEvent(new Event('afterprint'));
+              afterPrintListener?.(new Event('afterprint'));
             },
             addEventListener: (type: string, listener: EventListener) => {
-              if (type === 'afterprint') {
-                queueMicrotask(() => listener(new Event('afterprint')));
-              }
+              if (type === 'afterprint') afterPrintListener = listener;
             },
           },
         });

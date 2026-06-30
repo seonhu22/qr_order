@@ -33,7 +33,7 @@ export function mapToQrCodeModel(item: QrCodeResponse): QrCodeRow {
     id: item.sysId ?? `qr-code-${item.tableNum ?? Date.now()}`,
     sysId: item.sysId,
     linkSysId: item.linkSysId,
-    url: item.url,
+    url: item.url ?? item.sysId,
     useYn: item.useYn ?? 'Y',
     tableNum: item.tableNum != null ? String(item.tableNum) : '',
     remark: item.description ?? '',

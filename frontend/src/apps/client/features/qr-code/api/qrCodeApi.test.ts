@@ -25,6 +25,18 @@ describe('qrCodeApi', () => {
     });
   });
 
+  it('uses sysId as QR url token when backend search response omits url', () => {
+    expect(
+      mapToQrCodeModel({
+        sysId: 'qr-token-1',
+        linkSysId: 'table-1',
+        tableNum: 1,
+        description: '메인 1번',
+        useYn: 'Y',
+      }).url,
+    ).toBe('qr-token-1');
+  });
+
   it('builds save payload with linkSysId and description for backend contract', () => {
     const currentRows: QrCodeRow[] = [
       {

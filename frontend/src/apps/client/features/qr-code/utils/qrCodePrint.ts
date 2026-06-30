@@ -9,7 +9,7 @@ export type QrPrintRow = {
 
 const QR_OPTIONS = { width: 320, margin: 1 } as const;
 const ORDER_PATH_PREFIX = '/order/';
-const PRINT_CLEANUP_FALLBACK_MS = 1000;
+const PRINT_CLEANUP_FALLBACK_MS = 60_000;
 
 /** 백엔드 qr_code.url은 현재 전체 URL이 아니라 주문 진입용 ULID 문자열이다. */
 export function buildQrTargetUrl(urlField: string) {
@@ -71,7 +71,7 @@ function renderIframeAndPrint(html: string) {
       reject(error);
     };
 
-    iframe.onload = () => {
+    iframe.onload = async () => {
       const win = iframe.contentWindow;
       if (!win) {
         fail(new Error('iframe contentWindow unavailable'));
@@ -79,6 +79,7 @@ function renderIframeAndPrint(html: string) {
       }
       win.addEventListener('afterprint', finish, { once: true });
       try {
+        await waitForImagesToRender(iframe.contentDocument);
         cleanupTimerId = window.setTimeout(finish, PRINT_CLEANUP_FALLBACK_MS);
         win.focus();
         win.print();
@@ -94,6 +95,41 @@ function renderIframeAndPrint(html: string) {
     document.body.appendChild(iframe);
     iframe.srcdoc = html;
   });
+}
+
+async function waitForImagesToRender(doc: Document | null) {
+  if (!doc) {
+    throw new Error('iframe document unavailable');
+  }
+
+  const images = Array.from(doc.images);
+  await Promise.all(
+    images.map(async (image) => {
+      if (!image.complete) {
+        await new Promise<void>((resolve, reject) => {
+          image.onload = () => resolve();
+          image.onerror = () => reject(new Error('QR image load failed'));
+        });
+      }
+
+      if ('decode' in image) {
+        await image.decode();
+      }
+    }),
+  );
+
+  await new Promise<void>((resolve) => {
+    winRequestAnimationFrame(doc.defaultView, () => resolve());
+  });
+}
+
+function winRequestAnimationFrame(win: Window | null, callback: FrameRequestCallback) {
+  if (win?.requestAnimationFrame) {
+    win.requestAnimationFrame(callback);
+    return;
+  }
+
+  window.requestAnimationFrame(callback);
 }
 
 function buildPrintHtml(items: Array<{ tableNum: string; remark: string; dataUrl: string }>) {
