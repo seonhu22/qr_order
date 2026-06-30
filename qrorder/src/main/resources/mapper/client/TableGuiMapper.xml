@@ -13,7 +13,8 @@
             y_coordinate ,
             height ,
             width ,
-            table_type
+            table_type ,
+            object_type
         from table_info si
         where 1=1
         and exists (
@@ -37,6 +38,7 @@
                 height = #{item.height},
                 width = #{item.width},
                 table_type = #{item.tableType},
+                object_type = #{item.objectType},
                 modify_datetime = now(),
                 modify_user_id = #{userId}
             where 1=1
@@ -52,6 +54,7 @@
                 height = #{item.height},
                 width = #{item.width},
                 table_type = #{item.tableType},
+                object_type = #{item.objectType},
                 modify_datetime = now(),
                 modify_user_id = #{userId}
             where 1=1
@@ -67,6 +70,7 @@
                 height = null,
                 width = null,
                 table_type = #{item.tableType},
+                object_type = #{item.objectType},
                 modify_datetime = now(),
                 modify_user_id = #{userId}
             where 1=1
@@ -84,7 +88,8 @@
             y_coordinate ,
             height ,
             width ,
-            table_type
+            table_type ,
+            object_type
         from table_info si
         where 1=1
         and exists (
