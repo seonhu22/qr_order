@@ -14,6 +14,7 @@ const PRINT_CLEANUP_FALLBACK_MS = 60_000;
 /** 백엔드 qr_code.url은 현재 전체 URL이 아니라 주문 진입용 ULID 문자열이다. */
 export function buildQrTargetUrl(urlField: string) {
   if (!urlField) return '';
+  // 소비자 주문 페이지 QA 전, 이 경로가 실제 주문 진입 라우트와 일치하는지 확인해야 한다.
   return `${window.location.origin}${ORDER_PATH_PREFIX}${urlField}`;
 }
 
