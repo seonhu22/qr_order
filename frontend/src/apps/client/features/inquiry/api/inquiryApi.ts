@@ -3,6 +3,7 @@ import { useGetQna1 } from '@/generated/board-controller/board-controller';
 import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
+import { httpClient } from '@/shared/lib/httpClient';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import {
   downloadAllServerFiles,
@@ -74,37 +75,12 @@ export function buildCreateInquiryFormData(payload: CreateInquiryPayload): FormD
   return formData;
 }
 
-async function readCreateInquiryError(response: Response): Promise<string> {
-  const text = await response.text();
-
-  if (!text.trim()) {
-    return `${response.status} ${response.statusText}`;
-  }
-
-  try {
-    const payload = JSON.parse(text) as { message?: unknown; error?: unknown };
-    const message = typeof payload.message === 'string' ? payload.message : payload.error;
-    return typeof message === 'string' && message.trim()
-      ? message
-      : `${response.status} ${response.statusText}`;
-  } catch {
-    return text;
-  }
-}
-
 export async function postCreateInquiryFormData(payload: CreateInquiryPayload): Promise<CommonResponse> {
-  const response = await fetch('/api/client/board/qna/new', {
+  return httpClient<CommonResponse>({
+    url: '/api/client/board/qna/new',
     method: 'POST',
-    body: buildCreateInquiryFormData(payload),
-    credentials: 'include',
+    data: buildCreateInquiryFormData(payload),
   });
-
-  if (!response.ok) {
-    throw new Error(await readCreateInquiryError(response));
-  }
-
-  const text = await response.text();
-  return text.trim() ? JSON.parse(text) as CommonResponse : { success: true };
 }
 
 export function useCreateInquiryMutation() {
