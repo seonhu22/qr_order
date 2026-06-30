@@ -8,10 +8,18 @@ type TableListCardProps = {
   placedTableSysIds: Set<string>;
   isLoading: boolean;
   isError: boolean;
+  disabled?: boolean;
   onPlaceTable: (table: TableGuiResponse) => void;
 };
 
-export function TableListCard({ tables, placedTableSysIds, isLoading, isError, onPlaceTable }: TableListCardProps) {
+export function TableListCard({
+  tables,
+  placedTableSysIds,
+  isLoading,
+  isError,
+  disabled = false,
+  onPlaceTable,
+}: TableListCardProps) {
   return (
     <TableCard title="테이블 리스트" ariaLabel="테이블 리스트" className="table-list-card">
       <TableCardContentState
@@ -27,7 +35,7 @@ export function TableListCard({ tables, placedTableSysIds, isLoading, isError, o
                 <button
                   type="button"
                   className="table-list-card__button"
-                  disabled={isPlaced}
+                  disabled={isPlaced || disabled}
                   onClick={() => onPlaceTable(table)}
                 >
                   <span className="table-list-card__main">

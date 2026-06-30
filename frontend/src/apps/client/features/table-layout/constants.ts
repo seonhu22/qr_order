@@ -29,6 +29,13 @@ export const TABLE_SIZE_PX: Record<LayoutSize, { width: number; height: number }
 
 export const TABLE_LAYOUT_CANVAS_DROPPABLE_ID = 'table-layout-canvas';
 
+// 캔버스는 화면 폭에 따라 늘어나지 않는 고정 크기다. 좌표(x/y)는 항상 이 좌표 공간 기준 절대 px라,
+// 어떤 화면에서 열어도 배치된 그대로 보인다 — 화면이 좁으면 캔버스 전체가 줄어드는 대신 스크롤된다.
+export const TABLE_LAYOUT_CANVAS_SIZE = {
+  width: 1280,
+  height: 800,
+};
+
 // 내부시설은 캔버스에서 자유롭게 크기를 조절할 수 있다. 이 범위를 벗어나지 않도록 클램프한다.
 export const FACILITY_RESIZE_LIMITS = {
   minWidth: 72,
@@ -36,3 +43,6 @@ export const FACILITY_RESIZE_LIMITS = {
   maxWidth: 280,
   maxHeight: 160,
 };
+
+// 드롭 시점에 가장자리가 이 거리(px) 이내로 가까운 다른 아이템이 있으면 그 가장자리에 맞춰 스냅한다.
+export const SNAP_THRESHOLD_PX = 20;

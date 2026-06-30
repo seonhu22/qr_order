@@ -9,6 +9,7 @@ import {
   FACILITY_ICON_BY_KIND,
   FACILITY_RESIZE_LIMITS,
   TABLE_LAYOUT_CANVAS_DROPPABLE_ID,
+  TABLE_LAYOUT_CANVAS_SIZE,
 } from '../constants';
 import type { DraggedItemData, LayoutSize, PlacedItem } from '../types';
 
@@ -58,15 +59,17 @@ function clampSize(value: number, axis: 'width' | 'height') {
 type PlacedItemViewProps = {
   item: PlacedItem;
   layoutSize: LayoutSize;
+  disabled: boolean;
   onRemove: (id: string) => void;
   onResizeFacility: (id: string, width: number, height: number) => void;
 };
 
-function PlacedItemView({ item, layoutSize, onRemove, onResizeFacility }: PlacedItemViewProps) {
+function PlacedItemView({ item, layoutSize, disabled, onRemove, onResizeFacility }: PlacedItemViewProps) {
   const data: DraggedItemData = { origin: 'placed', id: item.id };
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
     data,
+    disabled,
   });
   const isFacility = item.kind !== 'table';
 
@@ -93,7 +96,7 @@ function PlacedItemView({ item, layoutSize, onRemove, onResizeFacility }: Placed
           name={item.tableName || '테이블 명칭'}
           seatCount={item.seatCount}
           size={layoutSize}
-          onRemove={() => onRemove(item.id)}
+          onRemove={disabled ? undefined : () => onRemove(item.id)}
         />
       ) : (
         <>
@@ -101,13 +104,15 @@ function PlacedItemView({ item, layoutSize, onRemove, onResizeFacility }: Placed
             label={FACILITY_LABEL_BY_KIND[item.kind]}
             icon={FACILITY_ICON_BY_KIND[item.kind]}
             size={layoutSize}
-            onRemove={() => onRemove(item.id)}
+            onRemove={disabled ? undefined : () => onRemove(item.id)}
           />
-          <ResizeHandle
-            width={item.width}
-            height={item.height}
-            onResize={(width, height) => onResizeFacility(item.id, width, height)}
-          />
+          {!disabled && (
+            <ResizeHandle
+              width={item.width}
+              height={item.height}
+              onResize={(width, height) => onResizeFacility(item.id, width, height)}
+            />
+          )}
         </>
       )}
     </div>
@@ -117,19 +122,25 @@ function PlacedItemView({ item, layoutSize, onRemove, onResizeFacility }: Placed
 type TableLayoutCanvasProps = {
   layoutSize: LayoutSize;
   placedItems: PlacedItem[];
+  isFitToScreen: boolean;
+  canvasScale: number;
   onRemoveItem: (id: string) => void;
   onResizeFacility: (id: string, width: number, height: number) => void;
   setCanvasNode: (node: HTMLElement | null) => void;
+  setCanvasScrollNode: (node: HTMLElement | null) => void;
 };
 
 export function TableLayoutCanvas({
   layoutSize,
   placedItems,
+  isFitToScreen,
+  canvasScale,
   onRemoveItem,
   onResizeFacility,
   setCanvasNode,
+  setCanvasScrollNode,
 }: TableLayoutCanvasProps) {
-  const { setNodeRef } = useDroppable({ id: TABLE_LAYOUT_CANVAS_DROPPABLE_ID });
+  const { setNodeRef } = useDroppable({ id: TABLE_LAYOUT_CANVAS_DROPPABLE_ID, disabled: isFitToScreen });
 
   const setRefs = (node: HTMLDivElement | null) => {
     setNodeRef(node);
@@ -138,16 +149,35 @@ export function TableLayoutCanvas({
 
   return (
     <TableCard title="테이블 배치" ariaLabel="테이블 배치" className="table-layout-canvas-card">
-      <div ref={setRefs} className={`table-layout-canvas table-layout-canvas--${layoutSize}`}>
-        {placedItems.map((item) => (
-          <PlacedItemView
-            key={item.id}
-            item={item}
-            layoutSize={layoutSize}
-            onRemove={onRemoveItem}
-            onResizeFacility={onResizeFacility}
-          />
-        ))}
+      <div className="table-layout-canvas-scroll" ref={setCanvasScrollNode}>
+        {/* 전체 보기로 축소된 상태에서는 이 래퍼가 줄어든 시각적 크기만큼만 레이아웃 공간을 차지해
+            불필요한 스크롤이 생기지 않는다. 평소(scale=1)에는 캔버스 원래 크기와 같다. */}
+        <div
+          className="table-layout-canvas-scale"
+          style={{ width: TABLE_LAYOUT_CANVAS_SIZE.width * canvasScale, height: TABLE_LAYOUT_CANVAS_SIZE.height * canvasScale }}
+        >
+          <div
+            ref={setRefs}
+            className={`table-layout-canvas table-layout-canvas--${layoutSize}`}
+            style={{
+              width: TABLE_LAYOUT_CANVAS_SIZE.width,
+              height: TABLE_LAYOUT_CANVAS_SIZE.height,
+              transform: canvasScale !== 1 ? `scale(${canvasScale})` : undefined,
+              transformOrigin: 'top left',
+            }}
+          >
+            {placedItems.map((item) => (
+              <PlacedItemView
+                key={item.id}
+                item={item}
+                layoutSize={layoutSize}
+                disabled={isFitToScreen}
+                onRemove={onRemoveItem}
+                onResizeFacility={onResizeFacility}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </TableCard>
   );

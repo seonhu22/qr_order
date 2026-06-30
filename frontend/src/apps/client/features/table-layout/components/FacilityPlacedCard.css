@@ -19,6 +19,9 @@
   position: absolute;
   top: var(--spacing-2);
   right: var(--spacing-2);
+  /* 작은 카드에서는 리사이즈 핸들의 넓어진 터치 히트 영역(.table-layout-canvas__resize-handle)과
+     겹칠 수 있다 — 겹치는 영역에서는 삭제 버튼이 클릭을 먼저 받도록 더 높은 z-index를 둔다. */
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;

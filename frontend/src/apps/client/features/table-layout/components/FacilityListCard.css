@@ -32,6 +32,13 @@
   opacity: 0.4;
 }
 
+/* 전체보기(보기 전용) 중에는 캔버스에 드롭할 수 없으므로 드래그 자체를 막고 흐리게 표시한다. */
+.facility-list-card__item--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .facility-list-card__icon {
   display: inline-flex;
   color: var(--color-text-secondary);

@@ -6,6 +6,46 @@
   min-height: 0;
 }
 
+/* 헤더의 되돌리기/전체 비우기 아이콘 버튼 — variant="icon"은 기본적으로 테두리가 없어서(`.btn--icon`),
+   주문 상태 관리 휴지통 버튼(`.order-status-card__dismiss`)과 동일하게 테두리를 직접 입힌다. */
+.table-layout-page__icon-button {
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+
+/* 되돌리기/전체 비우기 확인 모달 — 아이콘 없는 좌측 정렬 안내문구. 주문 상태 관리의
+   .order-cancel-modal__notice와 동일한 패턴(WrapperModal layout="default" + title/desc 두 줄)이다. */
+.table-layout-confirm-modal__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.table-layout-confirm-modal__notice-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+}
+
+.table-layout-confirm-modal__notice-desc {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+/* dnd-kit DragOverlay는 children을 감싸는 래퍼를 항상 "원래 드래그한 노드"(사이드바 행 전체) 크기로
+   강제 고정한다. 이 래퍼는 포인터 움직임을 그대로 따라가므로, 드래그 시작 시점에 클릭/터치한 지점이
+   래퍼 안에서 항상 같은 좌표(TableLayoutPage.tsx의 dragGrabOffset)에 위치한다. 그 좌표에 작은 미리보기
+   카드(FacilityPlacedCard)를 직접 앵커링해, 카드가 항상 클릭/터치한 지점을 기준으로 따라다니게 한다. */
+.table-layout-drag-overlay {
+  position: relative;
+}
+
+.table-layout-drag-overlay__anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
 .table-layout-page__header {
   display: flex;
   align-items: center;
