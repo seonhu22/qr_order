@@ -1,14 +1,13 @@
 import { useGetQna1, useNewQna } from '@/generated/board-controller/board-controller';
-import {
-  useGetAttachFile,
-  downloadFile,
-  downloadAllFile,
-} from '@/generated/file-controller/file-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
-import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
-import { triggerBlobDownload } from '@/shared/utils/downloadBlob';
+import {
+  downloadAllServerFiles,
+  downloadServerFile,
+  mapFileResponseToServerFile,
+} from '@/shared/utils/attachFile';
 import type { ClientQnaRequest } from '@/generated/types/clientQnaRequest';
 import type { ClientQnaResponse } from '@/generated/types/clientQnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
@@ -71,11 +70,9 @@ export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
 }
 
 export async function downloadInquiryFile(file: ServerFile): Promise<void> {
-  const blob = await downloadFile({ sysId: file.sysId });
-  triggerBlobDownload(blob, file.originalFileNm);
+  await downloadServerFile(file);
 }
 
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUlid });
-  triggerBlobDownload(blob, 'files.zip');
+  await downloadAllServerFiles(fileUlid);
 }

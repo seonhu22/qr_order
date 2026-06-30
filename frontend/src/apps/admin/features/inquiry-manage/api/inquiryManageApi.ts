@@ -1,17 +1,16 @@
 import { useGetQna, useUpdateQna } from '@/generated/settings-controller/settings-controller';
-import {
-  useGetAttachFile,
-  downloadFile,
-  downloadAllFile,
-} from '@/generated/file-controller/file-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
-import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
-import { triggerBlobDownload } from '@/shared/utils/downloadBlob';
+import {
+  downloadAllServerFiles,
+  downloadServerFile,
+  mapFileResponseToServerFile,
+} from '@/shared/utils/attachFile';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 export { mapFileResponseToServerFile };
@@ -74,15 +73,14 @@ export function useInquiryAnswerMutation() {
 }
 
 export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
-  return useGetAttachFile({ linkSysId: fileUlid ?? '' }, { query: { enabled: Boolean(fileUlid) } });
+  const trimmed = fileUlid?.trim() ?? '';
+  return useGetAttachFile({ linkSysId: trimmed }, { query: { enabled: trimmed.length > 0 } });
 }
 
 export async function downloadInquiryFile(file: ServerFile): Promise<void> {
-  const blob = await downloadFile({ sysId: file.sysId });
-  triggerBlobDownload(blob, file.originalFileNm);
+  await downloadServerFile(file);
 }
 
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUlid });
-  triggerBlobDownload(blob, 'files.zip');
+  await downloadAllServerFiles(fileUlid);
 }
