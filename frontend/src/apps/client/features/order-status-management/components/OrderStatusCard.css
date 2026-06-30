@@ -142,14 +142,22 @@
 }
 
 /* 취소 컬럼의 삭제(휴지통) 버튼만 위 1/4-폭 규칙 대신 정사각형 테두리 버튼으로 — 다른 버튼과 폭을 맞추지 않는다.
-   `.order-status-card__actions .btn`과 동일한 명시도(클래스 2개)를 맞춰야 폭/패딩이 덮어써진다.
-   높이는 고정값을 주지 않고 `.order-status-card__actions`의 기본 align-items: stretch로 옆 버튼(패딩 기반 auto-height)과
-   세로 크기를 맞춘 뒤, aspect-ratio로 가로를 그 높이에 맞춰 정사각형을 만든다. */
-.order-status-card__actions .order-status-card__dismiss {
+   `.order-status-card__actions .btn`보다 명시도가 높아야(클래스 3개) Button.css의 `.btn--sm.btn--icon-square`
+   고정 width 토큰을 확실히 덮어쓴다.
+   `aspect-ratio: 1/1` + `width: auto` + stretch 조합은 flex 알고리즘이 아이콘 콘텐츠 크기(아주 작음)를 먼저
+   hypothetical main size로 계산해버려 늘어난 세로 길이를 따라가지 못하고 얇은 막대로 찌그러지는 문제가 있었다.
+   그래서 옆 "취소사유"(outline, sm) 버튼의 자동 높이 공식(패딩 2 + 줄높이 + 테두리 2)을 그대로 계산해
+   width/height에 고정값으로 박아 넣어 항상 정사각형이 되게 한다. */
+.order-status-card__actions .btn.order-status-card__dismiss {
   flex: 0 0 auto;
-  width: auto;
-  height: auto;
-  aspect-ratio: 1 / 1;
+  width: calc(
+    var(--spacing-6) * 2 + var(--typography-size-ui) * var(--typography-leading-ui) +
+      var(--border-1) * 2
+  );
+  height: calc(
+    var(--spacing-6) * 2 + var(--typography-size-ui) * var(--typography-leading-ui) +
+      var(--border-1) * 2
+  );
   padding: 0;
 }
 
@@ -163,4 +171,36 @@
   border-color: var(--color-status-error-default);
   background-color: var(--color-status-error-bg-subtle);
   color: var(--color-status-error-default);
+}
+
+/* 태블릿 폭에서는 4개 버튼이 한 줄에 다 들어가면 글자가 "..."로 잘린다.
+   버튼이 두 줄로 흐르도록 줄바꿈을 허용하고(폭은 2개씩 차지), 카드 여백도 줄여 공간을 확보한다. */
+@media (max-width: 1200px) {
+  .order-status-card {
+    padding: var(--spacing-6);
+  }
+
+  .order-status-card__actions {
+    flex-wrap: wrap;
+  }
+
+  .order-status-card__actions .btn {
+    flex: 0 0 calc((100% - var(--spacing-1)) / 2);
+    width: calc((100% - var(--spacing-1)) / 2);
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  /* 휴지통 버튼은 `.btn.order-status-card__dismiss`(클래스 3개)가 위 `.btn`(클래스 2개)보다 명시도가 높아
+     이 media 안에서도 고정 정사각형 크기가 그대로 유지된다 — 여기서 다시 덮어쓸 필요 없다. */
+
+  /* 폭이 좁아지면 주문번호와 주문시간이 한 줄에서 서로 밀어내며 좁아지므로, 주문시간을 아래 줄로 내린다. */
+  .order-status-card__top-row {
+    flex-wrap: wrap;
+  }
+
+  .order-status-card__time {
+    flex-basis: 100%;
+  }
 }

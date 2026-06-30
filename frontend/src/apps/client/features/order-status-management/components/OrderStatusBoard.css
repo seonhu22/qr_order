@@ -4,3 +4,10 @@
   flex: 1;
   min-height: 0;
 }
+
+/* 태블릿 폭에서는 컬럼 4개가 좁아지므로 사이 간격을 줄여 카드 공간을 더 확보한다 */
+@media (max-width: 1200px) {
+  .order-status-board {
+    gap: var(--spacing-4);
+  }
+}
