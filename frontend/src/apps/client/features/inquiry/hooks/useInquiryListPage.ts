@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import {
-  buildCreateInquiryRequest,
   mapToInquiryListRow,
   mapFileResponseToServerFile,
   useCreateInquiryMutation,
@@ -50,7 +49,7 @@ export function useInquiryListPage() {
   };
 
   const handleCreate = async (editorRow: { title: string; content: string }) => {
-    await createMutation.mutateAsync({ data: buildCreateInquiryRequest(editorRow) });
+    await createMutation.mutateAsync({ data: editorRow });
     await queryClient.invalidateQueries({ queryKey: queryKeys.clientInquiry.lists });
   };
 
