@@ -70,7 +70,7 @@
 2-A. **결제완료 영수증 확인** — `WrapperModal`(size="md", Figma 480px와 동일). Figma 디자인은 **같은 테이블의 결제 대상 주문을 전부 합친 영수증**이다(주문 단위가 아니라 테이블 단위 결제). `getPayableOrdersForTable(rows, tableNum)`(위치: `utils.ts`)이 클릭한 카드와 같은 `tableNum`이면서 `orderStatus === 'SERVED'`이고 아직 `paymentStatus !== 'PAID'`인 주문을 전부 모아 영수증에 렌더한다(접수/조리중 주문은 아직 결제 대상이 아니라서 제외). "확인"을 누르면 모아둔 주문 전체를 한 번에 `PAID`로 바꾸고 완료 안내(`SimpleDefaultModal`, "결제완료 되었습니다.")를 연다. "닫기"는 흐름 전체를 초기화한다(1단계로 되돌아가지 않음).
    - 주문번호 옆에 그 주문의 칸반 상태를 배지로 보여준다(`.order-status-badge`, `getOrderBoardStatusLabel`/`ORDER_BOARD_STATUS_BADGE_CLASS` — `utils.ts`/`constants.ts`). 색상은 칸반 컬럼 숫자 라벨(`.order-status-column__count`)과 동일하게 접수=info/조리중=warning/서빙완료=success/취소=error를 그대로 맞췄다. 이 영수증은 `getPayableOrdersForTable`이 이미 `SERVED`만 모아서 항상 같은 배지가 찍히지만, 주문 수정 모달과 시각 언어를 통일하기 위해 동일하게 표시한다.
    - 각 메뉴/옵션 줄은 Figma와 동일하게 "메뉴명+수량 / 수량 / 단가 / 금액(수량×단가)" 4열로 보여준다(`.order-payment-receipt__line`, CSS grid). 이 때문에 `OrderBoardMenuItem`/`OrderBoardOptionItem`에 `unitPrice`(단가)가 필요해졌고, 주문 총액은 더 이상 저장값이 아니라 항상 `calculateOrderTotal`(`utils.ts`)로 메뉴/옵션 단가에서 계산한다 — 카드(`OrderStatusCard`)도 같은 함수를 쓴다. 저장된 `totalPrice` 필드는 단가와 어긋날 수 있어 타입에서 제거했다.
-   - 주문이 많아 모달이 넘치면 "{테이블}번 테이블" 제목과 맨 아래 "총 주문건/총 주문메뉴/총합" 요약은 고정해서 항상 보이고, 그 사이의 주문 내역(`.order-payment-receipt__order-list`)만 `max-height: min(45vh, 22rem)` + `overflow-y: auto`로 내부 스크롤된다.
+   - 주문이 많아 모달이 넘치면 "{테이블}번 테이블" 제목과 맨 아래 "총 주문건/총 주문메뉴/총합" 요약은 고정해서 항상 보이고, 그 사이의 주문 내역(`.order-payment-receipt__order-list`)만 내부 스크롤된다. `.order-payment-receipt`/`.order-payment-receipt__order-list`가 `flex: 1 1 auto; min-height: 0`으로 `.base-modal__content`의 flex 체인([`docs/components/Modal.md` #23](../components/Modal.md))을 이어받아 모달의 실제 남는 공간만 채우고, `max-height: min(45vh, 22rem)`은 항목이 적어 공간이 남을 때 지나치게 늘어나지 않게 막는 상한선으로만 둔다.
 2-B. **미결제사유 입력** — `WrapperModal`(size="md"). 안내문 2줄 + 미결제사유 콤보(필수) + "기타" 선택 시에만 나타나는 상세입력 textarea(필수). 취소 처리의 1단계와 동일한 구조다. **결제완료와 달리 미결제는 클릭한 카드 1건에만 적용된다** — 같은 테이블의 다른 주문에 영향을 주지 않는다(Figma에 미결제의 테이블 묶음 처리가 명시돼 있지 않아 단일 주문 단위로 유지).
 3. **확인** → 유효성 검사를 통과하면 바로 `paymentStatus`를 `UNPAID`로 바꾸고(취소와 달리 중간 확인 모달 없음) 미결제사유 입력 모달을 닫은 뒤 완료 안내(`SimpleDefaultModal`, "미결제 처리되었습니다.")를 연다.
 
@@ -93,7 +93,7 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 "메뉴 추가"로 새로 생긴 주문(원래 수정 대상이 아니었던 주문)은 `editModal.originalOrderIds`에 없는 주문 id로 판별해서 `.order-edit-modal__order--new`(브랜드색 좌측 라인 + 옅은 브랜드 배경)와 주문번호 옆 "새 주문" 배지(`.order-edit-modal__new-badge`)로 구분해 보여준다. 이 새 주문 블록은 자체 박스 스타일을 이미 갖고 있어, 그 안의 옵션 줄에는 박스(좌측 라인+배경) 없이 들여쓰기만 하는 `.order-edit-modal__option-list--plain` 모디파이어를 추가로 붙인다 — 그대로 두면 옵션 박스가 새 주문 박스 안에 중첩되어 보이기 때문이다. 기존 주문(`draftOrders` 중 `originalOrderIds`에 있는 주문)의 옵션은 원래 박스 스타일(`.order-edit-modal__option-list`)을 그대로 쓴다.
    - **모든 변경은 draft다.** 모달을 열 때 대상 주문들을 깊은 복사해 `draftOrders`로 들고 있다가, "확인"을 누르면 2단계(수정 확인)로 넘어간다. "닫기"는 draft를 그대로 버린다(되돌릴 필요 없이 단순 폐기).
-   - 주문 목록 아래에 `draftOrders` 전체를 합산한 "총 합계"(`.order-edit-modal__total`)를 결제 영수증 요약(`.order-payment-receipt__summary-row--total`)과 같은 스타일(상단 굵은 테두리 + 큰 글씨)로 보여준다.
+   - 주문 목록 아래에 `draftOrders` 전체를 합산한 "총 합계"(`.order-edit-modal__total`)를 결제 영수증 요약(`.order-payment-receipt__summary-row--total`)과 같은 스타일(상단 굵은 테두리 + 큰 글씨)로 보여준다. 결제 영수증과 동일하게 `.order-edit-modal`/`.order-edit-modal__order-list`가 `flex: 1 1 auto; min-height: 0`으로 `.base-modal__content`의 flex 체인([`docs/components/Modal.md` #23](../components/Modal.md))을 이어받아, 위 헤더("{테이블}번 테이블" + "메뉴 추가")와 이 "총 합계"는 고정되고 주문 목록만 모달의 남는 공간 안에서 스크롤된다.
 2. **메뉴 추가** — 위에서 또 한 단계 쌓이는 `WrapperModal`(size="md", Figma 480px). 위쪽은 `MENU_CATALOG_MOCK`을 카테고리별로 묶어 보여주는 스크롤 목록(`groupMenuCatalogByCategory`, 각 줄에 이미지 박스 자리 + 메뉴명/가격 + "추가" 버튼=`tinted`), 아래쪽은 옅은 회색 박스(`.order-menu-picker__added`)로 지금까지 추가한 항목을 결제 영수증과 같은 4열+취소버튼 줄로 보여준다. 카테고리 제목 옆에는 그 카테고리에 속한 메뉴 개수를 알약형 라벨(`.order-menu-picker__category-count`)로 표시한다. 메뉴에 옵션이 있으면(`item.optionCategories.length > 0`) 메뉴명 옆에 "옵션" 라벨(`.order-menu-picker__catalog-option-count`)을 표시해, 옵션 추가 모달이 한 번 더 뜨는 메뉴를 미리 구분할 수 있게 한다. 개수가 아니라 유무만 표시한다. 이 라벨의 위아래 패딩이 있는 알약 모양(`padding: var(--spacing-1) var(--spacing-2)`, `font-weight: body`)을 기준으로 "새 주문" 배지(`.order-edit-modal__new-badge`)의 모양도 맞췄다 — 색은 각자(옵션=브랜드 옅은 배경, 새 주문=브랜드 진한 배경) 그대로 유지한다. 이 미리보기는 이미 `.order-menu-picker__added` 박스(테두리+배경)로 감싸져 있으므로, 옵션 줄은 `.order-edit-modal__option-list`(좌측 라인+배경 박스) 대신 박스 없는 `.order-menu-picker__added-option-list`(들여쓰기만)를 쓴다 — 그대로 두면 옵션 박스가 미리보기 박스 안에 중첩되어 보이기 때문이다.
    - 메뉴의 "추가"를 누르면: **옵션이 없는 메뉴**는 즉시 아래 미리보기에 들어간다(이미 옵션 없이 추가된 같은 메뉴면 수량만 +1). **옵션이 있는 메뉴**는 3단계(옵션 추가) 모달이 한 번 더 뜬다.
    - 미리보기(`.order-menu-picker__added`)에 새 줄이 추가되면 그 줄이 보이게 스크롤한다(`OrderStatusManagementPage.tsx`의 `addedItemsRef`). [`docs/components/TableCard.md`](../components/TableCard.md) "행추가 후 자동 스크롤 규칙"의 `lastElementChild` 변형을 그대로 따른다 — `selectedRowId` 같은 선택 상태 없이 항상 배열 맨 뒤에 붙는 목록이라 `scrollIntoView({ block: 'nearest' })`를 컨테이너의 `lastElementChild`에 직접 건다. 직전 길이와 비교해 **늘었을 때만** 스크롤하므로 "취소"로 줄이 줄어들 때는 스크롤 위치를 건드리지 않는다. 1단계 주문 목록(`.order-edit-modal__order-list`)도 "메뉴 추가" 확정으로 새 주문이 맨 뒤에 붙을 때 같은 방식(`draftOrdersListRef`)으로 스크롤한다.
@@ -148,9 +148,37 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 - `justify-content: flex-end`(부모 `.order-status-card__actions`) — 버튼이 적게 들어찰 때 왼쪽이 아니라 오른쪽에 정렬된다.
 - 세로 크기는 `height: auto; padding: var(--spacing-6) var(--spacing-1);`로만 키운다 — `Button`의 `sm` 사이즈가 고정 `height`를 갖고 있어서, 세로로 키우려면 `height`를 풀어주지 않으면 padding이 적용되지 않는다(`box-sizing: border-box` 때문).
 
+> 추가일: 2026-06-30
+
+### 태블릿 반응형 (1200px 이하)
+
+`@media (max-width: 1200px)`에서 적용된다(`OrderStatusBoard.css`, `OrderStatusCard.css`).
+
+- 4개 컬럼 사이 간격(`.order-status-board`)을 `--spacing-8` → `--spacing-4`로 줄여 카드 공간을 더 확보한다.
+- 카드 패딩(`.order-status-card`)을 `--spacing-10` → `--spacing-6`으로 줄인다.
+- 버튼 그룹(`.order-status-card__actions`)이 `flex-wrap: wrap`으로 바뀌어, 4등분 고정폭 대신 2개씩 줄바꿈한다(`width: calc((100% - var(--spacing-1)) / 2)`). `white-space: normal`로 줄바꿈을 허용해, 좁은 폭에서도 버튼 글자가 `...`로 잘리지 않는다.
+- 주문번호+주문시간 줄(`.order-status-card__top-row`)도 `flex-wrap: wrap`으로 바꾸고 `.order-status-card__time`에 `flex-basis: 100%`를 줘서, 폭이 좁아지면 주문시간이 다음 줄로 내려간다.
+
+### 휴지통(삭제) 버튼 — 정사각형 고정 크기
+
+`.order-status-card__dismiss`는 `Button`의 `variant="icon"`이라 `btn--icon-square` 클래스가 함께 붙는데, `Button.css`의 `.btn--sm.btn--icon-square { width: var(--height-component-sm) }`와 카드 쪽 오버라이드가 클래스 2개로 명시도가 같아 CSS 주입 순서에 따라 폭이 고정 토큰으로 깨질 수 있었다 — 셀렉터에 `.btn`을 더해(`.order-status-card__actions .btn.order-status-card__dismiss`, 클래스 3개) 항상 카드 쪽 규칙이 이기게 했다.
+
+또한 `aspect-ratio: 1/1` + `width: auto`를 flex의 `align-items: stretch`에 맡기는 방식은 신뢰할 수 없었다 — 아이콘 콘텐츠 자체가 작아 브라우저가 정사각형의 가로폭을 "늘어난 세로 높이"가 아니라 아이콘의 작은 hypothetical 크기로 먼저 계산해버려, 세로만 길게 늘어난 얇은 막대가 됐다. 그래서 옆 "취소사유"(`outline`, `sm`) 버튼의 자동 높이 공식을 그대로 `calc()`로 계산해 `width`/`height`에 고정값으로 박아 넣는다.
+
+```css
+width: calc(
+  var(--spacing-6) * 2 + var(--typography-size-ui) * var(--typography-leading-ui) +
+    var(--border-1) * 2
+);
+```
+
+패딩(`--spacing-6`) 2번 + 줄높이(`font-size × line-height`) + 테두리(`--border-1`) 2번 — `outline` 버튼 1개가 실제로 차지하는 세로 크기를 그대로 재현한 값이다. stretch/aspect-ratio에 의존하지 않으므로 어떤 화면 폭에서도 항상 정확한 정사각형이 나온다.
+
 ## 실시간 동기화 표시
 
-헤더 좌측에 "실시간 동기화" 배지가 있다. 백엔드에 WebSocket/SSE가 아직 없어 이번 단계는 정적 표시만 한다. 실시간 연동이 추가되면 연결 성공/실패 상태에 따라 "실시간 동기화" / "실시간 동기화 실패" 두 상태를 토글하도록 확장한다.
+헤더 좌측에 "실시간 동기화" 배지가 있다(`OrderStatusManagementHeader.tsx`). `isConnected?: boolean`(기본값 `true`) prop으로 연결/실패 두 상태를 토글할 수 있도록 컴포넌트는 미리 만들어뒀다 — `false`면 텍스트가 "실시간 동기화 실패"로 바뀌고, 점과 글자 색이 `.order-status-header__sync--error`(`--color-status-error-default`/`--color-status-error-text`)로 바뀐다.
+
+백엔드에 WebSocket/SSE가 아직 없어 `isConnected`를 실제로 바꿔줄 연결 상태 소스가 없고, 현재 `OrderStatusManagementPage.tsx`는 이 prop을 넘기지 않아 항상 기본값(`true`, 연결됨)으로만 보인다. 실시간 연동이 추가되면 연결 성공/실패 이벤트를 받아 `isConnected`에 연결하기만 하면 된다.
 
 ## 데이터 소스
 
