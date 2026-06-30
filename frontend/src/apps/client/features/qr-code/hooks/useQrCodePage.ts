@@ -14,6 +14,7 @@ import {
   useQrCodeQuery,
   useSaveQrCodeMutation,
 } from '../api/qrCodeApi';
+import { printQrCodes, type QrPrintRow } from '../utils/qrCodePrint';
 
 function cloneRows(rows: QrCodeRow[]) {
   return rows.map((row) => ({ ...row }));
@@ -184,9 +185,33 @@ export function useQrCodePage(): QrCodePageViewModel {
     setPrintTargetRowIds(Array.from(checkedRowIds));
   };
 
-  /** TODO: 실제 QR 출력 연동은 다음 단계에서 구현한다. */
-  const confirmPrint = () => {
+  const confirmPrint = async () => {
+    const targetIds = printTargetRowIds ?? [];
+    const targets: QrPrintRow[] = draftRows
+      .filter((row) => targetIds.includes(row.id) && row.url)
+      .map((row) => ({
+        id: row.id,
+        tableNum: row.tableNum,
+        url: row.url ?? '',
+        remark: row.remark,
+      }));
+
     setPrintTargetRowIds(null);
+
+    if (targets.length === 0) {
+      editableFlow.setSimpleModalState({
+        description: '출력할 QR 코드가 없습니다.\n저장 후 다시 시도해주세요.',
+      });
+      return;
+    }
+
+    try {
+      await printQrCodes(targets);
+    } catch {
+      editableFlow.setSimpleModalState({
+        description: 'QR 출력 중 오류가 발생했습니다.',
+      });
+    }
   };
 
   const cancelPrint = () => {
