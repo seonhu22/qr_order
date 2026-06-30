@@ -8,6 +8,40 @@ vi.mock('qrcode', () => ({
 
 import { buildQrTargetUrl, generateQrDataUrl, printQrCodes } from './qrCodePrint';
 
+function mockPrintIframe(onPrint?: (iframe: HTMLIFrameElement) => void) {
+  const focusSpy = vi.fn();
+  const printSpy = vi.fn();
+  let afterPrintListener: EventListener | null = null;
+
+  vi.spyOn(document.body, 'appendChild').mockImplementation(((node: Node) => {
+    if (node instanceof HTMLIFrameElement) {
+      Object.defineProperty(node, 'contentDocument', {
+        configurable: true,
+        value: document.implementation.createHTMLDocument('QR print'),
+      });
+      Object.defineProperty(node, 'contentWindow', {
+        configurable: true,
+        value: {
+          focus: focusSpy,
+          print: () => {
+            printSpy();
+            onPrint?.(node);
+            afterPrintListener?.(new Event('afterprint'));
+          },
+          addEventListener: (type: string, listener: EventListener) => {
+            if (type === 'afterprint') afterPrintListener = listener;
+          },
+        },
+      });
+      queueMicrotask(() => node.onload?.(new Event('load')));
+      return node;
+    }
+    return node;
+  }) as typeof document.body.appendChild);
+
+  return { focusSpy, printSpy };
+}
+
 describe('buildQrTargetUrl', () => {
   it('returns origin + /order/{ulid}', () => {
     expect(buildQrTargetUrl('01HX')).toBe(`${window.location.origin}/order/01HX`);
@@ -46,34 +80,7 @@ describe('printQrCodes', () => {
   });
 
   it('renders iframe with QR images and triggers print, then cleans up', async () => {
-    const focusSpy = vi.fn();
-    const printSpy = vi.fn();
-    let afterPrintListener: EventListener | null = null;
-
-    vi.spyOn(document.body, 'appendChild').mockImplementation(((node: Node) => {
-      if (node instanceof HTMLIFrameElement) {
-        Object.defineProperty(node, 'contentDocument', {
-          configurable: true,
-          value: document.implementation.createHTMLDocument('QR print'),
-        });
-        Object.defineProperty(node, 'contentWindow', {
-          configurable: true,
-          value: {
-            focus: focusSpy,
-            print: () => {
-              printSpy();
-              afterPrintListener?.(new Event('afterprint'));
-            },
-            addEventListener: (type: string, listener: EventListener) => {
-              if (type === 'afterprint') afterPrintListener = listener;
-            },
-          },
-        });
-        queueMicrotask(() => node.onload?.(new Event('load')));
-        return node;
-      }
-      return node;
-    }) as typeof document.body.appendChild);
+    const { focusSpy, printSpy } = mockPrintIframe();
 
     await printQrCodes([
       { id: 'a', tableNum: '1', url: 'ULID-1', remark: '창가 1번' },
@@ -98,31 +105,9 @@ describe('printQrCodes', () => {
 
   it('escapes table number and remark in print html', async () => {
     let capturedSrcdoc = '';
-    let afterPrintListener: EventListener | null = null;
-    vi.spyOn(document.body, 'appendChild').mockImplementation(((node: Node) => {
-      if (node instanceof HTMLIFrameElement) {
-        Object.defineProperty(node, 'contentDocument', {
-          configurable: true,
-          value: document.implementation.createHTMLDocument('QR print'),
-        });
-        Object.defineProperty(node, 'contentWindow', {
-          configurable: true,
-          value: {
-            focus: vi.fn(),
-            print: () => {
-              capturedSrcdoc = node.srcdoc;
-              afterPrintListener?.(new Event('afterprint'));
-            },
-            addEventListener: (type: string, listener: EventListener) => {
-              if (type === 'afterprint') afterPrintListener = listener;
-            },
-          },
-        });
-        queueMicrotask(() => node.onload?.(new Event('load')));
-        return node;
-      }
-      return node;
-    }) as typeof document.body.appendChild);
+    mockPrintIframe((iframe) => {
+      capturedSrcdoc = iframe.srcdoc;
+    });
 
     await printQrCodes([
       { id: 'a', tableNum: '<1>', url: 'ULID-1', remark: '"홀" & 1' },
