@@ -8,6 +8,7 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
+import { triggerBlobDownload } from '@/shared/utils/downloadBlob';
 import type { ClientQnaRequest } from '@/generated/types/clientQnaRequest';
 import type { ClientQnaResponse } from '@/generated/types/clientQnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
@@ -77,13 +78,4 @@ export async function downloadInquiryFile(file: ServerFile): Promise<void> {
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
   const blob = await downloadAllFile({ linkSysId: fileUlid });
   triggerBlobDownload(blob, 'files.zip');
-}
-
-function triggerBlobDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }

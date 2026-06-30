@@ -11,6 +11,7 @@ import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
+import { triggerBlobDownload } from '@/shared/utils/downloadBlob';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 export { mapFileResponseToServerFile };
@@ -84,13 +85,4 @@ export async function downloadInquiryFile(file: ServerFile): Promise<void> {
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
   const blob = await downloadAllFile({ linkSysId: fileUlid });
   triggerBlobDownload(blob, 'files.zip');
-}
-
-function triggerBlobDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }

@@ -29,4 +29,25 @@ describe('httpClient', () => {
     expect(receivedContentType).toContain('multipart/form-data');
     expect(receivedMenuName).toBe('치즈버거');
   });
+
+  it('returns Blob without parsing it as JSON when responseType is blob', async () => {
+    server.use(
+      http.get('/api/blob-test', () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('zip-data').buffer, {
+          headers: {
+            'content-type': 'application/zip',
+          },
+        }),
+      ),
+    );
+
+    const blob = await httpClient<Blob>({
+      url: '/api/blob-test',
+      method: 'GET',
+      responseType: 'blob',
+    });
+
+    expect(blob).toBeInstanceOf(Blob);
+    expect(await blob.text()).toBe('zip-data');
+  });
 });

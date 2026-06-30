@@ -67,7 +67,7 @@ async function readErrorResponse(response: Response): Promise<{ message: string;
 }
 
 export const httpClient = async <T>(
-  { url, method, params, data, headers, signal }: HttpClientConfig,
+  { url, method, params, data, headers, signal, responseType }: HttpClientConfig,
   _options?: unknown,
 ): Promise<T> => {
   const searchParams = params
@@ -100,6 +100,10 @@ export const httpClient = async <T>(
 
   if (response.status === 204) {
     return undefined as T;
+  }
+
+  if (responseType === 'blob') {
+    return response.blob() as Promise<T>;
   }
 
   const text = await response.text();
