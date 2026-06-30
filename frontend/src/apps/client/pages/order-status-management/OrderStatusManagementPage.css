@@ -385,9 +385,19 @@
   color: var(--color-text-primary);
 }
 
+/* 그리드 컬럼 폭이 1.875rem(30px)으로 고정돼 있어 버튼 자체를 키우면 레이아웃이 깨진다.
+   시각적 크기(30px)는 그대로 두고, 보이지 않는 ::before로 히트 영역만 44px(터치 권장 최소 크기)로 넓힌다 —
+   테이블 배치 관리의 리사이즈 핸들 터치 영역 확장과 같은 의도다. */
 .order-edit-modal__line-cancel {
+  position: relative;
   justify-self: center;
   color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__line-cancel::before {
+  content: '';
+  position: absolute;
+  inset: -0.4375rem;
 }
 
 .order-edit-modal__line-cancel:hover:not(:disabled) {
