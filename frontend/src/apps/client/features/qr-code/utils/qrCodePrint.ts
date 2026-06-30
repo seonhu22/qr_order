@@ -9,7 +9,9 @@ export type QrPrintRow = {
 
 const QR_OPTIONS = { width: 320, margin: 1 } as const;
 const ORDER_PATH_PREFIX = '/order/';
+const PRINT_CLEANUP_FALLBACK_MS = 1000;
 
+/** 백엔드 qr_code.url은 현재 전체 URL이 아니라 주문 진입용 ULID 문자열이다. */
 export function buildQrTargetUrl(urlField: string) {
   if (!urlField) return '';
   return `${window.location.origin}${ORDER_PATH_PREFIX}${urlField}`;
@@ -37,6 +39,8 @@ export async function printQrCodes(rows: QrPrintRow[]): Promise<void> {
 function renderIframeAndPrint(html: string) {
   return new Promise<void>((resolve, reject) => {
     const iframe = document.createElement('iframe');
+    let cleanupTimerId: number | undefined;
+    let settled = false;
     iframe.setAttribute('aria-hidden', 'true');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -47,36 +51,44 @@ function renderIframeAndPrint(html: string) {
     iframe.style.visibility = 'hidden';
 
     const cleanup = () => {
+      if (cleanupTimerId !== undefined) {
+        window.clearTimeout(cleanupTimerId);
+      }
       iframe.parentNode?.removeChild(iframe);
+    };
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
+    };
+
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
     };
 
     iframe.onload = () => {
       const win = iframe.contentWindow;
       if (!win) {
-        cleanup();
-        reject(new Error('iframe contentWindow unavailable'));
+        fail(new Error('iframe contentWindow unavailable'));
         return;
       }
-      win.addEventListener(
-        'afterprint',
-        () => {
-          cleanup();
-          resolve();
-        },
-        { once: true },
-      );
+      win.addEventListener('afterprint', finish, { once: true });
       try {
+        cleanupTimerId = window.setTimeout(finish, PRINT_CLEANUP_FALLBACK_MS);
         win.focus();
         win.print();
       } catch (error) {
-        cleanup();
-        reject(error);
+        fail(error);
       }
     };
 
     iframe.onerror = () => {
-      cleanup();
-      reject(new Error('iframe load failed'));
+      fail(new Error('iframe load failed'));
     };
 
     document.body.appendChild(iframe);
