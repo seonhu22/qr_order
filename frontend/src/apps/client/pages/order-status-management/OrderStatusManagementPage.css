@@ -6,6 +6,13 @@
   min-height: 0;
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .order-status-management-page {
+    gap: var(--spacing-4);
+  }
+}
+
 /* ── 주문 상태 배지 — 칸반 컬럼 숫자 라벨과 같은 색상. 결제 처리/주문 수정 모달의 주문번호 옆에 붙인다 ── */
 .order-status-badge {
   display: inline-flex;

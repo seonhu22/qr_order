@@ -13,6 +13,13 @@
   min-height: 0;
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 더 줄인다. */
+@container client-main (max-width: 1200px) {
+  .settlement-page {
+    gap: var(--spacing-4);
+  }
+}
+
 /* ── 검색 폼 (날짜 프리셋 + 날짜range + 버튼만, 키워드/콤보 없음) ── */
 .settlement-filters {
   display: flex;

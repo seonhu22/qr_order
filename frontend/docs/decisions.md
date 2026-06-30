@@ -567,3 +567,43 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] 주문 상태 관리(또는 별도 화면)에서 같은 `table_gui` 좌표를 읽기 전용으로 그려 테이블 클릭 시 주문이력/결제상태 이벤트를 여는 플로어플랜 뷰 추가 — 데이터 조회/필터링/클릭 매칭 키(`tableNum`)·주의사항은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md) "플로어플랜 재사용 시 데이터 처리 가이드" 참고
 - [ ] 내부시설 영속화가 필요해지면 백엔드와 스키마 협의
 - [ ] `tableType` 필드 활용처가 정해지면 `PlacedTableItem`에 반영
+
+---
+
+## ADR-016 — 태블릿 반응형 기준: 뷰포트 대신 메인 컨테이너(Client 레이아웃) 기준
+
+**날짜**: 2026-06-30
+**상태**: 채택 (Client 전 화면 적용 완료)
+
+### 배경
+
+태블릿 대응이 필요한 화면은 `apps/client`뿐이다(`apps/admin`은 데스크톱 전용). Client 레이아웃은 사이드바를 가진 3단 구조(ADR-007)이고 사이드바는 열고 닫을 수 있다 — 열려 있으면 콘텐츠 영역이 사이드바 폭만큼 줄어든다.
+
+주문 상태 관리 화면(`docs/page/order-status-management.md` "태블릿 반응형" 항목)에 처음 태블릿 대응을 넣을 때 `@media (max-width: 1200px)` 뷰포트 기준으로 작업했다. 뷰포트 기준 미디어쿼리는 사이드바 상태를 알 수 없어, 사이드바를 열어둔 채 쓰는 사용자는 브레이크포인트보다 훨씬 넓은 창에서도 콘텐츠가 좁아 보이는 구간이 생긴다 — 반대로 사이드바를 닫고 보는 사용자 기준으로 값을 낮추면, 사이드바를 연 사용자에게는 전환이 너무 늦게 일어난다. 뷰포트 폭과 실제 콘텐츠 폭이 사이드바 상태에 따라 어긋나는 게 근본 원인이다.
+
+### 검토한 방식
+
+**패턴 1 — 뷰포트 `@media` 유지, 사이드바 폭만큼 여유를 더해 보정**: 추가 구조 변경이 없어 간단하지만, 사이드바 폭이 바뀌거나 화면마다 보정값을 따로 추정해야 해서 매직넘버 유지보수 비용이 계속 든다.
+
+**패턴 2 — 메인 컨테이너 기준 컨테이너 쿼리(`container-type: inline-size`) 채택**: Client 레이아웃 셸(사이드바+콘텐츠를 감싸는 메인 컨테이너)에 컨테이너 컨텍스트를 한 번 잡아두면, 그 안의 화면들은 실제 콘텐츠 폭 기준으로 반응형이 걸려 사이드바 열림/닫힘과 무관하게 항상 같은 기준으로 동작한다. Admin은 반응형이 필요 없어 새 패턴이 Admin까지 퍼지지 않는다.
+
+### 결정
+
+패턴 2를 채택한다. Client 레이아웃 메인 컨테이너에 컨테이너 컨텍스트를 두고, 태블릿 반응형이 필요한 화면은 뷰포트 `@media` 대신 컨테이너 쿼리(`@container`)로 작성한다.
+
+- 기준 브레이크포인트는 기존 뷰포트 구현과 동일하게 1200px을 유지한다. 컨테이너 쿼리로 바뀌면서 사이드바 보정 목적은 사라졌지만, 작은 노트북 창까지 같이 여유 있게 대응하려는 의도로 1200px을 그대로 쓰기로 했다(일반 태블릿 디바이스 단독 기준은 1024px).
+- 신규로 태블릿 대응이 필요한 Client 화면도 같은 `client-main` 컨테이너 기준으로 작성하되, 값은 화면별로 실측해 정한다.
+
+### 적용 내용
+
+- [x] `client-layout__content`(사이드바 옆 헤더+메인을 감싸는 영역, `ClientLayout.css`)에 `container-type: inline-size; container-name: client-main;` 적용 — 사이드바 자체가 아니라 사이드바에 밀려 실제로 좁아지는 영역을 기준으로 잡았다. `client-layout__main` 자신에게 걸면 컨테이너 쿼리가 "조상"에서만 컨테이너를 찾는 규칙 때문에 자기 자신의 padding 등은 쿼리 대상이 안 돼서, 한 단계 위인 `client-layout__content`로 옮겼다(폭은 동일).
+- [x] 주문 상태 관리 화면의 `@media (max-width: 1200px)` 2곳(`OrderStatusCard.css`, `OrderStatusBoard.css`)을 `@container client-main (max-width: 1200px)`로 전환 — 기준 폭은 그대로 두고 뷰포트 대신 컨테이너 폭을 보게만 바꿨다.
+- [x] `client-layout__main`도 1200px 이하에서 `gap: var(--spacing-8)` → `var(--spacing-4)`, 좌우 패딩 `var(--spacing-page-x)`(24px) → `var(--spacing-6)`으로 줄였다(위아래 패딩은 유지).
+- [x] Client의 모든 페이지(`client-user-page`, `store-table-management-page`, `qr-code-management-page`, `menu-management-page`, `menu-option-page`, `order-history-page`, `order-status-management-page`, `payment-status-page`, `notice-list-page`, `inquiry-management-page`, `table-layout-page`, `settlement-page`) 최상위 wrapper와 좌우 분할 레이아웃 안쪽 래퍼(`__layout`, `__detail-stack`)에 동일하게 1200px 이하 `gap: var(--spacing-4)`를 적용했다.
+- [x] 컨테이너 쿼리 작성 규칙(브레이크포인트 값, 적용 대상)을 [`docs/operations/page-patterns.md`](./operations/page-patterns.md#태블릿-반응형-client-전용)에 정리했다.
+- [x] `table-layout-page`에 화면 전용 반응형(부제목 숨김, 헤더 패딩·제목 축소, 사이드바 카드 제목 정렬 보정)을 추가했다 — 상세는 [`docs/page/table-layout-management.md`](./page/table-layout-management.md#태블릿-반응형) 참고.
+
+### 향후 작업
+
+- [ ] Client의 새 화면에 태블릿 대응이 필요해지면 같은 `client-main` 컨테이너 + `docs/operations/page-patterns.md` 규칙을 따라 작성
+- [x] 테이블 배치 관리(`table-layout-page`)의 캔버스 좌표-반응형 상충 — 2026-06-30 고정 크기 캔버스(1280×800) + 내부 스크롤로 해결. [`docs/page/table-layout-management.md`](./page/table-layout-management.md#좌표-모델) 참고

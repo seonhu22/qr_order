@@ -2,6 +2,34 @@
 
 > 조회 전용, 편집형 CRUD, 모달 CRUD 화면을 만들 때 따르는 표준 구조다.
 
+## 태블릿 반응형 (Client 전용)
+
+> 추가일: 2026-06-30
+
+태블릿 대응이 필요한 화면은 `apps/client`뿐이다(`apps/admin`은 데스크톱 전용). 배경과 컨테이너 쿼리를 선택한 이유는 [`docs/decisions.md` ADR-016](../decisions.md#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-layout-기준) 참고.
+
+- 뷰포트 `@media`가 아니라 `client-layout__content`(`ClientLayout.css`)에 걸린 `container-name: client-main` 기준 `@container`를 쓴다. 사이드바가 열려 있어 콘텐츠가 좁아진 상태도 그대로 반영된다.
+- 기준 브레이크포인트는 `1200px`로 통일한다.
+- 모든 client 페이지의 최상위 wrapper(`<Feature>Page` 최상단 클래스, 예: `client-user-page`, `order-status-management-page`)는 1200px 이하에서 `gap`을 `--spacing-8`(또는 그보다 작은 기존 값) → `--spacing-4`로 줄인다. 좌우 분할 레이아웃의 안쪽 래퍼(`<feature>-page__layout`, `<feature>-page__detail-stack`)도 동일하게 `--spacing-4`로 맞춘다.
+- 레이아웃 셸의 `client-layout__main`도 1200px 이하에서 좌우 패딩만 `--spacing-page-x`(24px) → `--spacing-6`으로, `gap`은 `--spacing-8` → `--spacing-4`로 줄인다(위아래 패딩은 그대로 유지).
+- 화면별로 더 줄여야 하는 요소(부제목 숨김, 헤더 패딩, 제목 글자 크기, 버튼 줄바꿈 등)가 있으면 같은 `@container client-main (max-width: 1200px)` 블록 안에 화면 전용 규칙을 추가한다. 예시는 [`page/table-layout-management.md`](../page/table-layout-management.md), [`page/order-status-management.md`](../page/order-status-management.md) 참고.
+
+```css
+.client-user-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+@container client-main (max-width: 1200px) {
+  .client-user-page {
+    gap: var(--spacing-4);
+  }
+}
+```
+
 ## 조회 전용 화면
 
 대상: `PlantSearch`, `PlantStatus`, `AccessLog` 같은 read-only 목록

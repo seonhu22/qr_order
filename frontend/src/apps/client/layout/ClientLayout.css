@@ -29,7 +29,13 @@
 /* =====================================================
  * 오른쪽 (헤더 + 메인 콘텐츠)
  * ===================================================== */
+/* 사이드바 열림/닫힘에 따라 실제로 줄어드는 영역이라, 태블릿 반응형 기준 컨테이너로 쓴다
+   (docs/decisions.md ADR-016 — 뷰포트 @media 대신 이 컨테이너 기준 @container를 쓴다).
+   컨테이너 쿼리는 "조상"에서만 컨테이너를 찾고 자기 자신은 대상이 되지 않으므로, 이 컨텍스트를
+   쿼리해야 하는 .client-layout__main의 부모인 여기에 건다. */
 .client-layout__content {
+  container-type: inline-size;
+  container-name: client-main;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -53,4 +59,14 @@
   overflow: hidden;
   background-color: var(--color-bg-app);
   padding: var(--spacing-page-x);
+}
+
+/* 태블릿 폭(반응형이 걸리는 화면 공통 기준 — ADR-016)에서는 좌우 여백만 줄여 화면 공간을 더 확보한다.
+   위아래 여백은 그대로 유지한다. */
+@container client-main (max-width: 1200px) {
+  .client-layout__main {
+    gap: var(--spacing-4);
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+  }
 }

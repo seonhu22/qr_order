@@ -36,6 +36,26 @@
   color: var(--color-text-secondary);
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 공간 확보를 위해 부제목을 숨기고,
+   헤더 패딩과 제목 글자 크기도 줄인다. */
+@container client-main (max-width: 1200px) {
+  .table-layout-page {
+    gap: var(--spacing-4);
+  }
+
+  .table-layout-page__subtitle {
+    display: none;
+  }
+
+  .table-layout-page__header {
+    padding: var(--spacing-6);
+  }
+
+  .table-layout-page__title {
+    font-size: var(--typography-size-h4);
+  }
+}
+
 .table-layout-page__actions {
   display: flex;
   align-items: center;
@@ -62,4 +82,12 @@
   flex-direction: column;
   gap: var(--spacing-4);
   min-height: 0;
+}
+
+/* 공용 TableCard 헤더(.common-code-card__header)는 align-items: center로 구조상 가운데 정렬이지만,
+   한글 폰트 특성상 줄높이(line-height)의 위아래 여백이 비대칭이라 텍스트가 살짝 치우쳐 보인다.
+   line-height: 1로 줄여 글자 박스를 폰트 내용에 가깝게 맞추면 flex 중앙 정렬과 시각적으로도 맞아떨어진다.
+   이 페이지(테이블 리스트/내부시설 카드)에만 스코프한다 — 다른 화면의 TableCard에는 영향 없음. */
+.table-layout-page__sidebar .common-code-card__title {
+  line-height: 1;
 }

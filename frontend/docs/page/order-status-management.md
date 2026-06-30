@@ -89,6 +89,7 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 `useOrderEditModalFlow` (위치: `features/order-status-management/hooks/useOrderEditModalFlow.ts`)가 처리한다. 결제 처리와 마찬가지로 **테이블 단위**로 묶어서 보여주지만, 결제와 달리 상태 제한이 없다 — `getEditableOrdersForTable(rows, tableNum)`(`utils.ts`)이 같은 테이블에서 취소·결제완료되지 않은 주문(접수/조리중/서빙완료 전부)을 모은다.
 
 1. **주문 수정** — `WrapperModal`(size="md", Figma 480px). 상단에 "{테이블}번 테이블" + "+ 메뉴 추가" 버튼, 그 아래 결제 영수증과 같은 4열(메뉴명+수량/수량/단가/금액) 줄에 **취소 버튼 칸이 추가된 5열** 레이아웃이다(`.order-edit-modal__line`). 줄마다 "취소" 텍스트 버튼을 두니 반복돼서 눈에 피로하다는 피드백으로, `variant="icon"` + `i-close` 아이콘만 있는 X 버튼(`aria-label="취소"`)으로 바꿨다 — "메뉴 추가" 모달의 "추가된 항목" 미리보기 줄도 같은 클래스(`.order-edit-modal__line-cancel`)를 재사용해 동일하게 X 버튼이다. 클릭하면 그 줄(과 옵션)을 draft/미리보기에서 제거한다. 옵션 줄은 카드(`OrderStatusCard`)의 옵션 스타일과 통일해, 좌측 라인 + 옅은 배경 박스(`.order-edit-modal__option-list`)로 메인 메뉴와 구분해 보여준다. 결제완료 영수증의 옵션 줄(`.order-payment-receipt__option-list`)도 같은 스타일로 맞췄다.
+   - 이 X 버튼은 그리드 5번째 컬럼 폭(`1.875rem`, 30px)에 맞춘 `size="sm"` 아이콘 버튼이라, 그 폭을 그대로 키우면 그리드 레이아웃이 깨진다. 시각적 크기는 30px 그대로 두고, `::before` 가짜 요소로 보이지 않는 히트 영역만 44px(터치 권장 최소 크기)로 넓혔다 — 테이블 배치 관리의 리사이즈 핸들 터치 영역 확장([`docs/page/table-layout-management.md`](./table-layout-management.md))과 같은 기법이다.
    - `getEditableOrdersForTable`은 같은 테이블의 접수/조리중/서빙완료 주문을 상태 구분 없이 한 번에 모으기 때문에, 결제 영수증과 달리 이 모달에서는 주문마다 상태가 실제로 다를 수 있다. 그래서 주문번호 옆에 칸반 상태 배지(`.order-status-badge`, 결제 영수증과 동일 — 위 "결제 처리" 항목 참고)를 붙여 어떤 주문이 접수/조리중/서빙완료 단계인지 한눈에 구분할 수 있게 했다. "메뉴 추가"로 생긴 새 주문은 항상 `RECEIVED`라 상태 배지는 "접수"로 뜨고, 그 옆에 "새 주문" 배지가 추가로 붙는다.
 
 "메뉴 추가"로 새로 생긴 주문(원래 수정 대상이 아니었던 주문)은 `editModal.originalOrderIds`에 없는 주문 id로 판별해서 `.order-edit-modal__order--new`(브랜드색 좌측 라인 + 옅은 브랜드 배경)와 주문번호 옆 "새 주문" 배지(`.order-edit-modal__new-badge`)로 구분해 보여준다. 이 새 주문 블록은 자체 박스 스타일을 이미 갖고 있어, 그 안의 옵션 줄에는 박스(좌측 라인+배경) 없이 들여쓰기만 하는 `.order-edit-modal__option-list--plain` 모디파이어를 추가로 붙인다 — 그대로 두면 옵션 박스가 새 주문 박스 안에 중첩되어 보이기 때문이다. 기존 주문(`draftOrders` 중 `originalOrderIds`에 있는 주문)의 옵션은 원래 박스 스타일(`.order-edit-modal__option-list`)을 그대로 쓴다.
@@ -152,7 +153,7 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 ### 태블릿 반응형 (1200px 이하)
 
-`@media (max-width: 1200px)`에서 적용된다(`OrderStatusBoard.css`, `OrderStatusCard.css`).
+뷰포트가 아니라 `client-layout__main`(사이드바 옆 콘텐츠 영역, `ClientLayout.css`) 컨테이너 폭 기준이다 — `@container client-main (max-width: 1200px)`(`OrderStatusBoard.css`, `OrderStatusCard.css`). 사이드바가 열려 있으면 줄어드는 실제 콘텐츠 폭을 그대로 따라가므로, 사이드바 열림/닫힘과 무관하게 항상 같은 기준으로 동작한다. 배경은 [`docs/decisions.md` ADR-016](./decisions.md#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-layout-기준) 참고.
 
 - 4개 컬럼 사이 간격(`.order-status-board`)을 `--spacing-8` → `--spacing-4`로 줄여 카드 공간을 더 확보한다.
 - 카드 패딩(`.order-status-card`)을 `--spacing-10` → `--spacing-6`으로 줄인다.

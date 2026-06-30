@@ -175,7 +175,8 @@
 
 /* 태블릿 폭에서는 4개 버튼이 한 줄에 다 들어가면 글자가 "..."로 잘린다.
    버튼이 두 줄로 흐르도록 줄바꿈을 허용하고(폭은 2개씩 차지), 카드 여백도 줄여 공간을 확보한다. */
-@media (max-width: 1200px) {
+/* 뷰포트가 아니라 client-layout__main 컨테이너 폭 기준 — 사이드바 열림/닫힘과 무관하게 동작한다(ADR-016). */
+@container client-main (max-width: 1200px) {
   .order-status-card {
     padding: var(--spacing-6);
   }

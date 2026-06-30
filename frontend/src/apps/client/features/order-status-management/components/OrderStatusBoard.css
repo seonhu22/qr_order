@@ -5,8 +5,9 @@
   min-height: 0;
 }
 
-/* 태블릿 폭에서는 컬럼 4개가 좁아지므로 사이 간격을 줄여 카드 공간을 더 확보한다 */
-@media (max-width: 1200px) {
+/* 태블릿 폭에서는 컬럼 4개가 좁아지므로 사이 간격을 줄여 카드 공간을 더 확보한다.
+   뷰포트가 아니라 client-layout__main 컨테이너 폭 기준 — 사이드바 열림/닫힘과 무관하게 동작한다(ADR-016). */
+@container client-main (max-width: 1200px) {
   .order-status-board {
     gap: var(--spacing-4);
   }

@@ -38,6 +38,15 @@
   overflow: hidden;
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 카드 사이 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .menu-option-page,
+  .menu-option-page__layout,
+  .menu-option-page__detail-stack {
+    gap: var(--spacing-4);
+  }
+}
+
 .menu-option-page__layout .common-code-card {
   display: flex;
   flex-direction: column;

@@ -24,6 +24,17 @@
   overflow: hidden;
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 카드 사이 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .payment-status-page {
+    gap: var(--spacing-4);
+  }
+
+  .payment-status-page__layout {
+    gap: var(--spacing-4);
+  }
+}
+
 .payment-status-master-table .common-table tbody tr {
   cursor: pointer;
 }
