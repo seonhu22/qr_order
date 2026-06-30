@@ -78,6 +78,8 @@
 .order-payment-receipt {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: var(--spacing-4);
 }
 
@@ -90,10 +92,14 @@
   color: var(--color-text-primary);
 }
 
-/* 주문 내역만 스크롤되게 하고, 위 테이블명/아래 총 주문건 요약은 항상 보이게 고정한다 */
+/* 주문 내역만 스크롤되게 하고, 위 테이블명/아래 총 주문건 요약은 항상 보이게 고정한다.
+   flex: 1 1 auto + min-height: 0으로 모달 안에서 실제로 남는 공간만큼만 채우고 그 안에서 스크롤되며,
+   max-height는 항목이 적어 공간이 남을 때 지나치게 늘어나지 않도록 막는 상한선 역할만 한다. */
 .order-payment-receipt__order-list {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: var(--spacing-3);
   max-height: min(45vh, 22rem);
   overflow-y: auto;
@@ -234,6 +240,8 @@
 .order-edit-modal {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: var(--spacing-4);
 }
 
@@ -252,9 +260,14 @@
   color: var(--color-text-primary);
 }
 
+/* 주문 목록만 스크롤되게 하고, 위 헤더("N번 테이블" + 메뉴 추가)와 아래 총 합계는 항상 보이게 고정한다.
+   flex: 1 1 auto + min-height: 0으로 모달 안에서 실제로 남는 공간만큼만 채우고 그 안에서 스크롤되며,
+   max-height는 항목이 적어 공간이 남을 때 지나치게 늘어나지 않도록 막는 상한선 역할만 한다. */
 .order-edit-modal__order-list {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: var(--spacing-3);
   max-height: min(70vh, 36rem);
   overflow-y: auto;
