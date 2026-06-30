@@ -500,3 +500,47 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] `groupDate`가 날짜만인지 날짜+시간인지 확인 후 `formatSettlementDate` 단순화
 - [ ] 일별 할인액 추적 필요 여부 확인 — 필요하면 `DailySale`에 필드 추가 요청
 - [ ] `mock/settlementMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러를 실제 검증 후 유지/제거 결정
+
+---
+
+## ADR-014 — QR 코드 생성: `qrcode` 라이브러리 채택
+
+**날짜**: 2026-06-30
+**상태**: 채택
+
+### 배경
+
+`/client/store/table/qr` 페이지의 출력 기능에서 백엔드 `qr_code.url` 필드(ULID 문자열)를 풀 URL로 조립한 뒤 QR 코드 이미지로 렌더링해 인쇄해야 한다.
+백엔드는 QR 이미지/dataURL을 제공하지 않고 ULID만 저장하므로(`QRCodeService.java:65-69`), 프론트가 QR 비트맵 생성을 전담한다.
+출력은 숨김 `<iframe>` + `window.print()`로 진행하므로 QR 출력 형식은 iframe srcdoc HTML에 임베드 가능한 PNG dataURL이 단순하다.
+
+### 검토한 방식
+
+| 후보 | 형태 | 출력 | 평가 |
+|---|---|---|---|
+| **qrcode** (채택) | pure JS 함수 API (`QRCode.toDataURL`) | DataURL / Canvas / SVG | iframe 컨텍스트에서 함수 직접 호출 가능. PNG dataURL을 `<img src="...">`로 임베드 — 인쇄 친화적 |
+| qrcode.react / react-qr-code | React 컴포넌트 (`<QRCode value=... />`) | SVG | iframe 외부에 별도 React 트리 마운트가 필요. 다중 QR 렌더링/dataURL 추출이 우회적 |
+| qr-code-styling | 클래스 API + 디자인 옵션(로고/그라데이션) | Canvas/SVG | 디자인 커스터마이징 풍부하나 본 작업 요구(테이블당 단일 QR + 번호) 초과 |
+| 외부 QR API (api.qrserver.com 등) | 원격 호출 | 이미지 URL | 의존성 0이지만 네트워크 필수. 매장 인터넷 불안정 시 인쇄 실패. 외부 서비스 신뢰·프라이버시 우려 |
+| 직접 구현 (Reed-Solomon + 매트릭스) | 수동 알고리즘 | 자체 캔버스 | 학습 가치는 있으나 검증 비용·테스트 부담 과다. 실무 도입 가치 낮음 |
+
+### 결정
+
+`qrcode` v1.5.4 (MIT, soldair/node-qrcode)를 채택한다.
+
+- **API 형태가 본 작업에 정합**: `QRCode.toDataURL(targetUrl, { width, margin })` 한 줄로 PNG dataURL 생성. iframe srcdoc 내부 `<img>`에 그대로 임베드
+- **오프라인 동작**: 매장 환경에서 인터넷 불안정 시에도 인쇄 보장
+- **React 컴포넌트 의존 없음**: 본 출력은 React 트리 밖(`document.createElement('iframe')`)에서 일어남. JSX 기반 라이브러리는 트리 마운트·dataURL 추출 단계가 추가됨
+- **에러 정정 + 마스킹 표준 구현**: ISO/IEC 18004 호환. 카메라 인식률 검증된 라이브러리
+- **TypeScript 타입 제공**: `@types/qrcode` 보조 타입 사용 가능
+- **번들 영향 적음**: 클라이언트 진입(`apps/client`)에서만 사용. 코드 스플리팅 영향권 안에서만 추가됨
+
+### 알려진 제한사항
+
+- 라이브러리 자체에 `pngjs`, `yargs`, `dijkstrajs` 등 Node 전용 트랜지티브 의존성이 있으나, 브라우저 빌드(`package.json`의 `browser` 필드)가 `lib/browser.js`로 우회되어 클라이언트 번들엔 포함되지 않는다
+- 디자인(로고 삽입·색상)이 추후 필요해지면 `qr-code-styling`으로 교체 검토. 본 ADR의 채택 사유 중 "단순성"이 무너지는 시점이 교체 트리거
+
+### 사용 위치
+
+- `frontend/src/apps/client/features/qr-code/utils/qrCodePrint.ts` — `generateQrDataUrl` 래퍼
+- 그 외 직접 사용 금지. QR 생성이 다른 feature에도 필요해지면 본 유틸을 `shared/`로 승격
