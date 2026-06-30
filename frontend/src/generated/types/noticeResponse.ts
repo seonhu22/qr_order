@@ -14,6 +14,7 @@ export interface NoticeResponse {
   useYn?: string;
   fileUlid?: string;
   insertUserId?: string;
+  insertUserNm?: string;
   insertDatetime?: string;
   modifyDatetime?: string;
   modifyUserId?: string;

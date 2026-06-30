@@ -2127,10 +2127,11 @@ export interface components {
             /** Format: int32 */
             width?: number;
             tableType?: string;
-            /** Format: int32 */
-            ycoordinate?: number;
+            objectType?: string;
             /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2415,6 +2416,7 @@ export interface components {
             useYn?: string;
             fileUlid?: string;
             insertUserId?: string;
+            insertUserNm?: string;
             insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
@@ -2459,10 +2461,11 @@ export interface components {
             /** Format: int32 */
             width?: number;
             tableType?: string;
-            /** Format: int32 */
-            ycoordinate?: number;
+            objectType?: string;
             /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -4905,16 +4908,14 @@ export interface operations {
     };
     getSettlement: {
         parameters: {
-            query?: never;
+            query: {
+                settlementRequest: components["schemas"]["SettlementRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SettlementRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
