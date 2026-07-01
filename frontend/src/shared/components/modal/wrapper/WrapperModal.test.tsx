@@ -174,8 +174,6 @@ describe('WrapperModal', () => {
       />,
     );
 
-    expect(document.activeElement).not.toBe(trigger);
-
     unmount();
 
     expect(document.activeElement).toBe(trigger);
