@@ -5,12 +5,22 @@ import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
 import { ClientSidebarHeader } from '@/apps/client/features/sidebar/components/ClientSidebarHeader';
 import { findClientExpandedMenuKeys } from '@/shared/menu/clientNavigation';
 import { useAuth } from '@/shared/auth/AuthContext';
-import { getAuthUserDisplayName, getAuthUserRoleLabel } from '@/shared/auth/authUserDisplay';
+import { getAuthUserDisplayName } from '@/shared/auth/authUserDisplay';
 import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
 import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 import { getClientUserAuthorityLabel } from '@/apps/client/features/client-user/constants';
+
+function getClientSidebarRoleCode(user: Record<string, unknown> | null) {
+  const staffRole = user?.staffRole;
+  if (typeof staffRole === 'string' && staffRole.trim()) return staffRole;
+
+  const userRole = user?.userRole;
+  if (typeof userRole === 'string' && userRole.trim()) return userRole;
+
+  return '02';
+}
 
 export function ClientSidebar() {
   const location = useLocation();
@@ -37,7 +47,7 @@ export function ClientSidebar() {
   } = useSidebarExpand();
 
   const userName = getAuthUserDisplayName(user, '사용자');
-  const userRoleCode = getAuthUserRoleLabel(user, 'STAFF');
+  const userRoleCode = getClientSidebarRoleCode(user);
   const userRole = getClientUserAuthorityLabel(userRoleCode);
 
   // AdminSidebar와 동일한 우선순위: 사용자가 선택한 섹션 > 현재 경로의 섹션
