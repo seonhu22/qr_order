@@ -43,7 +43,8 @@
             delete_yn,
             insert_user_id ,
             insert_datetime,
-            plant_cd
+            plant_cd,
+            user_role
         )
         values (
             #{sysId},
@@ -57,7 +58,8 @@
             'N',
             #{userId},
             now(),
-            #{businessRegiNum}
+            #{businessRegiNum},
+            '01'
         )
     </insert>
 
