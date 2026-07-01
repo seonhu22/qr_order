@@ -474,6 +474,22 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
 - [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
 - [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토
+- [ ] `items` 필드 실제 포맷 확정(text vs JSON 배열). 확정 후 `parsePaymentOrderItems`의 fallback 분기 제거 여부 결정
+
+### 추가 — `items` 필드 포맷 이중화 대응
+
+> 추가일: 2026-07-01
+
+응답 `items` 필드가 (a) 단일 텍스트(줄바꿈 구분) 또는 (b) JSON 배열(메뉴·옵션·수량·가격 구조) 양쪽으로 관찰됨. 백엔드 계약이 확정되지 않은 상태에서 프론트가 양쪽을 모두 처리한다.
+
+- 파서: `features/payment-status/utils/parsePaymentOrderItems.ts`가 우선 `JSON.parse`로 배열 시도, 실패 시 텍스트 라인 fallback으로 판별 유니온 `ParsedPaymentOrderItems`(`kind: 'structured' | 'text'`) 반환
+- 렌더:
+  - `kind: 'structured'` → 신규 `PaymentOrderItemsList` 컴포넌트가 메뉴/옵션/수량/합계 표시
+  - `kind: 'text'` → 기존 줄 단위 표시 유지 (하위 호환)
+- 타입: `PaymentOrderItem`, `PaymentOrderOption`, `ParsedPaymentOrderItems`를 `features/payment-status/types.ts`에 추가
+- mock: `mock/paymentStatusMock.ts`에 JSON 배열 케이스 반영해 구조화 렌더 경로가 개발 환경에서 확인 가능하도록 함
+
+포맷 확정 시 fallback 분기와 판별 유니온을 제거하고 단일 경로로 축소한다.
 
 ---
 
