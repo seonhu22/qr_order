@@ -43,8 +43,8 @@ function mockPrintIframe(onPrint?: (iframe: HTMLIFrameElement) => void) {
 }
 
 describe('buildQrTargetUrl', () => {
-  it('returns origin + /order/{ulid}', () => {
-    expect(buildQrTargetUrl('01HX')).toBe(`${window.location.origin}/order/01HX`);
+  it('returns origin + /qr/{ulid}', () => {
+    expect(buildQrTargetUrl('01HX')).toBe(`${window.location.origin}/qr/01HX`);
   });
 
   it('returns empty string for empty input', () => {
@@ -58,8 +58,8 @@ describe('generateQrDataUrl', () => {
   });
 
   it('calls QRCode.toDataURL with width 320 and margin 1', async () => {
-    await generateQrDataUrl('https://example.com/order/X');
-    expect(toDataURL).toHaveBeenCalledWith('https://example.com/order/X', { width: 320, margin: 1 });
+    await generateQrDataUrl('https://example.com/qr/X');
+    expect(toDataURL).toHaveBeenCalledWith('https://example.com/qr/X', { width: 320, margin: 1 });
   });
 });
 
@@ -91,12 +91,12 @@ describe('printQrCodes', () => {
     expect(toDataURL).toHaveBeenCalledTimes(2);
     expect(toDataURL).toHaveBeenNthCalledWith(
       1,
-      `${window.location.origin}/order/ULID-1`,
+      `${window.location.origin}/qr/ULID-1`,
       expect.any(Object),
     );
     expect(toDataURL).toHaveBeenNthCalledWith(
       2,
-      `${window.location.origin}/order/ULID-2`,
+      `${window.location.origin}/qr/ULID-2`,
       expect.any(Object),
     );
     expect(focusSpy).toHaveBeenCalledTimes(1);
