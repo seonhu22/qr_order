@@ -18,8 +18,13 @@ export type SignupNewUserValidationError =
   | { field: 'email'; message: string }
   | { field: 'emailVerifyCode'; message: string };
 
+type BuildSignupNewUserRequestOptions = {
+  businessVerificationBypassed?: boolean;
+};
+
 export function buildSignupNewUserRequest(
   form: SignupNewUserForm,
+  options: BuildSignupNewUserRequestOptions = {},
 ): SignUpRequest | SignupNewUserValidationError {
   const businessRegiNum = form.businessNo.replace(/\D/g, '');
   const userNm = form.businessRepName.trim();
@@ -47,7 +52,7 @@ export function buildSignupNewUserRequest(
     return { field: 'emailVerifyCode', message: '이메일 인증을 완료해주세요.' };
   }
 
-  return {
+  const request: SignUpRequest = {
     businessRegiNum,
     businessRegiDate: form.openDate,
     userNm,
@@ -57,6 +62,12 @@ export function buildSignupNewUserRequest(
     email,
     validCode,
   };
+
+  if (options.businessVerificationBypassed) {
+    request.plantNm = `${userNm}컴퍼니`;
+  }
+
+  return request;
 }
 
 export function isSignupNewUserValidationError(

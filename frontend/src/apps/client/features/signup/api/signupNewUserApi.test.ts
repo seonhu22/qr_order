@@ -26,6 +26,16 @@ describe('signupNewUserApi', () => {
     });
   });
 
+  it('adds temporary plant name only when business verification is bypassed', () => {
+    expect(
+      buildSignupNewUserRequest(baseForm, { businessVerificationBypassed: true }),
+    ).toMatchObject({
+      plantNm: '홍길동컴퍼니',
+    });
+
+    expect(buildSignupNewUserRequest(baseForm)).not.toHaveProperty('plantNm');
+  });
+
   it('returns validation error when password confirmation is different', () => {
     const result = buildSignupNewUserRequest({
       ...baseForm,
