@@ -282,6 +282,31 @@ const qrCodeOverrideHandler = http.get('*/api/client/store_manage/qr_code/search
   return HttpResponse.json(QR_CODE_MOCK_ROWS);
 });
 
+const qrConnectOverrideHandler = http.get('*/api/qr/:url', ({ params }) => {
+  const url = String(params.url ?? '');
+  const qrCode = QR_CODE_MOCK_ROWS.find((row) => row.url === url || row.sysId === url);
+
+  if (!qrCode) {
+    return HttpResponse.json(
+      { success: false, data: null, message: '유효하지 않은 QR코드입니다.' },
+      { status: 404 },
+    );
+  }
+
+  return HttpResponse.json({
+    success: true,
+    data: {
+      sysId: qrCode.linkSysId,
+      tableName: qrCode.description,
+      tableNum: qrCode.tableNum,
+      tableQty: 4,
+      sysPlantCd: 'ADMIN',
+    },
+    message: null,
+    error: null,
+  });
+});
+
 const qrCodeSaveOverrideHandler = http.post(
   '*/api/client/store_manage/qr_code/save',
   async ({ request }) => {
@@ -833,5 +858,6 @@ export const handlers = [
   storeTableOverrideHandler,
   storeTableSaveOverrideHandler,
   qrCodeOverrideHandler,
+  qrConnectOverrideHandler,
   qrCodeSaveOverrideHandler,
 ];
