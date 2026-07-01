@@ -1,7 +1,7 @@
 export type SettlementSearchParams = {
-  /** "YYYY-MM-DD HH:mm:ss" */
+  /** "YYYY-MM-DD" */
   startDate: string;
-  /** "YYYY-MM-DD HH:mm:ss" */
+  /** "YYYY-MM-DD" */
   endDate: string;
 };
 
