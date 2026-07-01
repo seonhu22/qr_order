@@ -25,7 +25,7 @@ function renderSidebar(initialPath = '/client/main') {
         value={{
           isAuthenticated: true,
           isLoading: false,
-          user: { userId: 'PC002', userName: '테스트 사용자', sysPlantCd: 'ADMIN' },
+          user: { userId: 'PC002', userName: '테스트 사용자', userRole: '01', sysPlantCd: 'ADMIN' },
           signIn: vi.fn(),
           signOut: vi.fn(),
         }}
@@ -53,7 +53,7 @@ describe('ClientSidebar', () => {
     renderSidebar();
 
     expect(screen.getByText('테스트 사용자')).toBeInTheDocument();
-    expect(screen.getByText('ADMIN')).toBeInTheDocument();
+    expect(screen.getByText('관리자')).toBeInTheDocument();
   });
 
   it('shows all top-level menus while keeping unmatched groups folded', () => {

@@ -22,7 +22,7 @@ type LicensePeriodBadgeProps = {
 };
 
 type AuthorityBadgeProps = {
-  /** 백엔드 권한 코드 (예: 'ADMIN', 'ADMIN_OWNER', 'STAFF'). 'ADMIN' prefix → brand 톤 */
+  /** 백엔드 권한 코드 (현재: '01'=관리자, '02'=스태프). '01'은 brand 톤 */
   code: string;
   /** 화면에 표시할 라벨 — 공통 콤보(USER_ROLE) 응답 또는 도메인 라벨 매핑값 */
   label: string;
@@ -96,11 +96,11 @@ export function LicensePeriodBadge({ value }: LicensePeriodBadgeProps) {
  *
  * @description
  * `status-badge` 베이스를 공유하고 modifier(`--admin/--staff`)로 색상만 분기한다.
- * 라벨은 표시 텍스트로 받고, 톤은 `code`의 prefix(`ADMIN*`)로 결정한다.
+ * 라벨은 표시 텍스트로 받고, 톤은 `code`(`01`)로 결정한다.
  * 권한 코드는 백엔드 공통 콤보(`USER_ROLE`)에서 확장될 수 있으므로 enum 대신 string으로 받는다.
  */
 export function AuthorityBadge({ code, label }: AuthorityBadgeProps) {
-  const isAdmin = code.startsWith('ADMIN');
+  const isAdmin = code === '01';
   const className = isAdmin ? 'status-badge--admin' : 'status-badge--staff';
 
   return <span className={`status-badge ${className}`}>{label}</span>;

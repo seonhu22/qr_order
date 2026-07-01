@@ -13,7 +13,7 @@ import type { ClientUserRequest } from '@/generated/types/clientUserRequest';
 import type { ClientUserResponse } from '@/generated/types/clientUserResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
-import { CLIENT_USER_AUTHORITY_LABELS } from '../constants';
+import { getClientUserAuthorityLabel } from '../constants';
 import type { ClientUserEditorRow } from '../hooks/useClientUserModalFlow';
 import type { ClientUser } from '../types';
 
@@ -29,7 +29,7 @@ export function mapToClientUserModel(item: ClientUserResponse): ClientUser {
     userId: item.userId ?? '',
     userName: item.userNm ?? '',
     authorityCode,
-    authorityLabel: CLIENT_USER_AUTHORITY_LABELS[authorityCode] ?? authorityCode,
+    authorityLabel: getClientUserAuthorityLabel(authorityCode),
   };
 }
 

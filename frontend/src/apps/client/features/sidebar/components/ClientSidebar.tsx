@@ -10,6 +10,7 @@ import { useAuthLogoutMutation } from '@/shared/auth/hooks/useAuthLogoutMutation
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
 import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
+import { getClientUserAuthorityLabel } from '@/apps/client/features/client-user/constants';
 
 export function ClientSidebar() {
   const location = useLocation();
@@ -36,7 +37,8 @@ export function ClientSidebar() {
   } = useSidebarExpand();
 
   const userName = getAuthUserDisplayName(user, '사용자');
-  const userRole = getAuthUserRoleLabel(user, 'CLIENT');
+  const userRoleCode = getAuthUserRoleLabel(user, 'STAFF');
+  const userRole = getClientUserAuthorityLabel(userRoleCode);
 
   // AdminSidebar와 동일한 우선순위: 사용자가 선택한 섹션 > 현재 경로의 섹션
   const displayedSection =
