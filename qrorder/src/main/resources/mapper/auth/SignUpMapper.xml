@@ -43,7 +43,7 @@
             delete_yn,
             insert_user_id ,
             insert_datetime,
-            sys_plant_cd
+            plant_cd
         )
         values (
             #{sysId},
