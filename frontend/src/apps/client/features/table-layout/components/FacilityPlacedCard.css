@@ -2,11 +2,12 @@
   position: relative;
   display: inline-flex;
   align-items: flex-end;
+  justify-content: space-between;
   gap: var(--spacing-2);
   width: max-content;
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
+  background-color: var(--color-bg-muted);
   box-shadow: var(--shadow-card);
   color: var(--color-text-secondary);
 }
@@ -43,21 +44,21 @@
 
 /* 작게 */
 .facility-placed-card--small {
-  min-height: 2.75rem;
-  padding: var(--spacing-2) var(--spacing-6) var(--spacing-2) var(--spacing-2);
-  font-size: var(--font-size-xs);
-}
-
-/* 보통 */
-.facility-placed-card--medium {
   min-height: 3.5rem;
   padding: var(--spacing-3) var(--spacing-7) var(--spacing-3) var(--spacing-3);
   font-size: var(--font-size-sm);
 }
 
-/* 크게 */
-.facility-placed-card--large {
+/* 보통 */
+.facility-placed-card--medium {
   min-height: 4.25rem;
   padding: var(--spacing-4) var(--spacing-8) var(--spacing-4) var(--spacing-4);
   font-size: var(--font-size-base);
+}
+
+/* 크게 — 전체보기에서도 확실히 커 보이도록 이전 단계보다 더 크게 키운 폭이다 */
+.facility-placed-card--large {
+  min-height: 5.5rem;
+  padding: var(--spacing-5) var(--spacing-9) var(--spacing-5) var(--spacing-5);
+  font-size: var(--font-size-lg);
 }
