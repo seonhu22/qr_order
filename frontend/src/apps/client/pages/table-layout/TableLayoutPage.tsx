@@ -1,6 +1,6 @@
 import './TableLayoutPage.css';
 import { useState } from 'react';
-import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragStartEvent } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
@@ -8,35 +8,17 @@ import { LayoutSizeToggle } from '@/apps/client/features/table-layout/components
 import { FacilityListCard } from '@/apps/client/features/table-layout/components/FacilityListCard';
 import { TableListCard } from '@/apps/client/features/table-layout/components/TableListCard';
 import { TableLayoutCanvas } from '@/apps/client/features/table-layout/components/TableLayoutCanvas';
-import { FacilityPlacedCard } from '@/apps/client/features/table-layout/components/FacilityPlacedCard';
+import { CustomFacilityAddModal } from '@/apps/client/features/table-layout/components/CustomFacilityAddModal';
 import { useTableLayoutPage } from '@/apps/client/features/table-layout/hooks/useTableLayoutPage';
-import { FACILITY_ICON_BY_KIND, FACILITY_LABEL_BY_KIND } from '@/apps/client/features/table-layout/constants';
-import type { DraggedItemData, LayoutSize } from '@/apps/client/features/table-layout/types';
-
-/**
- * 드래그 시작 시점의 포인터(클릭/터치) 좌표가 원래 노드 안에서 어느 지점이었는지(px)를 반환한다.
- * `event.active.rect.current.initial`은 dnd-kit이 `useLayoutEffect`로 나중에 채우는 값이라
- * `onDragStart` 콜백 시점에는 아직 `null`이다 — 대신 클릭한 DOM 요소에서 바로 `getBoundingClientRect()`로
- * 동기적으로 계산한다.
- */
-function getPointerOffsetInRect(event: DragStartEvent): { x: number; y: number } | null {
-  const activatorEvent = event.activatorEvent;
-  if (!('clientX' in activatorEvent) || !('clientY' in activatorEvent)) return null;
-  const { clientX, clientY, target } = activatorEvent as PointerEvent;
-  const sourceElement = target instanceof Element ? target.closest('.facility-list-card__item') : null;
-  if (!sourceElement) return null;
-  const rect = sourceElement.getBoundingClientRect();
-  return { x: clientX - rect.left, y: clientY - rect.top };
-}
+import { useCustomFacilityModal } from '@/apps/client/features/table-layout/hooks/useCustomFacilityModal';
+import type { LayoutSize } from '@/apps/client/features/table-layout/types';
 
 export function TableLayoutPage() {
   const [layoutSize, setLayoutSize] = useState<LayoutSize>('medium');
-  const [dragGrabOffset, setDragGrabOffset] = useState<{ x: number; y: number } | null>(null);
   const {
     placedItems,
     eligibleTables,
     placedTableSysIds,
-    activeDragData,
     isSaveConfirmOpen,
     saveNotice,
     isResetConfirmOpen,
@@ -49,9 +31,10 @@ export function TableLayoutPage() {
     setCanvasNode,
     setCanvasScrollNode,
     toggleFitToScreen,
-    handleDragStart,
     handleDragEnd,
     handlePlaceTable,
+    handlePlaceFacility,
+    handlePlaceCustomFacility,
     handleResizeFacility,
     handleRemoveItem,
     requestReset,
@@ -65,6 +48,8 @@ export function TableLayoutPage() {
     closeSaveConfirm,
     closeSaveNotice,
   } = useTableLayoutPage(layoutSize);
+
+  const customFacilityModal = useCustomFacilityModal({ onConfirm: handlePlaceCustomFacility });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -109,17 +94,10 @@ export function TableLayoutPage() {
         </div>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        onDragStart={(event: DragStartEvent) => {
-          setDragGrabOffset(getPointerOffsetInRect(event));
-          handleDragStart(event.active.data.current as DraggedItemData);
-        }}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="table-layout-page__body">
           <div className="table-layout-page__sidebar">
-            <FacilityListCard disabled={isFitToScreen} />
+            <FacilityListCard disabled={isFitToScreen} onPlaceFacility={handlePlaceFacility} />
             <TableListCard
               tables={eligibleTables}
               placedTableSysIds={placedTableSysIds}
@@ -136,25 +114,11 @@ export function TableLayoutPage() {
             canvasScale={canvasScale}
             onRemoveItem={handleRemoveItem}
             onResizeFacility={handleResizeFacility}
+            onAddCustomFacility={customFacilityModal.open}
             setCanvasNode={setCanvasNode}
             setCanvasScrollNode={setCanvasScrollNode}
           />
         </div>
-
-        <DragOverlay className="table-layout-drag-overlay" dropAnimation={null}>
-          {activeDragData?.origin === 'facility-catalog' ? (
-            <span
-              className="table-layout-drag-overlay__anchor"
-              style={dragGrabOffset ? { left: dragGrabOffset.x, top: dragGrabOffset.y } : undefined}
-            >
-              <FacilityPlacedCard
-                label={FACILITY_LABEL_BY_KIND[activeDragData.kind]}
-                icon={FACILITY_ICON_BY_KIND[activeDragData.kind]}
-                size={layoutSize}
-              />
-            </span>
-          ) : null}
-        </DragOverlay>
       </DndContext>
 
       {/* ── 되돌리기 확인 (아이콘 없는 좌측 정렬 — order-cancel-modal__notice와 동일 패턴) ── */}
@@ -216,6 +180,16 @@ export function TableLayoutPage() {
         title={saveNotice?.title ?? '안내'}
         description={saveNotice?.description}
         onClose={closeSaveNotice}
+      />
+
+      {/* ── 커스텀 시설 추가 ── */}
+      <CustomFacilityAddModal
+        open={customFacilityModal.isOpen}
+        label={customFacilityModal.label}
+        errorText={customFacilityModal.errorText}
+        onChangeLabel={customFacilityModal.changeLabel}
+        onConfirm={customFacilityModal.confirm}
+        onClose={customFacilityModal.close}
       />
     </section>
   );

@@ -318,8 +318,17 @@ const tableGuiSaveOverrideHandler = http.post(
     const body = (await request.json()) as TableGuiRequest;
 
     [...(body.newItems ?? []), ...(body.updateItems ?? [])].forEach((item) => {
-      const target = TABLE_GUI_MOCK_ROWS.find((row) => row.sysId === item.sysId);
-      if (target) Object.assign(target, item);
+      const target = item.sysId ? TABLE_GUI_MOCK_ROWS.find((row) => row.sysId === item.sysId) : undefined;
+      if (target) {
+        Object.assign(target, item);
+        return;
+      }
+      // sysId 없이 캔버스에 새로 배치된 내부시설(object_type=02 고정 8종 또는 03 커스텀) — 실제 백엔드가
+      // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
+      TABLE_GUI_MOCK_ROWS.push({
+        ...item,
+        sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      });
     });
     body.delItems?.forEach((item) => {
       const target = TABLE_GUI_MOCK_ROWS.find((row) => row.sysId === item.sysId);

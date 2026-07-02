@@ -7,14 +7,19 @@ import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   buildTableGuiRequest,
   hasTableGuiChanges,
+  isCustomFacilityGuiPlaced,
+  isFixedFacilityGuiPlaced,
   isTableGuiPlaced,
+  isTableGuiRow,
+  mapToPlacedCustomFacilityItem,
+  mapToPlacedFacilityItem,
   mapToPlacedTableItem,
   useSaveTableGuiMutation,
   useTableGuiQuery,
 } from '../api/tableLayoutApi';
-import { FACILITY_RESIZE_LIMITS, TABLE_LAYOUT_CANVAS_SIZE, TABLE_SIZE_PX } from '../constants';
+import { FACILITY_DEFAULT_SIZE, FACILITY_RESIZE_LIMITS, TABLE_LAYOUT_CANVAS_SIZE, TABLE_SIZE_PX } from '../constants';
 import { snapPositionToNearbyItems } from '../utils';
-import type { DraggedItemData, LayoutSize, PlacedFacilityItem, PlacedItem, PlacedTableItem } from '../types';
+import type { DraggedItemData, FacilityKind, LayoutSize, PlacedItem, PlacedNonTableItem, PlacedTableItem } from '../types';
 import type { TableGuiResponse } from '@/generated/types/tableGuiResponse';
 
 type SaveNoticeState = { title: string; description: string } | null;
@@ -32,26 +37,33 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
   const tableGuiQuery = useTableGuiQuery();
   const saveTableGuiMutation = useSaveTableGuiMutation();
 
-  const eligibleTables = useMemo<TableGuiResponse[]>(() => tableGuiQuery.data ?? [], [tableGuiQuery.data]);
+  const guiRows = useMemo<TableGuiResponse[]>(() => tableGuiQuery.data ?? [], [tableGuiQuery.data]);
+  const eligibleTables = useMemo(() => guiRows.filter(isTableGuiRow), [guiRows]);
   const baseTableItems = useMemo(
     () => eligibleTables.filter(isTableGuiPlaced).map(mapToPlacedTableItem),
     [eligibleTables],
   );
+  const baseFacilityItemsFromServer = useMemo<PlacedNonTableItem[]>(
+    () => [
+      ...guiRows.filter(isFixedFacilityGuiPlaced).map(mapToPlacedFacilityItem),
+      ...guiRows.filter(isCustomFacilityGuiPlaced).map(mapToPlacedCustomFacilityItem),
+    ],
+    [guiRows],
+  );
 
   const [baseItems, setBaseItems] = useState<PlacedTableItem[]>([]);
+  const [baseFacilityItems, setBaseFacilityItems] = useState<PlacedNonTableItem[]>([]);
   const [placedItems, setPlacedItems] = useState<PlacedItem[]>([]);
-  const [activeDragData, setActiveDragData] = useState<DraggedItemData | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [saveNotice, setSaveNotice] = useState<SaveNoticeState>(null);
 
   useEffect(() => {
     setBaseItems(clonePlacedItems(baseTableItems) as PlacedTableItem[]);
-    setPlacedItems((prev) => {
-      const facilities = prev.filter((item) => item.kind !== 'table');
-      return [...clonePlacedItems(baseTableItems), ...facilities];
-    });
-    // 서버 데이터가 바뀔 때만 동기화한다. 시설은 영속화 대상이 아니라서 유지한다.
-  }, [baseTableItems]);
+    setBaseFacilityItems(clonePlacedItems(baseFacilityItemsFromServer) as PlacedNonTableItem[]);
+    setPlacedItems([...clonePlacedItems(baseTableItems), ...clonePlacedItems(baseFacilityItemsFromServer)]);
+    // 테이블·내부시설 모두 같은 저장 버튼으로 함께 저장되므로, 서버 데이터가 바뀔 때(최초 로드/저장 후
+    // 재조회) draft를 통째로 다시 맞춘다.
+  }, [baseTableItems, baseFacilityItemsFromServer]);
 
   const canvasNodeRef = useRef<HTMLElement | null>(null);
   const setCanvasNode = useCallback((node: HTMLElement | null) => {
@@ -101,10 +113,16 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
     [placedItems],
   );
 
+  const draftFacilityItems = useMemo(
+    () => placedItems.filter((item): item is PlacedNonTableItem => item.kind !== 'table'),
+    [placedItems],
+  );
+
+  // 테이블·내부시설을 하나의 저장 요청으로 합쳐서 dirty 여부를 함께 판단한다(별도의 "내부시설 저장"은 없다).
   const isDirty = useMemo(() => {
-    const request = buildTableGuiRequest(draftTableItems, baseItems);
+    const request = buildTableGuiRequest(draftTableItems, baseItems, draftFacilityItems, baseFacilityItems);
     return hasTableGuiChanges(request);
-  }, [draftTableItems, baseItems]);
+  }, [draftTableItems, baseItems, draftFacilityItems, baseFacilityItems]);
 
   usePreventLeave(isDirty);
 
@@ -113,13 +131,7 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
     [draftTableItems],
   );
 
-  const handleDragStart = useCallback((data: DraggedItemData) => {
-    setActiveDragData(data);
-  }, []);
-
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    setActiveDragData(null);
-
     const canvasNode = canvasNodeRef.current;
     const data = event.active.data.current as DraggedItemData | undefined;
     if (!canvasNode || !data) return;
@@ -133,42 +145,20 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
     const x = clamp(draggedRect.left - canvasRect.left, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
     const y = clamp(draggedRect.top - canvasRect.top, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
 
-    if (data.origin === 'placed') {
-      // dnd-kit이 드래그 종료 시 라이브 드래그용 transform을 먼저 지우고 나서야 이 콜백이 실행되다 보니,
-      // setPlacedItems가 비동기로 반영되면 "원래 자리로 잠깐 복귀했다가 새 위치로 점프"하는 깜빡임이 보인다.
-      // flushSync로 동기 반영해 같은 화면 갱신 안에서 한 번에 끝나게 한다.
-      flushSync(() => {
-        setPlacedItems((prev) => {
-          const otherItems = prev.filter((item) => item.id !== data.id);
-          const snapped = snapPositionToNearbyItems({ x, y, width, height }, otherItems);
-          const snappedX = clamp(snapped.x, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
-          const snappedY = clamp(snapped.y, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
-          return prev.map((item) =>
-            item.id === data.id ? { ...item, x: snappedX, y: snappedY, width, height } : item,
-          );
-        });
+    // dnd-kit이 드래그 종료 시 라이브 드래그용 transform을 먼저 지우고 나서야 이 콜백이 실행되다 보니,
+    // setPlacedItems가 비동기로 반영되면 "원래 자리로 잠깐 복귀했다가 새 위치로 점프"하는 깜빡임이 보인다.
+    // flushSync로 동기 반영해 같은 화면 갱신 안에서 한 번에 끝나게 한다.
+    flushSync(() => {
+      setPlacedItems((prev) => {
+        const otherItems = prev.filter((item) => item.id !== data.id);
+        const snapped = snapPositionToNearbyItems({ x, y, width, height }, otherItems);
+        const snappedX = clamp(snapped.x, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
+        const snappedY = clamp(snapped.y, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
+        return prev.map((item) =>
+          item.id === data.id ? { ...item, x: snappedX, y: snappedY, width, height } : item,
+        );
       });
-      return;
-    }
-
-    if (data.origin === 'facility-catalog') {
-      flushSync(() => {
-        setPlacedItems((prev) => {
-          const snapped = snapPositionToNearbyItems({ x, y, width, height }, prev);
-          const snappedX = clamp(snapped.x, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
-          const snappedY = clamp(snapped.y, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
-          const newFacility: PlacedFacilityItem = {
-            id: `facility-${data.kind}-${Date.now()}`,
-            kind: data.kind,
-            x: snappedX,
-            y: snappedY,
-            width,
-            height,
-          };
-          return [...prev, newFacility];
-        });
-      });
-    }
+    });
   }, []);
 
   const handlePlaceTable = useCallback(
@@ -202,6 +192,62 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
       setPlacedItems((prev) => [...prev, newTableItem]);
     },
     [layoutSize, placedTableSysIds, isFitToScreen],
+  );
+
+  const handlePlaceFacility = useCallback(
+    (kind: FacilityKind) => {
+      const canvasNode = canvasNodeRef.current;
+      // 전체 보기로 캔버스가 축소된 상태에서는 스크롤 좌표가 축소 비율만큼 어긋나므로 배치를 막는다.
+      if (!canvasNode || isFitToScreen) return;
+
+      const { width, height } = FACILITY_DEFAULT_SIZE;
+      // handlePlaceTable과 동일하게, 지금 스크롤해서 보고 있는 영역의 좌상단 기준으로 배치한다.
+      const scrollNode = canvasScrollNodeRef.current;
+      const visibleMargin = 24;
+      const visibleLeft = scrollNode?.scrollLeft ?? 0;
+      const visibleTop = scrollNode?.scrollTop ?? 0;
+      const x = clamp(visibleLeft + visibleMargin, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
+      const y = clamp(visibleTop + visibleMargin, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
+
+      const newFacility: PlacedNonTableItem = {
+        id: `facility-${kind}-${Date.now()}`,
+        kind,
+        x,
+        y,
+        width,
+        height,
+      };
+      setPlacedItems((prev) => [...prev, newFacility]);
+    },
+    [isFitToScreen],
+  );
+
+  // "커스텀 시설 추가" 모달에서 이름을 입력해 만드는, 고정 8종에 없는 자유 시설(object_type '03').
+  const handlePlaceCustomFacility = useCallback(
+    (label: string) => {
+      const canvasNode = canvasNodeRef.current;
+      if (!canvasNode || isFitToScreen) return;
+
+      const { width, height } = FACILITY_DEFAULT_SIZE;
+      const scrollNode = canvasScrollNodeRef.current;
+      const visibleMargin = 24;
+      const visibleLeft = scrollNode?.scrollLeft ?? 0;
+      const visibleTop = scrollNode?.scrollTop ?? 0;
+      const x = clamp(visibleLeft + visibleMargin, 0, TABLE_LAYOUT_CANVAS_SIZE.width - width);
+      const y = clamp(visibleTop + visibleMargin, 0, TABLE_LAYOUT_CANVAS_SIZE.height - height);
+
+      const newCustomFacility: PlacedNonTableItem = {
+        id: `facility-custom-${Date.now()}`,
+        kind: 'custom',
+        label,
+        x,
+        y,
+        width,
+        height,
+      };
+      setPlacedItems((prev) => [...prev, newCustomFacility]);
+    },
+    [isFitToScreen],
   );
 
   const handleResizeFacility = useCallback((id: string, width: number, height: number) => {
@@ -238,9 +284,9 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
   }, []);
 
   const confirmReset = useCallback(() => {
-    setPlacedItems(clonePlacedItems(baseItems));
+    setPlacedItems([...clonePlacedItems(baseItems), ...clonePlacedItems(baseFacilityItems)]);
     setIsResetConfirmOpen(false);
-  }, [baseItems]);
+  }, [baseItems, baseFacilityItems]);
 
   const closeResetConfirm = useCallback(() => {
     setIsResetConfirmOpen(false);
@@ -262,18 +308,8 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
   const requestSave = useCallback(() => {
     if (isDirty) {
       setIsSaveConfirmOpen(true);
-      return;
     }
-    // 내부시설은 저장 대상이 아니다(ADR-015) — 테이블 변경 없이 내부시설만 배치한 채로 저장을 누르면
-    // isDirty가 false라 조용히 아무 일도 안 일어나 보였다. 그 경우는 이유를 안내한다.
-    const hasOnlyFacilityChanges = placedItems.some((item) => item.kind !== 'table');
-    if (hasOnlyFacilityChanges) {
-      setSaveNotice({
-        title: '안내',
-        description: '내부시설만 저장되지 않습니다.\n테이블을 배치한 뒤 다시 저장해 주세요.',
-      });
-    }
-  }, [isDirty, placedItems]);
+  }, [isDirty]);
 
   const closeSaveConfirm = useCallback(() => {
     setIsSaveConfirmOpen(false);
@@ -285,8 +321,10 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
 
   // 저장은 실제 API를 부르는 동작이라(되돌리기/전체 비우기와 달리), 성공해도 화면이 바뀌지 않아 결과를
   // 안내해야 한다 — async-patterns.md §1의 noticeState 패턴을 그대로 따른다.
+  // 테이블·내부시설을 같은 요청 한 번으로 함께 저장한다(object_type 01/03로 구분). 저장 후 재조회하면
+  // 새로 배치한 내부시설도 서버가 발급한 sysId를 포함해 baseFacilityItems에 반영된다.
   const confirmSave = useCallback(async () => {
-    const request = buildTableGuiRequest(draftTableItems, baseItems);
+    const request = buildTableGuiRequest(draftTableItems, baseItems, draftFacilityItems, baseFacilityItems);
     if (!hasTableGuiChanges(request)) {
       setIsSaveConfirmOpen(false);
       return;
@@ -303,13 +341,12 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
         description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
       });
     }
-  }, [draftTableItems, baseItems, saveTableGuiMutation, queryClient]);
+  }, [draftTableItems, baseItems, draftFacilityItems, baseFacilityItems, saveTableGuiMutation, queryClient]);
 
   return {
     placedItems,
     eligibleTables,
     placedTableSysIds,
-    activeDragData,
     isDirty,
     isSaveConfirmOpen,
     saveNotice,
@@ -323,9 +360,10 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
     setCanvasNode,
     setCanvasScrollNode,
     toggleFitToScreen,
-    handleDragStart,
     handleDragEnd,
     handlePlaceTable,
+    handlePlaceFacility,
+    handlePlaceCustomFacility,
     handleResizeFacility,
     handleRemoveItem,
     requestReset,

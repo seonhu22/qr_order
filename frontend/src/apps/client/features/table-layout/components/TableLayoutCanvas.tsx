@@ -1,7 +1,10 @@
 import './TableLayoutCanvas.css';
 import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { Button } from '@/shared/components/button';
+import { Icon } from '@/shared/assets/icons/Icon';
 import { TableCard } from '@/shared/components/table';
+import { CustomFacilityPlacedCard } from './CustomFacilityPlacedCard';
 import { FacilityPlacedCard } from './FacilityPlacedCard';
 import { TablePlacedCard } from './TablePlacedCard';
 import {
@@ -98,6 +101,22 @@ function PlacedItemView({ item, layoutSize, disabled, onRemove, onResizeFacility
           size={layoutSize}
           onRemove={disabled ? undefined : () => onRemove(item.id)}
         />
+      ) : item.kind === 'custom' ? (
+        <>
+          <CustomFacilityPlacedCard
+            label={item.label}
+            size={layoutSize}
+            viewOnly={disabled}
+            onRemove={disabled ? undefined : () => onRemove(item.id)}
+          />
+          {!disabled && (
+            <ResizeHandle
+              width={item.width}
+              height={item.height}
+              onResize={(width, height) => onResizeFacility(item.id, width, height)}
+            />
+          )}
+        </>
       ) : (
         <>
           <FacilityPlacedCard
@@ -126,6 +145,7 @@ type TableLayoutCanvasProps = {
   canvasScale: number;
   onRemoveItem: (id: string) => void;
   onResizeFacility: (id: string, width: number, height: number) => void;
+  onAddCustomFacility: () => void;
   setCanvasNode: (node: HTMLElement | null) => void;
   setCanvasScrollNode: (node: HTMLElement | null) => void;
 };
@@ -137,6 +157,7 @@ export function TableLayoutCanvas({
   canvasScale,
   onRemoveItem,
   onResizeFacility,
+  onAddCustomFacility,
   setCanvasNode,
   setCanvasScrollNode,
 }: TableLayoutCanvasProps) {
@@ -148,7 +169,23 @@ export function TableLayoutCanvas({
   };
 
   return (
-    <TableCard title="테이블 배치" ariaLabel="테이블 배치" className="table-layout-canvas-card">
+    <TableCard
+      title="테이블 배치"
+      ariaLabel="테이블 배치"
+      className="table-layout-canvas-card"
+      actions={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          leftIcon={<Icon id="i-plus" size={13} />}
+          onClick={onAddCustomFacility}
+          disabled={isFitToScreen}
+        >
+          커스텀 시설 추가
+        </Button>
+      }
+    >
       <div className="table-layout-canvas-scroll" ref={setCanvasScrollNode}>
         {/* 전체 보기로 축소된 상태에서는 이 래퍼가 줄어든 시각적 크기만큼만 레이아웃 공간을 차지해
             불필요한 스크롤이 생기지 않는다. 평소(scale=1)에는 캔버스 원래 크기와 같다. */}
