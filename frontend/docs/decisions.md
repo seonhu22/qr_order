@@ -539,7 +539,7 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 ## ADR-015 — 테이블 배치 관리: dnd-kit 도입, 실제 `table_gui` API 재사용, 내부시설은 비영속
 
 **날짜**: 2026-06-29
-**상태**: 적용 완료 (내부시설 영속화·주문 화면 재사용은 후속 작업)
+**상태**: 적용 완료. ⚠️ "내부시설은 비영속" 결정은 [ADR-017](#adr-017--테이블-배치-관리-내부시설-영속화object_type-mock-우선-구현)로 대체됨 — 주문 화면 재사용은 여전히 후속 작업
 
 ### 배경
 
@@ -565,7 +565,7 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 ### 향후 작업
 
 - [ ] 주문 상태 관리(또는 별도 화면)에서 같은 `table_gui` 좌표를 읽기 전용으로 그려 테이블 클릭 시 주문이력/결제상태 이벤트를 여는 플로어플랜 뷰 추가 — 데이터 조회/필터링/클릭 매칭 키(`tableNum`)·주의사항은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md) "플로어플랜 재사용 시 데이터 처리 가이드" 참고
-- [ ] 내부시설 영속화가 필요해지면 백엔드와 스키마 협의
+- [x] 내부시설 영속화 — [ADR-017](#adr-017--테이블-배치-관리-내부시설-영속화object_type-mock-우선-구현) 참고(mock 우선 구현, 실제 백엔드 스키마는 별도 진행)
 - [ ] `tableType` 필드 활용처가 정해지면 `PlacedTableItem`에 반영
 
 ---
@@ -607,3 +607,36 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 
 - [ ] Client의 새 화면에 태블릿 대응이 필요해지면 같은 `client-main` 컨테이너 + `docs/operations/page-patterns.md` 규칙을 따라 작성
 - [x] 테이블 배치 관리(`table-layout-page`)의 캔버스 좌표-반응형 상충 — 2026-06-30 고정 크기 캔버스(1280×800) + 내부 스크롤로 해결. [`docs/page/table-layout-management.md`](./page/table-layout-management.md#좌표-모델) 참고
+
+---
+
+## ADR-017 — 테이블 배치 관리: 내부시설 영속화(object_type), mock 우선 구현
+
+**날짜**: 2026-07-02
+**상태**: mock 우선 구현 완료 (실제 백엔드 스키마는 별도 진행 예정)
+
+### 배경
+
+ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 내부시설(카운터/문/주방 등)은 대응하는 행이 없어 저장할 수 없다고 판단해, 내부시설을 프론트 상태로만 유지하기로 했다(새로고침하면 사라짐). 이후 "되돌리기를 누르면 내부시설이 사라지는 게 이상하다"는 피드백이 나왔고, 백엔드가 `table_info`(또는 대응 테이블)에 `object_type` 컬럼을 추가해 한 저장소에서 테이블/내부시설/기타를 구분하기로 방향을 잡았다(백엔드 작업은 별도 진행, 프론트는 그 계약을 미리 가정하고 mock으로 먼저 구현).
+
+### 검토한 방식
+
+**내부시설 저장소 — localStorage(1차 시도) vs 서버 API(object_type, 채택)**: 처음에는 브라우저 `localStorage`에 내부시설 배치만 저장하는 방식으로 구현했다(사용자가 "일단 mock 위주로 진행" 요청 전, 백엔드 결정이 나오기 전 임시 방편). 이후 백엔드가 `object_type` 컬럼을 실제로 추가하기로 결정하면서 이 방식은 되돌리고, 테이블과 같은 `table_gui` 저장/조회 흐름에 내부시설도 함께 태워 보내는 방식으로 교체했다 — 브라우저 로컬 저장은 기기/브라우저 간 공유가 안 되는 근본적 한계가 있었다.
+
+**object_type 값 정리 — 01/02/03**: `01`=테이블(기존과 동일), `02`=내부시설(고정 8종 카탈로그를 클릭 배치한 것), `03`=기타(유저가 "커스텀 시설 추가" 모달로 이름을 직접 입력해 만든 것). 처음에는 내부시설 전부(고정 8종 포함)를 `03`으로 보냈다가, "02는 내부시설, 03은 유저가 추가한 기타"라는 정정을 받아 8종 카탈로그는 `02`로, 커스텀 추가 버튼으로 만든 것만 `03`으로 나누어 보내도록 수정했다.
+
+**내부시설 종류 매칭 — tableType(1차) vs tableName/common_nm(채택)**: 처음에는 생성된 `TableGuiItem.tableType` 필드에 프론트 내부 kind 값(`'counter'` 등 영문 식별자)을 그대로 실어 보냈다. 이후 "실제로는 공통코드 이름(`common_nm`)을 보고 매칭해야 하고, `table_gui` 응답에서 그 값은 `tableName` 필드로 온다"는 정정을 받아, `object_type==='02'`인 행은 `tableName`(한글 라벨 텍스트, 예: "카운터")을 8종 라벨과 매칭해 종류/아이콘을 역으로 찾는 방식으로 바꿨다(`FACILITY_KIND_BY_LABEL`, `tableLayoutApi.ts`). `tableType`은 저장 시 계속 같이 보내지만(하위 호환·감사 목적), 매칭의 기준(source of truth)은 `tableName`이다.
+
+### 결정
+
+- 아직 생성된 API 타입(`TableGuiItem`/`TableGuiResponse`, `src/generated/types/`)에는 `objectType` 필드가 없다 — `tableLayoutApi.ts`에 로컬 확장 타입(`TableGuiObjectType = '01'|'02'|'03'`, `TableGuiItemWire`/`TableGuiResponseWire`)을 두고 요청/응답을 이 타입으로 캐스팅해서 다룬다. 실제 백엔드 스키마가 확정되고 `openapi.json`이 재생성되면 이 임시 타입은 걷어낸다.
+- 테이블·내부시설(고정+커스텀)을 **하나의 저장 요청**으로 함께 보낸다 — 별도의 "내부시설 저장" 액션은 없다. `buildTableGuiRequest`(`tableLayoutApi.ts`)가 `PlacedTableItem[]`과 `PlacedNonTableItem[]`(고정 8종 + 커스텀)을 함께 받아 `newItems`/`updateItems`/`delItems`를 만든다. sysId 없는 내부시설(캔버스에 새로 배치된 것)은 그대로 `newItems`에 담아 보내고, 저장 성공 후 재조회(`queryKeys.tableLayout.lists` invalidate)로 서버가 발급한 sysId를 받아온다 — 테이블이 이미 쓰던 것과 같은 흐름이다.
+- 커스텀 시설(`object_type='03'`)은 자유 텍스트라 종류 매칭이 필요 없다 — 유저가 입력한 이름을 그대로 `tableName`에 실어 보내고 받는다(`PlacedCustomFacilityItem.label`).
+- `isDirty`/되돌리기/전체 비우기 판정도 테이블과 내부시설을 합쳐서 본다(`useTableLayoutPage.ts`) — ADR-015 시점에는 "내부시설은 저장 대상이 아니다"로 dirty 판정에서 제외했으나, 이제는 같은 저장 흐름을 타므로 함께 판정한다.
+- MSW mock(`src/mocks/handlers.ts`의 `tableGuiSaveOverrideHandler`)은 `sysId`가 없는 항목이 들어오면 mock이 `sys_id`를 생성해서 새 행으로 추가하도록 확장했다(기존에는 매칭 실패 시 조용히 무시했다) — 실제 백엔드의 INSERT 동작을 흉내낸 것이다.
+
+### 향후 작업
+
+- [ ] 백엔드에 실제 `object_type` 컬럼과 저장 API 반영 — 현재 프론트 가정(필드명 `objectType`, 값 `'01'|'02'|'03'`, 내부시설 종류는 `tableName`으로 매칭)과 실제 스키마가 다르면 `tableLayoutApi.ts`의 로컬 wire 타입/매핑 함수만 조정하면 되도록 그 파일에 격리해뒀다.
+- [ ] 내부시설 카탈로그(현재 `FACILITY_CATALOG`, 프론트 고정 8종) 자체를 공통코드 API(`useSearchCommon`/`useSearchCommonDetail`, `commonNm`)에서 받아오는 방식으로 바꿀지는 미정 — 현재는 카탈로그는 프론트 고정이고, "매칭"만 텍스트 기준으로 한다.
+- [ ] ADR-015의 "내부시설은 비영속" 결정은 이 ADR로 대체됐다.
