@@ -214,11 +214,9 @@
         </symbol>
         <!-- 흡연실 -->
         <symbol id="i-smoking" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-            <path d="M2 17H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 17H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 7C17 8 18 9 17 11C16 9 15 9 15 7.5C15 6.5 16 5.5 16 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 7C20 8 21 9 20 11C19 9 18 9 18 7.5C18 6.5 19 5.5 19 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="20" cy="17" r="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M2 15H18V19H2V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 15V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 15C19 13 21 12 19 10C17 8 21 7 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
         <!-- 드래그 핸들 -->
         <symbol id="i-drag-handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
