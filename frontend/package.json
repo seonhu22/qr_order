@@ -50,7 +50,7 @@
     "jsdom": "^29.0.0",
     "msw": "^2.12.11",
     "openapi-typescript": "^7.13.0",
-    "orval": "^7.13.2",
+    "orval": "^7.21.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
