@@ -1,15 +1,18 @@
-import { useGetQna1, useNewQna } from '@/generated/board-controller/board-controller';
-import {
-  useGetAttachFile,
-  downloadFile,
-  downloadAllFile,
-} from '@/generated/file-controller/file-controller';
+import { useMutation } from '@tanstack/react-query';
+import { useGetQna1 } from '@/generated/board-controller/board-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
+import { httpClient } from '@/shared/lib/httpClient';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
-import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
-import type { ClientQnaRequest } from '@/generated/types/clientQnaRequest';
+import {
+  downloadAllServerFiles,
+  downloadServerFile,
+  mapFileResponseToServerFile,
+} from '@/shared/utils/attachFile';
 import type { ClientQnaResponse } from '@/generated/types/clientQnaResponse';
+import type { CommonResponse } from '@/generated/types/commonResponse';
+import type { FileChangeState } from '@/shared/components/file-attachment';
 import type { ServerFile } from '@/shared/components/file-attachment';
 import type { InquiryListRow } from '../types';
 
@@ -45,23 +48,45 @@ export function useInquiryListQuery(searchKeyword?: string) {
 export type CreateInquiryPayload = {
   title: string;
   content: string;
+  fileChangeState?: FileChangeState;
 };
 
-/**
- * 첨부파일은 모달 레이아웃에만 반영하고 실제 업로드는 아직 연동하지 않는다.
- * openapi.json상 POST /api/client/board/qna/new은 순수 JSON(ClientQnaRequest)이고
- * 파일 업로드 파라미터가 없어, 파일을 신청서와 함께 묶어 보내는 방식인지
- * 별도로 /api/attach_file/save를 호출해 sysId로 연결하는 방식인지 백엔드 확인이 필요하다.
- */
-export function buildCreateInquiryRequest(payload: CreateInquiryPayload): ClientQnaRequest {
-  return {
-    qnaTitle: payload.title,
-    qnaDescription: payload.content,
-  };
+function getDefaultFilePath(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `/${y}/${m}`;
+}
+
+export function buildCreateInquiryFormData(payload: CreateInquiryPayload): FormData {
+  const formData = new FormData();
+  const newFiles = payload.fileChangeState?.newFiles ?? [];
+  const filePath = getDefaultFilePath();
+
+  formData.append('qnaTitle', payload.title);
+  formData.append('qnaDescription', payload.content);
+
+  newFiles.forEach((file, i) => {
+    formData.append(`newItems[${i}].file`, file);
+    formData.append(`newItems[${i}].convertFileNm`, crypto.randomUUID());
+    formData.append(`newItems[${i}].filePath`, filePath);
+    formData.append(`newItems[${i}].ordNo`, String(i + 1));
+  });
+
+  return formData;
+}
+
+export async function postCreateInquiryFormData(payload: CreateInquiryPayload): Promise<CommonResponse> {
+  return httpClient<CommonResponse>({
+    url: '/api/client/board/qna/new',
+    method: 'POST',
+    data: buildCreateInquiryFormData(payload),
+  });
 }
 
 export function useCreateInquiryMutation() {
-  return useNewQna();
+  return useMutation({
+    mutationFn: ({ data }: { data: CreateInquiryPayload }) => postCreateInquiryFormData(data),
+  });
 }
 
 export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
@@ -70,20 +95,9 @@ export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
 }
 
 export async function downloadInquiryFile(file: ServerFile): Promise<void> {
-  const blob = await downloadFile({ sysId: file.sysId });
-  triggerBlobDownload(blob, file.originalFileNm);
+  await downloadServerFile(file);
 }
 
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUlid });
-  triggerBlobDownload(blob, 'files.zip');
-}
-
-function triggerBlobDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadAllServerFiles(fileUlid);
 }

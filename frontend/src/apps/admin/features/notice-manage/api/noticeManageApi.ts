@@ -18,6 +18,7 @@ export { mapFileResponseToServerFile };
 type NoticeResponseWithMeta = NoticeResponse & {
   sysId?: string;
   insertUserId?: string;
+  insertUserNm?: string;
   insertDatetime?: string;
   modifyDatetime?: string;
 };
@@ -34,7 +35,7 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
     target: 'all',
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
-    registrant: res.insertUserId ?? '',
+    registrant: res.insertUserNm ?? '',
     registeredAt: res.insertDatetime ?? '',
     updatedAt: formatDateTimeForDisplay(res.modifyDatetime),
   };

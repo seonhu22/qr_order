@@ -2,49 +2,49 @@ import { describe, expect, it } from 'vitest';
 import { mapToClientUserModel } from './clientUserApi';
 
 describe('mapToClientUserModel', () => {
-  it('maps a server DTO to the list model with a known authority label', () => {
+  it('maps the 01 authority code to admin label', () => {
     expect(
       mapToClientUserModel({
         sysId: 'sys-1',
         userId: 'admin001',
         userNm: '홍길동',
-        userRole: 'ADMIN',
+        userRole: '01',
       }),
     ).toEqual({
       id: 'sys-1',
       sysId: 'sys-1',
       userId: 'admin001',
       userName: '홍길동',
-      authorityCode: 'ADMIN',
+      authorityCode: '01',
       authorityLabel: '관리자',
     });
   });
 
-  it('maps the STAFF authority code to its label', () => {
+  it('maps the 02 authority code to staff label', () => {
     expect(
       mapToClientUserModel({
         sysId: 'sys-2',
         userId: 'staff001',
         userNm: '이철수',
-        userRole: 'STAFF',
+        userRole: '02',
       }),
     ).toMatchObject({
-      authorityCode: 'STAFF',
+      authorityCode: '02',
       authorityLabel: '스태프',
     });
   });
 
-  it('falls back to the raw authority code when no label is registered', () => {
+  it('maps every non-01 authority code to the staff label', () => {
     expect(
       mapToClientUserModel({
-        sysId: 'sys-3',
+        sysId: 'sys-4',
         userId: 'manager001',
         userNm: '김영희',
-        userRole: 'MANAGER',
+        userRole: '99',
       }),
     ).toMatchObject({
-      authorityCode: 'MANAGER',
-      authorityLabel: 'MANAGER',
+      authorityCode: '99',
+      authorityLabel: '스태프',
     });
   });
 
@@ -53,7 +53,7 @@ describe('mapToClientUserModel', () => {
       mapToClientUserModel({
         userId: 'staff002',
         userNm: '박민수',
-        userRole: 'STAFF',
+        userRole: '02',
       }),
     ).toMatchObject({
       id: 'staff002',
@@ -68,7 +68,7 @@ describe('mapToClientUserModel', () => {
       userId: '',
       userName: '',
       authorityCode: '',
-      authorityLabel: '',
+      authorityLabel: '스태프',
     });
   });
 });

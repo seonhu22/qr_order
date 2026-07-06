@@ -13,4 +13,5 @@ public class TableGuiItem {
     private Integer height;
     private Integer width;
     private String tableType;
+    private String objectType;
 }

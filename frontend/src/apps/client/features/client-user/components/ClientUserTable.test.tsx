@@ -20,7 +20,7 @@ const rows: ClientUser[] = [
     sysId: 'admin001',
     userId: 'admin001',
     userName: '홍길동',
-    authorityCode: 'ADMIN',
+    authorityCode: '01',
     authorityLabel: '관리자',
   },
   {
@@ -28,7 +28,7 @@ const rows: ClientUser[] = [
     sysId: 'staff001',
     userId: 'staff001',
     userName: '이철수',
-    authorityCode: 'STAFF',
+    authorityCode: '02',
     authorityLabel: '스태프',
   },
 ];

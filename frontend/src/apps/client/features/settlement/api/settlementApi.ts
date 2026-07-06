@@ -9,6 +9,7 @@
 
 import { useGetSettlement } from '@/generated/payment-manage-controller/payment-manage-controller';
 import type { DailySale } from '@/generated/types/dailySale';
+import type { GetSettlementParams } from '@/generated/types/getSettlementParams';
 import type { SettlementResponse } from '@/generated/types/settlementResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
@@ -46,7 +47,12 @@ export function mapToSettlementRow(item: DailySale, index: number): SettlementRo
 }
 
 export function useSettlementQuery(params: SettlementSearchParams) {
-  const queryParams = { searchStartDate: params.startDate, searchEndDate: params.endDate };
+  const queryParams: GetSettlementParams = {
+    settlementRequest: {
+      searchStartDate: params.startDate,
+      searchEndDate: params.endDate,
+    },
+  };
 
   return useGetSettlement(queryParams, {
     query: {

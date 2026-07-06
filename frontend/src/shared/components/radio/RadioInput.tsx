@@ -199,7 +199,6 @@ export function RadioGroup({
 
   const selectedValue = controlledValue !== undefined ? controlledValue : internalValue;
 
-  const hasError = !!errorText;
   const hasSuccess = !!successText && !errorText;
 
   const handleChange = (optValue: string) => {

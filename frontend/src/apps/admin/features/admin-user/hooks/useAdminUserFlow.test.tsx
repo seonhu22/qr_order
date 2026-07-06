@@ -86,7 +86,7 @@ describe('useAdminUserFlow', () => {
     expect(params.onSaveChanges).toHaveBeenCalledTimes(1);
     expect(result.current.state.isSaveConfirmOpen).toBe(false);
     expect(result.current.state.simpleModalState).toEqual({
-      description: '저장 완료되었습니다.',
+      description: '저장되었습니다.',
     });
   });
 

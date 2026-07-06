@@ -1,5 +1,7 @@
 import type { FileResponse } from '@/generated/types/fileResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
+import { downloadAllFile, downloadFile } from '@/generated/file-controller/file-controller';
+import { triggerBlobDownload } from './downloadBlob';
 
 /**
  * BE FileResponse → FileInputGroup/FileDownloadList 가 쓰는 ServerFile 로 변환.
@@ -19,4 +21,14 @@ export function mapFileResponseToServerFile(f: FileResponse): ServerFile {
     ordNo: f.ordNo ?? 0,
     pdfYn: f.pdfYn ?? 'N',
   };
+}
+
+export async function downloadServerFile(file: ServerFile): Promise<void> {
+  const blob = await downloadFile({ sysId: file.sysId });
+  triggerBlobDownload(blob, file.originalFileNm);
+}
+
+export async function downloadAllServerFiles(linkSysId: string, filename = 'files.zip'): Promise<void> {
+  const blob = await downloadAllFile({ linkSysId });
+  triggerBlobDownload(blob, filename);
 }

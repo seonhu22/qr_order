@@ -29,6 +29,7 @@ import {
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 
+const SEGMENT_SLIDE_OPTIONS = ['작게', '보통', '크게'] as const;
 
 /* =====================================================
  * 가이드 레이아웃 헬퍼
@@ -88,15 +89,14 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
  * 흰 배경은 인디케이터가 담당하고, 버튼 자체의 선택 배경은 투명 처리한다.
  */
 function SegmentSlideDemo() {
-  const options = ['작게', '보통', '크게'] as const;
-  const [value, setValue] = useState<typeof options[number]>('보통');
+  const [value, setValue] = useState<typeof SEGMENT_SLIDE_OPTIONS[number]>('보통');
   const groupRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
     const groupEl = groupRef.current;
     if (!groupEl) return;
-    const index = options.indexOf(value);
+    const index = SEGMENT_SLIDE_OPTIONS.indexOf(value);
     const buttonEl = groupEl.querySelectorAll('button')[index];
     if (!buttonEl) return;
     const groupRect = groupEl.getBoundingClientRect();
@@ -130,7 +130,7 @@ function SegmentSlideDemo() {
           width: indicatorStyle.width,
         }}
       />
-      {options.map((label) => (
+      {SEGMENT_SLIDE_OPTIONS.map((label) => (
         <Button
           key={label}
           variant="segment"

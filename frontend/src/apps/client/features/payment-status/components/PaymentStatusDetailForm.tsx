@@ -1,5 +1,6 @@
 import { TableCard, TableCardContentState } from '@/shared/components/table';
 import { TextInput, TextareaInput } from '@/shared/components/input';
+import { PaymentOrderItemsList } from './PaymentOrderItemsList';
 import type { PaymentStatusDetail } from '../types';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatusDetail['paymentStatus'], string> = {
@@ -60,13 +61,7 @@ export function PaymentStatusDetailForm({
             value={formatCancelField(detail, detail?.cancelReason ?? '')}
           />
 
-          <TextareaInput
-            label="주문 내역"
-            className="payment-status-detail-form__field"
-            readOnly
-            value={detail?.items ?? ''}
-            rows={4}
-          />
+          <PaymentOrderItemsList items={detail?.items ?? ''} />
 
           <TextareaInput
             label="취소 상세 사유"
