@@ -35,7 +35,7 @@ export function CustomFacilityAddModal({
           value={label}
           required
           controlState={errorText ? 'error' : ''}
-          placeholder="예: 포토존"
+          placeholder="예: 화분, 포토존"
           onChange={(event) => onChangeLabel(event.target.value)}
         />
       </InputWrapper>
