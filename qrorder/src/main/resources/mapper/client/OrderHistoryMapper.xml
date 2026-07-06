@@ -19,7 +19,7 @@
             and ti.delete_yn = 'N'
         where 1=1
         and om.order_status = #{orderStatus}
-        and om.insert_datetime::date between #{startDate} and #{endDate}
+        and om.insert_datetime::date between #{startDate}::date and #{endDate}::date
     </select>
 
     <select id="getOrderMasterTotalPrice" resultType="htms.QROrder.client.dto.OrderTotalPriceItem">

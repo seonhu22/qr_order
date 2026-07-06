@@ -3,9 +3,11 @@ package htms.QROrder.common.service;
 import htms.QROrder.audit.dto.EmailLog;
 import htms.QROrder.audit.service.EmailLogService;
 import htms.QROrder.common.dto.EmailRequest;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +22,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final EmailLogService emailLogService;
+
+    @Value("${spring.mail.username}")
+    private String fromAddress;
 
     public void sendEmail(EmailRequest emailRequest, String userId, String sysPlantCd) {
 
@@ -40,14 +45,6 @@ public class EmailService {
         List<String> ccList = emailRequest.getCc();
         String ccStr = (ccList != null && !ccList.isEmpty()) ? joinEmails(ccList) : null;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toStr);
-        if (ccStr != null) {
-            message.setCc(ccStr);
-        }
-        message.setSubject(emailRequest.getSubject());
-        message.setText(emailRequest.getBody());
-
         EmailLog emailLog = new EmailLog();
         emailLog.setEmailTo(toStr);
         emailLog.setEmailCc(ccStr);
@@ -55,10 +52,19 @@ public class EmailService {
         emailLog.setBody(emailRequest.getBody());
 
         try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromAddress, "QR Order");
+            helper.setTo(toList.toArray(new String[0]));
+            if (ccStr != null) {
+                helper.setCc(ccList.toArray(new String[0]));
+            }
+            helper.setSubject(emailRequest.getSubject());
+            helper.setText(emailRequest.getBody());
+
             mailSender.send(message);
             emailLog.setSuccessStatus("S");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             emailLog.setSuccessStatus("F");
             emailLogService.emailSendLog(emailLog, userId, sysPlantCd);
             throw new RuntimeException("메일 발송에 실패하였습니다.");
