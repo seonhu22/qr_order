@@ -13,6 +13,7 @@ describe('noticeManageApi', () => {
           useYn: 'N',
           fileUlid: 'file-link-1',
           insertUserId: 'PC001',
+          insertUserNm: '관리자',
           insertDatetime: '2026-04-29 10:00:00',
           modifyDatetime: '2026-04-29 11:00:00.123456',
         },
@@ -27,7 +28,7 @@ describe('noticeManageApi', () => {
       target: 'all',
       title: '점검 공지',
       content: '시스템 점검 안내',
-      registrant: 'PC001',
+      registrant: '관리자',
       registeredAt: '2026-04-29 10:00:00',
       updatedAt: '2026-04-29 11:00:00',
     });

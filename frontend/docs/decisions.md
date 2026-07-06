@@ -50,10 +50,10 @@ Orval을 채택한다.
 
 Orval이 OpenAPI 명세를 읽는 방식이 두 가지다.
 
-| 방식 | 내용 |
-|------|------|
-| URL 직접 | `http://localhost:8080/v3/api-docs` |
-| 로컬 파일 | `openapi.json` 저장 후 참조 |
+| 방식      | 내용                                |
+| --------- | ----------------------------------- |
+| URL 직접  | `http://localhost:8080/v3/api-docs` |
+| 로컬 파일 | `openapi.json` 저장 후 참조         |
 
 ### 결정
 
@@ -89,11 +89,13 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 현재는 `orval.config.ts` 하나로 통합 운영하고, 앱별 분리는 나중에 필요 시 진행한다.
 
 **현재 단계에서 통합을 선택한 이유:**
+
 - 현재 개발 중심이 `apps/admin`이고 `client`, `consumer`는 골격 수준
 - 분리하면 config 파일이 여러 개가 되어 초기 진입 장벽이 높아짐
 - 통합 상태에서도 생성 경로를 앱별로 지정하면 구조는 유지됨
 
 **분리 기준 (향후):**
+
 - `apps/client`, `apps/consumer` 개발이 본격 시작될 때
 - 앱별로 다른 생성 규칙이 필요해질 때
 - config 파일을 분리하고 `package.json` 스크립트도 앱별로 나눈다
@@ -119,14 +121,14 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 로그인 API 경로 | `POST /api/client/auth/login` | 실제 엔드포인트 확인 |
-| 응답 구조 | `{ success, message, data }` | 백엔드 DTO 확인 |
-| 인증 방식 | 세션 쿠키 (`credentials: 'include'`) 가정 | JWT 여부 등 확인 |
-| 로그인 성공 후 이동 | `/client/main` | 실제 진입 경로 확인 |
-| 비밀번호 찾기 | 버튼만 존재, 동작 없음 | 흐름 및 API 미정 |
-| 계정 잠금·init_yn 정책 | 어드민과 동일 여부 미확인 | 백엔드 정책 확인 |
+| 항목                   | 현재 임시값                               | 확정 필요            |
+| ---------------------- | ----------------------------------------- | -------------------- |
+| 로그인 API 경로        | `POST /api/client/auth/login`             | 실제 엔드포인트 확인 |
+| 응답 구조              | `{ success, message, data }`              | 백엔드 DTO 확인      |
+| 인증 방식              | 세션 쿠키 (`credentials: 'include'`) 가정 | JWT 여부 등 확인     |
+| 로그인 성공 후 이동    | `/client/main`                            | 실제 진입 경로 확인  |
+| 비밀번호 찾기          | 버튼만 존재, 동작 없음                    | 흐름 및 API 미정     |
+| 계정 잠금·init_yn 정책 | 어드민과 동일 여부 미확인                 | 백엔드 정책 확인     |
 
 ### 현재 구현 범위
 
@@ -170,25 +172,25 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 현재 임시 입력 필드
 
-| 필드 | 입력 타입 | 비고 |
-|---|---|---|
-| 아이디 | text | 중복 확인 API 미구현 |
-| 비밀번호 | password | 규칙(길이·특수문자 등) 미정 |
-| 비밀번호 확인 | password | 클라이언트 단순 일치 검사만 |
-| 사업자 등록번호 | text | 형식 검증·실명 인증 API 미정 |
-| 이메일 | email | 인증 메일 발송 여부 미정 |
+| 필드            | 입력 타입 | 비고                         |
+| --------------- | --------- | ---------------------------- |
+| 아이디          | text      | 중복 확인 API 미구현         |
+| 비밀번호        | password  | 규칙(길이·특수문자 등) 미정  |
+| 비밀번호 확인   | password  | 클라이언트 단순 일치 검사만  |
+| 사업자 등록번호 | text      | 형식 검증·실명 인증 API 미정 |
+| 이메일          | email     | 인증 메일 발송 여부 미정     |
 
 추가 필드(매장명, 전화번호 등) 여부는 백엔드 협의 후 확정 예정.
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 회원가입 API | `POST /api/client/auth/signup` | 실제 엔드포인트 확인 |
-| 요청 바디 | `{ userId, password, businessNo, email }` | 백엔드 DTO 확인 |
-| 응답 구조 | `{ success, message }` | 백엔드 DTO 확인 |
-| 개인정보 동의 전달 여부 | 프론트에서만 체크, 서버 미전달 | 동의 내역 저장 정책 확인 |
-| 가입 완료 후 이동 | 로그인 step 복귀 | 자동 로그인 처리 여부 확인 |
+| 항목                    | 현재 임시값                               | 확정 필요                  |
+| ----------------------- | ----------------------------------------- | -------------------------- |
+| 회원가입 API            | `POST /api/client/auth/signup`            | 실제 엔드포인트 확인       |
+| 요청 바디               | `{ userId, password, businessNo, email }` | 백엔드 DTO 확인            |
+| 응답 구조               | `{ success, message }`                    | 백엔드 DTO 확인            |
+| 개인정보 동의 전달 여부 | 프론트에서만 체크, 서버 미전달            | 동의 내역 저장 정책 확인   |
+| 가입 완료 후 이동       | 로그인 step 복귀                          | 자동 로그인 처리 여부 확인 |
 
 ### 연동 시 체크리스트
 
@@ -223,14 +225,14 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 인증 코드 발송 API | `POST /api/client/auth/find-password` | 실제 엔드포인트 확인 |
-| 인증 코드 확인 API | `POST /api/client/auth/find-password/verify` | 실제 엔드포인트 확인 |
-| 요청 바디 (발송) | `{ userId, email }` | 백엔드 DTO 확인 |
-| 요청 바디 (확인) | `{ userId, verifyCode }` | 백엔드 DTO 확인 |
-| 완료 처리 | 임시 비밀번호 이메일 발송 가정 | 실제 정책 확인 (재설정 링크 vs 임시 비밀번호) |
-| 인증 코드 유효 시간 | 미구현 | 유효 시간 표시 여부 확인 |
+| 항목                | 현재 임시값                                  | 확정 필요                                     |
+| ------------------- | -------------------------------------------- | --------------------------------------------- |
+| 인증 코드 발송 API  | `POST /api/client/auth/find-password`        | 실제 엔드포인트 확인                          |
+| 인증 코드 확인 API  | `POST /api/client/auth/find-password/verify` | 실제 엔드포인트 확인                          |
+| 요청 바디 (발송)    | `{ userId, email }`                          | 백엔드 DTO 확인                               |
+| 요청 바디 (확인)    | `{ userId, verifyCode }`                     | 백엔드 DTO 확인                               |
+| 완료 처리           | 임시 비밀번호 이메일 발송 가정               | 실제 정책 확인 (재설정 링크 vs 임시 비밀번호) |
+| 인증 코드 유효 시간 | 미구현                                       | 유효 시간 표시 여부 확인                      |
 
 ### 연동 시 체크리스트
 
@@ -255,21 +257,21 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 어드민 레이아웃과 동일한 3단 구조를 따른다.
 
-| 영역 | 컴포넌트 | 비고 |
-|---|---|---|
-| 사이드바 | `ClientSidebar` | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
-| 헤더 | `ClientHeader` | 어드민 헤더와 동일한 CSS 패턴 |
-| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정 |
+| 영역          | 컴포넌트                  | 비고                                                          |
+| ------------- | ------------------------- | ------------------------------------------------------------- |
+| 사이드바      | `ClientSidebar`           | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
+| 헤더          | `ClientHeader`            | 어드민 헤더와 동일한 CSS 패턴                                 |
+| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정              |
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 헤더 섹션 탭 | "주문", "매장" | 실제 메뉴 구조 확정 후 교체 |
-| 사이드바 메뉴 경로 | `/client/order/*`, `/client/store/*` | 실제 라우트 확정 후 교체 |
-| 사용자 이름 | `홍길동` | 로그인 응답 user 데이터로 교체 |
-| 사용자 역할 | `매장 관리자` | 실제 role 필드로 교체 |
-| 로그아웃 동작 | `/client/login`으로 이동 | 클라이언트 auth 흐름 확정 후 교체 |
+| 항목               | 현재 임시값                          | 확정 필요                         |
+| ------------------ | ------------------------------------ | --------------------------------- |
+| 헤더 섹션 탭       | "주문", "매장"                       | 실제 메뉴 구조 확정 후 교체       |
+| 사이드바 메뉴 경로 | `/client/order/*`, `/client/store/*` | 실제 라우트 확정 후 교체          |
+| 사용자 이름        | `홍길동`                             | 로그인 응답 user 데이터로 교체    |
+| 사용자 역할        | `매장 관리자`                        | 실제 role 필드로 교체             |
+| 로그아웃 동작      | `/client/login`으로 이동             | 클라이언트 auth 흐름 확정 후 교체 |
 
 ### 연동 시 체크리스트
 
@@ -474,6 +476,22 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 - [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
 - [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
 - [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토
+- [ ] `items` 필드 실제 포맷 확정(text vs JSON 배열). 확정 후 `parsePaymentOrderItems`의 fallback 분기 제거 여부 결정
+
+### 추가 — `items` 필드 포맷 이중화 대응
+
+> 추가일: 2026-07-01
+
+응답 `items` 필드가 (a) 단일 텍스트(줄바꿈 구분) 또는 (b) JSON 배열(메뉴·옵션·수량·가격 구조) 양쪽으로 관찰됨. 백엔드 계약이 확정되지 않은 상태에서 프론트가 양쪽을 모두 처리한다.
+
+- 파서: `features/payment-status/utils/parsePaymentOrderItems.ts`가 우선 `JSON.parse`로 배열 시도, 실패 시 텍스트 라인 fallback으로 판별 유니온 `ParsedPaymentOrderItems`(`kind: 'structured' | 'text'`) 반환
+- 렌더:
+  - `kind: 'structured'` → 신규 `PaymentOrderItemsList` 컴포넌트가 메뉴/옵션/수량/합계 표시
+  - `kind: 'text'` → 기존 줄 단위 표시 유지 (하위 호환)
+- 타입: `PaymentOrderItem`, `PaymentOrderOption`, `ParsedPaymentOrderItems`를 `features/payment-status/types.ts`에 추가
+- mock: `mock/paymentStatusMock.ts`에 JSON 배열 케이스 반영해 구조화 렌더 경로가 개발 환경에서 확인 가능하도록 함
+
+포맷 확정 시 fallback 분기와 판별 유니온을 제거하고 단일 경로로 축소한다.
 
 ---
 
@@ -640,3 +658,49 @@ ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 �
 - [ ] 백엔드에 실제 `object_type` 컬럼과 저장 API 반영 — 현재 프론트 가정(필드명 `objectType`, 값 `'01'|'02'|'03'`, 내부시설 종류는 `tableName`으로 매칭)과 실제 스키마가 다르면 `tableLayoutApi.ts`의 로컬 wire 타입/매핑 함수만 조정하면 되도록 그 파일에 격리해뒀다.
 - [ ] 내부시설 카탈로그(현재 `FACILITY_CATALOG`, 프론트 고정 8종) 자체를 공통코드 API(`useSearchCommon`/`useSearchCommonDetail`, `commonNm`)에서 받아오는 방식으로 바꿀지는 미정 — 현재는 카탈로그는 프론트 고정이고, "매칭"만 텍스트 기준으로 한다.
 - [ ] ADR-015의 "내부시설은 비영속" 결정은 이 ADR로 대체됐다.
+
+---
+
+## ADR-018 — QR 코드 생성: `qrcode` 라이브러리 채택
+
+**날짜**: 2026-06-30
+**상태**: 채택
+
+### 배경
+
+`/client/store/table/qr` 페이지의 출력 기능에서 백엔드 `qr_code.url` 필드(ULID 문자열)를 풀 URL로 조립한 뒤 QR 코드 이미지로 렌더링해 인쇄해야 한다.
+백엔드는 QR 이미지/dataURL을 제공하지 않고 ULID만 저장하므로(`QRCodeService.java:65-69`), 프론트가 QR 비트맵 생성을 전담한다.
+출력은 숨김 `<iframe>` + `window.print()`로 진행하므로 QR 출력 형식은 iframe srcdoc HTML에 임베드 가능한 PNG dataURL이 단순하다.
+
+### 검토한 방식
+
+| 후보                                | 형태                                      | 출력                   | 평가                                                                                            |
+| ----------------------------------- | ----------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| **qrcode** (채택)                   | pure JS 함수 API (`QRCode.toDataURL`)     | DataURL / Canvas / SVG | iframe 컨텍스트에서 함수 직접 호출 가능. PNG dataURL을 `<img src="...">`로 임베드 — 인쇄 친화적 |
+| qrcode.react / react-qr-code        | React 컴포넌트 (`<QRCode value=... />`)   | SVG                    | iframe 외부에 별도 React 트리 마운트가 필요. 다중 QR 렌더링/dataURL 추출이 우회적               |
+| qr-code-styling                     | 클래스 API + 디자인 옵션(로고/그라데이션) | Canvas/SVG             | 디자인 커스터마이징 풍부하나 본 작업 요구(테이블당 단일 QR + 번호) 초과                         |
+| 외부 QR API (api.qrserver.com 등)   | 원격 호출                                 | 이미지 URL             | 의존성 0이지만 네트워크 필수. 매장 인터넷 불안정 시 인쇄 실패. 외부 서비스 신뢰·프라이버시 우려 |
+| 직접 구현 (Reed-Solomon + 매트릭스) | 수동 알고리즘                             | 자체 캔버스            | 학습 가치는 있으나 검증 비용·테스트 부담 과다. 실무 도입 가치 낮음                              |
+
+### 결정
+
+`qrcode` v1.5.4 (MIT, soldair/node-qrcode)를 채택한다.
+
+- **API 형태가 본 작업에 정합**: `QRCode.toDataURL(targetUrl, { width, margin })` 한 줄로 PNG dataURL 생성. iframe srcdoc 내부 `<img>`에 그대로 임베드
+- **오프라인 동작**: 매장 환경에서 인터넷 불안정 시에도 인쇄 보장
+- **React 컴포넌트 의존 없음**: 본 출력은 React 트리 밖(`document.createElement('iframe')`)에서 일어남. JSX 기반 라이브러리는 트리 마운트·dataURL 추출 단계가 추가됨
+- **에러 정정 + 마스킹 표준 구현**: ISO/IEC 18004 호환. 카메라 인식률 검증된 라이브러리
+- **TypeScript 타입 제공**: `@types/qrcode` 보조 타입 사용 가능
+- **번들 영향 적음**: 클라이언트 진입(`apps/client`)에서만 사용. 코드 스플리팅 영향권 안에서만 추가됨
+
+### 알려진 제한사항
+
+- 라이브러리 자체에 `pngjs`, `yargs`, `dijkstrajs` 등 Node 전용 트랜지티브 의존성이 있으나, 브라우저 빌드(`package.json`의 `browser` 필드)가 `lib/browser.js`로 우회되어 클라이언트 번들엔 포함되지 않는다
+- 디자인(로고 삽입·색상)이 추후 필요해지면 `qr-code-styling`으로 교체 검토. 본 ADR의 채택 사유 중 "단순성"이 무너지는 시점이 교체 트리거
+
+### 사용 위치
+
+- `frontend/src/apps/client/features/qr-code/utils/qrCodePrint.ts` — `generateQrDataUrl` 래퍼
+- 그 외 직접 사용 금지. QR 생성이 다른 feature에도 필요해지면 본 유틸을 `shared/`로 승격
+
+---

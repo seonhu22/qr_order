@@ -67,11 +67,14 @@ export function useMessagePage(): MessagePageViewModel {
   const [selectedRowId, setSelectedRowId] = useState('');
 
   useEffect(() => {
+    /* 서버 조회 결과를 편집용 draft/base 상태로 재초기화하는 edit-buffer 동기화 지점이다. */
+    /* eslint-disable react-hooks/set-state-in-effect */
     const nextRows = cloneRows(fetchedRows);
     setBaseRows(nextRows);
     setDraftRows(cloneRows(fetchedRows));
     setRowErrors({});
     setSelectedRowId((prev) => (prev && nextRows.some((row) => row.id === prev) ? prev : ''));
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [fetchedRows]);
 
   /* 저장 전후 비교 기준. true면 "저장되지 않은 내용"이 있다는 뜻이다. */

@@ -16,7 +16,16 @@ function createQueryClient() {
   });
 }
 
-function renderSidebar(initialPath = '/client/main') {
+function renderSidebar(
+  initialPath = '/client/main',
+  user: Record<string, unknown> = {
+    userId: 'PC002',
+    userName: '테스트 사용자',
+    staffRole: '01',
+    role: 'STAFF',
+    sysPlantCd: 'ADMIN',
+  },
+) {
   useClientLayoutStore.setState({ isSidebarOpen: true, activeSection: null });
 
   return render(
@@ -25,7 +34,7 @@ function renderSidebar(initialPath = '/client/main') {
         value={{
           isAuthenticated: true,
           isLoading: false,
-          user: { userId: 'PC002', userName: '테스트 사용자', sysPlantCd: 'ADMIN' },
+          user,
           signIn: vi.fn(),
           signOut: vi.fn(),
         }}
@@ -53,7 +62,32 @@ describe('ClientSidebar', () => {
     renderSidebar();
 
     expect(screen.getByText('테스트 사용자')).toBeInTheDocument();
-    expect(screen.getByText('ADMIN')).toBeInTheDocument();
+    expect(screen.getByText('관리자')).toBeInTheDocument();
+  });
+
+  it('shows staff when auth/me only has role: staff', () => {
+    renderSidebar('/client/main', {
+      userId: 'staff001',
+      userName: '스태프 사용자',
+      role: 'staff',
+      sysPlantCd: 'ADMIN',
+    });
+
+    expect(screen.getByText('스태프 사용자')).toBeInTheDocument();
+    expect(screen.getByText('스태프')).toBeInTheDocument();
+  });
+
+  it('uses staffRole before role for the client role label', () => {
+    renderSidebar('/client/main', {
+      userId: 'owner001',
+      userName: '관리자 사용자',
+      role: 'STAFF',
+      staffRole: '01',
+      sysPlantCd: 'ADMIN',
+    });
+
+    expect(screen.getByText('관리자 사용자')).toBeInTheDocument();
+    expect(screen.getByText('관리자')).toBeInTheDocument();
   });
 
   it('shows all top-level menus while keeping unmatched groups folded', () => {

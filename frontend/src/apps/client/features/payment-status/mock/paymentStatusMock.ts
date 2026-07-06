@@ -9,8 +9,9 @@ import type { PaymentInfoMasterResponse } from '@/generated/types/paymentInfoMas
  * `PaymentInfoDetailResponse`에는 마스터를 가리키는 별도 필드(linkSysId 등)가 없어,
  * 각 디테일 항목의 `sysId`를 대응하는 마스터 행의 `sysId`와 동일하게 맞춰 매칭한다고 가정한다.
  *
- * `items`는 "주문 메뉴 X 수량 ( 옵션 ) 금액" 형식의 줄을 줄바꿈으로 이어붙인 문자열이다.
- * 화면에서는 별도 가공 없이 줄바꿈 그대로 표시해 항목별 한 줄 리스트로 보이게 한다.
+ * `items`는 백엔드에서 문자열로 내려온다. 운영 응답은 JSON 배열 문자열일 수 있고, 기존 mock처럼
+ * "주문 메뉴 X 수량 ( 옵션 ) 금액" 형식의 줄바꿈 문자열일 수도 있다.
+ * 화면은 JSON 배열 문자열이면 카드 리스트로, 일반 문자열이면 줄 단위 fallback 리스트로 표시한다.
  * `cancelReason`/`cancelDescription`은 결제완료(PAID) 건에만 의미가 있다 — 미결제/식사중 건은
  * 화면에서 항상 "-"로 표시하므로(`PaymentStatusDetailForm` 참고) 값이 있어도 노출되지 않는다.
  * `paymentType`(결제 수단)도 결제완료 건에만 의미가 있어 미결제·식사중 건은 `'-'`로 둔다
@@ -77,7 +78,8 @@ export const PAYMENT_STATUS_DETAIL_MOCK: PaymentInfoDetailResponse[] = [
   {
     sysId: 'payment-001',
     orderNum: 1001,
-    items: '쌀국수 X 1 ( 곱배기 x1 , 고기추가 x1 , 국물많이 ) 14,900원\n반미 X 1 ( 고수 x1 ) 6,900원',
+    items:
+      '[{"menuName":"쌀국수","qty":1,"price":14900,"totalPrice":14900,"paymentYn":"Y","options":[{"optionName":"곱배기","qty":1,"price":1000,"totalPrice":1000},{"optionName":"고기추가","qty":1,"price":2000,"totalPrice":2000}]},{"menuName":"반미","qty":1,"price":6900,"totalPrice":6900,"paymentYn":"Y","options":[{"optionName":"고수","qty":1,"price":0,"totalPrice":0}]}]',
     orderStatus: 'PAID',
     cancelReason: '',
     cancelDescription: '',

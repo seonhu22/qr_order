@@ -6,36 +6,19 @@ import { TextInput } from '@/shared/components/input';
 import { EditConfirmModal, SimpleDefaultModal } from '@/shared/components/modal';
 import { StoreInfoFormCard } from '@/apps/client/features/store-info/components/StoreInfoFormCard';
 import {
-  STORE_INFO_MOCK,
-  STORE_INFO_MOCK_ROWS,
-} from '@/apps/client/features/store-info/mock/storeInfoMock';
+  EMPTY_STORE_INFO,
+  mapStoreInfoResponseToForm,
+  toStoreInfoRequest,
+} from '@/apps/client/features/store-info/api/storeInfoRequestMapper';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import type { StoreInfo, StoreInfoFieldKey } from '@/apps/client/features/store-info/types';
 import {
   pwdChk,
+  useGetStoreInfo,
   useSaveStoreInfo,
 } from '@/generated/store-manage-controller/store-manage-controller';
-import type { LocalTime } from '@/generated/types/localTime';
 import type { StoreInfoRequest } from '@/generated/types/storeInfoRequest';
-
-function parseTime(time: string): LocalTime {
-  const [h, m] = time.split(':').map(Number);
-  return { hour: h ?? 0, minute: m ?? 0 };
-}
-
-function toStoreInfoRequest(values: StoreInfo): StoreInfoRequest {
-  return {
-    sysId: STORE_INFO_MOCK_ROWS[0]?.sysId,
-    storeName: values.storeName,
-    address: values.address,
-    phoneNumber: Number(values.contactPhone.replace(/[^0-9]/g, '')) || undefined,
-    emergencyPhoneNumber: Number(values.emergencyPhone.replace(/[^0-9]/g, '')) || undefined,
-    email: values.email,
-    openTime: values.businessHoursStart ? parseTime(values.businessHoursStart) : undefined,
-    closeTime: values.businessHoursEnd ? parseTime(values.businessHoursEnd) : undefined,
-  };
-}
 
 type NoticeState = { title: string; description: string } | null;
 
@@ -45,7 +28,8 @@ export function StoreInfoPage() {
   const [passwordError, setPasswordError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [storeInfo, setStoreInfo] = useState<StoreInfo>(STORE_INFO_MOCK);
+  const [storeInfoSysId, setStoreInfoSysId] = useState<string | undefined>();
+  const [storeInfo, setStoreInfo] = useState<StoreInfo>(EMPTY_STORE_INFO);
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalValues, setOriginalValues] = useState<StoreInfo | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
@@ -53,10 +37,17 @@ export function StoreInfoPage() {
   const [noticeState, setNoticeState] = useState<NoticeState>(null);
 
   const setHideBreadcrumb = useClientLayoutStore((s) => s.setHideBreadcrumb);
+  const storeInfoQuery = useGetStoreInfo(undefined, {
+    query: {
+      enabled: isAuthenticated,
+    },
+  });
   const saveMutation = useSaveStoreInfo();
 
   const isDirty =
-    isEditMode && originalValues !== null && JSON.stringify(storeInfo) !== JSON.stringify(originalValues);
+    isEditMode &&
+    originalValues !== null &&
+    JSON.stringify(storeInfo) !== JSON.stringify(originalValues);
 
   usePreventLeave(isDirty);
 
@@ -64,6 +55,17 @@ export function StoreInfoPage() {
     setHideBreadcrumb(!isAuthenticated);
     return () => setHideBreadcrumb(false);
   }, [isAuthenticated, setHideBreadcrumb]);
+
+  useEffect(() => {
+    if (!isAuthenticated || isEditMode) return;
+
+    const currentStoreInfo = storeInfoQuery.data?.[0];
+    if (!currentStoreInfo) return;
+
+    setStoreInfoSysId(currentStoreInfo.sysId);
+    setStoreInfo(mapStoreInfoResponseToForm(currentStoreInfo));
+    setOriginalValues(null);
+  }, [isAuthenticated, isEditMode, storeInfoQuery.data]);
 
   const handleSubmit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
@@ -115,8 +117,20 @@ export function StoreInfoPage() {
   };
 
   const handleSaveConfirm = async () => {
+    if (!storeInfoSysId) {
+      setIsSaveConfirmOpen(false);
+      setNoticeState({
+        title: '오류',
+        description: '매장 정보 식별자를 확인하지 못했습니다. 다시 조회 후 시도해주세요.',
+      });
+      return;
+    }
+
     try {
-      await saveMutation.mutateAsync({ data: toStoreInfoRequest(storeInfo) });
+      await saveMutation.mutateAsync({
+        data: toStoreInfoRequest(storeInfo, storeInfoSysId) as StoreInfoRequest,
+      });
+      await storeInfoQuery.refetch();
       setIsSaveConfirmOpen(false);
       setIsEditMode(false);
       setOriginalValues(null);
@@ -146,7 +160,10 @@ export function StoreInfoPage() {
           title="수정하시겠습니까?"
           description="변경된 내용이 저장됩니다."
           primaryAction={{ loading: saveMutation.isPending, onClick: handleSaveConfirm }}
-          secondaryAction={{ disabled: saveMutation.isPending, onClick: () => setIsSaveConfirmOpen(false) }}
+          secondaryAction={{
+            disabled: saveMutation.isPending,
+            onClick: () => setIsSaveConfirmOpen(false),
+          }}
           onClose={() => setIsSaveConfirmOpen(false)}
         />
 

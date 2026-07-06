@@ -11,7 +11,7 @@
  */
 
 import './StoreInfoFormCard.css';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/shared/components/button';
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { TextInput } from '@/shared/components/input';
@@ -38,9 +38,12 @@ export function StoreInfoFormCard({
 }: StoreInfoFormCardProps) {
   const [errors, setErrors] = useState<StoreInfoErrors>({});
 
-  useEffect(() => {
-    if (!isEditMode) setErrors({});
-  }, [isEditMode]);
+  const handleToggleEditMode = (next: boolean) => {
+    if (!next) {
+      setErrors({});
+    }
+    onToggleEditMode(next);
+  };
 
   const handleSave = () => {
     const nextErrors: StoreInfoErrors = {};
@@ -84,7 +87,7 @@ export function StoreInfoFormCard({
           label="정보 수정"
           size="sm"
           checked={isEditMode}
-          onChange={onToggleEditMode}
+          onChange={handleToggleEditMode}
         />
       </header>
 

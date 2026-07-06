@@ -49,6 +49,7 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
   const [businessRepName, setBusinessRepName] = useState('');
   const [openDate, setOpenDate] = useState('');
   const [businessError, setBusinessError] = useState('');
+  const [businessVerificationBypassed, setBusinessVerificationBypassed] = useState(false);
 
   const [signupId, setSignupId] = useState('');
   const [idCheckStatus, setIdCheckStatus] = useState<'idle' | 'available' | 'taken'>('idle');
@@ -76,6 +77,7 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
         onSuccess: (data) => {
           if (data.success) {
             setBusinessError('');
+            setBusinessVerificationBypassed(false);
             modal.showSuccess({
               title: '인증 완료',
               description: data.message ?? '사업자 인증이 완료되었습니다.',
@@ -102,6 +104,7 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
               '[QA bypass] 사업자 인증 400 응답 우회. VITE_BYPASS_BUSINESS_VERIFICATION=true',
             );
             setBusinessError('');
+            setBusinessVerificationBypassed(true);
             modal.showSuccess({
               title: 'QA 모드',
               description:
@@ -294,7 +297,7 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
       signupPwConfirm,
       email,
       emailVerifyCode,
-    });
+    }, { businessVerificationBypassed });
     if (isSignupNewUserValidationError(request)) {
       setSignupError(request.message);
       return;
@@ -308,6 +311,7 @@ export function useClientSignupFlow({ modal, goToStep }: UseClientSignupFlowPara
     setBusinessRepName('');
     setOpenDate('');
     setBusinessError('');
+    setBusinessVerificationBypassed(false);
     setSignupId('');
     setIdCheckStatus('idle');
     setSignupPw('');

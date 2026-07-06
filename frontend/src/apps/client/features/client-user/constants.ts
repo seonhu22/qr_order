@@ -9,10 +9,15 @@ export const CLIENT_USER_AUTHORITY_LABELS: Record<string, string> = {
   STAFF: '스태프',
 };
 
+export function getClientUserAuthorityLabel(authorityCode: string) {
+  if (authorityCode === '01') return CLIENT_USER_AUTHORITY_LABELS.ADMIN;
+  return CLIENT_USER_AUTHORITY_LABELS.STAFF;
+}
+
 /**
  * 권한 선택 콤보박스 옵션 — 등록/수정 모달에서 사용
  */
 export const CLIENT_USER_AUTHORITY_OPTIONS = [
-  { value: 'ADMIN', label: CLIENT_USER_AUTHORITY_LABELS.ADMIN },
-  { value: 'STAFF', label: CLIENT_USER_AUTHORITY_LABELS.STAFF },
+  { value: '01', label: CLIENT_USER_AUTHORITY_LABELS.ADMIN },
+  { value: '02', label: CLIENT_USER_AUTHORITY_LABELS.STAFF },
 ];

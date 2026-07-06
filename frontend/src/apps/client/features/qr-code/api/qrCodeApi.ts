@@ -13,8 +13,11 @@ import type { QrCodeRow } from '../types';
 
 export type QrCodeItem = {
   sysId?: string;
+  linkSysId?: string;
   tableNum?: number;
-  remark?: string;
+  description?: string;
+  url?: string;
+  useYn?: string;
 };
 
 export type QrCodeResponse = QrCodeItem;
@@ -29,8 +32,11 @@ export function mapToQrCodeModel(item: QrCodeResponse): QrCodeRow {
   return {
     id: item.sysId ?? `qr-code-${item.tableNum ?? Date.now()}`,
     sysId: item.sysId,
+    linkSysId: item.linkSysId,
+    url: item.url ?? item.sysId,
+    useYn: item.useYn ?? 'Y',
     tableNum: item.tableNum != null ? String(item.tableNum) : '',
-    remark: item.remark ?? '',
+    remark: item.description ?? '',
     isNew: false,
   };
 }
@@ -38,8 +44,11 @@ export function mapToQrCodeModel(item: QrCodeResponse): QrCodeRow {
 export function mapToQrCodePayload(row: QrCodeRow): QrCodeItem {
   return {
     sysId: row.sysId,
+    linkSysId: row.linkSysId,
     tableNum: row.tableNum ? Number(row.tableNum) : undefined,
-    remark: row.remark,
+    description: row.remark,
+    url: row.url,
+    useYn: row.useYn ?? 'Y',
   };
 }
 
@@ -81,14 +90,14 @@ export function hasQrCodeChanges(request: QrCodeRequest) {
 
 function getQrCodeList() {
   return httpClient<QrCodeResponse[]>({
-    url: '/api/client/store_manage/table_qr/search',
+    url: '/api/client/store_manage/qr_code/search',
     method: 'GET',
   });
 }
 
 function saveQrCode(request: QrCodeRequest) {
   return httpClient<{ success: boolean }>({
-    url: '/api/client/store_manage/table_qr/save',
+    url: '/api/client/store_manage/qr_code/save',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: request,

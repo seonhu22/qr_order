@@ -201,6 +201,27 @@ export function SelectInput({
     return '';
   })();
 
+  const updateDropdownPosition = () => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
+    setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
+  };
+
+  const openDropdown = () => {
+    updateDropdownPosition();
+    setHighlightedIndex(0);
+    setOpen(true);
+  };
+
+  const closeDropdown = () => {
+    setOpen(false);
+    setSearch('');
+    setHighlightedIndex(-1);
+  };
+
   /* =====================================================
    * 외부 클릭 시 드롭다운 닫기 (portal dropdownRef 포함)
    * ===================================================== */
@@ -212,6 +233,7 @@ export function SelectInput({
       ) {
         setOpen(false);
         setSearch('');
+        setHighlightedIndex(-1);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -226,51 +248,22 @@ export function SelectInput({
   }, [open, searchable]);
 
   /* =====================================================
-   * 화면 하단 여백 부족 시 드롭다운을 위로 열기 + 포털 위치 계산
-   * ===================================================== */
-  useEffect(() => {
-    if (!open || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
-    setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
-  }, [open]);
-
-  /* =====================================================
    * 스크롤 시 드롭다운 닫기
    * ===================================================== */
   useEffect(() => {
     if (!open) return;
-    const close = () => { setOpen(false); setSearch(''); };
+    const close = () => closeDropdown();
     window.addEventListener('scroll', close, true);
     return () => window.removeEventListener('scroll', close, true);
   }, [open]);
 
-  /* =====================================================
-   * 키보드 네비게이션 — 하이라이트 인덱스 관리
-   * ===================================================== */
-
-  // 드롭다운 닫힐 때 초기화
-  useEffect(() => {
-    if (!open) setHighlightedIndex(-1);
-  }, [open]);
-
-  // 드롭다운 열릴 때 선택된 항목으로 초기화
-  useEffect(() => {
-    if (!open) return;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // 검색어 변경 시 첫 번째 항목으로 초기화
-  useEffect(() => {
-    if (open) setHighlightedIndex(0);
-  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // 하이라이트된 항목 스크롤
   useEffect(() => {
     if (!open || highlightedIndex < 0) return;
-    listRef.current?.querySelector('[data-highlighted]')?.scrollIntoView({ block: 'nearest' });
+    const highlightedElement = listRef.current?.querySelector('[data-highlighted]');
+    if (highlightedElement instanceof HTMLElement && 'scrollIntoView' in highlightedElement) {
+      highlightedElement.scrollIntoView({ block: 'nearest' });
+    }
   }, [highlightedIndex, open]);
 
   useEffect(() => {
@@ -290,22 +283,18 @@ export function SelectInput({
     if (disabled || readOnly || loading) return;
     // 열기 직전에 위치를 동기적으로 미리 계산해 두어,
     // 드롭다운 첫 렌더부터 올바른 위치에 표시되도록 한다.
-    if (!open && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      setDropUp(spaceBelow < 260 && spaceAbove > spaceBelow);
-      setAnchorRect({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
+    if (!open) {
+      openDropdown();
+      return;
     }
-    setOpen((prev) => !prev);
+    closeDropdown();
   };
 
   const handleSelect = (opt: SelectOption) => {
     if (opt.disabled) return;
     if (controlledValue === undefined) setInternalValue(opt.value);
     onChange?.(opt.value);
-    setOpen(false);
-    setSearch('');
+    closeDropdown();
   };
 
   /** 드롭다운 키보드 네비게이션 */
@@ -314,7 +303,7 @@ export function SelectInput({
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (!disabled && !readOnly && !loading) setOpen(true);
+        if (!disabled && !readOnly && !loading) openDropdown();
       }
       return;
     }
@@ -351,8 +340,7 @@ export function SelectInput({
         }
         break;
       case 'Escape':
-        setOpen(false);
-        setSearch('');
+        closeDropdown();
         containerRef.current?.querySelector('button')?.focus();
         break;
     }
@@ -376,10 +364,7 @@ export function SelectInput({
   }));
 
   // 화면 표시 순서와 동일한 flat 배열 — 키보드 네비게이션 인덱스 기준
-  const allDisplayed = useMemo(
-    () => [...ungrouped, ...grouped.flatMap(({ items }) => items)],
-    [ungrouped, grouped],
-  );
+  const allDisplayed = [...ungrouped, ...grouped.flatMap(({ items }) => items)];
 
   /* =====================================================
    * 렌더링
@@ -475,7 +460,10 @@ export function SelectInput({
                   type="text"
                   placeholder="검색..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setHighlightedIndex(0);
+                  }}
                   className="select-dropdown__search-input"
                   aria-label="옵션 검색"
                 />

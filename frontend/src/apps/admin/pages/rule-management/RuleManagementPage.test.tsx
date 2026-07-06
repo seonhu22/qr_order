@@ -235,7 +235,7 @@ describe('RuleManagementPage', () => {
     });
     fireEvent.click(within(editorDialog).getByRole('button', { name: '확인' }));
 
-    expect(screen.getByRole('dialog', { name: '수정된 내용을 저장하시겠습니까?' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '수정하시겠습니까?' })).toBeInTheDocument();
   });
 
   it('deletes checked master rows after delete confirmation', async () => {

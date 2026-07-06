@@ -74,7 +74,6 @@ export function InquiryManagementPage() {
             placeholder="문의 내용을 입력하세요"
             onChange={(e) => actions.changeEditingField('content', e.target.value)}
           />
-          {/* 첨부파일 업로드 연동은 아직 미구현 — api/inquiryApi.ts의 buildCreateInquiryRequest 주석 참고 */}
           <InputWrapper label="첨부파일" inputId="inquiry-create-file">
             <FileInputGroup
               variant="button"

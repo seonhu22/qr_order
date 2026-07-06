@@ -27,9 +27,10 @@ public class EmailValidService {
 
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setTo(List.of(email));
-        emailRequest.setSubject("[QROrder] 이메일 인증");
-        emailRequest.setBody("아래 인증 코드를 입력해주세요.\n\n" +
+        emailRequest.setSubject("[QR Order] 이메일 인증 코드");
+        emailRequest.setBody("QR Order 이메일 인증 요청으로 발송된 인증 코드입니다.\n\n" +
                 "인증 코드: " + validCode + "\n\n" +
+                "본인이 요청하지 않았다면 이 메일을 무시해주세요.\n" +
                 "본 메일은 발신 전용입니다.");
 
         emailService.sendEmail(emailRequest, userId, sysPlantCd);
@@ -49,9 +50,10 @@ public class EmailValidService {
 
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setTo(List.of(email));
-        emailRequest.setSubject("[QROrder] 비밀번호 재설정 인증");
-        emailRequest.setBody("아래 인증 코드를 입력해주세요.\n\n" +
+        emailRequest.setSubject("[QR Order] 비밀번호 재설정 인증 코드");
+        emailRequest.setBody("QR Order 비밀번호 재설정 요청으로 발송된 인증 코드입니다.\n\n" +
                 "인증 코드: " + validCode + "\n\n" +
+                "본인이 요청하지 않았다면 이 메일을 무시해주세요.\n" +
                 "본 메일은 발신 전용입니다.");
         emailService.sendEmail(emailRequest, userId, sysPlantCd);
 

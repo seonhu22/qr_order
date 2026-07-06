@@ -79,7 +79,7 @@
     <update id="resetPwd">
         update sys_user set
             user_password = #{tempPwd},
-            and init_yn = 'N'
+            init_yn = 'N'
         where 1=1
         and sys_id = #{sysId}
     </update>
@@ -89,7 +89,7 @@
             count(*) > 0
         from sys_user
         where 1=1
-        and user_id = #{clientUserRequest.userId}
+        and user_id = #{userId}
         and delete_yn = 'N'
     </select>
 

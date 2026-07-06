@@ -63,7 +63,7 @@
                 menu_option_name = #{item.menuOptionName} ,
                 menu_option_price = #{item.menuOptionPrice} ,
                 menu_description = #{item.menuDescription} ,
-                maximum_num #{item.maximumNum} ,
+                maximum_num = #{item.maximumNum} ,
                 use_yn = #{item.useYn} ,
                 ord_no = #{item.ordNo} ,
                 modify_datetime = now(),

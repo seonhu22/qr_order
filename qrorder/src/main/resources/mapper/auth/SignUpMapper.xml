@@ -17,16 +17,16 @@
             reg_num
         )
         values (
-            #{signUpRequest.sysId},
-            #{signUpRequest.businessRegiNum},
-            #{signUpRequest.plantNm},
+            #{sysId},
+            #{businessRegiNum},
+            #{plantNm},
             'Y',
             'N',
             now(),
-            #{signUpRequest.userId},
-            #{signUpRequest.userNm},
-            #{signUpRequest.phoneNumber},
-            #{signUpRequest.businessRegiNum}
+            #{userId},
+            #{userNm},
+            #{phoneNumber},
+            #{businessRegiNum}
         )
     </insert>
 
@@ -43,21 +43,23 @@
             delete_yn,
             insert_user_id ,
             insert_datetime,
-            sys_plant_cd
+            plant_cd,
+            user_role
         )
         values (
-            #{signUpRequest.sysId},
-            #{signUpRequest.userId},
-            #{signUpRequest.userNm},
-            #{signUpRequest.userPassword},
-            #{signUpRequest.email} ,
+            #{sysId},
+            #{userId},
+            #{userNm},
+            #{password},
+            #{email} ,
             'Y',
             'N',
             0,
             'N',
             #{userId},
             now(),
-            #{signUpRequest.businessRegiNum}
+            #{businessRegiNum},
+            '01'
         )
     </insert>
 

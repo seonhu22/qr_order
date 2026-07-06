@@ -2127,6 +2127,7 @@ export interface components {
             /** Format: int32 */
             width?: number;
             tableType?: string;
+            objectType?: string;
             /** Format: int32 */
             xcoordinate?: number;
             /** Format: int32 */
@@ -2415,6 +2416,7 @@ export interface components {
             useYn?: string;
             fileUlid?: string;
             insertUserId?: string;
+            insertUserNm?: string;
             insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
@@ -2459,6 +2461,7 @@ export interface components {
             /** Format: int32 */
             width?: number;
             tableType?: string;
+            objectType?: string;
             /** Format: int32 */
             xcoordinate?: number;
             /** Format: int32 */
@@ -2486,7 +2489,6 @@ export interface components {
             useYn?: string;
         };
         SettlementRequest: {
-            paymentType?: string;
             /** Format: date */
             searchStartDate?: string;
             /** Format: date */
@@ -4906,16 +4908,14 @@ export interface operations {
     };
     getSettlement: {
         parameters: {
-            query?: never;
+            query: {
+                settlementRequest: components["schemas"]["SettlementRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SettlementRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
