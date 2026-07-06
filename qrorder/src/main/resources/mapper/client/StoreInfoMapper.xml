@@ -18,7 +18,7 @@
             address ,
             phone_number ,
             emergency_phone_number ,
-            (select email from sys_user where user_id = #{userId}) as email ,
+            email_url as email ,
             open_time ,
             close_time
         from sys_plant sp
@@ -36,7 +36,7 @@
             address = #{updateItems.address} ,
             phone_number = #{updateItems.phoneNumber} ,
             emergency_phone_number = #{updateItems.emergencyPhoneNumber} ,
-            email = #{updateItems.email} ,
+            email_url = #{updateItems.email} ,
             open_time = #{updateItems.openTime} ,
             close_time = #{updateItems.closeTime} ,
             modify_datetime = now(),

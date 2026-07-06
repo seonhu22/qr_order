@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -18,8 +19,8 @@ public class PaymentInfoMasterService {
     private final PaymentInfoMasterMapper paymentInfoMasterMapper;
 
     public List<PaymentInfoMasterResponse> getPaymentInfoMaster(String paymentStatus,
-                                                                    String startDate,
-                                                                    String endDate,
+                                                                    LocalDate startDate,
+                                                                    LocalDate endDate,
                                                                     String sysPlantCd) {
 
         return paymentInfoMasterMapper.getPaymentInfoMaster(paymentStatus, startDate, endDate, sysPlantCd);

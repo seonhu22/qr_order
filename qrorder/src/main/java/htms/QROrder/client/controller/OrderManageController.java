@@ -9,6 +9,7 @@ import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +28,8 @@ public class OrderManageController {
     // 주문 이력 조회
     @GetMapping("/history/search")
     public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus,
-                                                @RequestParam LocalDate startDate,
-                                                @RequestParam LocalDate endDate) {
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
 
         return orderHistoryService.getOrderHistory(orderStatus, startDate, endDate);
     }

@@ -60,7 +60,9 @@ public class MenuDetailService {
             delMenuDetail(delItems, userId, sysPlantCd, menuCd);
         }
 
-        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        if (fileRequest != null && (!fileRequest.getNewItems().isEmpty() || !fileRequest.getUpdateItems().isEmpty() || !fileRequest.getDelItems().isEmpty())) {
+            fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        }
     }
 
     private void newMenuDetail(List<MenuDetailItem> newItems,
@@ -70,7 +72,9 @@ public class MenuDetailService {
 
         newItems.forEach(item -> {
             String ULID = UlidCreator.getMonotonicUlid().toString();
+            String fileULID = UlidCreator.getMonotonicUlid().toString();
             item.setSysId(ULID);
+            item.setFileUlid(fileULID);
         });
 
         auditService.insertNewAuditTrailData(newItems, menuCd, "store_menu_detail", userId, sysPlantCd);
