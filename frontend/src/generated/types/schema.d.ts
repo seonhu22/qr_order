@@ -2129,9 +2129,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2463,9 +2463,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
