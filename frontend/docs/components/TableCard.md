@@ -256,6 +256,23 @@ const headerActions = (
 >   <TableBodyRenderer ... />
 > </div>
 > ```
+>
+> **목록 줄이 항상 맨 뒤에 추가되는 경우** (`OrderStatusManagementPage`의 "메뉴 추가" 미리보기/주문 목록 등)
+> `selectedRowId` 같은 선택 상태가 따로 없고 새 항목이 항상 배열 맨 뒤에 붙는다면, `is-selected` 행을 찾는 대신
+> 컨테이너의 `lastElementChild`를 스크롤 대상으로 쓴다. 길이가 **늘었을 때만**(취소/삭제로 줄 때는 제외) 스크롤한다.
+>
+> ```tsx
+> const listRef = useRef<HTMLDivElement>(null);
+> const prevCountRef = useRef(0);
+>
+> useEffect(() => {
+>   const container = listRef.current;
+>   const prevCount = prevCountRef.current;
+>   prevCountRef.current = items.length;
+>   if (!container || items.length <= prevCount) return;
+>   container.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+> }, [items]);
+> ```
 
 > **행삭제 후 선택 이동 규칙** — 추가일: 2026-06-11
 >

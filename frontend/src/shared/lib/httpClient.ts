@@ -67,20 +67,23 @@ async function readErrorResponse(response: Response): Promise<{ message: string;
 }
 
 export const httpClient = async <T>(
-  { url, method, params, data, headers, signal }: HttpClientConfig,
+  { url, method, params, data, headers, signal, responseType }: HttpClientConfig,
   _options?: unknown,
 ): Promise<T> => {
   const searchParams = params
     ? '?' + new URLSearchParams(params as Record<string, string>).toString()
     : '';
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
 
   const response = await fetch(`${url}${searchParams}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers: isFormData
+      ? headers
+      : {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+    body: data !== undefined ? (isFormData ? data : JSON.stringify(data)) : undefined,
     credentials: 'include',
     signal,
   });
@@ -97,6 +100,10 @@ export const httpClient = async <T>(
 
   if (response.status === 204) {
     return undefined as T;
+  }
+
+  if (responseType === 'blob') {
+    return response.blob() as Promise<T>;
   }
 
   const text = await response.text();

@@ -106,9 +106,7 @@ describe('NoticeManagePage', () => {
     await userEvent.type(screen.getByDisplayValue('점검 공지'), ' 수정');
     fireEvent.click(screen.getByRole('button', { name: '확인' }));
 
-    const saveConfirmDialog = await screen.findByRole('dialog', {
-      name: '수정된 내용을 저장하시겠습니까?',
-    });
+    const saveConfirmDialog = await screen.findByRole('dialog', { name: '수정하시겠습니까?' });
     fireEvent.click(within(saveConfirmDialog).getByRole('button', { name: '확인' }));
 
     expect(await screen.findByText('저장되었습니다.')).toBeInTheDocument();

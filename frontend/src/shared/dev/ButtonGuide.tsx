@@ -3,7 +3,7 @@
  *
  * @description
  * - 로컬 개발 전용 미리보기 페이지 (/dev/button)
- * - 10가지 변형 × 3가지 크기 × 7가지 상태 × LinkButton 예시
+ * - 12가지 변형 × 3가지 크기 × 7가지 상태 × LinkButton 예시
  *
  * @module dev/ButtonGuide
  */
@@ -29,6 +29,7 @@ import {
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 
+const SEGMENT_SLIDE_OPTIONS = ['작게', '보통', '크게'] as const;
 
 /* =====================================================
  * 가이드 레이아웃 헬퍼
@@ -88,15 +89,14 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
  * 흰 배경은 인디케이터가 담당하고, 버튼 자체의 선택 배경은 투명 처리한다.
  */
 function SegmentSlideDemo() {
-  const options = ['작게', '보통', '크게'] as const;
-  const [value, setValue] = useState<typeof options[number]>('보통');
+  const [value, setValue] = useState<typeof SEGMENT_SLIDE_OPTIONS[number]>('보통');
   const groupRef = useRef<HTMLDivElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
     const groupEl = groupRef.current;
     if (!groupEl) return;
-    const index = options.indexOf(value);
+    const index = SEGMENT_SLIDE_OPTIONS.indexOf(value);
     const buttonEl = groupEl.querySelectorAll('button')[index];
     if (!buttonEl) return;
     const groupRect = groupEl.getBoundingClientRect();
@@ -130,7 +130,7 @@ function SegmentSlideDemo() {
           width: indicatorStyle.width,
         }}
       />
-      {options.map((label) => (
+      {SEGMENT_SLIDE_OPTIONS.map((label) => (
         <Button
           key={label}
           variant="segment"
@@ -202,7 +202,7 @@ export default function ButtonGuide() {
       </Section>
 
       {/* ── 1. 변형(Type) ── */}
-      <Section title="변형 (Variant)" desc="10가지 버튼 변형 — MD 사이즈 기준">
+      <Section title="변형 (Variant)" desc="12가지 버튼 변형 — MD 사이즈 기준">
         <Row label="primary">
           <Button variant="primary" size="md">저장</Button>
           <Button variant="primary" size="md" leftIcon={<Icon id="i-plus" size={15} />}>신규 등록</Button>
@@ -211,6 +211,14 @@ export default function ButtonGuide() {
         <Row label="secondary">
           <Button variant="secondary" size="md">취소</Button>
           <Button variant="secondary" size="md" leftIcon={<Icon id="i-download" size={15} />}>내보내기</Button>
+        </Row>
+        <Row label="tinted — 옅은 브랜드 배경 (모달 본문 안 가벼운 추가 액션, 예: 메뉴 추가)">
+          <Button variant="tinted" size="sm" leftIcon={<Icon id="i-plus" size={13} />}>메뉴 추가</Button>
+          <Button variant="tinted" size="md" leftIcon={<Icon id="i-plus" size={15} />}>메뉴 추가</Button>
+        </Row>
+        <Row label="neutral — 진한 슬레이트 솔리드 (표/리스트 줄 단위 취소 등 톤다운된 보조 액션)">
+          <Button variant="neutral" size="sm">취소</Button>
+          <Button variant="neutral" size="md">취소</Button>
         </Row>
         <Row label="outline">
           <Button variant="outline" size="md">초기화</Button>
@@ -374,7 +382,7 @@ export default function ButtonGuide() {
             disabled — 전체 변형
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {(['primary', 'secondary', 'outline', 'ghost', 'danger'] as ButtonVariant[]).map((v) => (
+            {(['primary', 'secondary', 'outline', 'ghost', 'danger', 'tinted', 'neutral'] as ButtonVariant[]).map((v) => (
               <Button key={v} variant={v} size="md" disabled>{v}</Button>
             ))}
           </div>

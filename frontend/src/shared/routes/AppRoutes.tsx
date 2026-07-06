@@ -4,6 +4,8 @@ import type { RouteObject } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
+import { ConsumerOrderPage } from '@/apps/consumer/pages/order/ConsumerOrderPage';
+import { QrEntryPage } from '@/apps/consumer/pages/qr-entry/QrEntryPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
@@ -59,6 +61,10 @@ function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: 
   return isAuthenticated && !isPasswordChangeRequired ? '/client/main' : '/client/login';
 }
 
+function isPublicStandalonePath(pathname: string) {
+  return isLoginPath(pathname) || pathname.startsWith('/qr/') || pathname === '/consumer/order';
+}
+
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
@@ -96,6 +102,10 @@ function AppRoutes() {
     ...publicClientRoutes,
     ...withProtectedElement(protectedClientRoutes),
 
+    /* ── QR 소비자 진입 라우트 (인증 불필요) ── */
+    { path: '/qr/:url', element: <QrEntryPage /> },
+    { path: '/consumer/order', element: <ConsumerOrderPage /> },
+
     /* ── 개발 전용 가이드 (인증 불필요) ── */
     ...devRoutes,
 
@@ -107,7 +117,7 @@ function AppRoutes() {
     },
   ]);
 
-  if (isLoading && !isLoginPath(location.pathname)) {
+  if (isLoading && !isPublicStandalonePath(location.pathname)) {
     return <LoadingScreen />;
   }
 

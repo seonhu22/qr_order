@@ -202,6 +202,22 @@
             <path d="M4 11H20V17C20 17.5523 19.5523 18 19 18H5C4.44772 18 4 17.5523 4 17V11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M6 18V21M18 18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </symbol>
+        <!-- 계단 -->
+        <symbol id="i-stairs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M3 21V17H7V13H11V9H15V5H19V21H3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 엘리베이터 -->
+        <symbol id="i-elevator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M4 3H20V21H4V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 8L8 10L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 8L16 10L14 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <!-- 흡연실 -->
+        <symbol id="i-smoking" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M2 15H18V19H2V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 15V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 15C19 13 21 12 19 10C17 8 21 7 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
         <!-- 드래그 핸들 -->
         <symbol id="i-drag-handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
             <circle cx="9" cy="6" r="1.5" fill="currentColor"/>
@@ -371,6 +387,14 @@
         <symbol id="i-trend-up" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 12" fill="none">
             <path d="M1 11L7 5L11 9L19 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M15 1H19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+
+        <!-- 확장(전체 보기) - 네 모서리 화살표, Figma 소스 없이 직접 그린 예외 케이스 -->
+        <symbol id="i-expand" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path d="M9 4H4V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 4H20V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20H4V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 20H20V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </symbol>
     </defs>
 </svg>

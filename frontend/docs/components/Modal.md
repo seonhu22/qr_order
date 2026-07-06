@@ -88,6 +88,9 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
     - `EditConfirmModal`: `title="수정하시겠습니까?"` / `description="변경된 내용이 저장됩니다."`
     - 화면별 엔티티명을 넣어 문구를 다르게 만들지 않는다(예: "OOO 상세를 저장하시겠습니까?" 금지) — title과 의미가 중복되고 화면마다 문구가 달라진다.
     - 저장 완료 안내(`savedNotice`)도 기본값 "저장되었습니다."를 그대로 쓴다. 화면별로 다른 문구("저장 완료되었습니다." 등)로 덮어쓰지 않는다.
+22. 모달이 여러 겹 쌓여 있을 때(편집 모달 위에 메뉴 추가, 그 위에 옵션 추가가 또 열리는 식) ESC는 항상 가장 위(가장 나중에 열린) 모달 1개만 닫는다. `WrapperModal`이 열려 있는 인스턴스를 mount 순서대로 모듈 스코프 스택에 쌓아두고, keydown 시점에 스택 맨 위인 인스턴스만 `onClose`를 호출한다(`WrapperModal.tsx`). 그 결과 ESC를 반복해서 누르면 13번 규칙처럼 위 모달부터 한 단계씩 닫히고, dirty 경고가 있는 단계는 11번 규칙대로 경고부터 뜬다. overlay 클릭은 DOM 쌓임 순서상 항상 맨 위 오버레이만 클릭 가능해 별도 처리가 필요 없다.
+23. `.base-modal__body`는 `flex: 1 1 auto; min-height: 0; overflow-y: auto`로 본문 내부에서만 스크롤된다. 이전에는 `.base-modal`의 `overflow: hidden`이 본문과 푸터를 한 덩어리로 잘라버려서, 화면 높이가 낮거나(노트북 가로 모드 등) 본문이 길면 확인/닫기 버튼이 있는 `<footer>`까지 화면 밖으로 밀려 보이지 않는 문제가 있었다. header/footer에는 `flex-shrink: 0`을 줘서 항상 보이게 고정한다.
+    - 본문 안에서 "특정 영역은 고정하고 목록만 스크롤"하고 싶은 모달(예: 합계는 고정, 주문 목록만 스크롤)은 `.base-modal__content`부터 `flex: 1 1 auto; min-height: 0` 체인을 이어받아, 스크롤 대상 목록에 `flex: 1 1 auto; min-height: 0; overflow-y: auto`를 주면 된다. 기존에 쓰던 `max-height: min(45vh, 22rem)` 같은 vh 기반 값은 항목이 적어 공간이 남을 때 지나치게 늘어나지 않게 막는 상한선으로만 남겨두고 같이 쓴다. 적용 예시는 [`docs/page/order-status-management.md`](../page/order-status-management.md)의 "결제 처리"/"주문 수정" 항목을 참고한다.
 
 ```tsx
 <SimpleDefaultModal

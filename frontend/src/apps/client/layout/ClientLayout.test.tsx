@@ -4,8 +4,29 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '@/shared/auth/AuthContext';
+import {
+  useInsertMenuCloseAccessLog,
+  useInsertMenuOpenAccessLog,
+} from '@/generated/log-controller/log-controller';
+import { useGetMenu } from '@/generated/settings-controller/settings-controller';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { ClientLayout } from './ClientLayout';
+
+const openAccessLogMock = vi.fn();
+const closeAccessLogMock = vi.fn();
+
+vi.mock('@/generated/log-controller/log-controller', () => ({
+  useInsertMenuCloseAccessLog: vi.fn(),
+  useInsertMenuOpenAccessLog: vi.fn(),
+}));
+
+vi.mock('@/generated/settings-controller/settings-controller', () => ({
+  useGetMenu: vi.fn(),
+}));
+
+const mockedUseInsertMenuOpenAccessLog = vi.mocked(useInsertMenuOpenAccessLog);
+const mockedUseInsertMenuCloseAccessLog = vi.mocked(useInsertMenuCloseAccessLog);
+const mockedUseGetMenu = vi.mocked(useGetMenu);
 
 function createQueryClient() {
   return new QueryClient({
@@ -43,6 +64,23 @@ function renderLayout(initialPath = '/client/main') {
 
 describe('ClientLayout', () => {
   beforeEach(() => {
+    openAccessLogMock.mockReset();
+    closeAccessLogMock.mockReset();
+    mockedUseInsertMenuOpenAccessLog.mockReset();
+    mockedUseInsertMenuOpenAccessLog.mockReturnValue({
+      mutate: openAccessLogMock,
+    } as never);
+    mockedUseInsertMenuCloseAccessLog.mockReset();
+    mockedUseInsertMenuCloseAccessLog.mockReturnValue({
+      mutate: closeAccessLogMock,
+    } as never);
+    mockedUseGetMenu.mockReset();
+    mockedUseGetMenu.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as never);
     useClientLayoutStore.setState({ isSidebarOpen: false, activeSection: null });
   });
 
@@ -83,9 +121,30 @@ describe('ClientLayout', () => {
   it('shows page navigation from the current route', async () => {
     renderLayout('/client/store/info/base');
 
-    const pageNavigation = await screen.findByRole('navigation', { name: '현재 페이지 위치' });
+    const pageNavigation = await screen.findByRole('navigation', { name: '현재 위치' });
     expect(within(pageNavigation).getByText('매장')).toBeInTheDocument();
     expect(within(pageNavigation).getByText('매장 정보 관리')).toBeInTheDocument();
     expect(within(pageNavigation).getByText('매장 기본 정보')).toBeInTheDocument();
+  });
+
+  it('opens a menu access log with the client menu code for the current route', async () => {
+    renderLayout('/client/store/info/base');
+
+    await waitFor(() => {
+      expect(openAccessLogMock).toHaveBeenCalledTimes(1);
+    });
+    expect(openAccessLogMock).toHaveBeenCalledWith(
+      { params: { menuCd: 'STO_INFO_BASE' } },
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+        onError: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not open a menu access log for client routes that do not map to a menu', () => {
+    renderLayout('/client/main');
+
+    expect(openAccessLogMock).not.toHaveBeenCalled();
   });
 });

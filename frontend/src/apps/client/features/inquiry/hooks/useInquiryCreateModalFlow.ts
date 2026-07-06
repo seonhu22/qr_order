@@ -80,7 +80,7 @@ export function useInquiryCreateModalFlow({ onCreate }: UseInquiryCreateModalFlo
     }
     setIsConfirming(true);
     try {
-      await onCreate(editingRow);
+      await onCreate({ ...editingRow, fileChangeState });
       setIsSaveConfirmOpen(false);
       setIsEditorOpen(false);
       setNoticeState({ title: '알림', description: '등록되었습니다.' });

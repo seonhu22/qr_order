@@ -135,6 +135,38 @@
   box-shadow: var(--focus-ring-brand);
 }
 
+/* tinted */
+.btn--tinted {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+.btn--tinted:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+}
+.btn--tinted:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-hover);
+  color: var(--color-brand-text);
+}
+.btn--tinted:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* neutral */
+.btn--neutral {
+  background-color: var(--color-text-disabled);
+  color: var(--color-text-inverse);
+}
+.btn--neutral:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-text-tertiary);
+}
+.btn--neutral:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  filter: brightness(0.9);
+}
+.btn--neutral:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
 /* secondary */
 .btn--secondary {
   background-color: var(--color-bg-muted);

@@ -110,4 +110,18 @@ describe('AppRoutes auth redirect', () => {
 
     expect(screen.getByText('로딩 중...')).toBeInTheDocument();
   });
+
+  it('does not block the public QR entry route while auth state is loading', () => {
+    renderRoutes('/qr/valid-id', { isLoading: true });
+
+    expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('QR 코드 인증 중')).toBeInTheDocument();
+  });
+
+  it('does not block the consumer order route while auth state is loading', () => {
+    renderRoutes('/consumer/order', { isLoading: true });
+
+    expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('소비자 주문 화면')).toBeInTheDocument();
+  });
 });

@@ -8,6 +8,13 @@
   flex: 1;
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .order-history-page {
+    gap: var(--spacing-4);
+  }
+}
+
 .order-history-page > .order-history-table {
   flex: 1;
   min-height: 0;

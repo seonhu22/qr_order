@@ -21,6 +21,8 @@ import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'reac
  * - `outline`   : 외곽선 — 조회·초기화
  * - `ghost`     : 배경 없음 — 취소·더 보기
  * - `danger`    : 빨간 배경 — 삭제·위험 액션
+ * - `tinted`    : 옅은 브랜드 배경 + 브랜드 텍스트 — 메뉴 추가처럼 본문 안에서 가볍게 강조할 추가 액션
+ * - `neutral`   : 진한 슬레이트 배경 + 흰 텍스트 — 표 안 줄 단위 취소처럼 톤다운된 보조 액션
  * - `text`      : 패딩 없는 텍스트 링크 (슬레이트)
  * - `link`      : 패딩 없는 텍스트 링크 (브랜드)
  * - `icon`      : 정사각형 아이콘 전용 버튼
@@ -34,6 +36,8 @@ export type ButtonVariant =
   | 'outline'
   | 'ghost'
   | 'danger'
+  | 'tinted'
+  | 'neutral'
   | 'text'
   | 'link'
   | 'icon'

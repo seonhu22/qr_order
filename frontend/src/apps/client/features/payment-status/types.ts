@@ -16,6 +16,32 @@ export type PaymentStatusDetail = {
   cancelDescription: string;
 };
 
+export type PaymentOrderOption = {
+  optionName: string;
+  qty: number;
+  price: number;
+  totalPrice: number;
+};
+
+export type PaymentOrderItem = {
+  menuName: string;
+  qty: number;
+  price: number;
+  totalPrice: number;
+  paymentYn: string;
+  options: PaymentOrderOption[];
+};
+
+export type ParsedPaymentOrderItems =
+  | {
+      kind: 'structured';
+      items: PaymentOrderItem[];
+    }
+  | {
+      kind: 'text';
+      lines: string[];
+    };
+
 export type PaymentStatusSearchParams = {
   /** "YYYY-MM-DD HH:mm:ss" */
   startDate: string;

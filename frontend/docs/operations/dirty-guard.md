@@ -23,7 +23,7 @@ usePreventLeave(isDirty);
 - `isDirty === true`인 동안만 `beforeunload`를 등록한다.
 - 저장 완료 후 `isDirty`를 `false`로 되돌리면 자동 해제된다.
 - unmount 시에도 자동으로 dirty 상태를 해제한다.
-- 페이지 안의 추가/수정 모달이 별도 dirty를 갖는다면 페이지 `isDirty`와 OR로 합친다.
+- 페이지 안의 추가/수정 모달이 별도 dirty를 갖는다면 페이지 `isDirty`와 OR로 합친다. 모달이 여러 단계로 쌓이는 화면(예: 주문 수정 → 메뉴 추가 → 옵션 추가)은 단계별 dirty를 전부 OR로 합친다 — worked example: [`page/order-status-management.md`](../page/order-status-management.md#이탈방지-주문-수정--메뉴-추가--옵션-추가).
 
 ## 메뉴/홈 이동
 

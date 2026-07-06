@@ -68,6 +68,10 @@ export function useMenuManagementPage() {
     () => (categoriesQuery.data ?? []).map(mapToMenuCategoryRow),
     [categoriesQuery.data],
   );
+  const nextCategoryOrdNo = useMemo(
+    () => Math.max(0, ...categoryRows.map((row) => row.ordNo)) + 1,
+    [categoryRows],
+  );
 
   const effectiveSelectedCategoryId =
     selectedCategoryId && categoryRows.some((row) => row.id === selectedCategoryId)
@@ -286,6 +290,7 @@ export function useMenuManagementPage() {
 
   const categoryFlow = useMenuCategoryModalFlow({
     checkedRowIds: effectiveCheckedCategoryIds,
+    nextOrdNo: nextCategoryOrdNo,
     onSaveRow: saveCategory,
     onDeleteRows: deleteCategories,
   });

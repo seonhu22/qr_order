@@ -8,6 +8,7 @@ export type MenuCategoryRow = {
   sysId?: string;
   name: string;
   useYn: 'Y' | 'N';
+  ordNo: number;
 };
 
 /**

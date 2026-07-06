@@ -3,6 +3,7 @@ import type { NoticeResponse } from '@/generated/types/noticeResponse';
 type NoticeMockRow = NoticeResponse & {
   sysId?: string;
   insertUserId?: string;
+  insertUserNm?: string;
   insertDatetime?: string;
 };
 
@@ -14,6 +15,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     startDate: '2026-04-22',
     fileUlid: 'file-uuid-notice-1',
     insertUserId: 'PC001',
+    insertUserNm: '관리자',
     insertDatetime: '2026-04-22 09:00:00',
   },
   {
@@ -23,6 +25,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     startDate: '2026-04-20',
     fileUlid: '',
     insertUserId: 'PC001',
+    insertUserNm: '관리자',
     insertDatetime: '2026-04-20 13:30:00',
   },
   {
@@ -32,6 +35,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     startDate: '2026-04-15',
     fileUlid: '',
     insertUserId: 'PC002',
+    insertUserNm: '매장관리자',
     insertDatetime: '2026-04-15 10:15:00',
   },
   {
@@ -41,6 +45,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     startDate: '2026-04-10',
     fileUlid: '',
     insertUserId: 'PC002',
+    insertUserNm: '매장관리자',
     insertDatetime: '2026-04-10 14:45:00',
   },
   {
@@ -50,6 +55,7 @@ export const NOTICE_MOCK_ROWS: NoticeMockRow[] = [
     startDate: '2026-04-05',
     fileUlid: '',
     insertUserId: 'PC003',
+    insertUserNm: '운영담당자',
     insertDatetime: '2026-04-05 08:20:00',
   },
 ];

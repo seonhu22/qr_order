@@ -9,6 +9,7 @@ export type MenuCategoryNoticeState = {
 
 type UseMenuCategoryModalFlowParams = {
   checkedRowIds: string[];
+  nextOrdNo: number;
   onSaveRow: (row: MenuCategoryRow, isCreateMode: boolean) => Promise<void>;
   onDeleteRows: () => Promise<number>;
 };
@@ -22,6 +23,7 @@ type UseMenuCategoryModalFlowParams = {
  */
 export function useMenuCategoryModalFlow({
   checkedRowIds,
+  nextOrdNo,
   onSaveRow,
   onDeleteRows,
 }: UseMenuCategoryModalFlowParams) {
@@ -48,7 +50,7 @@ export function useMenuCategoryModalFlow({
   const resetEditorErrors = () => setEditorErrors({ name: false, useYn: false });
 
   const openCreateModal = () => {
-    const blankRow: MenuCategoryRow = { id: '', name: '', useYn: 'Y' };
+    const blankRow: MenuCategoryRow = { id: '', name: '', useYn: 'Y', ordNo: nextOrdNo };
     setEditingRow(blankRow);
     setOriginalRow(blankRow);
     setIsCreateMode(true);

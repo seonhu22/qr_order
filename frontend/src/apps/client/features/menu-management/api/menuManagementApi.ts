@@ -71,6 +71,7 @@ export function mapToMenuCategoryRow(item: MenuMasterResponse): MenuCategoryRow 
     sysId: item.sysId,
     name: item.categoryName ?? '',
     useYn: item.useYn === 'N' ? 'N' : 'Y',
+    ordNo: item.ordNo ?? 0,
   };
 }
 
@@ -79,6 +80,7 @@ export function mapToMenuCategoryPayload(row: MenuCategoryRow): MenuMasterReques
     sysId: row.sysId,
     categoryName: row.name,
     useYn: row.useYn,
+    ordNo: row.ordNo,
   };
 }
 
@@ -161,6 +163,43 @@ export function hasMenuDetailChanges(request: MenuDetailRequest) {
   );
 }
 
+// 카테고리-메뉴 저장 시 json 대신 FormData 인덱스 방식으로 변경
+function appendMenuDetailItem(
+  formData: FormData,
+  fieldName: 'newItems' | 'updateItems' | 'delItems',
+  index: number,
+  item: MenuDetailItem,
+) {
+  const prefix = `${fieldName}[${index}]`;
+
+  if (item.sysId) formData.append(`${prefix}.sysId`, item.sysId);
+  if (item.linkSysId) formData.append(`${prefix}.linkSysId`, item.linkSysId);
+  if (item.menuName) formData.append(`${prefix}.menuName`, item.menuName);
+  if (item.menuPrice != null) formData.append(`${prefix}.menuPrice`, String(item.menuPrice));
+  if (item.menuDescription) formData.append(`${prefix}.menuDescription`, item.menuDescription);
+  if (item.optionUseYn) formData.append(`${prefix}.optionUseYn`, item.optionUseYn);
+  if (item.linkSysId2) formData.append(`${prefix}.linkSysId2`, item.linkSysId2);
+  if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
+  if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
+  if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
+}
+
+export function buildMenuDetailFormData(request: MenuDetailRequest): FormData {
+  const formData = new FormData();
+
+  request.newItems?.forEach((item, index) => {
+    appendMenuDetailItem(formData, 'newItems', index, item);
+  });
+  request.updateItems?.forEach((item, index) => {
+    appendMenuDetailItem(formData, 'updateItems', index, item);
+  });
+  request.delItems?.forEach((item, index) => {
+    appendMenuDetailItem(formData, 'delItems', index, item);
+  });
+
+  return formData;
+}
+
 export function useMenuCategoryQuery(searchKeyword = '') {
   return useGetMenuMaster(searchKeyword ? { searchKeyword } : undefined, {
     query: {
@@ -205,17 +244,11 @@ export function useDeleteMenuCategoriesMutation() {
   };
 }
 
-/**
- * 생성된 `useSaveMenuDetail`은 menuDetailRequest/fileRequest를 query string으로 보내
- * 중첩 객체 값이 전달되지 않는다(OpenAPI 명세상 @RequestParam로 정의됨).
- * 다른 상세 저장 API와 동일하게 JSON body로 직접 호출한다.
- */
 function saveMenuDetail(request: MenuDetailRequest) {
   return httpClient<{ success: boolean }>({
     url: '/api/client/menu_manage/menu/detail/save',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: request,
+    data: buildMenuDetailFormData(request),
   });
 }
 

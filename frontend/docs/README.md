@@ -16,7 +16,7 @@
 | [운영 원칙](./operations.md) | 상태 관리, API 호출, 리팩토링, 페이지 패턴, 레이아웃 정책의 부모 문서 |
 | [공용 컴포넌트](./components.md) | shared component 작성 규칙과 상세 컴포넌트 문서의 부모 문서 |
 | [API 코드 생성](./api-codegen.md) | OpenAPI 코드 생성, MSW 핸들러, mock 파일 기준 |
-| [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 비밀번호 정책 |
+| [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 권한 필드 기준, 비밀번호 정책 |
 | [주요 설정 파일](./config.md) | Vite, TypeScript, ESLint, Prettier, 진입점 파일 요약 |
 | [의사결정 기록](./decisions.md) | 주요 설계 결정과 ADR |
 
