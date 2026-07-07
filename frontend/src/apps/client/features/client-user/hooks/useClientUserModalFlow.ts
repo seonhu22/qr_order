@@ -15,6 +15,7 @@ export type ClientUserEditorRow = {
   userId: string;
   userName: string;
   authorityCode: string;
+  plantCd?: string;
 };
 
 export type ClientUserEditorErrors = {
@@ -45,6 +46,7 @@ function toEditorRow(row: ClientUser): ClientUserEditorRow {
     userId: row.userId,
     userName: row.userName,
     authorityCode: row.authorityCode,
+    plantCd: row.plantCd,
   };
 }
 
