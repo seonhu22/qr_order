@@ -11,4 +11,6 @@ public class AuditTrail {
     private String menuNm;
     private String auditTrailContents;
     private LocalDateTime insertDatetime;
+    private String insertUserId;
+    private String insertUserNm;
 }
