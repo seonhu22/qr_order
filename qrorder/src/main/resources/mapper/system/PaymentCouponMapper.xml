@@ -14,6 +14,12 @@
         from sys_payment_coupon spc
         where 1=1
         and delete_yn = 'N'
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (
+                coupon_cd like concat('%', #{searchKeyword}, '%') or
+                coupon_nm like concat('%', #{searchKeyword}, '%')
+            )
+        </if>
         order by sys_id desc
     </select>
 
