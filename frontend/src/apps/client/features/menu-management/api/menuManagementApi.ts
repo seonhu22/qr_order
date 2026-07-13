@@ -16,6 +16,7 @@ import { httpClient } from '@/shared/lib/httpClient';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { SelectOption } from '@/shared/components/input';
+import type { FileChangeState } from '@/shared/components/file-attachment';
 import type { EditableDetailColumn } from '@/shared/components/table/editableTableTypes';
 import type { MenuCategoryRow, MenuDetailRow, MenuDetailSchema } from '../types';
 
@@ -36,7 +37,7 @@ export const MENU_DETAIL_COLUMNS: EditableDetailColumn[] = [
   },
   {
     key: 'useYn',
-    label: '메뉴 사용',
+    label: '사용 여부',
     type: 'select',
     options: USE_YN_OPTIONS,
     className: 'common-table__col--md',
@@ -184,7 +185,40 @@ function appendMenuDetailItem(
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
 }
 
-export function buildMenuDetailFormData(request: MenuDetailRequest): FormData {
+function getDefaultFilePath(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `/${y}/${m}`;
+}
+
+// 첨부파일은 편집 중인 한 행에만 연결된다. 신규 행처럼 fileUlid가 아직 없으면
+// 파일이 필수가 아니므로 linkSysId 없이 보내고, 값이 없는 필드는 채우지 않는다.
+function appendMenuDetailFileFields(
+  formData: FormData,
+  fileUlid: string | undefined,
+  fileChangeState: FileChangeState | undefined,
+) {
+  const filePath = getDefaultFilePath();
+
+  fileChangeState?.newFiles.forEach((file, i) => {
+    formData.append(`newItems[${i}].file`, file);
+    if (fileUlid) {
+      formData.append(`newItems[${i}].linkSysId`, fileUlid);
+    }
+    formData.append(`newItems[${i}].convertFileNm`, crypto.randomUUID());
+    formData.append(`newItems[${i}].filePath`, filePath);
+    formData.append(`newItems[${i}].ordNo`, String(i + 1));
+  });
+
+  fileChangeState?.deletedFiles.forEach((file, i) => {
+    formData.append(`delItems[${i}].sysId`, file.sysId);
+  });
+}
+
+export function buildMenuDetailFormData(
+  request: MenuDetailRequest,
+  fileInfo?: { fileUlid?: string; fileChangeState?: FileChangeState },
+): FormData {
   const formData = new FormData();
 
   request.newItems?.forEach((item, index) => {
@@ -196,6 +230,8 @@ export function buildMenuDetailFormData(request: MenuDetailRequest): FormData {
   request.delItems?.forEach((item, index) => {
     appendMenuDetailItem(formData, 'delItems', index, item);
   });
+
+  appendMenuDetailFileFields(formData, fileInfo?.fileUlid, fileInfo?.fileChangeState);
 
   return formData;
 }
@@ -244,11 +280,17 @@ export function useDeleteMenuCategoriesMutation() {
   };
 }
 
-function saveMenuDetail(request: MenuDetailRequest) {
+export type SaveMenuDetailPayload = {
+  request: MenuDetailRequest;
+  fileUlid?: string;
+  fileChangeState?: FileChangeState;
+};
+
+function saveMenuDetail({ request, fileUlid, fileChangeState }: SaveMenuDetailPayload) {
   return httpClient<{ success: boolean }>({
     url: '/api/client/menu_manage/menu/detail/save',
     method: 'POST',
-    data: buildMenuDetailFormData(request),
+    data: buildMenuDetailFormData(request, { fileUlid, fileChangeState }),
   });
 }
 
@@ -256,7 +298,7 @@ export function useSaveMenuDetailsMutation() {
   const mutation = useMutation({ mutationFn: saveMenuDetail });
 
   return {
-    mutateAsync: async (request: MenuDetailRequest) => mutation.mutateAsync(request),
+    mutateAsync: async (payload: SaveMenuDetailPayload) => mutation.mutateAsync(payload),
     isPending: mutation.isPending,
   };
 }

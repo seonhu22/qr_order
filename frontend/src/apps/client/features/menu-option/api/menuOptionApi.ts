@@ -1,20 +1,21 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+  getMenuDetail,
+  getMenuMaster,
   useDelMenuOptionGroup,
   useGetMenuOptionDetail,
   useGetMenuOptionGroup,
-  useGetMenuOptionMaster,
   useNewMenuOptionGroup,
   useUpdateMenuOptionGroup,
 } from '@/generated/menu-manage-controller/menu-manage-controller';
 import { useGetAttachFile } from '@/generated/file-controller/file-controller';
+import type { MenuDetailResponse } from '@/generated/types/menuDetailResponse';
 import type { MenuOptionDetailItem } from '@/generated/types/menuOptionDetailItem';
 import type { MenuOptionDetailRequest } from '@/generated/types/menuOptionDetailRequest';
 import type { MenuOptionDetailResponse } from '@/generated/types/menuOptionDetailResponse';
 import type { MenuOptionGroupItem } from '@/generated/types/menuOptionGroupItem';
 import type { MenuOptionGroupRequest } from '@/generated/types/menuOptionGroupRequest';
 import type { MenuOptionGroupResponse } from '@/generated/types/menuOptionGroupResponse';
-import type { MenuOptionMasterResponse } from '@/generated/types/menuOptionMasterResponse';
 import { httpClient } from '@/shared/lib/httpClient';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
@@ -143,11 +144,16 @@ export function createBlankMenuOptionDetailValues(): MenuOptionDetailRow['values
   };
 }
 
-export function mapToMenuOptionMasterRow(item: MenuOptionMasterResponse): MenuOptionMasterRow {
+/**
+ * 옵션을 부여할 대상은 이미 메뉴 관리에서 저장된 실제 메뉴(`store_menu_detail`)다.
+ * `getMenuOptionMaster`(`store_menu_option_master`)는 별도 옵션 카테고리 테이블이라
+ * 여기서는 사용하지 않는다.
+ */
+export function mapToMenuOptionMasterRow(item: MenuDetailResponse): MenuOptionMasterRow {
   return {
     id: item.sysId ?? '',
     sysId: item.sysId,
-    name: item.categoryName ?? '',
+    name: item.menuName ?? '',
     useYn: item.useYn === 'N' ? 'N' : 'Y',
   };
 }
@@ -305,12 +311,29 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
   );
 }
 
+/**
+ * 메뉴 관리에서 저장된 모든 카테고리의 메뉴를 모아 옵션 부여 대상 목록으로 쓴다.
+ * 메뉴 상세 조회 API가 카테고리 단위(`masterSysId`)로만 있어, 카테고리 목록을 먼저 불러온 뒤
+ * 카테고리별 메뉴 목록을 모두 조회해 하나로 합친다.
+ */
 export function useMenuOptionMasterQuery(searchKeyword = '') {
-  return useGetMenuOptionMaster(searchKeyword ? { searchKeyword } : undefined, {
-    query: {
-      queryKey: queryKeys.menuOption.masters(searchKeyword),
-      ...queryPolicies.clientCrudList,
+  return useQuery({
+    queryKey: queryKeys.menuOption.masters(searchKeyword),
+    queryFn: async (): Promise<MenuDetailResponse[]> => {
+      const categories = await getMenuMaster();
+      const detailLists = await Promise.all(
+        (categories ?? [])
+          .filter((category) => category.sysId)
+          .map((category) => getMenuDetail(category.sysId as string)),
+      );
+      const menus = detailLists.flat();
+
+      if (!searchKeyword) return menus;
+
+      const keyword = searchKeyword.toLowerCase();
+      return menus.filter((menu) => menu.menuName?.toLowerCase().includes(keyword));
     },
+    ...queryPolicies.clientCrudList,
   });
 }
 

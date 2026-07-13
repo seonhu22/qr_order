@@ -67,11 +67,6 @@ import {
   MENU_DETAIL_MOCK_ROWS,
 } from '../apps/client/features/menu-management/mock/menuManagementMock';
 import {
-  MENU_OPTION_DETAIL_MOCK_ROWS,
-  MENU_OPTION_GROUP_MOCK_ROWS,
-  MENU_OPTION_MASTER_MOCK_ROWS,
-} from '../apps/client/features/menu-option/mock/menuOptionMock';
-import {
   getDelClientUserMockHandler,
   getGetStoreInfoMockHandler,
   getGetTableInfo1MockHandler,
@@ -87,9 +82,7 @@ import type { QrCodeRequest } from '../apps/client/features/qr-code/api/qrCodeAp
 import type { MenuMasterItem } from '../generated/types/menuMasterItem';
 import type { MenuMasterRequest } from '../generated/types/menuMasterRequest';
 import type { MenuDetailRequest } from '../generated/types/menuDetailRequest';
-import type { MenuOptionGroupItem } from '../generated/types/menuOptionGroupItem';
-import type { MenuOptionGroupRequest } from '../generated/types/menuOptionGroupRequest';
-import type { MenuOptionDetailRequest } from '../generated/types/menuOptionDetailRequest';
+import type { MenuDetailItem } from '../generated/types/menuDetailItem';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -494,10 +487,41 @@ const menuDetailOverrideHandler = http.get(
   },
 );
 
+/**
+ * `menuManagementApi.ts`의 `buildMenuDetailFormData`가 `newItems[0].sysId` 같은 인덱스 표기로
+ * multipart/form-data를 보내므로, JSON이 아니라 FormData를 파싱해야 한다.
+ */
+function parseMenuDetailFormData(formData: FormData): MenuDetailRequest {
+  const groups: Record<'newItems' | 'updateItems' | 'delItems', Record<number, MenuDetailItem>> = {
+    newItems: {},
+    updateItems: {},
+    delItems: {},
+  };
+  const numericFields = new Set(['menuPrice', 'ordNo']);
+
+  for (const [key, value] of formData.entries()) {
+    const match = key.match(/^(newItems|updateItems|delItems)\[(\d+)\]\.(.+)$/);
+    if (!match || typeof value !== 'string') continue;
+
+    const [, field, indexStr, prop] = match as [string, keyof typeof groups, string, string];
+    const index = Number(indexStr);
+    groups[field][index] ??= {};
+    (groups[field][index] as Record<string, unknown>)[prop] = numericFields.has(prop)
+      ? Number(value)
+      : value;
+  }
+
+  return {
+    newItems: Object.values(groups.newItems),
+    updateItems: Object.values(groups.updateItems),
+    delItems: Object.values(groups.delItems),
+  };
+}
+
 const menuDetailSaveOverrideHandler = http.post(
   '*/api/client/menu_manage/menu/detail/save',
   async ({ request }) => {
-    const body = (await request.json()) as MenuDetailRequest;
+    const body = parseMenuDetailFormData(await request.formData());
 
     body.newItems?.forEach((item) => {
       MENU_DETAIL_MOCK_ROWS.push({ ...item, sysId: `menu-${Date.now()}-${MENU_DETAIL_MOCK_ROWS.length}` });
@@ -509,99 +533,6 @@ const menuDetailSaveOverrideHandler = http.post(
     body.delItems?.forEach((item) => {
       const index = MENU_DETAIL_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
       if (index !== -1) MENU_DETAIL_MOCK_ROWS.splice(index, 1);
-    });
-
-    return HttpResponse.json({ success: true });
-  },
-);
-
-const menuOptionMasterOverrideHandler = http.get(
-  '*/api/client/menu_manage/option/master/search',
-  ({ request }) => {
-    const url = new URL(request.url);
-    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-    const filtered = keyword
-      ? MENU_OPTION_MASTER_MOCK_ROWS.filter((row) =>
-          row.categoryName?.toLowerCase().includes(keyword),
-        )
-      : MENU_OPTION_MASTER_MOCK_ROWS;
-    return HttpResponse.json(filtered);
-  },
-);
-
-const menuOptionGroupOverrideHandler = http.get(
-  '*/api/client/menu_manage/option/group/search/:masterSysId',
-  ({ params }) => {
-    const filtered = MENU_OPTION_GROUP_MOCK_ROWS.filter(
-      (row) => row.linkSysId === params.masterSysId,
-    );
-    return HttpResponse.json(filtered);
-  },
-);
-
-const menuOptionGroupNewOverrideHandler = http.post(
-  '*/api/client/menu_manage/option/group/new',
-  async ({ request }) => {
-    const body = (await request.json()) as MenuOptionGroupRequest;
-    MENU_OPTION_GROUP_MOCK_ROWS.push({
-      ...body,
-      sysId: `option-group-${Date.now()}`,
-    });
-    return HttpResponse.json({ success: true });
-  },
-);
-
-const menuOptionGroupUpdateOverrideHandler = http.post(
-  '*/api/client/menu_manage/option/group/update',
-  async ({ request }) => {
-    const body = (await request.json()) as MenuOptionGroupRequest;
-    const target = MENU_OPTION_GROUP_MOCK_ROWS.find((row) => row.sysId === body.sysId);
-    if (target) Object.assign(target, body);
-    return HttpResponse.json({ success: true });
-  },
-);
-
-const menuOptionGroupDeleteOverrideHandler = http.post(
-  '*/api/client/menu_manage/option/group/del',
-  async ({ request }) => {
-    const body = (await request.json()) as MenuOptionGroupItem[];
-    body.forEach((item) => {
-      const index = MENU_OPTION_GROUP_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
-      if (index !== -1) MENU_OPTION_GROUP_MOCK_ROWS.splice(index, 1);
-    });
-    return HttpResponse.json({ success: true });
-  },
-);
-
-const menuOptionDetailOverrideHandler = http.get(
-  '*/api/client/menu_manage/option/detail/search/:groupSysId',
-  ({ params }) => {
-    const filtered = MENU_OPTION_DETAIL_MOCK_ROWS.filter(
-      (row) => row.linkSysId === params.groupSysId,
-    );
-    return HttpResponse.json(filtered);
-  },
-);
-
-const menuOptionDetailSaveOverrideHandler = http.post(
-  '*/api/client/menu_manage/option/detail/save',
-  async ({ request }) => {
-    const body = (await request.json()) as { menuOptionDetailRequest: MenuOptionDetailRequest };
-    const { menuOptionDetailRequest: detailRequest } = body;
-
-    detailRequest.newItems?.forEach((item) => {
-      MENU_OPTION_DETAIL_MOCK_ROWS.push({
-        ...item,
-        sysId: `option-detail-${Date.now()}-${MENU_OPTION_DETAIL_MOCK_ROWS.length}`,
-      });
-    });
-    detailRequest.updateItems?.forEach((item) => {
-      const target = MENU_OPTION_DETAIL_MOCK_ROWS.find((row) => row.sysId === item.sysId);
-      if (target) Object.assign(target, item);
-    });
-    detailRequest.delItems?.forEach((item) => {
-      const index = MENU_OPTION_DETAIL_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
-      if (index !== -1) MENU_OPTION_DETAIL_MOCK_ROWS.splice(index, 1);
     });
 
     return HttpResponse.json({ success: true });
@@ -866,13 +797,6 @@ export const handlers = [
   menuCategoryDeleteOverrideHandler,
   menuDetailOverrideHandler,
   menuDetailSaveOverrideHandler,
-  menuOptionMasterOverrideHandler,
-  menuOptionGroupOverrideHandler,
-  menuOptionGroupNewOverrideHandler,
-  menuOptionGroupUpdateOverrideHandler,
-  menuOptionGroupDeleteOverrideHandler,
-  menuOptionDetailOverrideHandler,
-  menuOptionDetailSaveOverrideHandler,
   menuOverrideHandler,
   noticeOverrideHandler,
   qnaOverrideHandler,
