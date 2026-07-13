@@ -17,7 +17,8 @@
         <if test="searchKeyword != null and searchKeyword != ''">
             and (
                 coupon_cd like concat('%', #{searchKeyword}, '%') or
-                coupon_nm like concat('%', #{searchKeyword}, '%'
+                coupon_nm like concat('%', #{searchKeyword}, '%')
+            )
         </if>
         order by sys_id desc
     </select>
