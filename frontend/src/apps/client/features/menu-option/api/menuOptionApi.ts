@@ -1,20 +1,21 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueries } from '@tanstack/react-query';
 import {
+  getMenuDetail,
   useDelMenuOptionGroup,
+  useGetMenuMaster,
   useGetMenuOptionDetail,
   useGetMenuOptionGroup,
-  useGetMenuOptionMaster,
   useNewMenuOptionGroup,
   useUpdateMenuOptionGroup,
 } from '@/generated/menu-manage-controller/menu-manage-controller';
 import { useGetAttachFile } from '@/generated/file-controller/file-controller';
+import type { MenuDetailResponse } from '@/generated/types/menuDetailResponse';
 import type { MenuOptionDetailItem } from '@/generated/types/menuOptionDetailItem';
 import type { MenuOptionDetailRequest } from '@/generated/types/menuOptionDetailRequest';
 import type { MenuOptionDetailResponse } from '@/generated/types/menuOptionDetailResponse';
 import type { MenuOptionGroupItem } from '@/generated/types/menuOptionGroupItem';
 import type { MenuOptionGroupRequest } from '@/generated/types/menuOptionGroupRequest';
 import type { MenuOptionGroupResponse } from '@/generated/types/menuOptionGroupResponse';
-import type { MenuOptionMasterResponse } from '@/generated/types/menuOptionMasterResponse';
 import { httpClient } from '@/shared/lib/httpClient';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
@@ -143,11 +144,11 @@ export function createBlankMenuOptionDetailValues(): MenuOptionDetailRow['values
   };
 }
 
-export function mapToMenuOptionMasterRow(item: MenuOptionMasterResponse): MenuOptionMasterRow {
+export function mapToMenuOptionMasterRow(item: MenuDetailResponse): MenuOptionMasterRow {
   return {
     id: item.sysId ?? '',
     sysId: item.sysId,
-    name: item.categoryName ?? '',
+    name: item.menuName ?? '',
     useYn: item.useYn === 'N' ? 'N' : 'Y',
   };
 }
@@ -306,12 +307,38 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
 }
 
 export function useMenuOptionMasterQuery(searchKeyword = '') {
-  return useGetMenuOptionMaster(searchKeyword ? { searchKeyword } : undefined, {
+  const menuMasterQuery = useGetMenuMaster(undefined, {
     query: {
-      queryKey: queryKeys.menuOption.masters(searchKeyword),
+      queryKey: queryKeys.menuOption.masters('menu-master-categories'),
       ...queryPolicies.clientCrudList,
     },
   });
+
+  const menuMasterIds = (menuMasterQuery.data ?? [])
+    .map((item) => item.sysId)
+    .filter((sysId): sysId is string => Boolean(sysId));
+
+  const menuDetailQueries = useQueries({
+    queries: menuMasterIds.map((masterId) => ({
+      queryKey: queryKeys.menuManagement.details(masterId),
+      queryFn: ({ signal }) => getMenuDetail(masterId, undefined, signal),
+      enabled: Boolean(masterId),
+      ...queryPolicies.clientCrudList,
+    })),
+  });
+
+  const normalizedKeyword = searchKeyword.trim().toLowerCase();
+  const menuDetails = menuDetailQueries
+    .flatMap((query) => query.data ?? [])
+    .filter((item) =>
+      normalizedKeyword ? item.menuName?.toLowerCase().includes(normalizedKeyword) : true,
+    );
+
+  return {
+    data: menuDetails,
+    isLoading: menuMasterQuery.isLoading || menuDetailQueries.some((query) => query.isLoading),
+    isError: menuMasterQuery.isError || menuDetailQueries.some((query) => query.isError),
+  };
 }
 
 export function useMenuOptionGroupQuery(masterId = '') {

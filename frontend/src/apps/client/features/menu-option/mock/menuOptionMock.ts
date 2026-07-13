@@ -2,7 +2,8 @@
  * @fileoverview 옵션 관리 화면 mock
  *
  * @description
- * `/api/client/menu_manage/option/master/search`(`MenuOptionMasterResponse[]`),
+ * 옵션 관리 랜딩 목록은 `/api/client/menu_manage/menu/master/search`와
+ * `/api/client/menu_manage/menu/detail/search/:masterSysId` mock을 조합해 메뉴명 기준으로 만든다.
  * `/api/client/menu_manage/option/group/search/:masterSysId`(`MenuOptionGroupResponse[]`),
  * `/api/client/menu_manage/option/detail/search/:groupSysId`(`MenuOptionDetailResponse[]`) 응답 형태의 mock 데이터.
  */
@@ -19,7 +20,7 @@ export const MENU_OPTION_MASTER_MOCK_ROWS: MenuOptionMasterResponse[] = [
 export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
   {
     sysId: 'option-group-1',
-    linkSysId: 'option-master-1',
+    linkSysId: 'menu-3',
     groupName: '사이즈 선택',
     requiredYn: 'Y',
     inputType: '주문 옵션',
@@ -27,7 +28,7 @@ export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
   },
   {
     sysId: 'option-group-2',
-    linkSysId: 'option-master-1',
+    linkSysId: 'menu-3',
     groupName: '샷 추가',
     requiredYn: 'N',
     inputType: '수량 설정',
