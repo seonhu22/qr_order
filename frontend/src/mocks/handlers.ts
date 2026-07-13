@@ -61,6 +61,7 @@ import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/st
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
 import { TABLE_GUI_MOCK_ROWS } from '../apps/client/features/table-layout/mock/tableLayoutMock';
+import type { TableGuiObjectType } from '../apps/client/features/table-layout/api/tableLayoutApi';
 import type { TableGuiRequest } from '../generated/types/tableGuiRequest';
 import {
   MENU_CATEGORY_MOCK_ROWS,
@@ -337,6 +338,10 @@ const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/se
   return HttpResponse.json(TABLE_GUI_MOCK_ROWS);
 });
 
+function toTableGuiObjectType(value?: string): TableGuiObjectType | undefined {
+  return value === '01' || value === '02' || value === '03' ? value : undefined;
+}
+
 const tableGuiSaveOverrideHandler = http.post(
   '*/api/client/store_manage/table_gui/save',
   async ({ request }) => {
@@ -352,6 +357,7 @@ const tableGuiSaveOverrideHandler = http.post(
       // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
       TABLE_GUI_MOCK_ROWS.push({
         ...item,
+        objectType: toTableGuiObjectType(item.objectType),
         sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
     });
