@@ -307,6 +307,7 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
 }
 
 export function useMenuOptionMasterQuery(searchKeyword = '') {
+  // TODO: 백엔드에 옵션 관리용 전체 메뉴 목록 검색 API가 생기면 카테고리별 상세 조회를 단일 조회로 교체한다.
   const menuMasterQuery = useGetMenuMaster(undefined, {
     query: {
       queryKey: queryKeys.menuOption.masters('menu-master-categories'),

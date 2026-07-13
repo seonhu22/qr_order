@@ -10,12 +10,6 @@
 
 import type { MenuOptionDetailResponse } from '@/generated/types/menuOptionDetailResponse';
 import type { MenuOptionGroupResponse } from '@/generated/types/menuOptionGroupResponse';
-import type { MenuOptionMasterResponse } from '@/generated/types/menuOptionMasterResponse';
-
-export const MENU_OPTION_MASTER_MOCK_ROWS: MenuOptionMasterResponse[] = [
-  { sysId: 'option-master-1', categoryName: '아메리카노', useYn: 'Y', ordNo: 1 },
-  { sysId: 'option-master-2', categoryName: '카페라떼', useYn: 'Y', ordNo: 2 },
-];
 
 export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
   {
@@ -33,6 +27,14 @@ export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
     requiredYn: 'N',
     inputType: '수량 설정',
     ordNo: 2,
+  },
+  {
+    sysId: 'option-group-3',
+    linkSysId: 'menu-4',
+    groupName: '우유 선택',
+    requiredYn: 'Y',
+    inputType: '주문 옵션',
+    ordNo: 1,
   },
 ];
 
@@ -61,5 +63,21 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     maximumNum: '3',
     useYn: 'Y',
     ordNo: 1,
+  },
+  {
+    sysId: 'option-detail-4',
+    linkSysId: 'option-group-3',
+    menuOptionName: '일반 우유',
+    menuOptionPrice: '0',
+    useYn: 'Y',
+    ordNo: 1,
+  },
+  {
+    sysId: 'option-detail-5',
+    linkSysId: 'option-group-3',
+    menuOptionName: '두유',
+    menuOptionPrice: '500',
+    useYn: 'Y',
+    ordNo: 2,
   },
 ];

@@ -70,7 +70,6 @@ import {
 import {
   MENU_OPTION_DETAIL_MOCK_ROWS,
   MENU_OPTION_GROUP_MOCK_ROWS,
-  MENU_OPTION_MASTER_MOCK_ROWS,
 } from '../apps/client/features/menu-option/mock/menuOptionMock';
 import {
   getDelClientUserMockHandler,
@@ -521,20 +520,6 @@ const menuDetailSaveOverrideHandler = http.post(
   },
 );
 
-const menuOptionMasterOverrideHandler = http.get(
-  '*/api/client/menu_manage/option/master/search',
-  ({ request }) => {
-    const url = new URL(request.url);
-    const keyword = url.searchParams.get('searchKeyword')?.toLowerCase() ?? '';
-    const filtered = keyword
-      ? MENU_OPTION_MASTER_MOCK_ROWS.filter((row) =>
-          row.categoryName?.toLowerCase().includes(keyword),
-        )
-      : MENU_OPTION_MASTER_MOCK_ROWS;
-    return HttpResponse.json(filtered);
-  },
-);
-
 const menuOptionGroupOverrideHandler = http.get(
   '*/api/client/menu_manage/option/group/search/:masterSysId',
   ({ params }) => {
@@ -872,7 +857,6 @@ export const handlers = [
   menuCategoryDeleteOverrideHandler,
   menuDetailOverrideHandler,
   menuDetailSaveOverrideHandler,
-  menuOptionMasterOverrideHandler,
   menuOptionGroupOverrideHandler,
   menuOptionGroupNewOverrideHandler,
   menuOptionGroupUpdateOverrideHandler,
