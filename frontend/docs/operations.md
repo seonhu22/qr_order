@@ -21,6 +21,7 @@
 | [이탈방지 가드](./operations/dirty-guard.md) | `usePreventLeave`, `useGuardedNavigate`, 로그아웃 가드 기준 |
 | [레이아웃 정책](./operations/layout-policy.md) | Flex 스크롤 버블링 방지, SPA 뷰포트 고정, gap 기준 |
 | [Admin/Client 패리티](./operations/app-parity.md) | 앱별 기능 로직·화면 구조를 맞추는 기준 |
+| [화면별 동작 문서](./page/) | 화면 1개의 표기 규칙·모달 흐름·버튼 동작처럼 그 화면에만 해당하는 세부 동작(화면 폴더당 1개 파일, 예: [`order-status-management.md`](./page/order-status-management.md)) |
 
 ## 작업별 진입점
 
@@ -33,6 +34,7 @@
 | 미저장 변경 경고, 로그아웃/메뉴 이동 가드 | [이탈방지 가드](./operations/dirty-guard.md) |
 | 스크롤, flex 높이, 앱 셸 gap | [레이아웃 정책](./operations/layout-policy.md) |
 | Admin/Client 같은 기능 미러링 | [Admin/Client 패리티](./operations/app-parity.md) |
+| 칸반 보드처럼 화면 1개 전용 세부 동작 기록 | [화면별 동작 문서](./page/) |
 
 ## 신규 화면 구현 체크리스트
 

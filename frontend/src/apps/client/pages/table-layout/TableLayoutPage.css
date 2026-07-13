@@ -6,6 +6,46 @@
   min-height: 0;
 }
 
+/* 헤더의 되돌리기/전체 비우기 아이콘 버튼 — variant="icon"은 기본적으로 테두리가 없어서(`.btn--icon`),
+   주문 상태 관리 휴지통 버튼(`.order-status-card__dismiss`)과 동일하게 테두리를 직접 입힌다. */
+.table-layout-page__icon-button {
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+
+/* 되돌리기/전체 비우기 확인 모달 — 아이콘 없는 좌측 정렬 안내문구. 주문 상태 관리의
+   .order-cancel-modal__notice와 동일한 패턴(WrapperModal layout="default" + title/desc 두 줄)이다. */
+.table-layout-confirm-modal__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.table-layout-confirm-modal__notice-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+}
+
+.table-layout-confirm-modal__notice-desc {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+/* dnd-kit DragOverlay는 children을 감싸는 래퍼를 항상 "원래 드래그한 노드"(사이드바 행 전체) 크기로
+   강제 고정한다. 이 래퍼는 포인터 움직임을 그대로 따라가므로, 드래그 시작 시점에 클릭/터치한 지점이
+   래퍼 안에서 항상 같은 좌표(TableLayoutPage.tsx의 dragGrabOffset)에 위치한다. 그 좌표에 작은 미리보기
+   카드(FacilityPlacedCard)를 직접 앵커링해, 카드가 항상 클릭/터치한 지점을 기준으로 따라다니게 한다. */
+.table-layout-drag-overlay {
+  position: relative;
+}
+
+.table-layout-drag-overlay__anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
 .table-layout-page__header {
   display: flex;
   align-items: center;
@@ -36,6 +76,26 @@
   color: var(--color-text-secondary);
 }
 
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 공간 확보를 위해 부제목을 숨기고,
+   헤더 패딩과 제목 글자 크기도 줄인다. */
+@container client-main (max-width: 1200px) {
+  .table-layout-page {
+    gap: var(--spacing-4);
+  }
+
+  .table-layout-page__subtitle {
+    display: none;
+  }
+
+  .table-layout-page__header {
+    padding: var(--spacing-6);
+  }
+
+  .table-layout-page__title {
+    font-size: var(--typography-size-h4);
+  }
+}
+
 .table-layout-page__actions {
   display: flex;
   align-items: center;
@@ -62,4 +122,12 @@
   flex-direction: column;
   gap: var(--spacing-4);
   min-height: 0;
+}
+
+/* 공용 TableCard 헤더(.common-code-card__header)는 align-items: center로 구조상 가운데 정렬이지만,
+   한글 폰트 특성상 줄높이(line-height)의 위아래 여백이 비대칭이라 텍스트가 살짝 치우쳐 보인다.
+   line-height: 1로 줄여 글자 박스를 폰트 내용에 가깝게 맞추면 flex 중앙 정렬과 시각적으로도 맞아떨어진다.
+   이 페이지(테이블 리스트/내부시설 카드)에만 스코프한다 — 다른 화면의 TableCard에는 영향 없음. */
+.table-layout-page__sidebar .common-code-card__title {
+  line-height: 1;
 }

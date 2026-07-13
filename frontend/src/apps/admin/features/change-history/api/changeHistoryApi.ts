@@ -19,7 +19,7 @@ function createChangeHistoryRowId(item: AuditTrail, index: number) {
   const auditFlag = getSafeText(item.auditFlag);
   const menuNameOrCode = getSafeText(item.menuNm || item.menuCd);
 
-  return `change-${insertDatetime}-${auditFlag}-${menuNameOrCode || index}`;
+  return `change-${insertDatetime}-${auditFlag}-${menuNameOrCode}-${index}`;
 }
 
 export function mapToChangeHistoryRow(item: AuditTrail, index: number): ChangeHistoryRow {

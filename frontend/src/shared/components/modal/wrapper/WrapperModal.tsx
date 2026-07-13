@@ -12,6 +12,8 @@
  * - createPortal로 DOM 최상단(document.body)에 렌더링한다.
  * - 모달이 열려 있는 동안 body 스크롤을 잠그고, 닫히면 이전 상태로 복원한다.
  * - ESC·overlay 클릭은 항상 `onClose`를 호출한다. dirty 판단과 경고 모달 표시는 호출부가 담당한다.
+ * - 모달이 여러 겹 쌓여 있을 때(예: 편집 모달 위에 하위 모달이 열린 경우) ESC는 가장 위(나중에 열린) 모달 1개만
+ *   닫는다 — 열린 모달들을 mount 순서대로 쌓아두고, keydown 시점에 스택 맨 위인 인스턴스만 `onClose`를 호출한다.
  *
  * @example
  * <WrapperModal
@@ -36,7 +38,7 @@
  * />
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/button';
 import { MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
@@ -54,6 +56,9 @@ const FOCUSABLE_SELECTOR = [
 
 let bodyScrollLockCount = 0;
 let previousBodyOverflow = '';
+
+/** 현재 열려 있는 WrapperModal 인스턴스를 mount 순서대로 쌓아둔다. ESC는 맨 위(마지막) 항목만 처리한다. */
+let openModalStack: string[] = [];
 
 /**
  * 공용 모달 래퍼를 렌더링한다.
@@ -91,6 +96,7 @@ export function WrapperModal({
 }: WrapperModalProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const previousFocusedElementRef = useRef<HTMLElement | null>(null);
+  const modalId = useId();
 
   /* ─── body 스크롤 잠금 ─── */
   useEffect(() => {
@@ -110,19 +116,28 @@ export function WrapperModal({
     };
   }, [open]);
 
-  /* ─── ESC 닫기 ─── */
+  /* ─── ESC 닫기(스택 맨 위 모달만) ─── */
   useEffect(() => {
     if (!open) return undefined;
 
+    // onClose가 매 렌더마다 새로 만들어지는 호출부가 있어 이 effect가 자주 재실행될 수 있다.
+    // 이미 쌓여 있는 항목은 다시 밀어넣지 않아야 스택 순서(연 순서)가 흐트러지지 않는다.
+    if (!openModalStack.includes(modalId)) {
+      openModalStack = [...openModalStack, modalId];
+    }
+
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
+      if (event.key !== 'Escape') return;
+      if (openModalStack[openModalStack.length - 1] !== modalId) return;
+      onClose();
     };
 
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [open, onClose]);
+    return () => {
+      openModalStack = openModalStack.filter((id) => id !== modalId);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [open, onClose, modalId]);
 
   /* ─── 직전 포커스 저장/복원 ─── */
   useEffect(() => {
@@ -288,9 +303,32 @@ export function WrapperModal({
           {children ? <div className="base-modal__content">{children}</div> : null}
         </div>
 
-        <footer className="base-modal__footer">
-          {hasPrimaryAction && hasSecondaryAction ? (
-            <>
+        {(hasPrimaryAction || hasSecondaryAction) && (
+          <footer className="base-modal__footer">
+            {hasPrimaryAction && hasSecondaryAction ? (
+              <>
+                <Button
+                  loading={resolvedPrimaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedPrimaryAction.variant ?? 'primary'}
+                  disabled={resolvedPrimaryAction.disabled}
+                  type="button"
+                  onClick={handlePrimaryAction}
+                >
+                  {resolvedPrimaryAction.label ?? '확인'}
+                </Button>
+                <Button
+                  loading={resolvedSecondaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedSecondaryAction.variant ?? 'outline'}
+                  disabled={resolvedSecondaryAction.disabled}
+                  type="button"
+                  onClick={handleSecondaryAction}
+                >
+                  {resolvedSecondaryAction.label ?? '닫기'}
+                </Button>
+              </>
+            ) : (
               <Button
                 loading={resolvedPrimaryAction.loading}
                 size={buttonSize}
@@ -301,30 +339,9 @@ export function WrapperModal({
               >
                 {resolvedPrimaryAction.label ?? '확인'}
               </Button>
-              <Button
-                loading={resolvedSecondaryAction.loading}
-                size={buttonSize}
-                variant={resolvedSecondaryAction.variant ?? 'outline'}
-                disabled={resolvedSecondaryAction.disabled}
-                type="button"
-                onClick={handleSecondaryAction}
-              >
-                {resolvedSecondaryAction.label ?? '닫기'}
-              </Button>
-            </>
-          ) : hasPrimaryAction ? (
-            <Button
-              loading={resolvedPrimaryAction.loading}
-              size={buttonSize}
-              variant={resolvedPrimaryAction.variant ?? 'primary'}
-              disabled={resolvedPrimaryAction.disabled}
-              type="button"
-              onClick={handlePrimaryAction}
-            >
-              {resolvedPrimaryAction.label ?? '확인'}
-            </Button>
-          ) : null}
-        </footer>
+            )}
+          </footer>
+        )}
       </section>
     </div>
   );

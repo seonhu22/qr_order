@@ -26,6 +26,8 @@ const orderHistoryListsKey = ['client', 'orderHistory', 'list'] as const;
 const paymentStatusMasterListsKey = ['client', 'paymentStatus', 'masters'] as const;
 const settlementListsKey = ['client', 'settlement', 'list'] as const;
 const clientInquiryListsKey = ['client', 'inquiry', 'list'] as const;
+const orderStatusBoardListsKey = ['client', 'orderStatusBoard', 'list'] as const;
+const tableLayoutListsKey = ['client', 'tableLayout', 'list'] as const;
 
 /**
  * React Query 캐시 관리를 위한 쿼리 키 모음
@@ -151,5 +153,11 @@ export const queryKeys = {
   clientInquiry: {
     lists: clientInquiryListsKey,
     list: (searchKeyword = '') => [...clientInquiryListsKey, { searchKeyword }] as const,
+  },
+  orderStatusBoard: {
+    lists: orderStatusBoardListsKey,
+  },
+  tableLayout: {
+    lists: tableLayoutListsKey,
   },
 } as const;

@@ -18,6 +18,7 @@ type ClientLayoutStore = {
   toggleSidebar: () => void;
   setActiveSection: (section: ClientSection | null) => void;
   setHideBreadcrumb: (hide: boolean) => void;
+  resetLayout: () => void;
 };
 
 export const useClientLayoutStore = create<ClientLayoutStore>((set) => ({
@@ -29,4 +30,5 @@ export const useClientLayoutStore = create<ClientLayoutStore>((set) => ({
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setActiveSection: (section) => set({ activeSection: section }),
   setHideBreadcrumb: (hide) => set({ hideBreadcrumb: hide }),
+  resetLayout: () => set({ isSidebarOpen: false, activeSection: null }),
 }));

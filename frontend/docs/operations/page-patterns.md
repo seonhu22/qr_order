@@ -2,6 +2,34 @@
 
 > 조회 전용, 편집형 CRUD, 모달 CRUD 화면을 만들 때 따르는 표준 구조다.
 
+## 태블릿 반응형 (Client 전용)
+
+> 추가일: 2026-06-30
+
+태블릿 대응이 필요한 화면은 `apps/client`뿐이다(`apps/admin`은 데스크톱 전용). 배경과 컨테이너 쿼리를 선택한 이유는 [`docs/decisions.md` ADR-016](../decisions.md#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-layout-기준) 참고.
+
+- 뷰포트 `@media`가 아니라 `client-layout__content`(`ClientLayout.css`)에 걸린 `container-name: client-main` 기준 `@container`를 쓴다. 사이드바가 열려 있어 콘텐츠가 좁아진 상태도 그대로 반영된다.
+- 기준 브레이크포인트는 `1200px`로 통일한다.
+- 모든 client 페이지의 최상위 wrapper(`<Feature>Page` 최상단 클래스, 예: `client-user-page`, `order-status-management-page`)는 1200px 이하에서 `gap`을 `--spacing-8`(또는 그보다 작은 기존 값) → `--spacing-4`로 줄인다. 좌우 분할 레이아웃의 안쪽 래퍼(`<feature>-page__layout`, `<feature>-page__detail-stack`)도 동일하게 `--spacing-4`로 맞춘다.
+- 레이아웃 셸의 `client-layout__main`도 1200px 이하에서 좌우 패딩만 `--spacing-page-x`(24px) → `--spacing-6`으로, `gap`은 `--spacing-8` → `--spacing-4`로 줄인다(위아래 패딩은 그대로 유지).
+- 화면별로 더 줄여야 하는 요소(부제목 숨김, 헤더 패딩, 제목 글자 크기, 버튼 줄바꿈 등)가 있으면 같은 `@container client-main (max-width: 1200px)` 블록 안에 화면 전용 규칙을 추가한다. 예시는 [`page/table-layout-management.md`](../page/table-layout-management.md), [`page/order-status-management.md`](../page/order-status-management.md) 참고.
+
+```css
+.client-user-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+@container client-main (max-width: 1200px) {
+  .client-user-page {
+    gap: var(--spacing-4);
+  }
+}
+```
+
 ## 조회 전용 화면
 
 대상: `PlantSearch`, `PlantStatus`, `AccessLog` 같은 read-only 목록
@@ -15,6 +43,20 @@
 - `features/<feature>/components/<Feature>Table.tsx`
 
 서버 응답에 없는 필드는 API 레이어 mapper에서 파생한다. page나 component에서 계산하지 않는다.
+
+## 칸반 보드 화면
+
+대상: `OrderStatusManagement`(주문 상태 관리) 같은, 행을 상태값 기준 컬럼으로 나눠 보여주고 컬럼 간 상태 전환·여러 단계 모달 흐름이 함께 있는 화면.
+
+권장 구성:
+
+- `pages/<Feature>Page.tsx`: 조립만 담당
+- `features/<feature>/hooks/use<Feature>Page.ts`: 행 로컬 state + 컬럼 그룹핑(`useMemo`) + 카드 액션(`OrderBoardCardActions`)
+- `features/<feature>/components/<Feature>Column.tsx`, `<Feature>Card.tsx`: 컬럼/카드 단위 컴포넌트로 분리
+- 화면 전용 모달 흐름(취소/결제/수정처럼 단계가 여러 개인 경우)은 `useOrder*ModalFlow.ts`처럼 흐름별로 훅을 쪼갠다
+- 표기 규칙(어떤 행을 어떤 컬럼에 보여줄지), 모달 단계별 동작, 화면 전용 CSS 패턴은 화면 자체가 복잡해서 일반화하기보다 [화면별 동작 문서](../page/)에 그대로 기록한다 — 첫 worked example은 [`page/order-status-management.md`](../page/order-status-management.md)다.
+
+3겹 이상 모달이 쌓일 수 있는 화면(메뉴 추가 → 옵션 추가처럼)은 각 단계의 dirty를 따로 추적해 `WrapperModal`의 ESC 스택([`components/Modal.md` #22](../components/Modal.md))과 이탈방지([`dirty-guard.md`](./dirty-guard.md) "페이지 안의 추가/수정 모달이 별도 dirty를 갖는다면 페이지 `isDirty`와 OR로 합친다")를 함께 적용한다.
 
 ## datetime-local 날짜 범위 필터
 

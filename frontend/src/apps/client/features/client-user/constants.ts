@@ -7,9 +7,11 @@
 export const CLIENT_USER_AUTHORITY_LABELS: Record<string, string> = {
   ADMIN: '관리자',
   STAFF: '스태프',
+  UNSET: '미지정',
 };
 
 export function getClientUserAuthorityLabel(authorityCode: string) {
+  if (!authorityCode) return CLIENT_USER_AUTHORITY_LABELS.UNSET;
   if (authorityCode === '01') return CLIENT_USER_AUTHORITY_LABELS.ADMIN;
   return CLIENT_USER_AUTHORITY_LABELS.STAFF;
 }

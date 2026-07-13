@@ -51,30 +51,30 @@
 
 /* 작게 */
 .table-placed-card--small {
-  width: 7.5rem;
-  height: 7rem;
-  padding: var(--spacing-2);
-  gap: var(--spacing-1);
-}
-.table-placed-card--small .table-placed-card__index {
-  font-size: var(--font-size-sm);
-}
-.table-placed-card--small .table-placed-card__name {
-  font-size: var(--font-size-sm);
-}
-.table-placed-card--small .table-placed-card__seat {
-  font-size: var(--font-size-xs);
-}
-
-/* 보통 */
-.table-placed-card--medium {
   width: 8.5rem;
   height: 8rem;
   padding: var(--spacing-3);
   gap: var(--spacing-2);
 }
-.table-placed-card--medium .table-placed-card__index {
+.table-placed-card--small .table-placed-card__index {
   font-size: var(--font-size-base);
+}
+.table-placed-card--small .table-placed-card__name {
+  font-size: var(--font-size-base);
+}
+.table-placed-card--small .table-placed-card__seat {
+  font-size: var(--font-size-sm);
+}
+
+/* 보통 */
+.table-placed-card--medium {
+  width: 9.5rem;
+  height: 9rem;
+  padding: var(--spacing-4);
+  gap: var(--spacing-2);
+}
+.table-placed-card--medium .table-placed-card__index {
+  font-size: var(--font-size-lg);
 }
 .table-placed-card--medium .table-placed-card__name {
   font-size: var(--font-size-base);
@@ -83,19 +83,19 @@
   font-size: var(--font-size-sm);
 }
 
-/* 크게 */
+/* 크게 — 전체보기에서도 확실히 커 보이도록 이전 단계보다 더 크게 키운 폭이다 */
 .table-placed-card--large {
-  width: 9.5rem;
-  height: 9rem;
-  padding: var(--spacing-4);
-  gap: var(--spacing-2);
+  width: 11.5rem;
+  height: 11rem;
+  padding: var(--spacing-5);
+  gap: var(--spacing-3);
 }
 .table-placed-card--large .table-placed-card__index {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
 }
 .table-placed-card--large .table-placed-card__name {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
 }
 .table-placed-card--large .table-placed-card__seat {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }

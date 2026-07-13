@@ -60,6 +60,8 @@ import {
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
+import { TABLE_GUI_MOCK_ROWS } from '../apps/client/features/table-layout/mock/tableLayoutMock';
+import type { TableGuiRequest } from '../generated/types/tableGuiRequest';
 import {
   MENU_CATEGORY_MOCK_ROWS,
   MENU_DETAIL_MOCK_ROWS,
@@ -325,6 +327,42 @@ const qrCodeSaveOverrideHandler = http.post(
     body.delItems?.forEach((item) => {
       const index = QR_CODE_MOCK_ROWS.findIndex((row) => row.sysId === item.sysId);
       if (index !== -1) QR_CODE_MOCK_ROWS.splice(index, 1);
+    });
+
+    return HttpResponse.json({ success: true });
+  },
+);
+
+const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/search', () => {
+  return HttpResponse.json(TABLE_GUI_MOCK_ROWS);
+});
+
+const tableGuiSaveOverrideHandler = http.post(
+  '*/api/client/store_manage/table_gui/save',
+  async ({ request }) => {
+    const body = (await request.json()) as TableGuiRequest;
+
+    [...(body.newItems ?? []), ...(body.updateItems ?? [])].forEach((item) => {
+      const target = item.sysId ? TABLE_GUI_MOCK_ROWS.find((row) => row.sysId === item.sysId) : undefined;
+      if (target) {
+        Object.assign(target, item);
+        return;
+      }
+      // sysId 없이 캔버스에 새로 배치된 내부시설(object_type=02 고정 8종 또는 03 커스텀) — 실제 백엔드가
+      // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
+      TABLE_GUI_MOCK_ROWS.push({
+        ...item,
+        sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      });
+    });
+    body.delItems?.forEach((item) => {
+      const target = TABLE_GUI_MOCK_ROWS.find((row) => row.sysId === item.sysId);
+      if (target) {
+        target.xcoordinate = undefined;
+        target.ycoordinate = undefined;
+        target.width = undefined;
+        target.height = undefined;
+      }
     });
 
     return HttpResponse.json({ success: true });
@@ -860,4 +898,6 @@ export const handlers = [
   qrCodeOverrideHandler,
   qrConnectOverrideHandler,
   qrCodeSaveOverrideHandler,
+  tableGuiOverrideHandler,
+  tableGuiSaveOverrideHandler,
 ];

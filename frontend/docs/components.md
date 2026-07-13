@@ -128,6 +128,8 @@ shared/
 
 사용 예: `i-card`/`i-return`/`i-sale`/`i-shop`/`i-trend-up`(정산 조회 통계 카드, 2026-06-23 추가) 참고.
 
+`i-stairs`/`i-elevator`/`i-smoking`(테이블 배치 관리 내부시설, 2026-06-29 추가), `i-expand`(테이블 배치 관리 "전체보기" 버튼, 2026-06-30 추가)는 Figma 소스 없이 직접 그린 예외 케이스다 — 위 1번(Figma MCP) 단계 없이 기존 심볼과 같은 24x24 viewBox·`currentColor` 스트로크 컨벤션만 맞춰 추가했다.
+
 ```tsx
 import { Icon } from '@/shared/assets/icons/Icon';
 
@@ -396,7 +398,7 @@ http://localhost:3000/dev/input
 | `/dev/select` | SelectInput 크기·상태·검색·그룹핑·기능 전체 예시 |
 | `/dev/filter` | 검색폼(필터카드) 레이아웃 4종(키워드만 / 키워드+날짜range / 콤보+키워드+날짜range / 콤보+키워드+기간 프리셋+날짜range) + 규약 체크리스트 |
 | `/dev/modal` | Modal 크기·상태·레이아웃 전체 예시 |
-| `/dev/button` | Button / LinkButton 10가지 변형·3가지 크기·7가지 상태 예시 |
+| `/dev/button` | Button / LinkButton 12가지 변형·3가지 크기·7가지 상태 예시 |
 | `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹 예시 |
 | `/dev/radio` | RadioInput / RadioGroup 크기·상태·그룹(col/row) 예시 |
 | `/dev/toggle` | ToggleInput 크기·상태(ON/OFF/disabled/loading) 예시 |

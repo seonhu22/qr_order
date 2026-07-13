@@ -36,7 +36,7 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: res.insertUserNm ?? '',
-    registeredAt: res.insertDatetime ?? '',
+    registeredAt: formatDateTimeForDisplay(res.insertDatetime),
     updatedAt: formatDateTimeForDisplay(res.modifyDatetime),
   };
 }

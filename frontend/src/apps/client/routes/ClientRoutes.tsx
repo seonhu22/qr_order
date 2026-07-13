@@ -3,7 +3,6 @@ import type { RouteObject } from 'react-router-dom';
 import { ClientLayout } from '@/apps/client/layout/ClientLayout';
 import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { MainPage } from '@/apps/client/pages/main/MainPage';
-import { ClientPlaceholderPage } from '@/apps/client/pages/placeholder/ClientPlaceholderPage';
 import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
 import { MenuManagementPage } from '@/apps/client/pages/menu-management/MenuManagementPage';
@@ -12,6 +11,7 @@ import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreT
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
 import { OrderHistoryListPage } from '@/apps/client/pages/order-history/OrderHistoryListPage';
+import { OrderStatusManagementPage } from '@/apps/client/pages/order-status-management/OrderStatusManagementPage';
 import { PaymentStatusListPage } from '@/apps/client/pages/payment-status/PaymentStatusListPage';
 import { SettlementListPage } from '@/apps/client/pages/settlement/SettlementListPage';
 import { NoticeListPage } from '@/apps/client/pages/notice/NoticeListPage';
@@ -68,12 +68,7 @@ export const clientRoutes: RouteObject[] = [
       },
       {
         path: 'order/status/management',
-        element: (
-          <ClientPlaceholderPage
-            title="주문 상태 관리"
-            description="접수, 조리중, 서빙완료, 취소 상태를 관리하는 화면입니다."
-          />
-        ),
+        element: <OrderStatusManagementPage />,
       },
       {
         path: 'payment/status/list',

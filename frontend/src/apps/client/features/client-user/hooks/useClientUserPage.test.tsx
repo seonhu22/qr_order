@@ -25,6 +25,8 @@ import type { ClientUser } from '../types';
 
 vi.mock('../api/clientUserApi', () => ({
   mapToClientUserModel: (item: ClientUser) => item,
+  getClientUserAuthorityOptionsWithFallback: () => [],
+  useClientUserAuthorityComboQuery: () => ({ data: undefined }),
   useClientUserQuery: vi.fn(),
   useDeleteClientUsersMutation: vi.fn(),
   useResetClientUserPasswordMutation: vi.fn(),
