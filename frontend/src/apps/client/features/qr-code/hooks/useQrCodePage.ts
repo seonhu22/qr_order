@@ -124,6 +124,7 @@ export function useQrCodePage(): QrCodePageViewModel {
       await saveQrCodeMutation.mutateAsync(request);
       resetKeywords();
       await queryClient.invalidateQueries({ queryKey: queryKeys.qrCode.lists });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tableLayout.lists });
       return 'saved';
     },
   });

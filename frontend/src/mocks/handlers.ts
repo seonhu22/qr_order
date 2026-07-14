@@ -334,8 +334,37 @@ const qrCodeSaveOverrideHandler = http.post(
   },
 );
 
+function buildTableGuiMockRows() {
+  const placedTableBySysId = new Map(
+    TABLE_GUI_MOCK_ROWS
+      .filter((row) => (row.objectType ?? '01') === '01' && row.sysId)
+      .map((row) => [row.sysId as string, row]),
+  );
+  const facilityRows = TABLE_GUI_MOCK_ROWS.filter((row) => row.objectType === '02' || row.objectType === '03');
+
+  const qrLinkedTables = QR_CODE_MOCK_ROWS
+    .filter((qrCode) => qrCode.useYn !== 'N' && qrCode.linkSysId)
+    .map((qrCode) => {
+      const table = STORE_TABLE_MOCK_ROWS.find((row) => row.sysId === qrCode.linkSysId);
+      if (!table || table.useYn === 'N') return null;
+
+      const placed = placedTableBySysId.get(table.sysId as string);
+      return {
+        ...placed,
+        sysId: table.sysId,
+        tableName: table.tableName,
+        tableNum: table.tableNum,
+        tableQty: table.tableQty,
+        objectType: '01' as const,
+      };
+    })
+    .filter((row) => row !== null);
+
+  return [...qrLinkedTables, ...facilityRows];
+}
+
 const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/search', () => {
-  return HttpResponse.json(TABLE_GUI_MOCK_ROWS);
+  return HttpResponse.json(buildTableGuiMockRows());
 });
 
 function toTableGuiObjectType(value?: string): TableGuiObjectType | undefined {
