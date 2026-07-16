@@ -1,8 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueries } from '@tanstack/react-query';
 import {
   getMenuDetail,
-  getMenuMaster,
   useDelMenuOptionGroup,
+  useGetMenuMaster,
   useGetMenuOptionDetail,
   useGetMenuOptionGroup,
   useNewMenuOptionGroup,
@@ -115,9 +115,7 @@ export function createEmptyMenuOptionGroupSchema(): MenuOptionGroupSchema {
   };
 }
 
-export function createEmptyMenuOptionDetailSchema(
-  groupInputType?: string,
-): MenuOptionDetailSchema {
+export function createEmptyMenuOptionDetailSchema(groupInputType?: string): MenuOptionDetailSchema {
   return {
     columns: cloneColumns(getMenuOptionDetailColumns(groupInputType)),
     rows: [],
@@ -144,11 +142,6 @@ export function createBlankMenuOptionDetailValues(): MenuOptionDetailRow['values
   };
 }
 
-/**
- * 옵션을 부여할 대상은 이미 메뉴 관리에서 저장된 실제 메뉴(`store_menu_detail`)다.
- * `getMenuOptionMaster`(`store_menu_option_master`)는 별도 옵션 카테고리 테이블이라
- * 여기서는 사용하지 않는다.
- */
 export function mapToMenuOptionMasterRow(item: MenuDetailResponse): MenuOptionMasterRow {
   return {
     id: item.sysId ?? '',
@@ -317,24 +310,39 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
  * 카테고리별 메뉴 목록을 모두 조회해 하나로 합친다.
  */
 export function useMenuOptionMasterQuery(searchKeyword = '') {
-  return useQuery({
-    queryKey: queryKeys.menuOption.masters(searchKeyword),
-    queryFn: async (): Promise<MenuDetailResponse[]> => {
-      const categories = await getMenuMaster();
-      const detailLists = await Promise.all(
-        (categories ?? [])
-          .filter((category) => category.sysId)
-          .map((category) => getMenuDetail(category.sysId as string)),
-      );
-      const menus = detailLists.flat();
-
-      if (!searchKeyword) return menus;
-
-      const keyword = searchKeyword.toLowerCase();
-      return menus.filter((menu) => menu.menuName?.toLowerCase().includes(keyword));
+  // TODO: 백엔드에 옵션 관리용 전체 메뉴 목록 검색 API가 생기면 카테고리별 상세 조회를 단일 조회로 교체한다.
+  const menuMasterQuery = useGetMenuMaster(undefined, {
+    query: {
+      queryKey: queryKeys.menuOption.masters('menu-master-categories'),
+      ...queryPolicies.clientCrudList,
     },
-    ...queryPolicies.clientCrudList,
   });
+
+  const menuMasterIds = (menuMasterQuery.data ?? [])
+    .map((item) => item.sysId)
+    .filter((sysId): sysId is string => Boolean(sysId));
+
+  const menuDetailQueries = useQueries({
+    queries: menuMasterIds.map((masterId) => ({
+      queryKey: queryKeys.menuManagement.details(masterId),
+      queryFn: ({ signal }) => getMenuDetail(masterId, undefined, signal),
+      enabled: Boolean(masterId),
+      ...queryPolicies.clientCrudList,
+    })),
+  });
+
+  const normalizedKeyword = searchKeyword.trim().toLowerCase();
+  const menuDetails = menuDetailQueries
+    .flatMap((query) => query.data ?? [])
+    .filter((item) =>
+      normalizedKeyword ? item.menuName?.toLowerCase().includes(normalizedKeyword) : true,
+    );
+
+  return {
+    data: menuDetails,
+    isLoading: menuMasterQuery.isLoading || menuDetailQueries.some((query) => query.isLoading),
+    isError: menuMasterQuery.isError || menuDetailQueries.some((query) => query.isError),
+  };
 }
 
 export function useMenuOptionGroupQuery(masterId = '') {
