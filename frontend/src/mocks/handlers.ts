@@ -61,6 +61,7 @@ import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/st
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
 import { TABLE_GUI_MOCK_ROWS } from '../apps/client/features/table-layout/mock/tableLayoutMock';
+import type { TableGuiObjectType } from '../apps/client/features/table-layout/api/tableLayoutApi';
 import type { TableGuiRequest } from '../generated/types/tableGuiRequest';
 import {
   MENU_CATEGORY_MOCK_ROWS,
@@ -326,9 +327,42 @@ const qrCodeSaveOverrideHandler = http.post(
   },
 );
 
+function buildTableGuiMockRows() {
+  const placedTableBySysId = new Map(
+    TABLE_GUI_MOCK_ROWS
+      .filter((row) => (row.objectType ?? '01') === '01' && row.sysId)
+      .map((row) => [row.sysId as string, row]),
+  );
+  const facilityRows = TABLE_GUI_MOCK_ROWS.filter((row) => row.objectType === '02' || row.objectType === '03');
+
+  const qrLinkedTables = QR_CODE_MOCK_ROWS
+    .filter((qrCode) => qrCode.useYn !== 'N' && qrCode.linkSysId)
+    .map((qrCode) => {
+      const table = STORE_TABLE_MOCK_ROWS.find((row) => row.sysId === qrCode.linkSysId);
+      if (!table || table.useYn === 'N') return null;
+
+      const placed = placedTableBySysId.get(table.sysId as string);
+      return {
+        ...placed,
+        sysId: table.sysId,
+        tableName: table.tableName,
+        tableNum: table.tableNum,
+        tableQty: table.tableQty,
+        objectType: '01' as const,
+      };
+    })
+    .filter((row) => row !== null);
+
+  return [...qrLinkedTables, ...facilityRows];
+}
+
 const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/search', () => {
-  return HttpResponse.json(TABLE_GUI_MOCK_ROWS);
+  return HttpResponse.json(buildTableGuiMockRows());
 });
+
+function toTableGuiObjectType(value?: string): TableGuiObjectType | undefined {
+  return value === '01' || value === '02' || value === '03' ? value : undefined;
+}
 
 const tableGuiSaveOverrideHandler = http.post(
   '*/api/client/store_manage/table_gui/save',
@@ -345,6 +379,7 @@ const tableGuiSaveOverrideHandler = http.post(
       // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
       TABLE_GUI_MOCK_ROWS.push({
         ...item,
+        objectType: toTableGuiObjectType(item.objectType),
         sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
     });
