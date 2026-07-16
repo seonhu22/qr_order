@@ -1,5 +1,6 @@
 package htms.QROrder.client.service;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.TableGuiMapper;
@@ -48,6 +49,10 @@ public class TableGuiService {
                                 String userId,
                                 String sysPlantCd,
                                 String menuCd) {
+
+        newItems.forEach(item -> {
+            item.setSysId(UlidCreator.getMonotonicUlid().toString());
+        });
 
         auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
         tableGuiMapper.newTableGui(newItems, userId);

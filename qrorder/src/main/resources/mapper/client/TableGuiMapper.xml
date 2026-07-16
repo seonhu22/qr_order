@@ -24,7 +24,7 @@
             where 1=1
             and qc.link_sys_id = si.sys_id
         )
-        and si.plant_cd = #{sysPlantCd}
+        and si.sys_plant_cd = #{sysPlantCd}
         and delete_yn = 'N'
         and use_yn = 'Y'
         order by table_num asc
