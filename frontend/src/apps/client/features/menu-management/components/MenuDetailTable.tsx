@@ -45,6 +45,7 @@ export function MenuDetailTable({
         ) : undefined,
         ariaLabel: '메뉴 관리',
         tableAriaLabel: '메뉴 관리 테이블',
+        guideText: <>※ 메뉴설명 및 이미지 등록은 상세페이지를 이용해 주세요. </>,
         emptyRowsText: '메뉴가 없습니다.',
       }}
       statusText={{
