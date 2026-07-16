@@ -86,6 +86,12 @@ public class MenuManageController {
         );
     }
 
+    @GetMapping("/menu/detail/search")
+    public List<MenuDetailResponse> getMenuDetailSearchKeyword(@RequestParam(required = false) String searchKeyword) {
+
+        return menuDetailService.getMenuDetailSearchKeyword(searchKeyword);
+    }
+
     @GetMapping("/menu/detail/search/{masterSysId}")
     public List<MenuDetailResponse> getMenuDetail(@PathVariable("masterSysId") String masterSysId) {
 

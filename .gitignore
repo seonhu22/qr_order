@@ -81,3 +81,6 @@ AGENTS.md
 
 ### 백엔드 테스트파일 ###
 qrorder/src/test/
+
+### 프론트 bypass를 위한 로컬 환경설정 파일 ###
+frontend/.env.local
