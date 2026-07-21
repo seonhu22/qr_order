@@ -130,6 +130,7 @@ type FileChangeState = {
 - `newFiles`는 브라우저 `File` 객체 그대로 전달한다.
 - `deletedFiles`는 기존 서버 파일 중 삭제 대상만 전달한다.
 - multipart `FormData` 구성은 공용 UI가 아니라 feature hook/API 계층에서 처리한다.
+- `ServerFile.fileSize`는 bytes가 아니라 MB 단위 소수 문자열이다. `formatFileSize`에 넘기기 전 bytes로 환산해야 한다 — 단위 규칙은 [`file-attachment-api.md`](../file-attachment-api.md#목록-조회-응답)를 참고한다.
 
 ## 아이콘 기준
 
