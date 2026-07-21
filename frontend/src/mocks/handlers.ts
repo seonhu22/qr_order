@@ -755,7 +755,7 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
       {
         sysId: 'attach-file-1',
         originalFileNm: '결제오류_스크린샷.png',
-        fileSize: '204800',
+        fileSize: '0.20',
         filePath: '/upload/qna/2026/03/screenshot.png',
         ordNo: 1,
         fileExt: 'png',
@@ -764,7 +764,7 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
       {
         sysId: 'attach-file-2',
         originalFileNm: '오류로그.pdf',
-        fileSize: '1048576',
+        fileSize: '1.00',
         filePath: '/upload/qna/2026/03/error-log.pdf',
         ordNo: 2,
         fileExt: 'pdf',
@@ -777,7 +777,7 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
       {
         sysId: 'client-inquiry-attach-1',
         originalFileNm: '결제오류_스크린샷.png',
-        fileSize: '204800',
+        fileSize: '0.20',
         filePath: '/upload/client/qna/2026/06/screenshot.png',
         ordNo: 1,
         fileExt: 'png',
@@ -790,7 +790,7 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
       {
         sysId: 'notice-attach-1',
         originalFileNm: '공지_본문.pdf',
-        fileSize: '512000',
+        fileSize: '0.49',
         filePath: '/upload/notice/2026/05/body.pdf',
         ordNo: 1,
         fileExt: 'pdf',
@@ -799,7 +799,7 @@ const attachFileOverrideHandler = http.get('*/api/attach_file', ({ request }) =>
       {
         sysId: 'notice-attach-2',
         originalFileNm: '첨부_엑셀.xlsx',
-        fileSize: '102400',
+        fileSize: '0.10',
         filePath: '/upload/notice/2026/05/x.xlsx',
         ordNo: 2,
         fileExt: 'xlsx',
