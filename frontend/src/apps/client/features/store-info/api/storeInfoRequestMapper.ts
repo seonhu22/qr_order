@@ -21,22 +21,20 @@ export const EMPTY_STORE_INFO: StoreInfo = {
 };
 
 function formatPhoneForDisplay(value?: number): string {
-  const digits = value == null ? '' : String(value);
-  if (!digits) return '';
+  if (value == null) return '';
 
-  if (digits.length === 9 && digits.startsWith('2')) {
-    return `02-${digits.slice(1, 5)}-${digits.slice(5)}`;
+  // 저장 과정에서 number 변환으로 날아간 맨 앞 '0'을 복원한 뒤 자릿수 기준으로 하이픈을 채운다.
+  const full = `0${value}`;
+
+  if (full.startsWith('02')) {
+    if (full.length === 9) return `02-${full.slice(2, 5)}-${full.slice(5)}`;
+    if (full.length === 10) return `02-${full.slice(2, 6)}-${full.slice(6)}`;
+  } else {
+    if (full.length === 10) return `${full.slice(0, 3)}-${full.slice(3, 6)}-${full.slice(6)}`;
+    if (full.length === 11) return `${full.slice(0, 3)}-${full.slice(3, 7)}-${full.slice(7)}`;
   }
 
-  if (digits.length === 10 && digits.startsWith('10')) {
-    return `010-${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
-  if (digits.length === 11) {
-    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-  }
-
-  return digits;
+  return String(value);
 }
 
 function isLocalTime(value: unknown): value is LocalTime {

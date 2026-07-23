@@ -17,7 +17,6 @@ import {
   WrapperModal,
 } from '@/shared/components/modal';
 import { ClientUserTable } from '@/apps/client/features/client-user/components/ClientUserTable';
-import { CLIENT_USER_AUTHORITY_OPTIONS } from '@/apps/client/features/client-user/constants';
 import { useClientUserPage } from '@/apps/client/features/client-user/hooks/useClientUserPage';
 
 export function ClientUserPage() {
@@ -83,7 +82,7 @@ export function ClientUserPage() {
             label="권한"
             required
             size="md"
-            options={CLIENT_USER_AUTHORITY_OPTIONS}
+            options={data.authorityOptions}
             value={uiProps.editor.editingRow?.authorityCode ?? ''}
             errorText={uiProps.editor.editorErrors.authorityCode ? '권한을 선택해주세요.' : undefined}
             onChange={(value) => actions.changeEditingField('authorityCode', value)}

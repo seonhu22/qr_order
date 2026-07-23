@@ -6,6 +6,7 @@
  * union literal이 아닌 `string`으로 둔다. (예: 'ADMIN', 'ADMIN_OWNER', 'STAFF', 'STAFF_PART' ...)
  */
 
+import type { SelectOption } from '@/shared/components/input';
 import type { ClientUserEditorErrors, ClientUserEditorRow } from './hooks/useClientUserModalFlow';
 
 export type ClientUser = {
@@ -15,6 +16,7 @@ export type ClientUser = {
   userName: string;
   authorityCode: string;
   authorityLabel: string;
+  plantCd?: string;
 };
 
 export type ClientUserNoticeState = { title: string; description: string; helperText?: string } | null;
@@ -23,6 +25,7 @@ export type ClientUserPasswordResetTarget = { sysId: string; userId: string };
 
 export type ClientUserPageData = {
   rows: ClientUser[];
+  authorityOptions: SelectOption[];
 };
 
 export type ClientUserPageStatus = {

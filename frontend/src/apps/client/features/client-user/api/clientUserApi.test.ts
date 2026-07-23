@@ -68,7 +68,7 @@ describe('mapToClientUserModel', () => {
       userId: '',
       userName: '',
       authorityCode: '',
-      authorityLabel: '스태프',
+      authorityLabel: '미지정',
     });
   });
 });

@@ -12,7 +12,9 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
+  getClientUserAuthorityOptionsWithFallback,
   mapToClientUserModel,
+  useClientUserAuthorityComboQuery,
   useClientUserQuery,
   useDeleteClientUsersMutation,
   useResetClientUserPasswordMutation,
@@ -39,11 +41,20 @@ export function useClientUserPage(): ClientUserPageViewModel {
   const [noticeState, setNoticeState] = useState<ClientUserNoticeState>(null);
 
   const userQuery = useClientUserQuery(appliedKeyword.trim());
+  const authorityComboQuery = useClientUserAuthorityComboQuery();
   const deleteMutation = useDeleteClientUsersMutation();
   const resetPasswordMutation = useResetClientUserPasswordMutation();
   const saveMutation = useSaveClientUserMutation();
 
-  const rows = useMemo(() => (userQuery.data ?? []).map(mapToClientUserModel), [userQuery.data]);
+  const authorityOptions = useMemo(
+    () => getClientUserAuthorityOptionsWithFallback(authorityComboQuery.data),
+    [authorityComboQuery.data],
+  );
+
+  const rows = useMemo(
+    () => (userQuery.data ?? []).map((item) => mapToClientUserModel(item, authorityOptions)),
+    [userQuery.data, authorityOptions],
+  );
 
   const handleSearch = () => {
     applyDraftKeyword();
@@ -140,7 +151,7 @@ export function useClientUserPage(): ClientUserPageViewModel {
   };
 
   return {
-    data: { rows },
+    data: { rows, authorityOptions },
     status: {
       isLoading: userQuery.isLoading,
       isFetching: userQuery.isFetching,

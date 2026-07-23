@@ -28,12 +28,19 @@ export function ClientSidebar() {
   const { guardedNavigate, requestLeaveConfirm } = useGuardedNavigate();
   const isSidebarOpen = useClientLayoutStore((s) => s.isSidebarOpen);
   const activeSection = useClientLayoutStore((s) => s.activeSection);
+  const resetLayout = useClientLayoutStore((s) => s.resetLayout);
   const { currentSection, currentMenus, menusBySection } = useClientNavigationMenus();
   const { user } = useAuth();
   const { mutate: logoutMutate, isPending } = useAuthLogoutMutation({
     mutation: {
-      onSuccess: () => navigate('/client/login', { replace: true }),
-      onError: () => navigate('/client/login', { replace: true }),
+      onSuccess: () => {
+        resetLayout();
+        navigate('/client/login', { replace: true });
+      },
+      onError: () => {
+        resetLayout();
+        navigate('/client/login', { replace: true });
+      },
     },
   });
 

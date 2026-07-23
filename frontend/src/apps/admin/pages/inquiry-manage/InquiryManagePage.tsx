@@ -113,7 +113,7 @@ export function InquiryManagePage() {
             ariaLabel="문의사항 검색"
             inputId="inquiry-manage-search-keyword"
             inputAriaLabel="문의사항 검색어"
-            placeholder="제목, 사업장, 등록자로 검색"
+            placeholder="제목, 사업장으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}
