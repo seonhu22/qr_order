@@ -42,7 +42,7 @@ public class BoardController {
     }
 
     @PostMapping("/qna/new")
-    public ResponseEntity<CommonResponse> newQna(@RequestBody ClientQnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> newQna(@ModelAttribute ClientQnaRequest qnaRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
