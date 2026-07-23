@@ -528,13 +528,14 @@ public class SettingsController {
     }
 
     @PostMapping("/board/qna/update")
-    public ResponseEntity<CommonResponse> updateQna(@RequestBody QnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> updateQna(@ModelAttribute QnaRequest qnaRequest,
+                                                        @ModelAttribute FileRequest fileRequest,
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        qnaService.updateQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        qnaService.updateQna(qnaRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
