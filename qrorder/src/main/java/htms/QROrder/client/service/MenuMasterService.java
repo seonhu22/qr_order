@@ -24,7 +24,7 @@ public class MenuMasterService {
     private final MenuMasterMapper menuMasterMapper;
 
     public List<MenuMasterResponse> getMenuMaster(String searchKeyword,
-                                                  String sysPlantCd) {
+                                                    String sysPlantCd) {
 
         return menuMasterMapper.getMenuMaster(searchKeyword, sysPlantCd);
     }
@@ -33,10 +33,13 @@ public class MenuMasterService {
                                     String userId,
                                     String sysPlantCd,
                                     String menuCd) {
-
+        /*
+         * 20260716
+         * 지점마다 같은 카테고리가 존재할 수도 있기 때문에 중복 데이터 체크 로직 임시 주석 처리
         if(duplicateChk(newItems)) {
             throw new DuplicateException("중복된 데이터가 존재합니다.\n" + newItems.getCategoryName());
         }
+        */
 
         String ULID = UlidCreator.getMonotonicUlid().toString();
         newItems.setSysId(ULID);

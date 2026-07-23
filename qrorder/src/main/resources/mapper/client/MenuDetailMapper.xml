@@ -3,6 +3,27 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.client.repository.MenuDetailMapper">
 
+    <select id="getMenuDetailSearchKeyword" resultType="htms.QROrder.client.dto.MenuDetailResponse">
+        select
+        sys_id ,
+        link_sys_id ,
+        menu_name ,
+        menu_price ,
+        menu_description ,
+        option_use_yn ,
+        link_sys_id2 ,
+        use_yn ,
+        file_ulid ,
+        ord_no
+        from store_menu_detail smd
+        where 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and smd.menu_name like concat('%', #{searchKeyword}, '%')
+        </if>
+        and delete_yn = 'N'
+        order by ord_no asc
+    </select>
+
     <select id="getMenuDetail" resultType="htms.QROrder.client.dto.MenuDetailResponse">
         select
             sys_id ,
