@@ -27,6 +27,7 @@
             input_type ,
             delete_yn ,
             ord_no ,
+            use_yn ,
             insert_datetime ,
             insert_user_id ,
             sys_plant_cd
@@ -39,6 +40,7 @@
             #{newItems.inputType},
             'N',
             #{newItems.ordNo},
+            'N',
             now(),
             #{userId},
             #{sysPlantCd}
@@ -51,6 +53,7 @@
             required_yn = #{updateItems.requiredYn} ,
             input_type = #{updateItems.inputType} ,
             ord_no = #{updateItems.ordNo} ,
+            use_yn = #{updateItems.useYn} ,
             modify_user_id = #{userId} ,
             modify_datetime = now()
         where 1=1

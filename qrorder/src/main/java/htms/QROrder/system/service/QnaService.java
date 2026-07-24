@@ -26,6 +26,7 @@ public class QnaService {
 
     private final QnaMapper qnaMapper;
     private final AuditService auditService;
+    private final FileService fileService;
 
     public List<QnaResponse> getQna(String searchKeyword,
                                         String sysPlantCd) {
@@ -34,18 +35,26 @@ public class QnaService {
     }
 
     public void updateQna(QnaRequest qnaRequest,
+                            FileRequest fileRequest,
                             String userId,
                             String sysPlantCd,
                             String menuCd) {
 
         QnaResponse oldData = getOldData(qnaRequest);
+        setNewFileLinkSysId(fileRequest, qnaRequest.getSysId());
 
         auditService.insertUpdateAuditTrailData(oldData, qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
         qnaMapper.updateQna(qnaRequest, userId, sysPlantCd);
+        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
     }
 
     private QnaResponse getOldData(QnaRequest qnaRequest) {
 
         return qnaMapper.getOldData(qnaRequest);
+    }
+
+    private void setNewFileLinkSysId(FileRequest fileRequest, String sysId) {
+
+        fileRequest.getNewItems().forEach(item -> item.setLinkSysId(sysId));
     }
 }
