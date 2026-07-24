@@ -113,6 +113,10 @@
   /* 포커스 보더 — 인풋·셀렉트 포커스 시 */
   --color-border-focus:    var(--orange-60);
 
+  /* reset.css의 네이티브 a/button/input/select/textarea 포커스·호버가 참조하는 토큰.
+     정의돼 있지 않으면 reset.css가 #3b82f6(파란색) fallback으로 렌더링된다. */
+  --input-focus-border:    var(--color-border-focus);
+
   /* 에러 보더 — 유효성 검사 실패 */
   --color-border-error:    var(--red-40);
 

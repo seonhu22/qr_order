@@ -1,0 +1,92 @@
+.menu-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
+
+/* 좌우 분할 레이아웃 — 마스터(카테고리, 좌) 2 : 디테일(메뉴, 우) 4 */
+.menu-management-page__layout {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 두 카드 사이 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .menu-management-page {
+    gap: var(--spacing-4);
+  }
+
+  .menu-management-page__layout {
+    gap: var(--spacing-4);
+  }
+}
+
+.menu-management-page__layout > article:first-child {
+  flex: 2;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.menu-management-page__layout > article:last-child {
+  flex: 4;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.menu-management-page__layout .common-code-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-management-page__layout .common-code-card > .common-table-wrap,
+.menu-management-page__layout .common-code-card > div {
+  flex: 1;
+  min-height: 0;
+}
+
+.menu-management-page__layout .common-table tbody tr {
+  cursor: pointer;
+}
+
+.menu-management-page__layout .common-code-card:last-child .common-table tbody tr {
+  cursor: default;
+}
+
+/* ── 카테고리 사용여부 배지 (사용/미사용 — 2글자 이상 텍스트라 feature 전용 배지 사용) ── */
+.menu-category-use-yn-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.menu-category-use-yn-badge--active {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.menu-category-use-yn-badge--inactive {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
+
+/* ── 메뉴 관리 카드 제목 옆 선택된 카테고리 라벨 (AccessLogDetailTable 배지 스타일) ── */
+.menu-management-table__category-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--spacing-4);
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+}

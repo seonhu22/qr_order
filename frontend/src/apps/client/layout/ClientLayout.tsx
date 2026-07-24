@@ -8,6 +8,7 @@ import type { ClientSection } from '@/shared/menu/clientNavigation';
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigationMenus';
 import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
+import { useMenuOpenAccessLog } from '@/shared/hooks/useMenuOpenAccessLog';
 import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 
 export function ClientLayout() {
@@ -21,7 +22,10 @@ export function ClientLayout() {
   const closeSidebar = useClientLayoutStore((s) => s.closeSidebar);
   const toggleSidebar = useClientLayoutStore((s) => s.toggleSidebar);
   const setActiveSection = useClientLayoutStore((s) => s.setActiveSection);
-  const { headerSections, currentSection, breadcrumb } = useClientNavigationMenus();
+  const hideBreadcrumb = useClientLayoutStore((s) => s.hideBreadcrumb);
+  const { headerSections, currentSection, currentMenuCd, breadcrumb } = useClientNavigationMenus();
+
+  useMenuOpenAccessLog(currentMenuCd);
 
   useEffect(() => {
     const nextSection = currentSection;
@@ -31,10 +35,7 @@ export function ClientLayout() {
     }
 
     setActiveSection(nextSection);
-    if (nextSection && storedSection === null) {
-      openSidebar();
-    }
-  }, [currentSection, location.pathname, openSidebar, setActiveSection]);
+  }, [currentSection, location.pathname, setActiveSection]);
 
   const handleSectionChange = (section: ClientSection) => {
     setActiveSection(section);
@@ -71,7 +72,7 @@ export function ClientLayout() {
           />
         </header>
         <main className="client-layout__main">
-          <ClientPageNavigation breadcrumb={breadcrumb} />
+          {!hideBreadcrumb && <ClientPageNavigation breadcrumb={breadcrumb} />}
           <Outlet />
         </main>
       </div>

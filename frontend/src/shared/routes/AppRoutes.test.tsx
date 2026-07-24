@@ -1,9 +1,21 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '@/shared/auth/AuthContext';
 import AppRoutes from './AppRoutes';
+
+type AuthTestState = {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: Record<string, unknown> | null;
+};
+
+const defaultAuthState: AuthTestState = {
+  isAuthenticated: false,
+  isLoading: false,
+  user: null,
+};
 
 function createQueryClient() {
   return new QueryClient({
@@ -20,14 +32,13 @@ function LocationProbe() {
   return <span data-testid="pathname">{location.pathname}</span>;
 }
 
-function renderRoutes(initialPath: string) {
-  return render(
+function renderRoutes(initialPath: string, authState: Partial<AuthTestState> = {}) {
+  const renderTree = (nextAuthState: Partial<AuthTestState> = {}) => (
     <QueryClientProvider client={createQueryClient()}>
       <AuthContext.Provider
         value={{
-          isAuthenticated: false,
-          isLoading: false,
-          user: null,
+          ...defaultAuthState,
+          ...nextAuthState,
           signIn: vi.fn(),
           signOut: vi.fn(),
         }}
@@ -37,8 +48,16 @@ function renderRoutes(initialPath: string) {
           <LocationProbe />
         </MemoryRouter>
       </AuthContext.Provider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+
+  const view = render(renderTree(authState));
+
+  return {
+    ...view,
+    rerenderWithAuth: (nextAuthState: Partial<AuthTestState>) =>
+      view.rerender(renderTree(nextAuthState)),
+  };
 }
 
 describe('AppRoutes auth redirect', () => {
@@ -72,5 +91,37 @@ describe('AppRoutes auth redirect', () => {
     await waitFor(() => {
       expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/login');
     });
+  });
+
+  it('keeps the client signup step mounted while auth state is loading', () => {
+    const { rerenderWithAuth } = renderRoutes('/client/login');
+
+    fireEvent.click(screen.getByRole('button', { name: '회원가입' }));
+    expect(screen.getByRole('heading', { name: '개인정보 수집·이용 동의' })).toBeInTheDocument();
+
+    rerenderWithAuth({ isLoading: true });
+
+    expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '개인정보 수집·이용 동의' })).toBeInTheDocument();
+  });
+
+  it('shows the loading screen on protected routes while auth state is loading', () => {
+    renderRoutes('/client/main', { isLoading: true });
+
+    expect(screen.getByText('로딩 중...')).toBeInTheDocument();
+  });
+
+  it('does not block the public QR entry route while auth state is loading', () => {
+    renderRoutes('/qr/valid-id', { isLoading: true });
+
+    expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('QR 코드 인증 중')).toBeInTheDocument();
+  });
+
+  it('does not block the consumer order route while auth state is loading', () => {
+    renderRoutes('/consumer/order', { isLoading: true });
+
+    expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('소비자 주문 화면')).toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@ export function AdminUserPage() {
             ariaLabel="관리자 검색"
             inputId="admin-user-search-keyword"
             inputAriaLabel="관리자 검색어"
-            placeholder="사용자 아이디, 사용자 명으로 검색"
+            placeholder="사용자 아이디, 사용자 명, 사업장으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}

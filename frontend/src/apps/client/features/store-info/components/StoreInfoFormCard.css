@@ -42,14 +42,18 @@
   overflow-y: auto;
 }
 
-/* TextInput 래퍼 — 라벨/입력 간 gap 통일 */
-.store-info-card__field.input-wrapper {
-  gap: var(--spacing-4);
-}
-
 /* read-only 필드 시각 강조 — figma의 #f8fafc 배경 */
 .store-info-card__field .input-control[data-state='readonly'] {
   background-color: var(--color-bg-muted);
+}
+
+/* 헤더 "정보 수정" 체크박스 — 단일 행 레이블이므로 세로 중앙 정렬 */
+.store-info-card__header .checkbox-control__row {
+  align-items: center;
+}
+
+.store-info-card__header .checkbox-control__box {
+  margin-top: 0;
 }
 
 /* 푸터 — 카드 하단 고정, 저장 버튼 우측 정렬 */

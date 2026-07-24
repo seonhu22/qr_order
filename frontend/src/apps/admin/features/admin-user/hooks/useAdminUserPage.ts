@@ -73,7 +73,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
-  const userQuery = useAdminUserQuery(appliedKeyword.trim());
+  const userQuery = useAdminUserQuery();
   const plantComboQuery = usePlantComboOptionsQuery();
   const saveUsersMutation = useSaveAdminUsersMutation();
   const resetPasswordMutation = useResetAdminUserPasswordMutation();
@@ -94,7 +94,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
    */
   const baseRows = useMemo(() => (userQuery.data ?? []).map(mapToAdminUserModel), [userQuery.data]);
   const {
-    rows,
+    rows: allRows,
     rowErrors,
     selectedRowId,
     isDirty,
@@ -113,6 +113,21 @@ export function useAdminUserPage(): AdminUserPageViewModel {
 
   usePreventLeave(isDirty);
 
+  /**
+   * 검색어가 적용된 상태에서도 작업 중인 신규 행은 항상 화면에 보이도록 예외 처리한다.
+   */
+  const rows = useMemo(() => {
+    const keyword = appliedKeyword.trim().toLowerCase();
+    if (!keyword) return allRows;
+    return allRows.filter(
+      (row) =>
+        row.isNew ||
+        [row.userId, row.userName, row.plantName].some((value) =>
+          value.toLowerCase().includes(keyword),
+        ),
+    );
+  }, [appliedKeyword, allRows]);
+
   const handleKeywordChange = (value: string) => {
     setDraftKeyword(value);
   };
@@ -125,13 +140,14 @@ export function useAdminUserPage(): AdminUserPageViewModel {
    * - `unchanged`: diff가 없어 저장할 내용이 없는 경우
    */
   const saveChanges = async (): Promise<'saved' | 'unchanged'> => {
-    const request = buildAdminUserRequest(rows, baseRows);
+    const request = buildAdminUserRequest(allRows, baseRows);
 
     if (!hasAdminUserChanges(request)) {
       return 'unchanged';
     }
 
     await saveUsersMutation.mutateAsync(request);
+    resetKeywords();
     await queryClient.invalidateQueries({
       queryKey: queryKeys.adminUser.lists,
     });

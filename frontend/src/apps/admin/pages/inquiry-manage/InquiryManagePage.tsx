@@ -12,9 +12,13 @@ import {
 import { SearchFilterCard } from '@/shared/components/filter/SearchFilterCard';
 import { WrapperModal } from '@/shared/components/modal/wrapper/WrapperModal';
 import { SimpleDefaultModal } from '@/shared/components/modal';
-import { TextInput, TextareaInput } from '@/shared/components/input';
-import { FileDownloadList } from '@/shared/components/file-attachment';
+import { TextInput, TextareaInput, InputWrapper } from '@/shared/components/input';
+import { FileDownloadList, FileInputGroup } from '@/shared/components/file-attachment';
+import { INQUIRY_ANSWER_FILE_POLICY } from '@/apps/admin/features/inquiry-manage/constants';
 import type { InquiryManageRow } from '@/apps/admin/features/inquiry-manage/types';
+import type { FileChangeState } from '@/shared/components/file-attachment';
+
+const EMPTY_ANSWER_FILE_STATE: FileChangeState = { newFiles: [], deletedFiles: [] };
 
 export function InquiryManagePage() {
   const { data, status, actions, uiProps } = useInquiryManagePage();
@@ -22,10 +26,14 @@ export function InquiryManagePage() {
   const [selectedRow, setSelectedRow] = useState<InquiryManageRow | null>(null);
   const [answerContent, setAnswerContent] = useState('');
   const [answerError, setAnswerError] = useState(false);
+  const [answerFileChangeState, setAnswerFileChangeState] =
+    useState<FileChangeState>(EMPTY_ANSWER_FILE_STATE);
   const [dirtyWarning, setDirtyWarning] = useState(false);
   const [noticeModal, setNoticeModal] = useState({ open: false, title: '', description: '' });
 
-  const isDirty = answerContent !== (selectedRow?.answerContent ?? '');
+  const isDirty =
+    answerContent !== (selectedRow?.answerContent ?? '') ||
+    answerFileChangeState.newFiles.length > 0;
   const canSaveAnswer = Boolean(selectedRow?.sysId);
 
   const attachFileQuery = useInquiryAttachFileQuery(selectedRow?.fileUlid);
@@ -45,6 +53,7 @@ export function InquiryManagePage() {
     setSelectedRow(row);
     setAnswerContent(row.answerContent);
     setAnswerError(false);
+    setAnswerFileChangeState(EMPTY_ANSWER_FILE_STATE);
   };
 
   /* 닫기 — 변경사항 있으면 경고 */
@@ -66,6 +75,7 @@ export function InquiryManagePage() {
     setSelectedRow(null);
     setAnswerContent('');
     setAnswerError(false);
+    setAnswerFileChangeState(EMPTY_ANSWER_FILE_STATE);
   };
 
   /* 확인 — 빈 답변 검증 후 저장 */
@@ -103,7 +113,7 @@ export function InquiryManagePage() {
             ariaLabel="문의사항 검색"
             inputId="inquiry-manage-search-keyword"
             inputAriaLabel="문의사항 검색어"
-            placeholder="제목, 사업장, 등록자로 검색"
+            placeholder="제목, 사업장으로 검색"
             draftKeyword={uiProps.draftKeyword}
             onKeywordChange={actions.handleKeywordChange}
             onSearch={actions.handleSearch}
@@ -163,6 +173,20 @@ export function InquiryManagePage() {
               onDownload={handleDownloadFile}
               onDownloadAll={handleDownloadAllFiles}
             />
+            {/* 답변 첨부파일 — 선택·검증까지만 동작. TODO는 inquiryManageApi.ts의
+                buildInquiryAnswerUpdateRequest 주석 참고 */}
+            <InputWrapper label="답변 첨부파일" inputId="inquiry-answer-file">
+              <FileInputGroup
+                variant="button"
+                files={[]}
+                disabled={!canSaveAnswer}
+                onChange={setAnswerFileChangeState}
+                maxFiles={INQUIRY_ANSWER_FILE_POLICY.maxFiles}
+                maxFileSizeMB={INQUIRY_ANSWER_FILE_POLICY.maxFileSizeMB}
+                maxTotalSizeMB={INQUIRY_ANSWER_FILE_POLICY.maxTotalSizeMB}
+                allowedExtensions={INQUIRY_ANSWER_FILE_POLICY.allowedExtensions}
+              />
+            </InputWrapper>
           </div>
         )}
       </WrapperModal>

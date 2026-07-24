@@ -4,12 +4,14 @@ import type { RouteObject } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
+import { ConsumerOrderPage } from '@/apps/consumer/pages/order/ConsumerOrderPage';
+import { QrEntryPage } from '@/apps/consumer/pages/qr-entry/QrEntryPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
 import { isInitialPasswordChangeRequired } from '@/shared/auth/initPassword';
-import { resolveLoginPath } from '@/shared/auth/authRedirect';
+import { isLoginPath, resolveLoginPath } from '@/shared/auth/authRedirect';
 
 /**
  * 인증이 필요한 관리자 라우트를 보호한다.
@@ -59,8 +61,13 @@ function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: 
   return isAuthenticated && !isPasswordChangeRequired ? '/client/main' : '/client/login';
 }
 
+function isPublicStandalonePath(pathname: string) {
+  return isLoginPath(pathname) || pathname.startsWith('/qr/') || pathname === '/consumer/order';
+}
+
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
   const isPasswordChangeRequired = isAuthenticated && isInitialPasswordChangeRequired(user);
   const publicClientRoutes = clientRoutes.filter((route) => route.path === '/client/login');
   const protectedClientRoutes = clientRoutes.filter((route) => route.path !== '/client/login');
@@ -68,11 +75,18 @@ function AppRoutes() {
   const routes = useRoutes([
     {
       path: '/',
-      element: <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />,
+      element: (
+        <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />
+      ),
     },
     {
       path: '/admin/login',
-      element: isAuthenticated && !isPasswordChangeRequired ? <Navigate to="/admin/main" replace /> : <LoginPage />,
+      element:
+        isAuthenticated && !isPasswordChangeRequired ? (
+          <Navigate to="/admin/main" replace />
+        ) : (
+          <LoginPage />
+        ),
     },
     {
       path: '/admin/forbidden',
@@ -88,16 +102,22 @@ function AppRoutes() {
     ...publicClientRoutes,
     ...withProtectedElement(protectedClientRoutes),
 
+    /* ── QR 소비자 진입 라우트 (인증 불필요) ── */
+    { path: '/qr/:url', element: <QrEntryPage /> },
+    { path: '/consumer/order', element: <ConsumerOrderPage /> },
+
     /* ── 개발 전용 가이드 (인증 불필요) ── */
     ...devRoutes,
 
     {
       path: '*',
-      element: <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />,
+      element: (
+        <Navigate to={resolveDefaultPath(isAuthenticated, isPasswordChangeRequired)} replace />
+      ),
     },
   ]);
 
-  if (isLoading) {
+  if (isLoading && !isPublicStandalonePath(location.pathname)) {
     return <LoadingScreen />;
   }
 

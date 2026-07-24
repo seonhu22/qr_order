@@ -1,0 +1,664 @@
+.order-status-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .order-status-management-page {
+    gap: var(--spacing-4);
+  }
+}
+
+/* ── 주문 상태 배지 — 칸반 컬럼 숫자 라벨과 같은 색상. 결제 처리/주문 수정 모달의 주문번호 옆에 붙인다 ── */
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--spacing-2);
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-strong);
+  vertical-align: middle;
+}
+
+.order-status-badge--received {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.order-status-badge--cooking {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.order-status-badge--served {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.order-status-badge--cancelled {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
+
+/* ── 주문 취소 처리 모달 ── */
+.order-cancel-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.order-cancel-modal__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.order-cancel-modal__notice-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-secondary);
+}
+
+.order-cancel-modal__notice-desc {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 결제 처리 1단계 선택 모달 — WrapperModal의 기본 footer(2버튼) 대신 3버튼을 직접 둔다 */
+.order-payment-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: var(--border-1) solid var(--color-border-divider);
+}
+
+/* ── 결제완료 영수증 — 같은 테이블의 결제 대상 주문을 모두 합쳐 보여준다 */
+.order-payment-receipt {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--spacing-4);
+}
+
+.order-payment-receipt__table {
+  margin: 0;
+  padding-bottom: var(--spacing-4);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* 주문 내역만 스크롤되게 하고, 위 테이블명/아래 총 주문건 요약은 항상 보이게 고정한다.
+   flex: 1 1 auto + min-height: 0으로 모달 안에서 실제로 남는 공간만큼만 채우고 그 안에서 스크롤되며,
+   max-height는 항목이 적어 공간이 남을 때 지나치게 늘어나지 않도록 막는 상한선 역할만 한다. */
+.order-payment-receipt__order-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--spacing-3);
+  max-height: min(45vh, 22rem);
+  overflow-y: auto;
+  padding-right: var(--spacing-6);
+}
+
+.order-payment-receipt__order {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: var(--border-1) solid var(--color-border-default);
+}
+
+.order-payment-receipt__order:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.order-payment-receipt__order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-payment-receipt__order-no {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-payment-receipt__time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+.order-payment-receipt__menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-payment-receipt__menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+/* 메뉴명+수량 | 수량 | 단가 | 금액 4열 — 메뉴/옵션 줄이 같은 컬럼 폭을 공유한다 */
+.order-payment-receipt__line {
+  display: grid;
+  grid-template-columns: 1fr 2.5rem 5.5rem 5.5rem;
+  gap: var(--spacing-2);
+  align-items: baseline;
+}
+
+.order-payment-receipt__line-name {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+}
+
+.order-payment-receipt__line-qty,
+.order-payment-receipt__line-price,
+.order-payment-receipt__line-amount {
+  text-align: right;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+.order-payment-receipt__line-amount {
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* 옵션은 카드(OrderStatusCard)의 옵션 목록과 같은 스타일로 — 좌측 라인 + 옅은 배경으로 메인 메뉴와 분리해 보여준다 */
+.order-payment-receipt__option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-left: 0.125rem solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+}
+
+.order-payment-receipt__line--option .order-payment-receipt__line-name {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-payment-receipt__line--option .order-payment-receipt__line-qty,
+.order-payment-receipt__line--option .order-payment-receipt__line-price,
+.order-payment-receipt__line--option .order-payment-receipt__line-amount {
+  font-size: var(--typography-size-caption);
+}
+
+.order-payment-receipt__line--option .order-payment-receipt__line-amount {
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-tertiary);
+}
+
+.order-payment-receipt__subtotal {
+  margin: 0;
+  text-align: right;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-payment-receipt__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: 0.125rem solid var(--color-text-primary);
+}
+
+.order-payment-receipt__summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+}
+
+.order-payment-receipt__summary-row--total {
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-strong);
+}
+
+/* ── 주문 수정 — 같은 테이블의 진행 중인 주문을 모두 모아 메뉴 추가/줄 취소를 draft로 처리한다 */
+.order-edit-modal {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--spacing-4);
+}
+
+.order-edit-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--spacing-4);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+}
+
+.order-edit-modal__table {
+  margin: 0;
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* 주문 목록만 스크롤되게 하고, 위 헤더("N번 테이블" + 메뉴 추가)와 아래 총 합계는 항상 보이게 고정한다.
+   flex: 1 1 auto + min-height: 0으로 모달 안에서 실제로 남는 공간만큼만 채우고 그 안에서 스크롤되며,
+   max-height는 항목이 적어 공간이 남을 때 지나치게 늘어나지 않도록 막는 상한선 역할만 한다. */
+.order-edit-modal__order-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--spacing-3);
+  max-height: min(70vh, 36rem);
+  overflow-y: auto;
+  padding-right: var(--spacing-6);
+}
+
+.order-edit-modal__empty {
+  margin: 0;
+  padding: var(--spacing-6) 0;
+  text-align: center;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__order {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: var(--border-1) solid var(--color-border-default);
+}
+
+.order-edit-modal__order:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+/* "메뉴 추가"로 새로 생긴 주문은 기존 주문들과 구분되게 강조한다(:first-child보다 우선하도록 같이 명시) */
+.order-edit-modal__order--new,
+.order-edit-modal__order--new:first-child {
+  padding: var(--spacing-4);
+  border: var(--border-1) solid var(--color-brand-subtle);
+  border-left: 0.1875rem solid var(--color-brand-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-subtle);
+}
+
+.order-edit-modal__new-badge {
+  margin-left: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  vertical-align: middle;
+}
+
+.order-edit-modal__order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-edit-modal__order-no {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-edit-modal__time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-disabled);
+}
+
+.order-edit-modal__menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-edit-modal__menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+/* 메뉴명+수량 | 수량 | 단가 | 금액 | 취소버튼 5열 — payment-receipt의 4열에 취소 버튼 칸만 추가한 모양 */
+.order-edit-modal__line {
+  display: grid;
+  grid-template-columns: 1fr 2.5rem 5.5rem 5.5rem 1.875rem;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.order-edit-modal__line-name {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+}
+
+.order-edit-modal__line-qty,
+.order-edit-modal__line-price,
+.order-edit-modal__line-amount {
+  text-align: right;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__line-amount {
+  margin-right: var(--spacing-4);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* 그리드 컬럼 폭이 1.875rem(30px)으로 고정돼 있어 버튼 자체를 키우면 레이아웃이 깨진다.
+   시각적 크기(30px)는 그대로 두고, 보이지 않는 ::before로 히트 영역만 44px(터치 권장 최소 크기)로 넓힌다 —
+   테이블 배치 관리의 리사이즈 핸들 터치 영역 확장과 같은 의도다. */
+.order-edit-modal__line-cancel {
+  position: relative;
+  justify-self: center;
+  color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__line-cancel::before {
+  content: '';
+  position: absolute;
+  inset: -0.4375rem;
+}
+
+.order-edit-modal__line-cancel:hover:not(:disabled) {
+  color: var(--color-status-error-default);
+}
+
+/* 옵션은 카드(OrderStatusCard)의 옵션 목록과 같은 스타일로 — 좌측 라인 + 옅은 배경으로 메인 메뉴와 분리해 보여준다 */
+.order-edit-modal__option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-left: 0.125rem solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+}
+
+/* "메뉴 추가"로 생긴 새 주문(.order-edit-modal__order--new)은 이미 박스로 강조돼 있어,
+   옵션 줄까지 같은 박스 스타일을 입히면 중첩되어 보인다. 그래서 박스 없이 들여쓰기만 한다. */
+.order-edit-modal__option-list--plain {
+  padding: 0 0 0 var(--spacing-3);
+  border-left: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.order-edit-modal__line--option .order-edit-modal__line-name {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__line--option .order-edit-modal__line-qty,
+.order-edit-modal__line--option .order-edit-modal__line-price,
+.order-edit-modal__line--option .order-edit-modal__line-amount {
+  font-size: var(--typography-size-caption);
+}
+
+.order-edit-modal__line--option .order-edit-modal__line-amount {
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-tertiary);
+}
+
+.order-edit-modal__subtotal {
+  margin: 0;
+  text-align: right;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-edit-modal__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-4);
+  border-top: 0.125rem solid var(--color-text-primary);
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* ── 메뉴 추가 — 카탈로그 목록(위) + 추가된 항목 미리보기(아래) ── */
+.order-menu-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-9);
+}
+
+.order-menu-picker__catalog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  max-height: min(58vh, 30rem);
+  overflow-y: auto;
+  padding-right: var(--spacing-7);
+}
+
+.order-menu-picker__category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.order-menu-picker__category-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.order-menu-picker__category-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-menu-picker__category-count {
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-muted);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-menu-picker__catalog-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-3);
+  border-top: var(--border-1) solid var(--color-border-default);
+}
+
+.order-menu-picker__category > .order-menu-picker__catalog-row:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.order-menu-picker__catalog-thumb {
+  flex-shrink: 0;
+  width: 3.75rem;
+  height: 3.75rem;
+  background-color: var(--color-text-disabled);
+}
+
+.order-menu-picker__catalog-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.order-menu-picker__catalog-name {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.order-menu-picker__catalog-option-count {
+  margin-left: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  vertical-align: middle;
+}
+
+.order-menu-picker__catalog-price {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 옵션 추가 — single 카테고리 라디오(체크박스 모양, 카테고리당 1개) ── */
+.order-option-picker__radio {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-default);
+  color: var(--color-brand-text);
+  cursor: pointer;
+}
+
+.order-option-picker__radio--selected {
+  border-color: var(--color-brand-default);
+  background-color: var(--color-brand-default);
+}
+
+/* ── 옵션 추가 — multi 카테고리 수량 조절(+/-) 및 "주문 수량" 박스 공용 스테퍼 ── */
+.order-option-picker__stepper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.order-option-picker__stepper-btn {
+  width: var(--height-component-sm);
+  padding: 0;
+}
+
+.order-option-picker__stepper-count {
+  min-width: 1.25rem;
+  text-align: center;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-option-picker__quantity-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+}
+
+.order-option-picker__quantity-title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-option-picker__quantity-desc {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-menu-picker__added {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-height: min(40vh, 19rem);
+  overflow-y: auto;
+  padding: var(--spacing-5);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+}
+
+.order-menu-picker__added-empty {
+  margin: 0;
+  text-align: center;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}
+
+/* "추가된 항목" 미리보기는 이미 박스(테두리+배경)로 감싸져 있어, 옵션 줄까지 같은 박스 스타일을 또 입히면 중첩되어 보인다.
+   그래서 여기서는 박스 없이 들여쓰기만 한다. */
+.order-menu-picker__added-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding-left: var(--spacing-3);
+}
+
+.order-menu-picker__added-option-list .order-edit-modal__line-name {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-menu-picker__added-option-list .order-edit-modal__line-qty,
+.order-menu-picker__added-option-list .order-edit-modal__line-price,
+.order-menu-picker__added-option-list .order-edit-modal__line-amount {
+  font-size: var(--typography-size-caption);
+}
+
+.order-menu-picker__added-option-list .order-edit-modal__line-amount {
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-tertiary);
+}

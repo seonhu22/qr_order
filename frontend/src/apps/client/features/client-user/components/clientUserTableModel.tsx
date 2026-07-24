@@ -19,9 +19,9 @@ type CreateClientUserTableRowsParams = {
 export function createClientUserTableColumns(): SharedTableColumn[] {
   return [
     { key: 'check', label: '', className: 'common-table__col--checkbox', ariaLabel: '선택' },
-    { key: 'userId', label: '아이디', className: 'client-user-table__col--id' },
-    { key: 'userName', label: '이름', className: 'client-user-table__col--name' },
-    { key: 'authority', label: '권한', className: 'client-user-table__col--authority' },
+    { key: 'userId', label: '아이디', tdClassName: 'common-table__cell--center' },
+    { key: 'userName', label: '이름', tdClassName: 'common-table__cell--center' },
+    { key: 'authority', label: '권한', className: 'common-table__col--sm' },
     { key: 'passwordReset', label: '비밀번호 초기화', className: 'common-table__col--md' },
     { key: 'edit', label: '', className: 'common-table__col--action', ariaLabel: '수정' },
   ];
@@ -63,7 +63,6 @@ export function createClientUserTableRows({
       userId: {
         type: 'text',
         value: row.userId,
-        className: 'client-user-table__id-text',
       },
       userName: {
         type: 'text',

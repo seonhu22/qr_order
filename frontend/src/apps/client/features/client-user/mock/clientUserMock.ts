@@ -2,16 +2,15 @@
  * @fileoverview 클라이언트 유저 관리 화면 mock
  *
  * @description
- * UI 단계 mock. 실제 데이터는 백엔드 `/api/client/store_manage/user_manage/search` 와
- * 공통 콤보 `USER_ROLE` 에서 받는다. label은 콤보 응답 기반으로 갱신될 예정.
+ * `/api/client/store_manage/user_manage/search` 응답(`ClientUserResponse[]`) 형태의 mock 데이터.
  */
 
-import type { ClientUser } from '../types';
+import type { ClientUserResponse } from '@/generated/types/clientUserResponse';
 
-export const CLIENT_USER_MOCK_ROWS: ClientUser[] = [
-  { id: 'admin001', userId: 'admin001', userName: '홍길동', authorityCode: 'ADMIN', authorityLabel: '관리자' },
-  { id: 'manager001', userId: 'manager001', userName: '김영희', authorityCode: 'STAFF', authorityLabel: '스태프' },
-  { id: 'staff001', userId: 'staff001', userName: '이철수', authorityCode: 'STAFF', authorityLabel: '스태프' },
-  { id: 'staff002', userId: 'staff002', userName: '박민수', authorityCode: 'STAFF', authorityLabel: '스태프' },
-  { id: 'manager002', userId: 'manager002', userName: '정수진', authorityCode: 'STAFF', authorityLabel: '스태프' },
+export const CLIENT_USER_MOCK_ROWS: ClientUserResponse[] = [
+  { sysId: 'admin001', userId: 'admin001', userNm: '홍길동', userRole: '01', plantCd: 'P001', plantNm: '강남점' },
+  { sysId: 'manager001', userId: 'manager001', userNm: '김영희', userRole: '02', plantCd: 'P001', plantNm: '강남점' },
+  { sysId: 'staff001', userId: 'staff001', userNm: '이철수', userRole: '02', plantCd: 'P001', plantNm: '강남점' },
+  { sysId: 'staff002', userId: 'staff002', userNm: '박민수', userRole: '02', plantCd: 'P001', plantNm: '강남점' },
+  { sysId: 'manager002', userId: 'manager002', userNm: '정수진', userRole: '02', plantCd: 'P001', plantNm: '강남점' },
 ];

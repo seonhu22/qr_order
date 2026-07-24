@@ -1,18 +1,7 @@
-/**
- * @fileoverview 관리자 사이드바 어댑터
- *
- * @description
- * 공용 Sidebar / SidebarNav / SidebarUser 컴포넌트를
- * 어드민 전용 데이터·상태(스토어, auth, 라우터)와 연결하는 어댑터 역할.
- *
- *   <header> AdminSidebarHeader — 브랜드 + 닫기 버튼 (어드민 전용)
- *   <nav>    SidebarNav         — 3계층 트리 내비게이션 (공용)
- *   <footer> SidebarUser        — 사용자 정보 + 로그아웃 (공용)
- */
-
+import '@/apps/admin/features/sidebar/styles/AdminSidebarHeader.css';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { Sidebar, SidebarNav, SidebarSection, SidebarUser } from '@/shared/components/sidebar';
 import { useSidebarExpand } from '@/shared/components/sidebar/useSidebarExpand';
 import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { AdminSidebarHeader } from '@/apps/admin/features/sidebar/components/AdminSidebarHeader';
@@ -81,8 +70,6 @@ export function AdminSidebar() {
   }, [location.pathname, menuErrorStatus, navigate]);
 
   // URL 변경 시에만 섹션 자동 감지 + 현재 페이지 그룹 열기
-  // activeSection을 deps에 넣으면 헤더 탭 전환 시에도 effect가 재실행되어
-  // URL 기반으로 섹션을 되돌려버리는 문제가 발생하므로 의도적으로 제외한다.
   useEffect(() => {
     if (currentSection) {
       setActiveSection(currentSection);
@@ -125,9 +112,7 @@ export function AdminSidebar() {
   return (
     <Sidebar>
       <AdminSidebarHeader />
-      <div className="admin-sidebar-section">
-        <span className="admin-sidebar-section__label">{sectionLabel}</span>
-      </div>
+      {sectionLabel && <SidebarSection label={sectionLabel} />}
       {hasMenuLoadError ? (
         <div className="admin-sidebar-status" role="status">
           메뉴를 불러오지 못했습니다.

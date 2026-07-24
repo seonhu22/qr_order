@@ -1,0 +1,19 @@
+.qr-code-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  min-height: 0;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .qr-code-management-page {
+    gap: var(--spacing-4);
+  }
+}
+
+.qr-code-management-page > .qr-code-management-table {
+  flex: 1;
+  min-height: 0;
+}

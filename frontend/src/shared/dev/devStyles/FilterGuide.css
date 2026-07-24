@@ -1,0 +1,86 @@
+.filter-guide__section-desc {
+  margin: var(--spacing-1) 0 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.filter-guide__demo {
+  width: 100%;
+}
+
+.filter-guide__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.filter-guide__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.filter-guide__fixed {
+  flex-shrink: 0;
+  width: 9rem;
+}
+
+.filter-guide__flex {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.filter-guide__date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-guide__date-sep {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.filter-guide__actions {
+  display: inline-flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.filter-guide__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+}
+
+.filter-guide__hint {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.filter-guide__applied-params {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+}
+
+.filter-guide__checklist {
+  margin: 0;
+  padding-left: var(--spacing-6);
+  font-size: var(--typography-size-body);
+  line-height: 1.7;
+}
+
+.filter-guide__checklist li {
+  margin-bottom: var(--spacing-2);
+}

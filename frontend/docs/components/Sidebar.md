@@ -19,20 +19,24 @@
 
 ```text
 shared/components/sidebar/
-  index.ts          ← 외부 공개 API (배럴 파일)
-  types.ts          ← SidebarNavItem, SidebarNavGroup, SidebarNavDepth1 타입
-  Sidebar.tsx       ← 컨테이너 (--sb-* CSS 변수 제공 + flex 셸)
+  index.ts            ← 외부 공개 API (배럴 파일)
+  types.ts            ← SidebarNavItem, SidebarNavGroup, SidebarNavDepth1 타입
+  Sidebar.tsx         ← 컨테이너 (--sb-* CSS 변수 제공 + flex 셸)
   Sidebar.css
-  SidebarNav.tsx    ← 3계층 nav (props 기반, 라우터·스토어 비의존)
+  SidebarHeader.tsx   ← 브랜드 + 닫기 버튼 헤더 (brand·onClose props 기반)
+  SidebarHeader.css
+  SidebarSection.tsx  ← 섹션 구분 레이블 (label prop)
+  SidebarSection.css
+  SidebarNav.tsx      ← 3계층 nav (props 기반, 라우터·스토어 비의존)
   SidebarNav.css
-  SidebarUser.tsx   ← 사용자 푸터 (props 기반, auth 비의존, 이탈방지 스토어 참조, 로그아웃 모달 내장)
+  SidebarUser.tsx     ← 사용자 푸터 (props 기반, auth 비의존, 이탈방지 스토어 참조, 로그아웃 모달 내장)
   SidebarUser.css
 ```
 
 ### import
 
 ```ts
-import { Sidebar, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
+import { Sidebar, SidebarHeader, SidebarSection, SidebarNav, SidebarUser } from '@/shared/components/sidebar';
 import type { SidebarNavDepth1 } from '@/shared/components/sidebar';
 
 // 금지 — 내부 파일 직접 참조
@@ -46,6 +50,8 @@ import { SidebarNav } from '@/shared/components/sidebar/SidebarNav';
 | 컴포넌트 | 역할 |
 |---|---|
 | `Sidebar` | `--sb-*` CSS 변수 컨텍스트 제공 + flex 셸 컨테이너. `children`으로 내부를 자유롭게 구성 |
+| `SidebarHeader` | 브랜드 노드(`brand`)와 닫기 버튼(`onClose`)으로 구성된 헤더. 앱별 로고·스토어 연결은 어댑터에서 주입 |
+| `SidebarSection` | 섹션 구분 레이블(`label`). 메뉴 그룹 사이에 삽입해 시각적 구분선 역할 |
 | `SidebarNav` | 3계층(Depth1 > Depth2 > Depth3) 트리 내비게이션. 메뉴 데이터·펼침 상태를 props로 수신 |
 | `SidebarUser` | 아바타·이름·역할·로그아웃 버튼 푸터. 미저장 변경(`isDirty`)이 없을 때만 자체 로그아웃 확인 모달을 처리하고, 있을 때는 곧바로 `onLogout` 콜백 호출 |
 
@@ -80,13 +86,44 @@ type SidebarProps = {
 
 ---
 
+### SidebarHeaderProps
+
+```ts
+type SidebarHeaderProps = {
+  brand: ReactNode;   // 앱 로고·브랜드 노드 (앱별 어댑터에서 주입)
+  onClose: () => void; // 사이드바 닫기 콜백
+};
+```
+
+앱별 어댑터(`AdminSidebarHeader` 등)는 스토어 연결만 담당하고 UI 마크업은 `SidebarHeader`에 위임한다.
+
+```tsx
+// AdminSidebarHeader.tsx — 어댑터 예시
+export function AdminSidebarHeader() {
+  const closeSidebar = useAdminLayoutStore((s) => s.closeSidebar);
+  return <SidebarHeader brand={<AdminBrand />} onClose={closeSidebar} />;
+}
+```
+
+---
+
+### SidebarSectionProps
+
+```ts
+type SidebarSectionProps = {
+  label: string; // 섹션 구분 레이블 텍스트
+};
+```
+
+---
+
 ### SidebarNavProps
 
 ```ts
 type SidebarNavProps = {
   menus: readonly SidebarNavDepth1[];    // 3계층 메뉴 데이터
-  expandedDepth1Key: string | null;      // 펼쳐진 1depth 키
-  expandedDepth2Key: string | null;      // 펼쳐진 2depth 키
+  expandedDepth1Keys: string[];          // 펼쳐진 1depth 키 목록
+  expandedDepth2Keys: string[];          // 펼쳐진 2depth 키 목록
   currentPathname: string;              // 현재 URL 경로 (active 상태 판별)
   onToggleDepth1: (key: string, hasChildren?: boolean) => void;
   onToggleDepth2: (key: string, hasChildren?: boolean) => void;
@@ -101,7 +138,7 @@ type SidebarNavProps = {
 
 - `false` 지정 시 모든 depth1 items의 groups를 병합해 최상위 항목으로 직접 렌더한다.
 - 그룹 헤더 버튼은 depth1 버튼 스타일을 재사용해 시각적 일관성을 유지한다.
-- `expandedDepth1Key` / `onToggleDepth1`은 사용되지 않는다.
+- `expandedDepth1Keys` / `onToggleDepth1`은 사용되지 않는다.
 
 ---
 

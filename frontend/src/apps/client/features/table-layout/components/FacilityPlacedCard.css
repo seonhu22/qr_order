@@ -1,0 +1,64 @@
+.facility-placed-card {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  width: max-content;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-muted);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text-secondary);
+}
+
+.facility-placed-card__label {
+  white-space: nowrap;
+}
+
+.facility-placed-card__remove {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  /* 작은 카드에서는 리사이즈 핸들의 넓어진 터치 히트 영역(.table-layout-canvas__resize-handle)과
+     겹칠 수 있다 — 겹치는 영역에서는 삭제 버튼이 클릭을 먼저 받도록 더 높은 z-index를 둔다. */
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.facility-placed-card__remove:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+/* 작게 */
+.facility-placed-card--small {
+  min-height: 3.5rem;
+  padding: var(--spacing-3) var(--spacing-7) var(--spacing-3) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+/* 보통 */
+.facility-placed-card--medium {
+  min-height: 4.25rem;
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-4) var(--spacing-4);
+  font-size: var(--font-size-base);
+}
+
+/* 크게 — 전체보기에서도 확실히 커 보이도록 이전 단계보다 더 크게 키운 폭이다 */
+.facility-placed-card--large {
+  min-height: 5.5rem;
+  padding: var(--spacing-5) var(--spacing-9) var(--spacing-5) var(--spacing-5);
+  font-size: var(--font-size-lg);
+}

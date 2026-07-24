@@ -12,17 +12,23 @@ import type { ClientSection } from '@/shared/menu/clientNavigation';
 type ClientLayoutStore = {
   isSidebarOpen: boolean;
   activeSection: ClientSection | null;
+  hideBreadcrumb: boolean;
   openSidebar: () => void;
   closeSidebar: () => void;
   toggleSidebar: () => void;
   setActiveSection: (section: ClientSection | null) => void;
+  setHideBreadcrumb: (hide: boolean) => void;
+  resetLayout: () => void;
 };
 
 export const useClientLayoutStore = create<ClientLayoutStore>((set) => ({
   isSidebarOpen: false,
   activeSection: null,
+  hideBreadcrumb: false,
   openSidebar: () => set({ isSidebarOpen: true }),
   closeSidebar: () => set({ isSidebarOpen: false }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setActiveSection: (section) => set({ activeSection: section }),
+  setHideBreadcrumb: (hide) => set({ hideBreadcrumb: hide }),
+  resetLayout: () => set({ isSidebarOpen: false, activeSection: null }),
 }));

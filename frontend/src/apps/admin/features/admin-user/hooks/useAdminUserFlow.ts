@@ -87,9 +87,6 @@ export function useAdminUserFlow({
     onValidateRequiredFields,
     onApplyRequiredFieldErrors,
     onSaveChanges,
-    savedNotice: {
-      description: '저장 완료되었습니다.',
-    },
   });
   /**
    * 행 삭제 흐름의 진입점.

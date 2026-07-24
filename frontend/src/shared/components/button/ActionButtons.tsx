@@ -212,6 +212,42 @@ export function EditTableButton({ ariaLabel, onClick, disabled }: IconButtonProp
 }
 
 /**
+ * 행별 QR 출력 아이콘 버튼.
+ */
+export function PrintRowTableButton({ ariaLabel, onClick, disabled }: IconButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant="icon"
+      size="sm"
+      iconOnly={<Icon id="i-printer" size={12} />}
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={onClick}
+    />
+  );
+}
+
+/**
+ * 선택 행 일괄 QR 출력 버튼.
+ */
+export function PrintListTableButton({ onClick, disabled }: DisabledButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant="text"
+      size="sm"
+      className="common-code-card__text-action"
+      leftIcon={<Icon id="i-printer" size={13} />}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      QR 출력
+    </Button>
+  );
+}
+
+/**
  * 비밀번호 초기화 전용 버튼.
  */
 export function PasswordResetButton({ onClick, disabled }: DisabledButtonProps) {

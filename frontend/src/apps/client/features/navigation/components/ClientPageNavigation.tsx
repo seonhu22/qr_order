@@ -1,4 +1,4 @@
-import '@/apps/client/features/navigation/styles/ClientPageNavigation.css';
+import { PageNavigation } from '@/shared/components/navigation';
 import type { ClientMenuBreadcrumb } from '@/shared/menu/clientNavigation';
 
 type ClientPageNavigationProps = {
@@ -11,20 +11,6 @@ export function ClientPageNavigation({ breadcrumb }: ClientPageNavigationProps) 
   }
 
   return (
-    <nav className="client-page-navigation" aria-label="현재 페이지 위치">
-      <ol className="client-page-navigation__list">
-        <li className="client-page-navigation__item">{breadcrumb.depth1}</li>
-        <li className="client-page-navigation__separator" aria-hidden="true">
-          /
-        </li>
-        <li className="client-page-navigation__item">{breadcrumb.depth2}</li>
-        <li className="client-page-navigation__separator" aria-hidden="true">
-          /
-        </li>
-        <li className="client-page-navigation__item client-page-navigation__item--current">
-          {breadcrumb.depth3}
-        </li>
-      </ol>
-    </nav>
+    <PageNavigation depth1={breadcrumb.depth1} depth2={breadcrumb.depth2} current={breadcrumb.depth3} />
   );
 }

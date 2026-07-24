@@ -146,7 +146,7 @@ frontend/
 
 | 폴더                | 역할                                              |
 | ------------------- | ------------------------------------------------- |
-| `apps/*/pages`      | 라우트 단위 화면 — 조립만 담당                    |
+| `apps/*/pages`      | 라우트 단위 화면 — 조립만 담당. 서브폴더는 feature 이름 기준 kebab-case 1단계 (예: `admin-user/`, `store-info/`, `client-user/`) |
 | `apps/*/features`   | 화면 내부 재사용 기능 단위 (hook, component, api) |
 | `apps/*/routes`     | 앱별 라우터 정의                                  |
 | `shared/components` | 공통 UI 컴포넌트                                  |

@@ -50,10 +50,10 @@ Orval을 채택한다.
 
 Orval이 OpenAPI 명세를 읽는 방식이 두 가지다.
 
-| 방식 | 내용 |
-|------|------|
-| URL 직접 | `http://localhost:8080/v3/api-docs` |
-| 로컬 파일 | `openapi.json` 저장 후 참조 |
+| 방식      | 내용                                |
+| --------- | ----------------------------------- |
+| URL 직접  | `http://localhost:8080/v3/api-docs` |
+| 로컬 파일 | `openapi.json` 저장 후 참조         |
 
 ### 결정
 
@@ -89,11 +89,13 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 현재는 `orval.config.ts` 하나로 통합 운영하고, 앱별 분리는 나중에 필요 시 진행한다.
 
 **현재 단계에서 통합을 선택한 이유:**
+
 - 현재 개발 중심이 `apps/admin`이고 `client`, `consumer`는 골격 수준
 - 분리하면 config 파일이 여러 개가 되어 초기 진입 장벽이 높아짐
 - 통합 상태에서도 생성 경로를 앱별로 지정하면 구조는 유지됨
 
 **분리 기준 (향후):**
+
 - `apps/client`, `apps/consumer` 개발이 본격 시작될 때
 - 앱별로 다른 생성 규칙이 필요해질 때
 - config 파일을 분리하고 `package.json` 스크립트도 앱별로 나눈다
@@ -119,14 +121,14 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 로그인 API 경로 | `POST /api/client/auth/login` | 실제 엔드포인트 확인 |
-| 응답 구조 | `{ success, message, data }` | 백엔드 DTO 확인 |
-| 인증 방식 | 세션 쿠키 (`credentials: 'include'`) 가정 | JWT 여부 등 확인 |
-| 로그인 성공 후 이동 | `/client/main` | 실제 진입 경로 확인 |
-| 비밀번호 찾기 | 버튼만 존재, 동작 없음 | 흐름 및 API 미정 |
-| 계정 잠금·init_yn 정책 | 어드민과 동일 여부 미확인 | 백엔드 정책 확인 |
+| 항목                   | 현재 임시값                               | 확정 필요            |
+| ---------------------- | ----------------------------------------- | -------------------- |
+| 로그인 API 경로        | `POST /api/client/auth/login`             | 실제 엔드포인트 확인 |
+| 응답 구조              | `{ success, message, data }`              | 백엔드 DTO 확인      |
+| 인증 방식              | 세션 쿠키 (`credentials: 'include'`) 가정 | JWT 여부 등 확인     |
+| 로그인 성공 후 이동    | `/client/main`                            | 실제 진입 경로 확인  |
+| 비밀번호 찾기          | 버튼만 존재, 동작 없음                    | 흐름 및 API 미정     |
+| 계정 잠금·init_yn 정책 | 어드민과 동일 여부 미확인                 | 백엔드 정책 확인     |
 
 ### 현재 구현 범위
 
@@ -170,25 +172,25 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 현재 임시 입력 필드
 
-| 필드 | 입력 타입 | 비고 |
-|---|---|---|
-| 아이디 | text | 중복 확인 API 미구현 |
-| 비밀번호 | password | 규칙(길이·특수문자 등) 미정 |
-| 비밀번호 확인 | password | 클라이언트 단순 일치 검사만 |
-| 사업자 등록번호 | text | 형식 검증·실명 인증 API 미정 |
-| 이메일 | email | 인증 메일 발송 여부 미정 |
+| 필드            | 입력 타입 | 비고                         |
+| --------------- | --------- | ---------------------------- |
+| 아이디          | text      | 중복 확인 API 미구현         |
+| 비밀번호        | password  | 규칙(길이·특수문자 등) 미정  |
+| 비밀번호 확인   | password  | 클라이언트 단순 일치 검사만  |
+| 사업자 등록번호 | text      | 형식 검증·실명 인증 API 미정 |
+| 이메일          | email     | 인증 메일 발송 여부 미정     |
 
 추가 필드(매장명, 전화번호 등) 여부는 백엔드 협의 후 확정 예정.
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 회원가입 API | `POST /api/client/auth/signup` | 실제 엔드포인트 확인 |
-| 요청 바디 | `{ userId, password, businessNo, email }` | 백엔드 DTO 확인 |
-| 응답 구조 | `{ success, message }` | 백엔드 DTO 확인 |
-| 개인정보 동의 전달 여부 | 프론트에서만 체크, 서버 미전달 | 동의 내역 저장 정책 확인 |
-| 가입 완료 후 이동 | 로그인 step 복귀 | 자동 로그인 처리 여부 확인 |
+| 항목                    | 현재 임시값                               | 확정 필요                  |
+| ----------------------- | ----------------------------------------- | -------------------------- |
+| 회원가입 API            | `POST /api/client/auth/signup`            | 실제 엔드포인트 확인       |
+| 요청 바디               | `{ userId, password, businessNo, email }` | 백엔드 DTO 확인            |
+| 응답 구조               | `{ success, message }`                    | 백엔드 DTO 확인            |
+| 개인정보 동의 전달 여부 | 프론트에서만 체크, 서버 미전달            | 동의 내역 저장 정책 확인   |
+| 가입 완료 후 이동       | 로그인 step 복귀                          | 자동 로그인 처리 여부 확인 |
 
 ### 연동 시 체크리스트
 
@@ -223,14 +225,14 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 인증 코드 발송 API | `POST /api/client/auth/find-password` | 실제 엔드포인트 확인 |
-| 인증 코드 확인 API | `POST /api/client/auth/find-password/verify` | 실제 엔드포인트 확인 |
-| 요청 바디 (발송) | `{ userId, email }` | 백엔드 DTO 확인 |
-| 요청 바디 (확인) | `{ userId, verifyCode }` | 백엔드 DTO 확인 |
-| 완료 처리 | 임시 비밀번호 이메일 발송 가정 | 실제 정책 확인 (재설정 링크 vs 임시 비밀번호) |
-| 인증 코드 유효 시간 | 미구현 | 유효 시간 표시 여부 확인 |
+| 항목                | 현재 임시값                                  | 확정 필요                                     |
+| ------------------- | -------------------------------------------- | --------------------------------------------- |
+| 인증 코드 발송 API  | `POST /api/client/auth/find-password`        | 실제 엔드포인트 확인                          |
+| 인증 코드 확인 API  | `POST /api/client/auth/find-password/verify` | 실제 엔드포인트 확인                          |
+| 요청 바디 (발송)    | `{ userId, email }`                          | 백엔드 DTO 확인                               |
+| 요청 바디 (확인)    | `{ userId, verifyCode }`                     | 백엔드 DTO 확인                               |
+| 완료 처리           | 임시 비밀번호 이메일 발송 가정               | 실제 정책 확인 (재설정 링크 vs 임시 비밀번호) |
+| 인증 코드 유효 시간 | 미구현                                       | 유효 시간 표시 여부 확인                      |
 
 ### 연동 시 체크리스트
 
@@ -255,21 +257,21 @@ Orval 설정을 처음부터 앱별로 분리할지, 통합으로 시작할지 �
 
 어드민 레이아웃과 동일한 3단 구조를 따른다.
 
-| 영역 | 컴포넌트 | 비고 |
-|---|---|---|
-| 사이드바 | `ClientSidebar` | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
-| 헤더 | `ClientHeader` | 어드민 헤더와 동일한 CSS 패턴 |
-| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정 |
+| 영역          | 컴포넌트                  | 비고                                                          |
+| ------------- | ------------------------- | ------------------------------------------------------------- |
+| 사이드바      | `ClientSidebar`           | `Sidebar` · `SidebarNav` · `SidebarUser` 공용 컴포넌트 재사용 |
+| 헤더          | `ClientHeader`            | 어드민 헤더와 동일한 CSS 패턴                                 |
+| 레이아웃 상태 | `ClientLayout` (useState) | 2026-06-10 결정: `clientLayoutStore`로 전환 예정              |
 
 ### 임시로 정한 사항
 
-| 항목 | 현재 임시값 | 확정 필요 |
-|---|---|---|
-| 헤더 섹션 탭 | "주문", "매장" | 실제 메뉴 구조 확정 후 교체 |
-| 사이드바 메뉴 경로 | `/client/order/*`, `/client/store/*` | 실제 라우트 확정 후 교체 |
-| 사용자 이름 | `홍길동` | 로그인 응답 user 데이터로 교체 |
-| 사용자 역할 | `매장 관리자` | 실제 role 필드로 교체 |
-| 로그아웃 동작 | `/client/login`으로 이동 | 클라이언트 auth 흐름 확정 후 교체 |
+| 항목               | 현재 임시값                          | 확정 필요                         |
+| ------------------ | ------------------------------------ | --------------------------------- |
+| 헤더 섹션 탭       | "주문", "매장"                       | 실제 메뉴 구조 확정 후 교체       |
+| 사이드바 메뉴 경로 | `/client/order/*`, `/client/store/*` | 실제 라우트 확정 후 교체          |
+| 사용자 이름        | `홍길동`                             | 로그인 응답 user 데이터로 교체    |
+| 사용자 역할        | `매장 관리자`                        | 실제 role 필드로 교체             |
+| 로그아웃 동작      | `/client/login`으로 이동             | 클라이언트 auth 흐름 확정 후 교체 |
 
 ### 연동 시 체크리스트
 
@@ -329,6 +331,12 @@ Admin 규칙 미러링을 채택한다.
 
 향후 신규 앱(Consumer 등)을 추가할 때 첫 PR에 이 골격을 포함한다.
 
+### 추가 — 기능 로직 패리티
+
+> 추가일: 2026-06-15
+
+폴더 구조 미러링뿐 아니라, 동일 도메인 feature의 로직·흐름·ViewModel·테스트 커버리지도 Admin과 Client(추후 Consumer)가 동일하게 유지한다(차이는 권한·메뉴 노출 범위로 한정). 상세 기준은 [Admin/Client 패리티](./operations/app-parity.md) 참고.
+
 ---
 
 ## ADR-009 — 이탈방지 가드: `useBlocker` 대신 커스텀 guarded navigate
@@ -365,3 +373,334 @@ data router로 전환할 일이 생기면(예: 다른 이유로 `useBlocker`가 
 ### 적용 방법
 
 훅 사용법, 적용 대상 8개 페이지, `onNavigate`/`requestLeaveConfirm` 패턴은 [`operations.md`](./operations.md) §5-14 참고.
+
+---
+
+## ADR-010 — 옵션 관리: 백엔드에 없는 필드는 프론트 우선 구현, 저장 시 미전송
+
+**날짜**: 2026-06-22
+**상태**: 임시 (백엔드 필드 추가 후 연동 예정)
+
+### 배경
+
+옵션 관리(`MenuOptionManagementPage`) 화면 설계 중 백엔드 DTO/DB를 직접 확인한 결과, 요청된 컬럼 중 두 개가 아직 없었다.
+
+- 옵션 그룹 "사용여부": `store_menu_option_group` 테이블에 `use_yn` 컬럼은 있으나, 조회/등록/수정 API(`MenuOptionGroupResponse/Request`, MyBatis 쿼리)에는 빠져 있다.
+- 옵션 항목 "기본 선택" 체크박스: DB·API 어디에도 해당 컬럼이 없다.
+
+### 검토한 방식
+
+**패턴 1 — 백엔드도 같이 수정**: DB 컬럼(기본선택) 추가 + Java DTO/MyBatis/openapi 재생성까지 진행. 데이터가 끝까지 일관되지만 백엔드 변경이 함께 필요해 이번 프론트 작업 범위를 벗어난다.
+
+**패턴 2 — 이번 작업에서 제외**: 컬럼 자체를 빼고 나머지 필드만 구현. 단순하지만 사용자가 원래 요청한 화면 구성을 그대로 만들 수 없다.
+
+**패턴 3 — 프론트만 우선 구현 (채택)**: UI 컬럼/모달 필드는 만들되, 해당 값은 저장 시 백엔드로 전송하지 않는다.
+
+### 결정
+
+패턴 3을 채택한다.
+
+- `MenuOptionGroupRow.values.useYn`, `MenuOptionDetailRow.values.defaultYn`은 프론트 전용 필드로 유지한다.
+- `mapToMenuOptionGroupPayload` / `mapToMenuOptionDetailPayload`에서 두 필드를 제외하고 매핑한다.
+- dirty 비교(`isSameMenuOptionGroupRow`)에서 `useYn`은 비교하지 않는다(저장 대상이 아니므로 변경으로 취급할 이유가 없음).
+- 타입 정의에 `@property` JSDoc으로 "백엔드 API에 아직 노출되지 않은 프론트 전용 필드. 저장 시 전송하지 않는다"를 명시해, 추후 합류하는 개발자가 백엔드 코드를 보지 않고도 이유를 알 수 있게 한다.
+
+### 연동 시 체크리스트
+
+- [ ] `store_menu_option_group.use_yn`을 `MenuOptionGroupResponse`/`MenuOptionGroupRequest`/관련 MyBatis 쿼리(조회·등록·수정)에 노출
+- [ ] 옵션 항목 "기본 선택" 컬럼을 `store_menu_option_detail`에 추가하고 동일하게 DTO/쿼리에 노출
+- [ ] `npm run generate:schema` + `npm run generate`로 타입 재생성
+- [ ] `mapToMenuOptionGroupPayload`/`mapToMenuOptionDetailPayload`에 두 필드 추가, dirty 비교 로직도 갱신
+- [ ] 프론트 전용 필드라는 JSDoc 주석 제거
+
+---
+
+## ADR-011 — 주문 이력 조회: 백엔드 API 미정, 프론트 mock 우선 구현
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 API 확정 후 연동 예정)
+
+### 배경
+
+`/client/order/history/list` 화면(주문번호·테이블 번호·주문 상태·결제 상태·주문일자 목록) 구현 중 기존에 생성된 `getOrderHistory`(`/api/client/order_manage/history/search`) API를 확인한 결과, 이 화면 용도와 맞지 않았다.
+
+- `orderStatus`를 필수 단일값 파라미터로 받는다 — 목록 전체 조회가 아니라 특정 상태 1건의 상태 변경 히스토리 조회용으로 보인다.
+- 응답(`OrderMasterHistoryItem`)에 화면에 필요한 주문번호·결제상태 필드가 없다.
+
+### 검토한 방식
+
+**패턴 1 — 기존 API를 변형해 사용**: `orderStatus`를 빈 값/임의값으로 호출하거나 주문번호를 `sysId`로 대체. 화면이 원래 요청한 데이터 구조를 만족시키지 못한다.
+
+**패턴 2 — 프론트 mock 우선 구현 (채택)**: ADR-004/005/006/010과 동일한 선례. UI·검색·필터 로직은 모두 구현하되, 데이터는 mock 배열을 필터링해 제공한다.
+
+### 결정
+
+패턴 2를 채택한다.
+
+- `apps/client/features/order-history/mock/orderHistoryMock.ts`의 정적 데이터를 `api/orderHistoryApi.ts`의 `queryFn`(`filterOrderHistoryMock`, 테스트 가능하도록 export)에서 날짜범위·키워드·주문상태로 필터링해 반환한다.
+- 네트워크 호출이 없으므로 MSW 핸들러를 별도로 만들지 않았다.
+- 검색폼의 상태 필터는 주문상태 1개만 둔다(결제상태 필터는 화면에서 제외 — 결제상태는 목록 컬럼에 일반 텍스트로만 노출).
+- `OrderHistoryStatus`(`RECEIVED`/`COOKING`/`SERVED`/`CANCELLED`), `OrderHistoryPaymentStatus`(`PENDING`/`PAID`/`UNPAID`/`REFUNDED`) 코드값은 임시로 정한 것이며 백엔드 enum과 일치 여부 확인이 필요하다.
+
+### 연동 시 체크리스트
+
+- [ ] 실제 주문 이력 조회 API(주문번호/결제상태 포함) 백엔드와 확정
+- [ ] `mock/orderHistoryMock.ts` 제거, `api/orderHistoryApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
+- [ ] `npm run generate:schema` + `npm run generate`로 타입 동기화
+- [ ] `OrderHistoryStatus`/`OrderHistoryPaymentStatus` 코드값이 백엔드 enum과 일치하는지 확인 후 라벨 매핑 갱신
+
+---
+
+## ADR-012 — 결제 목록 조회: 백엔드 API는 실재하나 일부 계약이 불명확, 임시 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/status/list` 화면은 `order-history`와 달리 실제 백엔드 API(`getPaymentInfoMaster`, `getPaymentInfoDetail` — `payment-manage-controller.ts`)가 존재하고 화면 필드와도 잘 맞는다. 다만 OpenAPI 명세에 enum이나 관계 필드가 노출되지 않아 아래 세 가지는 프론트에서 임시로 가정하고 진행했다.
+
+1. **결제상태 코드값**: `GetPaymentInfoMasterParams.paymentStatus`와 응답의 `orderStatus`(필드명은 orderStatus이지만 실제로는 결제상태) 모두 `string`만 노출돼 있어, 화면 요구사항(결제완료/미결제/식사중)에 맞춰 `PAID`/`UNPAID`/`DINING`을 임시로 정했다.
+2. **"전체" 필터 시 빈 문자열 전송**: `paymentStatus`가 필수 파라미터라 "전체" 선택 시 빈 문자열(`''`)을 보낸다. 백엔드가 빈 값을 "전체 조회"로 처리하는지는 미확인.
+3. **상세 응답의 배열 의미**: `getPaymentInfoDetail`은 `PaymentInfoDetailResponse[]`(배열)를 반환하지만 화면은 단일 레코드 폼이라 첫 번째 요소만 사용한다(`mapToPaymentStatusDetail`). 배열인 이유(여러 취소 이력 등)는 불명확.
+4. **결제완료 전용 필드**: 결제수단(`paymentType`)과 취소사유/취소상세사유(`cancelReason`/`cancelDescription`)는 결제완료(PAID) 건에만 의미가 있다고 가정해, 미결제·식사중 건은 값이 있어도 화면에서 항상 `'-'`로 표시한다(`formatPaymentType`/`formatCancelField`). 백엔드가 실제로 이 필드들을 PAID 건에만 채우는지는 미확인.
+
+### 결정
+
+위 세 가지를 임시 가정으로 두고 화면을 완성한다. mock은 `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts`의 오버라이드 핸들러로 큐레이션해, orval이 자동 생성한 faker 기반 무작위 응답 대신 의미 있는 결제상태 값으로 개발 환경에서 화면을 확인할 수 있게 한다.
+
+### 연동 시 체크리스트
+
+- [ ] 결제상태 enum 실제 코드값을 백엔드와 확정하고 `PaymentStatusCode`/라벨 매핑 갱신
+- [ ] "전체" 필터 시 빈 문자열 처리 여부를 백엔드와 확인(처리 안 하면 별도 "전체 조회" 엔드포인트/파라미터 필요)
+- [ ] 상세 응답이 배열인 이유 확인 — 여러 건이 의미 있다면 화면에 다중 표시로 변경
+- [ ] `mock/paymentStatusMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러는 실제 enum 확정 후에도 개발용으로 유지할지, 제거할지 결정
+- [ ] 결제수단/취소사유가 결제완료 건에만 채워지는지 백엔드와 확인 — 아니라면 `formatPaymentType`/`formatCancelField`의 "-" 강제 표시 로직 재검토
+- [ ] `items` 필드 실제 포맷 확정(text vs JSON 배열). 확정 후 `parsePaymentOrderItems`의 fallback 분기 제거 여부 결정
+
+### 추가 — `items` 필드 포맷 이중화 대응
+
+> 추가일: 2026-07-01
+
+응답 `items` 필드가 (a) 단일 텍스트(줄바꿈 구분) 또는 (b) JSON 배열(메뉴·옵션·수량·가격 구조) 양쪽으로 관찰됨. 백엔드 계약이 확정되지 않은 상태에서 프론트가 양쪽을 모두 처리한다.
+
+- 파서: `features/payment-status/utils/parsePaymentOrderItems.ts`가 우선 `JSON.parse`로 배열 시도, 실패 시 텍스트 라인 fallback으로 판별 유니온 `ParsedPaymentOrderItems`(`kind: 'structured' | 'text'`) 반환
+- 렌더:
+  - `kind: 'structured'` → 신규 `PaymentOrderItemsList` 컴포넌트가 메뉴/옵션/수량/합계 표시
+  - `kind: 'text'` → 기존 줄 단위 표시 유지 (하위 호환)
+- 타입: `PaymentOrderItem`, `PaymentOrderOption`, `ParsedPaymentOrderItems`를 `features/payment-status/types.ts`에 추가
+- mock: `mock/paymentStatusMock.ts`에 JSON 배열 케이스 반영해 구조화 렌더 경로가 개발 환경에서 확인 가능하도록 함
+
+포맷 확정 시 fallback 분기와 판별 유니온을 제거하고 단일 경로로 축소한다.
+
+---
+
+## ADR-013 — 정산 조회: 백엔드 API는 실재하나 부호·날짜 포맷 가정으로 진행
+
+**날짜**: 2026-06-23
+**상태**: 임시 (백엔드 협의 후 수정 예정)
+
+### 배경
+
+`/client/payment/calculation/list` 화면은 Figma(node 977:462)와 실제 백엔드 API(`getSettlement`, `payment-manage-controller.ts`)가 필드 단위로 정확히 일치한다. 다만 다음 두 가지는 응답 스키마만으로 확정할 수 없어 임시로 가정했다.
+
+1. **`cancelPrice`/`discountPice`(오타 그대로) 부호**: 백엔드가 양수 금액으로 내려준다고 가정하고, 화면(통계 카드·안내문구)에서 `-` 부호를 붙여 표시한다. 음수로 내려온다면 이중 부호가 생긴다.
+2. **`DailySale.groupDate` 포맷**: 날짜만(`YYYY-MM-DD`)인지 날짜+시간인지 명세에 없다. 화면 요구사항(`YYYY-MM-DD HH:MM`)에 맞춰 `mapToSettlementRow`의 `formatSettlementDate`가 시간 정보가 있으면 그대로 쓰고, 없으면 `00:00`을 붙여 항상 같은 포맷으로 표시한다.
+3. **`DailySale`에 할인 필드 없음**: 일별 행에는 할인액이 없어 `dayNetPrice`가 상위 `netPrice`(할인 차감 포함)와 다른 기준(할인 미차감)일 수 있다. 화면 테이블의 "순 매출" 컬럼은 `dayNetPrice`를 그대로 쓰므로, 상위 카드의 "순 매출"과 테이블 합계가 정확히 일치하지 않을 수 있다.
+
+### 결정
+
+위 가정으로 화면을 완성한다. mock(`mock/settlementMock.ts`)은 일별 합계가 상위 집계와 실제로 맞물리도록 `buildSettlementMockResponse`로 계산해서 구성하고, `src/mocks/handlers.ts`의 오버라이드 핸들러가 날짜 필터링 후에도 합계가 깨지지 않도록 동일 함수로 재계산한다.
+
+### 연동 시 체크리스트
+
+- [ ] `cancelPrice`/`discountPice`의 실제 부호 컨벤션을 백엔드와 확인
+- [ ] `groupDate`가 날짜만인지 날짜+시간인지 확인 후 `formatSettlementDate` 단순화
+- [ ] 일별 할인액 추적 필요 여부 확인 — 필요하면 `DailySale`에 필드 추가 요청
+- [ ] `mock/settlementMock.ts` + `src/mocks/handlers.ts` 오버라이드 핸들러를 실제 검증 후 유지/제거 결정
+
+---
+
+## ADR-014 — 주문 상태 관리(칸반 보드): 생성된 API가 echo-back 구조라 mock 우선 구현
+
+**날짜**: 2026-06-26
+**상태**: 임시 (백엔드 API 확정 후 연동 예정)
+
+### 배경
+
+`/client/order/status/management`(접수/조리중/서빙완료/취소 칸반 보드) 구현 중 `generated/order-manage-controller`에 취소·결제완료·미결제 처리 API가 이미 존재함을 확인했다. 다만 전부 주문 1건을 `header`/`body`/`footer`로 통째로 echo-back 받는 요청/응답 구조라, 이 화면이 보드에 쓰는 가벼운 행 데이터(`OrderBoardRow`)만으로는 바로 연동할 수 없었다.
+
+### 검토한 방식
+
+**패턴 1 — 생성 API에 맞춰 화면 데이터 모델을 `header`/`body`/`footer` 구조로 다시 설계**: 보드 카드가 매번 주문 상세 구조 전체를 들고 있어야 해서 카드/컬럼 렌더링이 불필요하게 무거워진다.
+
+**패턴 2 — 프론트 mock 우선 구현 (채택)**: ADR-004/005/006/010/011/012/013과 동일한 선례. 칸반 보드·모달 흐름(취소/결제/주문수정) UI는 전부 완성하고, 데이터는 `mock/orderStatusBoardMock.ts` 정적 배열을 로컬 state로 관리한다.
+
+### 결정
+
+패턴 2를 채택한다.
+
+- `api/orderStatusBoardApi.ts`의 `useOrderStatusBoardQuery`는 `fetchOrderStatusBoardMock`(정적 mock을 그대로 resolve)을 `queryFn`으로 쓴다.
+- 상태 변경(조리시작/서빙완료/이전/취소/결제완료/미결제/주문수정)은 React Query 캐시가 아니라 `useOrderStatusBoardPage`의 로컬 state에서 처리한다. "초기화" 버튼을 누르면 mock 조회 결과로 되돌린다.
+- 메뉴 카탈로그(`mock/menuCatalogMock.ts`)도 같은 이유로 이 페이지 전용 mock을 새로 만들었다(다른 feature의 메뉴 mock과 테마가 달라 혼용하지 않음).
+- 취소사유(`ORDER_CANCEL_REASON_OPTIONS`)·미결제사유(`ORDER_UNPAID_REASON_OPTIONS`) 콤보 옵션은 백엔드에 확정된 선택지 API가 없어 `constants.ts`에 임의로 정의했다.
+- 상세 화면 동작·생성 API와의 필드 대응 관계는 [`docs/page/order-status-management.md`](./page/order-status-management.md#mock--실제-api-전환-가이드)에 모아뒀다.
+
+### 연동 시 체크리스트
+
+- [ ] `getPaymentComplete`의 `sysId`가 주문 1건 단위인지 테이블 결제 세션 단위인지 백엔드와 확인 (`docs/page/order-status-management.md` "확인이 필요한 것" 참고)
+- [ ] `paymentComplete`/`cancelOrder`가 요구하는 `header`/`body`/`footer`를 보드 조회 API가 함께 내려주는지, 별도 상세 조회가 필요한지 확인
+- [ ] 메뉴 줄 단위 취소, 새 주문(메뉴 추가) 등록에 대응하는 API 확정 — 현재 candidate 없음
+- [ ] 취소/미결제 사유 코드가 백엔드 공통코드로 존재하면 `constants.ts`의 임의 옵션을 교체
+- [ ] `mock/orderStatusBoardMock.ts`, `mock/menuCatalogMock.ts` 제거, `api/orderStatusBoardApi.ts`의 `queryFn`을 실제 생성 훅으로 교체
+
+## ADR-015 — 테이블 배치 관리: dnd-kit 도입, 실제 `table_gui` API 재사용, 내부시설은 비영속
+
+**날짜**: 2026-06-29
+**상태**: 적용 완료. ⚠️ "내부시설은 비영속" 결정은 [ADR-017](#adr-017--테이블-배치-관리-내부시설-영속화object_type-mock-우선-구현)로 대체됨 — 주문 화면 재사용은 여전히 후속 작업
+
+### 배경
+
+`/client/store/table/layout` 화면에 마우스/터치 드래그·클릭 배치 이벤트를 연결하는 작업이었다. 시작 시점에는 README "진행 중 작업" 메모에 "mock GET/POST 핸들러 추가" 항목이 있었지만, 실제로는 백엔드에 `table_gui` 검색/저장 API(`TableGuiService`, `table_info.x_coordinate`/`y_coordinate`/`height`/`width` 컬럼)와 그에 대응하는 orval 생성 훅(`useGetTableGui`/`useSaveTableGui`)·MSW mock이 이미 존재하는 상태였다.
+
+### 검토한 방식
+
+**드래그 라이브러리 — `@dnd-kit/core`(채택) vs 직접 Pointer Events 구현**: 네이티브 HTML5 Drag & Drop은 터치를 지원하지 않아 제외했다. 직접 구현은 마우스/터치/스크롤 컨테이너 간 좌표 보정을 전부 손으로 처리해야 해서, `PointerSensor` + `useDraggable`/`useDroppable`/`DragOverlay`를 그대로 쓰는 `@dnd-kit/core`를 선택했다. 다만 내부시설의 자유 리사이즈는 dnd-kit이 지원하지 않아 커스텀 Pointer Events(`setPointerCapture`)로 별도 구현했다.
+
+**좌표 저장 방식 — 캔버스 기준 절대 px(채택) vs 캔버스 비율(%)**: `table_gui`가 정수 px 컬럼으로 좌표를 받기 때문에, 비율로 저장했다가 저장 시점에 px로 환산하는 추가 단계 없이 1:1로 맞추는 절대 px를 택했다. 캔버스 리사이즈 시 `ResizeObserver`로 기존 배치를 다시 클램프해 화면 밖으로 나가지 않게 한다.
+
+**영속화 범위 — 테이블만 `table_gui`로 실제 저장(채택) vs 시설까지 mock으로 영속화**: `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라, 테이블이 아닌 시설(카운터/문/주방 등)은 대응하는 행이 없어 저장할 수 없다. 시설까지 영속화하려면 백엔드 스키마 변경(시설용 행 또는 별도 테이블)이 필요해 이번 단계 범위에서 제외하고, 시설은 프론트 상태로만 유지하기로 했다(새로고침 시 사라짐, 의도된 동작).
+
+### 결정
+
+위 세 가지 모두 "(채택)" 표시한 방식으로 적용했다.
+
+- `features/table-layout/api/tableLayoutApi.ts`의 `useTableGuiQuery`/`useSaveTableGuiMutation`가 생성된 `useGetTableGui`/`useSaveTableGui`를 그대로 감싼다. `buildTableGuiRequest`가 draft/base 비교로 `newItems`/`updateItems`/`delItems`를 만든다.
+- `TableListCard`는 `table_info/search`(전체 테이블) 대신 `table_gui/search`(useYn='Y' + QR 등록된 테이블만) 결과를 그대로 쓴다 — 페이지 안내문("활성+QR 등록해야 목록에 표시됩니다")과 일치시키기 위함이다.
+- MSW mock은 자동 생성된 faker 응답 대신 `src/mocks/handlers.ts`의 `tableGuiOverrideHandler`/`tableGuiSaveOverrideHandler` + `mock/tableLayoutMock.ts`의 고정 데이터로 교체했다(다른 feature의 override 패턴과 동일).
+- 상세 동작은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md)에 모아뒀다.
+
+### 향후 작업
+
+- [ ] 주문 상태 관리(또는 별도 화면)에서 같은 `table_gui` 좌표를 읽기 전용으로 그려 테이블 클릭 시 주문이력/결제상태 이벤트를 여는 플로어플랜 뷰 추가 — 데이터 조회/필터링/클릭 매칭 키(`tableNum`)·주의사항은 [`docs/page/table-layout-management.md`](./page/table-layout-management.md) "플로어플랜 재사용 시 데이터 처리 가이드" 참고
+- [x] 내부시설 영속화 — [ADR-017](#adr-017--테이블-배치-관리-내부시설-영속화object_type-mock-우선-구현) 참고(mock 우선 구현, 실제 백엔드 스키마는 별도 진행)
+- [ ] `tableType` 필드 활용처가 정해지면 `PlacedTableItem`에 반영
+
+---
+
+## ADR-016 — 태블릿 반응형 기준: 뷰포트 대신 메인 컨테이너(Client 레이아웃) 기준
+
+**날짜**: 2026-06-30
+**상태**: 채택 (Client 전 화면 적용 완료)
+
+### 배경
+
+태블릿 대응이 필요한 화면은 `apps/client`뿐이다(`apps/admin`은 데스크톱 전용). Client 레이아웃은 사이드바를 가진 3단 구조(ADR-007)이고 사이드바는 열고 닫을 수 있다 — 열려 있으면 콘텐츠 영역이 사이드바 폭만큼 줄어든다.
+
+주문 상태 관리 화면(`docs/page/order-status-management.md` "태블릿 반응형" 항목)에 처음 태블릿 대응을 넣을 때 `@media (max-width: 1200px)` 뷰포트 기준으로 작업했다. 뷰포트 기준 미디어쿼리는 사이드바 상태를 알 수 없어, 사이드바를 열어둔 채 쓰는 사용자는 브레이크포인트보다 훨씬 넓은 창에서도 콘텐츠가 좁아 보이는 구간이 생긴다 — 반대로 사이드바를 닫고 보는 사용자 기준으로 값을 낮추면, 사이드바를 연 사용자에게는 전환이 너무 늦게 일어난다. 뷰포트 폭과 실제 콘텐츠 폭이 사이드바 상태에 따라 어긋나는 게 근본 원인이다.
+
+### 검토한 방식
+
+**패턴 1 — 뷰포트 `@media` 유지, 사이드바 폭만큼 여유를 더해 보정**: 추가 구조 변경이 없어 간단하지만, 사이드바 폭이 바뀌거나 화면마다 보정값을 따로 추정해야 해서 매직넘버 유지보수 비용이 계속 든다.
+
+**패턴 2 — 메인 컨테이너 기준 컨테이너 쿼리(`container-type: inline-size`) 채택**: Client 레이아웃 셸(사이드바+콘텐츠를 감싸는 메인 컨테이너)에 컨테이너 컨텍스트를 한 번 잡아두면, 그 안의 화면들은 실제 콘텐츠 폭 기준으로 반응형이 걸려 사이드바 열림/닫힘과 무관하게 항상 같은 기준으로 동작한다. Admin은 반응형이 필요 없어 새 패턴이 Admin까지 퍼지지 않는다.
+
+### 결정
+
+패턴 2를 채택한다. Client 레이아웃 메인 컨테이너에 컨테이너 컨텍스트를 두고, 태블릿 반응형이 필요한 화면은 뷰포트 `@media` 대신 컨테이너 쿼리(`@container`)로 작성한다.
+
+- 기준 브레이크포인트는 기존 뷰포트 구현과 동일하게 1200px을 유지한다. 컨테이너 쿼리로 바뀌면서 사이드바 보정 목적은 사라졌지만, 작은 노트북 창까지 같이 여유 있게 대응하려는 의도로 1200px을 그대로 쓰기로 했다(일반 태블릿 디바이스 단독 기준은 1024px).
+- 신규로 태블릿 대응이 필요한 Client 화면도 같은 `client-main` 컨테이너 기준으로 작성하되, 값은 화면별로 실측해 정한다.
+
+### 적용 내용
+
+- [x] `client-layout__content`(사이드바 옆 헤더+메인을 감싸는 영역, `ClientLayout.css`)에 `container-type: inline-size; container-name: client-main;` 적용 — 사이드바 자체가 아니라 사이드바에 밀려 실제로 좁아지는 영역을 기준으로 잡았다. `client-layout__main` 자신에게 걸면 컨테이너 쿼리가 "조상"에서만 컨테이너를 찾는 규칙 때문에 자기 자신의 padding 등은 쿼리 대상이 안 돼서, 한 단계 위인 `client-layout__content`로 옮겼다(폭은 동일).
+- [x] 주문 상태 관리 화면의 `@media (max-width: 1200px)` 2곳(`OrderStatusCard.css`, `OrderStatusBoard.css`)을 `@container client-main (max-width: 1200px)`로 전환 — 기준 폭은 그대로 두고 뷰포트 대신 컨테이너 폭을 보게만 바꿨다.
+- [x] `client-layout__main`도 1200px 이하에서 `gap: var(--spacing-8)` → `var(--spacing-4)`, 좌우 패딩 `var(--spacing-page-x)`(24px) → `var(--spacing-6)`으로 줄였다(위아래 패딩은 유지).
+- [x] Client의 모든 페이지(`client-user-page`, `store-table-management-page`, `qr-code-management-page`, `menu-management-page`, `menu-option-page`, `order-history-page`, `order-status-management-page`, `payment-status-page`, `notice-list-page`, `inquiry-management-page`, `table-layout-page`, `settlement-page`) 최상위 wrapper와 좌우 분할 레이아웃 안쪽 래퍼(`__layout`, `__detail-stack`)에 동일하게 1200px 이하 `gap: var(--spacing-4)`를 적용했다.
+- [x] 컨테이너 쿼리 작성 규칙(브레이크포인트 값, 적용 대상)을 [`docs/operations/page-patterns.md`](./operations/page-patterns.md#태블릿-반응형-client-전용)에 정리했다.
+- [x] `table-layout-page`에 화면 전용 반응형(부제목 숨김, 헤더 패딩·제목 축소, 사이드바 카드 제목 정렬 보정)을 추가했다 — 상세는 [`docs/page/table-layout-management.md`](./page/table-layout-management.md#태블릿-반응형) 참고.
+
+### 향후 작업
+
+- [ ] Client의 새 화면에 태블릿 대응이 필요해지면 같은 `client-main` 컨테이너 + `docs/operations/page-patterns.md` 규칙을 따라 작성
+- [x] 테이블 배치 관리(`table-layout-page`)의 캔버스 좌표-반응형 상충 — 2026-06-30 고정 크기 캔버스(1280×800) + 내부 스크롤로 해결. [`docs/page/table-layout-management.md`](./page/table-layout-management.md#좌표-모델) 참고
+
+---
+
+## ADR-017 — 테이블 배치 관리: 내부시설 영속화(object_type), mock 우선 구현
+
+**날짜**: 2026-07-02
+**상태**: mock 우선 구현 완료 (실제 백엔드 스키마는 별도 진행 예정)
+
+### 배경
+
+ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 내부시설(카운터/문/주방 등)은 대응하는 행이 없어 저장할 수 없다고 판단해, 내부시설을 프론트 상태로만 유지하기로 했다(새로고침하면 사라짐). 이후 "되돌리기를 누르면 내부시설이 사라지는 게 이상하다"는 피드백이 나왔고, 백엔드가 `table_info`(또는 대응 테이블)에 `object_type` 컬럼을 추가해 한 저장소에서 테이블/내부시설/기타를 구분하기로 방향을 잡았다(백엔드 작업은 별도 진행, 프론트는 그 계약을 미리 가정하고 mock으로 먼저 구현).
+
+### 검토한 방식
+
+**내부시설 저장소 — localStorage(1차 시도) vs 서버 API(object_type, 채택)**: 처음에는 브라우저 `localStorage`에 내부시설 배치만 저장하는 방식으로 구현했다(사용자가 "일단 mock 위주로 진행" 요청 전, 백엔드 결정이 나오기 전 임시 방편). 이후 백엔드가 `object_type` 컬럼을 실제로 추가하기로 결정하면서 이 방식은 되돌리고, 테이블과 같은 `table_gui` 저장/조회 흐름에 내부시설도 함께 태워 보내는 방식으로 교체했다 — 브라우저 로컬 저장은 기기/브라우저 간 공유가 안 되는 근본적 한계가 있었다.
+
+**object_type 값 정리 — 01/02/03**: `01`=테이블(기존과 동일), `02`=내부시설(고정 8종 카탈로그를 클릭 배치한 것), `03`=기타(유저가 "커스텀 시설 추가" 모달로 이름을 직접 입력해 만든 것). 처음에는 내부시설 전부(고정 8종 포함)를 `03`으로 보냈다가, "02는 내부시설, 03은 유저가 추가한 기타"라는 정정을 받아 8종 카탈로그는 `02`로, 커스텀 추가 버튼으로 만든 것만 `03`으로 나누어 보내도록 수정했다.
+
+**내부시설 종류 매칭 — tableType(1차) vs tableName/common_nm(채택)**: 처음에는 생성된 `TableGuiItem.tableType` 필드에 프론트 내부 kind 값(`'counter'` 등 영문 식별자)을 그대로 실어 보냈다. 이후 "실제로는 공통코드 이름(`common_nm`)을 보고 매칭해야 하고, `table_gui` 응답에서 그 값은 `tableName` 필드로 온다"는 정정을 받아, `object_type==='02'`인 행은 `tableName`(한글 라벨 텍스트, 예: "카운터")을 8종 라벨과 매칭해 종류/아이콘을 역으로 찾는 방식으로 바꿨다(`FACILITY_KIND_BY_LABEL`, `tableLayoutApi.ts`). `tableType`은 저장 시 계속 같이 보내지만(하위 호환·감사 목적), 매칭의 기준(source of truth)은 `tableName`이다.
+
+### 결정
+
+- 아직 생성된 API 타입(`TableGuiItem`/`TableGuiResponse`, `src/generated/types/`)에는 `objectType` 필드가 없다 — `tableLayoutApi.ts`에 로컬 확장 타입(`TableGuiObjectType = '01'|'02'|'03'`, `TableGuiItemWire`/`TableGuiResponseWire`)을 두고 요청/응답을 이 타입으로 캐스팅해서 다룬다. 실제 백엔드 스키마가 확정되고 `openapi.json`이 재생성되면 이 임시 타입은 걷어낸다.
+- 테이블·내부시설(고정+커스텀)을 **하나의 저장 요청**으로 함께 보낸다 — 별도의 "내부시설 저장" 액션은 없다. `buildTableGuiRequest`(`tableLayoutApi.ts`)가 `PlacedTableItem[]`과 `PlacedNonTableItem[]`(고정 8종 + 커스텀)을 함께 받아 `newItems`/`updateItems`/`delItems`를 만든다. sysId 없는 내부시설(캔버스에 새로 배치된 것)은 그대로 `newItems`에 담아 보내고, 저장 성공 후 재조회(`queryKeys.tableLayout.lists` invalidate)로 서버가 발급한 sysId를 받아온다 — 테이블이 이미 쓰던 것과 같은 흐름이다.
+- 커스텀 시설(`object_type='03'`)은 자유 텍스트라 종류 매칭이 필요 없다 — 유저가 입력한 이름을 그대로 `tableName`에 실어 보내고 받는다(`PlacedCustomFacilityItem.label`).
+- `isDirty`/되돌리기/전체 비우기 판정도 테이블과 내부시설을 합쳐서 본다(`useTableLayoutPage.ts`) — ADR-015 시점에는 "내부시설은 저장 대상이 아니다"로 dirty 판정에서 제외했으나, 이제는 같은 저장 흐름을 타므로 함께 판정한다.
+- MSW mock(`src/mocks/handlers.ts`의 `tableGuiSaveOverrideHandler`)은 `sysId`가 없는 항목이 들어오면 mock이 `sys_id`를 생성해서 새 행으로 추가하도록 확장했다(기존에는 매칭 실패 시 조용히 무시했다) — 실제 백엔드의 INSERT 동작을 흉내낸 것이다.
+
+### 향후 작업
+
+- [ ] 백엔드에 실제 `object_type` 컬럼과 저장 API 반영 — 현재 프론트 가정(필드명 `objectType`, 값 `'01'|'02'|'03'`, 내부시설 종류는 `tableName`으로 매칭)과 실제 스키마가 다르면 `tableLayoutApi.ts`의 로컬 wire 타입/매핑 함수만 조정하면 되도록 그 파일에 격리해뒀다.
+- [ ] 내부시설 카탈로그(현재 `FACILITY_CATALOG`, 프론트 고정 8종) 자체를 공통코드 API(`useSearchCommon`/`useSearchCommonDetail`, `commonNm`)에서 받아오는 방식으로 바꿀지는 미정 — 현재는 카탈로그는 프론트 고정이고, "매칭"만 텍스트 기준으로 한다.
+- [ ] ADR-015의 "내부시설은 비영속" 결정은 이 ADR로 대체됐다.
+
+---
+
+## ADR-018 — QR 코드 생성: `qrcode` 라이브러리 채택
+
+**날짜**: 2026-06-30
+**상태**: 채택
+
+### 배경
+
+`/client/store/table/qr` 페이지의 출력 기능에서 백엔드 `qr_code.url` 필드(ULID 문자열)를 풀 URL로 조립한 뒤 QR 코드 이미지로 렌더링해 인쇄해야 한다.
+백엔드는 QR 이미지/dataURL을 제공하지 않고 ULID만 저장하므로(`QRCodeService.java:65-69`), 프론트가 QR 비트맵 생성을 전담한다.
+출력은 숨김 `<iframe>` + `window.print()`로 진행하므로 QR 출력 형식은 iframe srcdoc HTML에 임베드 가능한 PNG dataURL이 단순하다.
+
+### 검토한 방식
+
+| 후보                                | 형태                                      | 출력                   | 평가                                                                                            |
+| ----------------------------------- | ----------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| **qrcode** (채택)                   | pure JS 함수 API (`QRCode.toDataURL`)     | DataURL / Canvas / SVG | iframe 컨텍스트에서 함수 직접 호출 가능. PNG dataURL을 `<img src="...">`로 임베드 — 인쇄 친화적 |
+| qrcode.react / react-qr-code        | React 컴포넌트 (`<QRCode value=... />`)   | SVG                    | iframe 외부에 별도 React 트리 마운트가 필요. 다중 QR 렌더링/dataURL 추출이 우회적               |
+| qr-code-styling                     | 클래스 API + 디자인 옵션(로고/그라데이션) | Canvas/SVG             | 디자인 커스터마이징 풍부하나 본 작업 요구(테이블당 단일 QR + 번호) 초과                         |
+| 외부 QR API (api.qrserver.com 등)   | 원격 호출                                 | 이미지 URL             | 의존성 0이지만 네트워크 필수. 매장 인터넷 불안정 시 인쇄 실패. 외부 서비스 신뢰·프라이버시 우려 |
+| 직접 구현 (Reed-Solomon + 매트릭스) | 수동 알고리즘                             | 자체 캔버스            | 학습 가치는 있으나 검증 비용·테스트 부담 과다. 실무 도입 가치 낮음                              |
+
+### 결정
+
+`qrcode` v1.5.4 (MIT, soldair/node-qrcode)를 채택한다.
+
+- **API 형태가 본 작업에 정합**: `QRCode.toDataURL(targetUrl, { width, margin })` 한 줄로 PNG dataURL 생성. iframe srcdoc 내부 `<img>`에 그대로 임베드
+- **오프라인 동작**: 매장 환경에서 인터넷 불안정 시에도 인쇄 보장
+- **React 컴포넌트 의존 없음**: 본 출력은 React 트리 밖(`document.createElement('iframe')`)에서 일어남. JSX 기반 라이브러리는 트리 마운트·dataURL 추출 단계가 추가됨
+- **에러 정정 + 마스킹 표준 구현**: ISO/IEC 18004 호환. 카메라 인식률 검증된 라이브러리
+- **TypeScript 타입 제공**: `@types/qrcode` 보조 타입 사용 가능
+- **번들 영향 적음**: 클라이언트 진입(`apps/client`)에서만 사용. 코드 스플리팅 영향권 안에서만 추가됨
+
+### 알려진 제한사항
+
+- 라이브러리 자체에 `pngjs`, `yargs`, `dijkstrajs` 등 Node 전용 트랜지티브 의존성이 있으나, 브라우저 빌드(`package.json`의 `browser` 필드)가 `lib/browser.js`로 우회되어 클라이언트 번들엔 포함되지 않는다
+- 디자인(로고 삽입·색상)이 추후 필요해지면 `qr-code-styling`으로 교체 검토. 본 ADR의 채택 사유 중 "단순성"이 무너지는 시점이 교체 트리거
+
+### 사용 위치
+
+- `frontend/src/apps/client/features/qr-code/utils/qrCodePrint.ts` — `generateQrDataUrl` 래퍼
+- 그 외 직접 사용 금지. QR 생성이 다른 feature에도 필요해지면 본 유틸을 `shared/`로 승격
+
+---

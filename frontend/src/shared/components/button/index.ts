@@ -17,6 +17,8 @@ export {
   MoveDownTableButton,
   MoveUpTableButton,
   PasswordResetButton,
+  PrintListTableButton,
+  PrintRowTableButton,
   ResetFilterButton,
   ResetTableButton,
   SaveTableButton,

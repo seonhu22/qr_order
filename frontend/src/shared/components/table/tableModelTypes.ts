@@ -32,6 +32,8 @@ export type InputCellModel = {
   className?: string;
   controlState?: '' | 'readonly' | 'error' | 'success' | 'disabled';
   readOnly?: boolean;
+  /** 네이티브 input type. 기본값은 'text'. */
+  inputType?: 'text' | 'number';
   onChange: (value: string) => void;
   onClearError?: () => void;
 };
@@ -57,6 +59,12 @@ export type SelectCellModel = {
 
 export type EditButtonCellModel = {
   type: 'editButton';
+  ariaLabel: string;
+  onClick: React.ComponentProps<'button'>['onClick'];
+};
+
+export type PrintButtonCellModel = {
+  type: 'printButton';
   ariaLabel: string;
   onClick: React.ComponentProps<'button'>['onClick'];
 };
@@ -106,6 +114,7 @@ export type SharedTableCell =
   | CheckboxCellModel
   | SelectCellModel
   | EditButtonCellModel
+  | PrintButtonCellModel
   | PasswordResetButtonCellModel
   | UseYnBadgeCellModel
   | ChangeTypeBadgeCellModel

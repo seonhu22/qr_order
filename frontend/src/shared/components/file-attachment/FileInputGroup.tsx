@@ -103,7 +103,8 @@ export function FileInputGroup({
 
   const totalCount = activeExisting.length + newFiles.length;
   const totalBytes =
-    activeExisting.reduce((sum, f) => sum + parseInt(f.fileSize, 10), 0) +
+    // 서버 fileSize는 bytes가 아니라 MB 단위 소수 문자열이라 bytes로 환산한다.
+    activeExisting.reduce((sum, f) => sum + parseFloat(f.fileSize) * 1024 * 1024, 0) +
     newFiles.reduce((sum, f) => sum + f.size, 0);
 
   function notify(next: { newFiles: File[]; deletedFiles: ServerFile[] }) {
@@ -207,7 +208,7 @@ export function FileInputGroup({
         <FileRow
           key={f.convertFileNm}
           name={f.originalFileNm}
-          size={parseInt(f.fileSize, 10)}
+          size={parseFloat(f.fileSize) * 1024 * 1024}
           onDelete={disabled || isUploading ? undefined : () => handleDeleteExisting(f)}
         />
       ))}

@@ -177,7 +177,7 @@ export function RuleManagementPage() {
         <SaveConfirmModal
           open={masterModalProps.saveConfirm.open}
           title="저장하시겠습니까?"
-          description="작성된 내용을 저장합니다."
+          description="입력하신 내용을 저장합니다."
           primaryAction={{
             label: '확인',
             loading: masterModalProps.saveConfirm.isLoading,
@@ -192,7 +192,7 @@ export function RuleManagementPage() {
       ) : (
         <EditConfirmModal
           open={masterModalProps.saveConfirm.open}
-          title="수정된 내용을 저장하시겠습니까?"
+          title="수정하시겠습니까?"
           description="변경된 내용이 저장됩니다."
           primaryAction={{
             label: '확인',
@@ -266,7 +266,7 @@ export function RuleManagementPage() {
       <SaveConfirmModal
         open={detailModalProps.saveConfirm.open}
         title="저장하시겠습니까?"
-        description="작성된 규칙 상세를 저장하시겠습니까?"
+        description="입력하신 내용을 저장합니다."
         primaryAction={{
           label: '확인',
           loading: detailModalProps.saveConfirm.isLoading,

@@ -1,7 +1,7 @@
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
-import { EditTableButton, PasswordResetButton } from '@/shared/components/button';
+import { EditTableButton, PasswordResetButton, PrintRowTableButton } from '@/shared/components/button';
 import {
   AuthorityBadge,
   ChangeTypeBadge,
@@ -24,6 +24,7 @@ type TableCellInputProps = {
   className?: string;
   controlState?: '' | 'readonly' | 'error' | 'success' | 'disabled';
   readOnly?: boolean;
+  inputType?: 'text' | 'number';
   onChange: (value: string) => void;
   onClearError?: () => void;
 };
@@ -48,6 +49,11 @@ type TableCellSelectProps = {
 type TableCellEditButtonProps = {
   ariaLabel: string;
   onClick: React.ComponentProps<typeof EditTableButton>['onClick'];
+};
+
+type TableCellPrintButtonProps = {
+  ariaLabel: string;
+  onClick: React.ComponentProps<typeof PrintRowTableButton>['onClick'];
 };
 
 type TableCellPasswordResetButtonProps = {
@@ -90,6 +96,7 @@ export function TableCellInput({
   className = 'common-table__input',
   controlState = '',
   readOnly = false,
+  inputType = 'text',
   onChange,
   onClearError,
 }: TableCellInputProps) {
@@ -97,6 +104,7 @@ export function TableCellInput({
     <InputWrapper inputId={inputId}>
       <InputBase
         id={inputId}
+        type={inputType}
         size="sm"
         className={className}
         controlState={controlState}
@@ -167,6 +175,13 @@ export function TableCellSelect({
  */
 export function TableCellEditButton({ ariaLabel, onClick }: TableCellEditButtonProps) {
   return <EditTableButton ariaLabel={ariaLabel} onClick={onClick} />;
+}
+
+/**
+ * 테이블 QR 출력 아이콘 셀.
+ */
+export function TableCellPrintButton({ ariaLabel, onClick }: TableCellPrintButtonProps) {
+  return <PrintRowTableButton ariaLabel={ariaLabel} onClick={onClick} />;
 }
 
 /**

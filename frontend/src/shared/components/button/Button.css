@@ -135,6 +135,38 @@
   box-shadow: var(--focus-ring-brand);
 }
 
+/* tinted */
+.btn--tinted {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+.btn--tinted:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
+}
+.btn--tinted:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-brand-hover);
+  color: var(--color-brand-text);
+}
+.btn--tinted:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* neutral */
+.btn--neutral {
+  background-color: var(--color-text-disabled);
+  color: var(--color-text-inverse);
+}
+.btn--neutral:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  background-color: var(--color-text-tertiary);
+}
+.btn--neutral:active:not(:disabled):not(.btn--disabled):not(.btn--loading) {
+  filter: brightness(0.9);
+}
+.btn--neutral:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
 /* secondary */
 .btn--secondary {
   background-color: var(--color-bg-muted);
@@ -276,6 +308,25 @@
 .btn--toggle.btn--selected:hover:not(:disabled):not(.btn--disabled):not(.btn--loading) {
   background-color: var(--color-brand-hover);
   border-color: var(--color-brand-hover);
+}
+
+/* segment — 기본 (미선택) */
+.btn--segment {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+.btn--segment:hover:not(:disabled):not(.btn--disabled):not(.btn--loading):not(.btn--selected) {
+  color: var(--color-text-primary);
+}
+.btn--segment:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* segment — 선택됨: 회색 그룹 배경 안에서 흰 배경으로 떠오름 */
+.btn--segment.btn--selected {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
 }
 
 

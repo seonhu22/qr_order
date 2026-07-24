@@ -13,6 +13,7 @@ import {
   TableCellInput,
   TableCellLicensePeriodBadge,
   TableCellPasswordResetButton,
+  TableCellPrintButton,
   TableCellSelect,
   TableCellUseYnBadge,
 } from '@/shared/components/table/TableCells';
@@ -26,6 +27,7 @@ import type {
   InputCellModel,
   LicensePeriodBadgeCellModel,
   PasswordResetButtonCellModel,
+  PrintButtonCellModel,
   SelectCellModel,
   SharedTableCell,
   SharedTableColumn,
@@ -67,6 +69,7 @@ const cellRenderers: CellRendererMap = {
       className={cell.className}
       controlState={cell.controlState}
       readOnly={cell.readOnly}
+      inputType={cell.inputType}
       onChange={cell.onChange}
       onClearError={cell.onClearError}
     />
@@ -92,6 +95,9 @@ const cellRenderers: CellRendererMap = {
   ),
   editButton: (cell: EditButtonCellModel) => (
     <TableCellEditButton ariaLabel={cell.ariaLabel} onClick={cell.onClick} />
+  ),
+  printButton: (cell: PrintButtonCellModel) => (
+    <TableCellPrintButton ariaLabel={cell.ariaLabel} onClick={cell.onClick} />
   ),
   passwordResetButton: (cell: PasswordResetButtonCellModel) => (
     <TableCellPasswordResetButton disabled={cell.disabled} onClick={cell.onClick} />
