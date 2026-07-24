@@ -10,4 +10,5 @@ public class MenuOptionGroupItem {
     private String requiredYn;
     private String inputType;
     private Integer ordNo;
+    private String useYn;
 }

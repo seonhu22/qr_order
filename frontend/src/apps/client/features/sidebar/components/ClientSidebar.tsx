@@ -60,11 +60,13 @@ export function ClientSidebar() {
   // AdminSidebar와 동일한 우선순위: 사용자가 선택한 섹션 > 현재 경로의 섹션
   const displayedSection =
     activeSection && menusBySection[activeSection]?.length ? activeSection : currentSection;
-  const sectionMenus = displayedSection ? menusBySection[displayedSection] ?? [] : currentMenus;
+  const sectionMenus = displayedSection ? (menusBySection[displayedSection] ?? []) : currentMenus;
   // 표시할 섹션이 없는 경우(예: /client/main) 전체 섹션의 메뉴를 펼쳐서 보여준다.
-  const displayedMenus = sectionMenus.length > 0 ? sectionMenus : Object.values(menusBySection).flat();
+  const displayedMenus =
+    sectionMenus.length > 0 ? sectionMenus : Object.values(menusBySection).flat();
 
-  const sectionLabel = displayedSection && sectionMenus.length > 0 ? (sectionMenus[0]?.label ?? '') : '';
+  const sectionLabel =
+    displayedSection && sectionMenus.length > 0 ? (sectionMenus[0]?.label ?? '') : '';
 
   // 최신 pathname·menus를 effect 내부에서 stale closure 없이 참조하기 위한 ref
   const pathnameRef = useRef(location.pathname);
