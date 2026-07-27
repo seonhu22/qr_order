@@ -45,7 +45,7 @@ public class StoreInfoService {
 
         StoreInfoResponse oldData = storeInfoMapper.getOldData(updateItems.getSysId());
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "store_info", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "store_info", userId, sysPlantCd);
         storeInfoMapper.updateStoreInfo(updateItems, userId, sysPlantCd);
     }
 }

@@ -79,7 +79,7 @@ public class MenuOptionDetailService {
             item.setFileUlid(fileULID);
         });
 
-        auditService.insertNewAuditTrailData(newItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
         menuOptionDetailMapper.newMenuOptionDetail(newItems, userId, sysPlantCd, menuCd);
     }
 
@@ -90,7 +90,7 @@ public class MenuOptionDetailService {
 
         List<MenuOptionDetailItem> oldData = getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
         menuOptionDetailMapper.updateMenuOptionDetail(updateItems, userId, sysPlantCd, menuCd);
     }
 
@@ -99,7 +99,7 @@ public class MenuOptionDetailService {
                                         String sysPlantCd,
                                         String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_option_detail", userId, sysPlantCd);
         menuOptionDetailMapper.delMenuOptionDetail(delItems, userId, sysPlantCd, menuCd);
     }
 
