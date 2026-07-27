@@ -37,7 +37,7 @@ public class ClientQnaService {
         qnaRequest.setSysId(ULID);
         qnaRequest.setFileUlid(FileULID);
 
-        auditService.insertNewAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
         qnaMapper.newQna(qnaRequest, userId, sysPlantCd);
     }
 
@@ -48,7 +48,7 @@ public class ClientQnaService {
 
         ClientQnaResponse oldData = qnaMapper.getOldData(qnaRequest.getSysId());
 
-        auditService.insertUpdateAuditTrailData(oldData, qnaRequest, qnaRequest.getSysId(),  menuCd, "brd_qna", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, qnaRequest, qnaRequest.getSysId(),  menuCd, "brd_qna", userId, sysPlantCd);
         qnaMapper.updateQna(qnaRequest, userId, sysPlantCd);
     }
 
@@ -57,7 +57,7 @@ public class ClientQnaService {
                        String sysPlantCd,
                        String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
         qnaMapper.delQna(qnaRequest, userId, sysPlantCd);
     }
 }

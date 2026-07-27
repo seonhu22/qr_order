@@ -5,7 +5,6 @@ import type { PaymentStatusMasterRow } from '../types';
 const PAYMENT_STATUS_LABEL: Record<PaymentStatusMasterRow['paymentStatus'], string> = {
   PAID: '결제완료',
   UNPAID: '미결제',
-  DINING: '식사중',
 };
 
 /** 결제 수단은 결제완료(PAID) 건에만 의미가 있다 — 미결제·식사중 건은 항상 "-"로 표시한다. */
@@ -47,7 +46,7 @@ export function PaymentStatusMasterTable({
             </colgroup>
             <thead>
               <tr>
-                <th scope="col">주문번호</th>
+                <th scope="col">결제번호</th>
                 <th scope="col">결제 수단</th>
                 <th scope="col">결제 금액</th>
                 <th scope="col">결제 상태</th>

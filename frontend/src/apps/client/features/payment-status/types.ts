@@ -1,4 +1,4 @@
-export type PaymentStatusCode = 'PAID' | 'UNPAID' | 'DINING';
+export type PaymentStatusCode = 'PAID' | 'UNPAID';
 
 export type PaymentStatusMasterRow = {
   id: string;
@@ -11,6 +11,8 @@ export type PaymentStatusMasterRow = {
 export type PaymentStatusDetail = {
   orderNo: string;
   paymentStatus: PaymentStatusCode;
+  /** 결제 수단. 상세 조회 API에는 없는 필드라 마스터 목록에서 선택된 행의 값을 그대로 사용한다. */
+  paymentType: string;
   cancelReason: string;
   items: string;
   cancelDescription: string;
@@ -24,11 +26,15 @@ export type PaymentOrderOption = {
 };
 
 export type PaymentOrderItem = {
+  /** 이 메뉴가 속한 주문의 주문번호. 하나의 결제(결제번호)가 여러 주문을 묶어 처리할 수 있어 항목마다 다를 수 있다. */
+  orderNo?: string;
   menuName: string;
   qty: number;
   price: number;
   totalPrice: number;
   paymentYn: string;
+  /** paymentYn이 취소(N)인 항목의 취소 사유. 결제(Y) 항목에는 없다. */
+  cancelReason?: string;
   options: PaymentOrderOption[];
 };
 
