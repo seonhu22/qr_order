@@ -87,9 +87,12 @@ public class MenuManageController {
     }
 
     @GetMapping("/menu/detail/search")
-    public List<MenuDetailResponse> getMenuDetailSearchKeyword(@RequestParam(required = false) String searchKeyword) {
+    public List<MenuDetailResponse> getMenuDetailSearchKeyword(@RequestParam(required = false) String searchKeyword,
+                                                                HttpSession session) {
 
-        return menuDetailService.getMenuDetailSearchKeyword(searchKeyword);
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return menuDetailService.getMenuDetailSearchKeyword(searchKeyword, loginUser.getSysPlantCd());
     }
 
     @GetMapping("/menu/detail/search/{masterSysId}")
