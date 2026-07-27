@@ -54,7 +54,7 @@ public class TableGuiService {
             item.setSysId(UlidCreator.getMonotonicUlid().toString());
         });
 
-        auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
         tableGuiMapper.newTableGui(newItems, userId);
     }
 
@@ -65,7 +65,7 @@ public class TableGuiService {
 
         List<TableGuiItem> oldData = tableGuiMapper.getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "table_info", userId, sysPlantCd);
         tableGuiMapper.updateTableGui(updateItems, userId);
     }
 
@@ -74,7 +74,7 @@ public class TableGuiService {
                                 String sysPlantCd,
                                 String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "table_info", userId, sysPlantCd);
         tableGuiMapper.delTableGui(delItems, userId);
     }
 }

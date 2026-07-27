@@ -69,7 +69,7 @@ public class TableInfoService {
             item.setSysId(ULID);
         });
 
-        auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
         tableInfoMapper.newTableInfo(newItems, userId, sysPlantCd, menuCd);
     }
 
@@ -80,7 +80,7 @@ public class TableInfoService {
 
         List<TableInfoItem> oldData = getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "table_info", userId, sysPlantCd);
         tableInfoMapper.updateTableInfo(updateItems, userId, sysPlantCd, menuCd);
     }
 
@@ -89,7 +89,7 @@ public class TableInfoService {
                                 String sysPlantCd,
                                 String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "table_info", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "table_info", userId, sysPlantCd);
         tableInfoMapper.delTableInfo(delItems, userId, sysPlantCd, menuCd);
     }
 

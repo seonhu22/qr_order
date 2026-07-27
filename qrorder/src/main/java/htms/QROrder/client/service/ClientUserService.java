@@ -49,7 +49,7 @@ public class ClientUserService {
 
         newItems.setSysId(ULID);
 
-        auditService.insertNewAuditTrailData(newItems, ULID, menuCd, "sys_user", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, ULID, menuCd, "sys_user", userId, sysPlantCd);
         clientUserMapper.newClientUser(newItems, userId, sysPlantCd, menuCd, tempPwd);
     }
 
@@ -60,7 +60,7 @@ public class ClientUserService {
 
         ClientUserResponse oldData = clientUserMapper.getOldData(updateItems.getSysId());
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "sys_user", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "sys_user", userId, sysPlantCd);
         clientUserMapper.updateClientUser(updateItems, userId, sysPlantCd, menuCd);
     }
 
@@ -69,7 +69,7 @@ public class ClientUserService {
                                 String sysPlantCd,
                                 String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
         clientUserMapper.delClientUser(delItems, userId, sysPlantCd, menuCd);
     }
 

@@ -40,7 +40,7 @@ public class MenuOptionGroupService {
         String ULID = UlidCreator.getMonotonicUlid().toString();
         newItems.setSysId(ULID);
 
-        auditService.insertNewAuditTrailData(newItems, ULID, menuCd, "store_menu_option_group", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, ULID, menuCd, "store_menu_option_group", userId, sysPlantCd);
         menuOptionGroupMapper.newMenuOptionGroup(newItems, userId, sysPlantCd);
     }
 
@@ -51,7 +51,7 @@ public class MenuOptionGroupService {
 
         MenuOptionGroupResponse oldData = menuOptionGroupMapper.getOldData(updateItems.getSysId());
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(),  menuCd, "store_menu_option_group", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(),  menuCd, "store_menu_option_group", userId, sysPlantCd);
         menuOptionGroupMapper.updateMenuOptionGroup(updateItems, userId, sysPlantCd);
     }
 
@@ -60,7 +60,7 @@ public class MenuOptionGroupService {
                               String sysPlantCd,
                               String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_option_group", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_option_group", userId, sysPlantCd);
         menuOptionGroupMapper.delMenuOptionGroup(delItems, userId, sysPlantCd, menuCd);
     }
 
