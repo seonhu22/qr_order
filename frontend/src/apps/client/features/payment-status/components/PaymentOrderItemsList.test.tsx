@@ -9,7 +9,7 @@ describe('PaymentOrderItemsList', () => {
 
     render(<PaymentOrderItemsList items={items} />);
 
-    expect(screen.getByText('불고기피자')).toBeInTheDocument();
+    expect(screen.getByText('1. 불고기피자')).toBeInTheDocument();
     expect(screen.getByText('치즈 추가')).toBeInTheDocument();
     expect(screen.getByText('24,000원')).toBeInTheDocument();
     expect(screen.queryByText(items)).not.toBeInTheDocument();
