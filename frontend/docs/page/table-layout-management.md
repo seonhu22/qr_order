@@ -76,7 +76,7 @@ dnd-kit은 드래그가 끝나면 라이브 드래그용 `transform`(`useDraggab
 
 > 추가일: 2026-07-02, [`docs/decisions.md` ADR-017](../decisions.md#adr-017--테이블-배치-관리-내부시설-영속화object_type-mock-우선-구현) 참고. 이전에는(ADR-015) 내부시설이 저장 대상이 아니었다 — 그 절이 이 절로 대체됐다.
 
-`table_gui` API(`GET/POST /api/client/store_manage/table_gui/search|save`)를 테이블뿐 아니라 내부시설(고정 8종 + 커스텀)까지 함께 쓴다. 백엔드에 아직 없는 `object_type` 컬럼을 가정하고 프론트에서 로컬로 확장한 wire 타입(`TableGuiObjectType`, `TableGuiItemWire`/`TableGuiResponseWire`, `tableLayoutApi.ts`)으로 다룬다 — 생성된 `TableGuiItem`/`TableGuiResponse`(`src/generated/types/`)에는 이 필드가 없으므로 캐스팅해서 쓰고, 실제 스키마가 확정되면 이 로컬 타입만 걷어내면 되도록 한 파일에 격리했다.
+`table_gui` API(`GET/POST /api/client/store_manage/table_gui/search|save`)를 테이블뿐 아니라 내부시설(고정 8종 + 커스텀)까지 함께 쓰는 방향으로 설계했다. 생성된 `TableGuiItem`/`TableGuiResponse`(`src/generated/types/`)와 실제 응답 필드 표기가 어긋나는 구간은 프론트에서 로컬 wire 타입(`TableGuiObjectType`, `TableGuiItemWire`/`TableGuiResponseWire`, `tableLayoutApi.ts`)으로 격리해 다룬다.
 
 | object_type | 의미 | 종류 매칭 필드 |
 |---|---|---|
@@ -88,12 +88,18 @@ dnd-kit은 드래그가 끝나면 라이브 드래그용 `transform`(`useDraggab
 - `isTableGuiPlaced`/`isFixedFacilityGuiPlaced`/`isCustomFacilityGuiPlaced`(`tableLayoutApi.ts`)는 각각 objectType이 맞고 `xcoordinate`/`ycoordinate`가 둘 다 있는 행만 "이미 배치됨"으로 본다.
 - `mapToPlacedFacilityItem`은 `02` 행의 `tableName`을 `FACILITY_KIND_BY_LABEL`(`constants.ts`, `FACILITY_CATALOG` 라벨의 역매핑)로 찾아 `kind`/아이콘을 복원한다. 매칭 실패(알 수 없는 이름) 시 카운터로 대체한다.
 - `buildTableGuiRequest`(`tableLayoutApi.ts`)가 draft/base를 비교해 테이블 + 내부시설(고정+커스텀)을 **한 번의 요청**으로 합쳐 `newItems`/`updateItems`/`delItems`를 만든다 — 별도의 "내부시설 저장" 액션은 없다.
-  - **newItems**: 이번에 처음 캔버스에 배치된 것(테이블은 서버에 좌표 없음, 내부시설은 sysId 자체가 없음)
+  - **newItems**: 이번에 처음 캔버스에 배치된 것(테이블은 서버에 좌표 없음)
   - **updateItems**: 이미 배치돼 있던 것의 좌표/크기 변경
   - **delItems**: 캔버스에서 제거되어 draft에 더는 없는 것
-  - 테이블 쪽은 기존과 동일하게 `table_info.sys_id` 매칭 UPDATE(신규 테이블 자체를 만드는 API 아님)이고, 내부시설(고정+커스텀)은 sysId 없이 `newItems`로 보내 백엔드가 sys_id를 발급하는 것으로 가정한다 — 저장 성공 후 `queryKeys.tableLayout.lists`를 무효화해 재조회하면 서버가 발급한 sysId가 반영된다.
+  - 테이블 쪽은 기존과 동일하게 `table_info.sys_id` 매칭 UPDATE(신규 테이블 자체를 만드는 API 아님)이다.
   - `delItems`로 보내면 백엔드가 좌표/크기를 `NULL`로 되돌린다(행 자체는 삭제하지 않음).
 - MSW mock(`src/mocks/handlers.ts`의 `tableGuiSaveOverrideHandler`)은 sysId가 없는 저장 요청이 들어오면 mock에서 sys_id를 생성해 새 행으로 추가한다(실제 백엔드의 INSERT 동작을 흉내낸 것) — `mock/tableLayoutMock.ts`의 `TABLE_GUI_MOCK_ROWS`에 `tableType` 없이 `tableName: '주방'`만 있는 `02` 행을 하나 둬서, 이름만으로 매칭되는지 확인할 수 있게 해뒀다.
+
+### 백엔드 audit 주의사항
+
+현재 백엔드 `table_gui/save`는 저장 전에 `sys_audit_trail` 데이터를 만든다. 이때 `newItems`도 각 row의 `sysId`를 audit `ref_key`로 사용하므로, `sysId`가 없는 내부시설을 그대로 보내면 `AT 에러. 관리자에게 문의 바랍니다.`가 발생할 수 있다.
+
+또한 현재 `TableGuiMapper.newTableGui`는 이름과 달리 `insert`가 아니라 `table_info.sys_id` 기준 `update` 흐름이다. 따라서 “새 내부시설 생성”은 백엔드가 내부시설 row insert와 audit용 `sysId` 발급 순서를 명확히 지원하기 전까지 real 환경에서 확정 기능으로 보면 안 된다. 프론트의 mock은 이 흐름을 선개발하기 위해 sysId 없는 내부시설에 임시 sysId를 발급하지만, real 백엔드 계약과는 다를 수 있다.
 
 ### 내부시설 카탈로그(고정 8종)
 
