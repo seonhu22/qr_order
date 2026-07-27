@@ -136,11 +136,6 @@
   color: var(--color-status-warning-text);
 }
 
-.payment-status-badge--dining {
-  background-color: var(--color-status-info-bg);
-  color: var(--color-status-info-text);
-}
-
 /* ── 디테일 폼 (label-input 읽기전용) ──
  * StoreInfoFormCard와 동일하게 레이블을 입력 위에 두고(top) 필드를 한 줄씩 쌓는다. */
 .payment-status-detail-form {
@@ -159,7 +154,7 @@
 .payment-order-items {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
 }
 
 .payment-order-items__label {
@@ -170,7 +165,8 @@
 
 .payment-order-items__list,
 .payment-order-items__fallback-list,
-.payment-order-items__options {
+.payment-order-items__options,
+.payment-order-items__group-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -182,28 +178,88 @@
   gap: var(--spacing-3);
 }
 
-.payment-order-items__card {
+.payment-order-items__group-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-4);
+  gap: var(--spacing-9);
+}
+
+/* 다른 읽기전용 필드(input-control readonly)와 같은 시각 언어(테두리 + bg-muted 박스 1개)를 쓴다.
+ * 그룹/행은 이 박스 안에서 구분선으로만 나눠 중첩 박스가 생기지 않게 한다. */
+.payment-order-items__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-muted);
 }
 
-.payment-order-items__card-header {
+.payment-order-items__grand-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: var(--border-1) solid var(--color-border-default);
+  color: var(--color-text-primary);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+}
+
+.payment-order-items__grand-total strong {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-strong);
+}
+
+.payment-order-items__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.payment-order-items__group:not(:last-child) {
+  padding-bottom: var(--spacing-9);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+}
+
+.payment-order-items__group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+}
+
+.payment-order-items__group-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+  padding-top: var(--spacing-3);
+  border-top: var(--border-1) solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+}
+
+.payment-order-items__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.payment-order-items__row:not(:last-child) {
+  padding-bottom: var(--spacing-6);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+}
+
+.payment-order-items__row-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-3);
-}
-
-.payment-order-items__menu {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  min-width: 0;
 }
 
 .payment-order-items__menu-name {
@@ -218,10 +274,18 @@
   flex-shrink: 0;
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
-  background-color: var(--color-status-info-bg);
-  color: var(--color-status-info-text);
   font-size: var(--typography-size-caption);
   font-weight: var(--typography-weight-ui);
+}
+
+.payment-order-items__payment-badge--paid {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.payment-order-items__payment-badge--cancelled {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
 }
 
 .payment-order-items__total {
@@ -236,6 +300,12 @@
   flex-wrap: wrap;
   gap: var(--spacing-2);
   color: var(--color-text-tertiary);
+  font-size: var(--typography-size-caption);
+}
+
+.payment-order-items__cancel-reason {
+  margin: 0;
+  color: var(--color-status-error-text);
   font-size: var(--typography-size-caption);
 }
 
@@ -277,10 +347,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-muted);
   color: var(--color-text-secondary);
   font-size: var(--typography-size-ui);
   line-height: var(--typography-line-height-ui);
@@ -292,10 +358,6 @@
 
 .payment-order-items__empty {
   margin: 0;
-  padding: var(--spacing-4);
-  border: var(--border-1) solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-muted);
   color: var(--color-text-tertiary);
   font-size: var(--typography-size-ui);
 }

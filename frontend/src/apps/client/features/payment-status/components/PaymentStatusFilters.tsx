@@ -15,7 +15,6 @@ const PAYMENT_STATUS_OPTIONS = [
   { value: 'ALL', label: '결제 상태 전체' },
   { value: 'PAID', label: '결제완료' },
   { value: 'UNPAID', label: '미결제' },
-  { value: 'DINING', label: '식사중' },
 ];
 
 type PaymentStatusFiltersProps = {
@@ -70,7 +69,7 @@ export function PaymentStatusFilters({
             id="payment-status-keyword"
             size="md"
             value={draftKeyword}
-            placeholder="주문번호로 검색"
+            placeholder="결제번호로 검색"
             leftSlot={<Icon id="i-search" size={14} />}
             onChange={(e) => onKeywordChange(e.target.value)}
             onKeyDown={handleKeyDown}

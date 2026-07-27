@@ -75,7 +75,10 @@ export function usePaymentStatusPageState() {
     return masterRows.filter((row) => row.orderNo.includes(keyword));
   }, [appliedKeyword, masterRows]);
 
-  const detail = useMemo(() => mapToPaymentStatusDetail(detailQuery.data ?? []), [detailQuery.data]);
+  const detail = useMemo(
+    () => mapToPaymentStatusDetail(detailQuery.data ?? [], selectedRow?.paymentType ?? ''),
+    [detailQuery.data, selectedRow],
+  );
 
   const handleSearch = () => {
     if (!validateDraftDateRange()) return;

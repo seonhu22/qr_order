@@ -6,15 +6,14 @@ import type { PaymentStatusDetail } from '../types';
 const PAYMENT_STATUS_LABEL: Record<PaymentStatusDetail['paymentStatus'], string> = {
   PAID: '결제완료',
   UNPAID: '미결제',
-  DINING: '식사중',
 };
 
-/** 취소 사유/취소 상세 사유는 결제완료 건에만 의미가 있다 — 미결제·식사중 건은 항상 "-"로 표시한다. */
-function formatCancelField(detail: PaymentStatusDetail | null, rawValue: string): string {
-  if (!detail) return '';
-  if (detail.paymentStatus !== 'PAID') return '-';
-  return rawValue.trim() ? rawValue : '-';
-}
+/**
+ * 사유/상세 사유 필드는 미결제(UNPAID) 건에만 의미가 있다 — 결제완료(PAID) 건은 필드 자체를 표시하지 않는다.
+ */
+const REASON_FIELD_LABEL: Partial<Record<PaymentStatusDetail['paymentStatus'], { reason: string; description: string }>> = {
+  UNPAID: { reason: '미결제 사유', description: '미결제 상세 사유' },
+};
 
 type PaymentStatusDetailFormProps = {
   detail: PaymentStatusDetail | null;
@@ -29,6 +28,8 @@ export function PaymentStatusDetailForm({
   isError,
   hasSelection,
 }: PaymentStatusDetailFormProps) {
+  const reasonLabel = detail ? REASON_FIELD_LABEL[detail.paymentStatus] : undefined;
+
   return (
     <TableCard title="결제 목록 상세" ariaLabel="결제 목록 상세" className="payment-status-detail-form-card">
       <TableCardContentState
@@ -41,7 +42,7 @@ export function PaymentStatusDetailForm({
       >
         <div className="payment-status-detail-form">
           <TextInput
-            label="주문번호"
+            label="결제번호"
             className="payment-status-detail-form__field"
             readOnly
             value={detail?.orderNo ?? ''}
@@ -55,21 +56,32 @@ export function PaymentStatusDetailForm({
           />
 
           <TextInput
-            label="취소 사유"
+            label="결제 수단"
             className="payment-status-detail-form__field"
             readOnly
-            value={formatCancelField(detail, detail?.cancelReason ?? '')}
+            value={detail && detail.paymentStatus === 'PAID' ? detail.paymentType || '-' : '-'}
           />
+
+          {reasonLabel && (
+            <TextInput
+              label={reasonLabel.reason}
+              className="payment-status-detail-form__field"
+              readOnly
+              value={detail?.cancelReason?.trim() || '-'}
+            />
+          )}
 
           <PaymentOrderItemsList items={detail?.items ?? ''} />
 
-          <TextareaInput
-            label="취소 상세 사유"
-            className="payment-status-detail-form__field"
-            readOnly
-            value={formatCancelField(detail, detail?.cancelDescription ?? '')}
-            rows={4}
-          />
+          {reasonLabel && (
+            <TextareaInput
+              label={reasonLabel.description}
+              className="payment-status-detail-form__field"
+              readOnly
+              value={detail?.cancelDescription?.trim() || '-'}
+              rows={4}
+            />
+          )}
         </div>
       </TableCardContentState>
     </TableCard>
