@@ -2,8 +2,8 @@
  * @fileoverview 옵션 관리 화면 mock
  *
  * @description
- * 옵션 관리 랜딩 목록은 `/api/client/menu_manage/menu/master/search`와
- * `/api/client/menu_manage/menu/detail/search/:masterSysId` mock을 조합해 메뉴명 기준으로 만든다.
+ * 옵션 관리 랜딩 목록은 `/api/client/menu_manage/menu/detail/search?searchKeyword=...`로
+ * 로그인 사용자의 사업장 메뉴를 한 번에 조회한다.
  * `/api/client/menu_manage/option/group/search/:masterSysId`(`MenuOptionGroupResponse[]`),
  * `/api/client/menu_manage/option/detail/search/:groupSysId`(`MenuOptionDetailResponse[]`) 응답 형태의 mock 데이터.
  */

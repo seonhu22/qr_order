@@ -3,6 +3,9 @@ import { handlers as authHandlers } from '../test/handlers';
 import { INQUIRY_MANAGE_MOCK_ROWS } from '../apps/admin/features/inquiry-manage/mock/inquiryManageMock';
 import { INQUIRY_MOCK_ROWS } from '../apps/client/features/inquiry/mock/inquiryMock';
 import type { ClientQnaRequest } from '../generated/types/clientQnaRequest';
+import type { MenuOptionDetailRequest } from '../generated/types/menuOptionDetailRequest';
+import type { MenuOptionGroupItem } from '../generated/types/menuOptionGroupItem';
+import type { MenuOptionGroupRequest } from '../generated/types/menuOptionGroupRequest';
 import { NOTICE_MOCK_ROWS } from '../apps/admin/features/notice-manage/mock/noticeManageMock';
 import { CHANGE_HISTORY_MOCK } from '../apps/admin/features/change-history/mock/changeHistoryMock';
 import {
@@ -525,6 +528,18 @@ const menuDetailOverrideHandler = http.get(
   '*/api/client/menu_manage/menu/detail/search/:masterSysId',
   ({ params }) => {
     const filtered = MENU_DETAIL_MOCK_ROWS.filter((row) => row.linkSysId === params.masterSysId);
+    return HttpResponse.json(filtered);
+  },
+);
+
+const menuDetailSearchOverrideHandler = http.get(
+  '*/api/client/menu_manage/menu/detail/search',
+  ({ request }) => {
+    const keyword = new URL(request.url).searchParams.get('searchKeyword')?.trim().toLowerCase();
+    const filtered = keyword
+      ? MENU_DETAIL_MOCK_ROWS.filter((row) => row.menuName?.toLowerCase().includes(keyword))
+      : MENU_DETAIL_MOCK_ROWS;
+
     return HttpResponse.json(filtered);
   },
 );
@@ -1295,6 +1310,7 @@ export const handlers = [
   menuCategoryNewOverrideHandler,
   menuCategoryUpdateOverrideHandler,
   menuCategoryDeleteOverrideHandler,
+  menuDetailSearchOverrideHandler,
   menuDetailOverrideHandler,
   menuDetailSaveOverrideHandler,
   menuOptionGroupOverrideHandler,
