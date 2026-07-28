@@ -185,7 +185,10 @@ export function useMenuManagementPage() {
     }
 
     await deleteCategoriesMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.masterLists });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.masterLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuOption.masterLists }),
+    ]);
 
     if (targets.some((row) => row.id === effectiveSelectedCategoryId)) {
       setSelectedCategoryId('');
@@ -267,7 +270,10 @@ export function useMenuManagementPage() {
       fileUlid: editingDetailRow?.fileUlid,
       fileChangeState: detailFileChangeState,
     });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.detailLists });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.detailLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuOption.masterLists }),
+    ]);
     setDraftDetailSchemasByCategory((prev) => {
       const next = { ...prev };
       delete next[selectedCategory.id];

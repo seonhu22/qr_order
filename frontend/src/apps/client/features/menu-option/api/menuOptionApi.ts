@@ -1,8 +1,6 @@
-import { useMutation, useQueries } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-  getMenuDetail,
   useDelMenuOptionGroup,
-  useGetMenuMaster,
   useGetMenuOptionDetail,
   useGetMenuOptionGroup,
   useNewMenuOptionGroup,
@@ -304,45 +302,26 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
   );
 }
 
-/**
- * 메뉴 관리에서 저장된 모든 카테고리의 메뉴를 모아 옵션 부여 대상 목록으로 쓴다.
- * 메뉴 상세 조회 API가 카테고리 단위(`masterSysId`)로만 있어, 카테고리 목록을 먼저 불러온 뒤
- * 카테고리별 메뉴 목록을 모두 조회해 하나로 합친다.
- */
+export function getMenuOptionMasterList(searchKeyword = '', signal?: AbortSignal) {
+  const normalizedKeyword = searchKeyword.trim();
+
+  return httpClient<MenuDetailResponse[]>({
+    url: '/api/client/menu_manage/menu/detail/search',
+    method: 'GET',
+    params: normalizedKeyword ? { searchKeyword: normalizedKeyword } : undefined,
+    signal,
+  });
+}
+
+/** 로그인 사용자의 사업장에 등록된 전체 메뉴를 메뉴명으로 조회한다. */
 export function useMenuOptionMasterQuery(searchKeyword = '') {
-  // TODO: 백엔드에 옵션 관리용 전체 메뉴 목록 검색 API가 생기면 카테고리별 상세 조회를 단일 조회로 교체한다.
-  const menuMasterQuery = useGetMenuMaster(undefined, {
-    query: {
-      queryKey: queryKeys.menuOption.masters('menu-master-categories'),
-      ...queryPolicies.clientCrudList,
-    },
+  const normalizedKeyword = searchKeyword.trim();
+
+  return useQuery({
+    queryKey: queryKeys.menuOption.masters(normalizedKeyword),
+    queryFn: ({ signal }) => getMenuOptionMasterList(normalizedKeyword, signal),
+    ...queryPolicies.clientCrudList,
   });
-
-  const menuMasterIds = (menuMasterQuery.data ?? [])
-    .map((item) => item.sysId)
-    .filter((sysId): sysId is string => Boolean(sysId));
-
-  const menuDetailQueries = useQueries({
-    queries: menuMasterIds.map((masterId) => ({
-      queryKey: queryKeys.menuManagement.details(masterId),
-      queryFn: ({ signal }) => getMenuDetail(masterId, undefined, signal),
-      enabled: Boolean(masterId),
-      ...queryPolicies.clientCrudList,
-    })),
-  });
-
-  const normalizedKeyword = searchKeyword.trim().toLowerCase();
-  const menuDetails = menuDetailQueries
-    .flatMap((query) => query.data ?? [])
-    .filter((item) =>
-      normalizedKeyword ? item.menuName?.toLowerCase().includes(normalizedKeyword) : true,
-    );
-
-  return {
-    data: menuDetails,
-    isLoading: menuMasterQuery.isLoading || menuDetailQueries.some((query) => query.isLoading),
-    isError: menuMasterQuery.isError || menuDetailQueries.some((query) => query.isError),
-  };
 }
 
 export function useMenuOptionGroupQuery(masterId = '') {
