@@ -189,8 +189,8 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
     fileUlid: item.fileUlid,
     values: {
       menuOptionName: item.menuOptionName ?? '',
-      menuOptionPrice: item.menuOptionPrice ?? '',
-      maximumNum: item.maximumNum ?? '',
+      menuOptionPrice: item.menuOptionPrice != null ? String(item.menuOptionPrice) : '',
+      maximumNum: item.maximumNum != null ? String(item.maximumNum) : '',
       menuDescription: item.menuDescription ?? '',
       useYn: item.useYn === 'N' ? 'N' : 'Y',
       defaultYn: false,
@@ -202,12 +202,14 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
  * `defaultYn`은 DB/API 어디에도 없는 프론트 전용 필드라 전송하지 않는다.
  */
 export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOptionDetailItem {
+  const maximumNum = row.values.maximumNum.trim() || '0';
+
   return {
     sysId: row.sysId,
     linkSysId: row.groupId,
     menuOptionName: row.values.menuOptionName,
     menuOptionPrice: row.values.menuOptionPrice,
-    maximumNum: row.values.maximumNum,
+    maximumNum,
     menuDescription: row.values.menuDescription,
     useYn: row.values.useYn,
     fileUlid: row.fileUlid,
