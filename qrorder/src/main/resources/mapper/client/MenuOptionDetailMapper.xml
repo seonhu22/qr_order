@@ -45,7 +45,7 @@
                 #{item.menuOptionName},
                 #{item.menuOptionPrice},
                 #{item.menuDescription},
-                #{item.maximum_num} ,
+                #{item.maximumNum} ,
                 #{item.useYn},
                 #{item.ordNo},
                 'N',
