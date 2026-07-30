@@ -7,9 +7,9 @@ public class MenuOptionDetailItem {
     private String sysId;
     private String linkSysId;
     private String menuOptionName;
-    private String menuOptionPrice;
+    private Integer menuOptionPrice;
     private String menuDescription;
-    private String maximumNum;
+    private Integer maximumNum;
     private String useYn;
     private String fileUlid;
     private Integer ordNo;
