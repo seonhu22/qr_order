@@ -1,6 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import {
+  getMenuDetailSearchKeyword,
   useDelMenuOptionGroup,
+  useGetMenuDetailSearchKeyword,
   useGetMenuOptionDetail,
   useGetMenuOptionGroup,
   useNewMenuOptionGroup,
@@ -305,23 +307,26 @@ export function hasMenuOptionDetailChanges(request: MenuOptionDetailRequest) {
 export function getMenuOptionMasterList(searchKeyword = '', signal?: AbortSignal) {
   const normalizedKeyword = searchKeyword.trim();
 
-  return httpClient<MenuDetailResponse[]>({
-    url: '/api/client/menu_manage/menu/detail/search',
-    method: 'GET',
-    params: normalizedKeyword ? { searchKeyword: normalizedKeyword } : undefined,
+  return getMenuDetailSearchKeyword(
+    normalizedKeyword ? { searchKeyword: normalizedKeyword } : undefined,
+    undefined,
     signal,
-  });
+  );
 }
 
 /** 로그인 사용자의 사업장에 등록된 전체 메뉴를 메뉴명으로 조회한다. */
 export function useMenuOptionMasterQuery(searchKeyword = '') {
   const normalizedKeyword = searchKeyword.trim();
 
-  return useQuery({
-    queryKey: queryKeys.menuOption.masters(normalizedKeyword),
-    queryFn: ({ signal }) => getMenuOptionMasterList(normalizedKeyword, signal),
-    ...queryPolicies.clientCrudList,
-  });
+  return useGetMenuDetailSearchKeyword(
+    normalizedKeyword ? { searchKeyword: normalizedKeyword } : undefined,
+    {
+      query: {
+        queryKey: queryKeys.menuOption.masters(normalizedKeyword),
+        ...queryPolicies.clientCrudList,
+      },
+    },
+  );
 }
 
 export function useMenuOptionGroupQuery(masterId = '') {
