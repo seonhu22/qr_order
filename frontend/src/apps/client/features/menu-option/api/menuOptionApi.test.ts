@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getMenuOptionMasterList } from './menuOptionApi';
+import { buildMenuOptionDetailFormData, getMenuOptionMasterList } from './menuOptionApi';
 
 const MENU_ROWS = [
   {
@@ -48,5 +48,52 @@ describe('getMenuOptionMasterList', () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       '/api/client/menu_manage/menu/detail/search?searchKeyword=%EC%95%84%EB%A9%94%EB%A6%AC%EC%B9%B4%EB%85%B8',
     );
+  });
+});
+
+describe('buildMenuOptionDetailFormData', () => {
+  it('flattens option detail changes for @ModelAttribute binding', () => {
+    const formData = buildMenuOptionDetailFormData({
+      newItems: [
+        {
+          linkSysId: 'group-1',
+          menuOptionName: '토마토 추가',
+          menuOptionPrice: '0',
+          maximumNum: '',
+          menuDescription: '',
+          useYn: 'Y',
+          ordNo: 1,
+        },
+      ],
+      updateItems: [
+        {
+          sysId: 'detail-1',
+          linkSysId: 'group-1',
+          menuOptionName: '치즈 추가',
+          menuOptionPrice: '1000',
+          maximumNum: '2',
+          menuDescription: '고소한 치즈',
+          useYn: 'N',
+          fileUlid: 'file-1',
+          ordNo: 2,
+        },
+      ],
+      delItems: [{ sysId: 'detail-2', linkSysId: 'group-1' }],
+    });
+
+    expect(formData.get('newItems[0].linkSysId')).toBe('group-1');
+    expect(formData.get('newItems[0].menuOptionName')).toBe('토마토 추가');
+    expect(formData.get('newItems[0].menuOptionPrice')).toBe('0');
+    expect(formData.get('newItems[0].maximumNum')).toBe('');
+    expect(formData.get('newItems[0].menuDescription')).toBe('');
+    expect(formData.get('newItems[0].useYn')).toBe('Y');
+    expect(formData.get('newItems[0].ordNo')).toBe('1');
+
+    expect(formData.get('updateItems[0].sysId')).toBe('detail-1');
+    expect(formData.get('updateItems[0].fileUlid')).toBe('file-1');
+    expect(formData.get('updateItems[0].maximumNum')).toBe('2');
+    expect(formData.get('delItems[0].sysId')).toBe('detail-2');
+    expect(formData.has('menuOptionDetailRequest')).toBe(false);
+    expect(formData.has('fileRequest')).toBe(false);
   });
 });

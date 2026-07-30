@@ -380,15 +380,49 @@ export function useSaveMenuOptionGroupsMutation() {
 /**
  * 생성된 `useSaveMenuOptionDetail`은 menuOptionDetailRequest/fileRequest를 query string으로 보내
  * 중첩 객체 값이 전달되지 않는다(OpenAPI 명세상 @RequestParam로 정의됨).
- * 다른 상세 저장 API와 동일하게 JSON body로 직접 호출한다.
- * 첨부파일 편집 모달은 아직 구현 전이라 fileRequest는 항상 빈 객체로 보낸다.
+ * 백엔드 컨트롤러는 @ModelAttribute MenuOptionDetailRequest를 루트에서 받으므로
+ * JSON wrapper가 아니라 newItems[0].field 형태의 FormData로 펼쳐 보낸다.
  */
+function appendMenuOptionDetailItem(
+  formData: FormData,
+  fieldName: 'newItems' | 'updateItems' | 'delItems',
+  index: number,
+  item: MenuOptionDetailItem,
+) {
+  const prefix = `${fieldName}[${index}]`;
+
+  if (item.sysId) formData.append(`${prefix}.sysId`, item.sysId);
+  if (item.linkSysId) formData.append(`${prefix}.linkSysId`, item.linkSysId);
+  if (item.menuOptionName) formData.append(`${prefix}.menuOptionName`, item.menuOptionName);
+  if (item.menuOptionPrice != null) formData.append(`${prefix}.menuOptionPrice`, String(item.menuOptionPrice));
+  if (item.maximumNum != null) formData.append(`${prefix}.maximumNum`, String(item.maximumNum));
+  if (item.menuDescription != null) formData.append(`${prefix}.menuDescription`, item.menuDescription);
+  if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
+  if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
+  if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
+}
+
+export function buildMenuOptionDetailFormData(request: MenuOptionDetailRequest): FormData {
+  const formData = new FormData();
+
+  request.newItems?.forEach((item, index) => {
+    appendMenuOptionDetailItem(formData, 'newItems', index, item);
+  });
+  request.updateItems?.forEach((item, index) => {
+    appendMenuOptionDetailItem(formData, 'updateItems', index, item);
+  });
+  request.delItems?.forEach((item, index) => {
+    appendMenuOptionDetailItem(formData, 'delItems', index, item);
+  });
+
+  return formData;
+}
+
 function saveMenuOptionDetail(request: MenuOptionDetailRequest) {
   return httpClient<{ success: boolean }>({
     url: '/api/client/menu_manage/option/detail/save',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: { menuOptionDetailRequest: request, fileRequest: {} },
+    data: buildMenuOptionDetailFormData(request),
   });
 }
 
