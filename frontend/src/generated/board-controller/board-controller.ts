@@ -30,7 +30,8 @@ import type {
   ClientQnaResponse,
   CommonResponse,
   GetNotice1Params,
-  GetQna1Params
+  GetQna1Params,
+  NewQnaParams
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
@@ -99,15 +100,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(mutationOptions, queryClient);
     }
     export const newQna = (
-    clientQnaRequest: ClientQnaRequest,
+    params: NewQnaParams,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
       
       return httpClient<CommonResponse>(
       {url: `/api/client/board/qna/new`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: clientQnaRequest, signal
+        params, signal
     },
       options);
     }
@@ -115,8 +115,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getNewQnaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{data: ClientQnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{data: ClientQnaRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{params: NewQnaParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{params: NewQnaParams}, TContext> => {
 
 const mutationKey = ['newQna'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -128,10 +128,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newQna>>, {data: ClientQnaRequest}> = (props) => {
-          const {data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof newQna>>, {params: NewQnaParams}> = (props) => {
+          const {params} = props ?? {};
 
-          return  newQna(data,requestOptions)
+          return  newQna(params,requestOptions)
         }
 
         
@@ -140,15 +140,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type NewQnaMutationResult = NonNullable<Awaited<ReturnType<typeof newQna>>>
-    export type NewQnaMutationBody = ClientQnaRequest
+    
     export type NewQnaMutationError = unknown
 
     export const useNewQna = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{data: ClientQnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof newQna>>, TError,{params: NewQnaParams}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof newQna>>,
         TError,
-        {data: ClientQnaRequest},
+        {params: NewQnaParams},
         TContext
       > => {
 
