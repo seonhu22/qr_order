@@ -29,7 +29,7 @@ export function useInquiryManagePage() {
 
     const request = buildInquiryAnswerUpdateRequest(row, answerDescription.trim());
 
-    await updateMutation.mutateAsync({ data: request });
+    await updateMutation.mutateAsync(request);
     await queryClient.invalidateQueries({ queryKey: queryKeys.qna.lists });
   };
 

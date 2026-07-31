@@ -1,10 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildInquiryAnswerFormData,
   buildInquiryAnswerUpdateRequest,
   mapToInquiryManageRow,
+  updateInquiryAnswer,
 } from './inquiryManageApi';
 
 describe('inquiryManageApi', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('maps qna response into inquiry row and preserves identifiers', () => {
     expect(
       mapToInquiryManageRow(
@@ -68,5 +74,43 @@ describe('inquiryManageApi', () => {
       answerYn: 'Y',
       answerDescription: '답변 등록',
     });
+  });
+
+  it('builds flat form data for Spring ModelAttribute binding', () => {
+    const formData = buildInquiryAnswerFormData({
+      sysId: 'qna-1',
+      answerYn: 'Y',
+      answerDescription: '답변 등록',
+    });
+
+    expect(formData.get('sysId')).toBe('qna-1');
+    expect(formData.get('answerYn')).toBe('Y');
+    expect(formData.get('answerDescription')).toBe('답변 등록');
+    expect(formData.has('qnaRequest')).toBe(false);
+    expect(formData.has('fileRequest')).toBe(false);
+  });
+
+  it('posts answer fields as multipart form data', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await updateInquiryAnswer({
+      sysId: 'qna-1',
+      answerYn: 'Y',
+      answerDescription: '답변 등록',
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/system/settings/board/qna/update');
+    expect(options.method).toBe('POST');
+    expect(options.headers).toBeUndefined();
+    expect(options.body).toBeInstanceOf(FormData);
+    expect((options.body as FormData).get('answerDescription')).toBe('답변 등록');
   });
 });
