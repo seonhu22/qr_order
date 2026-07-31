@@ -7,7 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface MenuDetailMapper {
-    List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword);
+    List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword, String sysPlantCd);
     List<MenuDetailResponse> getMenuDetail(String masterSysId);
     void newMenuDetail(List<MenuDetailItem> newItems, String userId, String sysPlantCd, String menuCd);
     void updateMenuDetail(List<MenuDetailItem> updateItems, String userId, String sysPlantCd, String menuCd);

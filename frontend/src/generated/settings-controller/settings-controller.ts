@@ -57,7 +57,6 @@ import type {
   PaymentResponse,
   Plant,
   PlantStatusResponse,
-  QnaRequest,
   QnaResponse,
   RuleDetail,
   RuleDetailRequest,
@@ -68,7 +67,8 @@ import type {
   SearchPlantParams,
   SysAccessLogDetail,
   SysAccessLogMaster,
-  UpdateNoticeParams
+  UpdateNoticeParams,
+  UpdateQnaParams
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
@@ -1067,15 +1067,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(mutationOptions, queryClient);
     }
     export const updateQna = (
-    qnaRequest: QnaRequest,
+    params: UpdateQnaParams,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
       
       return httpClient<CommonResponse>(
       {url: `/api/system/settings/board/qna/update`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: qnaRequest, signal
+        params, signal
     },
       options);
     }
@@ -1083,8 +1082,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getUpdateQnaMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{params: UpdateQnaParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{params: UpdateQnaParams}, TContext> => {
 
 const mutationKey = ['updateQna'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -1096,10 +1095,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateQna>>, {data: QnaRequest}> = (props) => {
-          const {data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateQna>>, {params: UpdateQnaParams}> = (props) => {
+          const {params} = props ?? {};
 
-          return  updateQna(data,requestOptions)
+          return  updateQna(params,requestOptions)
         }
 
         
@@ -1108,15 +1107,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateQnaMutationResult = NonNullable<Awaited<ReturnType<typeof updateQna>>>
-    export type UpdateQnaMutationBody = QnaRequest
+    
     export type UpdateQnaMutationError = unknown
 
     export const useUpdateQna = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{data: QnaRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateQna>>, TError,{params: UpdateQnaParams}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateQna>>,
         TError,
-        {data: QnaRequest},
+        {params: UpdateQnaParams},
         TContext
       > => {
 

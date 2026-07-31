@@ -26,6 +26,7 @@ import type {
 
 import type {
   CommonResponse,
+  GetMenuDetailSearchKeywordParams,
   GetMenuMasterParams,
   GetMenuOptionMasterParams,
   MenuDetailResponse,
@@ -1021,6 +1022,93 @@ export function useGetMenuMaster<TData = Awaited<ReturnType<typeof getMenuMaster
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMenuMasterQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getMenuDetailSearchKeyword = (
+    params?: GetMenuDetailSearchKeywordParams,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<MenuDetailResponse[]>(
+      {url: `/api/client/menu_manage/menu/detail/search`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetMenuDetailSearchKeywordQueryKey = (params?: GetMenuDetailSearchKeywordParams,) => {
+    return [
+    `/api/client/menu_manage/menu/detail/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetMenuDetailSearchKeywordQueryOptions = <TData = Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError = unknown>(params?: GetMenuDetailSearchKeywordParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMenuDetailSearchKeywordQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>> = ({ signal }) => getMenuDetailSearchKeyword(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMenuDetailSearchKeywordQueryResult = NonNullable<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>>
+export type GetMenuDetailSearchKeywordQueryError = unknown
+
+
+export function useGetMenuDetailSearchKeyword<TData = Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError = unknown>(
+ params: undefined |  GetMenuDetailSearchKeywordParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDetailSearchKeyword<TData = Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError = unknown>(
+ params?: GetMenuDetailSearchKeywordParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDetailSearchKeyword<TData = Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError = unknown>(
+ params?: GetMenuDetailSearchKeywordParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMenuDetailSearchKeyword<TData = Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError = unknown>(
+ params?: GetMenuDetailSearchKeywordParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDetailSearchKeyword>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMenuDetailSearchKeywordQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

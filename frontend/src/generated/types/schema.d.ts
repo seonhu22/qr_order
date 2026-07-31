@@ -1732,6 +1732,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/menu_manage/menu/detail/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMenuDetailSearchKeyword"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/menu_manage/menu/detail/search/{masterSysId}": {
         parameters: {
             query?: never;
@@ -2021,17 +2037,6 @@ export interface components {
             answerDatetime?: string;
             answerDescription?: string;
         };
-        NoticeRequest: {
-            sysId?: string;
-            noticeTitle?: string;
-            noticeDescription?: string;
-            /** Format: date-time */
-            startDate?: string;
-            deleteYn?: string;
-            useYn?: string;
-            fileUuid?: string;
-            sysPlantCd?: string;
-        };
         FileIO: {
             sysId?: string;
             linkSysId?: string;
@@ -2059,6 +2064,17 @@ export interface components {
             newItems?: components["schemas"]["FileIO"][];
             updateItems?: components["schemas"]["FileInfo"][];
             delItems?: components["schemas"]["FileInfo"][];
+        };
+        NoticeRequest: {
+            sysId?: string;
+            noticeTitle?: string;
+            noticeDescription?: string;
+            /** Format: date-time */
+            startDate?: string;
+            deleteYn?: string;
+            useYn?: string;
+            fileUuid?: string;
+            sysPlantCd?: string;
         };
         AdminUser: {
             sysId?: string;
@@ -2129,9 +2145,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2237,6 +2253,7 @@ export interface components {
             inputType?: string;
             /** Format: int32 */
             ordNo?: number;
+            useYn?: string;
         };
         MenuOptionGroupItem: {
             sysId?: string;
@@ -2246,6 +2263,7 @@ export interface components {
             inputType?: string;
             /** Format: int32 */
             ordNo?: number;
+            useYn?: string;
         };
         MenuOptionDetailItem: {
             sysId?: string;
@@ -2393,6 +2411,8 @@ export interface components {
             auditTrailContents?: string;
             /** Format: date-time */
             insertDatetime?: string;
+            insertUserId?: string;
+            insertUserNm?: string;
         };
         QnaResponse: {
             sysId?: string;
@@ -2463,9 +2483,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2601,6 +2621,7 @@ export interface components {
             inputType?: string;
             /** Format: int32 */
             ordNo?: number;
+            useYn?: string;
         };
         MenuOptionDetailResponse: {
             sysId?: string;
@@ -3089,16 +3110,15 @@ export interface operations {
     };
     updateQna: {
         parameters: {
-            query?: never;
+            query: {
+                qnaRequest: components["schemas"]["QnaRequest"];
+                fileRequest: components["schemas"]["FileRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QnaRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -3961,16 +3981,14 @@ export interface operations {
     };
     newQna: {
         parameters: {
-            query?: never;
+            query: {
+                qnaRequest: components["schemas"]["ClientQnaRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ClientQnaRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -5168,6 +5186,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MenuMasterResponse"][];
+                };
+            };
+        };
+    };
+    getMenuDetailSearchKeyword: {
+        parameters: {
+            query?: {
+                searchKeyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MenuDetailResponse"][];
                 };
             };
         };

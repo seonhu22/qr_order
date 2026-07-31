@@ -18,6 +18,7 @@ import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { SelectOption } from '@/shared/components/input';
 import type { FileChangeState } from '@/shared/components/file-attachment';
 import type { EditableDetailColumn } from '@/shared/components/table/editableTableTypes';
+import { getDefaultAttachFilePath } from '@/shared/utils/attachFile';
 import type { MenuCategoryRow, MenuDetailRow, MenuDetailSchema } from '../types';
 
 export const USE_YN_OPTIONS: SelectOption[] = [
@@ -185,12 +186,6 @@ function appendMenuDetailItem(
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
 }
 
-function getDefaultFilePath(date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  return `/${y}/${m}`;
-}
-
 // 첨부파일은 편집 중인 한 행에만 연결된다. 신규 행처럼 fileUlid가 아직 없으면
 // 파일이 필수가 아니므로 linkSysId 없이 보내고, 값이 없는 필드는 채우지 않는다.
 function appendMenuDetailFileFields(
@@ -198,7 +193,7 @@ function appendMenuDetailFileFields(
   fileUlid: string | undefined,
   fileChangeState: FileChangeState | undefined,
 ) {
-  const filePath = getDefaultFilePath();
+  const filePath = getDefaultAttachFilePath();
 
   fileChangeState?.newFiles.forEach((file, i) => {
     formData.append(`newItems[${i}].file`, file);

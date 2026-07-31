@@ -25,9 +25,10 @@ public class MenuDetailService {
     private final MenuDetailMapper menuDetailMapper;
     private final FileService fileService;
 
-    public List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword) {
+    public List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword,
+                                                                String sysPlantCd) {
 
-        return menuDetailMapper.getMenuDetailSearchKeyword(searchKeyword);
+        return menuDetailMapper.getMenuDetailSearchKeyword(searchKeyword, sysPlantCd);
     }
 
     public List<MenuDetailResponse> getMenuDetail(String masterSysId) {
