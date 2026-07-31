@@ -161,14 +161,11 @@ export function mapToMenuOptionGroupRow(item: MenuOptionGroupResponse): MenuOpti
       groupName: item.groupName ?? '',
       requiredYn: item.requiredYn === 'Y',
       inputType: item.inputType ?? '',
-      useYn: 'Y',
+      useYn: item.useYn === 'N' ? 'N' : 'Y',
     },
   };
 }
 
-/**
- * `useYn`은 백엔드 API에 아직 노출되지 않은 프론트 전용 필드라 전송하지 않는다.
- */
 export function mapToMenuOptionGroupPayload(row: MenuOptionGroupRow): MenuOptionGroupRequest {
   return {
     sysId: row.sysId,
@@ -177,6 +174,7 @@ export function mapToMenuOptionGroupPayload(row: MenuOptionGroupRow): MenuOption
     requiredYn: row.values.requiredYn ? 'Y' : 'N',
     inputType: row.values.inputType,
     ordNo: row.ordNo,
+    useYn: row.values.useYn,
   };
 }
 
@@ -223,6 +221,7 @@ function isSameMenuOptionGroupRow(a: MenuOptionGroupRow, b: MenuOptionGroupRow) 
     a.values.groupName === b.values.groupName &&
     a.values.requiredYn === b.values.requiredYn &&
     a.values.inputType === b.values.inputType &&
+    a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
   );
 }

@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildMenuOptionGroupChanges,
   buildMenuOptionDetailFormData,
   getMenuOptionMasterList,
+  mapToMenuOptionGroupPayload,
+  mapToMenuOptionGroupRow,
   mapToMenuOptionDetailRow,
   mapToMenuOptionDetailPayload,
 } from './menuOptionApi';
@@ -100,6 +103,41 @@ describe('buildMenuOptionDetailFormData', () => {
     expect(formData.get('delItems[0].sysId')).toBe('detail-2');
     expect(formData.has('menuOptionDetailRequest')).toBe(false);
     expect(formData.has('fileRequest')).toBe(false);
+  });
+});
+
+describe('menu option group useYn mapping', () => {
+  it('keeps option group useYn from the group search response', () => {
+    const row = mapToMenuOptionGroupRow({
+      sysId: 'group-1',
+      linkSysId: 'menu-1',
+      groupName: '재료',
+      requiredYn: 'Y',
+      inputType: '주문 옵션',
+      ordNo: 1,
+      useYn: 'N',
+    });
+
+    expect(row.values.useYn).toBe('N');
+    expect(mapToMenuOptionGroupPayload(row).useYn).toBe('N');
+  });
+
+  it('detects option group useYn changes', () => {
+    const originalRow = mapToMenuOptionGroupRow({
+      sysId: 'group-1',
+      linkSysId: 'menu-1',
+      groupName: '재료',
+      requiredYn: 'Y',
+      inputType: '주문 옵션',
+      ordNo: 1,
+      useYn: 'N',
+    });
+    const currentRow = {
+      ...originalRow,
+      values: { ...originalRow.values, useYn: 'Y' },
+    };
+
+    expect(buildMenuOptionGroupChanges([currentRow], [originalRow]).updateRows).toHaveLength(1);
   });
 });
 
