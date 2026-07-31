@@ -32,3 +32,9 @@ export async function downloadAllServerFiles(linkSysId: string, filename = 'file
   const blob = await downloadAllFile({ linkSysId });
   triggerBlobDownload(blob, filename);
 }
+
+export function getDefaultAttachFilePath(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `/${year}/${month}`;
+}

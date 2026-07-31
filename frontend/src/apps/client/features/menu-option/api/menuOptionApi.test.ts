@@ -121,6 +121,7 @@ describe('buildMenuOptionDetailFormData', () => {
     expect(formData.has('menuOptionDetailRequest')).toBe(false);
     expect(formData.has('fileRequest')).toBe(false);
   });
+
 });
 
 describe('menu option group useYn mapping', () => {
