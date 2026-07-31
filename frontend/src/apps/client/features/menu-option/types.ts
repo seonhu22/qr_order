@@ -12,8 +12,6 @@ export type MenuOptionMasterRow = {
 
 /**
  * 옵션 그룹 행 모델.
- *
- * @property values.useYn 백엔드 API에 아직 노출되지 않은 프론트 전용 필드. 저장 시 전송하지 않는다.
  */
 export type MenuOptionGroupRow = {
   id: string;
@@ -36,8 +34,6 @@ export type MenuOptionGroupSchema = {
 
 /**
  * 옵션 항목 행 모델.
- *
- * @property values.defaultYn 백엔드 API/DB에 없는 프론트 전용 필드. 저장 시 전송하지 않는다.
  */
 export type MenuOptionDetailRow = {
   id: string;

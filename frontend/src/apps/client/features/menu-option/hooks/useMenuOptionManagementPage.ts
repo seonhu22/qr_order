@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { FileChangeState } from '@/shared/components/file-attachment';
-import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
+import { mapFileResponseToServerFile, saveAttachFiles } from '@/shared/utils/attachFile';
 import type { DetailRowErrorState } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
@@ -438,6 +439,22 @@ export function useMenuOptionManagementPage() {
     return true;
   };
 
+  const saveOptionDetailFiles = async () => {
+    if (!hasOptionDetailFileChanges) return false;
+
+    const fileUlid = editingOptionDetailRow?.fileUlid?.trim();
+    if (!fileUlid) {
+      throw new Error('옵션 항목을 먼저 저장한 후 첨부파일을 등록해주세요.');
+    }
+
+    await saveAttachFiles(fileUlid, optionDetailFileChangeState);
+    await queryClient.invalidateQueries({
+      queryKey: getGetAttachFileQueryKey({ linkSysId: fileUlid }),
+    });
+
+    return true;
+  };
+
   const validateGroupRows = useMemo(
     () => () => validateRequiredColumns(selectedGroupSchema.rows, selectedGroupSchema.columns),
     [selectedGroupSchema],
@@ -546,14 +563,22 @@ export function useMenuOptionManagementPage() {
       confirmOptionDetailEditor: async () => {
         setIsOptionDetailEditConfirming(true);
         try {
-          // 현재는 draft 행 값이 입력 시점에 이미 반영되어 있어 별도 API 호출이 없다.
-          // 추후 첨부파일 백엔드 연동 시 이 자리에 실제 업로드/save mutation 호출을 추가한다.
-          await Promise.resolve();
+          const didSave = await saveDetailRows();
+          const didSaveFiles = await saveOptionDetailFiles();
           setIsOptionDetailEditConfirmOpen(false);
           setEditingOptionDetailRowId(null);
           setOptionDetailEditorSnapshot(null);
           setOptionDetailFileChangeState(EMPTY_OPTION_DETAIL_FILE_STATE);
-          setOptionDetailEditorNotice({ title: '알림', description: '저장되었습니다.' });
+          setOptionDetailEditorNotice({
+            title: '알림',
+            description: didSave || didSaveFiles ? '저장되었습니다.' : '변경사항이 없습니다.',
+          });
+        } catch (error) {
+          setIsOptionDetailEditConfirmOpen(false);
+          setOptionDetailEditorNotice({
+            title: '알림',
+            description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
+          });
         } finally {
           setIsOptionDetailEditConfirming(false);
         }
