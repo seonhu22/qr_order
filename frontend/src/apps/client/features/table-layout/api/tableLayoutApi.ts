@@ -10,20 +10,40 @@ import { queryPolicies } from '@/shared/api/queryPolicies';
 import { FACILITY_KIND_BY_LABEL, FACILITY_LABEL_BY_KIND } from '../constants';
 import type { PlacedFacilityItem, PlacedNonTableItem, PlacedTableItem } from '../types';
 
-// 백엔드 object_type 컬럼(추가 예정) — 01: 테이블, 02: 내부시설(고정 8종 카탈로그), 03: 기타(유저가
-// "커스텀 시설 추가"로 이름을 직접 입력해 만든 시설). 아직 생성된 API 타입에는 없어서 이 파일 안에서만
-// 로컬로 확장해 쓴다. 실제 스키마가 확정되면 openapi.json을 재생성하고 이 임시 타입은 걷어낸다.
+// 백엔드 object_type 컬럼 — 01: 테이블, 02: 내부시설, 03: 기타.
+// 일부 응답에서 테이블도 objectType='02'로 내려오는 동안에는 tableNum 존재 여부를 우선해 테이블을 판별한다.
 export type TableGuiObjectType = '01' | '02' | '03';
 type TableGuiItemWire = TableGuiItem & { objectType?: TableGuiObjectType };
-export type TableGuiResponseWire = TableGuiResponse & { objectType?: TableGuiObjectType };
+
+type TableGuiSaveItemWire = TableGuiItemWire & {
+  xCoordinate?: number;
+  yCoordinate?: number;
+};
+export type TableGuiResponseWire = TableGuiResponse & {
+  objectType?: TableGuiObjectType;
+  xCoordinate?: number;
+  yCoordinate?: number;
+};
+
+// 의미 분리를 위한 함수 작성, 가장 좋은 방법은 백앤드 dto를 generated 타입과 맞추는 것이 이상적이지만 현실적으로 가장 간단한 국소 패치를 진행한다.
+function getGuiX(item: TableGuiResponse) {
+  const wireItem = item as TableGuiResponseWire;
+  return wireItem.xcoordinate ?? wireItem.xCoordinate;
+}
+
+function getGuiY(item: TableGuiResponse) {
+  const wireItem = item as TableGuiResponseWire;
+  return wireItem.ycoordinate ?? wireItem.yCoordinate;
+}
 
 export function isTableGuiRow(item: TableGuiResponse) {
-  // objectType이 아직 없는(기존 mock) 행은 전부 테이블로 취급한다 — 하위 호환.
+  if (item.tableNum != null) return true;
+  // objectType이 아직 없는 기존 mock 행은 전부 테이블로 취급한다 — 하위 호환.
   return ((item as TableGuiResponseWire).objectType ?? '01') === '01';
 }
 
 function isFixedFacilityRow(item: TableGuiResponseWire) {
-  return item.objectType === '02';
+  return item.tableNum == null && item.objectType === '02';
 }
 
 function isCustomFacilityRow(item: TableGuiResponseWire) {
@@ -32,18 +52,17 @@ function isCustomFacilityRow(item: TableGuiResponseWire) {
 
 // useYn 활성 + QR코드 등록까지 끝난 테이블 중, 캔버스에 좌표가 저장되어 실제로 배치된 테이블만 true
 export function isTableGuiPlaced(item: TableGuiResponse) {
-  const wireItem = item as TableGuiResponseWire;
-  return isTableGuiRow(wireItem) && wireItem.xcoordinate != null && wireItem.ycoordinate != null;
+  return isTableGuiRow(item) && getGuiX(item) != null && getGuiY(item) != null;
 }
 
 export function isFixedFacilityGuiPlaced(item: TableGuiResponse) {
   const wireItem = item as TableGuiResponseWire;
-  return isFixedFacilityRow(wireItem) && wireItem.xcoordinate != null && wireItem.ycoordinate != null;
+  return isFixedFacilityRow(wireItem) && getGuiX(wireItem) != null && getGuiY(wireItem) != null;
 }
 
 export function isCustomFacilityGuiPlaced(item: TableGuiResponse) {
   const wireItem = item as TableGuiResponseWire;
-  return isCustomFacilityRow(wireItem) && wireItem.xcoordinate != null && wireItem.ycoordinate != null;
+  return isCustomFacilityRow(wireItem) && getGuiX(wireItem) != null && getGuiY(wireItem) != null;
 }
 
 export function mapToPlacedTableItem(item: TableGuiResponse): PlacedTableItem {
@@ -54,8 +73,8 @@ export function mapToPlacedTableItem(item: TableGuiResponse): PlacedTableItem {
     tableNum: item.tableNum != null ? String(item.tableNum) : '',
     tableName: item.tableName ?? '',
     seatCount: item.tableQty ?? 0,
-    x: item.xcoordinate ?? 0,
-    y: item.ycoordinate ?? 0,
+    x: getGuiX(item) ?? 0,
+    y: getGuiY(item) ?? 0,
     width: item.width ?? 0,
     height: item.height ?? 0,
   };
@@ -71,8 +90,8 @@ export function mapToPlacedFacilityItem(item: TableGuiResponse): PlacedFacilityI
     id: wireItem.sysId ?? `facility-${kind}-${Date.now()}`,
     kind,
     sysId: wireItem.sysId,
-    x: wireItem.xcoordinate ?? 0,
-    y: wireItem.ycoordinate ?? 0,
+    x: getGuiX(wireItem) ?? 0,
+    y: getGuiY(wireItem) ?? 0,
     width: wireItem.width ?? 0,
     height: wireItem.height ?? 0,
   };
@@ -86,35 +105,35 @@ export function mapToPlacedCustomFacilityItem(item: TableGuiResponse): PlacedNon
     kind: 'custom',
     label: wireItem.tableName ?? '기타 시설',
     sysId: wireItem.sysId,
-    x: wireItem.xcoordinate ?? 0,
-    y: wireItem.ycoordinate ?? 0,
+    x: getGuiX(wireItem) ?? 0,
+    y: getGuiY(wireItem) ?? 0,
     width: wireItem.width ?? 0,
     height: wireItem.height ?? 0,
   };
 }
 
-function mapToTableGuiItem(item: PlacedTableItem): TableGuiItemWire {
+function mapToTableGuiItem(item: PlacedTableItem): TableGuiSaveItemWire {
   return {
     sysId: item.sysId,
     objectType: '01',
     tableName: item.tableName,
     tableNum: item.tableNum ? Number(item.tableNum) : undefined,
     tableQty: item.seatCount,
-    xcoordinate: Math.round(item.x),
-    ycoordinate: Math.round(item.y),
+    xCoordinate: Math.round(item.x),
+    yCoordinate: Math.round(item.y),
     width: Math.round(item.width),
     height: Math.round(item.height),
   };
 }
 
-function mapToNonTableGuiItem(item: PlacedNonTableItem): TableGuiItemWire {
+function mapToNonTableGuiItem(item: PlacedNonTableItem): TableGuiSaveItemWire {
   if (item.kind === 'custom') {
     return {
       sysId: item.sysId,
       objectType: '03',
       tableName: item.label,
-      xcoordinate: Math.round(item.x),
-      ycoordinate: Math.round(item.y),
+      xCoordinate: Math.round(item.x),
+      yCoordinate: Math.round(item.y),
       width: Math.round(item.width),
       height: Math.round(item.height),
     };
@@ -125,8 +144,8 @@ function mapToNonTableGuiItem(item: PlacedNonTableItem): TableGuiItemWire {
     tableType: item.kind,
     // 응답을 다시 받을 때 tableName(common_nm)으로 종류를 매칭하므로, 저장 시에도 라벨을 실어 보낸다.
     tableName: FACILITY_LABEL_BY_KIND[item.kind],
-    xcoordinate: Math.round(item.x),
-    ycoordinate: Math.round(item.y),
+    xCoordinate: Math.round(item.x),
+    yCoordinate: Math.round(item.y),
     width: Math.round(item.width),
     height: Math.round(item.height),
   };
@@ -153,16 +172,25 @@ export function buildTableGuiRequest(
   draftFacilityItems: PlacedNonTableItem[],
   baseFacilityItems: PlacedNonTableItem[],
 ): TableGuiRequest {
-  const baseTableBySysId = new Map(baseTableItems.filter((item) => item.sysId).map((item) => [item.sysId as string, item]));
-  const draftTableBySysId = new Map(draftTableItems.filter((item) => item.sysId).map((item) => [item.sysId as string, item]));
+  const baseTableBySysId = new Map(
+    baseTableItems.filter((item) => item.sysId).map((item) => [item.sysId as string, item]),
+  );
+  const draftTableBySysId = new Map(
+    draftTableItems.filter((item) => item.sysId).map((item) => [item.sysId as string, item]),
+  );
 
   // newItems: 이번에 처음 캔버스에 배치된 테이블(기존 배치 정보 없음)
   // updateItems: 이미 배치되어 있던 테이블의 좌표/크기 변경
   // 백엔드 저장 동작은 동일하고 감사로그(insert/update) 구분에만 사용된다.
-  const newTableItems = draftTableItems.filter((item) => item.sysId && !baseTableBySysId.has(item.sysId)).map(mapToTableGuiItem);
+  const newTableItems = draftTableItems
+    .filter((item) => item.sysId && !baseTableBySysId.has(item.sysId))
+    .map(mapToTableGuiItem);
   const updateTableItems = draftTableItems
     .filter((item) => item.sysId && baseTableBySysId.has(item.sysId))
-    .filter((item) => !isSamePlacement(item, baseTableBySysId.get(item.sysId as string) as PlacedTableItem))
+    .filter(
+      (item) =>
+        !isSamePlacement(item, baseTableBySysId.get(item.sysId as string) as PlacedTableItem),
+    )
     .map(mapToTableGuiItem);
   const delTableItems = baseTableItems
     .filter((item) => item.sysId && !draftTableBySysId.has(item.sysId as string))
@@ -180,7 +208,10 @@ export function buildTableGuiRequest(
     .map(mapToNonTableGuiItem);
   const updateFacilityItems = draftFacilityItems
     .filter((item) => item.sysId && baseFacilityBySysId.has(item.sysId))
-    .filter((item) => !isSamePlacement(item, baseFacilityBySysId.get(item.sysId as string) as PlacedNonTableItem))
+    .filter(
+      (item) =>
+        !isSamePlacement(item, baseFacilityBySysId.get(item.sysId as string) as PlacedNonTableItem),
+    )
     .map(mapToNonTableGuiItem);
   const delFacilityItems = baseFacilityItems
     .filter((item) => item.sysId && !draftFacilityBySysId.has(item.sysId as string))

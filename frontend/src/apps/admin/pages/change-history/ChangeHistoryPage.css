@@ -78,7 +78,7 @@
 
 /* ── 변경 이력 목록 ── */
 .change-history-table .common-table {
-  min-width: 48rem;
+  min-width: 60rem;
 }
 
 .change-history-table__col--menu {
@@ -87,6 +87,10 @@
 
 .change-history-table__col--date {
   width: 10.5rem;
+}
+
+.change-history-table__col--user {
+  width: 6rem;
 }
 
 .change-history-table .common-table td {
@@ -108,6 +112,11 @@
 
 .change-history-table__cell--date {
   white-space: nowrap;
+}
+
+.change-history-table__cell--user {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 /* ── 변경 내용 표시 ── */

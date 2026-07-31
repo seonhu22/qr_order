@@ -185,7 +185,10 @@ export function useMenuManagementPage() {
     }
 
     await deleteCategoriesMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.masterLists });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.masterLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuOption.masterLists }),
+    ]);
 
     if (targets.some((row) => row.id === effectiveSelectedCategoryId)) {
       setSelectedCategoryId('');
@@ -258,12 +261,19 @@ export function useMenuManagementPage() {
 
     const request = buildMenuDetailRequest(selectedDetailSchema.rows, baseDetailSchema.rows);
 
-    if (!hasMenuDetailChanges(request)) {
+    if (!hasMenuDetailChanges(request) && !hasDetailFileChanges) {
       return false;
     }
 
-    await saveDetailsMutation.mutateAsync(request);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.detailLists });
+    await saveDetailsMutation.mutateAsync({
+      request,
+      fileUlid: editingDetailRow?.fileUlid,
+      fileChangeState: detailFileChangeState,
+    });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuManagement.detailLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.menuOption.masterLists }),
+    ]);
     setDraftDetailSchemasByCategory((prev) => {
       const next = { ...prev };
       delete next[selectedCategory.id];
@@ -397,14 +407,17 @@ export function useMenuManagementPage() {
       confirmDetailEditor: async () => {
         setIsDetailEditConfirming(true);
         try {
-          // 현재는 draft 행 값이 입력 시점에 이미 반영되어 있어 별도 API 호출이 없다.
-          // 추후 백엔드 연동 시 이 자리에 실제 save mutation 호출을 추가한다.
-          await Promise.resolve();
+          await saveDetailRows();
           setIsDetailEditConfirmOpen(false);
           setEditingDetailRowId(null);
           setDetailEditorSnapshot(null);
           setDetailFileChangeState(EMPTY_DETAIL_FILE_STATE);
           setDetailEditorNotice({ title: '알림', description: '저장되었습니다.' });
+        } catch (error) {
+          setDetailEditorNotice({
+            title: '오류',
+            description: error instanceof Error ? error.message : '저장 중 오류가 발생했습니다.',
+          });
         } finally {
           setIsDetailEditConfirming(false);
         }

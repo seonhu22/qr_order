@@ -27,13 +27,17 @@ function parseItem(value: unknown): PaymentOrderItem | null {
   if (!isRecord(value)) return null;
 
   const rawOptions = Array.isArray(value.options) ? value.options : [];
+  const cancelReason = toString(value.cancelReason);
+  const orderNo = toString(value.orderNo);
 
   return {
+    ...(orderNo ? { orderNo } : {}),
     menuName: toString(value.menuName),
     qty: toNumber(value.qty),
     price: toNumber(value.price),
     totalPrice: toNumber(value.totalPrice),
     paymentYn: toString(value.paymentYn),
+    ...(cancelReason ? { cancelReason } : {}),
     options: rawOptions.map(parseOption).filter((option): option is PaymentOrderOption => option !== null),
   };
 }
