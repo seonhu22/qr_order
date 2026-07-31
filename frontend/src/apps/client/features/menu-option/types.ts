@@ -34,8 +34,6 @@ export type MenuOptionGroupSchema = {
 
 /**
  * 옵션 항목 행 모델.
- *
- * @property values.defaultYn 백엔드 API/DB에 없는 프론트 전용 필드. 저장 시 전송하지 않는다.
  */
 export type MenuOptionDetailRow = {
   id: string;

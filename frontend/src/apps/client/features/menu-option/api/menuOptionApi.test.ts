@@ -9,6 +9,19 @@ import {
   mapToMenuOptionDetailPayload,
 } from './menuOptionApi';
 
+type MenuOptionDetailItemWithDefault = {
+  sysId?: string;
+  linkSysId?: string;
+  menuOptionName?: string;
+  menuOptionPrice?: string;
+  menuDescription?: string;
+  maximumNum?: string;
+  defaultYn?: string;
+  useYn?: string;
+  fileUlid?: string;
+  ordNo?: number;
+};
+
 const MENU_ROWS = [
   {
     sysId: 'menu-3',
@@ -69,9 +82,10 @@ describe('buildMenuOptionDetailFormData', () => {
           menuOptionPrice: '0',
           maximumNum: '0',
           menuDescription: '',
+          defaultYn: 'Y',
           useYn: 'Y',
           ordNo: 1,
-        },
+        } as MenuOptionDetailItemWithDefault,
       ],
       updateItems: [
         {
@@ -81,10 +95,11 @@ describe('buildMenuOptionDetailFormData', () => {
           menuOptionPrice: '1000',
           maximumNum: '2',
           menuDescription: '고소한 치즈',
+          defaultYn: 'N',
           useYn: 'N',
           fileUlid: 'file-1',
           ordNo: 2,
-        },
+        } as MenuOptionDetailItemWithDefault,
       ],
       delItems: [{ sysId: 'detail-2', linkSysId: 'group-1' }],
     });
@@ -94,12 +109,14 @@ describe('buildMenuOptionDetailFormData', () => {
     expect(formData.get('newItems[0].menuOptionPrice')).toBe('0');
     expect(formData.get('newItems[0].maximumNum')).toBe('0');
     expect(formData.get('newItems[0].menuDescription')).toBe('');
+    expect(formData.get('newItems[0].defaultYn')).toBe('Y');
     expect(formData.get('newItems[0].useYn')).toBe('Y');
     expect(formData.get('newItems[0].ordNo')).toBe('1');
 
     expect(formData.get('updateItems[0].sysId')).toBe('detail-1');
     expect(formData.get('updateItems[0].fileUlid')).toBe('file-1');
     expect(formData.get('updateItems[0].maximumNum')).toBe('2');
+    expect(formData.get('updateItems[0].defaultYn')).toBe('N');
     expect(formData.get('delItems[0].sysId')).toBe('detail-2');
     expect(formData.has('menuOptionDetailRequest')).toBe(false);
     expect(formData.has('fileRequest')).toBe(false);
@@ -159,6 +176,24 @@ describe('mapToMenuOptionDetailPayload', () => {
       }).maximumNum,
     ).toBe('0');
   });
+
+  it('maps defaultYn to Y/N for the backend', () => {
+    expect(
+      mapToMenuOptionDetailPayload({
+        id: 'new-row',
+        groupId: 'group-1',
+        ordNo: 1,
+        values: {
+          menuOptionName: '패티 추가',
+          menuOptionPrice: '5555',
+          maximumNum: '',
+          menuDescription: '',
+          useYn: 'Y',
+          defaultYn: true,
+        },
+      }).defaultYn,
+    ).toBe('Y');
+  });
 });
 
 describe('mapToMenuOptionDetailRow', () => {
@@ -170,12 +205,38 @@ describe('mapToMenuOptionDetailRow', () => {
       menuOptionPrice: 5555 as never,
       maximumNum: 0 as never,
       menuDescription: '',
+      defaultYn: 'Y',
       useYn: 'Y',
       fileUlid: 'file-1',
       ordNo: 1,
-    });
+    } as MenuOptionDetailItemWithDefault);
 
     expect(row.values.menuOptionPrice).toBe('5555');
     expect(row.values.maximumNum).toBe('0');
+    expect(row.values.defaultYn).toBe(true);
+  });
+
+  it('detects defaultYn changes', () => {
+    const originalRow = mapToMenuOptionDetailRow({
+      sysId: 'detail-1',
+      linkSysId: 'group-1',
+      menuOptionName: '패티 추가',
+      menuOptionPrice: '5555',
+      maximumNum: '0',
+      menuDescription: '',
+      defaultYn: 'N',
+      useYn: 'Y',
+      ordNo: 1,
+    } as never);
+    const currentRow = {
+      ...originalRow,
+      values: { ...originalRow.values, defaultYn: true },
+    };
+
+    const formData = buildMenuOptionDetailFormData({
+      updateItems: [mapToMenuOptionDetailPayload(currentRow)],
+    });
+
+    expect(formData.get('updateItems[0].defaultYn')).toBe('Y');
   });
 });

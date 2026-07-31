@@ -29,6 +29,13 @@ import type {
   MenuOptionMasterRow,
 } from '../types';
 
+type MenuOptionDetailItemWire = MenuOptionDetailItem & {
+  defaultYn?: string;
+};
+type MenuOptionDetailResponseWire = MenuOptionDetailResponse & {
+  defaultYn?: string;
+};
+
 export const USE_YN_OPTIONS: SelectOption[] = [
   { value: 'Y', label: '사용' },
   { value: 'N', label: '미사용' },
@@ -179,6 +186,8 @@ export function mapToMenuOptionGroupPayload(row: MenuOptionGroupRow): MenuOption
 }
 
 export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOptionDetailRow {
+  const wireItem = item as MenuOptionDetailResponseWire;
+
   return {
     id: item.sysId ?? `${item.linkSysId}-${item.ordNo}`,
     sysId: item.sysId,
@@ -191,15 +200,12 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
       maximumNum: item.maximumNum != null ? String(item.maximumNum) : '',
       menuDescription: item.menuDescription ?? '',
       useYn: item.useYn === 'N' ? 'N' : 'Y',
-      defaultYn: false,
+      defaultYn: wireItem.defaultYn === 'Y',
     },
   };
 }
 
-/**
- * `defaultYn`은 DB/API 어디에도 없는 프론트 전용 필드라 전송하지 않는다.
- */
-export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOptionDetailItem {
+export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOptionDetailItemWire {
   const maximumNum = row.values.maximumNum.trim() || '0';
 
   return {
@@ -209,6 +215,7 @@ export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOpti
     menuOptionPrice: row.values.menuOptionPrice,
     maximumNum,
     menuDescription: row.values.menuDescription,
+    defaultYn: row.values.defaultYn ? 'Y' : 'N',
     useYn: row.values.useYn,
     fileUlid: row.fileUlid,
     ordNo: row.ordNo,
@@ -233,6 +240,7 @@ function isSameMenuOptionDetailRow(a: MenuOptionDetailRow, b: MenuOptionDetailRo
     a.values.menuOptionPrice === b.values.menuOptionPrice &&
     a.values.maximumNum === b.values.maximumNum &&
     a.values.menuDescription === b.values.menuDescription &&
+    a.values.defaultYn === b.values.defaultYn &&
     a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
   );
@@ -398,6 +406,8 @@ function appendMenuOptionDetailItem(
   if (item.menuOptionPrice != null) formData.append(`${prefix}.menuOptionPrice`, String(item.menuOptionPrice));
   if (item.maximumNum != null) formData.append(`${prefix}.maximumNum`, String(item.maximumNum));
   if (item.menuDescription != null) formData.append(`${prefix}.menuDescription`, item.menuDescription);
+  const wireItem = item as MenuOptionDetailItemWire;
+  if (wireItem.defaultYn) formData.append(`${prefix}.defaultYn`, wireItem.defaultYn);
   if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
   if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
