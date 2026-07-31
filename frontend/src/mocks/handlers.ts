@@ -367,7 +367,7 @@ const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/se
   return HttpResponse.json(buildTableGuiMockRows());
 });
 
-function toTableGuiObjectType(value?: string): TableGuiObjectType | undefined {
+function normalizeTableGuiObjectType(value: string | undefined): TableGuiObjectType | undefined {
   return value === '01' || value === '02' || value === '03' ? value : undefined;
 }
 
@@ -388,7 +388,7 @@ const tableGuiSaveOverrideHandler = http.post(
       // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
       TABLE_GUI_MOCK_ROWS.push({
         ...item,
-        objectType: toTableGuiObjectType(item.objectType),
+        objectType: normalizeTableGuiObjectType(item.objectType),
         sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
     });

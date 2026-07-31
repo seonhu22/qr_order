@@ -125,11 +125,9 @@ describe('useInquiryManagePage', () => {
     });
 
     expect(mutateAsyncMock).toHaveBeenCalledWith({
-      data: {
-        sysId: 'qna-1',
-        answerYn: 'Y',
-        answerDescription: '답변 완료',
-      },
+      sysId: 'qna-1',
+      answerYn: 'Y',
+      answerDescription: '답변 완료',
     });
     expect(invalidateQueriesMock).toHaveBeenCalledWith({
       queryKey: ['board', 'qna', 'list'],

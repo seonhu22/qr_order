@@ -1,7 +1,10 @@
-import { useGetQna, useUpdateQna } from '@/generated/settings-controller/settings-controller';
+import { useMutation } from '@tanstack/react-query';
+import { useGetQna } from '@/generated/settings-controller/settings-controller';
 import { useGetAttachFile } from '@/generated/file-controller/file-controller';
+import type { CommonResponse } from '@/generated/types/commonResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
+import { httpClient } from '@/shared/lib/httpClient';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
@@ -52,10 +55,7 @@ export function useInquiryManageQuery(searchKeyword = '') {
  * 현재 inquiry update API는 일반 수정 CRUD가 아니라 답변 등록/수정 용도다.
  * 백엔드가 실제로 사용하는 필드만 우선 조립한다.
  *
- * TODO: 답변 첨부파일 — /api/system/settings/board/qna/update는 순수 JSON(QnaRequest)이고
- * 파일 바이너리를 실어 보낼 파라미터가 없다(client board-controller의 qna/new와 동일한 문제).
- * InquiryManagePage.tsx의 FileInputGroup은 선택·검증까지만 동작하며, 실제 업로드·연결은
- * 백엔드 계약(별도 업로드 엔드포인트 여부, sysId 연결 시점 등) 확인 후 이 함수에 반영한다.
+ * 답변 첨부파일은 FileRequest의 indexed field 계약을 확인한 뒤 같은 FormData에 추가한다.
  */
 export function buildInquiryAnswerUpdateRequest(
   row: Pick<InquiryManageRow, 'sysId'>,
@@ -68,8 +68,31 @@ export function buildInquiryAnswerUpdateRequest(
   };
 }
 
+export function buildInquiryAnswerFormData(request: QnaRequest): FormData {
+  const formData = new FormData();
+
+  Object.entries(request).forEach(([key, value]) => {
+    if (value !== undefined) {
+      formData.append(key, value);
+    }
+  });
+
+  return formData;
+}
+
+export function updateInquiryAnswer(request: QnaRequest, signal?: AbortSignal) {
+  return httpClient<CommonResponse>({
+    url: '/api/system/settings/board/qna/update',
+    method: 'POST',
+    data: buildInquiryAnswerFormData(request),
+    signal,
+  });
+}
+
 export function useInquiryAnswerMutation() {
-  return useUpdateQna();
+  return useMutation({
+    mutationFn: (request: QnaRequest) => updateInquiryAnswer(request),
+  });
 }
 
 export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
