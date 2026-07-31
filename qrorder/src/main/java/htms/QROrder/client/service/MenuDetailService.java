@@ -25,9 +25,10 @@ public class MenuDetailService {
     private final MenuDetailMapper menuDetailMapper;
     private final FileService fileService;
 
-    public List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword) {
+    public List<MenuDetailResponse> getMenuDetailSearchKeyword(String searchKeyword,
+                                                                String sysPlantCd) {
 
-        return menuDetailMapper.getMenuDetailSearchKeyword(searchKeyword);
+        return menuDetailMapper.getMenuDetailSearchKeyword(searchKeyword, sysPlantCd);
     }
 
     public List<MenuDetailResponse> getMenuDetail(String masterSysId) {
@@ -82,7 +83,7 @@ public class MenuDetailService {
             item.setFileUlid(fileULID);
         });
 
-        auditService.insertNewAuditTrailData(newItems, menuCd, "store_menu_detail", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, menuCd, "store_menu_detail", userId, sysPlantCd);
         menuDetailMapper.newMenuDetail(newItems, userId, sysPlantCd, menuCd);
     }
 
@@ -93,7 +94,7 @@ public class MenuDetailService {
 
         List<MenuDetailItem> oldData = getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "store_menu_detail", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "store_menu_detail", userId, sysPlantCd);
         menuDetailMapper.updateMenuDetail(updateItems, userId, sysPlantCd, menuCd);
     }
 
@@ -102,7 +103,7 @@ public class MenuDetailService {
                             String sysPlantCd,
                             String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_detail", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "store_menu_detail", userId, sysPlantCd);
         menuDetailMapper.delMenuDetail(delItems, userId, sysPlantCd, menuCd);
     }
 

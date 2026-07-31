@@ -1,11 +1,18 @@
 import type { AuditTrail } from '@/generated/types/auditTrail';
 
-export const CHANGE_HISTORY_MOCK: AuditTrail[] = [
+type ChangeHistoryMockRow = AuditTrail & {
+  insertUserNm?: string;
+  modifyUserNm?: string;
+};
+
+export const CHANGE_HISTORY_MOCK: ChangeHistoryMockRow[] = [
   {
     auditFlag: 'I',
     menuCd: 'SYS001',
     menuNm: '공통코드 관리',
     auditTrailContents: '공통코드 마스터 등록 (코드: MSG001)',
+    insertUserNm: '관리자',
+    modifyUserNm: '',
     insertDatetime: '2026-06-02T09:20:00',
   },
   {
@@ -13,6 +20,8 @@ export const CHANGE_HISTORY_MOCK: AuditTrail[] = [
     menuCd: 'SYS002',
     menuNm: '관리자 사용자 관리',
     auditTrailContents: '사용자 권한 수정 (userId: staff003)',
+    insertUserNm: '관리자',
+    modifyUserNm: '운영담당자',
     insertDatetime: '2026-06-02T10:35:12',
   },
   {

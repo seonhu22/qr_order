@@ -10,6 +10,7 @@
             group_name ,
             required_yn ,
             input_type ,
+            use_yn ,
             ord_no
         from store_menu_option_group smom
         where 1=1

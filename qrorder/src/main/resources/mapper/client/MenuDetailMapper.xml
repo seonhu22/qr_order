@@ -21,6 +21,7 @@
             and smd.menu_name like concat('%', #{searchKeyword}, '%')
         </if>
         and delete_yn = 'N'
+        and sys_plant_cd = #{sysPlantCd}
         order by ord_no asc
     </select>
 

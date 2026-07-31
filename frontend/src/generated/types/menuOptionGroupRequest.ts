@@ -13,4 +13,5 @@ export interface MenuOptionGroupRequest {
   requiredYn?: string;
   inputType?: string;
   ordNo?: number;
+  useYn?: string;
 }

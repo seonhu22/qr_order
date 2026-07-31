@@ -22,6 +22,8 @@ describe('changeHistoryApi', () => {
           menuCd: 'commonCode',
           menuNm: '공통코드 관리',
           auditTrailContents: '사용여부 수정',
+          insertUserNm: '관리자',
+          modifyUserNm: '운영담당자',
           insertDatetime: '2026-04-27T09:00:00.321Z',
         },
         0,
@@ -31,6 +33,8 @@ describe('changeHistoryApi', () => {
       auditFlag: 'U',
       menuNm: '공통코드 관리',
       auditTrailContents: '사용여부 수정',
+      insertUserNm: '관리자',
+      modifyUserNm: '운영담당자',
       insertDatetime: '2026-04-27 09:00:00',
     });
   });
@@ -41,6 +45,8 @@ describe('changeHistoryApi', () => {
       auditFlag: '',
       menuNm: '',
       auditTrailContents: '',
+      insertUserNm: '',
+      modifyUserNm: '',
       insertDatetime: '',
     });
   });
