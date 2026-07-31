@@ -68,7 +68,7 @@ public class QRCodeService {
             item.setUrl(ULID);
         });
 
-        auditService.insertNewAuditTrailData(newItems, menuCd, "qr_code", userId, sysPlantCd);
+        // auditService.insertNewAuditTrailData(newItems, menuCd, "qr_code", userId, sysPlantCd);
         qrCodeMapper.newQRCode(newItems, userId, sysPlantCd, menuCd);
     }
 
@@ -79,7 +79,7 @@ public class QRCodeService {
 
         List<QRCodeItem> oldData = getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "qr_code", userId, sysPlantCd);
+        // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "qr_code", userId, sysPlantCd);
         qrCodeMapper.updateQRCode(updateItems, userId, sysPlantCd, menuCd);
     }
 
@@ -88,7 +88,7 @@ public class QRCodeService {
                                 String sysPlantCd,
                                 String menuCd) {
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "qr_code", userId, sysPlantCd);
+        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "qr_code", userId, sysPlantCd);
         qrCodeMapper.delQRCode(delItems, userId, sysPlantCd, menuCd);
     }
 

@@ -9,17 +9,15 @@
             concat(ti.table_num, '(', ti.table_name, ')') as table_info ,
             om.payment_type ,
             om.order_status ,
-            og.order_num ,
+            om.sys_id as order_num ,
             om.insert_datetime as order_datetime ,
             coalesce(price_sum.total_price, 0) as total_price
-        from order_group og
-        inner join order_master om
-            on om.sys_id = og.link_sys_id
+        from order_master om
         left join table_info ti
             on ti.sys_id = om.link_sys_id
         left join (
             select
-                od.link_sys_id3 as order_group_sys_id ,
+                og.link_sys_id as order_master_sys_id ,
                 sum(
                     case
                         when od.payment_yn = 'Y'
@@ -28,6 +26,8 @@
                     end
                 ) as total_price
             from order_detail od
+            inner join order_group og
+                on og.sys_id = od.link_sys_id3
             left join store_menu_detail smd
                 on smd.sys_id = od.link_sys_id2
             left join (
@@ -39,8 +39,8 @@
                     on smod.sys_id = odo.link_sys_id2
                 group by odo.link_sys_id
             ) opt_sum on opt_sum.link_sys_id = od.sys_id
-            group by od.link_sys_id3
-        ) price_sum on price_sum.order_group_sys_id = og.sys_id
+            group by og.link_sys_id
+        ) price_sum on price_sum.order_master_sys_id = om.sys_id
         where 1=1
         <if test="paymentStatus != null and paymentStatus != ''">
             and om.order_status = #{paymentStatus}

@@ -8,6 +8,7 @@ import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import {
   downloadAllServerFiles,
   downloadServerFile,
+  getDefaultAttachFilePath,
   mapFileResponseToServerFile,
 } from '@/shared/utils/attachFile';
 import type { ClientQnaResponse } from '@/generated/types/clientQnaResponse';
@@ -51,16 +52,10 @@ export type CreateInquiryPayload = {
   fileChangeState?: FileChangeState;
 };
 
-function getDefaultFilePath(date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  return `/${y}/${m}`;
-}
-
 export function buildCreateInquiryFormData(payload: CreateInquiryPayload): FormData {
   const formData = new FormData();
   const newFiles = payload.fileChangeState?.newFiles ?? [];
-  const filePath = getDefaultFilePath();
+  const filePath = getDefaultAttachFilePath();
 
   formData.append('qnaTitle', payload.title);
   formData.append('qnaDescription', payload.content);

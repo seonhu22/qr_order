@@ -52,11 +52,13 @@ export const getSaveMenuDetailResponseMock = (overrideResponse: Partial< CommonR
 
 export const getGetMenuOptionMasterResponseMock = (): MenuOptionMasterResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), categoryName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
 
-export const getGetMenuOptionGroupResponseMock = (): MenuOptionGroupResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), groupName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), requiredYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), inputType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
+export const getGetMenuOptionGroupResponseMock = (): MenuOptionGroupResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), groupName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), requiredYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), inputType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
 export const getGetMenuOptionDetailResponseMock = (): MenuOptionDetailResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuOptionName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuOptionPrice: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), maximumNum: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileUlid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
 
 export const getGetMenuMasterResponseMock = (): MenuMasterResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), categoryName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
+
+export const getGetMenuDetailSearchKeywordResponseMock = (): MenuDetailResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId2: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileUlid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
 
 export const getGetMenuDetailResponseMock = (): MenuDetailResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId2: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), useYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileUlid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ordNo: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})))
 
@@ -241,6 +243,18 @@ export const getGetMenuMasterMockHandler = (overrideResponse?: MenuMasterRespons
   }, options)
 }
 
+export const getGetMenuDetailSearchKeywordMockHandler = (overrideResponse?: MenuDetailResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MenuDetailResponse[]> | MenuDetailResponse[]), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/menu_manage/menu/detail/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetMenuDetailSearchKeywordResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getGetMenuDetailMockHandler = (overrideResponse?: MenuDetailResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MenuDetailResponse[]> | MenuDetailResponse[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/client/menu_manage/menu/detail/search/:masterSysId', async (info) => {await delay(1000);
   
@@ -268,5 +282,6 @@ export const getMenuManageControllerMock = () => [
   getGetMenuOptionGroupMockHandler(),
   getGetMenuOptionDetailMockHandler(),
   getGetMenuMasterMockHandler(),
+  getGetMenuDetailSearchKeywordMockHandler(),
   getGetMenuDetailMockHandler()
 ]

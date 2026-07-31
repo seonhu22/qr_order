@@ -12,4 +12,6 @@ export interface AuditTrail {
   menuNm?: string;
   auditTrailContents?: string;
   insertDatetime?: string;
+  insertUserId?: string;
+  insertUserNm?: string;
 }
