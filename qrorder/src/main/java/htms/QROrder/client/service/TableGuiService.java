@@ -55,7 +55,7 @@ public class TableGuiService {
         });
 
         // auditService.insertNewAuditTrailData(newItems, menuCd, "table_info", userId, sysPlantCd);
-        tableGuiMapper.newTableGui(newItems, userId);
+        tableGuiMapper.newTableGui(newItems, userId, sysPlantCd);
     }
 
     private void updateTableGui(List<TableGuiItem> updateItems,
