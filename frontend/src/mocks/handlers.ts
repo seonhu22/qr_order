@@ -91,6 +91,7 @@ import type { MenuMasterItem } from '../generated/types/menuMasterItem';
 import type { MenuMasterRequest } from '../generated/types/menuMasterRequest';
 import type { MenuDetailRequest } from '../generated/types/menuDetailRequest';
 import type { MenuDetailItem } from '../generated/types/menuDetailItem';
+import { orderStatusHandlers } from '../apps/client/features/order-status-management/mock/orderStatusHandlers';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -1294,6 +1295,7 @@ const settingsHandlers = [
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
   ...authHandlers,
+  ...orderStatusHandlers,
   signupBusinessVerificationOverrideHandler,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
