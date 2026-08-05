@@ -66,6 +66,12 @@ describe('orderStatusHandlers', () => {
     expect(getOrderStatusMockStore().find((row) => row.id === 'order-011')?.cancelledAt).toBeTruthy();
   });
 
+  it('취소 사유 GET은 header.sysId에 해당하는 주문 사유를 반환한다', async () => {
+    const response = await fetch(`${API}/search/cancel_reason?header.sysId=order-002`);
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ cancelReason: 'CUSTOMER_REQUEST' });
+  });
+
   it('식별자 누락, 없는 주문, 잘못된 상태 전환을 거부한다', async () => {
     expect((await post('go_to_cooking', {})).status).toBe(400);
     expect((await post('go_to_cooking', { header: { sysId: 'missing' } })).status).toBe(404);

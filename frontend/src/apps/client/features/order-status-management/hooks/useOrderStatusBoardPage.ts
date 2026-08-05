@@ -18,7 +18,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
-import { useOrderStatusBoardMutations, useOrderStatusBoardQuery } from '../api/orderStatusBoardApi';
+import {
+  useOrderCancelReasonQuery,
+  useOrderStatusBoardMutations,
+  useOrderStatusBoardQuery,
+} from '../api/orderStatusBoardApi';
 import { ORDER_BOARD_PREV_STATUS } from '../constants';
 import { useOrderCancelModalFlow } from './useOrderCancelModalFlow';
 import { useOrderPaymentModalFlow } from './useOrderPaymentModalFlow';
@@ -30,6 +34,7 @@ import {
   groupOrderBoardRowsByStatus,
 } from '../utils';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 const MOVED_HIGHLIGHT_DURATION_MS = 1200;
 const EMPTY_ROWS: OrderBoardRow[] = [];
@@ -154,7 +159,20 @@ export function useOrderStatusBoardPage() {
     editModal.openEditModal(getEditableOrdersForTable(rows, row.tableNum));
 
   const [cancelReasonViewRow, setCancelReasonViewRow] = useState<OrderBoardRow | null>(null);
+  const cancelReasonQuery = useOrderCancelReasonQuery(cancelReasonViewRow?.id);
+  const openCancelReasonView = (row: OrderBoardRow) => setCancelReasonViewRow(cloneOrderBoardRow(row));
   const closeCancelReasonView = () => setCancelReasonViewRow(null);
+  const cancelReasonSnapshot = cancelReasonViewRow
+    ? {
+        ...cancelReasonViewRow,
+        ...(cancelReasonQuery.data
+          ? {
+              cancelReason: cancelReasonQuery.data.cancelReason,
+              cancelDescription: cancelReasonQuery.data.cancelDescription,
+            }
+          : {}),
+      }
+    : null;
 
   const handleRefresh = () => {
     if (!query.isFetching) void query.refetch();
@@ -177,7 +195,9 @@ export function useOrderStatusBoardPage() {
     paymentModal,
     editModal,
     cancelReasonView: {
-      row: cancelReasonViewRow,
+      row: cancelReasonSnapshot,
+      isLoading: cancelReasonQuery.isLoading,
+      isError: cancelReasonQuery.isError,
       close: closeCancelReasonView,
     },
     dismissConfirm: {
@@ -194,7 +214,7 @@ export function useOrderStatusBoardPage() {
         onMoveBack: handleMoveBack,
         onCancel: cancelModal.openCancelModal,
         onEdit: handleOpenEditModal,
-        onShowCancelReason: setCancelReasonViewRow,
+        onShowCancelReason: openCancelReasonView,
         onDismiss: setDismissTargetId,
       },
     },

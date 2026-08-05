@@ -6,12 +6,14 @@ import {
   useBackToReceiveOrder,
   useCancelOrder,
   useGetStatus,
+  useGetStatusCancelResponses,
   useGoToCooking,
   useGoToServingComplete,
 } from '@/generated/order-manage-controller/order-manage-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { OrderBoardRow } from '../types';
+import type { GetStatusCancelResponsesParams } from '@/generated/types/getStatusCancelResponsesParams';
 import { mapStatusResponsesToOrderBoardRows } from './orderStatusBoardMapper';
 
 export type OrderStatusMutationAction =
@@ -56,6 +58,18 @@ export function useOrderStatusBoardQuery() {
       queryKey: queryKeys.orderStatusBoard.lists,
       select: mapStatusResponsesToOrderBoardRows,
       ...queryPolicies.clientRealtimeStatus,
+    },
+  });
+}
+
+export function useOrderCancelReasonQuery(orderId?: string) {
+  // TODO(order-status-contract): OpenAPI가 GET 중첩 객체를 `header.sysId`로 생성하면 이 호환 cast를 제거한다.
+  const params = { 'header.sysId': orderId ?? '' } as unknown as GetStatusCancelResponsesParams;
+  return useGetStatusCancelResponses(params, {
+    query: {
+      enabled: Boolean(orderId),
+      staleTime: Number.POSITIVE_INFINITY,
+      refetchOnWindowFocus: false,
     },
   });
 }

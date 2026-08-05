@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { ORDER_CANCEL_REASON_OTHER_VALUE } from '../constants';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type CancelEditorErrors = {
   reason: boolean;
@@ -42,7 +43,7 @@ export function useOrderCancelModalFlow({ onConfirmCancel }: UseOrderCancelModal
   };
 
   const openCancelModal = (row: OrderBoardRow) => {
-    setTargetRow(row);
+    setTargetRow(cloneOrderBoardRow(row));
     resetForm();
     setSubmitError(null);
     setIsEditorOpen(true);

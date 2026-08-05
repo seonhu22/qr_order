@@ -70,4 +70,41 @@ describe('useOrderStatusBoardPage sync state', () => {
     await waitFor(() => expect(result.current.status.isSyncError).toBe(true));
     expect(result.current.status.isInitialError).toBe(false);
   });
+
+  it('취소 사유 모달 진입 시 기존 GET API로 선택 주문의 사유를 조회한다', async () => {
+    const { result } = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.data.columns.some((column) => column.rows.length > 0)).toBe(true));
+    const cancelled = result.current.data.columns
+      .flatMap((column) => column.rows)
+      .find((row) => row.id === 'order-002')!;
+
+    act(() => result.current.actions.cardActions.onShowCancelReason(cancelled));
+
+    await waitFor(() => expect(result.current.cancelReasonView.isLoading).toBe(false));
+    expect(result.current.cancelReasonView.row).toMatchObject({
+      id: 'order-002',
+      cancelReason: 'CUSTOMER_REQUEST',
+    });
+  });
+
+  it('열린 취소 모달은 기존 스냅샷을 유지하고 닫았다 다시 열 때 최신 주문을 사용한다', async () => {
+    const { result } = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.data.columns.some((column) => column.rows.length > 0)).toBe(true));
+    const received = result.current.data.columns
+      .flatMap((column) => column.rows)
+      .find((row) => row.id === 'order-010')!;
+
+    act(() => result.current.actions.cardActions.onCancel(received));
+    await act(async () => result.current.actions.cardActions.onStartCooking(received.id));
+    await waitFor(() => {
+      const latest = result.current.data.columns.flatMap((column) => column.rows).find((row) => row.id === received.id);
+      expect(latest?.orderStatus).toBe('COOKING');
+    });
+    expect(result.current.cancelModal.targetRow?.orderStatus).toBe('RECEIVED');
+
+    act(() => result.current.cancelModal.closeEditorModal());
+    const latest = result.current.data.columns.flatMap((column) => column.rows).find((row) => row.id === received.id)!;
+    act(() => result.current.actions.cardActions.onCancel(latest));
+    expect(result.current.cancelModal.targetRow?.orderStatus).toBe('COOKING');
+  });
 });

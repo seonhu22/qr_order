@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { ORDER_UNPAID_REASON_OTHER_VALUE } from '../constants';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type UnpaidEditorErrors = {
   reason: boolean;
@@ -52,8 +53,8 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const openPaymentModal = (row: OrderBoardRow, payableTableOrders: OrderBoardRow[]) => {
-    setTargetRow(row);
-    setTableOrders(payableTableOrders);
+    setTargetRow(cloneOrderBoardRow(row));
+    setTableOrders(payableTableOrders.map(cloneOrderBoardRow));
     resetForm();
     setIsChoiceOpen(true);
   };

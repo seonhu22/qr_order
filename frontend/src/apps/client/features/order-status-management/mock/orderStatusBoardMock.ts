@@ -213,6 +213,8 @@ export const ORDER_STATUS_BOARD_MOCK: OrderBoardRow[] = [
     paymentStatus: 'REFUNDED',
     orderDatetime: todayAt(14, 0),
     cancelledAt: todayAt(14, 25),
+    cancelReason: 'CUSTOMER_REQUEST',
+    cancelDescription: '',
     menuItems: [
       {
         id: 'order-002-menu-1',

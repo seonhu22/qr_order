@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { MENU_CATALOG_MOCK } from '../mock/menuCatalogMock';
 import { nowOrderBoardDatetime } from '../utils';
 import type { OrderBoardMenuItem, OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type OptionPickerState = {
   catalogMenuId: string;
@@ -47,16 +48,6 @@ const EMPTY_OPTION_PICKER: OptionPickerState = {
   selectedOptionIds: [],
   optionQuantities: {},
 };
-
-function cloneOrder(order: OrderBoardRow): OrderBoardRow {
-  return {
-    ...order,
-    menuItems: order.menuItems.map((menu) => ({
-      ...menu,
-      options: menu.options.map((option) => ({ ...option })),
-    })),
-  };
-}
 
 function createDraftOrderId(): string {
   return `edit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -103,7 +94,7 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   };
 
   const openEditModal = (initialOrders: OrderBoardRow[]) => {
-    const clonedOrders = initialOrders.map(cloneOrder);
+    const clonedOrders = initialOrders.map(cloneOrderBoardRow);
     setTableNum(initialOrders[0]?.tableNum ?? '');
     setOriginalOrderIds(initialOrders.map((order) => order.id));
     setDraftOrders(clonedOrders);

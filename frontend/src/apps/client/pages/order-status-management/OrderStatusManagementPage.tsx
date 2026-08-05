@@ -186,7 +186,15 @@ export function OrderStatusManagementPage() {
             label="취소사유"
             readOnly
             rows={3}
-            value={cancelReasonView.row ? formatOrderCancelReasonDisplay(cancelReasonView.row) : ''}
+            value={
+              cancelReasonView.isLoading
+                ? '불러오는 중입니다.'
+                : cancelReasonView.isError
+                  ? '취소 사유를 불러오지 못했습니다.'
+                  : cancelReasonView.row
+                    ? formatOrderCancelReasonDisplay(cancelReasonView.row)
+                    : ''
+            }
           />
         </div>
       </WrapperModal>

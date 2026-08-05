@@ -97,6 +97,16 @@ function transitionHandler(path: string, from: OrderBoardStatus[], to: OrderBoar
 
 export const orderStatusHandlers: HttpHandler[] = [
   http.get(ORDER_STATUS_SEARCH_PATTERN, () => HttpResponse.json(toStatusResponses(rows))),
+  http.get('*/api/client/order_manage/status/search/cancel_reason', ({ request }) => {
+    const id = new URL(request.url).searchParams.get('header.sysId');
+    if (!id) return failure('주문 식별자가 필요합니다.');
+    const row = rows.find((item) => item.id === id);
+    if (!row) return failure('주문을 찾을 수 없습니다.', 404);
+    return HttpResponse.json({
+      cancelReason: row.cancelReason,
+      cancelDescription: row.cancelDescription,
+    });
+  }),
   transitionHandler('go_to_cooking', ['RECEIVED'], 'COOKING'),
   transitionHandler('go_to_serving_complete', ['COOKING'], 'SERVED'),
   transitionHandler('back_to_receive_order', ['COOKING'], 'RECEIVED'),
