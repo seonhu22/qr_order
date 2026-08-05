@@ -7,9 +7,9 @@ import java.util.List;
 
 @Mapper
 public interface StatusMapper {
-    List<StatusItem.Header> getStatusHeaderItems();
-    List<StatusItem.Body> getStatusBodyItems();
-    List<StatusItem.Footer> getStatusFooterItems();
+    List<StatusItem.Header> getStatusHeaderItems(String sysPlantCd);
+    List<StatusItem.Body> getStatusBodyItems(String sysPlantCd);
+    List<StatusItem.Footer> getStatusFooterItems(String sysPlantCd);
     void cancelOrder(StatusItem.Header header, String cancelReason, String cancelDescription, String userId);
     void goToCooking(StatusItem.Header header, String userId);
     void backToReceiveOrder(StatusItem.Header header, String userId);

@@ -16,6 +16,8 @@
             on om.sys_id = og.link_sys_id
         left join table_info ti
             on ti.sys_id = om.link_sys_id
+        where 1=1
+        and sys_plant_cd = #{sysPlantCd}
     </select>
 
     <select id="getStatusBodyItems" resultType="htms.QROrder.client.dto.StatusItem$Body">
@@ -34,6 +36,8 @@
             on om.sys_id = og.link_sys_id
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
+        where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
         union all
         select
             od.link_sys_id3 as link_sys_id ,
@@ -53,6 +57,7 @@
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
     </select>
 
     <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusItem$Footer">
@@ -80,6 +85,7 @@
             group by odo.link_sys_id
         ) opt_sum on opt_sum.link_sys_id = od.sys_id
         where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
         group by od.link_sys_id3
     </select>
 
