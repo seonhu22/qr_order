@@ -9,9 +9,10 @@ type OrderStatusCardProps = {
   actions: OrderBoardCardActions;
   isMoved: boolean;
   isPending: boolean;
+  mutationError?: string;
 };
 
-export function OrderStatusCard({ row, actions, isMoved, isPending }: OrderStatusCardProps) {
+export function OrderStatusCard({ row, actions, isMoved, isPending, mutationError }: OrderStatusCardProps) {
   const cardClassName = [
     'order-status-card',
     `order-status-card--${row.orderStatus.toLowerCase()}`,
@@ -125,6 +126,7 @@ export function OrderStatusCard({ row, actions, isMoved, isPending }: OrderStatu
           </>
         )}
       </div>
+      {mutationError && <p className="order-status-card__error" role="alert">{mutationError}</p>}
     </article>
   );
 }

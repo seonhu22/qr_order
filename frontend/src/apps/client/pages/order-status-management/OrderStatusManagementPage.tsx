@@ -71,17 +71,27 @@ export function OrderStatusManagementPage() {
   return (
     <>
       <section className="order-status-management-page" aria-label="주문 상태 관리">
-        <OrderStatusManagementHeader onReset={actions.handleReset} />
+        <OrderStatusManagementHeader
+          onRefresh={actions.handleRefresh}
+          syncStatus={status.isInitialError || status.isSyncError ? 'error' : status.isRefreshing ? 'refreshing' : 'synced'}
+        />
         {status.isLoading ? (
           <FeedbackState variant="loading" title="주문 현황을 불러오는 중입니다." />
-        ) : status.isError ? (
-          <FeedbackState variant="error" title="주문 현황을 불러오지 못했습니다." />
+        ) : status.isInitialError ? (
+          <FeedbackState
+            variant="error"
+            title="주문 현황을 불러오지 못했습니다."
+            description="잠시 후 다시 시도해주세요."
+          >
+            <Button variant="outline" size="md" onClick={actions.handleRefresh}>다시 시도</Button>
+          </FeedbackState>
         ) : (
           <OrderStatusBoard
             columns={data.columns}
             actions={actions.cardActions}
             lastMovedIds={data.lastMovedIds}
             pendingOrderIds={data.pendingOrderIds}
+            mutationErrors={data.mutationErrors}
           />
         )}
       </section>

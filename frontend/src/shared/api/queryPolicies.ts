@@ -17,6 +17,7 @@ export const queryPolicies = {
     staleTime: staleTimes.normal,
   },
   clientRealtimeStatus: {
+    retry: false,
     staleTime: staleTimes.instant,
     refetchInterval: 5_000,
     refetchIntervalInBackground: false,

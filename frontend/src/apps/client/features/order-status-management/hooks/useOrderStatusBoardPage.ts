@@ -40,7 +40,7 @@ export function useOrderStatusBoardPage() {
   const rows = query.data ?? EMPTY_ROWS;
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
   const [pendingOrderIds, setPendingOrderIds] = useState<Set<string>>(() => new Set());
-  const [mutationError, setMutationError] = useState<string | null>(null);
+  const [mutationErrors, setMutationErrors] = useState<Map<string, string>>(() => new Map());
 
   const columns = useMemo(
     () => groupOrderBoardRowsByStatus(filterVisibleOrderBoardRows(rows).filter((row) => !dismissedIds.has(row.id))),
@@ -71,13 +71,20 @@ export function useOrderStatusBoardPage() {
     const row = rows.find((item) => item.id === id);
     if (!row || pendingOrderIds.has(id)) return;
 
-    setMutationError(null);
+    setMutationErrors((current) => {
+      const next = new Map(current);
+      next.delete(id);
+      return next;
+    });
     setPendingOrderIds((current) => new Set(current).add(id));
     try {
       await mutations.mutate(action, row, cancelInput);
       flashMoved([id]);
     } catch (error) {
-      setMutationError(error instanceof Error ? error.message : '주문 상태를 변경하지 못했습니다.');
+      setMutationErrors((current) => new Map(current).set(
+        id,
+        error instanceof Error ? error.message : '주문 상태를 변경하지 못했습니다.',
+      ));
       throw error;
     } finally {
       setPendingOrderIds((current) => {
@@ -149,14 +156,22 @@ export function useOrderStatusBoardPage() {
   const [cancelReasonViewRow, setCancelReasonViewRow] = useState<OrderBoardRow | null>(null);
   const closeCancelReasonView = () => setCancelReasonViewRow(null);
 
-  const handleReset = () => void query.refetch();
+  const handleRefresh = () => {
+    if (!query.isFetching) void query.refetch();
+  };
+
+  // 빈 배열도 한 번 정상 동기화된 유효한 서버 데이터다.
+  const hasData = query.data !== undefined;
+  const isInitialError = query.isError && !hasData;
+  const isSyncError = query.isRefetchError && hasData;
 
   return {
-    data: { columns, lastMovedIds, pendingOrderIds },
+    data: { columns, lastMovedIds, pendingOrderIds, mutationErrors },
     status: {
       isLoading: query.isLoading,
-      isError: query.isError,
-      mutationError,
+      isInitialError,
+      isSyncError,
+      isRefreshing: query.isFetching && hasData,
     },
     cancelModal,
     paymentModal,
@@ -171,7 +186,7 @@ export function useOrderStatusBoardPage() {
       close: closeDismissConfirm,
     },
     actions: {
-      handleReset,
+      handleRefresh,
       cardActions: {
         onStartCooking: handleStartCooking,
         onServe: handleServe,
