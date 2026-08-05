@@ -38,6 +38,7 @@ describe('orderStatusHandlers', () => {
     const cooking = groups.find((group: { statusFlag: string }) => group.statusFlag === '02');
     const changed = cooking.statusList.find((item: { header: { sysId: string } }) => item.header.sysId === 'order-010');
     expect(changed.body[0]).toMatchObject({ rowType: 'MENU', unitPrice: 11900 });
+    expect(changed.header.statusChangedAt).toBeTruthy();
   });
 
   it.each([

@@ -14,6 +14,7 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
             orderDatetime: '14:25',
             paymentStatus: 'PENDING',
             cancelledAt: '2026-08-04T14:30:00',
+            statusChangedAt: '2026-08-04T14:29:00.000Z',
           },
           body: [
             { rowType: 'OPTION', detailSysId: 'option-1', parentDetailSysId: 'menu-1', itemName: '곱빼기', qty: 1, unitPrice: 1000 },
@@ -30,6 +31,7 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
       tableNum: '3',
       orderStatus: 'RECEIVED',
       cancelledAt: '2026-08-04T14:30:00',
+      statusChangedAt: '2026-08-04T14:29:00.000Z',
       menuItems: [{
         id: 'menu-1',
         name: '쌀국수',

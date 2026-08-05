@@ -4,7 +4,7 @@ import { OrderStatusManagementHeader } from './OrderStatusManagementHeader';
 
 describe('OrderStatusManagementHeader', () => {
   it.each([
-    ['synced', '5초마다 동기화'],
+    ['synced', '실시간 동기화(5초)'],
     ['refreshing', '동기화 중'],
     ['error', '동기화 실패 · 기존 주문 표시 중'],
   ] as const)('%s 상태를 텍스트로 구분한다', (syncStatus, label) => {

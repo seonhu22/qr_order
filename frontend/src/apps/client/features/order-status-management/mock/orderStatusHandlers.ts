@@ -9,6 +9,7 @@ const ORDER_STATUS_API_PATTERN = '*/api/client/order_manage/status/*';
 const ORDER_STATUS_SEARCH_PATTERN = '*/api/client/order_manage/status/search';
 
 let rows = createOrderStatusMockStore();
+let lastTransitionAtMs = 0;
 
 export function createOrderStatusMockStore(seed: OrderBoardRow[] = ORDER_STATUS_BOARD_MOCK): OrderBoardRow[] {
   return structuredClone(seed);
@@ -16,6 +17,7 @@ export function createOrderStatusMockStore(seed: OrderBoardRow[] = ORDER_STATUS_
 
 export function resetOrderStatusMockStore(): void {
   rows = createOrderStatusMockStore();
+  lastTransitionAtMs = 0;
 }
 
 export function getOrderStatusMockStore(): OrderBoardRow[] {
@@ -39,6 +41,7 @@ function toStatusResponses(source: OrderBoardRow[]): OrderStatusCompatibleRespon
         orderStatus: toApiOrderStatus(row.orderStatus),
         paymentStatus: row.paymentStatus,
         cancelledAt: row.cancelledAt,
+        statusChangedAt: row.statusChangedAt,
       },
       body: row.menuItems.flatMap((menu) => [
         {
@@ -79,9 +82,11 @@ function transitionHandler(path: string, from: OrderBoardStatus[], to: OrderBoar
     if (index < 0) return failure('주문을 찾을 수 없습니다.', 404);
     if (!from.includes(rows[index].orderStatus)) return failure('허용되지 않은 주문 상태 변경입니다.', 409);
 
+    lastTransitionAtMs = Math.max(Date.now(), lastTransitionAtMs + 1);
     rows[index] = {
       ...rows[index],
       orderStatus: to,
+      statusChangedAt: new Date(lastTransitionAtMs).toISOString(),
       ...(to === 'CANCELLED'
         ? {
             paymentStatus: 'REFUNDED' as const,

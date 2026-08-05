@@ -137,6 +137,13 @@ export function groupOrderBoardRowsByStatus(rows: OrderBoardRow[]): OrderBoardCo
     label,
     rows: rows
       .filter((row) => row.orderStatus === status)
-      .sort((a, b) => a.orderDatetime.localeCompare(b.orderDatetime)),
+      .sort((a, b) => {
+        if (a.statusChangedAt && b.statusChangedAt) {
+          return a.statusChangedAt.localeCompare(b.statusChangedAt);
+        }
+        if (a.statusChangedAt) return 1;
+        if (b.statusChangedAt) return -1;
+        return a.orderDatetime.localeCompare(b.orderDatetime);
+      }),
   }));
 }

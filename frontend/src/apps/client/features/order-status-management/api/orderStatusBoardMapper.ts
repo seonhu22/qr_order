@@ -15,6 +15,7 @@ export type OrderStatusCompatibleHeader = Header & {
   orderStatus?: string;
   paymentStatus?: OrderBoardPaymentStatus;
   cancelledAt?: string;
+  statusChangedAt?: string;
 };
 
 export type OrderStatusCompatibleBody = Body & {
@@ -79,6 +80,8 @@ export function mapStatusResponsesToOrderBoardRows(
         orderStatus,
         paymentStatus: header.paymentStatus ?? 'PENDING',
         orderDatetime: normalizeDatetime(header.orderDatetime),
+        // TODO(order-status-contract): 백엔드가 상태 변경 시각을 응답하면 실제 필드로 교체한다.
+        statusChangedAt: header.statusChangedAt,
         // TODO(order-status-contract): 백엔드 cancelledAt 반영 후 Orval 재생성 시 optional 호환 필드를 제거한다.
         cancelledAt: header.cancelledAt,
         menuItems: mapMenuItems(item.body),

@@ -139,4 +139,21 @@ describe('useOrderStatusBoardPage sync state', () => {
       expect(second.result.current.data.columns.flatMap((column) => column.rows).some((row) => row.id === 'order-002')).toBe(true);
     });
   });
+
+  it('다음 단계와 이전 단계로 이동한 카드를 대상 섹션 맨 아래에 배치한다', async () => {
+    const { result } = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.data.columns.some((column) => column.rows.length > 0)).toBe(true));
+
+    await act(async () => result.current.actions.cardActions.onStartCooking('order-010'));
+    await waitFor(() => {
+      const cookingRows = result.current.data.columns.find((column) => column.status === 'COOKING')!.rows;
+      expect(cookingRows.at(-1)?.id).toBe('order-010');
+    });
+
+    await act(async () => result.current.actions.cardActions.onMoveBack('order-010'));
+    await waitFor(() => {
+      const receivedRows = result.current.data.columns.find((column) => column.status === 'RECEIVED')!.rows;
+      expect(receivedRows.at(-1)?.id).toBe('order-010');
+    });
+  });
 });

@@ -26,10 +26,20 @@ export function OrderStatusManagementHeader({
         <h1 className="order-status-header__title">주문 상태 관리</h1>
         <span className={syncClassName} role="status">
           <span className="order-status-header__sync-dot" aria-hidden="true" />
-          {isError ? '동기화 실패 · 기존 주문 표시 중' : isRefreshing ? '동기화 중' : '5초마다 동기화'}
+          {isError
+            ? '동기화 실패 · 기존 주문 표시 중'
+            : isRefreshing
+              ? '동기화 중'
+              : '실시간 동기화(5초)'}
         </span>
       </div>
-      <Button variant="outline" size="md" className="order-status-header__reset" loading={isRefreshing} onClick={onRefresh}>
+      <Button
+        variant="outline"
+        size="md"
+        className="order-status-header__reset"
+        loading={isRefreshing}
+        onClick={onRefresh}
+      >
         새로고침
       </Button>
     </header>
