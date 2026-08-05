@@ -29,8 +29,6 @@
 
 ## 클라이언트 앱 기준
 
-> Phase 2 예약: 클라이언트 앱에 React Query 도입 전 선행 정의. 현재 호출처 없음.
-
 클라이언트 앱은 화면 성격에 따라 아래 정책을 우선 선택한다.
 
 | 화면 성격 | 정책 | 예시 |
@@ -39,7 +37,23 @@
 | 자주 바뀌지 않는 기준정보 | `clientReferenceData` | 옵션 그룹, 매장 설정, 공지 목록 |
 | 최신성이 중요한 운영 상태 | `clientRealtimeStatus` | 주문 현황, 결제 상태, 조리/서빙 상태 |
 
-`clientRealtimeStatus`는 staleTime이 0이므로, 같은 조건의 조회 버튼을 다시 누르는 화면은 필요 시 `refetch()`를 직접 호출한다.
+### 주문 상태 Polling
+
+주문 상태 관리 화면은 `clientRealtimeStatus`를 실제로 사용한다.
+
+| 옵션 | 값 | 이유 |
+| --- | --- | --- |
+| `staleTime` | `0` | 주문 상태를 항상 최신 조회 대상으로 취급 |
+| `retry` | `false` | 최초 오류와 후속 동기화 오류를 즉시 구분해 표시 |
+| `refetchInterval` | 5초 | 운영 중 주문 상태 자동 갱신 |
+| `refetchIntervalInBackground` | `false` | 보이지 않는 탭의 불필요한 요청 방지 |
+| `refetchOnWindowFocus` | `true` | 화면 복귀 시 즉시 최신 상태 확인 |
+
+- 수동 `새로고침`은 같은 query의 `refetch()`를 호출한다.
+- 최초 조회 실패는 전체 오류 화면으로 표시한다.
+- 기존 데이터가 있는 후속 조회 실패는 카드를 유지하고 동기화 실패 상태만 표시한다.
+- 상태 변경은 낙관적으로 캐시를 수정하지 않는다. mutation 성공 후 목록 prefix를 invalidate하고 재조회 결과를 반영한다.
+- 처리 중인 주문 ID, 열린 모달 스냅샷, 화면에서 숨긴 카드 ID는 query cache와 분리한다.
 
 ## 저장/삭제 후 갱신
 
