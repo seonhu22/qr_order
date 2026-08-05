@@ -1,6 +1,7 @@
 package htms.QROrder.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class StatusItem {
     private Footer footer;
 
     @Data
+    @Schema(name = "StatusHeader")
     public static class Header {
         private String sysId;
         private Integer orderNum;
