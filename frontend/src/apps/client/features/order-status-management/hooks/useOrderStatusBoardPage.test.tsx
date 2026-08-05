@@ -4,11 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { server } from '@/test/server';
-import { orderStatusHandlers, resetOrderStatusMockStore } from '../mock/orderStatusHandlers';
+import { queryKeys } from '@/shared/api/queryKeys';
+import type { OrderStatusCompatibleResponse } from '../api/orderStatusBoardMapper';
+import {
+  getOrderStatusMockStore,
+  orderStatusHandlers,
+  resetOrderStatusMockStore,
+} from '../mock/orderStatusHandlers';
 import { useOrderStatusBoardPage } from './useOrderStatusBoardPage';
 
-function createWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function createWrapper(
+  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
   return ({ children }: PropsWithChildren) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -106,5 +113,30 @@ describe('useOrderStatusBoardPage sync state', () => {
     const latest = result.current.data.columns.flatMap((column) => column.rows).find((row) => row.id === received.id)!;
     act(() => result.current.actions.cardActions.onCancel(latest));
     expect(result.current.cancelModal.targetRow?.orderStatus).toBe('COOKING');
+  });
+
+  it('취소 카드 숨김은 새로고침 조회에도 유지되지만 페이지 재마운트에서 초기화된다', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const first = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper(queryClient) });
+    await waitFor(() => {
+      expect(first.result.current.data.columns.flatMap((column) => column.rows).some((row) => row.id === 'order-002')).toBe(true);
+    });
+
+    act(() => first.result.current.actions.cardActions.onDismiss('order-002'));
+    act(() => first.result.current.dismissConfirm.confirm());
+    expect(first.result.current.data.columns.flatMap((column) => column.rows).some((row) => row.id === 'order-002')).toBe(false);
+    expect(getOrderStatusMockStore().some((row) => row.id === 'order-002')).toBe(true);
+    const cached = queryClient.getQueryData<OrderStatusCompatibleResponse[]>(queryKeys.orderStatusBoard.lists);
+    expect(cached?.some((group) => group.statusList?.some((item) => item.header?.sysId === 'order-002'))).toBe(true);
+
+    act(() => first.result.current.actions.handleRefresh());
+    await waitFor(() => expect(first.result.current.status.isRefreshing).toBe(false));
+    expect(first.result.current.data.columns.flatMap((column) => column.rows).some((row) => row.id === 'order-002')).toBe(false);
+    first.unmount();
+
+    const second = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper() });
+    await waitFor(() => {
+      expect(second.result.current.data.columns.flatMap((column) => column.rows).some((row) => row.id === 'order-002')).toBe(true);
+    });
   });
 });

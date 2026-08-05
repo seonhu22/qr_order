@@ -7,7 +7,7 @@
  * - 결제처리 버튼은 `useOrderPaymentModalFlow`(결제완료/미결제 선택 → 미결제는 사유 입력 → 완료 안내)를 거쳐 처리한다.
  * - 취소사유 버튼은 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다(닫기 버튼만 있음).
  * - 취소 컬럼의 휴지통(삭제) 버튼은 곧바로 지우지 않고 `DeleteConfirmModal` 확인을 한 번 거친다(`dismissConfirm`).
- *   확인해야 로컬 state(`rows`)에서 제거되며, 실제 데이터는 바뀌지 않아 "초기화"를 누르면 다시 보인다.
+ *   확인하면 페이지 메모리의 ID 필터에서만 숨기며 서버와 query cache는 변경하지 않는다.
  * - 수정 버튼은 `useOrderEditModalFlow`(같은 테이블 주문 전체를 draft로 모아 메뉴 추가/줄 취소 후 "확인"에서 한 번에 반영)를 거쳐 처리한다.
  * - 카드 데이터는 React Query의 서버 상태에서 직접 파생하며 writable 로컬 복사본을 만들지 않는다.
  * - 상태 변경 시 카드 위치는 그대로 두고(시간순 정렬 유지), 방금 변경된 카드만 잠깐 배경을 강조한다.
@@ -27,6 +27,7 @@ import { ORDER_BOARD_PREV_STATUS } from '../constants';
 import { useOrderCancelModalFlow } from './useOrderCancelModalFlow';
 import { useOrderPaymentModalFlow } from './useOrderPaymentModalFlow';
 import { useOrderEditModalFlow } from './useOrderEditModalFlow';
+import { useDismissedOrderIds } from './useDismissedOrderIds';
 import {
   filterVisibleOrderBoardRows,
   getEditableOrdersForTable,
@@ -43,13 +44,15 @@ export function useOrderStatusBoardPage() {
   const query = useOrderStatusBoardQuery();
   const mutations = useOrderStatusBoardMutations();
   const rows = query.data ?? EMPTY_ROWS;
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
+  const { dismiss: dismissOrder, isDismissed } = useDismissedOrderIds();
   const [pendingOrderIds, setPendingOrderIds] = useState<Set<string>>(() => new Set());
   const [mutationErrors, setMutationErrors] = useState<Map<string, string>>(() => new Map());
 
   const columns = useMemo(
-    () => groupOrderBoardRowsByStatus(filterVisibleOrderBoardRows(rows).filter((row) => !dismissedIds.has(row.id))),
-    [dismissedIds, rows],
+    () => groupOrderBoardRowsByStatus(
+      filterVisibleOrderBoardRows(rows).filter((row) => !isDismissed(row.id)),
+    ),
+    [isDismissed, rows],
   );
 
   const [lastMovedIds, setLastMovedIds] = useState<string[]>([]);
@@ -125,10 +128,10 @@ export function useOrderStatusBoardPage() {
   const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
   const closeDismissConfirm = () => setDismissTargetId(null);
 
-  /** U5에서 전용 메모리 hook으로 분리한다. query cache와 서버 데이터는 변경하지 않는다. */
+  /** query cache와 서버 데이터는 건드리지 않고 현재 페이지 메모리에서만 숨긴다. */
   const confirmDismiss = () => {
     if (!dismissTargetId) return;
-    setDismissedIds((current) => new Set(current).add(dismissTargetId));
+    dismissOrder(dismissTargetId);
     setDismissTargetId(null);
   };
 
