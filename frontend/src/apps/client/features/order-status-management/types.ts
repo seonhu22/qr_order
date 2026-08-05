@@ -47,10 +47,10 @@ export type OrderBoardColumnData = {
 };
 
 export type OrderBoardCardActions = {
-  onStartCooking: (id: string) => void;
-  onServe: (id: string) => void;
+  onStartCooking: (id: string) => void | Promise<void>;
+  onServe: (id: string) => void | Promise<void>;
   onPay: (row: OrderBoardRow) => void;
-  onMoveBack: (id: string) => void;
+  onMoveBack: (id: string) => void | Promise<void>;
   onCancel: (row: OrderBoardRow) => void;
   onEdit: (row: OrderBoardRow) => void;
   onShowCancelReason: (row: OrderBoardRow) => void;

@@ -1,25 +1,103 @@
-/**
- * @fileoverview 주문 상태 보드 feature의 데이터 계층
- *
- * @description
- * 백엔드 주문 상태 보드 API가 아직 없어 mock 데이터를 그대로 반환하는 `queryFn`으로 임시 구현했다.
- * 백엔드 API가 확정되면 `fetchOrderStatusBoardMock` 대신 실제 생성 훅의 `queryFn`으로 교체한다.
- */
-
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import type { CommonResponse } from '@/generated/types/commonResponse';
+import type { StatusRequest } from '@/generated/types/statusRequest';
+import {
+  useBackToCooking,
+  useBackToReceiveOrder,
+  useCancelOrder,
+  useGetStatus,
+  useGoToCooking,
+  useGoToServingComplete,
+} from '@/generated/order-manage-controller/order-manage-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
-import { ORDER_STATUS_BOARD_MOCK } from '../mock/orderStatusBoardMock';
 import type { OrderBoardRow } from '../types';
+import { mapStatusResponsesToOrderBoardRows } from './orderStatusBoardMapper';
 
-function fetchOrderStatusBoardMock(): Promise<OrderBoardRow[]> {
-  return Promise.resolve(ORDER_STATUS_BOARD_MOCK);
+export type OrderStatusMutationAction =
+  | 'START_COOKING'
+  | 'SERVE'
+  | 'BACK_TO_RECEIVED'
+  | 'BACK_TO_COOKING'
+  | 'CANCEL';
+
+export class OrderStatusMutationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'OrderStatusMutationError';
+  }
+}
+
+function assertMutationSucceeded(response: CommonResponse): void {
+  if (response.success !== true) {
+    throw new OrderStatusMutationError(response.message || response.error || '주문 상태를 변경하지 못했습니다.');
+  }
+}
+
+function toStatusRequest(
+  row: OrderBoardRow,
+  cancel?: { reason: string; description: string },
+): StatusRequest {
+  return {
+    orderNum: Number(row.orderNo),
+    header: {
+      sysId: row.id,
+      tableInfo: row.tableNum,
+      orderDatetime: row.orderDatetime,
+    },
+    cancelReason: cancel?.reason,
+    cancelDescription: cancel?.description,
+  };
 }
 
 export function useOrderStatusBoardQuery() {
-  return useQuery({
-    queryKey: queryKeys.orderStatusBoard.lists,
-    queryFn: fetchOrderStatusBoardMock,
-    ...queryPolicies.clientRealtimeStatus,
+  return useGetStatus({
+    query: {
+      queryKey: queryKeys.orderStatusBoard.lists,
+      select: mapStatusResponsesToOrderBoardRows,
+      ...queryPolicies.clientRealtimeStatus,
+    },
   });
+}
+
+export function useOrderStatusBoardMutations() {
+  const queryClient = useQueryClient();
+  const startCooking = useGoToCooking();
+  const serve = useGoToServingComplete();
+  const backToReceived = useBackToReceiveOrder();
+  const backToCooking = useBackToCooking();
+  const cancel = useCancelOrder();
+
+  const mutate = async (
+    action: OrderStatusMutationAction,
+    row: OrderBoardRow,
+    cancelInput?: { reason: string; description: string },
+  ) => {
+    await queryClient.cancelQueries({ queryKey: queryKeys.orderStatusBoard.lists });
+    const data = toStatusRequest(row, cancelInput);
+    let response: CommonResponse;
+
+    switch (action) {
+      case 'START_COOKING':
+        response = await startCooking.mutateAsync({ data });
+        break;
+      case 'SERVE':
+        response = await serve.mutateAsync({ data });
+        break;
+      case 'BACK_TO_RECEIVED':
+        response = await backToReceived.mutateAsync({ data });
+        break;
+      case 'BACK_TO_COOKING':
+        response = await backToCooking.mutateAsync({ data });
+        break;
+      case 'CANCEL':
+        response = await cancel.mutateAsync({ data });
+        break;
+    }
+
+    assertMutationSucceeded(response);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.orderStatusBoard.lists });
+  };
+
+  return { mutate };
 }

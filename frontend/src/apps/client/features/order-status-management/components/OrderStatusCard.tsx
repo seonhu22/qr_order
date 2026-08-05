@@ -8,9 +8,10 @@ type OrderStatusCardProps = {
   row: OrderBoardRow;
   actions: OrderBoardCardActions;
   isMoved: boolean;
+  isPending: boolean;
 };
 
-export function OrderStatusCard({ row, actions, isMoved }: OrderStatusCardProps) {
+export function OrderStatusCard({ row, actions, isMoved, isPending }: OrderStatusCardProps) {
   const cardClassName = [
     'order-status-card',
     `order-status-card--${row.orderStatus.toLowerCase()}`,
@@ -20,7 +21,7 @@ export function OrderStatusCard({ row, actions, isMoved }: OrderStatusCardProps)
     .join(' ');
 
   return (
-    <article className={cardClassName}>
+    <article className={cardClassName} aria-busy={isPending || undefined}>
       <div className="order-status-card__top-row">
         <span className="order-status-card__order-no">
           #{row.orderNo} <span className="order-status-card__field-label">(주문번호)</span>
@@ -65,45 +66,45 @@ export function OrderStatusCard({ row, actions, isMoved }: OrderStatusCardProps)
       <div className="order-status-card__actions">
         {row.orderStatus === 'RECEIVED' && (
           <>
-            <Button variant="primary" size="sm" onClick={() => actions.onStartCooking(row.id)}>
+            <Button variant="primary" size="sm" loading={isPending} onClick={() => actions.onStartCooking(row.id)}>
               조리시작
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onEdit(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onEdit(row)}>
               수정
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onCancel(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>
               취소
             </Button>
           </>
         )}
         {row.orderStatus === 'COOKING' && (
           <>
-            <Button variant="primary" size="sm" onClick={() => actions.onServe(row.id)}>
+            <Button variant="primary" size="sm" loading={isPending} onClick={() => actions.onServe(row.id)}>
               서빙완료
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onMoveBack(row.id)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onMoveBack(row.id)}>
               이전
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onEdit(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onEdit(row)}>
               수정
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onCancel(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>
               취소
             </Button>
           </>
         )}
         {row.orderStatus === 'SERVED' && (
           <>
-            <Button variant="primary" size="sm" onClick={() => actions.onPay(row)}>
+            <Button variant="primary" size="sm" disabled={isPending} onClick={() => actions.onPay(row)}>
               결제처리
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onMoveBack(row.id)}>
+            <Button variant="outline" size="sm" loading={isPending} onClick={() => actions.onMoveBack(row.id)}>
               이전
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onEdit(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onEdit(row)}>
               수정
             </Button>
-            <Button variant="outline" size="sm" onClick={() => actions.onCancel(row)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>
               취소
             </Button>
           </>

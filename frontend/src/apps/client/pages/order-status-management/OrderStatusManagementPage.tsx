@@ -81,6 +81,7 @@ export function OrderStatusManagementPage() {
             columns={data.columns}
             actions={actions.cardActions}
             lastMovedIds={data.lastMovedIds}
+            pendingOrderIds={data.pendingOrderIds}
           />
         )}
       </section>
@@ -131,13 +132,16 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={cancelModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: '확인', onClick: cancelModal.confirmCancel }}
+        primaryAction={{ label: '확인', loading: cancelModal.isPending, onClick: cancelModal.confirmCancel }}
         secondaryAction={{ label: '닫기', onClick: cancelModal.closeConfirm }}
         onClose={cancelModal.closeConfirm}
       >
         <div className="order-cancel-modal__notice">
           <p className="order-cancel-modal__notice-title">주문을 취소하시겠습니까?</p>
           <p className="order-cancel-modal__notice-desc">취소된 주문은 되돌릴 수 없습니다.</p>
+          {cancelModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{cancelModal.submitError}</p>
+          )}
         </div>
       </WrapperModal>
 
@@ -220,12 +224,13 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isReceiptOpen}
         title="결제 완료 처리"
-        primaryAction={{ label: '확인', onClick: paymentModal.confirmReceipt }}
+        primaryAction={{ label: '확인', disabled: true }}
         secondaryAction={{ label: '닫기', onClick: paymentModal.closeReceipt }}
         onClose={paymentModal.closeReceipt}
       >
         <div className="order-payment-receipt">
           <p className="order-payment-receipt__table">{paymentModal.tableOrders[0]?.tableNum}번 테이블</p>
+          <p className="order-cancel-modal__notice-desc">결제 API 연동 후 처리할 수 있습니다.</p>
 
           <div className="order-payment-receipt__order-list">
             {paymentModal.tableOrders.map((order) => (
@@ -324,7 +329,7 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isUnpaidEditorOpen}
         title="미결제 처리"
-        primaryAction={{ label: '확인', onClick: paymentModal.confirmUnpaid }}
+        primaryAction={{ label: '확인', disabled: true }}
         secondaryAction={{ label: '닫기', onClick: paymentModal.closeUnpaidEditor }}
         onClose={paymentModal.closeUnpaidEditor}
       >
@@ -511,13 +516,14 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={editModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: '확인', onClick: editModal.confirmSave }}
+        primaryAction={{ label: '확인', disabled: true }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeConfirm }}
         onClose={editModal.closeConfirm}
       >
         <div className="order-cancel-modal__notice">
           <p className="order-cancel-modal__notice-title">주문수정 하시겠습니까?</p>
           <p className="order-cancel-modal__notice-desc">수정하시면 이전 단계로 되돌릴 수 없습니다.</p>
+          <p className="order-cancel-modal__notice-desc">주문 수정 API 연동 후 저장할 수 있습니다.</p>
         </div>
       </WrapperModal>
 

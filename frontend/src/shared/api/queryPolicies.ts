@@ -18,6 +18,9 @@ export const queryPolicies = {
   },
   clientRealtimeStatus: {
     staleTime: staleTimes.instant,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   },
   // staleTime: 0이라도 같은 query key로 setState만 다시 부르면 refetch가 발동하지 않는다.
   // 이 정책을 채택하는 화면은 "조회 버튼 누름 = 같은 조건이면 refetch() 직접 호출"을 함께 구현한다.
