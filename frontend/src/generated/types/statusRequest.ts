@@ -5,15 +5,16 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { Header } from './header';
+import type { StatusHeader } from './statusHeader';
 import type { Body } from './body';
 import type { Footer } from './footer';
 
 export interface StatusRequest {
   orderNum?: number;
-  header?: Header;
+  header?: StatusHeader;
   body?: Body[];
   footer?: Footer;
   cancelReason?: string;
   cancelDescription?: string;
+  cancelDatetime?: string;
 }

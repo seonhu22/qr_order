@@ -6,8 +6,8 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface StatusCancelResponse {
-  cancelReason?: string;
-  cancelDescription?: string;
-  cancelDatetime?: string;
+export interface PaymentCompleteHeader {
+  sysId?: string;
+  tableInfo?: string;
+  orderDatetime?: string;
 }

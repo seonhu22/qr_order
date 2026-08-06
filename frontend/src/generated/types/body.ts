@@ -13,5 +13,6 @@ export interface Body {
   parentDetailSysId?: string;
   itemName?: string;
   qty?: number;
+  price?: number;
   paymentYn?: string;
 }
