@@ -63,7 +63,6 @@ export * from './getStatusCancelResponsesParams';
 export * from './getStoreInfoParams';
 export * from './getSysAccessLogDetailParams';
 export * from './getSysAccessLogMasterParams';
-export * from './header';
 export * from './idDuplicateChkParams';
 export * from './initPwdAndActiveParams';
 export * from './initPwdParams';
