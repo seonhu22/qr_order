@@ -26,6 +26,8 @@ public class StatusItem {
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime cancelDatetime;
     }
 
     @Data
