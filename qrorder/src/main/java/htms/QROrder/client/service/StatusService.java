@@ -20,9 +20,9 @@ public class StatusService {
 
     private final StatusMapper statusMapper;
 
-    public List<StatusResponse> getStatus(){
+    public List<StatusResponse> getStatus(String sysPlantCd){
 
-        return orderNumClassification();
+        return orderNumClassification(sysPlantCd);
     }
 
     public void cancelOrder(StatusRequest statusRequest,
@@ -86,11 +86,9 @@ public class StatusService {
         statusMapper.changeOrder(listDetailSysId, userId);
     }
 
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(String sysId) {
 
-        StatusItem.Header header = statusRequest.getHeader();
-
-        return statusMapper.getStatusCancelResponses(header);
+        return statusMapper.getStatusCancelResponses(sysId);
     }
 
     public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
@@ -112,11 +110,11 @@ public class StatusService {
         statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId);
     }
 
-    private List<StatusResponse> orderNumClassification() {
+    private List<StatusResponse> orderNumClassification(String sysPlantCd) {
 
-        List<StatusItem.Header> header = statusMapper.getStatusHeaderItems();
-        List<StatusItem.Body> body = statusMapper.getStatusBodyItems();
-        List<StatusItem.Footer> footer = statusMapper.getStatusFooterItems();
+        List<StatusItem.Header> header = statusMapper.getStatusHeaderItems(sysPlantCd);
+        List<StatusItem.Body> body = statusMapper.getStatusBodyItems(sysPlantCd);
+        List<StatusItem.Footer> footer = statusMapper.getStatusFooterItems(sysPlantCd);
 
         List<StatusItem> statusItems = new ArrayList<>();
 

@@ -36,9 +36,11 @@ public class OrderManageController {
 
     // 주문 상태 관리
     @GetMapping("/status/search")
-    public List<StatusResponse> getStatus() {
+    public List<StatusResponse> getStatus(HttpSession session) {
 
-        return statusService.getStatus();
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return statusService.getStatus(login.getSysPlantCd());
     }
 
     @PostMapping("/status/cancel_order")
@@ -182,8 +184,8 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/search/cancel_reason")
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId) {
 
-        return statusService.getStatusCancelResponses(statusRequest);
+        return statusService.getStatusCancelResponses(sysId);
     }
 }
