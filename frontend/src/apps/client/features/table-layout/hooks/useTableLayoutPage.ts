@@ -57,13 +57,17 @@ export function useTableLayoutPage(layoutSize: LayoutSize) {
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [saveNotice, setSaveNotice] = useState<SaveNoticeState>(null);
 
-  useEffect(() => {
+  // 테이블·내부시설 모두 같은 저장 버튼으로 함께 저장되므로, 서버 데이터가 바뀔 때(최초 로드/저장 후
+  // 재조회) draft를 통째로 다시 맞춘다. 렌더 중 이전 값과 비교해 갱신하여 effect의 setState 캐스케이드를 피한다.
+  const [syncedBaseTableItems, setSyncedBaseTableItems] = useState(baseTableItems);
+  const [syncedBaseFacilityItemsFromServer, setSyncedBaseFacilityItemsFromServer] = useState(baseFacilityItemsFromServer);
+  if (baseTableItems !== syncedBaseTableItems || baseFacilityItemsFromServer !== syncedBaseFacilityItemsFromServer) {
+    setSyncedBaseTableItems(baseTableItems);
+    setSyncedBaseFacilityItemsFromServer(baseFacilityItemsFromServer);
     setBaseItems(clonePlacedItems(baseTableItems) as PlacedTableItem[]);
     setBaseFacilityItems(clonePlacedItems(baseFacilityItemsFromServer) as PlacedNonTableItem[]);
     setPlacedItems([...clonePlacedItems(baseTableItems), ...clonePlacedItems(baseFacilityItemsFromServer)]);
-    // 테이블·내부시설 모두 같은 저장 버튼으로 함께 저장되므로, 서버 데이터가 바뀔 때(최초 로드/저장 후
-    // 재조회) draft를 통째로 다시 맞춘다.
-  }, [baseTableItems, baseFacilityItemsFromServer]);
+  }
 
   const canvasNodeRef = useRef<HTMLElement | null>(null);
   const setCanvasNode = useCallback((node: HTMLElement | null) => {
