@@ -47,13 +47,18 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
     const [row] = mapStatusResponsesToOrderBoardRows([{
       statusFlag: '99!',
       statusList: [{
-        header: { sysId: 'order-1', tableInfo: '5', orderDatetime: '2026-08-04 12:00:00' },
+        header: {
+          sysId: 'order-1',
+          tableInfo: '5',
+          orderDatetime: '2026-08-04 12:00:00',
+          cancelDatetime: '2026-08-04 12:30:00',
+        },
         body: [{ rowType: 'MENU', detailSysId: 'menu-1', itemName: '메뉴', qty: 1 }],
       }],
     }]);
 
     expect(row.orderDatetime).toBe('2026-08-04T12:00:00');
-    expect(row.cancelledAt).toBeUndefined();
+    expect(row.cancelledAt).toBe('2026-08-04T12:30:00');
     expect(row.menuItems[0].unitPrice).toBe(0);
   });
 

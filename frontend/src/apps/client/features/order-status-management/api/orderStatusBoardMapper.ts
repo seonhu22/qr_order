@@ -14,6 +14,7 @@ export type OrderStatusCompatibleHeader = Header & {
   tableNum?: number | string;
   orderStatus?: string;
   paymentStatus?: OrderBoardPaymentStatus;
+  cancelDatetime?: string;
   cancelledAt?: string;
   statusChangedAt?: string;
 };
@@ -83,7 +84,9 @@ export function mapStatusResponsesToOrderBoardRows(
         // TODO(order-status-contract): 백엔드가 상태 변경 시각을 응답하면 실제 필드로 교체한다.
         statusChangedAt: header.statusChangedAt,
         // TODO(order-status-contract): 백엔드 cancelledAt 반영 후 Orval 재생성 시 optional 호환 필드를 제거한다.
-        cancelledAt: header.cancelledAt,
+        cancelledAt: header.cancelledAt ?? (
+          header.cancelDatetime ? normalizeDatetime(header.cancelDatetime) : undefined
+        ),
         menuItems: mapMenuItems(item.body),
       }];
     });
