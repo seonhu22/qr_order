@@ -10,7 +10,7 @@
             ti.table_num ,
             og.insert_datetime as order_datetime,
             og.modify_datetime as update_datetime,
-            om.order_status,
+            og.order_status,
             og.cancel_datetime
         from order_group og
         left join order_master om
