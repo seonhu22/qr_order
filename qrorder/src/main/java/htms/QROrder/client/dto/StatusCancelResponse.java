@@ -11,4 +11,5 @@ public class StatusCancelResponse {
     private String cancelDescription;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime cancelDatetime;
+    private String cancelType;
 }
