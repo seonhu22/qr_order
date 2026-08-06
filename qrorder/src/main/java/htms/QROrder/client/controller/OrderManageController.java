@@ -184,8 +184,8 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/search/cancel_reason")
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId) {
 
-        return statusService.getStatusCancelResponses(statusRequest);
+        return statusService.getStatusCancelResponses(sysId);
     }
 }

@@ -19,7 +19,7 @@ public interface StatusMapper {
     void paymentCompleteOrderGroup(String sysId, String userId);
     void paymentNotCompleteOrderMaster(String unpaidReason, String unpaidDescription, String sysId, String userId);
     void paymentNotCompleteOrderGroup(String sysId, String userId);
-    StatusCancelResponse getStatusCancelResponses(StatusItem.Header header);
+    StatusCancelResponse getStatusCancelResponses(String sysId);
     PaymentCompleteResponse.Header getPaymentCompleteHeaders(StatusItem.Header header);
     List<PaymentCompleteResponse.Body> getPaymentCompleteBodyItems(StatusItem.Header header);
     PaymentCompleteResponse.Footer getPaymentCompleteFooterItems(StatusItem.Header header);

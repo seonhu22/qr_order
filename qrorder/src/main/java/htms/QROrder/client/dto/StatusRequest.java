@@ -8,4 +8,5 @@ import java.util.List;
 public class StatusRequest extends StatusItem {
     private String cancelReason;
     private String cancelDescription;
+    private String cancelDatetime;
 }

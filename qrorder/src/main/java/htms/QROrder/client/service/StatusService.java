@@ -86,11 +86,9 @@ public class StatusService {
         statusMapper.changeOrder(listDetailSysId, userId);
     }
 
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(String sysId) {
 
-        StatusItem.Header header = statusRequest.getHeader();
-
-        return statusMapper.getStatusCancelResponses(header);
+        return statusMapper.getStatusCancelResponses(sysId);
     }
 
     public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
