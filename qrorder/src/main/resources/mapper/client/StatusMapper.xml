@@ -18,7 +18,7 @@
         left join table_info ti
             on ti.sys_id = om.link_sys_id
         where 1=1
-        and sys_plant_cd = #{sysPlantCd}
+        and og.sys_plant_cd = #{sysPlantCd}
         and og.order_status != '04'
     </select>
 
