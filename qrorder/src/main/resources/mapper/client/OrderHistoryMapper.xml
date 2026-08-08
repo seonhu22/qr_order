@@ -8,18 +8,41 @@
             om.sys_id ,
             om.link_sys_id,
             ti.table_num ,
+            og.order_num ,
+            case
+                when exists (
+                    select
+                        1
+                    from order_detail od2
+                    where od2.link_sys_id = om.sys_id
+                    and od2.payment_yn = 'N'
+                ) then 'N'
+                else 'Y'
+            end as payment_status ,
             om.order_status ,
             null as order_status_nm ,
             0 as total_price ,
             om.insert_datetime as order_start_datetime
-        from order_master om
+        from order_detail od
+        left join order_group og
+            on og.sys_id = od.link_sys_id3
+        left join order_master om
+            on om.sys_id = od.link_sys_id
         left join table_info ti
             on ti.sys_id = om.link_sys_id
             and ti.use_yn = 'Y'
             and ti.delete_yn = 'N'
         where 1=1
-        and om.order_status = #{orderStatus}
+        <if test="searchKeyword != null and searchKeyword != ''">
+            and (ti.table_num like concat('%', #{searchKeyword}, '%')
+                    or og.order_num like concat('%', #{searchKeyword}, '%'))
+        </if>
+        <if test="orderStatus != null and orderStatus != ''">
+            and om.order_status = #{orderStatus}
+        </if>
+        and om.sys_plant_cd = #{sysPlantCd}
         and om.insert_datetime::date between #{startDate}::date and #{endDate}::date
+        group by om.sys_id, om.link_sys_id, ti.table_num, og.order_num, om.order_status, om.insert_datetime
     </select>
 
     <select id="getOrderMasterTotalPrice" resultType="htms.QROrder.client.dto.OrderTotalPriceItem">

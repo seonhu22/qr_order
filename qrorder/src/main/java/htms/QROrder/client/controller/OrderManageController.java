@@ -27,11 +27,15 @@ public class OrderManageController {
 
     // 주문 이력 조회
     @GetMapping("/history/search")
-    public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus,
+    public OrderHistoryResponse getOrderHistory(@RequestParam (required = false) String orderStatus,
+                                                @RequestParam (required = false) String searchKeyword,
                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                                HttpSession session) {
 
-        return orderHistoryService.getOrderHistory(orderStatus, startDate, endDate);
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return orderHistoryService.getOrderHistory(orderStatus, searchKeyword, startDate, endDate, login.getSysPlantCd());
     }
 
     // 주문 상태 관리

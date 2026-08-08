@@ -10,6 +10,8 @@ public class OrderMasterHistoryItem {
     private String sysId;
     private String linkSysId;
     private String tableNum;
+    private String orderNo;
+    private String paymentStatus;
     private String orderStatus;
     private String orderStatusNm;
     private Integer totalPrice;
