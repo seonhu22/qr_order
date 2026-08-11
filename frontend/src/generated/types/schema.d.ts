@@ -2620,6 +2620,8 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             tableNum?: string;
+            orderNo?: string;
+            paymentStatus?: string;
             orderStatus?: string;
             orderStatusNm?: string;
             /** Format: int32 */
@@ -5105,7 +5107,8 @@ export interface operations {
     getOrderHistory: {
         parameters: {
             query: {
-                orderStatus: string;
+                orderStatus?: string;
+                searchKeyword?: string;
                 startDate: string;
                 endDate: string;
             };
