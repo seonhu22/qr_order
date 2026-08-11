@@ -8,7 +8,7 @@
             om.sys_id ,
             om.link_sys_id,
             ti.table_num ,
-            og.order_num ,
+            og.order_num as order_no ,
             case
                 when exists (
                     select
