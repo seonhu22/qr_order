@@ -1,50 +1,61 @@
 import { describe, expect, it } from 'vitest';
-import { filterOrderHistoryMock } from './orderHistoryApi';
-import { ORDER_HISTORY_MOCK } from '../mock/orderHistoryMock';
+import {
+  mapToOrderHistoryRows,
+  mapToOrderHistoryRow,
+  toOrderHistoryQueryParams,
+} from './orderHistoryApi';
 
-// mock 날짜가 조회 시점 기준 상대값이라, 절대 날짜 대신 항상 전체를 포함하는/제외하는 범위를 사용한다.
-const WIDE_RANGE = {
-  startDate: '2000-01-01 00:00:00',
-  endDate: '2999-12-31 23:59:59',
-};
-const NON_OVERLAPPING_RANGE = {
-  startDate: '2000-01-01 00:00:00',
-  endDate: '2000-01-02 00:00:00',
-};
-
-describe('filterOrderHistoryMock', () => {
-  it('returns all mock rows within the date range when orderStatus is not selected', async () => {
-    const rows = await filterOrderHistoryMock({ ...WIDE_RANGE, searchKeyword: '', orderStatus: '' });
-    expect(rows).toHaveLength(ORDER_HISTORY_MOCK.length);
-  });
-
-  it('filters rows by orderStatus', async () => {
-    const rows = await filterOrderHistoryMock({
-      ...WIDE_RANGE,
-      searchKeyword: '',
-      orderStatus: 'COOKING',
+describe('toOrderHistoryQueryParams', () => {
+  it('날짜는 API의 LocalDate 형식으로, 화면 상태는 서버 코드로 변환한다', () => {
+    expect(
+      toOrderHistoryQueryParams({
+        startDate: '2026-08-01 00:00:00',
+        endDate: '2026-08-06 23:59:59',
+        searchKeyword: ' 9009 ',
+        orderStatus: 'COOKING',
+      }),
+    ).toEqual({
+      startDate: '2026-08-01',
+      endDate: '2026-08-06',
+      searchKeyword: '9009',
+      orderStatus: '02',
     });
-    expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every((row) => row.orderStatus === 'COOKING')).toBe(true);
   });
 
-  it('combines orderStatus filter with keyword search', async () => {
-    const [target] = ORDER_HISTORY_MOCK.filter((row) => row.orderStatus === 'CANCELLED');
-    const rows = await filterOrderHistoryMock({
-      ...WIDE_RANGE,
-      searchKeyword: target.orderNo,
+  it('전체 조회에서는 빈 선택 조건을 요청에서 제외한다', () => {
+    expect(
+      toOrderHistoryQueryParams({
+        startDate: '2026-08-01 00:00:00',
+        endDate: '2026-08-06 23:59:59',
+        searchKeyword: '   ',
+        orderStatus: '',
+      }),
+    ).toEqual({ startDate: '2026-08-01', endDate: '2026-08-06' });
+  });
+});
+
+describe('mapToOrderHistoryRow', () => {
+  it('백엔드 주문·결제 코드와 필드명을 화면 모델로 변환한다', () => {
+    expect(
+      mapToOrderHistoryRow({
+        sysId: 'order-9009',
+        orderNo: '9009',
+        tableNum: '3',
+        orderStatus: '99!',
+        paymentStatus: 'N',
+        orderStartDatetime: '2026-08-06 14:25:00',
+      }),
+    ).toEqual({
+      id: 'order-9009',
+      orderNo: '9009',
+      tableNum: '3',
       orderStatus: 'CANCELLED',
+      paymentStatus: 'UNPAID',
+      orderDatetime: '2026-08-06 14:25:00',
     });
-    expect(rows).toHaveLength(1);
-    expect(rows[0].orderNo).toBe(target.orderNo);
   });
 
-  it('excludes rows outside the date range even when orderStatus matches', async () => {
-    const rows = await filterOrderHistoryMock({
-      ...NON_OVERLAPPING_RANGE,
-      searchKeyword: '',
-      orderStatus: 'CANCELLED',
-    });
-    expect(rows).toHaveLength(0);
+  it('목록이 없으면 빈 배열을 반환한다', () => {
+    expect(mapToOrderHistoryRows({})).toEqual([]);
   });
 });
