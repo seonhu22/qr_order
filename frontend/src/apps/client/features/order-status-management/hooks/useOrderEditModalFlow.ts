@@ -129,7 +129,11 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     setDraftOrders((prev) =>
       prev.map((order) =>
         order.id === orderId
-          ? { ...order, menuItems: order.menuItems.filter((menu) => menu.id !== menuId) }
+          ? {
+              ...order,
+              totalPrice: undefined,
+              menuItems: order.menuItems.filter((menu) => menu.id !== menuId),
+            }
           : order,
       ),
     );

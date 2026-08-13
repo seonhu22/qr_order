@@ -4,6 +4,7 @@ import type { OrderBoardRow, OrderBoardStatus } from '../types';
 import { toApiOrderStatus } from '../api/statusCodeMapper';
 import type { OrderStatusCompatibleResponse } from '../api/orderStatusBoardMapper';
 import { ORDER_STATUS_BOARD_MOCK } from './orderStatusBoardMock';
+import { calculateMenuItemTotal } from '../utils';
 
 const ORDER_STATUS_API_PATTERN = '*/api/client/order_manage/status/*';
 const ORDER_STATUS_SEARCH_PATTERN = '*/api/client/order_manage/status/search';
@@ -36,7 +37,7 @@ function toStatusResponses(source: OrderBoardRow[]): OrderStatusCompatibleRespon
         sysId: row.id,
         orderNum: Number(row.orderNo),
         tableInfo: row.tableNum,
-        tableNum: row.tableNum,
+        tableNum: Number(row.tableNum),
         orderDatetime: row.orderDatetime,
         orderStatus: toApiOrderStatus(row.orderStatus),
         paymentStatus: row.paymentStatus,
@@ -51,7 +52,7 @@ function toStatusResponses(source: OrderBoardRow[]): OrderStatusCompatibleRespon
           itemName: menu.name,
           qty: menu.quantity,
           paymentYn: row.paymentStatus === 'PAID' ? 'N' : 'Y',
-          unitPrice: menu.unitPrice,
+          price: menu.unitPrice * menu.quantity,
         },
         ...menu.options.map((option) => ({
           linkSysId: row.id,
@@ -61,9 +62,13 @@ function toStatusResponses(source: OrderBoardRow[]): OrderStatusCompatibleRespon
           itemName: option.name,
           qty: option.quantity,
           paymentYn: 'Y',
-          unitPrice: option.unitPrice,
+          price: option.unitPrice * option.quantity,
         })),
       ]),
+      footer: {
+        sysId: row.id,
+        totalPrice: row.menuItems.reduce((sum, menu) => sum + calculateMenuItemTotal(menu), 0),
+      },
     })),
   }));
 }
@@ -91,6 +96,7 @@ function transitionHandler(path: string, from: OrderBoardStatus[], to: OrderBoar
         ? {
             paymentStatus: 'REFUNDED' as const,
             cancelledAt: new Date().toISOString().slice(0, 19),
+            cancelType: body?.cancelType,
             cancelReason: body?.cancelReason,
             cancelDescription: body?.cancelDescription,
           }
@@ -103,13 +109,15 @@ function transitionHandler(path: string, from: OrderBoardStatus[], to: OrderBoar
 export const orderStatusHandlers: HttpHandler[] = [
   http.get(ORDER_STATUS_SEARCH_PATTERN, () => HttpResponse.json(toStatusResponses(rows))),
   http.get('*/api/client/order_manage/status/search/cancel_reason', ({ request }) => {
-    const id = new URL(request.url).searchParams.get('header.sysId');
+    const id = new URL(request.url).searchParams.get('sysId');
     if (!id) return failure('주문 식별자가 필요합니다.');
     const row = rows.find((item) => item.id === id);
     if (!row) return failure('주문을 찾을 수 없습니다.', 404);
     return HttpResponse.json({
+      cancelType: row.cancelType,
       cancelReason: row.cancelReason,
       cancelDescription: row.cancelDescription,
+      cancelDatetime: row.cancelledAt?.replace('T', ' '),
     });
   }),
   transitionHandler('go_to_cooking', ['RECEIVED'], 'COOKING'),

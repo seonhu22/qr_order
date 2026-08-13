@@ -24,21 +24,24 @@ export type OrderBoardRow = {
   tableNum: string;
   orderStatus: OrderBoardStatus;
   paymentStatus: OrderBoardPaymentStatus;
+  /** 서버가 주문 상세를 기준으로 계산한 주문 총액 */
+  totalPrice?: number;
   /** ISO 형식("YYYY-MM-DDTHH:mm:ss") 주문 접수 시각 */
   orderDatetime: string;
   /** 상태 섹션에 마지막으로 진입한 시각. Mock에서는 이동한 카드를 섹션 맨 아래에 정렬할 때 사용한다. */
   statusChangedAt?: string;
-  /** 취소 처리 시각. CANCELLED 상태일 때만 존재하며 "취소는 당일만 표시" 규칙의 기준이 된다. */
+  /** 취소 처리 시각. CANCELLED 상태의 취소사유 모달에서 표시한다. */
   cancelledAt?: string;
-  /** 취소사유 선택값. CANCELLED 상태일 때만 존재한다. */
+  /** 취소사유 유형 코드. CANCELLED 상태일 때만 존재한다. */
+  cancelType?: string;
+  /** 취소 유형이 "기타"일 때 입력한 실제 취소 사유. */
   cancelReason?: string;
-  /** 취소사유가 "기타"일 때 입력한 상세 내용. */
+  /** 기존 API와의 호환을 위한 추가 설명. */
   cancelDescription?: string;
   /** 미결제사유 선택값. UNPAID 상태일 때만 존재한다. */
   unpaidReason?: string;
   /** 미결제사유가 "기타"일 때 입력한 상세 내용. */
   unpaidDescription?: string;
-  /** 메뉴+옵션 단가를 기준으로 계산하는 주문 총액은 `calculateOrderTotal`(utils.ts)을 쓴다. */
   menuItems: OrderBoardMenuItem[];
 };
 

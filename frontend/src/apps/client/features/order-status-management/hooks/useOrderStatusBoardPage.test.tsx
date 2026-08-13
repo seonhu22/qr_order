@@ -90,7 +90,7 @@ describe('useOrderStatusBoardPage sync state', () => {
     await waitFor(() => expect(result.current.cancelReasonView.isLoading).toBe(false));
     expect(result.current.cancelReasonView.row).toMatchObject({
       id: 'order-002',
-      cancelReason: 'CUSTOMER_REQUEST',
+      cancelType: 'CUSTOMER_REQUEST',
     });
   });
 

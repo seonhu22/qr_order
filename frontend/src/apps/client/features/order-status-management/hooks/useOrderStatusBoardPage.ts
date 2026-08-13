@@ -170,8 +170,12 @@ export function useOrderStatusBoardPage() {
         ...cancelReasonViewRow,
         ...(cancelReasonQuery.data
           ? {
+              cancelType: cancelReasonQuery.data.cancelType,
               cancelReason: cancelReasonQuery.data.cancelReason,
               cancelDescription: cancelReasonQuery.data.cancelDescription,
+              cancelledAt: cancelReasonQuery.data.cancelDatetime
+                ? cancelReasonQuery.data.cancelDatetime.replace(' ', 'T')
+                : cancelReasonViewRow.cancelledAt,
             }
           : {}),
       }

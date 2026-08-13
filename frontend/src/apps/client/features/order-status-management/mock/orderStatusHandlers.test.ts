@@ -37,7 +37,8 @@ describe('orderStatusHandlers', () => {
     const groups = await search.json();
     const cooking = groups.find((group: { statusFlag: string }) => group.statusFlag === '02');
     const changed = cooking.statusList.find((item: { header: { sysId: string } }) => item.header.sysId === 'order-010');
-    expect(changed.body[0]).toMatchObject({ rowType: 'MENU', unitPrice: 11900 });
+    expect(changed.body[0]).toMatchObject({ rowType: 'MENU', price: 23800 });
+    expect(changed.footer).toMatchObject({ totalPrice: 42700 });
     expect(changed.header.statusChangedAt).toBeTruthy();
   });
 
@@ -51,26 +52,26 @@ describe('orderStatusHandlers', () => {
     expect(getOrderStatusMockStore().find((row) => row.id === id)?.orderStatus).toBe(expected);
   });
 
-  it('취소 요청은 사유와 상세 사유, 취소 시각을 저장한다', async () => {
+  it('취소 요청은 유형과 기타 사유, 취소 시각을 저장한다', async () => {
     const response = await post('cancel_order', {
       header: { sysId: 'order-011' },
-      cancelReason: 'OTHER',
-      cancelDescription: '고객 요청',
+      cancelType: 'OTHER',
+      cancelReason: '고객 요청',
     });
     expect(response.status).toBe(200);
     expect(getOrderStatusMockStore().find((row) => row.id === 'order-011')).toMatchObject({
       orderStatus: 'CANCELLED',
       paymentStatus: 'REFUNDED',
-      cancelReason: 'OTHER',
-      cancelDescription: '고객 요청',
+      cancelType: 'OTHER',
+      cancelReason: '고객 요청',
     });
     expect(getOrderStatusMockStore().find((row) => row.id === 'order-011')?.cancelledAt).toBeTruthy();
   });
 
-  it('취소 사유 GET은 header.sysId에 해당하는 주문 사유를 반환한다', async () => {
-    const response = await fetch(`${API}/search/cancel_reason?header.sysId=order-002`);
+  it('취소 사유 GET은 sysId에 해당하는 주문 사유를 반환한다', async () => {
+    const response = await fetch(`${API}/search/cancel_reason?sysId=order-002`);
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ cancelReason: 'CUSTOMER_REQUEST' });
+    await expect(response.json()).resolves.toMatchObject({ cancelType: 'CUSTOMER_REQUEST' });
   });
 
   it('식별자 누락, 없는 주문, 잘못된 상태 전환을 거부한다', async () => {

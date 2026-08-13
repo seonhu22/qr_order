@@ -3,13 +3,13 @@ import type { OrderBoardRow } from '../types';
 
 /**
  * 백엔드 주문 상태 보드 API가 아직 없어 임시로 사용하는 mock 데이터.
- * "취소는 당일만 표시" 규칙을 검증할 수 있도록 어제 취소된 주문(order-020)을 포함한다.
+ * 백엔드 상태 기준으로 과거 취소 주문도 표시되는지 검증할 수 있도록 어제 취소된 주문(order-020)을 포함한다.
  * "결제완료 제외" 규칙을 검증할 수 있도록 결제완료(PAID) 주문(order-015)을 포함한다.
  * 결제완료 영수증의 "같은 테이블 주문 묶음" 처리를 확인할 수 있도록 한 테이블에 서빙완료 주문이
  * 1건(4번 테이블/order-005), 2건(2번 테이블/order-003,023), 3건(5번 테이블/order-004,021,022)인
  * 케이스를 모두 포함한다. 결제완료 영수증에서 옵션 줄도 함께 보이는지 확인할 수 있도록 이 묶음
  * 케이스(order-004, order-003)에는 옵션이 있는 메뉴를 하나씩 섞어 넣었다.
- * 주문 총액은 저장된 합계 필드 없이 메뉴/옵션 단가(`unitPrice`)로 항상 계산한다(`calculateOrderTotal`).
+ * API Mock handler가 메뉴/옵션을 기준으로 `footer.totalPrice`를 계산해 응답한다.
  */
 const today = new Date();
 const yesterday = new Date(today);
@@ -213,7 +213,8 @@ export const ORDER_STATUS_BOARD_MOCK: OrderBoardRow[] = [
     paymentStatus: 'REFUNDED',
     orderDatetime: todayAt(14, 0),
     cancelledAt: todayAt(14, 25),
-    cancelReason: 'CUSTOMER_REQUEST',
+    cancelType: 'CUSTOMER_REQUEST',
+    cancelReason: '',
     cancelDescription: '',
     menuItems: [
       {

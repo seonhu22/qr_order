@@ -30,6 +30,7 @@ describe('orderStatusBoardApi', () => {
     expect(row).toMatchObject({
       orderStatus: 'RECEIVED',
       tableNum: '5',
+      totalPrice: 42700,
     });
     expect(row?.menuItems[0]).toMatchObject({ name: '쌀국수', unitPrice: 11900 });
   });
@@ -71,5 +72,64 @@ describe('orderStatusBoardApi', () => {
 
     await expect(result.current.mutations.mutate('START_COOKING', row)).rejects.toThrow('상태 변경 거부');
     expect(result.current.query.data?.find((item) => item.id === 'order-010')?.orderStatus).toBe('RECEIVED');
+  });
+
+  it('기타 취소는 선택 코드를 cancelType, 직접 입력을 cancelReason으로 전송한다', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post('*/api/client/order_manage/status/cancel_order', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    const { wrapper } = createHarness();
+    const { result } = renderHook(() => ({
+      query: useOrderStatusBoardQuery(),
+      mutations: useOrderStatusBoardMutations(),
+    }), { wrapper });
+
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    const row = result.current.query.data!.find((item) => item.id === 'order-010')!;
+    await act(async () => {
+      await result.current.mutations.mutate('CANCEL', row, {
+        reason: 'OTHER',
+        description: '고객 변심',
+      });
+    });
+
+    expect(requestBody).toMatchObject({
+      header: { sysId: 'order-010' },
+      cancelType: 'OTHER',
+      cancelReason: '고객 변심',
+    });
+  });
+
+  it('일반 취소는 cancelReason을 빈 문자열로 전송한다', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post('*/api/client/order_manage/status/cancel_order', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    const { wrapper } = createHarness();
+    const { result } = renderHook(() => ({
+      query: useOrderStatusBoardQuery(),
+      mutations: useOrderStatusBoardMutations(),
+    }), { wrapper });
+
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    const row = result.current.query.data!.find((item) => item.id === 'order-010')!;
+    await act(async () => {
+      await result.current.mutations.mutate('CANCEL', row, {
+        reason: 'CUSTOMER_REQUEST',
+        description: '',
+      });
+    });
+
+    expect(requestBody).toMatchObject({
+      cancelType: 'CUSTOMER_REQUEST',
+      cancelReason: '',
+    });
   });
 });

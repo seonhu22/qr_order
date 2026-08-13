@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mapStatusResponsesToOrderBoardRows } from './orderStatusBoardMapper';
 
 describe('mapStatusResponsesToOrderBoardRows', () => {
-  it('메뉴와 옵션을 부모 detail ID로 결합하고 호환 필드를 보존한다', () => {
+  it('서버 계산 금액을 총액과 화면 편집용 단가로 변환한다', () => {
     const result = mapStatusResponsesToOrderBoardRows([
       {
         statusFlag: '01',
@@ -17,9 +17,10 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
             statusChangedAt: '2026-08-04T14:29:00.000Z',
           },
           body: [
-            { rowType: 'OPTION', detailSysId: 'option-1', parentDetailSysId: 'menu-1', itemName: '곱빼기', qty: 1, unitPrice: 1000 },
-            { rowType: 'MENU', detailSysId: 'menu-1', itemName: '쌀국수', qty: 2, unitPrice: 11900 },
+            { rowType: 'OPTION', detailSysId: 'option-1', parentDetailSysId: 'menu-1', itemName: '곱빼기', qty: 1, price: 1000 },
+            { rowType: 'MENU', detailSysId: 'menu-1', itemName: '쌀국수', qty: 2, price: 23800 },
           ],
+          footer: { sysId: 'order-7', totalPrice: 24800 },
         }],
       },
     ]);
@@ -32,6 +33,7 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
       orderStatus: 'RECEIVED',
       cancelledAt: '2026-08-04T14:30:00',
       statusChangedAt: '2026-08-04T14:29:00.000Z',
+      totalPrice: 24800,
       menuItems: [{
         id: 'menu-1',
         name: '쌀국수',
@@ -43,7 +45,7 @@ describe('mapStatusResponsesToOrderBoardRows', () => {
     expect(result[0].orderDatetime).toMatch(/^\d{4}-\d{2}-\d{2}T14:25:00$/);
   });
 
-  it('계약에 없는 단가와 취소 시각은 안전한 기본값을 사용한다', () => {
+  it('취소 시각은 공백 형식을 ISO 형태로 정규화하고 누락 금액은 0을 사용한다', () => {
     const [row] = mapStatusResponsesToOrderBoardRows([{
       statusFlag: '99!',
       statusList: [{

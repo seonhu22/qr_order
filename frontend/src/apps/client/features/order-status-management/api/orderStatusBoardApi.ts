@@ -44,11 +44,11 @@ function toStatusRequest(
     orderNum: Number(row.orderNo),
     header: {
       sysId: row.id,
-      tableInfo: row.tableNum,
+      tableNum: Number(row.tableNum),
       orderDatetime: row.orderDatetime,
     },
-    cancelReason: cancel?.reason,
-    cancelDescription: cancel?.description,
+    cancelType: cancel?.reason,
+    cancelReason: cancel ? (cancel.reason === 'OTHER' ? cancel.description : '') : undefined,
   };
 }
 
@@ -63,8 +63,7 @@ export function useOrderStatusBoardQuery() {
 }
 
 export function useOrderCancelReasonQuery(orderId?: string) {
-  // TODO(order-status-contract): OpenAPI가 GET 중첩 객체를 `header.sysId`로 생성하면 이 호환 cast를 제거한다.
-  const params = { 'header.sysId': orderId ?? '' } as unknown as GetStatusCancelResponsesParams;
+  const params: GetStatusCancelResponsesParams = { sysId: orderId ?? '' };
   return useGetStatusCancelResponses(params, {
     query: {
       enabled: Boolean(orderId),

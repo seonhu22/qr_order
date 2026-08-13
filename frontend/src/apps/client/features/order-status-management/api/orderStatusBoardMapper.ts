@@ -1,5 +1,6 @@
 import type { Body } from '@/generated/types/body';
-import type { Header } from '@/generated/types/header';
+import type { Footer } from '@/generated/types/footer';
+import type { StatusHeader } from '@/generated/types/statusHeader';
 import type { StatusResponse } from '@/generated/types/statusResponse';
 import { buildOrderBoardDatetime } from '../utils';
 import type {
@@ -9,25 +10,21 @@ import type {
 } from '../types';
 import { toOrderBoardStatus } from './statusCodeMapper';
 
-export type OrderStatusCompatibleHeader = Header & {
-  orderNum?: number;
-  tableNum?: number | string;
-  orderStatus?: string;
+export type OrderStatusCompatibleHeader = StatusHeader & {
+  tableInfo?: string;
   paymentStatus?: OrderBoardPaymentStatus;
-  cancelDatetime?: string;
   cancelledAt?: string;
   statusChangedAt?: string;
 };
 
-export type OrderStatusCompatibleBody = Body & {
-  unitPrice?: number;
-};
+export type OrderStatusCompatibleBody = Body;
 
 export type OrderStatusCompatibleResponse = Omit<StatusResponse, 'statusList'> & {
   statusList?: Array<{
     orderNum?: number;
     header?: OrderStatusCompatibleHeader;
     body?: OrderStatusCompatibleBody[];
+    footer?: Footer;
   }>;
 };
 
@@ -44,22 +41,25 @@ function mapMenuItems(body: OrderStatusCompatibleBody[] = []): OrderBoardMenuIte
   const menus = body.filter((item) => item.rowType === 'MENU');
   const options = body.filter((item) => item.rowType === 'OPTION');
 
-  return menus.map((menu, index) => ({
-    id: menu.detailSysId ?? `menu-${index}`,
-    name: menu.itemName ?? '',
-    quantity: menu.qty ?? 0,
-    // TODO(order-status-contract): 백엔드 단가 필드 반영 후 Orval 재생성 시 0 fallback을 제거한다.
-    unitPrice: menu.unitPrice ?? 0,
-    options: options
-      .filter((option) => option.parentDetailSysId === menu.detailSysId)
+  return menus.map((menu, index) => {
+    const menuOptions = options.filter((option) => option.parentDetailSysId === menu.detailSysId);
+    const quantity = menu.qty ?? 0;
+
+    return {
+      id: menu.detailSysId ?? `menu-${index}`,
+      name: menu.itemName ?? '',
+      quantity,
+      // price는 해당 MENU 행의 수량이 반영된 금액이므로 편집 화면에서 쓸 단가로 역산한다.
+      unitPrice: quantity > 0 ? (menu.price ?? 0) / quantity : 0,
+      options: menuOptions
       .map((option, optionIndex) => ({
         id: option.detailSysId ?? `${menu.detailSysId ?? index}-option-${optionIndex}`,
         name: option.itemName ?? '',
         quantity: option.qty ?? 0,
-        // TODO(order-status-contract): 백엔드 단가 필드 반영 후 Orval 재생성 시 0 fallback을 제거한다.
-        unitPrice: option.unitPrice ?? 0,
+        unitPrice: (option.qty ?? 0) > 0 ? (option.price ?? 0) / (option.qty ?? 1) : 0,
       })),
-  }));
+    };
+  });
 }
 
 export function mapStatusResponsesToOrderBoardRows(
@@ -80,10 +80,10 @@ export function mapStatusResponsesToOrderBoardRows(
         tableNum: String(header.tableNum ?? header.tableInfo ?? ''),
         orderStatus,
         paymentStatus: header.paymentStatus ?? 'PENDING',
+        totalPrice: item.footer?.totalPrice ?? 0,
         orderDatetime: normalizeDatetime(header.orderDatetime),
         // TODO(order-status-contract): 백엔드가 상태 변경 시각을 응답하면 실제 필드로 교체한다.
         statusChangedAt: header.statusChangedAt,
-        // TODO(order-status-contract): 백엔드 cancelledAt 반영 후 Orval 재생성 시 optional 호환 필드를 제거한다.
         cancelledAt: header.cancelledAt ?? (
           header.cancelDatetime ? normalizeDatetime(header.cancelDatetime) : undefined
         ),
