@@ -2145,9 +2145,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2245,7 +2245,8 @@ export interface components {
             footer?: components["schemas"]["Footer"];
             cancelReason?: string;
             cancelDescription?: string;
-            cancelDatetime?: string;
+            cancelDatetime?: components["schemas"]["LocalTime"];
+            cancelType?: string;
         };
         MenuOptionMasterRequest: {
             sysId?: string;
@@ -2502,9 +2503,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2597,6 +2598,7 @@ export interface components {
             cancelDescription?: string;
             /** Format: date-time */
             cancelDatetime?: string;
+            cancelType?: string;
         };
         PaymentCompleteResponse: {
             header?: components["schemas"]["PaymentCompleteHeader"];

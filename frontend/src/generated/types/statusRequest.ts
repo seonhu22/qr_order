@@ -8,6 +8,7 @@
 import type { StatusHeader } from './statusHeader';
 import type { Body } from './body';
 import type { Footer } from './footer';
+import type { LocalTime } from './localTime';
 
 export interface StatusRequest {
   orderNum?: number;
@@ -16,5 +17,6 @@ export interface StatusRequest {
   footer?: Footer;
   cancelReason?: string;
   cancelDescription?: string;
-  cancelDatetime?: string;
+  cancelDatetime?: LocalTime;
+  cancelType?: string;
 }
