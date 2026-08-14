@@ -19,7 +19,7 @@
             on ti.sys_id = om.link_sys_id
         where 1=1
         and sys_plant_cd = #{sysPlantCd}
-        and og.order_status != '04'
+        and og.order_status NOT IN ('04', '05')
     </select>
 
     <select id="getStatusBodyItems" resultType="htms.QROrder.client.dto.StatusItem$Body">
