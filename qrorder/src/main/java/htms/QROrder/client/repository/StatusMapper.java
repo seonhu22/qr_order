@@ -10,7 +10,7 @@ public interface StatusMapper {
     List<StatusItem.Header> getStatusHeaderItems(String sysPlantCd);
     List<StatusItem.Body> getStatusBodyItems(String sysPlantCd);
     List<StatusItem.Footer> getStatusFooterItems(String sysPlantCd);
-    void cancelOrder(StatusItem.Header header, String cancelReason, String cancelDescription, String userId);
+    void cancelOrder(StatusItem.Header header, String cancelType, String cancelReason, String cancelDescription, String userId);
     void goToCooking(StatusItem.Header header, String userId);
     void backToReceiveOrder(StatusItem.Header header, String userId);
     void goToServingComplete(StatusItem.Header header, String userId);
