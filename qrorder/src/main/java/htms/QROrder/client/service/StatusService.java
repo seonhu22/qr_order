@@ -31,8 +31,9 @@ public class StatusService {
         StatusItem.Header header = statusRequest.getHeader();
         String cancelReason = statusRequest.getCancelReason();
         String cancelDescription = statusRequest.getCancelDescription();
+        String cancelType = statusRequest.getCancelType();
 
-        statusMapper.cancelOrder(header, cancelReason, cancelDescription, userId);
+        statusMapper.cancelOrder(header, cancelType, cancelReason, cancelDescription, userId);
     }
 
     public void goToCooking(StatusRequest statusRequest,
