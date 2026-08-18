@@ -1,14 +1,15 @@
 package htms.QROrder.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 @Data
+@JsonPropertyOrder({"orderNum", "header", "body", "footer"})
 public class StatusItem {
     private Integer orderNum;
     private Header header;
