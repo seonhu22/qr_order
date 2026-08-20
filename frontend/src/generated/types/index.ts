@@ -128,6 +128,7 @@ export * from './searchPlantParams';
 export * from './settlementRequest';
 export * from './settlementResponse';
 export * from './signUpRequest';
+export * from './sseEmitter';
 export * from './statusCancelResponse';
 export * from './statusHeader';
 export * from './statusItem';
