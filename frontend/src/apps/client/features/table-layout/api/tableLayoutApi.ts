@@ -132,6 +132,8 @@ function mapToNonTableGuiItem(item: PlacedNonTableItem): TableGuiSaveItemWire {
       sysId: item.sysId,
       objectType: '03',
       tableName: item.label,
+      tableNum: 0,
+      tableQty: 0,
       xCoordinate: Math.round(item.x),
       yCoordinate: Math.round(item.y),
       width: Math.round(item.width),
@@ -144,6 +146,8 @@ function mapToNonTableGuiItem(item: PlacedNonTableItem): TableGuiSaveItemWire {
     tableType: item.kind,
     // 응답을 다시 받을 때 tableName(common_nm)으로 종류를 매칭하므로, 저장 시에도 라벨을 실어 보낸다.
     tableName: FACILITY_LABEL_BY_KIND[item.kind],
+    tableNum: 0,
+    tableQty: 0,
     xCoordinate: Math.round(item.x),
     yCoordinate: Math.round(item.y),
     width: Math.round(item.width),

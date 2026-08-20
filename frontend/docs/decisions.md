@@ -704,3 +704,32 @@ ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 �
 - 그 외 직접 사용 금지. QR 생성이 다른 feature에도 필요해지면 본 유틸을 `shared/`로 승격
 
 ---
+
+## ADR-019 — 주문 상태 시각: SQL `::time` 대신 원본 `LocalDateTime` 유지
+
+**날짜**: 2026-08-06
+**상태**: 채택
+
+### 배경
+
+주문 상태 조회 QA 중 PostgreSQL `timestamp` 컬럼을 Java `LocalTime` DTO로 직접 매핑해 500 오류가 발생했다. 과거에는 카드에 `HH:mm`만 표시하려고 `orderDatetime`을 `LocalDateTime`에서 `LocalTime`으로 변경했지만, SQL은 `og.insert_datetime` 원본 `timestamp`를 그대로 반환하고 있었다.
+
+### 검토한 방식
+
+- **SQL `::time` 변환**: 기존 `LocalTime` 계약과 `HH:mm` 표시를 유지하고 JDBC 오류를 작게 수정할 수 있다. 그러나 날짜가 사라져 전날과 당일 주문을 구분할 수 없고, 당일 취소 필터·자정 전후 정렬·향후 경과시간 계산에서 프론트가 오늘 날짜를 임의로 복원해야 한다.
+- **원본 `LocalDateTime` 응답(채택)**: DB의 날짜와 시간을 손실 없이 전달하고 프론트가 화면에서 `HH:mm`만 표시한다. 응답 정보는 늘지만 표시 책임과 데이터 책임이 분리된다.
+
+### 결정
+
+- `StatusItem.Header.orderDatetime`, `StatusItem.Header.cancelDatetime`, `StatusCancelResponse.cancelDatetime`은 `LocalDateTime`을 사용한다.
+- JSON은 프로젝트 규칙인 `yyyy-MM-dd HH:mm:ss` 공백 형식으로 직렬화한다.
+- 프론트 mapper는 공백을 `T`로 정규화해 내부 ISO 형태로 보존하고, 카드에서만 `HH:mm`으로 표시한다.
+- OpenAPI를 갱신하고 Orval regenerate 후 생성 타입에 날짜·시간 계약이 반영됐는지 확인한다.
+
+### 결과
+
+- PostgreSQL `timestamp`와 Java DTO 타입 불일치를 제거한다.
+- 날짜 손실 없이 당일 취소 필터와 시간 정렬 기준을 유지한다.
+- API 원본과 UI 표시 형식을 분리해 다른 화면에서도 같은 시각을 재사용할 수 있다.
+
+---

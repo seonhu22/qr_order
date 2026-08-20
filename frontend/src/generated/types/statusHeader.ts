@@ -5,9 +5,14 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { LocalTime } from './localTime';
 
-export interface Header {
+export interface StatusHeader {
   sysId?: string;
-  tableInfo?: string;
+  orderNum?: number;
+  tableNum?: number;
   orderDatetime?: string;
+  orderTime?: LocalTime;
+  orderStatus?: string;
+  cancelDatetime?: string;
 }

@@ -131,6 +131,12 @@
   gap: var(--spacing-1);
 }
 
+.order-status-card__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-text);
+}
+
 /* 4개가 한 줄에 딱 맞는 폭을 계산해서(컨테이너 100% 기준) 항상 같은 고정폭으로 쓴다.
    %는 형제 개수가 아니라 컨테이너 기준이라, 1개/3개짜리 줄도 같은 폭을 쓰고 남는 공간은 비워둔다.
    세로 크기는 패딩으로만 키운다. */

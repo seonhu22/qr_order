@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { ORDER_CANCEL_REASON_OTHER_VALUE } from '../constants';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type CancelEditorErrors = {
   reason: boolean;
@@ -17,7 +18,7 @@ type CancelEditorErrors = {
 };
 
 type UseOrderCancelModalFlowParams = {
-  onConfirmCancel: (id: string, reason: string, description: string) => void;
+  onConfirmCancel: (id: string, reason: string, description: string) => Promise<void>;
 };
 
 const INITIAL_ERRORS: CancelEditorErrors = { reason: false, description: false };
@@ -30,6 +31,8 @@ export function useOrderCancelModalFlow({ onConfirmCancel }: UseOrderCancelModal
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isOtherReason = reason === ORDER_CANCEL_REASON_OTHER_VALUE;
 
@@ -40,8 +43,9 @@ export function useOrderCancelModalFlow({ onConfirmCancel }: UseOrderCancelModal
   };
 
   const openCancelModal = (row: OrderBoardRow) => {
-    setTargetRow(row);
+    setTargetRow(cloneOrderBoardRow(row));
     resetForm();
+    setSubmitError(null);
     setIsEditorOpen(true);
   };
 
@@ -73,12 +77,20 @@ export function useOrderCancelModalFlow({ onConfirmCancel }: UseOrderCancelModal
     setIsConfirmOpen(true);
   };
 
-  const confirmCancel = () => {
-    if (!targetRow) return;
-    onConfirmCancel(targetRow.id, reason, isOtherReason ? description.trim() : '');
-    setIsConfirmOpen(false);
-    setIsEditorOpen(false);
-    setIsNoticeOpen(true);
+  const confirmCancel = async () => {
+    if (!targetRow || isPending) return;
+    setIsPending(true);
+    setSubmitError(null);
+    try {
+      await onConfirmCancel(targetRow.id, reason, isOtherReason ? description.trim() : '');
+      setIsConfirmOpen(false);
+      setIsEditorOpen(false);
+      setIsNoticeOpen(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '주문을 취소하지 못했습니다.');
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const closeConfirm = () => setIsConfirmOpen(false);
@@ -98,6 +110,8 @@ export function useOrderCancelModalFlow({ onConfirmCancel }: UseOrderCancelModal
     isEditorOpen,
     isConfirmOpen,
     isNoticeOpen,
+    isPending,
+    submitError,
     openCancelModal,
     closeEditorModal,
     changeReason,

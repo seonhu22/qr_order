@@ -10,6 +10,8 @@ export interface OrderMasterHistoryItem {
   sysId?: string;
   linkSysId?: string;
   tableNum?: string;
+  orderNo?: string;
+  paymentStatus?: string;
   orderStatus?: string;
   orderStatusNm?: string;
   totalPrice?: number;
