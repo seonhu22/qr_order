@@ -1364,6 +1364,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sse/subscribe/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["subscribe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search_combo/common": {
         parameters: {
             query?: never;
@@ -2467,6 +2483,10 @@ export interface components {
             userNm?: string;
             plantCd?: string;
             plantNm?: string;
+        };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
         };
         Combo: {
             code?: string;
@@ -4716,6 +4736,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AdminUserResponse"][];
+                };
+            };
+        };
+    };
+    subscribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
                 };
             };
         };

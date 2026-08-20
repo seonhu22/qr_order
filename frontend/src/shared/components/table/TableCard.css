@@ -223,6 +223,7 @@
 .common-table__col--sm { width: 5.625rem; } /* 90px */
 .common-table__col--md { width: 8rem; }     /* 128px */
 .common-table__col--lg { width: 10rem; }    /* 160px */
+.common-table__col--xl { width: 12rem; }    /* 192px — YYYY-MM-DD HH:mm:ss 등 고정 길이 날짜시간 */
 
 /* 카드 헤더와 테이블 사이 안내문구 (EditableDetailTable table.guideText) */
 .common-code-card__guide-text {
@@ -276,6 +277,11 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* 줄바꿈 없이 한 줄 유지 — 날짜/시간처럼 길이가 고정된 값에 사용 */
+.common-table__cell--nowrap {
+  white-space: nowrap;
 }
 
 /* 사용여부 배지 */

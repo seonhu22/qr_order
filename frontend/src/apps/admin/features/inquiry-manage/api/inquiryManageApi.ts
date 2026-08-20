@@ -18,11 +18,7 @@ import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 export { mapFileResponseToServerFile };
 
-export type InquiryManageResponse = QnaResponse & {
-  insertDatetime?: string;
-};
-
-export function mapToInquiryManageRow(res: InquiryManageResponse, index: number): InquiryManageRow {
+export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryManageRow {
   const answerStatus: InquiryAnswerStatus = res.answerYn === 'Y' ? 'answered' : 'pending';
   return {
     id: res.sysId ?? `inquiry-${index}`,
@@ -32,7 +28,10 @@ export function mapToInquiryManageRow(res: InquiryManageResponse, index: number)
     content: res.qnaDescription ?? '-',
     plant: '-',
     registrant: res.writeUsername ?? '-',
-    registeredAt: formatDateTimeForDisplay(res.insertDatetime) || '-',
+    registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
+    // TODO: 수정일자 — brd_qna에 modify_datetime 컬럼은 있지만(QnaMapper.xml updateQna에서 갱신),
+    // getQna select와 QnaResponse에는 빠져 있어 화면에 내려줄 값이 없다.
+    // 백엔드가 select 목록과 DTO에 modify_datetime을 추가하면 res.modifyDatetime을 매핑한다.
     updatedAt: '-',
     answeredAt:
       answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
