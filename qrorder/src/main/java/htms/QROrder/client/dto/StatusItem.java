@@ -22,13 +22,13 @@ public class StatusItem {
         private String sysId;
         private Integer orderNum;
         private Integer tableNum;
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime orderDatetime;
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime orderDatetime;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime cancelDatetime;
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime cancelDatetime;
     }
 
     @Data
