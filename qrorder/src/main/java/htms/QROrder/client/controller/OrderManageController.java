@@ -27,18 +27,24 @@ public class OrderManageController {
 
     // 주문 이력 조회
     @GetMapping("/history/search")
-    public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus,
+    public OrderHistoryResponse getOrderHistory(@RequestParam (required = false) String orderStatus,
+                                                @RequestParam (required = false) String searchKeyword,
                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                                HttpSession session) {
 
-        return orderHistoryService.getOrderHistory(orderStatus, startDate, endDate);
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return orderHistoryService.getOrderHistory(orderStatus, searchKeyword, startDate, endDate, login.getSysPlantCd());
     }
 
     // 주문 상태 관리
     @GetMapping("/status/search")
-    public List<StatusResponse> getStatus() {
+    public List<StatusResponse> getStatus(HttpSession session) {
 
-        return statusService.getStatus();
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return statusService.getStatus(login.getSysPlantCd());
     }
 
     @PostMapping("/status/cancel_order")
@@ -182,8 +188,8 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/search/cancel_reason")
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId) {
 
-        return statusService.getStatusCancelResponses(statusRequest);
+        return statusService.getStatusCancelResponses(sysId);
     }
 }

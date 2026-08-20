@@ -1,5 +1,6 @@
 package htms.QROrder.client.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ public class PaymentCompleteResponse {
     private Footer footer;
 
     @Data
+    @Schema(name = "PaymentCompleteHeader")
     public static class Header {
         private String sysId;
         private String tableInfo;
@@ -26,6 +28,7 @@ public class PaymentCompleteResponse {
         private String parentDetailSysId;
         private String itemName;
         private Integer qty;
+        private Integer price;
         private String paymentYn;
     }
 
