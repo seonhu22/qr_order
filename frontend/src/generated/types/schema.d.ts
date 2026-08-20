@@ -2161,9 +2161,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2246,12 +2246,10 @@ export interface components {
             orderNum?: number;
             /** Format: int32 */
             tableNum?: number;
-            /** Format: date-time */
-            orderDatetime?: string;
+            orderDatetime?: components["schemas"]["LocalTime"];
             orderTime?: components["schemas"]["LocalTime"];
             orderStatus?: string;
-            /** Format: date-time */
-            cancelDatetime?: string;
+            cancelDatetime?: components["schemas"]["LocalTime"];
         };
         StatusRequest: {
             /** Format: int32 */
@@ -2523,9 +2521,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
