@@ -1364,6 +1364,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sse/subscribe/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["subscribe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search_combo/common": {
         parameters: {
             query?: never;
@@ -2198,6 +2214,8 @@ export interface components {
             itemName?: string;
             /** Format: int32 */
             qty?: number;
+            /** Format: int32 */
+            price?: number;
             paymentYn?: string;
         };
         Footer: {
@@ -2205,7 +2223,7 @@ export interface components {
             /** Format: int32 */
             totalPrice?: number;
         };
-        Header: {
+        PaymentCompleteHeader: {
             sysId?: string;
             tableInfo?: string;
             /** Format: date-time */
@@ -2213,23 +2231,38 @@ export interface components {
         };
         PaymentCompleteRequest: {
             paymentType?: string;
-            header?: components["schemas"]["Header"];
+            header?: components["schemas"]["PaymentCompleteHeader"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
         };
         PaymentNotCompleteRequest: {
-            orderInfo?: components["schemas"]["Header"];
+            orderInfo?: components["schemas"]["PaymentCompleteHeader"];
             unpaidReason?: string;
             unpaidDescription?: string;
+        };
+        StatusHeader: {
+            sysId?: string;
+            /** Format: int32 */
+            orderNum?: number;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: date-time */
+            orderDatetime?: string;
+            orderTime?: components["schemas"]["LocalTime"];
+            orderStatus?: string;
+            /** Format: date-time */
+            cancelDatetime?: string;
         };
         StatusRequest: {
             /** Format: int32 */
             orderNum?: number;
-            header?: components["schemas"]["Header"];
+            header?: components["schemas"]["StatusHeader"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
             cancelReason?: string;
             cancelDescription?: string;
+            cancelDatetime?: components["schemas"]["LocalTime"];
+            cancelType?: string;
         };
         MenuOptionMasterRequest: {
             sysId?: string;
@@ -2269,9 +2302,12 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             menuOptionName?: string;
-            menuOptionPrice?: string;
+            /** Format: int32 */
+            menuOptionPrice?: number;
             menuDescription?: string;
-            maximumNum?: string;
+            /** Format: int32 */
+            maximumNum?: number;
+            defaultYn?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -2448,6 +2484,10 @@ export interface components {
             plantCd?: string;
             plantNm?: string;
         };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
+        };
         Combo: {
             code?: string;
             name?: string;
@@ -2565,7 +2605,7 @@ export interface components {
         StatusItem: {
             /** Format: int32 */
             orderNum?: number;
-            header?: components["schemas"]["Header"];
+            header?: components["schemas"]["StatusHeader"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
         };
@@ -2576,9 +2616,12 @@ export interface components {
         StatusCancelResponse: {
             cancelReason?: string;
             cancelDescription?: string;
+            /** Format: date-time */
+            cancelDatetime?: string;
+            cancelType?: string;
         };
         PaymentCompleteResponse: {
-            header?: components["schemas"]["Header"];
+            header?: components["schemas"]["PaymentCompleteHeader"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
         };
@@ -2599,6 +2642,8 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             tableNum?: string;
+            orderNo?: string;
+            paymentStatus?: string;
             orderStatus?: string;
             orderStatusNm?: string;
             /** Format: int32 */
@@ -2627,9 +2672,12 @@ export interface components {
             sysId?: string;
             linkSysId?: string;
             menuOptionName?: string;
-            menuOptionPrice?: string;
+            /** Format: int32 */
+            menuOptionPrice?: number;
             menuDescription?: string;
-            maximumNum?: string;
+            /** Format: int32 */
+            maximumNum?: number;
+            defaultYn?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -4692,6 +4740,28 @@ export interface operations {
             };
         };
     };
+    subscribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                };
+            };
+        };
+    };
     getSearchCommonCombo: {
         parameters: {
             query: {
@@ -5015,7 +5085,7 @@ export interface operations {
     getStatusCancelResponses: {
         parameters: {
             query: {
-                statusRequest: components["schemas"]["StatusRequest"];
+                sysId: string;
             };
             header?: never;
             path?: never;
@@ -5081,7 +5151,8 @@ export interface operations {
     getOrderHistory: {
         parameters: {
             query: {
-                orderStatus: string;
+                orderStatus?: string;
+                searchKeyword?: string;
                 startDate: string;
                 endDate: string;
             };

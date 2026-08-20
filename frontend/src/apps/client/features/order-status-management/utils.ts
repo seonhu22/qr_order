@@ -39,41 +39,28 @@ export function getOrderBoardStatusLabel(status: OrderBoardStatus): string {
   return ORDER_BOARD_COLUMNS.find((column) => column.status === status)?.label ?? status;
 }
 
-function isToday(value: string): boolean {
-  const target = new Date(value);
-  const now = new Date();
-  return (
-    target.getFullYear() === now.getFullYear() &&
-    target.getMonth() === now.getMonth() &&
-    target.getDate() === now.getDate()
-  );
-}
-
 /**
- * 표기 규칙: 결제상태가 완료(PAID)인 주문은 제외하고, 취소된 주문은 취소 처리한 당일만 표시한다.
+ * 백엔드가 진행 중/취소 상태만 조회하므로 프론트는 날짜로 다시 제한하지 않는다.
+ * 안전장치로 결제 완료(PAID) 주문만 화면에서 제외한다.
  */
 export function filterVisibleOrderBoardRows(rows: OrderBoardRow[]): OrderBoardRow[] {
-  return rows.filter((row) => {
-    if (row.paymentStatus === 'PAID') return false;
-    if (row.orderStatus === 'CANCELLED') {
-      return isToday(row.cancelledAt ?? row.orderDatetime);
-    }
-    return true;
-  });
+  return rows.filter((row) => row.paymentStatus !== 'PAID');
 }
 
 /**
  * 저장된 취소사유를 "취소사유 보기" 모달에 표시할 한 줄짜리 문구로 바꾼다.
  * "기타"인 경우 상세사유를 괄호로 붙여 한 필드에 함께 보여준다(예: "기타 (배송 지연)").
  */
-export function formatOrderCancelReasonDisplay(row: Pick<OrderBoardRow, 'cancelReason' | 'cancelDescription'>): string {
-  const { cancelReason, cancelDescription } = row;
-  if (!cancelReason) return '-';
+export function formatOrderCancelReasonDisplay(
+  row: Pick<OrderBoardRow, 'cancelType' | 'cancelReason' | 'cancelDescription'>,
+): string {
+  const { cancelType, cancelReason, cancelDescription } = row;
+  if (!cancelType) return '-';
 
-  const label = ORDER_CANCEL_REASON_OPTIONS.find((option) => option.value === cancelReason)?.label ?? cancelReason;
-  const description = cancelDescription?.trim();
+  const label = ORDER_CANCEL_REASON_OPTIONS.find((option) => option.value === cancelType)?.label ?? cancelType;
+  const description = cancelReason?.trim() || cancelDescription?.trim();
 
-  if (cancelReason === ORDER_CANCEL_REASON_OTHER_VALUE && description) {
+  if (cancelType === ORDER_CANCEL_REASON_OTHER_VALUE && description) {
     return `${label} (${description})`;
   }
   return label;
@@ -108,9 +95,10 @@ export function calculateMenuItemTotal(menu: OrderBoardMenuItem): number {
   return menu.unitPrice * menu.quantity + optionsTotal;
 }
 
-/** 주문 1건의 총액을 메뉴/옵션 단가 기준으로 계산한다(저장된 합계 필드를 따로 두지 않고 항상 이 값을 쓴다). */
-export function calculateOrderTotal(row: Pick<OrderBoardRow, 'menuItems'>): number {
-  return row.menuItems.reduce((sum, menu) => sum + calculateMenuItemTotal(menu), 0);
+/** 서버 총액을 우선 사용한다. 아직 저장되지 않은 주문 수정 draft만 화면 항목으로 계산한다. */
+export function calculateOrderTotal(row: Pick<OrderBoardRow, 'totalPrice' | 'menuItems'>): number {
+  return row.totalPrice
+    ?? row.menuItems.reduce((sum, menu) => sum + calculateMenuItemTotal(menu), 0);
 }
 
 /** 메뉴 추가 모달에서 카탈로그를 카테고리별로 묶어 보여줄 때 쓴다(처음 등장한 순서를 그대로 유지). */
@@ -137,6 +125,13 @@ export function groupOrderBoardRowsByStatus(rows: OrderBoardRow[]): OrderBoardCo
     label,
     rows: rows
       .filter((row) => row.orderStatus === status)
-      .sort((a, b) => a.orderDatetime.localeCompare(b.orderDatetime)),
+      .sort((a, b) => {
+        if (a.statusChangedAt && b.statusChangedAt) {
+          return a.statusChangedAt.localeCompare(b.statusChangedAt);
+        }
+        if (a.statusChangedAt) return 1;
+        if (b.statusChangedAt) return -1;
+        return a.orderDatetime.localeCompare(b.orderDatetime);
+      }),
   }));
 }

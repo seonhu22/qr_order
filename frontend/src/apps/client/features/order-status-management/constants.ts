@@ -28,6 +28,7 @@ export const ORDER_BOARD_PREV_STATUS: Partial<Record<OrderBoardStatus, OrderBoar
 /** "기타" 선택 시에만 "상세입력" textarea가 추가로 표시된다. */
 export const ORDER_CANCEL_REASON_OTHER_VALUE = 'OTHER';
 
+// TODO(order-cancel-common-code): cancel_type 공통코드 API가 등록되면 정적 목록을 서버 조회로 교체한다.
 export const ORDER_CANCEL_REASON_OPTIONS: SelectOption[] = [
   { value: 'OUT_OF_STOCK', label: '재고품절' },
   { value: 'CUSTOMER_REQUEST', label: '고객 요청' },

@@ -91,6 +91,8 @@ import type { MenuMasterItem } from '../generated/types/menuMasterItem';
 import type { MenuMasterRequest } from '../generated/types/menuMasterRequest';
 import type { MenuDetailRequest } from '../generated/types/menuDetailRequest';
 import type { MenuDetailItem } from '../generated/types/menuDetailItem';
+import { orderStatusHandlers } from '../apps/client/features/order-status-management/mock/orderStatusHandlers';
+import { ORDER_HISTORY_MOCK } from '../apps/client/features/order-history/mock/orderHistoryMock';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -495,6 +497,46 @@ const paymentStatusMasterOverrideHandler = http.get(
     });
 
     return HttpResponse.json(filtered);
+  },
+);
+
+const orderHistoryStatusCode = {
+  RECEIVED: '01',
+  COOKING: '02',
+  SERVED: '03',
+  CANCELLED: '99!',
+} as const;
+
+const orderHistoryOverrideHandler = http.get(
+  '*/api/client/order_manage/history/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const startDate = url.searchParams.get('startDate') ?? '';
+    const endDate = url.searchParams.get('endDate') ?? '';
+    const keyword = url.searchParams.get('searchKeyword')?.trim() ?? '';
+    const status = url.searchParams.get('orderStatus') ?? '';
+
+    const filtered = ORDER_HISTORY_MOCK.filter((row) => {
+      const rowDate = row.orderDatetime.slice(0, 10);
+      return (
+        (!startDate || rowDate >= startDate) &&
+        (!endDate || rowDate <= endDate) &&
+        (!keyword || row.orderNo.includes(keyword) || row.tableNum.includes(keyword)) &&
+        (!status || orderHistoryStatusCode[row.orderStatus] === status)
+      );
+    });
+
+    return HttpResponse.json({
+      orderMasterHistory: filtered.map((row) => ({
+        sysId: row.id,
+        orderNo: row.orderNo,
+        tableNum: row.tableNum,
+        orderStatus: orderHistoryStatusCode[row.orderStatus],
+        paymentStatus: row.paymentStatus === 'PAID' ? 'Y' : 'N',
+        orderStartDatetime: row.orderDatetime.replace('T', ' '),
+      })),
+      orderDetailHistory: [],
+    });
   },
 );
 
@@ -1294,6 +1336,7 @@ const settingsHandlers = [
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
   ...authHandlers,
+  ...orderStatusHandlers,
   signupBusinessVerificationOverrideHandler,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
@@ -1303,6 +1346,7 @@ export const handlers = [
   messageOverrideHandler,
   messageSaveOverrideHandler,
   clientUserOverrideHandler,
+  orderHistoryOverrideHandler,
   paymentStatusMasterOverrideHandler,
   paymentStatusDetailOverrideHandler,
   settlementOverrideHandler,

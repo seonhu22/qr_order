@@ -52,7 +52,7 @@ export function OrderHistoryTable({ rows, isLoading, isError, emptyMessage }: Or
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>
-                    <td className="common-table__mono">{row.orderNo}</td>
+                    <td className="common-table__mono common-table__cell--center">{row.orderNo}</td>
                     <td className="common-table__cell--center">{row.tableNum}</td>
                     <td className="common-table__cell--center">
                       <span

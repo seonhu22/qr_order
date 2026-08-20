@@ -1,12 +1,12 @@
-import type { InquiryManageResponse } from '../api/inquiryManageApi';
+import type { QnaResponse } from '@/generated/types/qnaResponse';
 
-export const INQUIRY_MANAGE_MOCK_ROWS: InquiryManageResponse[] = [
+export const INQUIRY_MANAGE_MOCK_ROWS: QnaResponse[] = [
   {
     sysId: '1',
     qnaTitle: '결제 오류가 발생했습니다',
     writeUsername: 'PC002',
     qnaDescription: 'QR 코드 결제 시 오류가 반복적으로 발생합니다. 확인 부탁드립니다.',
-    insertDatetime: '2026-03-10 09:00:00',
+    writeDatetime: '2026-03-10 09:00:00',
     fileUlid: 'file-uuid-qna-1',
     answerYn: 'Y',
     answerUserName: '관리자',
@@ -18,7 +18,7 @@ export const INQUIRY_MANAGE_MOCK_ROWS: InquiryManageResponse[] = [
     qnaTitle: '메뉴 등록 방법 문의',
     writeUsername: 'PC002',
     qnaDescription: '신규 메뉴를 등록하는 방법을 알고 싶습니다.',
-    insertDatetime: '2026-04-01 09:00:00',
+    writeDatetime: '2026-04-01 09:00:00',
     answerYn: 'N',
     answerDatetime: undefined,
     answerDescription: '',
@@ -28,7 +28,7 @@ export const INQUIRY_MANAGE_MOCK_ROWS: InquiryManageResponse[] = [
     qnaTitle: '라이센스 갱신 문의',
     writeUsername: 'PC002',
     qnaDescription: '라이센스 만료일이 다가오는데 갱신 절차가 어떻게 되나요?',
-    insertDatetime: '2026-04-05 09:00:00',
+    writeDatetime: '2026-04-05 09:00:00',
     answerYn: 'N',
     answerDatetime: undefined,
     answerDescription: '',
@@ -38,7 +38,7 @@ export const INQUIRY_MANAGE_MOCK_ROWS: InquiryManageResponse[] = [
     qnaTitle: '프린터 연결 문제',
     writeUsername: 'PC002',
     qnaDescription: '영수증 프린터가 연결되지 않습니다.',
-    insertDatetime: '2026-04-08 09:00:00',
+    writeDatetime: '2026-04-08 09:00:00',
     answerYn: 'Y',
     answerUserName: '관리자',
     answerDatetime: '2026-04-09 10:30:00',
