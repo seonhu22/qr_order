@@ -5,8 +5,7 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { StatusRequest } from './statusRequest';
 
 export type GetStatusCancelResponsesParams = {
-statusRequest: StatusRequest;
+sysId: string;
 };

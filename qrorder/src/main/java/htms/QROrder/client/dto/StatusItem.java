@@ -1,6 +1,7 @@
 package htms.QROrder.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,15 +16,18 @@ public class StatusItem {
     private Footer footer;
 
     @Data
+    @Schema(name = "StatusHeader")
     public static class Header {
         private String sysId;
         private Integer orderNum;
         private Integer tableNum;
-        @JsonFormat(pattern = "HH:mm")
-        private LocalTime orderDatetime;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime orderDatetime;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime cancelDatetime;
     }
 
     @Data
@@ -34,6 +38,7 @@ public class StatusItem {
         private String parentDetailSysId;
         private String itemName;
         private Integer qty;
+        private Integer price;
         private String paymentYn;
     }
 

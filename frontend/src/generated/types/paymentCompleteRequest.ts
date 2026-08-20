@@ -5,13 +5,13 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { Header } from './header';
+import type { PaymentCompleteHeader } from './paymentCompleteHeader';
 import type { Body } from './body';
 import type { Footer } from './footer';
 
 export interface PaymentCompleteRequest {
   paymentType?: string;
-  header?: Header;
+  header?: PaymentCompleteHeader;
   body?: Body[];
   footer?: Footer;
 }

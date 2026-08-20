@@ -7,10 +7,11 @@
 
 ## 표기 규칙
 
-- **결제완료 제외**: 결제상태가 `PAID`(완료)인 주문은 어떤 컬럼에도 표시하지 않는다. 결제 처리 모달에서 "결제완료"를 누르면 보드에서 즉시 사라진다.
+- **결제완료 제외**: 조회 응답의 결제상태가 `PAID`(완료)인 주문은 어떤 컬럼에도 표시하지 않는다. 현재 결제완료 저장 API는 연동 전이므로 모달 조작만으로 카드를 제거하지 않는다.
 - **취소는 당일만 표시**: 취소(`CANCELLED`) 컬럼은 취소 처리 시각(`cancelledAt`)이 오늘 날짜인 주문만 보여준다. 어제 이전에 취소된 주문은 보드에서 제외된다.
 - 컬럼 헤더의 숫자는 위 두 규칙을 적용하고 남은(=화면에 실제로 보이는) 카드 수다.
-- 카드는 각 컬럼 내에서 주문 접수 시각(`orderDatetime`) 오름차순으로 정렬한다.
+- 최초 조회 카드는 각 컬럼 안에서 주문 접수 시각(`orderDatetime`) 오름차순으로 정렬한다.
+- 상태를 변경해 다른 컬럼으로 이동한 카드는 대상 컬럼 맨 아래에 배치한다. 이동 카드끼리는 상태 변경 시각(`statusChangedAt`) 오름차순으로 정렬한다. 현재 Mock API가 이 시각을 기록하며, 실제 API 전환 시 같은 의미의 응답 필드가 필요하다.
 
 ## 컬럼별 버튼과 동작
 
@@ -26,21 +27,21 @@
 | 서빙완료 | 이전 | `orderStatus`를 `COOKING`으로 되돌림 |
 | 서빙완료 | 수정/취소 | 접수 컬럼과 동일 |
 | 취소 | 취소사유 | 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다 (아래 "취소사유 보기" 참고) |
-| 취소 | 삭제(휴지통 아이콘) | 카드를 로컬 state(`rows`)에서만 제거한다. 실제 데이터는 바뀌지 않아 "초기화"를 누르면 다시 보인다 |
+| 취소 | 삭제(휴지통 아이콘) | 주문 id를 브라우저 메모리의 숨김 목록에 추가해 현재 화면에서만 감춘다. 서버 데이터는 삭제하지 않는다 |
 
-상태 변경 버튼(조리시작/서빙완료/이전)은 모달 없이 클릭 즉시 반영된다.
+상태 변경 버튼(조리시작/서빙완료/이전)은 모달 없이 API를 호출한다. 성공 응답을 받은 뒤 목록 쿼리를 무효화하고 다시 조회한 결과로 화면을 갱신한다. 낙관적 업데이트는 사용하지 않는다.
 
 ## 주문 취소 처리 (모달 흐름)
 
 `useOrderCancelModalFlow` (위치: `features/order-status-management/hooks/useOrderCancelModalFlow.ts`)가 3단계를 관리한다.
 
 1. **취소사유 입력** — `WrapperModal`. 안내문 2줄 + 취소사유 콤보(필수) + "기타" 선택 시에만 나타나는 상세입력 textarea(필수). "확인"을 누르면 유효성 검사를 통과해야 다음 단계로 넘어간다.
-2. **취소 확인** — `WrapperModal`(layout="default", title="알림") + `.order-cancel-modal__notice` 본문("주문을 취소하시겠습니까?" + "취소된 주문은 되돌릴 수 없습니다."). `ConfirmModal`(layout="notice", 중앙 정렬 아이콘) 대신 1단계 모달과 같은 좌측 정렬 형태를 그대로 재사용했다. "확인"을 누르면 실제로 주문 상태를 `CANCELLED`로 바꾸고 1단계 모달도 함께 닫은 뒤 3단계를 연다. "닫기"를 누르면 이 모달만 닫히고 1단계 모달은 그대로 열려 있는다(입력값 유지).
+2. **취소 확인** — `WrapperModal`(layout="default", title="알림") + `.order-cancel-modal__notice` 본문("주문을 취소하시겠습니까?" + "취소된 주문은 되돌릴 수 없습니다."). `ConfirmModal`(layout="notice", 중앙 정렬 아이콘) 대신 1단계 모달과 같은 좌측 정렬 형태를 그대로 재사용했다. "확인"을 누르면 취소 API를 호출한다. 성공할 때만 모달을 닫고 완료 안내를 열며, 실패하면 입력값과 두 모달을 유지해 다시 시도할 수 있게 한다.
 3. **취소 완료 안내** — `SimpleDefaultModal`(기본 모달, 버튼 1개). 닫으면 전체 흐름 상태가 초기화된다.
 
 취소사유 옵션은 `constants.ts`의 `ORDER_CANCEL_REASON_OPTIONS`에서 관리하며, 백엔드에 사유를 선택지로 제공하는 API가 없어 임의로 정의했다(재고품절/고객 요청/주문 오류/영업 종료/기타). 확정된 취소 사유 목록이 정해지면 이 배열만 교체하면 된다.
 
-선택한 사유/상세입력은 `OrderBoardRow.cancelReason`/`cancelDescription`에 저장되며, "취소사유" 보기 모달에서 그대로 사용한다.
+선택한 사유와 상세입력은 취소 API 요청의 `cancelReason`/`cancelDescription`으로 전달한다. 처리 중에는 같은 주문의 중복 동작을 막는다.
 
 ## 취소사유 보기 (읽기 전용 모달)
 
@@ -48,11 +49,14 @@
 
 - 주문번호·취소일시는 `TextInput`, 취소사유는 길어질 수 있어 `TextareaInput`(3행)에 각각 `readOnly`만 주고 그대로 렌더한다. 별도 "상세사유" 필드는 두지 않고, `formatOrderCancelReasonDisplay`가 코드값을 한글 라벨로 바꾼 뒤 "기타"일 때만 상세사유를 괄호로 붙여 취소사유 한 줄에 함께 보여준다(예: "기타 (배송 지연)").
 - "취소일시"는 카드의 "취소시간 HH:MM"(`OrderStatusCard.tsx`)과 달리 날짜까지 보여준다 — `formatOrderBoardDateTime`(`utils.ts`)이 `row.cancelledAt`(없으면 `orderDatetime`)을 "YYYY-MM-DD HH:MM"으로 바꾼다. 날짜+시간을 함께 보여줄 때는 이 코드베이스의 "시작일시"/"종료일시" 컨벤션을 따라 "~일시"로 라벨을 짓는다(시간만 보여주는 카드 쪽은 "주문시간"/"취소시간"으로 유지).
-- 상태는 `useOrderStatusBoardPage`의 `cancelReasonView`(`{ row, close }`)가 관리하며, 별도 모달 흐름 훅 없이 선택된 행 하나만 로컬 state로 들고 있는다(취소 처리 흐름처럼 여러 단계가 없어서 단순 open/close로 충분하다).
+- 모달을 열 때 선택한 카드와 취소사유 응답을 깊은 복사한 스냅샷으로 보관한다. Polling 결과가 갱신돼도 열려 있는 모달의 내용은 자동으로 바뀌지 않는다.
+- 취소사유는 Orval 생성 GET 함수를 필요할 때만 호출한다. 현재 생성 타입이 중첩된 `header.sysId`를 충분히 표현하지 못해 feature-local wrapper에서 호환 처리하며, OpenAPI 수정과 regenerate 후 제거한다.
 
 ### 취소 컬럼 카드 삭제(화면에서만)
 
-"취소사유" 버튼 오른쪽에 정사각형 휴지통 아이콘 버튼(`.order-status-card__dismiss`, `variant="icon"` + `i-trash`)을 둔다. 누르면 바로 지우지 않고 `DeleteConfirmModal`을 먼저 띄운다 — 백엔드 데이터를 진짜로 지우는 게 아니라서 다른 화면의 "삭제하면 복구할 수 없습니다." 문구([`docs/components/Modal.md` #16](../components/Modal.md))를 그대로 쓰지 않고, `description`에 `\n`으로 줄바꿈한 두 줄("이 카드를 화면에서 삭제합니다." / "실제 주문 데이터는 삭제되지 않습니다.")과 `helperText`("정말 삭제하시겠습니까?")로 화면에서만 지워진다는 점을 명시했다(`\n` 줄바꿈은 [`docs/components/Modal.md` #17](../components/Modal.md) 패턴). "확인"을 누르면 `dismissConfirm.confirm` → `useOrderStatusBoardPage.ts`의 `confirmDismiss`가 `rows`(로컬 state)에서 그 행을 `filter`로 제거한다. 백엔드 삭제 API 호출은 없고, "초기화" 버튼을 누르면 조회 결과로 되돌아가 다시 나타난다. 확인을 다 마친 취소 주문을 화면에서만 정리하고 싶을 때 쓰는 용도다.
+"취소사유" 버튼 오른쪽에 정사각형 휴지통 아이콘 버튼(`.order-status-card__dismiss`, `variant="icon"` + `i-trash`)을 둔다. 누르면 바로 지우지 않고 `DeleteConfirmModal`을 먼저 띄운다 — 백엔드 데이터를 진짜로 지우는 게 아니라서 다른 화면의 "삭제하면 복구할 수 없습니다." 문구([`docs/components/Modal.md` #16](../components/Modal.md))를 그대로 쓰지 않고, `description`에 `\n`으로 줄바꿈한 두 줄("이 카드를 화면에서 삭제합니다." / "실제 주문 데이터는 삭제되지 않습니다.")과 `helperText`("정말 삭제하시겠습니까?")로 화면에서만 지워진다는 점을 명시했다(`\n` 줄바꿈은 [`docs/components/Modal.md` #17](../components/Modal.md) 패턴).
+
+"확인"을 누르면 주문 id를 `dismissedOrderIds: Set<string>`에 추가한다. 조회 데이터와 React Query 캐시는 수정하지 않고 렌더링할 때 해당 id만 제외하므로 Polling과 수동 새로고침 후에도 같은 브라우저 화면에서는 계속 숨겨진다. `localStorage`를 사용하지 않으므로 페이지 새로고침·재진입 시 숨김 목록은 초기화된다.
 
 확인 대상은 `dismissConfirm.targetId`(`useOrderStatusBoardPage.ts`) 하나만 들고 있는다 — 취소사유 보기(`cancelReasonView`)와 같은 단순 open/close 패턴이다.
 
@@ -62,21 +66,23 @@
 
 ## 결제 처리 (모달 흐름)
 
-`useOrderPaymentModalFlow` (위치: `features/order-status-management/hooks/useOrderPaymentModalFlow.ts`)가 처리한다. 취소 흐름과 달리 "미결제"에는 별도 확인 단계가 없다 — 사유 입력 후 "확인"을 누르면 바로 처리되고 완료 안내가 뜬다.
+> 현재 결제 대상 선택·영수증·미결제 사유 입력 UI까지만 유지한다. 최종 결제완료/미결제 저장은 백엔드 계약 연동 전까지 비활성화되어 있으며 보드 데이터를 변경하지 않는다.
+
+`useOrderPaymentModalFlow` (위치: `features/order-status-management/hooks/useOrderPaymentModalFlow.ts`)가 모달 단계와 입력 draft를 관리한다.
 
 1. **결제완료/미결제/닫기 선택** — `WrapperModal`(size="sm", Figma 360px와 동일). 버튼이 3개라 `WrapperModal`의 기본 footer(최대 2개)를 쓰지 않고, `children` 안에 버튼 3개(`결제완료`=primary, `미결제`=neutral, `닫기`=outline)를 직접 두고 `.order-payment-modal__actions`로 footer처럼 보이게 스타일링했다. 이 모달은 `primaryAction`/`secondaryAction`을 아예 전달하지 않는다. "미결제"는 처음엔 danger(빨강)였다가, 수정 모달의 메뉴 줄 "취소" 버튼과 색을 맞춰달라는 요청으로 `neutral`로 바꿨다.
    - **결제완료**: 선택 모달을 닫고 2-A단계(영수증 확인) 모달을 연다.
    - **미결제**: 선택 모달을 닫고 2-B단계(미결제사유 입력) 모달을 연다.
-2-A. **결제완료 영수증 확인** — `WrapperModal`(size="md", Figma 480px와 동일). Figma 디자인은 **같은 테이블의 결제 대상 주문을 전부 합친 영수증**이다(주문 단위가 아니라 테이블 단위 결제). `getPayableOrdersForTable(rows, tableNum)`(위치: `utils.ts`)이 클릭한 카드와 같은 `tableNum`이면서 `orderStatus === 'SERVED'`이고 아직 `paymentStatus !== 'PAID'`인 주문을 전부 모아 영수증에 렌더한다(접수/조리중 주문은 아직 결제 대상이 아니라서 제외). "확인"을 누르면 모아둔 주문 전체를 한 번에 `PAID`로 바꾸고 완료 안내(`SimpleDefaultModal`, "결제완료 되었습니다.")를 연다. "닫기"는 흐름 전체를 초기화한다(1단계로 되돌아가지 않음).
+2-A. **결제완료 영수증 확인** — `WrapperModal`(size="md", Figma 480px와 동일). Figma 디자인은 **같은 테이블의 결제 대상 주문을 전부 합친 영수증**이다(주문 단위가 아니라 테이블 단위 결제). `getPayableOrdersForTable(rows, tableNum)`(위치: `utils.ts`)이 클릭한 카드와 같은 `tableNum`이면서 `orderStatus === 'SERVED'`이고 아직 `paymentStatus !== 'PAID'`인 주문을 전부 모아 영수증에 렌더한다(접수/조리중 주문은 아직 결제 대상이 아니라서 제외). 최종 "확인"은 API 계약 연동 전까지 안내만 표시하며 결제상태를 바꾸지 않는다.
    - 주문번호 옆에 그 주문의 칸반 상태를 배지로 보여준다(`.order-status-badge`, `getOrderBoardStatusLabel`/`ORDER_BOARD_STATUS_BADGE_CLASS` — `utils.ts`/`constants.ts`). 색상은 칸반 컬럼 숫자 라벨(`.order-status-column__count`)과 동일하게 접수=info/조리중=warning/서빙완료=success/취소=error를 그대로 맞췄다. 이 영수증은 `getPayableOrdersForTable`이 이미 `SERVED`만 모아서 항상 같은 배지가 찍히지만, 주문 수정 모달과 시각 언어를 통일하기 위해 동일하게 표시한다.
    - 각 메뉴/옵션 줄은 Figma와 동일하게 "메뉴명+수량 / 수량 / 단가 / 금액(수량×단가)" 4열로 보여준다(`.order-payment-receipt__line`, CSS grid). 이 때문에 `OrderBoardMenuItem`/`OrderBoardOptionItem`에 `unitPrice`(단가)가 필요해졌고, 주문 총액은 더 이상 저장값이 아니라 항상 `calculateOrderTotal`(`utils.ts`)로 메뉴/옵션 단가에서 계산한다 — 카드(`OrderStatusCard`)도 같은 함수를 쓴다. 저장된 `totalPrice` 필드는 단가와 어긋날 수 있어 타입에서 제거했다.
    - 주문이 많아 모달이 넘치면 "{테이블}번 테이블" 제목과 맨 아래 "총 주문건/총 주문메뉴/총합" 요약은 고정해서 항상 보이고, 그 사이의 주문 내역(`.order-payment-receipt__order-list`)만 내부 스크롤된다. `.order-payment-receipt`/`.order-payment-receipt__order-list`가 `flex: 1 1 auto; min-height: 0`으로 `.base-modal__content`의 flex 체인([`docs/components/Modal.md` #23](../components/Modal.md))을 이어받아 모달의 실제 남는 공간만 채우고, `max-height: min(45vh, 22rem)`은 항목이 적어 공간이 남을 때 지나치게 늘어나지 않게 막는 상한선으로만 둔다.
 2-B. **미결제사유 입력** — `WrapperModal`(size="md"). 안내문 2줄 + 미결제사유 콤보(필수) + "기타" 선택 시에만 나타나는 상세입력 textarea(필수). 취소 처리의 1단계와 동일한 구조다. **결제완료와 달리 미결제는 클릭한 카드 1건에만 적용된다** — 같은 테이블의 다른 주문에 영향을 주지 않는다(Figma에 미결제의 테이블 묶음 처리가 명시돼 있지 않아 단일 주문 단위로 유지).
-3. **확인** → 유효성 검사를 통과하면 바로 `paymentStatus`를 `UNPAID`로 바꾸고(취소와 달리 중간 확인 모달 없음) 미결제사유 입력 모달을 닫은 뒤 완료 안내(`SimpleDefaultModal`, "미결제 처리되었습니다.")를 연다.
+3. **확인** → 유효성 검사는 수행하지만, 최종 미결제 저장은 API 계약 연동 전까지 안내만 표시하고 `paymentStatus`를 바꾸지 않는다.
 
 미결제사유 옵션은 `constants.ts`의 `ORDER_UNPAID_REASON_OPTIONS`에서 관리하며(카드 단말기 오류/고객 부재/결제 거절/추후 결제 예정/기타), 취소사유와 마찬가지로 백엔드에 확정된 목록이 없어 임의로 정의했다.
 
-선택한 사유/상세입력은 `OrderBoardRow.unpaidReason`/`unpaidDescription`에 저장된다. 현재는 보여주는 화면이 없지만(취소사유처럼 "미결제사유 보기" 버튼이 아직 없음), 입력 자체는 의미가 있는 데이터라 저장은 해둔다.
+선택한 사유와 상세입력은 모달 draft로만 유지한다. 백엔드 계약 연동 후 미결제 요청의 `unpaidReason`/`unpaidDescription`으로 전달해야 한다.
 
 mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확인할 수 있도록 4번 테이블(1건, `order-005`) / 2번 테이블(2건, `order-003`,`order-023`) / 5번 테이블(3건, `order-004`,`order-021`,`order-022`)을 일부러 넣어뒀다.
 
@@ -85,6 +91,8 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 이 결제 선택 모달이 처음으로 `primaryAction`/`secondaryAction`을 둘 다 전달하지 않는 케이스였다. 기존 `WrapperModal`은 액션이 없어도 `<footer>`를 항상 렌더해서 빈 테두리 박스가 본문 아래에 남는 문제가 있었다 — `WrapperModal.tsx`에서 `hasPrimaryAction || hasSecondaryAction`일 때만 `<footer>`를 렌더하도록 수정했다. 다른 화면은 전부 액션을 최소 1개 전달하고 있어 동작에 영향이 없다.
 
 ## 주문 수정 (모달 흐름)
+
+> 현재 테이블별 주문 편집·메뉴/옵션 추가 draft UI까지만 유지한다. 최종 저장은 백엔드 계약 연동 전까지 비활성화되어 있으며 보드 데이터를 변경하지 않는다.
 
 `useOrderEditModalFlow` (위치: `features/order-status-management/hooks/useOrderEditModalFlow.ts`)가 처리한다. 결제 처리와 마찬가지로 **테이블 단위**로 묶어서 보여주지만, 결제와 달리 상태 제한이 없다 — `getEditableOrdersForTable(rows, tableNum)`(`utils.ts`)이 같은 테이블에서 취소·결제완료되지 않은 주문(접수/조리중/서빙완료 전부)을 모은다.
 
@@ -105,9 +113,8 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
    - **`multi`**(예: "추가옵션") — 옵션별로 수량을 따로 선택한다. 처음엔 카탈로그처럼 "추가" 버튼(`tinted`)만 있고, 누르면 +/- 스테퍼(`.order-option-picker__stepper`)로 바뀌어 수량을 조절한다(`editModal.changeOptionPickerOptionQuantity`). 0개로 내려가면 다시 "추가" 버튼으로 돌아간다(미선택).
    - 맨 아래 "주문 수량" 박스(`.order-option-picker__quantity-box`)는 고른 메뉴 자체의 수량(`editModal.optionPicker.quantity`)을 +/- 스테퍼(`variant="primary"`, 카테고리 옵션의 `tinted` 스테퍼와 색으로 구분)로 조절한다 — "동일한 옵션으로 메뉴가 추가됩니다" 안내문처럼, 옵션별 수량과는 별개로 **이 옵션 조합을 가진 메뉴를 몇 개 추가할지**를 정하는 값이다.
    - "확인"을 누르면 (옵션 조합이 매번 달라질 수 있어) **항상 새 줄로** 메뉴 추가의 미리보기에 들어간다(옵션 없는 메뉴처럼 합치지 않음). 미리보기에 들어가는 옵션 목록은 single 카테고리에서 선택된 옵션(수량 1) + multi 카테고리에서 수량이 1개 이상인 옵션을 합친 것이다. "닫기"는 아무것도 추가하지 않고 메뉴 목록으로 돌아간다.
-4. **수정 확인** — 취소 확인과 동일한 패턴: `WrapperModal`(layout="default", title="알림") + `.order-cancel-modal__notice` 본문("주문수정 하시겠습니까?" + "수정하시면 이전 단계로 되돌릴 수 없습니다."). "확인"을 누르면 그 시점에 메뉴 줄을 전부 취소해 메뉴가 0개가 된 주문을 자동으로 `orderStatus: 'CANCELLED'`로 전환하고(별도 취소사유 없이 — 수정 흐름에서 발생한 취소라 사유 입력을 다시 요구하지 않는다), `onConfirmEdit`으로 실제 보드 데이터에 반영한 뒤 1단계 모달도 같이 닫고 5단계를 연다. "닫기"는 이 단계만 닫고 1단계(draft)는 그대로 열려 있는다 — 취소 처리 흐름과 동일한 패턴이다.
-   - 조리시작/서빙완료/이전 버튼처럼 변경된 카드는 잠깐 배경이 강조된다(`.order-status-card--moved`, `order-status-card-flash` 1.2초 애니메이션). 주문 수정은 한 번에 여러 행(기존 주문 수정 + "메뉴 추가"로 생긴 새 주문)이 바뀔 수 있어, `lastMovedIds`(`useOrderStatusBoardPage.ts`)는 단일 id가 아니라 배열로 관리하고 `executeEditCommit`이 `finalizedOrders`의 id 전체를 강조 대상으로 넘긴다.
-5. **수정 완료 안내** — `SimpleDefaultModal`(기본 모달, 버튼 1개). "수정되었습니다." 닫으면 전체 흐름 상태가 초기화된다.
+4. **수정 확인** — 취소 확인과 동일한 패턴의 확인 모달을 연다. 현재 "확인"은 API 계약 연동 전 안내만 표시하며 실제 보드 데이터에는 반영하지 않는다. "닫기"는 이 단계만 닫고 1단계 draft를 유지한다.
+5. **연동 대기 안내** — 최종 저장 대신 API 연동 전임을 알리고 보드 데이터와 draft를 확정하지 않는다.
 
 ### 이탈방지 (주문 수정 / 메뉴 추가 / 옵션 추가)
 
@@ -175,48 +182,63 @@ width: calc(
 
 패딩(`--spacing-6`) 2번 + 줄높이(`font-size × line-height`) + 테두리(`--border-1`) 2번 — `outline` 버튼 1개가 실제로 차지하는 세로 크기를 그대로 재현한 값이다. stretch/aspect-ratio에 의존하지 않으므로 어떤 화면 폭에서도 항상 정확한 정사각형이 나온다.
 
-## 실시간 동기화 표시
+## React Query Polling
 
-헤더 좌측에 "실시간 동기화" 배지가 있다(`OrderStatusManagementHeader.tsx`). `isConnected?: boolean`(기본값 `true`) prop으로 연결/실패 두 상태를 토글할 수 있도록 컴포넌트는 미리 만들어뒀다 — `false`면 텍스트가 "실시간 동기화 실패"로 바뀌고, 점과 글자 색이 `.order-status-header__sync--error`(`--color-status-error-default`/`--color-status-error-text`)로 바뀐다.
+SSE는 보류하고 React Query Polling을 사용한다. 주문 목록 쿼리의 운영 기준은 다음과 같다.
 
-백엔드에 WebSocket/SSE가 아직 없어 `isConnected`를 실제로 바꿔줄 연결 상태 소스가 없고, 현재 `OrderStatusManagementPage.tsx`는 이 prop을 넘기지 않아 항상 기본값(`true`, 연결됨)으로만 보인다. 실시간 연동이 추가되면 연결 성공/실패 이벤트를 받아 `isConnected`에 연결하기만 하면 된다.
+- 화면이 활성화된 동안 5초마다 조회한다.
+- 백그라운드 탭에서는 Polling하지 않는다.
+- 창에 다시 포커스하면 즉시 다시 조회한다.
+- 헤더의 새로고침 버튼으로 수동 조회할 수 있다.
+- 최초 조회 실패는 보드 대신 오류 화면을 보여준다. 이미 데이터가 있는 상태의 갱신 실패는 기존 카드를 유지하고 헤더에 실패 상태와 다시 시도 수단을 보여준다.
+- 자동 재시도는 사용하지 않는다. 고정 Polling 주기와 중복 요청되는 상황을 피하기 위해서다.
 
-## 데이터 소스
+헤더는 정상일 때 `실시간 동기화(5초)`, 요청 중에는 `동기화 중`, 최근 갱신에 실패하면 오류 상태를 표시한다. 이는 연결형 실시간 통신이 아니라 주기 조회 상태를 뜻한다.
 
-백엔드 주문 상태 보드 API가 아직 없어 `features/order-status-management/mock/orderStatusBoardMock.ts`의 mock 데이터를 사용한다. 상태 변경은 React Query 캐시가 아니라 페이지 로컬 state(`useOrderStatusBoardPage`)에서 처리하며, "초기화" 버튼을 누르면 mock 조회 결과로 되돌린다. 실제 API가 확정되면 `api/orderStatusBoardApi.ts`의 `queryFn`을 교체한다.
+## 서버 응답 기준 상태 변경
 
-## Mock → 실제 API 전환 가이드
+조리시작·서빙완료·이전·취소는 Orval 생성 mutation 함수를 사용한다.
 
-이 페이지는 전부 mock + 로컬 state로 동작한다. 백엔드 API가 준비되면 아래 내용을 참고해서 손대야 한다. **`generated/order-manage-controller`에 이미 관련 API가 생성돼 있지만, 전부 주문 1건을 `header`/`body`/`footer`로 통째로 echo-back 받는 구조라 이 보드의 가벼운 행 데이터(`OrderBoardRow`)만으로는 바로 연동할 수 없다** — 그래서 이번 단계는 의도적으로 mock을 유지했다.
+1. 진행 중인 목록 조회를 취소한다.
+2. 상태 변경 API를 호출한다.
+3. 응답의 성공 여부를 확인한다.
+4. 주문 목록 쿼리를 무효화한다.
+5. 다시 조회한 서버 결과로 카드를 이동한다.
 
-### 이미 존재하는 관련 API와 우리 필드의 대응 관계
+클라이언트가 먼저 카드를 옮기는 낙관적 업데이트는 사용하지 않는다. 처리 중인 주문 id를 별도로 관리해 해당 카드에 `aria-busy`를 표시하고 같은 주문의 중복 요청을 막는다. 실패하면 카드는 원래 컬럼에 남고 카드 단위 오류를 표시한다.
 
-| 화면 동작 | 후보 API | 요청/응답 타입 | 비고 |
-|---|---|---|---|
-| 주문 취소 처리(확인) | `cancelOrder` (`POST .../status/cancel_order`) | `StatusRequest{cancelReason, cancelDescription, header, body, footer}` | 필드명이 우리 `OrderBoardRow.cancelReason`/`cancelDescription`과 그대로 일치한다. |
-| 취소사유 보기(조회) | `getStatusCancelResponses` (`GET .../status/search/cancel_reason`) | params `GetStatusCancelResponsesParams` → `StatusCancelResponse{cancelReason, cancelDescription}` | 주문 1건의 취소사유 조회로 추정. "취소사유 보기" 모달에 바로 쓸 수 있을 것으로 보인다. |
-| 미결제 처리(확인) | `paymentNotComplete` 추정 (`PaymentNotCompleteRequest{orderInfo, unpaidReason, unpaidDescription}`) | — | **필드명이 우리 `unpaidReason`/`unpaidDescription`과 정확히 일치한다** — 우연이 아니라 백엔드 스펙을 따라간 결과로 보고 그대로 매핑하면 된다. `orderInfo: Header`에 어떤 식별자가 들어가는지만 확인하면 된다. |
-| 결제완료 처리(확인) | `paymentComplete` (`POST .../status/payment_complete`) | `PaymentCompleteRequest{paymentType, header, body, footer}` | `header`(`{sysId, tableInfo, orderDatetime}`)가 주문 1건 단위인지 테이블 세션 단위인지 백엔드에 꼭 확인해야 한다(아래 "확인이 필요한 것" 참고). |
-| 결제완료 영수증 조회 | `getPaymentComplete` (`GET .../status/get_payment_complete`, params `{ sysId }`) | 응답 `PaymentCompleteResponse{header, body: Body[], footer}` | `Body{linkSysId, rowType, detailSysId, parentDetailSysId, itemName, qty, paymentYn}` — `rowType`으로 메뉴/옵션을 구분하고 `parentDetailSysId`로 옵션을 메뉴에 연결하는 구조로 보인다(우리 `menuItems[].options[]`와 같은 모양). 영수증 모달(`order-payment-receipt`)을 만들 때 참고할 응답이 이미 있다는 뜻이다. |
-| 주문 수정(메뉴 줄 취소) | 후보 없음 | — | `cancelOrder`는 주문 전체 취소용이라 메뉴 줄 단위 취소 API는 따로 찾지 못했다. `changeOrder`(`POST .../status` 추정, body `string[]`)가 후보일 수 있어 백엔드와 확인이 필요하다. |
-| 메뉴 추가(새 주문 등록) | 후보 없음 (일반 주문 등록 API 재사용 추정) | — | 고객용 주문 등록 플로우가 따로 있다면 그 API를 재사용하는 게 맞을 수 있다 — order-manage-controller 안에서는 별도 API를 찾지 못했다. |
+## 상태 수명 분리
 
-### 확인이 필요한 것 (배포 전 백엔드와 맞춰야 함)
+- **서버 상태**: 주문 목록과 상태 변경 결과는 React Query가 관리한다.
+- **모달 스냅샷**: 열린 모달의 주문·취소사유는 깊은 복사본으로 고정한다. Polling이 실행돼도 사용자가 읽거나 입력 중인 모달을 자동 변경하지 않는다.
+- **화면 숨김 상태**: 취소 카드 id는 컴포넌트 메모리의 `Set`으로 관리한다. 서버·캐시·`localStorage`에는 저장하지 않는다.
 
-- **`getPaymentComplete`의 `sysId`가 주문 1건인지, 테이블 결제 세션인지**: Figma 영수증이 같은 테이블의 주문 여러 건(`#0008`, `#0010`)을 합쳐서 보여주므로, `sysId`가 "테이블 결제 세션"이라면 백엔드가 이미 묶음 응답을 주는 것이고, 우리 `getPayableOrdersForTable` 클라이언트 필터링 로직은 그대로 들어내고 이 API 응답을 쓰면 된다. 반대로 `sysId`가 주문 1건이라면, 지금처럼 같은 테이블의 주문들을 찾아 **`paymentComplete`를 주문 건수만큼 반복 호출**해야 한다(배치 처리 API가 따로 없어 보임).
-- `paymentComplete`/`cancelOrder`가 요구하는 `header`/`body`/`footer`를 어디서 가져오는지 — 보드 조회 API가 이 구조를 그대로 내려주는지, 아니면 별도 상세 조회가 필요한지.
-- 취소/미결제 사유 선택지(`ORDER_CANCEL_REASON_OPTIONS`, `ORDER_UNPAID_REASON_OPTIONS`)는 전부 임의로 만든 값이라, 백엔드에 코드 테이블(공통코드 등)이 있다면 그쪽으로 교체해야 한다.
+## 데이터 소스와 Mock/Real 경계
 
-### 전환 시 손댈 위치
+- `npm run dev:mock`: MSW의 상태형 주문 API를 사용한다. GET과 상태 변경 POST가 하나의 메모리 저장소를 공유하므로 Polling으로 변경 결과를 다시 확인할 수 있다.
+- `npm run dev:real`: MSW를 사용하지 않고 실제 백엔드를 호출한다.
+- 주문 상태 전용 handler는 일반 생성 handler보다 먼저 등록하며, 지원하지 않는 요청을 임의 성공시키지 않는다.
+- Mock 저장소는 테스트마다 초기 seed의 깊은 복사본으로 초기화한다.
+- Mock은 상태 변경 때 `statusChangedAt`을 단조 증가하도록 기록해, 앞 단계나 뒤 단계 어느 방향으로 이동해도 대상 컬럼 맨 아래에 배치한다.
 
-- `api/orderStatusBoardApi.ts`: `fetchOrderStatusBoardMock` → 실제 조회 쿼리로 교체.
-- `useOrderStatusBoardPage.ts`: `executeCancel`/`executePaid`/`executeUnpaid`가 지금은 동기 로컬 state 변경이다. 실제 연동 시 `async` mutation으로 바꾸고, `WrapperModal`의 `primaryAction.loading`에 `mutation.isPending`을 연결한다(다른 화면의 `confirmSave` 패턴 — [`async-patterns.md` §1](../async-patterns.md#1-mutation-결과-안내-모달-패턴) 참고).
-- `utils.ts`: `getPayableOrdersForTable`/`getEditableOrdersForTable`은 위 "확인이 필요한 것"에 따라 그대로 쓰거나(클라이언트 묶음), 제거하고 API 응답을 그대로 쓰면 된다(서버 묶음).
-- `OrderBoardRow.cancelledAt`처럼 클라이언트에서만 계산해 채우는 필드(취소/취소사유/미결제사유)는 실제 API 응답 필드명과 다를 수 있으니 mapper에서 변환한다.
-- `executeEditCommit`(`useOrderStatusBoardPage.ts`)은 지금 "기존 주문 목록에서 빼고 finalizedOrders로 통째로 교체"하는 로컬 state 연산이다. 실제 연동 시 메뉴 줄 취소/메뉴 추가가 각각 별도 API 호출이라면(위 표의 "후보 없음" 항목들), `useOrderEditModalFlow.ts`의 `confirmSave`를 분리해서 "취소된 줄 목록"과 "새로 추가된 주문"을 따로 호출하도록 바꿔야 한다.
-- `mock/menuCatalogMock.ts`(`MENU_CATALOG_MOCK`)는 실제 메뉴 카탈로그 API로 교체한다. 가격이 문자열로 오는 등 `menu-management`/`menu-option`과 비슷한 변환이 필요할 가능성이 높다.
+## API 계약 호환과 후속 작업
 
-## 향후 작업 (TODO)
+현재 OpenAPI 계약에 화면이 필요한 일부 필드가 없어 feature-local mapper와 wrapper에서 임시 호환한다.
 
-- 실제 백엔드 API 연동 (위 "Mock → 실제 API 전환 가이드" 참고)
-- 실시간 동기화 실제 연결(WebSocket/SSE) 및 실패 상태 UI
+- 메뉴 단가와 옵션 단가가 없으면 `0`으로 처리한다.
+- 취소 시각이 없으면 `cancelledAt`을 비워 둔다.
+- 상태 변경 시각은 Mock의 `statusChangedAt`을 사용한다. 실제 API에도 같은 의미의 시각 또는 정렬 가능한 순서값이 필요하다.
+- 취소사유 조회의 생성 타입은 중첩 `header.sysId`를 충분히 표현하지 못해 wrapper에서 요청 형태를 맞춘다.
+- 임시 처리는 실제 백엔드 응답과 OpenAPI가 반영되고 Orval을 regenerate한 뒤 제거한다.
+
+결제완료·미결제·주문수정은 화면과 draft 흐름만 유지한다. 최종 API 계약이 확정되기 전에는 서버 요청이나 로컬 성공 처리를 하지 않는다. 주문 경과 타이머도 이번 범위에서 보류한다.
+
+## QA 체크리스트
+
+- `dev:mock`에서 최초 조회 후 5초 Polling, 포커스 복귀 조회, 수동 새로고침을 확인한다.
+- 조리시작·서빙완료·이전을 양방향으로 실행해 이동 카드가 대상 컬럼 맨 아래에 추가되는지 확인한다.
+- 상태 변경 실패 시 카드가 기존 컬럼에 남고 다시 시도할 수 있는지 확인한다.
+- 모달을 연 상태에서 Polling되어도 모달 내용과 입력값이 바뀌지 않는지 확인한다.
+- 취소 카드를 숨긴 뒤 Polling·수동 새로고침에는 계속 숨고, 브라우저 새로고침에는 다시 나타나는지 확인한다.
+- Network 탭에서 조회가 카드 수만큼 반복되는 N+1이 아니라 Polling 주기당 주문 목록 요청 1건인지 확인한다.
+- 백엔드 계약 반영 후 `dev:real`에서 같은 시나리오를 다시 검증한다.

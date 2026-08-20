@@ -2,15 +2,14 @@
  * @fileoverview 주문 상태 관리 보드 페이지 상태 훅
  *
  * @description
- * - 조리시작/서빙완료/이전 버튼은 모달 없이 즉시 상태값을 변경한다.
+ * - 조리시작/서빙완료/이전 버튼은 generated API 성공과 서버 재조회 뒤 상태를 반영한다.
  * - 취소 버튼은 `useOrderCancelModalFlow`(취소사유 입력 → 취소 확인 → 완료 안내)를 거쳐 처리한다.
  * - 결제처리 버튼은 `useOrderPaymentModalFlow`(결제완료/미결제 선택 → 미결제는 사유 입력 → 완료 안내)를 거쳐 처리한다.
  * - 취소사유 버튼은 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다(닫기 버튼만 있음).
  * - 취소 컬럼의 휴지통(삭제) 버튼은 곧바로 지우지 않고 `DeleteConfirmModal` 확인을 한 번 거친다(`dismissConfirm`).
- *   확인해야 로컬 state(`rows`)에서 제거되며, 실제 데이터는 바뀌지 않아 "초기화"를 누르면 다시 보인다.
+ *   확인하면 페이지 메모리의 ID 필터에서만 숨기며 서버와 query cache는 변경하지 않는다.
  * - 수정 버튼은 `useOrderEditModalFlow`(같은 테이블 주문 전체를 draft로 모아 메뉴 추가/줄 취소 후 "확인"에서 한 번에 반영)를 거쳐 처리한다.
- * - 카드 데이터는 mock 기반이라 React Query 캐시를 직접 변경하지 않고, 조회 결과를 로컬 state로
- *   복사해 변경한다. "초기화" 클릭 시 이 로컬 state를 조회 결과로 되돌린다.
+ * - 카드 데이터는 React Query의 서버 상태에서 직접 파생하며 writable 로컬 복사본을 만들지 않는다.
  * - 상태 변경 시 카드 위치는 그대로 두고(시간순 정렬 유지), 방금 변경된 카드만 잠깐 배경을 강조한다.
  *   주문 수정처럼 한 번에 여러 행(기존 주문 수정 + 메뉴 추가로 생긴 새 주문)이 바뀔 수 있어 `lastMovedIds`는 배열이다.
  * - 주문 수정/메뉴 추가/옵션 추가 중 하나라도 dirty면 `usePreventLeave`로 새로고침/탭 닫기를 경고한다.
@@ -19,36 +18,41 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
-import { useOrderStatusBoardQuery } from '../api/orderStatusBoardApi';
+import {
+  useOrderCancelReasonQuery,
+  useOrderStatusBoardMutations,
+  useOrderStatusBoardQuery,
+} from '../api/orderStatusBoardApi';
 import { ORDER_BOARD_PREV_STATUS } from '../constants';
 import { useOrderCancelModalFlow } from './useOrderCancelModalFlow';
 import { useOrderPaymentModalFlow } from './useOrderPaymentModalFlow';
 import { useOrderEditModalFlow } from './useOrderEditModalFlow';
+import { useDismissedOrderIds } from './useDismissedOrderIds';
 import {
   filterVisibleOrderBoardRows,
   getEditableOrdersForTable,
   getPayableOrdersForTable,
   groupOrderBoardRowsByStatus,
-  nowOrderBoardDatetime,
 } from '../utils';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 const MOVED_HIGHLIGHT_DURATION_MS = 1200;
+const EMPTY_ROWS: OrderBoardRow[] = [];
 
 export function useOrderStatusBoardPage() {
   const query = useOrderStatusBoardQuery();
-  const [rows, setRows] = useState<OrderBoardRow[]>([]);
-  // 조회 결과가 바뀌면(최초 로드) 렌더 중에 로컬 state를 동기화한다.
-  // 이후의 행 변경(상태 변경 버튼)은 로컬 state에서만 일어나므로 query.data와 다시 어긋나지 않는다.
-  const [syncedData, setSyncedData] = useState<OrderBoardRow[] | null>(null);
-  if (query.data && query.data !== syncedData) {
-    setSyncedData(query.data);
-    setRows(query.data);
-  }
+  const mutations = useOrderStatusBoardMutations();
+  const rows = query.data ?? EMPTY_ROWS;
+  const { dismiss: dismissOrder, isDismissed } = useDismissedOrderIds();
+  const [pendingOrderIds, setPendingOrderIds] = useState<Set<string>>(() => new Set());
+  const [mutationErrors, setMutationErrors] = useState<Map<string, string>>(() => new Map());
 
   const columns = useMemo(
-    () => groupOrderBoardRowsByStatus(filterVisibleOrderBoardRows(rows)),
-    [rows],
+    () => groupOrderBoardRowsByStatus(
+      filterVisibleOrderBoardRows(rows).filter((row) => !isDismissed(row.id)),
+    ),
+    [isDismissed, rows],
   );
 
   const [lastMovedIds, setLastMovedIds] = useState<string[]>([]);
@@ -67,59 +71,78 @@ export function useOrderStatusBoardPage() {
     }, MOVED_HIGHLIGHT_DURATION_MS);
   };
 
-  const updateRow = (id: string, updater: (row: OrderBoardRow) => OrderBoardRow) => {
-    setRows((prev) => prev.map((row) => (row.id === id ? updater(row) : row)));
-    flashMoved([id]);
-  };
+  const runStatusMutation = async (
+    id: string,
+    action: 'START_COOKING' | 'SERVE' | 'BACK_TO_RECEIVED' | 'BACK_TO_COOKING' | 'CANCEL',
+    cancelInput?: { reason: string; description: string },
+  ) => {
+    const row = rows.find((item) => item.id === id);
+    if (!row || pendingOrderIds.has(id)) return;
 
-  /** 결제완료 영수증처럼 여러 행을 한 번에 바꿀 때 쓴다. 행이 바로 필터링되어 사라지므로 강조 효과는 생략한다. */
-  const updateRows = (ids: string[], updater: (row: OrderBoardRow) => OrderBoardRow) => {
-    setRows((prev) => prev.map((row) => (ids.includes(row.id) ? updater(row) : row)));
-  };
-
-  const handleStartCooking = (id: string) =>
-    updateRow(id, (row) => ({ ...row, orderStatus: 'COOKING' }));
-
-  const handleServe = (id: string) =>
-    updateRow(id, (row) => ({ ...row, orderStatus: 'SERVED' }));
-
-  const handleMoveBack = (id: string) =>
-    updateRow(id, (row) => {
-      const prevStatus = ORDER_BOARD_PREV_STATUS[row.orderStatus];
-      return prevStatus ? { ...row, orderStatus: prevStatus } : row;
+    setMutationErrors((current) => {
+      const next = new Map(current);
+      next.delete(id);
+      return next;
     });
+    setPendingOrderIds((current) => new Set(current).add(id));
+    try {
+      await mutations.mutate(action, row, cancelInput);
+      flashMoved([id]);
+    } catch (error) {
+      setMutationErrors((current) => new Map(current).set(
+        id,
+        error instanceof Error ? error.message : '주문 상태를 변경하지 못했습니다.',
+      ));
+      throw error;
+    } finally {
+      setPendingOrderIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const runCardStatusMutation = async (
+    id: string,
+    action: 'START_COOKING' | 'SERVE' | 'BACK_TO_RECEIVED' | 'BACK_TO_COOKING',
+  ) => {
+    try {
+      await runStatusMutation(id, action);
+    } catch {
+      // U3에서 카드 가까이에 mutationError를 표시한다. 이벤트 Promise는 여기서 소비한다.
+    }
+  };
+
+  const handleStartCooking = (id: string) => runCardStatusMutation(id, 'START_COOKING');
+  const handleServe = (id: string) => runCardStatusMutation(id, 'SERVE');
+  const handleMoveBack = (id: string) => {
+    const row = rows.find((item) => item.id === id);
+    const prevStatus = row ? ORDER_BOARD_PREV_STATUS[row.orderStatus] : undefined;
+    if (prevStatus === 'RECEIVED') return runCardStatusMutation(id, 'BACK_TO_RECEIVED');
+    if (prevStatus === 'COOKING') return runCardStatusMutation(id, 'BACK_TO_COOKING');
+    return Promise.resolve();
+  };
 
   /** 취소 컬럼 카드 삭제 확인 대상. 휴지통 버튼 클릭 시 바로 지우지 않고 확인 모달을 먼저 띄운다. */
   const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
   const closeDismissConfirm = () => setDismissTargetId(null);
 
-  /** 취소 컬럼 카드를 로컬 state에서만 제거한다 — 실제 데이터는 그대로라 "초기화"를 누르면 다시 보인다. */
+  /** query cache와 서버 데이터는 건드리지 않고 현재 페이지 메모리에서만 숨긴다. */
   const confirmDismiss = () => {
     if (!dismissTargetId) return;
-    setRows((prev) => prev.filter((row) => row.id !== dismissTargetId));
+    dismissOrder(dismissTargetId);
     setDismissTargetId(null);
   };
 
   const executeCancel = (id: string, reason: string, description: string) =>
-    updateRow(id, (row) => ({
-      ...row,
-      orderStatus: 'CANCELLED',
-      cancelledAt: nowOrderBoardDatetime(),
-      cancelReason: reason,
-      cancelDescription: description,
-    }));
+    runStatusMutation(id, 'CANCEL', { reason, description });
 
   const cancelModal = useOrderCancelModalFlow({ onConfirmCancel: executeCancel });
 
-  const executePaid = (ids: string[]) => updateRows(ids, (row) => ({ ...row, paymentStatus: 'PAID' }));
-
-  const executeUnpaid = (id: string, reason: string, description: string) =>
-    updateRow(id, (row) => ({
-      ...row,
-      paymentStatus: 'UNPAID',
-      unpaidReason: reason,
-      unpaidDescription: description,
-    }));
+  // TODO(order-payment-api): 결제 API 계약 연결 전에는 query data를 로컬에서 성공 처리하지 않는다.
+  const executePaid = (_ids: string[]) => undefined;
+  const executeUnpaid = (_id: string, _reason: string, _description: string) => undefined;
 
   const paymentModal = useOrderPaymentModalFlow({
     onConfirmPaid: executePaid,
@@ -129,13 +152,8 @@ export function useOrderStatusBoardPage() {
   const handleOpenPaymentModal = (row: OrderBoardRow) =>
     paymentModal.openPaymentModal(row, getPayableOrdersForTable(rows, row.tableNum));
 
-  const executeEditCommit = (originalOrderIds: string[], finalizedOrders: OrderBoardRow[]) => {
-    setRows((prev) => [
-      ...prev.filter((row) => !originalOrderIds.includes(row.id)),
-      ...finalizedOrders,
-    ]);
-    flashMoved(finalizedOrders.map((order) => order.id));
-  };
+  // TODO(order-edit-api): 주문 수정 API 계약 연결 전에는 query data를 로컬에서 성공 처리하지 않는다.
+  const executeEditCommit = (_originalOrderIds: string[], _finalizedOrders: OrderBoardRow[]) => undefined;
 
   const editModal = useOrderEditModalFlow({ onConfirmEdit: executeEditCommit });
   usePreventLeave(editModal.isEditorDirty || editModal.isMenuPickerDirty || editModal.isOptionPickerDirty);
@@ -144,23 +162,49 @@ export function useOrderStatusBoardPage() {
     editModal.openEditModal(getEditableOrdersForTable(rows, row.tableNum));
 
   const [cancelReasonViewRow, setCancelReasonViewRow] = useState<OrderBoardRow | null>(null);
+  const cancelReasonQuery = useOrderCancelReasonQuery(cancelReasonViewRow?.id);
+  const openCancelReasonView = (row: OrderBoardRow) => setCancelReasonViewRow(cloneOrderBoardRow(row));
   const closeCancelReasonView = () => setCancelReasonViewRow(null);
+  const cancelReasonSnapshot = cancelReasonViewRow
+    ? {
+        ...cancelReasonViewRow,
+        ...(cancelReasonQuery.data
+          ? {
+              cancelType: cancelReasonQuery.data.cancelType,
+              cancelReason: cancelReasonQuery.data.cancelReason,
+              cancelDescription: cancelReasonQuery.data.cancelDescription,
+              cancelledAt: cancelReasonQuery.data.cancelDatetime
+                ? cancelReasonQuery.data.cancelDatetime.replace(' ', 'T')
+                : cancelReasonViewRow.cancelledAt,
+            }
+          : {}),
+      }
+    : null;
 
-  const handleReset = () => {
-    if (query.data) setRows(query.data);
+  const handleRefresh = () => {
+    if (!query.isFetching) void query.refetch();
   };
 
+  // 빈 배열도 한 번 정상 동기화된 유효한 서버 데이터다.
+  const hasData = query.data !== undefined;
+  const isInitialError = query.isError && !hasData;
+  const isSyncError = query.isRefetchError && hasData;
+
   return {
-    data: { columns, lastMovedIds },
+    data: { columns, lastMovedIds, pendingOrderIds, mutationErrors },
     status: {
       isLoading: query.isLoading,
-      isError: query.isError,
+      isInitialError,
+      isSyncError,
+      isRefreshing: query.isFetching && hasData,
     },
     cancelModal,
     paymentModal,
     editModal,
     cancelReasonView: {
-      row: cancelReasonViewRow,
+      row: cancelReasonSnapshot,
+      isLoading: cancelReasonQuery.isLoading,
+      isError: cancelReasonQuery.isError,
       close: closeCancelReasonView,
     },
     dismissConfirm: {
@@ -169,7 +213,7 @@ export function useOrderStatusBoardPage() {
       close: closeDismissConfirm,
     },
     actions: {
-      handleReset,
+      handleRefresh,
       cardActions: {
         onStartCooking: handleStartCooking,
         onServe: handleServe,
@@ -177,7 +221,7 @@ export function useOrderStatusBoardPage() {
         onMoveBack: handleMoveBack,
         onCancel: cancelModal.openCancelModal,
         onEdit: handleOpenEditModal,
-        onShowCancelReason: setCancelReasonViewRow,
+        onShowCancelReason: openCancelReasonView,
         onDismiss: setDismissTargetId,
       },
     },

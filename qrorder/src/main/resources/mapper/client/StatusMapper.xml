@@ -10,12 +10,16 @@
             ti.table_num ,
             og.insert_datetime as order_datetime,
             og.modify_datetime as update_datetime,
-            om.order_status
+            og.order_status,
+            og.cancel_datetime
         from order_group og
         left join order_master om
             on om.sys_id = og.link_sys_id
         left join table_info ti
             on ti.sys_id = om.link_sys_id
+        where 1=1
+        and og.sys_plant_cd = #{sysPlantCd}
+        and og.order_status NOT IN ('04', '05')
     </select>
 
     <select id="getStatusBodyItems" resultType="htms.QROrder.client.dto.StatusItem$Body">
@@ -26,6 +30,7 @@
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
             od.qty ,
+            smd.menu_price * od.qty as price ,
             od.payment_yn
         from order_detail od
         left join order_group og
@@ -34,6 +39,9 @@
             on om.sys_id = og.link_sys_id
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
+        where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
+        and and og.order_status NOT IN ('04', '05')
         union all
         select
             od.link_sys_id3 as link_sys_id ,
@@ -42,6 +50,7 @@
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
             odo.qty ,
+            smod.menu_option_price * odo.qty as price ,
             'Y' as payment_yn
         from order_detail od
         left join order_group og
@@ -53,6 +62,8 @@
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
+        and and og.order_status NOT IN ('04', '05')
     </select>
 
     <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusItem$Footer">
@@ -80,15 +91,19 @@
             group by odo.link_sys_id
         ) opt_sum on opt_sum.link_sys_id = od.sys_id
         where 1=1
+        and od.sys_plant_cd = #{sysPlantCd}
+        and and og.order_status NOT IN ('04', '05')
         group by od.link_sys_id3
     </select>
 
     <update id="cancelOrder">
         update order_group set
             order_status = '99!',
+            cancel_type = #{cancelType},
             cancel_yn = 'Y',
             cancel_reason = #{cancelReason},
             cancel_description = #{cancelDescription},
+            cancel_datetime = now(),
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
@@ -174,7 +189,9 @@
     <select id="getStatusCancelResponses" resultType="htms.QROrder.client.dto.StatusCancelResponse">
         select
             cancel_reason ,
-            cancel_description
+            cancel_description ,
+            cancel_datetime ,
+            cancel_type
         from order_group og
         where 1=1
         and sys_id = #{sysId}
@@ -202,10 +219,18 @@
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
             od.qty ,
+            smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0) as price ,
             od.payment_yn
         from order_detail od
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
+        left join (
+            select odo.link_sys_id, sum(smod.menu_option_price * odo.qty) as option_price
+            from order_detail_option odo
+            left join store_menu_option_detail smod
+                on smod.sys_id = odo.link_sys_id2
+            group by odo.link_sys_id
+        ) opt_sum on opt_sum.link_sys_id = od.sys_id
         where 1=1
         and od.link_sys_id3 = #{sysId}
         union all
@@ -216,6 +241,7 @@
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
             odo.qty ,
+            smod.menu_option_price * odo.qty as price ,
             'Y' as payment_yn
         from order_detail od
         inner join order_detail_option odo
