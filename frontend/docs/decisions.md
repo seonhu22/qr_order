@@ -733,3 +733,89 @@ ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 �
 - API 원본과 UI 표시 형식을 분리해 다른 화면에서도 같은 시각을 재사용할 수 있다.
 
 ---
+
+## ADR-020 — Consumer 앱 골격: 뷰포트 반응형과 QR 세션 가드
+
+**날짜**: 2026-08-20
+**상태**: 채택
+
+### 배경
+
+Consumer(QR 소비자 주문) 앱의 첫 골격 PR에서 Admin/Client에 없던 세 가지 상황이 새로 생겼다: 사이드바가 없는 전체화면 모바일 셸의 반응형 기준, 로그인이 아닌 QR 세션 유효성을 판단해야 하는 보호 라우트, 메뉴상세·장바구니·주문내역·직원호출이 공유하는 바텀시트 UI. 세 항목 모두 기존 문서의 결정을 그대로 재사용할 수 없어 하나의 ADR로 묶어 기록한다.
+
+### 결정
+
+**뷰포트 `@media`가 1차, Viewport Segments API는 progressive enhancement (ADR-016과 대비)**
+
+[ADR-016](#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-레이아웃-기준)은 Client가 열고 닫을 수 있는 사이드바를 가져 뷰포트 폭과 실제 콘텐츠 폭이 어긋나기 때문에 컨테이너 쿼리를 채택했다. Consumer는 사이드바가 없는 전체화면 앱이라 콘텐츠 폭이 항상 뷰포트 폭과 같다 — ADR-016의 전제가 성립하지 않는다. 따라서 Consumer는 표준 뷰포트 `@media`를 1차 기준으로 삼는다.
+
+디자인/퍼블리싱 단계에서는 "폴더블인지"를 먼저 판별하려 하지 않는다. 대신 넓은 뷰포트에서도 중요한 UI가 화면 중앙에 애매하게 걸리지 않는 레이아웃을 뷰포트 폭 기준으로 먼저 만들고, 그 위에 실제 힌지 정보를 얻을 수 있는 기기에서만 `@media (horizontal-viewport-segments: 2)`로 세밀하게 보정한다 — 미지원 브라우저는 이 블록 자체가 매치되지 않아 1차 레이아웃 그대로 동작하므로 폴백이 따로 필요 없다.
+
+브레이크포인트:
+
+| 구간 | 기준 | 적용 |
+|---|---|---|
+| ~480px 미만 | `ConsumerHeader` | 아이콘+액션 한 줄, 매장 정보가 다음 줄로 wrap (`flex-wrap` + `order`) |
+| 480px 이상 | `ConsumerHeader` | 매장 정보가 아이콘 옆으로 붙어 한 줄로 합쳐짐 |
+| ~653px | 폴드 커버 화면 상한 | 별도 규칙 없음 — 480px 규칙 안에서 자연스럽게 처리됨 |
+| ~717px 이상 | 폴드 펼침·태블릿·웹(데스크톱) | `ConsumerLayout` 셸의 `max-width` 제한을 없애 뷰포트를 꽉 채운다. `order-shell` 메뉴 목록은 `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))`로 열 수를 고정하지 않고 카드 폭에 맞춰 자동으로 늘린다(717px≈2열, 1024px≈3열, 1440px≈4열…) |
+| `horizontal-viewport-segments: 2` 매치 시 | 실제 듀얼세그먼트 지원 기기 | `--fold-gap`(힌지 폭, `env(viewport-segment-*)`)을 그리드의 `column-gap`에 반영해 카드가 힌지 위에 걸치지 않게 함 |
+
+717px 이상은 "웹은 화면을 꽉 채운다"는 요구사항에 맞춰 셸 폭 제한을 아예 두지 않는다. 태블릿과 데스크톱을 가르는 별도 브레이크포인트가 없어도 auto-fit 그리드가 폭에 맞춰 열 수를 알아서 조절하므로 두 경우 모두 자연스럽게 채워진다.
+
+**QR 세션 가드는 401 리다이렉트·에러 페이지에 이은 세 번째 상태 처리 카테고리**
+
+[`architecture.md` §6](./architecture.md#6-상태-처리-라우팅-기준)은 401(인증 리다이렉트)과 403/404/500(`ErrorPageTemplate` 기반 에러 페이지)만 다룬다. Consumer의 세션 만료·마감·없음은 둘 다 아니다 — 보여줄 의미 있는 HTTP 상태 코드가 없고(임의로 401/403 등을 표시하면 아직 정해지지 않은 백엔드 세션 API의 의미를 프론트가 먼저 확정하는 셈이 된다), 이동할 로그인 페이지도 없다. 그래서 `ConsumerSessionGuard`(로그인 인증이 아닌 QR 세션 검사)가 `ConsumerStatusScreen`(아이콘+제목+설명+선택적 버튼)을 렌더링하는 것을 세 번째 카테고리로 둔다. 반면 가드를 통과한 뒤 `/consumer/*` 내부의 알 수 없는 경로는 여전히 기존 404 카테고리를 따라 공유 `NotFoundPage`를 그대로 재사용한다.
+
+세션 조회는 `GET /api/consumer/session`이 없어 mock 상태다. 정확한 API 계약과 401/403/409/410의 의미는 여전히 미정이며, 인수인계 문서(`consumer-app-skeleton-handoff.md`) §14 "백엔드 협의 항목"에서 다룬다.
+
+**`ConsumerSessionGuard`는 만들되 지금은 끔(`SESSION_GUARD_ENABLED = false`)**
+
+실제 세션 조회 API가 없는 상태에서 "세션 없음" 화면을 항상 보여주면, QR을 거치지 않고 `/consumer/order`를 직접 열어 화면을 확인/데모하려 할 때마다 막힌다. 가드 로직 자체는 나중에 API가 생겼을 때 그대로 켜서 쓰도록 [`ConsumerSessionGuard.tsx`](../src/apps/consumer/routes/ConsumerSessionGuard.tsx)에 남겨두고, 최상단에 `SESSION_GUARD_ENABLED` 상수 하나로 우회한다 — 꺼져 있는 동안은 세션 상태와 무관하게 children을 그대로 렌더링한다. 같은 이유로 세션 조회의 로딩 분기도 실제 로딩이라 부를 기능이 없어 문구 없는 빈 프레임으로만 남겨뒀다(쿼리가 항상 `pending`으로 시작하는 순간의 화면 깜빡임만 막는 용도).
+
+**`ConsumerBottomSheet`는 `WrapperModal`을 재사용하지 않고 신규 primitive로 작성**
+
+기존 `shared/components/modal/wrapper/WrapperModal`은 화면 중앙 다이얼로그 계약(포커스 트랩, 다중 모달 스택, body 스크롤 잠금)을 갖는다. Consumer 하단 시트는 이와 달리 화면 하단에서 슬라이드로 열리고, 드래그 핸들 스와이프로 닫히며, 항상 한 번에 하나만 열린다(다중 스택 불필요). 또한 이 프로젝트는 이미 `html/body`를 `overflow: hidden`으로 고정해 두어(`global.css`) `WrapperModal`의 body 스크롤 잠금 로직이 애초에 의미가 없다. 계약이 겹치지 않아 `apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet`로 새로 작성했다. 메뉴상세·장바구니·주문내역·직원호출 4개 기능이 공유하며, 다른 앱에서도 동일한 계약으로 재사용될 때만 `shared/components`로 승격한다.
+
+### 결과
+
+- Consumer 반응형 작업은 ADR-016의 컨테이너 쿼리 패턴을 따르지 않아도 된다 — 표준 `@media`가 1차 기준이고, Viewport Segments API는 그 위에 얹는 progressive enhancement다.
+- Consumer의 상태 처리는 architecture.md §6의 표에 없다고 해서 누락된 것이 아니라 의도된 세 번째 카테고리다.
+- `/consumer/order`는 지금 QR 세션 없이 열어도 주문 화면이 보인다 — 버그가 아니라 `SESSION_GUARD_ENABLED = false`로 인한 의도된 현재 상태이며, 세션 API가 붙으면 이 값만 뒤집는다.
+- 바텀시트 신규 작성은 `WrapperModal` 승격 실패가 아니라 계약이 다른 별도 컴포넌트를 만든 것이다.
+
+---
+
+## ADR-021 — Consumer 골격 단계의 mock 경계 원칙
+
+**날짜**: 2026-08-21
+**상태**: 채택
+
+### 배경
+
+Consumer 골격 작업 도중 반복해서 마주친 질문이 있다: 아직 없는 백엔드 API를 mock으로 채울 때, 그 mock을 어디에 어떻게 두어야 나중에 실제 API로 바꾸기 쉬운가? ADR-020은 `SESSION_GUARD_ENABLED` 하나만 다뤘지만, 이후 QR 인증(`connectQrStub`)에도 같은 요구가 생겨 패턴으로 정리해둔다.
+
+### 결정
+
+**"실제 로직은 남기고 플래그로 우회" 패턴을 mock 경계의 기본형으로 삼는다**
+
+실제 API가 이미 있지만 아직 그 응답에 의존하고 싶지 않을 때(예: `/api/qr/:url`은 실제로 동작하지만 MSW/백엔드 상태와 무관하게 흐름을 확인해야 함), 또는 API 자체가 없을 때(예: `GET /api/consumer/session`) 모두 아래 형태를 따른다.
+
+```ts
+// 실제 호출 코드는 삭제하지 않고 그대로 둔다
+const XXX_MOCK_ENABLED = true; // 또는 SESSION_GUARD_ENABLED = false 처럼 반대 극성
+
+const result = XXX_MOCK_ENABLED ? await xxxStub(...) : await xxxReal(...);
+```
+
+- 실제 함수 호출부는 지우지 않는다 — 나중에 플래그 하나만 뒤집으면 원래 경로로 복귀한다.
+- stub 함수는 별도 파일(`*Stub.ts`)로 분리해 "이 부분은 mock"이 파일 단위로 드러나게 한다.
+- stub의 응답 모양은 **실제 API가 이미 있으면 그 응답을 그대로 베끼고**, 없으면 화면에 필요한 최소 모양으로 임의로 정하되 타입에 주석으로 "mock 전용"임을 남긴다 — 실제 계약이 나오면 이 타입과 매핑 로직은 다시 손볼 대상이라는 뜻이다.
+- 이 패턴은 Consumer뿐 아니라 다른 앱에서 같은 상황(API는 있지만 흐름 확인엔 방해, 또는 API 자체가 미정)이 생기면 동일하게 적용한다.
+
+### 결과
+
+- 앞으로 Consumer(또는 다른 앱)에서 "API는 있는데 mock으로 우회해야 하는 상황"이 생기면 새로 고민하지 않고 이 ADR의 플래그 패턴을 그대로 적용한다.
+- mock 응답 타입에 "mock 전용" 표시가 있으면, 실제 API 연동 시 그 타입과 매핑 로직부터 다시 봐야 한다는 신호로 읽는다.
+
+---
