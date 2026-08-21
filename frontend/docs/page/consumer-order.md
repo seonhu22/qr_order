@@ -55,12 +55,59 @@ type ConsumerSheetState =
 
 | variant | 여는 곳 | 내용 |
 |---|---|---|
-| `menu-detail` | 메뉴 카드 클릭 | 설명·가격·담기 버튼. 옵션 그룹(필수/선택/복수)은 아직 없음 — 다음 단계 |
+| `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보·수량·옵션·담기 버튼 (`MenuDetailSheet`) |
 | `cart` | `CartBar` 클릭 | 담은 항목 목록 + "주문하기" 버튼(disabled, "준비 중입니다") |
 | `order-history` | 헤더 "주문내역" 버튼 | "준비 중입니다" 플레이스홀더만 |
 | `staff-call` | 헤더 "직원호출" 버튼 | "준비 중입니다" 플레이스홀더만 |
 
 렌더러는 `ConsumerBottomSheet`(신규 primitive, `WrapperModal` 미재사용 — ADR-020) 하나이고, 내용만 `sheet.type`에 따라 `ConsumerOrderPage.tsx`가 조립한다.
+
+## 메뉴 상세 시트 구성
+
+`MenuDetailSheet`(`features/order-shell/components/MenuDetailSheet.tsx`)가 시트 본문을 조립한다. 위에서부터 다음 순서다.
+
+| 조각 | 컴포넌트 | 비고 |
+|---|---|---|
+| 이미지 | `MenuDetailSheet` 내부 | 시트 본문의 좌우 패딩을 음수 마진으로 상쇄해 폭을 꽉 채운다. `imageUrl`이 없으면 `ci-utensils` 아이콘 |
+| 메뉴 정보 | `MenuDetailSheet` 내부 | 이름·기본가·설명. 전부 메뉴 데이터에서 온다 |
+| 수량 | `QuantityStepper` | 고정 라벨 "수량" + 증감 버튼. 1~99 |
+| 옵션 | `MenuOptionGroupList` | 옵션이 없으면 렌더링 자체를 건너뛴다 |
+| 담기 | `AddToCartButton` | 고정 문구 "장바구니에 담기" + 총액을 양끝 배치 |
+
+수량·옵션 선택 상태는 `useMenuDetailSheet`(feature 훅)가 소유한다. 다른 메뉴를 열었을 때 이전 선택이 남지 않도록 `ConsumerOrderPage`가 `key={detailItem.id}`로 시트를 새로 마운트한다.
+
+### 시트 제목을 쓰지 않는다
+
+디자인상 이미지가 시트 맨 위에 오고 메뉴명은 그 아래에 있어, `ConsumerBottomSheet`의 `title`(시각적 제목)을 넘기지 않는다. 대신 primitive에 `ariaLabel` prop을 추가해 스크린리더용 이름만 따로 전달한다. `cart`/`order-history`/`staff-call`은 기존대로 `title`을 쓴다.
+
+### 옵션 선택 규칙
+
+- 필수(`required`) + 단일 선택 그룹은 품절이 아닌 첫 항목이 미리 선택된 상태로 열린다 — 사용자가 옵션을 건드리지 않아도 담기가 가능해야 하기 때문이다.
+- 필수 단일 선택은 이미 고른 항목을 다시 눌러도 해제되지 않는다(선택 없는 상태로 되돌릴 수 없음). 선택(non-required) 단일 그룹은 해제된다.
+- 복수 선택은 `maxSelectable`에 도달하면 **새 항목 추가만** 막고, 이미 고른 항목의 해제는 계속 허용한다.
+- 필수 그룹 중 하나라도 비어 있으면 담기 버튼이 비활성화된다(`canAddToCart`).
+- 단일 선택은 `radio`, 복수 선택은 `checkbox`로 렌더링해 키보드·스크린리더 동작을 브라우저에 맡긴다.
+
+### 가격 계산
+
+`features/order-shell/cartLine.ts`에 모아 뒀다.
+
+```
+1개당 가격 = 메뉴 기본가 + 옵션 추가 금액 합계
+총액       = 1개당 가격 × 수량
+```
+
+옵션 추가 금액은 음수도 허용한다(예: "밥 없이" −1,000원).
+
+## 장바구니 줄 식별 — `cartKey`
+
+같은 메뉴라도 옵션 조합이 다르면 다른 줄로 남아야 하므로, 병합 기준은 `menuId`가 아니라 `cartKey`다. `buildCartKey`(`cartLine.ts`)가 메뉴 id 뒤에 선택한 옵션 id를 **정렬해서** 이어붙인다 — 선택 순서가 달라도 같은 조합이면 같은 줄로 합쳐진다. 옵션이 없으면 메뉴 id만 쓰므로 옵션 도입 전과 키가 같다.
+
+```
+옵션 없음            menu-3
+백미                 menu-1__menu-1-rice-white
+백미 + 계란후라이     menu-1__menu-1-extra-egg+menu-1-rice-white
+```
 
 ## 장바구니
 

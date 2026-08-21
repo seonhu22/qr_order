@@ -7,6 +7,11 @@ type ConsumerBottomSheetProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
+  /**
+   * 시트 상단에 제목을 노출하지 않는 화면(예: 이미지가 맨 위에 오는 메뉴 상세)에서
+   * 스크린리더용 이름만 따로 줄 때 사용한다. 없으면 `title`을 그대로 쓴다.
+   */
+  ariaLabel?: string;
   children: ReactNode;
 };
 
@@ -16,7 +21,13 @@ const SWIPE_DOWN_CLOSE_THRESHOLD = 70;
  * 메뉴상세·장바구니·주문내역·직원호출이 공유하는 하단 시트 프리미티브.
  * 드래그 핸들 스와이프, 오버레이 클릭, ESC로 닫는다. 콘텐츠는 호출부(children)가 결정한다.
  */
-export function ConsumerBottomSheet({ open, onClose, title, children }: ConsumerBottomSheetProps) {
+export function ConsumerBottomSheet({
+  open,
+  onClose,
+  title,
+  ariaLabel,
+  children,
+}: ConsumerBottomSheetProps) {
   const touchStartYRef = useRef(0);
 
   useEffect(() => {
@@ -50,7 +61,7 @@ export function ConsumerBottomSheet({ open, onClose, title, children }: Consumer
         className="consumer-bottom-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={ariaLabel ?? title}
         onClick={(event) => event.stopPropagation()}
       >
         <div

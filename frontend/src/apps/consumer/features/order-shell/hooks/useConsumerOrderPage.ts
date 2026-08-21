@@ -2,7 +2,13 @@ import { useMemo, useState } from 'react';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { ORDER_SHELL_CATEGORIES, ORDER_SHELL_MENU_ITEMS } from '../mock/orderShellMock';
-import type { OrderShellCartLine, OrderShellMenuGroup, OrderShellMenuItem } from '../types';
+import { buildCartKey, calcCartLinePrice } from '../cartLine';
+import type {
+  OrderShellCartLine,
+  OrderShellCartOption,
+  OrderShellMenuGroup,
+  OrderShellMenuItem,
+} from '../types';
 
 /**
  * ConsumerOrderPage의 mock 장바구니를 소유한다(feature-local state).
@@ -35,19 +41,24 @@ export function useConsumerOrderPage() {
   }, [filteredItems]);
 
   const totalCartQty = cart.reduce((sum, line) => sum + line.qty, 0);
-  const totalCartPrice = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
+  const totalCartPrice = cart.reduce((sum, line) => sum + calcCartLinePrice(line), 0);
 
-  function addToCart(item: OrderShellMenuItem) {
+  /**
+   * 같은 메뉴라도 옵션 조합이 다르면 별도 줄로 담는다 — 병합 기준은 `menuId`가 아니라 `cartKey`다.
+   */
+  function addToCart(item: OrderShellMenuItem, qty = 1, options: OrderShellCartOption[] = []) {
+    const cartKey = buildCartKey(item.id, options);
+
     setCart((prev) => {
-      const existing = prev.find((line) => line.menuId === item.id);
+      const existing = prev.find((line) => line.cartKey === cartKey);
       if (existing) {
         return prev.map((line) =>
-          line.menuId === item.id ? { ...line, qty: line.qty + 1 } : line,
+          line.cartKey === cartKey ? { ...line, qty: line.qty + qty } : line,
         );
       }
       return [
         ...prev,
-        { cartKey: item.id, menuId: item.id, name: item.name, price: item.price, qty: 1 },
+        { cartKey, menuId: item.id, name: item.name, price: item.price, qty, options },
       ];
     });
   }
