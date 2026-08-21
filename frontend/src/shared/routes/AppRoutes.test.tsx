@@ -122,6 +122,6 @@ describe('AppRoutes auth redirect', () => {
     renderRoutes('/consumer/order', { isLoading: true });
 
     expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('소비자 주문 화면')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '전체' })).toBeInTheDocument();
   });
 });
