@@ -87,7 +87,7 @@ describe('useMenuDetailSheet', () => {
     expect(result.current.totalPrice).toBe(12500);
   });
 
-  it('필수 단일 선택은 이미 고른 항목을 다시 눌러도 해제되지 않는다', () => {
+  it('단일 선택은 이미 고른 항목을 다시 눌러도 해제되지 않는다', () => {
     const { result } = renderHook(() => useMenuDetailSheet(itemWithOptions));
     const riceGroup = itemWithOptions.optionGroups![0];
 
