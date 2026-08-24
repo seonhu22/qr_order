@@ -7,20 +7,8 @@ import {
   mapToMenuOptionGroupRow,
   mapToMenuOptionDetailRow,
   mapToMenuOptionDetailPayload,
+  normalizeOptionSelectionType,
 } from './menuOptionApi';
-
-type MenuOptionDetailItemWithDefault = {
-  sysId?: string;
-  linkSysId?: string;
-  menuOptionName?: string;
-  menuOptionPrice?: string;
-  menuDescription?: string;
-  maximumNum?: string;
-  defaultYn?: string;
-  useYn?: string;
-  fileUlid?: string;
-  ordNo?: number;
-};
 
 const MENU_ROWS = [
   {
@@ -79,27 +67,27 @@ describe('buildMenuOptionDetailFormData', () => {
         {
           linkSysId: 'group-1',
           menuOptionName: '토마토 추가',
-          menuOptionPrice: '0',
-          maximumNum: '0',
+          menuOptionPrice: 0,
+          maximumNum: 0,
           menuDescription: '',
           defaultYn: 'Y',
           useYn: 'Y',
           ordNo: 1,
-        } as MenuOptionDetailItemWithDefault,
+        },
       ],
       updateItems: [
         {
           sysId: 'detail-1',
           linkSysId: 'group-1',
           menuOptionName: '치즈 추가',
-          menuOptionPrice: '1000',
-          maximumNum: '2',
+          menuOptionPrice: 1000,
+          maximumNum: 2,
           menuDescription: '고소한 치즈',
           defaultYn: 'N',
           useYn: 'N',
           fileUlid: 'file-1',
           ordNo: 2,
-        } as MenuOptionDetailItemWithDefault,
+        },
       ],
       delItems: [{ sysId: 'detail-2', linkSysId: 'group-1' }],
     });
@@ -131,7 +119,7 @@ describe('menu option group useYn mapping', () => {
       linkSysId: 'menu-1',
       groupName: '재료',
       requiredYn: 'Y',
-      inputType: '주문 옵션',
+      inputType: '01',
       ordNo: 1,
       useYn: 'N',
     });
@@ -146,7 +134,7 @@ describe('menu option group useYn mapping', () => {
       linkSysId: 'menu-1',
       groupName: '재료',
       requiredYn: 'Y',
-      inputType: '주문 옵션',
+      inputType: '01',
       ordNo: 1,
       useYn: 'N',
     });
@@ -156,6 +144,22 @@ describe('menu option group useYn mapping', () => {
     };
 
     expect(buildMenuOptionGroupChanges([currentRow], [originalRow]).updateRows).toHaveLength(1);
+  });
+});
+
+describe('normalizeOptionSelectionType', () => {
+  it('keeps the 01/02/03 common-code values', () => {
+    expect(normalizeOptionSelectionType('01')).toBe('01');
+    expect(normalizeOptionSelectionType('02')).toBe('02');
+    expect(normalizeOptionSelectionType('03')).toBe('03');
+  });
+
+  it('maps the unambiguous legacy quantity value to 03', () => {
+    expect(normalizeOptionSelectionType('수량 설정')).toBe('03');
+  });
+
+  it('requires manual classification for the ambiguous legacy order option value', () => {
+    expect(normalizeOptionSelectionType('주문 옵션')).toBe('');
   });
 });
 
@@ -175,7 +179,7 @@ describe('mapToMenuOptionDetailPayload', () => {
           defaultYn: false,
         },
       }).maximumNum,
-    ).toBe('0');
+    ).toBe(0);
   });
 
   it('maps defaultYn to Y/N for the backend', () => {
@@ -195,6 +199,24 @@ describe('mapToMenuOptionDetailPayload', () => {
       }).defaultYn,
     ).toBe('Y');
   });
+
+  it('rejects an invalid option price before sending the request', () => {
+    expect(() =>
+      mapToMenuOptionDetailPayload({
+        id: 'new-row',
+        groupId: 'group-1',
+        ordNo: 1,
+        values: {
+          menuOptionName: '패티 추가',
+          menuOptionPrice: '',
+          maximumNum: '',
+          menuDescription: '',
+          useYn: 'Y',
+          defaultYn: false,
+        },
+      }),
+    ).toThrow('옵션 가격을(를) 숫자로 입력해주세요.');
+  });
 });
 
 describe('mapToMenuOptionDetailRow', () => {
@@ -210,7 +232,7 @@ describe('mapToMenuOptionDetailRow', () => {
       useYn: 'Y',
       fileUlid: 'file-1',
       ordNo: 1,
-    } as MenuOptionDetailItemWithDefault);
+    });
 
     expect(row.values.menuOptionPrice).toBe('5555');
     expect(row.values.maximumNum).toBe('0');

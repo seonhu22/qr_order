@@ -28,13 +28,7 @@ import type {
   MenuOptionGroupSchema,
   MenuOptionMasterRow,
 } from '../types';
-
-type MenuOptionDetailItemWire = MenuOptionDetailItem & {
-  defaultYn?: string;
-};
-type MenuOptionDetailResponseWire = MenuOptionDetailResponse & {
-  defaultYn?: string;
-};
+import { OPTION_SELECTION_TYPE } from '../constants';
 
 export const USE_YN_OPTIONS: SelectOption[] = [
   { value: 'Y', label: '사용' },
@@ -42,9 +36,23 @@ export const USE_YN_OPTIONS: SelectOption[] = [
 ];
 
 export const INPUT_TYPE_OPTIONS: SelectOption[] = [
-  { value: '주문 옵션', label: '주문 옵션' },
-  { value: '수량 설정', label: '수량 설정' },
+  { value: OPTION_SELECTION_TYPE.SINGLE, label: '단일 선택' },
+  { value: OPTION_SELECTION_TYPE.MULTIPLE, label: '복수 선택' },
+  { value: OPTION_SELECTION_TYPE.QUANTITY, label: '수량 선택' },
 ];
+
+const OPTION_SELECTION_TYPE_CODES = new Set(INPUT_TYPE_OPTIONS.map((option) => option.value));
+
+/**
+ * 기존 한글 저장값을 코드 계약으로 전환한다.
+ * `수량 설정`은 03으로 안전하게 변환할 수 있지만, `주문 옵션`은 단일·복수를
+ * 구분할 수 없으므로 빈 값으로 표시해 사용자가 01/02를 다시 선택하게 한다.
+ */
+export function normalizeOptionSelectionType(inputType: string | undefined) {
+  if (inputType === '수량 설정') return OPTION_SELECTION_TYPE.QUANTITY;
+  if (inputType && OPTION_SELECTION_TYPE_CODES.has(inputType)) return inputType;
+  return '';
+}
 
 export const MENU_OPTION_GROUP_COLUMNS: EditableDetailColumn[] = [
   { key: 'groupName', label: '옵션 그룹명', type: 'text', required: true },
@@ -92,13 +100,13 @@ const MENU_OPTION_DETAIL_TAIL_COLUMNS: EditableDetailColumn[] = [
   { key: 'edit', label: '', type: 'action', className: 'common-table__col--action' },
 ];
 
-/** 옵션 그룹의 옵션/수량이 "주문 옵션"일 때 옵션 항목 컬럼. */
+/** 단일·복수 선택 그룹의 옵션 항목 컬럼. */
 export const MENU_OPTION_DETAIL_ORDER_COLUMNS: EditableDetailColumn[] = [
   ...MENU_OPTION_DETAIL_BASE_COLUMNS,
   ...MENU_OPTION_DETAIL_TAIL_COLUMNS,
 ];
 
-/** 옵션 그룹의 옵션/수량이 "수량 설정"일 때 옵션 항목 컬럼. */
+/** 수량 선택(03) 그룹의 옵션 항목 컬럼. */
 export const MENU_OPTION_DETAIL_QUANTITY_COLUMNS: EditableDetailColumn[] = [
   ...MENU_OPTION_DETAIL_BASE_COLUMNS,
   { key: 'maximumNum', label: '수량 설정', type: 'text', required: true, inputType: 'number' },
@@ -106,7 +114,7 @@ export const MENU_OPTION_DETAIL_QUANTITY_COLUMNS: EditableDetailColumn[] = [
 ];
 
 export function getMenuOptionDetailColumns(groupInputType: string | undefined) {
-  return groupInputType === '수량 설정'
+  return groupInputType === OPTION_SELECTION_TYPE.QUANTITY
     ? MENU_OPTION_DETAIL_QUANTITY_COLUMNS
     : MENU_OPTION_DETAIL_ORDER_COLUMNS;
 }
@@ -167,7 +175,7 @@ export function mapToMenuOptionGroupRow(item: MenuOptionGroupResponse): MenuOpti
     values: {
       groupName: item.groupName ?? '',
       requiredYn: item.requiredYn === 'Y',
-      inputType: item.inputType ?? '',
+      inputType: normalizeOptionSelectionType(item.inputType),
       useYn: item.useYn === 'N' ? 'N' : 'Y',
     },
   };
@@ -186,8 +194,6 @@ export function mapToMenuOptionGroupPayload(row: MenuOptionGroupRow): MenuOption
 }
 
 export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOptionDetailRow {
-  const wireItem = item as MenuOptionDetailResponseWire;
-
   return {
     id: item.sysId ?? `${item.linkSysId}-${item.ordNo}`,
     sysId: item.sysId,
@@ -200,19 +206,22 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
       maximumNum: item.maximumNum != null ? String(item.maximumNum) : '',
       menuDescription: item.menuDescription ?? '',
       useYn: item.useYn === 'N' ? 'N' : 'Y',
-      defaultYn: wireItem.defaultYn === 'Y',
+      defaultYn: item.defaultYn === 'Y',
     },
   };
 }
 
-export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOptionDetailItemWire {
-  const maximumNum = row.values.maximumNum.trim() || '0';
+export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOptionDetailItem {
+  const menuOptionPrice = parseRequiredNumber(row.values.menuOptionPrice, '옵션 가격');
+  const maximumNum = row.values.maximumNum.trim()
+    ? parseRequiredNumber(row.values.maximumNum, '최대 수량')
+    : 0;
 
   return {
     sysId: row.sysId,
     linkSysId: row.groupId,
     menuOptionName: row.values.menuOptionName,
-    menuOptionPrice: row.values.menuOptionPrice,
+    menuOptionPrice,
     maximumNum,
     menuDescription: row.values.menuDescription,
     defaultYn: row.values.defaultYn ? 'Y' : 'N',
@@ -220,6 +229,17 @@ export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOpti
     fileUlid: row.fileUlid,
     ordNo: row.ordNo,
   };
+}
+
+function parseRequiredNumber(value: string, fieldLabel: string) {
+  const normalizedValue = value.trim();
+  const parsedValue = Number(normalizedValue);
+
+  if (!normalizedValue || !Number.isFinite(parsedValue)) {
+    throw new Error(`${fieldLabel}을(를) 숫자로 입력해주세요.`);
+  }
+
+  return parsedValue;
 }
 
 function isSameMenuOptionGroupRow(a: MenuOptionGroupRow, b: MenuOptionGroupRow) {
@@ -406,8 +426,7 @@ function appendMenuOptionDetailItem(
   if (item.menuOptionPrice != null) formData.append(`${prefix}.menuOptionPrice`, String(item.menuOptionPrice));
   if (item.maximumNum != null) formData.append(`${prefix}.maximumNum`, String(item.maximumNum));
   if (item.menuDescription != null) formData.append(`${prefix}.menuDescription`, item.menuDescription);
-  const wireItem = item as MenuOptionDetailItemWire;
-  if (wireItem.defaultYn) formData.append(`${prefix}.defaultYn`, wireItem.defaultYn);
+  if (item.defaultYn) formData.append(`${prefix}.defaultYn`, item.defaultYn);
   if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
   if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));

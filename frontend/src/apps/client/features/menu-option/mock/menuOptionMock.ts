@@ -10,6 +10,7 @@
 
 import type { MenuOptionDetailResponse } from '@/generated/types/menuOptionDetailResponse';
 import type { MenuOptionGroupResponse } from '@/generated/types/menuOptionGroupResponse';
+import { OPTION_SELECTION_TYPE } from '../constants';
 
 export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
   {
@@ -17,7 +18,7 @@ export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
     linkSysId: 'menu-3',
     groupName: '사이즈 선택',
     requiredYn: 'Y',
-    inputType: '주문 옵션',
+    inputType: OPTION_SELECTION_TYPE.SINGLE,
     ordNo: 1,
   },
   {
@@ -25,7 +26,7 @@ export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
     linkSysId: 'menu-3',
     groupName: '샷 추가',
     requiredYn: 'N',
-    inputType: '수량 설정',
+    inputType: OPTION_SELECTION_TYPE.QUANTITY,
     ordNo: 2,
   },
   {
@@ -33,7 +34,7 @@ export const MENU_OPTION_GROUP_MOCK_ROWS: MenuOptionGroupResponse[] = [
     linkSysId: 'menu-4',
     groupName: '우유 선택',
     requiredYn: 'Y',
-    inputType: '주문 옵션',
+    inputType: OPTION_SELECTION_TYPE.MULTIPLE,
     ordNo: 1,
   },
 ];
@@ -43,7 +44,7 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     sysId: 'option-detail-1',
     linkSysId: 'option-group-1',
     menuOptionName: '톨',
-    menuOptionPrice: '0',
+    menuOptionPrice: 0,
     useYn: 'Y',
     ordNo: 1,
   },
@@ -51,7 +52,7 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     sysId: 'option-detail-2',
     linkSysId: 'option-group-1',
     menuOptionName: '그란데',
-    menuOptionPrice: '500',
+    menuOptionPrice: 500,
     useYn: 'Y',
     ordNo: 2,
   },
@@ -59,8 +60,8 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     sysId: 'option-detail-3',
     linkSysId: 'option-group-2',
     menuOptionName: '샷 추가',
-    menuOptionPrice: '500',
-    maximumNum: '3',
+    menuOptionPrice: 500,
+    maximumNum: 3,
     useYn: 'Y',
     ordNo: 1,
   },
@@ -68,7 +69,7 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     sysId: 'option-detail-4',
     linkSysId: 'option-group-3',
     menuOptionName: '일반 우유',
-    menuOptionPrice: '0',
+    menuOptionPrice: 0,
     useYn: 'Y',
     ordNo: 1,
   },
@@ -76,7 +77,7 @@ export const MENU_OPTION_DETAIL_MOCK_ROWS: MenuOptionDetailResponse[] = [
     sysId: 'option-detail-5',
     linkSysId: 'option-group-3',
     menuOptionName: '두유',
-    menuOptionPrice: '500',
+    menuOptionPrice: 500,
     useYn: 'Y',
     ordNo: 2,
   },

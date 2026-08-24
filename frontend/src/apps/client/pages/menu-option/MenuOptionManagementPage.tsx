@@ -22,7 +22,10 @@ import { MenuOptionDetailTable } from '@/apps/client/features/menu-option/compon
 import { MenuOptionGroupTable } from '@/apps/client/features/menu-option/components/MenuOptionGroupTable';
 import { MenuOptionMasterTable } from '@/apps/client/features/menu-option/components/MenuOptionMasterTable';
 import { USE_YN_OPTIONS } from '@/apps/client/features/menu-option/api/menuOptionApi';
-import { MENU_OPTION_DETAIL_FILE_POLICY } from '@/apps/client/features/menu-option/constants';
+import {
+  MENU_OPTION_DETAIL_FILE_POLICY,
+  OPTION_SELECTION_TYPE,
+} from '@/apps/client/features/menu-option/constants';
 import { useMenuOptionManagementPage } from '@/apps/client/features/menu-option/hooks/useMenuOptionManagementPage';
 
 function formatOptionPriceDisplay(rawValue: string): string {
@@ -32,7 +35,8 @@ function formatOptionPriceDisplay(rawValue: string): string {
 
 export function MenuOptionManagementPage() {
   const { data, status, actions, uiProps } = useMenuOptionManagementPage();
-  const isQuantityGroup = data.selectedGroupRow?.values.inputType === '수량 설정';
+  const isQuantityGroup =
+    data.selectedGroupRow?.values.inputType === OPTION_SELECTION_TYPE.QUANTITY;
 
   return (
     <>

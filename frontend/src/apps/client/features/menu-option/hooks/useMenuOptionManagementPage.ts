@@ -35,6 +35,7 @@ import {
   useSaveMenuOptionDetailsMutation,
   useSaveMenuOptionGroupsMutation,
 } from '../api/menuOptionApi';
+import { OPTION_SELECTION_TYPE } from '../constants';
 
 const EMPTY_OPTION_DETAIL_FILE_STATE: FileChangeState = { newFiles: [], deletedFiles: [] };
 
@@ -116,7 +117,7 @@ export function useMenuOptionManagementPage() {
     null,
   );
   /**
-   * 옵션/수량을 바꾼 그룹의 id. 고객 화면에 보여줄 UI(주문 옵션/수량 설정)가 달라지므로,
+   * 옵션 선택 방식을 바꾼 그룹의 id. 수량 선택 여부에 따라 항목 컬럼이 달라지므로,
    * 해당 그룹의 옵션 항목이 새 컬럼 기준으로 저장되기 전에는 그룹 저장을 막는다.
    */
   const [groupIdNeedingDetailSync, setGroupIdNeedingDetailSync] = useState<string | null>(null);
@@ -299,10 +300,10 @@ export function useMenuOptionManagementPage() {
     updateSelectedDetailRows((rows) =>
       rows.map((row) => ({ ...row, values: { ...row.values, maximumNum: '' } })),
     );
-    // 주문 옵션 ↔ 수량 설정은 수량 설정 컬럼 하나만 생기거나 사라지는 차이다.
+    // 01/02 ↔ 03 전환 시에만 최대 수량 컬럼이 생기거나 사라진다.
     // 컬럼이 "새로 생기는"(수량 설정으로 바뀌는) 경우에만 필수값이 비어있을 수 있으므로,
     // 그 경우에만 옵션 항목이 저장되기 전까지 그룹 저장을 막는다.
-    if (pendingGroupInputTypeChange.nextValue === '수량 설정') {
+    if (pendingGroupInputTypeChange.nextValue === OPTION_SELECTION_TYPE.QUANTITY) {
       setGroupIdNeedingDetailSync(pendingGroupInputTypeChange.rowId);
     }
     setPendingGroupInputTypeChange(null);
