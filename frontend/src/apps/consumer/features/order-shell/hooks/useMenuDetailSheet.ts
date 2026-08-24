@@ -86,18 +86,16 @@ export function useMenuDetailSheet(item: OrderShellMenuItem) {
   }
 
   /**
-   * 단일 선택은 고른 항목으로 교체하고, 복수 선택은 토글한다.
-   * 복수 선택에서 `maxSelectable`에 도달했으면 새 항목 추가만 막고 해제는 그대로 허용한다.
+   * 단일 선택은 고른 항목으로 교체하기만 한다 — `radio`는 이미 고른 항목을 다시 눌러도
+   * change가 발생하지 않으므로 해제 분기를 둬도 UI에서 도달할 수 없다.
+   * 복수 선택은 토글하되, `maxSelectable`에 도달했으면 새 항목 추가만 막고 해제는 그대로 허용한다.
    */
   function toggleChoice(group: OrderShellOptionGroup, choiceId: string) {
     setSelectedChoices((prev) => {
       const current = prev[group.id] ?? [];
 
       if (group.selectionType === 'single') {
-        // 필수 그룹은 이미 고른 항목을 다시 눌러도 해제하지 않는다 — 선택 없는 상태로 되돌릴 수 없다.
-        if (current.includes(choiceId)) {
-          return group.required ? prev : { ...prev, [group.id]: [] };
-        }
+        if (current.includes(choiceId)) return prev;
         return { ...prev, [group.id]: [choiceId] };
       }
 

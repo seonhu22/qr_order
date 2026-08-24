@@ -12,7 +12,6 @@ export function buildCartKey(menuId: string, options: OrderShellCartOption[]): s
 
   const choiceIds = options
     .map((option) => option.choiceId)
-    .slice()
     .sort()
     .join('+');
 
