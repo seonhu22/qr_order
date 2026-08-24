@@ -1,12 +1,12 @@
 package htms.QROrder.consumer.menu.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class ConsumerMenuCategoryItem {
+@AllArgsConstructor
+public class ConsumerMenuDetailResponse {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String categorySysId;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String categoryName;
+    private ConsumerMenuDetailBody body;
 }

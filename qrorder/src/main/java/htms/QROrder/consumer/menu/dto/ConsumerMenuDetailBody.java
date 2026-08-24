@@ -1,10 +1,14 @@
 package htms.QROrder.consumer.menu.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-public class ConsumerMenuItem {
+@AllArgsConstructor
+public class ConsumerMenuDetailBody {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String menuSysId;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -25,4 +29,24 @@ public class ConsumerMenuItem {
     private String optionUseYn;
     @Schema(allowableValues = {"Y", "N"}, requiredMode = Schema.RequiredMode.REQUIRED)
     private String soldOutYn;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    private List<ConsumerMenuOptionGroup> optionGroupList;
+
+    public static ConsumerMenuDetailBody from(
+            ConsumerMenuItem menu,
+            List<ConsumerMenuOptionGroup> optionGroupList) {
+        return new ConsumerMenuDetailBody(
+                menu.getMenuSysId(),
+                menu.getCategorySysId(),
+                menu.getCategoryName(),
+                menu.getMenuName(),
+                menu.getMenuPrice(),
+                menu.getMenuDescription(),
+                menu.getFileSysId(),
+                menu.getMenuTag(),
+                menu.getOptionUseYn(),
+                menu.getSoldOutYn(),
+                optionGroupList
+        );
+    }
 }
