@@ -11,6 +11,7 @@ export const ORDER_SHELL_CATEGORIES = ['전체', '한식', '음료', '디저트'
 
 export const ORDER_SHELL_MENU_ITEMS: OrderShellMenuItem[] = [
   {
+    // 필수 단일 선택 + 선택 복수 선택을 한 메뉴에서 함께 확인하기 위한 mock
     id: 'menu-1',
     name: '불고기 정식',
     category: '한식',
@@ -19,6 +20,32 @@ export const ORDER_SHELL_MENU_ITEMS: OrderShellMenuItem[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1708388463872-1be875a0ba6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400',
     badges: ['popular', 'recommended'],
+    optionGroups: [
+      {
+        id: 'menu-1-rice',
+        name: '밥 선택',
+        required: true,
+        selectionType: 'single',
+        choices: [
+          { id: 'menu-1-rice-white', name: '백미', price: 0 },
+          { id: 'menu-1-rice-multigrain', name: '잡곡밥', price: 500 },
+          { id: 'menu-1-rice-none', name: '밥 없이', price: -1000 },
+        ],
+      },
+      {
+        id: 'menu-1-extra',
+        name: '추가 선택',
+        required: false,
+        selectionType: 'multiple',
+        maxSelectable: 2,
+        choices: [
+          { id: 'menu-1-extra-egg', name: '계란후라이', price: 1000 },
+          { id: 'menu-1-extra-cheese', name: '치즈 토핑', price: 1500 },
+          { id: 'menu-1-extra-noodle', name: '당면 사리', price: 2000 },
+          { id: 'menu-1-extra-soup', name: '된장국 추가', price: 1000, soldOut: true },
+        ],
+      },
+    ],
   },
   {
     id: 'menu-2',
@@ -31,11 +58,12 @@ export const ORDER_SHELL_MENU_ITEMS: OrderShellMenuItem[] = [
     badges: ['popular'],
   },
   {
+    // 옵션이 없는 메뉴 — 상세 시트에서 옵션 영역이 통째로 빠지는 경우(디자인 기준 화면)
     id: 'menu-3',
     name: '된장찌개',
     category: '한식',
     price: 8000,
-    description: '구수한 재래식 된장찌개, 공기밥 포함',
+    description: '구수한 재래식 된장으로 끓인 두부 된장찌개. 공기밥 포함.',
     imageUrl:
       'https://images.unsplash.com/photo-1535923054316-5f75572def8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400',
   },

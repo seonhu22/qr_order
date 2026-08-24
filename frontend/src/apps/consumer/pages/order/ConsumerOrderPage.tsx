@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/components/button';
 import { ConsumerBottomSheet } from '@/apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet';
 import { CartBar } from '@/apps/consumer/features/order-shell/components/CartBar';
+import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
+import { calcCartLinePrice } from '@/apps/consumer/features/order-shell/cartLine';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -30,11 +32,10 @@ export function ConsumerOrderPage() {
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
-  const sheetTitle = sheet
-    ? sheet.type === 'menu-detail'
-      ? detailItem?.name
-      : SHEET_TITLE[sheet.type]
-    : undefined;
+  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어 시트 제목을 노출하지 않는다.
+  // 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
+  const sheetTitle = sheet && sheet.type !== 'menu-detail' ? SHEET_TITLE[sheet.type] : undefined;
+  const sheetAriaLabel = sheet?.type === 'menu-detail' ? detailItem?.name : undefined;
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isFirstCategoryRender = useRef(true);
@@ -89,26 +90,22 @@ export function ConsumerOrderPage() {
 
       <CartBar totalQty={totalCartQty} totalPrice={totalCartPrice} onOpenCart={openCart} />
 
-      <ConsumerBottomSheet open={sheet !== null} onClose={closeSheet} title={sheetTitle}>
+      <ConsumerBottomSheet
+        open={sheet !== null}
+        onClose={closeSheet}
+        title={sheetTitle}
+        ariaLabel={sheetAriaLabel}
+      >
         {sheet?.type === 'menu-detail' && detailItem && (
-          <div className="order-shell-sheet">
-            {detailItem.description && (
-              <p className="order-shell-sheet__description">{detailItem.description}</p>
-            )}
-            <p className="order-shell-sheet__price">{detailItem.price.toLocaleString()}원</p>
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              className="order-shell-sheet__action"
-              onClick={() => {
-                addToCart(detailItem);
-                closeSheet();
-              }}
-            >
-              담기
-            </Button>
-          </div>
+          // 메뉴가 바뀌면 수량·옵션 선택이 초기화되도록 메뉴 id를 key로 준다.
+          <MenuDetailSheet
+            key={detailItem.id}
+            item={detailItem}
+            onAddToCart={(item, qty, options) => {
+              addToCart(item, qty, options);
+              closeSheet();
+            }}
+          />
         )}
 
         {sheet?.type === 'cart' && (
@@ -119,10 +116,15 @@ export function ConsumerOrderPage() {
               <ul className="order-shell-cart-list">
                 {cart.map((line) => (
                   <li key={line.cartKey} className="order-shell-cart-list__item">
-                    <span>
+                    <span className="order-shell-cart-list__name">
                       {line.name} × {line.qty}
+                      {line.options.length > 0 && (
+                        <span className="order-shell-cart-list__options">
+                          {line.options.map((option) => option.choiceName).join(', ')}
+                        </span>
+                      )}
                     </span>
-                    <span>{(line.price * line.qty).toLocaleString()}원</span>
+                    <span>{calcCartLinePrice(line).toLocaleString()}원</span>
                   </li>
                 ))}
               </ul>

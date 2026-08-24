@@ -58,10 +58,22 @@
 
 .order-shell-cart-list__item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: var(--spacing-4);
   font-size: var(--typography-size-body);
   color: var(--color-text-primary);
+}
+
+.order-shell-cart-list__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.order-shell-cart-list__options {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
 }
 
 /* 폴드 펼침(~717px)부터 웹까지: 메뉴 목록이 1열에서 다열 그리드로 바뀐다. 열 수를 고정하지 않고
