@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.consumer.menu.repository.ConsumerMenuMapper">
+
+    <select id="getStoreName" resultType="String">
+        select
+            sp.store_nm
+        from sys_plant sp
+        where sp.plant_cd = #{sysPlantCd}
+        and sp.use_yn = 'Y'
+        and sp.delete_yn = 'N'
+    </select>
+
+    <select id="getCategoryList" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuCategoryItem">
+        select
+            smm.sys_id as category_sys_id,
+            smm.category_name
+        from store_menu_master smm
+        where smm.sys_plant_cd = #{sysPlantCd}
+        and smm.use_yn = 'Y'
+        and smm.delete_yn = 'N'
+        and exists (
+            select 1
+            from store_menu_detail smd
+            where smd.link_sys_id = smm.sys_id
+            and smd.sys_plant_cd = smm.sys_plant_cd
+            and smd.use_yn = 'Y'
+            and smd.delete_yn = 'N'
+        )
+        order by smm.ord_no asc
+    </select>
+
+    <sql id="consumerMenuBase">
+        select
+            smd.sys_id as menu_sys_id,
+            smm.sys_id as category_sys_id,
+            smm.category_name,
+            smd.menu_name,
+            smd.menu_price,
+            smd.menu_description,
+            (
+                select af.sys_id
+                from attach_file af
+                where af.link_sys_id = smd.file_ulid
+                and af.sys_plant_cd = smd.sys_plant_cd
+                and af.delete_yn = 'N'
+                order by af.ord_no asc
+                limit 1
+            ) as file_sys_id,
+            smd.menu_tag,
+            smd.option_use_yn,
+            smd.sold_out_yn
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+            and smm.use_yn = 'Y'
+            and smm.delete_yn = 'N'
+    </sql>
+
+    <select id="searchMenuList" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuItem">
+        <include refid="consumerMenuBase"/>
+        where smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+        <if test="searchKeyword != null">
+            and smd.menu_name ilike '%' || #{searchKeyword} || '%' escape '\'
+        </if>
+        <if test="categorySysId != null">
+            and smm.sys_id = #{categorySysId}
+        </if>
+        order by smm.ord_no asc, smd.ord_no asc
+    </select>
+
+    <select id="getMenuDetail" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuItem">
+        <include refid="consumerMenuBase"/>
+        where smd.sys_id = #{menuSysId}
+        and smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+    </select>
+
+    <select id="getMenuOptionRows" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuOptionRow">
+        select
+            smog.sys_id as option_group_sys_id,
+            smog.group_name,
+            smog.required_yn,
+            smog.input_type as selection_type,
+            smod.sys_id as menu_option_sys_id,
+            smod.menu_option_name,
+            smod.menu_option_price,
+            smod.menu_description as menu_option_description,
+            smod.maximum_num,
+            smod.default_yn
+        from store_menu_option_group smog
+        inner join store_menu_option_detail smod
+            on smod.link_sys_id = smog.sys_id
+            and smod.sys_plant_cd = smog.sys_plant_cd
+            and smod.use_yn = 'Y'
+            and smod.delete_yn = 'N'
+        where smog.link_sys_id = #{menuSysId}
+        and smog.sys_plant_cd = #{sysPlantCd}
+        and smog.use_yn = 'Y'
+        and smog.delete_yn = 'N'
+        order by smog.ord_no asc, smod.ord_no asc
+    </select>
+
+</mapper>
