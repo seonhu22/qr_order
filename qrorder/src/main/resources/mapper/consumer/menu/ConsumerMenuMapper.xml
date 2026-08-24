@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.consumer.menu.repository.ConsumerMenuMapper">
+
+    <select id="getStoreName" resultType="String">
+        select
+            sp.store_nm
+        from sys_plant sp
+        where sp.plant_cd = #{sysPlantCd}
+        and sp.use_yn = 'Y'
+        and sp.delete_yn = 'N'
+    </select>
+
+    <select id="getCategoryList" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuCategoryItem">
+        select
+            smm.sys_id as category_sys_id,
+            smm.category_name
+        from store_menu_master smm
+        where smm.sys_plant_cd = #{sysPlantCd}
+        and smm.use_yn = 'Y'
+        and smm.delete_yn = 'N'
+        order by smm.ord_no asc
+    </select>
+
+    <select id="getMenuList" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuItem">
+        select
+            smd.sys_id as menu_sys_id,
+            smm.sys_id as category_sys_id,
+            smm.category_name,
+            smd.menu_name,
+            smd.menu_price,
+            smd.menu_description,
+            (
+                select af.sys_id
+                from attach_file af
+                where af.link_sys_id = smd.file_ulid
+                and af.sys_plant_cd = smd.sys_plant_cd
+                and af.delete_yn = 'N'
+                order by af.ord_no asc
+                limit 1
+            ) as file_sys_id,
+            smd.menu_tag,
+            smd.option_use_yn,
+            smd.sold_out_yn
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+            and smm.use_yn = 'Y'
+            and smm.delete_yn = 'N'
+        where smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+        order by smm.ord_no asc, smd.ord_no asc
+    </select>
+
+</mapper>
