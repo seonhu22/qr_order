@@ -14,4 +14,10 @@ public interface ConsumerMenuMapper {
     List<ConsumerMenuCategoryItem> getCategoryList(@Param("sysPlantCd") String sysPlantCd);
 
     List<ConsumerMenuItem> getMenuList(@Param("sysPlantCd") String sysPlantCd);
+
+    List<ConsumerMenuItem> searchMenuList(
+            @Param("sysPlantCd") String sysPlantCd,
+            @Param("searchKeyword") String searchKeyword,
+            @Param("categorySysId") String categorySysId
+    );
 }

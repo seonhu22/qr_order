@@ -55,4 +55,42 @@
         order by smm.ord_no asc, smd.ord_no asc
     </select>
 
+    <select id="searchMenuList" resultType="htms.QROrder.consumer.menu.dto.ConsumerMenuItem">
+        select
+            smd.sys_id as menu_sys_id,
+            smm.sys_id as category_sys_id,
+            smm.category_name,
+            smd.menu_name,
+            smd.menu_price,
+            smd.menu_description,
+            (
+                select af.sys_id
+                from attach_file af
+                where af.link_sys_id = smd.file_ulid
+                and af.sys_plant_cd = smd.sys_plant_cd
+                and af.delete_yn = 'N'
+                order by af.ord_no asc
+                limit 1
+            ) as file_sys_id,
+            smd.menu_tag,
+            smd.option_use_yn,
+            smd.sold_out_yn
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+            and smm.use_yn = 'Y'
+            and smm.delete_yn = 'N'
+        where smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+        <if test="searchKeyword != null">
+            and smd.menu_name like concat('%', #{searchKeyword}, '%')
+        </if>
+        <if test="categorySysId != null">
+            and smm.sys_id = #{categorySysId}
+        </if>
+        order by smm.ord_no asc, smd.ord_no asc
+    </select>
+
 </mapper>
