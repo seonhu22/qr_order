@@ -79,6 +79,15 @@ CLAUDE.md
 /docs/agent-reports/
 AGENTS.md
 
+### 프로젝트 문서 ###
+# docs/plans/와 docs/solutions/는 팀 공유 문서이므로 Git에서 추적한다.
+# 개인 초안과 로컬 전용 메모만 제외한다.
+/docs/plans/private/
+/docs/plans/drafts/
+/docs/solutions/private/
+/docs/solutions/drafts/
+/docs/**/*.local.md
+
 ### 백엔드 테스트파일 ###
 qrorder/src/test/
 
