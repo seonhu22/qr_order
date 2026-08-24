@@ -39,4 +39,9 @@ export const queryPolicies = {
     retry: false,
     staleTime: staleTimes.short,
   },
+  // QR 세션은 로그인 여부와 비슷한 즉시성 판단이 필요해 authMe와 동일하게 retry: false로 둔다.
+  consumerSession: {
+    retry: false,
+    staleTime: staleTimes.instant,
+  },
 } as const;

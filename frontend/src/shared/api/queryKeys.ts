@@ -100,8 +100,7 @@ export const queryKeys = {
       searchKeyword?: string;
       auditFlag?: string;
       changeType: string;
-    }) =>
-      [...changeHistoryListsKey, params] as const,
+    }) => [...changeHistoryListsKey, params] as const,
   },
   notice: {
     lists: noticeListsKey,
@@ -148,7 +147,8 @@ export const queryKeys = {
   },
   settlement: {
     lists: settlementListsKey,
-    detail: (params: { startDate: string; endDate: string }) => [...settlementListsKey, params] as const,
+    detail: (params: { startDate: string; endDate: string }) =>
+      [...settlementListsKey, params] as const,
   },
   clientInquiry: {
     lists: clientInquiryListsKey,
@@ -159,5 +159,10 @@ export const queryKeys = {
   },
   tableLayout: {
     lists: tableLayoutListsKey,
+  },
+  consumer: {
+    session: ['consumer', 'session'] as const,
+    menu: (sessionId: string) => ['consumer', sessionId, 'menu'] as const,
+    orderHistory: (sessionId: string) => ['consumer', sessionId, 'order-history'] as const,
   },
 } as const;

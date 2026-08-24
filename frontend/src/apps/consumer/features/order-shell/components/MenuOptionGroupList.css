@@ -1,0 +1,98 @@
+.menu-option-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.menu-option-group__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-4);
+}
+
+.menu-option-group__name {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.menu-option-group__tag {
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+}
+
+/* --color-brand-text는 흰색이라 연한 브랜드 배경 위에서 읽히지 않는다.
+   메뉴 카드 배지와 같은 방식으로 같은 계열의 진한 색을 직접 쓴다. */
+.menu-option-group__tag--required {
+  background-color: var(--color-brand-subtle);
+  color: var(--orange-80);
+}
+
+.menu-option-group__hint {
+  margin-left: auto;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.menu-option-group__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.menu-option-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.menu-option-choice:hover:not(.menu-option-choice--disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+/* 선택된 항목은 테두리로 표시한다 — 시트 안에서 배경색 대비가 약해 테두리가 더 잘 읽힌다. */
+.menu-option-choice:has(.menu-option-choice__input:checked) {
+  border-color: var(--color-brand-default);
+  background-color: var(--color-bg-selected);
+}
+
+.menu-option-choice--disabled {
+  cursor: not-allowed;
+  color: var(--color-text-disabled);
+}
+
+.menu-option-choice__input {
+  accent-color: var(--color-brand-default);
+  width: var(--spacing-5);
+  height: var(--spacing-5);
+  cursor: inherit;
+}
+
+.menu-option-choice__name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--typography-size-body);
+}
+
+.menu-option-choice__soldout {
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-caption);
+}
+
+.menu-option-choice__price {
+  margin-left: auto;
+  font-size: var(--typography-size-body);
+  color: var(--color-text-secondary);
+}

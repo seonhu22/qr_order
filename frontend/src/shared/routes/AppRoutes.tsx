@@ -4,11 +4,10 @@ import type { RouteObject } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
-import { ConsumerOrderPage } from '@/apps/consumer/pages/order/ConsumerOrderPage';
-import { QrEntryPage } from '@/apps/consumer/pages/qr-entry/QrEntryPage';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
+import { consumerRoutes } from '@/apps/consumer/routes/ConsumerRoutes';
 import { devRoutes } from '@/shared/dev/DevRoutes';
 import { isInitialPasswordChangeRequired } from '@/shared/auth/initPassword';
 import { isLoginPath, resolveLoginPath } from '@/shared/auth/authRedirect';
@@ -62,7 +61,7 @@ function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: 
 }
 
 function isPublicStandalonePath(pathname: string) {
-  return isLoginPath(pathname) || pathname.startsWith('/qr/') || pathname === '/consumer/order';
+  return isLoginPath(pathname) || pathname.startsWith('/qr/') || pathname.startsWith('/consumer');
 }
 
 function AppRoutes() {
@@ -103,8 +102,7 @@ function AppRoutes() {
     ...withProtectedElement(protectedClientRoutes),
 
     /* ── QR 소비자 진입 라우트 (인증 불필요) ── */
-    { path: '/qr/:url', element: <QrEntryPage /> },
-    { path: '/consumer/order', element: <ConsumerOrderPage /> },
+    ...consumerRoutes,
 
     /* ── 개발 전용 가이드 (인증 불필요) ── */
     ...devRoutes,

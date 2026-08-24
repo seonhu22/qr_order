@@ -1,9 +1,45 @@
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/server';
-import { httpClient } from './httpClient';
+import { subscribeUnauthorized } from '@/shared/auth/authRedirect';
+import { httpClient, HttpError } from './httpClient';
 
 describe('httpClient', () => {
+  it('does not dispatch auth:unauthorized for a 401 from a Consumer QR path', async () => {
+    server.use(
+      http.get('/api/qr/table-999', () =>
+        HttpResponse.json({ message: '만료된 QR' }, { status: 401 }),
+      ),
+    );
+
+    const onUnauthorized = vi.fn();
+    const unsubscribe = subscribeUnauthorized(onUnauthorized);
+
+    await expect(httpClient({ url: '/api/qr/table-999', method: 'GET' })).rejects.toBeInstanceOf(
+      HttpError,
+    );
+
+    unsubscribe();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('still dispatches auth:unauthorized for a 401 from an unrelated API path', async () => {
+    server.use(
+      http.get('/api/settings/protected', () =>
+        HttpResponse.json({ message: '인증 만료' }, { status: 401 }),
+      ),
+    );
+
+    const onUnauthorized = vi.fn();
+    const unsubscribe = subscribeUnauthorized(onUnauthorized);
+
+    await expect(
+      httpClient({ url: '/api/settings/protected', method: 'GET' }),
+    ).rejects.toBeInstanceOf(HttpError);
+
+    unsubscribe();
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
   it('sends FormData without JSON stringifying it', async () => {
     let receivedMenuName: FormDataEntryValue | null = null;
     let receivedContentType: string | null = null;
