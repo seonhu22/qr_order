@@ -62,6 +62,8 @@ export interface CheckboxInputProps {
   successText?: string;
   /** 최상위 래퍼 div 에 추가할 CSS 클래스 */
   className?: string;
+  /** input id 속성 — 미입력 시 자동 생성(useId) */
+  id?: string;
 }
 
 

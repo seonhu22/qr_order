@@ -63,8 +63,10 @@ export function CheckboxInput({
   errorText,
   successText,
   className,
+  id: idProp,
 }: CheckboxInputProps) {
-  const id = useId();
+  const autoId = useId();
+  const id = idProp ?? autoId;
   const inputRef = useRef<HTMLInputElement>(null);
   const [internalChecked, setInternalChecked] = useState(defaultChecked);
 
