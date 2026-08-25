@@ -31,7 +31,7 @@
 }
 
 .consumer-bottom-sheet__handle {
-  width: var(--spacing-11);
+  width: var(--spacing-12);
   height: var(--spacing-2);
   border-radius: var(--radius-pill);
   background-color: var(--color-border-default);
@@ -75,6 +75,35 @@
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  /* 닫힐 때(토글·바깥 배경 클릭 등)도 위→아래로 내려가며 사라지게 한다.
+     forwards로 마지막 프레임(투명·화면 밖)을 유지해, 애니메이션이 끝나고
+     실제로 언마운트되기 전까지 잠깐 원래 모습으로 되튀는 걸 막는다. */
+  .consumer-bottom-sheet-overlay--closing {
+    animation: consumer-sheet-fade-out 0.2s ease-in forwards;
+  }
+
+  .consumer-bottom-sheet--closing {
+    animation: consumer-sheet-slide-down 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  }
+
+  @keyframes consumer-sheet-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes consumer-sheet-slide-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
     }
   }
 }
