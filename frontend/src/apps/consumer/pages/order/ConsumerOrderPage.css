@@ -1,8 +1,31 @@
 .order-shell__empty {
-  padding: var(--spacing-14) var(--spacing-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem var(--spacing-8);
   text-align: center;
+}
+
+.order-shell__empty-icon {
+  color: var(--slate-30);
+  margin-bottom: var(--spacing-6);
+}
+
+.order-shell__empty-text {
   color: var(--color-text-tertiary);
-  font-size: var(--typography-size-body);
+  font-size: var(--typography-size-ui);
+}
+
+.order-shell__empty-reset {
+  margin-top: var(--spacing-6);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-ui);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* CartBar가 position: fixed라 일반 흐름 높이를 차지하지 않는다 — 마지막 메뉴 카드가 카트바에

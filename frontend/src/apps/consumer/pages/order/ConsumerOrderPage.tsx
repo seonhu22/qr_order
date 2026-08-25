@@ -37,6 +37,7 @@ export function ConsumerOrderPage() {
     openMenuDetail,
     openCart,
     closeSheet,
+    clearSearch,
     orderPhase,
     duplicateTime,
     placeOrder,
@@ -58,6 +59,13 @@ export function ConsumerOrderPage() {
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isFirstCategoryRender = useRef(true);
+
+  // '전체'가 아닌 카테고리를 선택했는데 그 카테고리에 메뉴가 하나도 없으면(=검색 결과가 아니라
+  // 원래 비어 있는 카테고리) 스크롤할 섹션 자체가 없어 탭 클릭이 아무 반응 없는 죽은 인터랙션이
+  // 된다. 이때는 검색 결과가 0개일 때와 같은 안내 문구를 보여준다.
+  const isSelectedCategoryEmpty =
+    selectedCategory !== ORDER_SHELL_CATEGORIES[0] &&
+    !groupedMenu.some((group) => group.category === selectedCategory);
 
   // 카테고리 탭 클릭은 ConsumerHeader가 소유하고(consumerOrderFilterStore), 이 페이지는
   // 선택된 카테고리 변화에 반응해 해당 섹션으로만 스크롤한다. 헤더가 스크롤 영역 밖 고정
@@ -81,10 +89,18 @@ export function ConsumerOrderPage() {
 
   return (
     <div className={`order-shell${totalCartQty > 0 ? ' order-shell--with-cart-bar' : ''}`}>
-      {groupedMenu.length === 0 ? (
-        <p className="order-shell__empty">
-          {searchQuery ? `"${searchQuery}"에 대한 메뉴가 없습니다.` : '메뉴가 없습니다.'}
-        </p>
+      {groupedMenu.length === 0 || isSelectedCategoryEmpty ? (
+        <div className="order-shell__empty">
+          <ConsumerIcon id="ci-package" size={40} className="order-shell__empty-icon" />
+          <p className="order-shell__empty-text">
+            {searchQuery ? `"${searchQuery}"에 대한 메뉴가 없습니다` : '메뉴가 없습니다'}
+          </p>
+          {searchQuery && (
+            <button type="button" className="order-shell__empty-reset" onClick={clearSearch}>
+              검색 초기화
+            </button>
+          )}
+        </div>
       ) : (
         groupedMenu.map((group) => (
           <section

@@ -36,6 +36,7 @@ type OrderPhase =
  */
 export function useConsumerOrderPage() {
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
+  const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
@@ -216,6 +217,7 @@ export function useConsumerOrderPage() {
     openMenuDetail: (menuId: string) => openSheet({ type: 'menu-detail', menuId }),
     openCart: () => openSheet({ type: 'cart' }),
     closeSheet,
+    clearSearch: () => setSearchQuery(''),
     orderPhase,
     duplicateTime,
     placeOrder,
