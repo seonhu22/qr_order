@@ -77,12 +77,27 @@
 - 수정: `semantic-tokens.css`에 `--input-focus-border: var(--color-border-focus);`를 추가해 브랜드 포커스 컬러와 동일하게 연결함(`Button`/`Checkbox` 등 컴포넌트별 override와 같은 값으로 통일)
 - 참고: `--input-focus-border`는 `reset.css`의 네이티브 엘리먼트 포커스·호버 전용 별칭(alias)이다. 새 컴포넌트에서 포커스 스타일이 필요하면 이 토큰을 직접 참조하지 말고 `--focus-ring-brand`/`--color-border-focus`를 쓴다.
 
+### 감싸는 박스에 `:focus-within` 포커스 링을 만들었는데 `<input>` 자체에도 테두리가 따로 생김
+
+- 증상: 검색창처럼 `<input>`을 감싼 박스에 `.wrapper:focus-within { box-shadow: ... }`로 포커스 링을 만들어뒀는데, input을 클릭하면 감싼 박스와 별개로 input 자체에도 사각 테두리가 튀어나와 보임. input에 `outline: none`을 직접 줬는데도 사라지지 않음
+- 원인: `reset.css`가 `input:focus-visible { outline: 2px solid var(--input-focus-border, #3b82f6); }`를 갖고 있는데, 이 선택자(요소+가상클래스, 특이성 0-1-1)가 `.wrapper-input { outline: none; }`(클래스 1개, 특이성 0-1-0)보다 특이성이 더 높아서 이긴다. 텍스트 `<input>`은 마우스 클릭만으로도 브라우저가 `:focus-visible`을 매치시키는 경우가 많아(버튼과 다름) 클릭 시에도 재현된다
+- 수정: `outline: none`을 기본 상태뿐 아니라 `:focus`/`:focus-visible`에도 명시적으로 다시 건다(`shared/components/input/Input.css`의 `.input-control__input:focus, .input-control__input:focus-visible { outline: none; box-shadow: none; }`와 같은 패턴). `ConsumerHeader.css`의 `.consumer-header__search-input`에 이 패턴이 빠져 있어 재현됐다
+- 참고: `<input>`을 감싼 박스가 포커스 시각화를 전담하는 모든 곳(검색창, `input-control` 계열 등)은 이 `:focus`/`:focus-visible` 이중 선언이 있어야 안전하다. 새로 비슷한 wrapper+input 구조를 만들 때 빠뜨리기 쉽다.
+
 ### `Icon` + 텍스트를 같은 색상 배너에 넣으면 아이콘이 의도보다 어둡게 보임
 
 - 증상: `FormAlert--success`처럼 아이콘과 텍스트를 같은 success 계열로 칠했는데, 직접 만든 배너는 두 색이 똑같이 어두워 보여서 기존 컴포넌트와 톤이 다르게 느껴짐
 - 원인: `Icon`(`shared/assets/icons/Icon.tsx`)은 `className`만 받는 raw `<svg>`이고 내부 `<use>`가 `currentColor`를 그대로 쓴다. 아이콘과 텍스트를 한 wrapper에 넣고 wrapper에만 `color`를 주면 아이콘도 텍스트와 같은 색으로 상속된다. 그런데 `FormAlert.css`는 아이콘에 `--color-status-success-default`(밝은 톤), 텍스트에 `--color-status-success-text`(어두운 톤)를 **따로** 지정해서 의도적으로 두 색을 분리해 둔 상태다
 - 수정: wrapper에 텍스트 색만 주고, 아이콘은 `Icon`이 렌더한 `svg`를 직접 선택해 `--color-status-success-default`로 덮어쓴다(`InquiryManagementPage.css`의 `.inquiry-detail-answered-banner__left svg` 참고). `Icon`에 `className`을 넘겨 받을 수 있으면 그 클래스로 선택하는 쪽이 더 명확하다
 - 참고: 상태 배너에 아이콘 + 텍스트를 같이 쓸 때는 항상 `FormAlert.css`의 `-default`(아이콘)/`-text`(텍스트) 분리 패턴을 기준으로 맞춘다.
+
+### Playwright로 RadioInput/CheckboxInput을 `role` 클릭하면 타임아웃
+
+- 증상: `RadioInput`/`CheckboxInput`을 쓰는 화면을 Playwright로 자동화할 때 `getByRole('checkbox' | 'radio', { name: ... }).click()`이 계속 재시도만 하다 30초 안팎에 타임아웃된다. 로그에 `<label class="checkbox-control__row">…</label> intercepts pointer events`가 남는다.
+- 원인: `RadioInput`/`CheckboxInput`은 접근성을 위해 네이티브 `<input>`을 시각적으로 숨기고(`position:absolute; width:1px; height:1px; clip:...`) 그 위에 커스텀 원/박스를 그린 라벨로 감싼다. Playwright의 role 기반 `.click()`은 그 `<input>`의 실제 화면 좌표(1×1px)를 클릭하려 하는데, 같은 좌표에 더 큰 라벨 엘리먼트가 겹쳐 있어 포인터 이벤트를 가로챈다(hit-testing 실패). Testing Library의 `userEvent.click()`은 jsdom에서 좌표 히트테스트 없이 이벤트를 직접 디스패치하므로, 같은 대상을 쓰는 vitest 테스트는 이 문제 없이 통과한다.
+- 재현: Playwright로 `/consumer/order`에서 메뉴 상세 시트를 열고 `dialog.getByRole('checkbox', { name: /계란후라이/ }).click()`을 실행하면 재현된다(`MenuOptionGroupList` 검증 중 확인).
+- 해결: 실제 사용자처럼 보이는 라벨 텍스트(예: `.menu-option-choice__text`)를 클릭하거나, Playwright의 체크박스/라디오 전용 `.check()`(hit-testing을 우회)를 쓴다. `.click({ force: true })`도 되지만 실제 클릭 가능 여부 검증을 건너뛰므로 지양한다.
+- 참고: `RadioInput`/`CheckboxInput`을 감싸는 새 화면을 Playwright로 자동화할 때 항상 해당되는 문제다.
 
 ### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
 

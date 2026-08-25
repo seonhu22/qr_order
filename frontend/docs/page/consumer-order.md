@@ -32,6 +32,10 @@ QR 인증 후 도착하는 화면이다. 골격 단계라 메뉴·장바구니·
 
 `--purple-*`는 Consumer 배지 전용으로 `primitive-tokens.css`에 새로 추가했다(한정수량 배지 도입 전에는 없었다). 배지 타입은 `OrderShellMenuItem.badges: OrderShellMenuBadge[]`이고, 여러 개를 동시에 가질 수 있다(예: 비빔밥은 추천+한정수량).
 
+라벨·아이콘 매핑(`MENU_BADGE_CONFIG`)은 `features/order-shell/badgeConfig.ts`에 공용으로 뽑아뒀다. `MenuItemCard`(메뉴 목록 카드)와 `MenuDetailSheet`(메뉴 상세 시트, 메뉴명 위)가 이 배지를 함께 쓴다 — 처음엔 `MenuItemCard.tsx`에 로컬 상수로만 있었는데, 상세 시트에도 같은 배지가 필요해지면서 공용 파일로 옮겼다. CSS 클래스(`menu-item-card__badge*`, `menu-detail-sheet__badge*`)는 화면마다 따로 두되(폴더별 전용 CSS 원칙), 색상 값은 위 표와 동일하게 맞춘다.
+
+옵션 그룹의 `필수`/`선택`/`복수선택`, 옵션 항목의 `품절`은 이 배지와 다른 컴포넌트다 — [옵션 선택 규칙](#옵션-선택-규칙)의 `Badge` 참고.
+
 ## 아이콘
 
 이 화면을 포함한 Consumer 전체는 `apps/consumer/shared/icons/ConsumerIcon`(+`consumerSprite.svg`)을 쓴다. Admin/Client의 `shared/assets/icons/Icon`과는 별도 체계다.
@@ -55,8 +59,8 @@ type ConsumerSheetState =
 
 | variant | 여는 곳 | 내용 |
 |---|---|---|
-| `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보·수량·옵션·담기 버튼 (`MenuDetailSheet`) |
-| `cart` | `CartBar` 클릭 | 담은 항목 목록 + "주문하기" 버튼(disabled, "준비 중입니다") |
+| `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보(배지)·옵션·수량·담기 버튼 (`MenuDetailSheet`) |
+| `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록 + "주문하기" 버튼(disabled, "준비 중입니다") |
 | `order-history` | 헤더 "주문내역" 버튼 | "준비 중입니다" 플레이스홀더만 |
 | `staff-call` | 헤더 "직원호출" 버튼 | "준비 중입니다" 플레이스홀더만 |
 
@@ -69,16 +73,20 @@ type ConsumerSheetState =
 | 조각 | 컴포넌트 | 비고 |
 |---|---|---|
 | 이미지 | `MenuDetailSheet` 내부 | 시트 본문의 좌우 패딩을 음수 마진으로 상쇄해 폭을 꽉 채운다. `imageUrl`이 없으면 `ci-utensils` 아이콘 |
-| 메뉴 정보 | `MenuDetailSheet` 내부 | 이름·기본가·설명. 전부 메뉴 데이터에서 온다 |
-| 수량 | `QuantityStepper` | 고정 라벨 "수량" + 증감 버튼. 1~99 |
-| 옵션 | `MenuOptionGroupList` | 옵션이 없으면 렌더링 자체를 건너뛴다 |
+| 메뉴 정보 | `MenuDetailSheet` 내부 | 배지(있으면, [배지 시스템](#배지-시스템) 참고) → 이름 → 기본가 → 설명 순. 배지·이름·설명은 없으면 그 줄 자체가 안 나온다 |
+| 옵션 | `MenuOptionGroupList` | 옵션이 없으면 렌더링 자체를 건너뛴다. 자세한 동작은 [옵션 선택 규칙](#옵션-선택-규칙) |
+| 수량 | `QuantityStepper` | 고정 라벨 "수량" + 증감 버튼. 1~99. 참고 디자인과 순서를 맞추려고 옵션 **아래**, 담기 버튼 바로 위에 둔다(원래는 옵션 위였다) |
 | 담기 | `AddToCartButton` | 고정 문구 "장바구니에 담기" + 총액을 양끝 배치 |
 
 수량·옵션 선택 상태는 `useMenuDetailSheet`(feature 훅)가 소유한다. 다른 메뉴를 열었을 때 이전 선택이 남지 않도록 `ConsumerOrderPage`가 `key={detailItem.id}`로 시트를 새로 마운트한다.
 
+`QuantityStepper`의 증감 버튼은 `QuantityStepperButton`(`features/order-shell/components/`)을 쓴다. 이 버튼 하나를 메뉴 상세 전체 수량·옵션 항목별 수량([항목별 수량 조절](#항목별-수량-조절))·장바구니 줄 수량([장바구니](#장바구니)) 세 곳이 공유하고, 배경·크기 같은 컨테이너 스타일만 각 화면 CSS(`className`)로 다르게 입힌다. `/dev/button`에 세 스타일이 나란히 있다.
+
 ### 시트 제목을 쓰지 않는다
 
-디자인상 이미지가 시트 맨 위에 오고 메뉴명은 그 아래에 있어, `ConsumerBottomSheet`의 `title`(시각적 제목)을 넘기지 않는다. 대신 primitive에 `ariaLabel` prop을 추가해 스크린리더용 이름만 따로 전달한다. `cart`/`order-history`/`staff-call`은 기존대로 `title`을 쓴다.
+디자인상 이미지가 시트 맨 위에 오고 메뉴명은 그 아래에 있어, `ConsumerBottomSheet`의 `title`(시각적 제목)을 넘기지 않는다. 대신 primitive에 `ariaLabel` prop을 추가해 스크린리더용 이름만 따로 전달한다.
+
+`cart`도 같은 이유로 공용 `title`을 쓰지 않는다 — 참고 저장소의 `CartSheet` 헤더(아이콘+제목+담은 개수 배지)를 그대로 가져오면서, `ConsumerOrderPage.tsx`가 직접 `order-shell-cart-header`를 렌더링하도록 바꿨다(`ci-shopping-cart` 아이콘 + "장바구니" + `totalCartQty` 배지). `ariaLabel`은 다이얼로그 접근성 이름으로 "장바구니"를 그대로 넘긴다. `order-history`/`staff-call`은 아직 플레이스홀더뿐이라 기존대로 공용 `title`을 쓴다.
 
 ### 옵션 선택 규칙
 
@@ -88,13 +96,24 @@ type ConsumerSheetState =
 - 필수 그룹 중 하나라도 비어 있으면 담기 버튼이 비활성화된다(`canAddToCart`).
 - 단일 선택은 `radio`, 복수 선택은 `checkbox`로 렌더링해 키보드·스크린리더 동작을 브라우저에 맡긴다.
 
+`MenuOptionGroupList`(`features/order-shell/components/`)가 이 규칙을 화면으로 옮긴다.
+
+- 체크 표시(원/박스) 자체는 `/dev/radio`·`/dev/checkbox`의 `RadioInput`/`CheckboxInput`을 그대로 가져다 쓴다. 다만 그 컴포넌트의 `label`/`description`은 쓰지 않는다 — 이름·가격·품절 표기는 이 화면 전용 카드형 레이아웃(`menu-option-choice`)이 따로 맡기 때문이다. 대신 컨트롤에 `id={groupId-choiceId}`를 직접 주고, 이름 텍스트를 그 `id`를 가리키는 별도 `<label htmlFor>`로 감싸 접근성 이름(스크린리더·`getByRole(..., { name })`)이 정상적으로 연결되게 한다. `CheckboxInput`은 이때 처음으로 `id` prop을 지원하도록 확장했다(`RadioInput`은 이미 있었다).
+- 그룹 헤더(이름 옆)엔 `Badge`(`shared/components/badge`, `/dev/badge`)로 `필수`/`선택`(단일)과 `복수선택`+`필수`/`선택`(복수)을 오른쪽 끝에 붙인다 — 참고 저장소의 배지 순서·톤을 그대로 따랐다. 옵션 항목의 `품절` 표기도 같은 `Badge`(`size="sm"`)를 쓴다.
+- 옵션 행(`menu-option-choice`)은 항목별 수량 스텝퍼가 나타나도 행 높이가 변하지 않도록 `min-height`를 고정해둔다.
+
+#### 항목별 수량 조절
+
+복수 선택 항목은 선택되면 이름 옆에 `-`/`+` 미니 스텝퍼(`QuantityStepperButton`)가 나타나 개수를 늘릴 수 있다(참고 저장소 그대로, 하한 1·상한 없음). 상태는 `useMenuDetailSheet`의 `choiceQty`(key: `` `${groupId}__${choiceId}` ``)가 소유하고, 항목이 새로 선택될 때마다 1로 초기화한다 — 해제 전에 늘려둔 값이 재선택 시 남지 않게 하기 위함이다. 백엔드에 이 개수를 저장·전송할 필드가 아직 없어 **mock 전용**이다 — 배경과 백엔드 협의 항목은 [`decisions.md` ADR-023](../decisions.md#adr-023--복수-선택-옵션-항목별-수량은-mock-전용-qty로-둔다) 참고.
+
 ### 가격 계산
 
 `features/order-shell/cartLine.ts`에 모아 뒀다.
 
 ```
-1개당 가격 = 메뉴 기본가 + 옵션 추가 금액 합계
-총액       = 1개당 가격 × 수량
+옵션 추가 금액 합계 = Σ(옵션 가격 × 옵션 개수)   ← 개수 없으면(단일 선택) 1개로 취급
+1개당 가격          = 메뉴 기본가 + 옵션 추가 금액 합계
+총액                = 1개당 가격 × 수량
 ```
 
 옵션 추가 금액은 음수도 허용한다(예: "밥 없이" −1,000원).
@@ -112,6 +131,22 @@ type ConsumerSheetState =
 ## 장바구니
 
 `useConsumerOrderPage`가 소유하는 순수 React state다. 세션별 격리나 새로고침 유지가 없고, 페이지를 벗어나면(언마운트) 그냥 사라진다 — 3단계에서 실제 장바구니 store로 교체할 대상.
+
+`addToCart` 외에 `updateCartLineQty(cartKey, delta)`(수량이 0 이하가 되면 그 줄을 배열에서 없앤다)와 `removeCartLine(cartKey)`가 있다.
+
+### 장바구니 시트 헤더
+
+`cart` 시트는 공용 `title` 대신 `ConsumerOrderPage.tsx`가 직접 헤더를 그린다(`order-shell-cart-header`) — `ci-shopping-cart` 아이콘 + "장바구니" 텍스트 + 담은 총 개수(`totalCartQty`) 배지, 참고 저장소 `CartSheet` 헤더 그대로. 자세한 배경은 [위 "시트 제목을 쓰지 않는다"](#시트-제목을-쓰지-않는다) 참고.
+
+### 장바구니 줄 — `CartLineItem`
+
+`CartLineItem`(`features/order-shell/components/`)이 참고 저장소 `CartSheet` 행 구조를 그대로 따라 세 블록으로 조립한다.
+
+1. **이름 + 줄 합계**: 메뉴명과 그 줄의 총액(`calcCartLinePrice`)을 양끝 배치.
+2. **옵션 라인**: 옵션마다 한 줄씩, `formatOptionLine`이 `치즈 토핑 (+1,500원) ×2`처럼 추가금·개수가 있을 때만 붙인다(`price > 0`, `qty > 1`일 때만 각각 표기).
+3. **1개당 가격 + 수량 스텝퍼**: 왼쪽에 작은 회색 글씨로 단가(`calcUnitPrice`), 오른쪽에 `QuantityStepperButton` 두 개(28×28px, `radius-sm`, 참고 저장소 그대로) + 수량.
+
+수량 스텝퍼는 다른 두 곳(메뉴 상세 전체 수량, 옵션 항목별 수량)과 틀·동작은 같지만(1 미만으로 안 내려감) 색상이 다르다 — 평소엔 `--color-bg-muted` 회색 채움이고, **수량이 1일 때는 감소 버튼이 삭제 버튼(x)으로 바뀌어 배경이 `--color-status-error-default`(빨강)로 채워진다.** 눌리면 `onRemove`가 호출돼 그 줄 자체가 장바구니에서 사라진다(비활성화가 아니라 삭제).
 
 ## CartBar는 `position: fixed`다 (sticky 아님)
 

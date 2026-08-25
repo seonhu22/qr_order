@@ -863,3 +863,34 @@ Consumer 메뉴 상세 시트에 옵션 그룹(필수/선택, 단일/복수)을 
 - 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellOptionGroup`의 `selectionType`·`maxSelectable`과 그 매핑 로직이다.
 
 ---
+
+## ADR-023 — 복수 선택 옵션 항목별 수량은 mock 전용 `qty`로 둔다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `MenuDetailSheet`를 따라가면서 복수 선택 옵션(예: "치즈 토핑")을 여러 개 담을 수 있는 항목별 수량 스텝퍼를 붙였다. ADR-022가 남긴 `MenuOptionGroupItem.inputType`의 `'수량 설정'` 값이 실제로 이 개념(항목 하나를 몇 개 담을지)과 맞닿아 있을 가능성이 높지만, 백엔드에 이 값을 실제로 몇 개 담았는지 저장·전송하는 필드는 아직 없다.
+
+### 결정
+
+ADR-022와 같은 원칙(ADR-010 선례 — 프론트 우선 구현, 백엔드 계약 정해지면 매핑 재정비)을 그대로 따른다.
+
+- `OrderShellCartOption`에 `qty?: number`를 둔다. 없으면 1개로 취급하며(단일 선택은 항상 이 경우), **mock 전용**임을 타입 주석에 남긴다.
+- 수량 상태는 `useMenuDetailSheet`가 소유한다(`choiceQty`, key: `` `${groupId}__${choiceId}` ``). 복수 선택 항목이 새로 선택될 때마다 1로 초기화한다 — 이전에 해제하기 전 늘려둔 값이 재선택 시 남아있지 않게 하기 위함이다.
+- 가격 계산(`cartLine.ts`의 `sumOptionPrice`/`calcUnitPrice`)은 옵션별 `price * (qty ?? 1)`로 합산해, `qty` 없는 기존 호출부(단일 선택, 테스트의 mock 옵션 등)와 호환된다.
+- 개수 상한은 두지 않는다 — 참고 저장소도 항목별 수량은 무제한이고, 그룹의 `maxSelectable`(몇 "종류"를 고를 수 있는지)과는 별개 축이다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시 옵션 라인마다 개수를 저장할 필드 필요(현재 `MenuOptionDetailItem`류에는 선택 여부만 있고 개수가 없다)
+- [ ] `inputType: '수량 설정'`이 이 "옵션 항목별 개수" 개념과 같은 것인지, 아니면 별도 화면(예: 수량만 조절하는 옵션 그룹)을 가리키는지 확인 필요 — 같은 것이라면 `selectionType`처럼 이 필드로 단일/복수 선택 UI 분기까지 겸할 수 있는지도 함께 정리
+- [ ] 항목별 개수 상한(예: 재고 기반)이 필요한지 여부
+
+### 결과
+
+- 복수 선택 옵션의 항목별 수량 UI·가격 계산은 백엔드 계약 없이 먼저 완성한다.
+- 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellCartOption.qty`와 `useMenuDetailSheet`의 `choiceQty` 상태, 그리고 `inputType`과의 관계다.
+
+---
