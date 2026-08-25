@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { ORDER_SHELL_CATEGORIES, ORDER_SHELL_MENU_ITEMS } from '../mock/orderShellMock';
@@ -10,6 +10,15 @@ import type {
   OrderShellMenuItem,
 } from '../types';
 
+/** 참고 저장소의 `doOrder` 딜레이(1800ms)와 동일 — 실제 API 붙기 전까지 처리 중 화면을 보여주는 용도. */
+const ORDER_PROCESSING_DELAY_MS = 1800;
+
+/**
+ * 주문 제출 진행 단계.
+ * `processing`/`complete`만 두고 실패(네트워크·중복 주문)는 추후 붙인다 — 지금은 항상 성공한다.
+ */
+type OrderPhase = 'idle' | 'processing' | 'complete';
+
 /**
  * ConsumerOrderPage의 mock 장바구니를 소유한다(feature-local state).
  * 장바구니는 이번 PR엔 영속되지 않는 mock — 3단계에서 세션별 격리 store로 교체한다.
@@ -19,10 +28,16 @@ export function useConsumerOrderPage() {
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
+  const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
+  const orderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sheet = useConsumerSheetStore((state) => state.sheet);
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
   const closeSheet = useConsumerSheetStore((state) => state.closeSheet);
+
+  useEffect(() => () => {
+    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+  }, []);
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -82,6 +97,24 @@ export function useConsumerOrderPage() {
     setCart((prev) => prev.filter((line) => line.cartKey !== cartKey));
   }
 
+  /**
+   * 장바구니 시트를 닫고 "주문 처리중" 화면을 보여준 뒤, 실제 API가 붙기 전까지는 항상
+   * 성공으로 끝낸다 — 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이.
+   */
+  function placeOrder() {
+    closeSheet();
+    setOrderPhase('processing');
+    orderTimerRef.current = setTimeout(() => {
+      setCart([]);
+      setOrderPhase('complete');
+    }, ORDER_PROCESSING_DELAY_MS);
+  }
+
+  /** "주문 완료" 화면의 "메뉴로 돌아가기" — 메인 화면으로 되돌아간다. */
+  function confirmOrderComplete() {
+    setOrderPhase('idle');
+  }
+
   return {
     searchQuery,
     selectedCategory,
@@ -98,5 +131,8 @@ export function useConsumerOrderPage() {
     openMenuDetail: (menuId: string) => openSheet({ type: 'menu-detail', menuId }),
     openCart: () => openSheet({ type: 'cart' }),
     closeSheet,
+    orderPhase,
+    placeOrder,
+    confirmOrderComplete,
   };
 }

@@ -1,0 +1,111 @@
+.order-complete-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-10);
+  overflow: hidden;
+  text-align: center;
+  background-color: var(--color-bg-surface);
+}
+
+/* QrLoadingScreen과 같은 블롭 배경 패턴 */
+.order-complete-screen__blob {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+  pointer-events: none;
+}
+
+.order-complete-screen__blob--top {
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 18rem;
+  opacity: 0.06;
+  transform: translate(35%, -35%);
+}
+
+.order-complete-screen__blob--bottom {
+  bottom: 0;
+  left: 0;
+  width: 14rem;
+  height: 14rem;
+  opacity: 0.04;
+  transform: translate(-35%, 35%);
+}
+
+.order-complete-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-10);
+  width: 100%;
+  max-width: 20rem;
+}
+
+/* 참고 저장소와 동일한 이중 원 — 연한 바깥 링(depth) + 브랜드색으로 꽉 채운 안쪽 원 위에
+   흰색 체크만 놓는다. */
+.order-complete-screen__icon-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 7rem;
+  height: 7rem;
+  border: var(--border-1) solid var(--color-border-brand);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-subtle);
+}
+
+.order-complete-screen__icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+}
+
+.order-complete-screen__icon {
+  color: var(--color-text-on-brand);
+}
+
+.order-complete-screen__title {
+  font-size: var(--typography-size-h1);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+.order-complete-screen__description {
+  margin-top: var(--spacing-3);
+  font-size: var(--typography-size-body);
+  color: var(--color-text-tertiary);
+  line-height: var(--typography-leading-normal);
+}
+
+.order-complete-screen__action {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .order-complete-screen__content {
+    animation: order-complete-fade-in 0.35s ease-out;
+  }
+
+  @keyframes order-complete-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

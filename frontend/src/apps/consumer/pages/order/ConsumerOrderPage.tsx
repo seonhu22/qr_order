@@ -6,6 +6,8 @@ import { CartBar } from '@/apps/consumer/features/order-shell/components/CartBar
 import { CartLineItem } from '@/apps/consumer/features/order-shell/components/CartLineItem';
 import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
+import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
+import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -32,6 +34,9 @@ export function ConsumerOrderPage() {
     openMenuDetail,
     openCart,
     closeSheet,
+    orderPhase,
+    placeOrder,
+    confirmOrderComplete,
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
@@ -162,9 +167,9 @@ export function ConsumerOrderPage() {
                 variant="primary"
                 size="lg"
                 className="order-shell-sheet__action"
-                disabled
+                onClick={placeOrder}
               >
-                주문하기 (준비 중입니다)
+                주문하기
               </Button>
             )}
           </div>
@@ -174,6 +179,9 @@ export function ConsumerOrderPage() {
           <p className="order-shell-sheet__placeholder">준비 중입니다.</p>
         )}
       </ConsumerBottomSheet>
+
+      {orderPhase === 'processing' && <OrderProcessingScreen />}
+      {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
     </div>
   );
 }
