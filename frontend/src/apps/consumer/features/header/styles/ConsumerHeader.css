@@ -149,6 +149,15 @@
   outline: none;
 }
 
+/* reset.css의 input:focus-visible이 outline을 다시 그리는 것을 막는다 — 이 input의 특이성만으로는
+   못 이긴다(shared/components/input의 .input-control__input:focus-visible과 같은 패턴).
+   포커스 시각화는 위 .consumer-header__search:focus-within이 전담한다. */
+.consumer-header__search-input:focus,
+.consumer-header__search-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .consumer-header__search-input::placeholder {
   color: var(--color-text-placeholder);
 }
