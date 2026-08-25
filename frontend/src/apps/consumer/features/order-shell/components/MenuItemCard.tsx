@@ -1,16 +1,11 @@
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
-import type { OrderShellMenuBadge, OrderShellMenuItem } from '../types';
+import { MENU_BADGE_CONFIG } from '../badgeConfig';
+import type { OrderShellMenuItem } from '../types';
 import './MenuItemCard.css';
 
 type MenuItemCardProps = {
   item: OrderShellMenuItem;
   onSelect: () => void;
-};
-
-const BADGE_CONFIG: Record<OrderShellMenuBadge, { label: string; iconId: string }> = {
-  popular: { label: '인기', iconId: 'ci-flame' },
-  recommended: { label: '추천', iconId: 'ci-star' },
-  limited: { label: '한정수량', iconId: 'ci-zap' },
 };
 
 export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
@@ -28,7 +23,7 @@ export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
         {item.badges && item.badges.length > 0 && (
           <div className="menu-item-card__badges">
             {item.badges.map((badge) => {
-              const { label, iconId } = BADGE_CONFIG[badge];
+              const { label, iconId } = MENU_BADGE_CONFIG[badge];
               return (
                 <span
                   key={badge}

@@ -1,4 +1,4 @@
-import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
+import { QuantityStepperButton } from './QuantityStepperButton';
 import './QuantityStepper.css';
 
 type QuantityStepperProps = {
@@ -28,27 +28,23 @@ export function QuantityStepper({
     <div className="quantity-stepper">
       <span className="quantity-stepper__label">{label}</span>
       <div className="quantity-stepper__control">
-        <button
-          type="button"
+        <QuantityStepperButton
+          icon="minus"
           className="quantity-stepper__button"
           onClick={onDecrease}
           disabled={qty <= min}
-          aria-label="수량 줄이기"
-        >
-          <ConsumerIcon id="ci-minus" size={16} />
-        </button>
+          ariaLabel="수량 줄이기"
+        />
         <output className="quantity-stepper__value" aria-label="선택한 수량">
           {qty}
         </output>
-        <button
-          type="button"
+        <QuantityStepperButton
+          icon="plus"
           className="quantity-stepper__button"
           onClick={onIncrease}
           disabled={max !== undefined && qty >= max}
-          aria-label="수량 늘리기"
-        >
-          <ConsumerIcon id="ci-plus" size={16} />
-        </button>
+          ariaLabel="수량 늘리기"
+        />
       </div>
     </div>
   );

@@ -13,6 +13,13 @@ export const MAX_MENU_QTY = 99;
 /** 그룹 id → 선택된 항목 id 목록. 단일 선택 그룹도 배열로 두고 길이 1로만 유지한다. */
 type SelectedChoiceMap = Record<string, string[]>;
 
+/** `${groupId}__${choiceId}` → 복수 선택 항목의 개수. 단일 선택 그룹은 쓰지 않는다. */
+type ChoiceQtyMap = Record<string, number>;
+
+function choiceQtyKey(groupId: string, choiceId: string) {
+  return `${groupId}__${choiceId}`;
+}
+
 /**
  * 옵션 그룹의 기본 선택값. 단일 선택 + 필수 그룹은 첫 항목을 미리 골라둬야
  * 사용자가 아무것도 건드리지 않아도 담기가 가능하다(백엔드 `defaultYn` 대응 자리).
@@ -34,6 +41,7 @@ function buildInitialSelection(optionGroups: OrderShellOptionGroup[]): SelectedC
 function toCartOption(
   group: OrderShellOptionGroup,
   choice: OrderShellOptionChoice,
+  qty?: number,
 ): OrderShellCartOption {
   return {
     groupId: group.id,
@@ -41,6 +49,7 @@ function toCartOption(
     choiceId: choice.id,
     choiceName: choice.name,
     price: choice.price,
+    ...(qty !== undefined ? { qty } : {}),
   };
 }
 
@@ -57,15 +66,23 @@ export function useMenuDetailSheet(item: OrderShellMenuItem) {
   const [selectedChoices, setSelectedChoices] = useState<SelectedChoiceMap>(() =>
     buildInitialSelection(optionGroups),
   );
+  const [choiceQty, setChoiceQty] = useState<ChoiceQtyMap>({});
 
   const selectedOptions = useMemo<OrderShellCartOption[]>(() => {
     return optionGroups.flatMap((group) =>
       (selectedChoices[group.id] ?? []).flatMap((choiceId) => {
         const choice = group.choices.find((candidate) => candidate.id === choiceId);
-        return choice ? [toCartOption(group, choice)] : [];
+        if (!choice) return [];
+
+        const qtyForChoice =
+          group.selectionType === 'multiple'
+            ? (choiceQty[choiceQtyKey(group.id, choiceId)] ?? 1)
+            : undefined;
+
+        return [toCartOption(group, choice, qtyForChoice)];
       }),
     );
-  }, [optionGroups, selectedChoices]);
+  }, [optionGroups, selectedChoices, choiceQty]);
 
   /** 필수 그룹인데 아무것도 안 고른 그룹 — 있으면 담기를 막는다. */
   const unsatisfiedRequiredGroups = useMemo(() => {
@@ -89,26 +106,51 @@ export function useMenuDetailSheet(item: OrderShellMenuItem) {
    * 단일 선택은 고른 항목으로 교체하기만 한다 — `radio`는 이미 고른 항목을 다시 눌러도
    * change가 발생하지 않으므로 해제 분기를 둬도 UI에서 도달할 수 없다.
    * 복수 선택은 토글하되, `maxSelectable`에 도달했으면 새 항목 추가만 막고 해제는 그대로 허용한다.
+   * 새로 선택되는 복수 선택 항목은 개수를 1로 되돌린다 — 이전에 해제하기 전 늘려뒀던 값이
+   * 남아있지 않게 하기 위함이다.
    */
   function toggleChoice(group: OrderShellOptionGroup, choiceId: string) {
+    const current = selectedChoices[group.id] ?? [];
+    const isNewMultiSelection = group.selectionType === 'multiple' && !current.includes(choiceId);
+
     setSelectedChoices((prev) => {
-      const current = prev[group.id] ?? [];
+      const cur = prev[group.id] ?? [];
 
       if (group.selectionType === 'single') {
-        if (current.includes(choiceId)) return prev;
+        if (cur.includes(choiceId)) return prev;
         return { ...prev, [group.id]: [choiceId] };
       }
 
-      if (current.includes(choiceId)) {
-        return { ...prev, [group.id]: current.filter((id) => id !== choiceId) };
+      if (cur.includes(choiceId)) {
+        return { ...prev, [group.id]: cur.filter((id) => id !== choiceId) };
       }
 
-      if (group.maxSelectable !== undefined && current.length >= group.maxSelectable) {
+      if (group.maxSelectable !== undefined && cur.length >= group.maxSelectable) {
         return prev;
       }
 
-      return { ...prev, [group.id]: [...current, choiceId] };
+      return { ...prev, [group.id]: [...cur, choiceId] };
     });
+
+    if (isNewMultiSelection) {
+      setChoiceQty((prev) => ({ ...prev, [choiceQtyKey(group.id, choiceId)]: 1 }));
+    }
+  }
+
+  /** 복수 선택 항목 하나의 개수를 늘린다. */
+  function increaseChoiceQty(group: OrderShellOptionGroup, choiceId: string) {
+    const key = choiceQtyKey(group.id, choiceId);
+    setChoiceQty((prev) => ({ ...prev, [key]: (prev[key] ?? 1) + 1 }));
+  }
+
+  /** 복수 선택 항목 하나의 개수를 줄인다 — 1 미만으로 내려가지 않는다. */
+  function decreaseChoiceQty(group: OrderShellOptionGroup, choiceId: string) {
+    const key = choiceQtyKey(group.id, choiceId);
+    setChoiceQty((prev) => ({ ...prev, [key]: Math.max(1, (prev[key] ?? 1) - 1) }));
+  }
+
+  function getChoiceQty(groupId: string, choiceId: string) {
+    return choiceQty[choiceQtyKey(groupId, choiceId)] ?? 1;
   }
 
   function isChoiceSelected(groupId: string, choiceId: string) {
@@ -137,5 +179,8 @@ export function useMenuDetailSheet(item: OrderShellMenuItem) {
     toggleChoice,
     isChoiceSelected,
     isChoiceDisabled,
+    getChoiceQty,
+    increaseChoiceQty,
+    decreaseChoiceQty,
   };
 }

@@ -55,6 +55,14 @@ export type OrderShellCartOption = {
   choiceId: string;
   choiceName: string;
   price: number;
+  /**
+   * 복수 선택 항목의 개수. 없으면 1개로 취급한다(단일 선택은 항상 1개).
+   *
+   * mock 전용 필드 — 백엔드에 옵션 항목별 담은 개수를 저장·전송하는 필드가 아직 없다.
+   * `MenuOptionGroupItem.inputType: '수량 설정'`이 이 개념과 같은 것인지 협의가 필요하다.
+   * 자세한 배경은 ADR-023 참고.
+   */
+  qty?: number;
 };
 
 export type OrderShellCartLine = {

@@ -14,18 +14,21 @@
 .quantity-stepper__control {
   display: flex;
   align-items: center;
-  border: var(--border-1) solid var(--color-border-default);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  background-color: var(--color-bg-muted);
 }
 
 .quantity-stepper__button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--spacing-11);
-  height: var(--spacing-11);
+  width: var(--spacing-12);
+  height: var(--spacing-12);
+  border-radius: var(--radius-sm);
   background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
   color: var(--color-text-secondary);
   cursor: pointer;
 }
@@ -35,16 +38,14 @@
 }
 
 .quantity-stepper__button:disabled {
-  color: var(--color-text-disabled);
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .quantity-stepper__value {
-  min-width: var(--spacing-11);
+  min-width: var(--spacing-12);
   text-align: center;
   font-size: var(--typography-size-body);
   font-weight: var(--typography-weight-heading);
   color: var(--color-text-primary);
-  border-inline: var(--border-1) solid var(--color-border-default);
-  line-height: var(--spacing-11);
 }

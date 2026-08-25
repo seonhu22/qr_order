@@ -18,13 +18,16 @@ export function buildCartKey(menuId: string, options: OrderShellCartOption[]): s
   return `${menuId}__${choiceIds}`;
 }
 
-/** 옵션 추가 금액 합계. */
-export function sumOptionPrice(options: Pick<OrderShellCartOption, 'price'>[]): number {
-  return options.reduce((sum, option) => sum + option.price, 0);
+/** 옵션 추가 금액 합계. 옵션별 `qty`가 있으면 그만큼 곱한다(없으면 1개). */
+export function sumOptionPrice(options: Pick<OrderShellCartOption, 'price' | 'qty'>[]): number {
+  return options.reduce((sum, option) => sum + option.price * (option.qty ?? 1), 0);
 }
 
 /** 메뉴 1개당 가격(기본가 + 옵션 추가 금액). */
-export function calcUnitPrice(basePrice: number, options: Pick<OrderShellCartOption, 'price'>[]) {
+export function calcUnitPrice(
+  basePrice: number,
+  options: Pick<OrderShellCartOption, 'price' | 'qty'>[],
+) {
   return basePrice + sumOptionPrice(options);
 }
 
