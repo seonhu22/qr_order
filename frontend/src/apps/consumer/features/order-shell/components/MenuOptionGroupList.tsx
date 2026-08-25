@@ -6,6 +6,9 @@ type MenuOptionGroupListProps = {
   isChoiceSelected: (groupId: string, choiceId: string) => boolean;
   isChoiceDisabled: (group: OrderShellOptionGroup, choice: OrderShellOptionChoice) => boolean;
   onToggleChoice: (group: OrderShellOptionGroup, choiceId: string) => void;
+  getChoiceQuantity: (groupId: string, choiceId: string) => number;
+  onIncreaseChoiceQuantity: (group: OrderShellOptionGroup, choice: OrderShellOptionChoice) => void;
+  onDecreaseChoiceQuantity: (group: OrderShellOptionGroup, choice: OrderShellOptionChoice) => void;
 };
 
 function formatOptionPrice(price: number) {
@@ -15,6 +18,7 @@ function formatOptionPrice(price: number) {
 
 function groupHint(group: OrderShellOptionGroup) {
   if (group.selectionType === 'single') return '1개 선택';
+  if (group.selectionType === 'quantity') return '수량 선택';
   if (group.maxSelectable !== undefined) return `최대 ${group.maxSelectable}개 선택`;
   return '복수 선택 가능';
 }
@@ -30,6 +34,9 @@ export function MenuOptionGroupList({
   isChoiceSelected,
   isChoiceDisabled,
   onToggleChoice,
+  getChoiceQuantity,
+  onIncreaseChoiceQuantity,
+  onDecreaseChoiceQuantity,
 }: MenuOptionGroupListProps) {
   if (groups.length === 0) return null;
 
@@ -54,6 +61,36 @@ export function MenuOptionGroupList({
               const selected = isChoiceSelected(group.id, choice.id);
               const disabled = isChoiceDisabled(group, choice);
               const priceLabel = formatOptionPrice(choice.price);
+
+              if (group.selectionType === 'quantity') {
+                const quantity = getChoiceQuantity(group.id, choice.id);
+                const maximum = choice.maxQuantity ?? 1;
+                return (
+                  <li key={choice.id} className="menu-option-choice menu-option-choice--quantity">
+                    <span className="menu-option-choice__name">{choice.name}</span>
+                    {priceLabel && <span className="menu-option-choice__price">{priceLabel}</span>}
+                    <div className="menu-option-choice__stepper">
+                      <button
+                        type="button"
+                        aria-label={`${choice.name} 수량 줄이기`}
+                        disabled={quantity === 0}
+                        onClick={() => onDecreaseChoiceQuantity(group, choice)}
+                      >
+                        −
+                      </button>
+                      <span aria-label={`${choice.name} 선택 수량`}>{quantity}</span>
+                      <button
+                        type="button"
+                        aria-label={`${choice.name} 수량 늘리기`}
+                        disabled={choice.soldOut || quantity >= maximum}
+                        onClick={() => onIncreaseChoiceQuantity(group, choice)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </li>
+                );
+              }
 
               return (
                 <li key={choice.id}>

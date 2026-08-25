@@ -96,3 +96,27 @@
   font-size: var(--typography-size-body);
   color: var(--color-text-secondary);
 }
+
+.menu-option-choice--quantity {
+  cursor: default;
+}
+
+.menu-option-choice__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-left: var(--spacing-3);
+}
+
+.menu-option-choice__stepper button {
+  width: 2rem;
+  height: 2rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-default);
+  color: var(--color-text-primary);
+}
+
+.menu-option-choice__stepper button:disabled {
+  color: var(--color-text-disabled);
+}

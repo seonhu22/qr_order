@@ -11,7 +11,7 @@ export function buildCartKey(menuId: string, options: OrderShellCartOption[]): s
   if (options.length === 0) return menuId;
 
   const choiceIds = options
-    .map((option) => option.choiceId)
+    .map((option) => `${option.choiceId}:${option.quantity}`)
     .sort()
     .join('+');
 
@@ -19,12 +19,17 @@ export function buildCartKey(menuId: string, options: OrderShellCartOption[]): s
 }
 
 /** 옵션 추가 금액 합계. */
-export function sumOptionPrice(options: Pick<OrderShellCartOption, 'price'>[]): number {
-  return options.reduce((sum, option) => sum + option.price, 0);
+export function sumOptionPrice(
+  options: Pick<OrderShellCartOption, 'price' | 'quantity'>[],
+): number {
+  return options.reduce((sum, option) => sum + option.price * option.quantity, 0);
 }
 
 /** 메뉴 1개당 가격(기본가 + 옵션 추가 금액). */
-export function calcUnitPrice(basePrice: number, options: Pick<OrderShellCartOption, 'price'>[]) {
+export function calcUnitPrice(
+  basePrice: number,
+  options: Pick<OrderShellCartOption, 'price' | 'quantity'>[],
+) {
   return basePrice + sumOptionPrice(options);
 }
 

@@ -29,6 +29,9 @@ export function MenuDetailSheet({ item, onAddToCart }: MenuDetailSheetProps) {
     toggleChoice,
     isChoiceSelected,
     isChoiceDisabled,
+    getChoiceQuantity,
+    increaseChoiceQuantity,
+    decreaseChoiceQuantity,
   } = useMenuDetailSheet(item);
 
   return (
@@ -67,6 +70,9 @@ export function MenuDetailSheet({ item, onAddToCart }: MenuDetailSheetProps) {
             isChoiceSelected={isChoiceSelected}
             isChoiceDisabled={isChoiceDisabled}
             onToggleChoice={toggleChoice}
+            getChoiceQuantity={getChoiceQuantity}
+            onIncreaseChoiceQuantity={increaseChoiceQuantity}
+            onDecreaseChoiceQuantity={decreaseChoiceQuantity}
           />
         </>
       )}

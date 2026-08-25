@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
-import { ORDER_SHELL_CATEGORIES, ORDER_SHELL_MENU_ITEMS } from '../mock/orderShellMock';
+import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
+import {
+  useConsumerMenuDetailQuery,
+  useConsumerMenuMainQuery,
+  useConsumerMenuSearchQuery,
+} from '../api/consumerMenuApi';
 import { buildCartKey, calcCartLinePrice } from '../cartLine';
 import type {
   OrderShellCartLine,
@@ -19,26 +25,38 @@ export function useConsumerOrderPage() {
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
+  const { session } = useConsumerSession();
+  const sessionId = session?.tableSysId ?? '';
+  const mainQuery = useConsumerMenuMainQuery(sessionId);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
+  const isSearchDebouncing = searchQuery.trim() !== debouncedSearchQuery;
+  const searchResult = useConsumerMenuSearchQuery(sessionId, debouncedSearchQuery);
 
   const sheet = useConsumerSheetStore((state) => state.sheet);
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
   const closeSheet = useConsumerSheetStore((state) => state.closeSheet);
+  const detailMenuId = sheet?.type === 'menu-detail' ? sheet.menuId : '';
+  const detailQuery = useConsumerMenuDetailQuery(sessionId, detailMenuId);
 
   const filteredItems = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return ORDER_SHELL_MENU_ITEMS;
-    return ORDER_SHELL_MENU_ITEMS.filter((item) => item.name.toLowerCase().includes(query));
-  }, [searchQuery]);
+    if (debouncedSearchQuery) return searchResult.data ?? [];
+    return mainQuery.data?.menus ?? [];
+  }, [debouncedSearchQuery, mainQuery.data?.menus, searchResult.data]);
+
+  const categories = useMemo(
+    () => ['전체', ...(mainQuery.data?.categories.map((category) => category.name) ?? [])],
+    [mainQuery.data?.categories],
+  );
 
   // 카테고리 탭은 목록을 필터링하지 않고 해당 섹션으로 스크롤만 이동시킨다 — 전체 목록은 항상 함께 보여준다.
   const groupedMenu = useMemo<OrderShellMenuGroup[]>(() => {
-    return ORDER_SHELL_CATEGORIES.slice(1)
+    return categories.slice(1)
       .map((category) => ({
         category,
         items: filteredItems.filter((item) => item.category === category),
       }))
       .filter((group) => group.items.length > 0);
-  }, [filteredItems]);
+  }, [categories, filteredItems]);
 
   const totalCartQty = cart.reduce((sum, line) => sum + line.qty, 0);
   const totalCartPrice = cart.reduce((sum, line) => sum + calcCartLinePrice(line), 0);
@@ -64,13 +82,23 @@ export function useConsumerOrderPage() {
   }
 
   function findMenuItem(menuId: string) {
-    return ORDER_SHELL_MENU_ITEMS.find((item) => item.id === menuId);
+    if (detailQuery.data?.id === menuId) return detailQuery.data;
+    return mainQuery.data?.menus.find((item) => item.id === menuId);
   }
 
   return {
     searchQuery,
     selectedCategory,
-    categories: ORDER_SHELL_CATEGORIES,
+    categories,
+    isLoading: mainQuery.isLoading,
+    isError: mainQuery.isError,
+    refetch: mainQuery.refetch,
+    isSearchLoading: Boolean(isSearchDebouncing || (debouncedSearchQuery && searchResult.isFetching)),
+    isSearchError: Boolean(!isSearchDebouncing && debouncedSearchQuery && searchResult.isError),
+    refetchSearch: searchResult.refetch,
+    isDetailLoading: detailQuery.isLoading,
+    isDetailError: detailQuery.isError,
+    refetchDetail: detailQuery.refetch,
     groupedMenu,
     cart,
     totalCartQty,

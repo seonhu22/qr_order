@@ -6,7 +6,6 @@ import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
 import { calcCartLinePrice } from '@/apps/consumer/features/order-shell/cartLine';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
-import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
 
 const SHEET_TITLE: Record<string, string> = {
@@ -19,7 +18,17 @@ export function ConsumerOrderPage() {
   const {
     searchQuery,
     selectedCategory,
+    categories,
     groupedMenu,
+    isLoading,
+    isError,
+    refetch,
+    isSearchLoading,
+    isSearchError,
+    refetchSearch,
+    isDetailLoading,
+    isDetailError,
+    refetchDetail,
     cart,
     totalCartQty,
     totalCartPrice,
@@ -50,19 +59,37 @@ export function ConsumerOrderPage() {
     }
 
     const targetCategory =
-      selectedCategory === ORDER_SHELL_CATEGORIES[0] ? groupedMenu[0]?.category : selectedCategory;
+      selectedCategory === categories[0] ? groupedMenu[0]?.category : selectedCategory;
     if (!targetCategory) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    sectionRefs.current[targetCategory]?.scrollIntoView({
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    sectionRefs.current[targetCategory]?.scrollIntoView?.({
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
       block: 'start',
     });
-  }, [selectedCategory, groupedMenu]);
+  }, [categories, selectedCategory, groupedMenu]);
 
   return (
     <div className={`order-shell${totalCartQty > 0 ? ' order-shell--with-cart-bar' : ''}`}>
-      {groupedMenu.length === 0 ? (
+      {isLoading ? (
+        <p className="order-shell__empty">메뉴를 불러오는 중입니다.</p>
+      ) : isError ? (
+        <div className="order-shell__empty">
+          <p>메뉴를 불러오지 못했습니다.</p>
+          <Button type="button" variant="secondary" size="md" onClick={() => void refetch()}>
+            다시 시도
+          </Button>
+        </div>
+      ) : isSearchError ? (
+        <div className="order-shell__empty">
+          <p>검색 결과를 불러오지 못했습니다.</p>
+          <Button type="button" variant="secondary" size="md" onClick={() => void refetchSearch()}>
+            다시 시도
+          </Button>
+        </div>
+      ) : isSearchLoading ? (
+        <p className="order-shell__empty">검색 중입니다.</p>
+      ) : groupedMenu.length === 0 ? (
         <p className="order-shell__empty">
           {searchQuery ? `"${searchQuery}"에 대한 메뉴가 없습니다.` : '메뉴가 없습니다.'}
         </p>
@@ -96,7 +123,20 @@ export function ConsumerOrderPage() {
         title={sheetTitle}
         ariaLabel={sheetAriaLabel}
       >
-        {sheet?.type === 'menu-detail' && detailItem && (
+        {sheet?.type === 'menu-detail' && isDetailLoading && (
+          <p className="order-shell-sheet__placeholder">메뉴 상세를 불러오는 중입니다.</p>
+        )}
+
+        {sheet?.type === 'menu-detail' && isDetailError && (
+          <div className="order-shell-sheet">
+            <p className="order-shell-sheet__placeholder">메뉴 상세를 불러오지 못했습니다.</p>
+            <Button type="button" variant="secondary" size="md" onClick={() => void refetchDetail()}>
+              다시 시도
+            </Button>
+          </div>
+        )}
+
+        {sheet?.type === 'menu-detail' && detailItem && !isDetailLoading && !isDetailError && (
           // 메뉴가 바뀌면 수량·옵션 선택이 초기화되도록 메뉴 id를 key로 준다.
           <MenuDetailSheet
             key={detailItem.id}
@@ -120,7 +160,13 @@ export function ConsumerOrderPage() {
                       {line.name} × {line.qty}
                       {line.options.length > 0 && (
                         <span className="order-shell-cart-list__options">
-                          {line.options.map((option) => option.choiceName).join(', ')}
+                          {line.options
+                            .map((option) =>
+                              option.quantity > 1
+                                ? `${option.choiceName} × ${option.quantity}`
+                                : option.choiceName,
+                            )
+                            .join(', ')}
                         </span>
                       )}
                     </span>

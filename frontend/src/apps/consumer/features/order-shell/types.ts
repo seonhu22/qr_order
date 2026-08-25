@@ -9,16 +9,16 @@ export type OrderShellOptionChoice = {
   name: string;
   price: number;
   soldOut?: boolean;
+  maxQuantity?: number;
+  defaultSelected?: boolean;
 };
 
 /**
  * 옵션 그룹의 선택 방식.
  *
- * mock 전용 필드 — 백엔드 `MenuOptionGroupItem.inputType`은 현재 `'주문 옵션' | '수량 설정'`만
- * 구분하고 단일/복수 선택 여부를 담지 않는다(client 앱 `INPUT_TYPE_OPTIONS` 참고).
- * 실제 계약이 정해지면 이 타입과 매핑 로직을 다시 손봐야 한다.
+ * Consumer API의 `selectionType` 코드 01/02/03을 화면에서 읽기 쉬운 값으로 변환한다.
  */
-export type OrderShellOptionSelectionType = 'single' | 'multiple';
+export type OrderShellOptionSelectionType = 'single' | 'multiple' | 'quantity';
 
 /**
  * 옵션 그룹의 화면 모델. 백엔드 `MenuOptionGroupItem`에 대응한다.
@@ -55,6 +55,19 @@ export type OrderShellCartOption = {
   choiceId: string;
   choiceName: string;
   price: number;
+  quantity: number;
+};
+
+export type OrderShellCategory = {
+  id: string;
+  name: string;
+};
+
+export type OrderShellMenuMain = {
+  storeName: string;
+  tableNum: number;
+  categories: OrderShellCategory[];
+  menus: OrderShellMenuItem[];
 };
 
 export type OrderShellCartLine = {

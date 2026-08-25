@@ -162,7 +162,11 @@ export const queryKeys = {
   },
   consumer: {
     session: ['consumer', 'session'] as const,
-    menu: (sessionId: string) => ['consumer', sessionId, 'menu'] as const,
+    menuMain: (sessionId: string) => ['consumer', sessionId, 'menu', 'main'] as const,
+    menuSearch: (sessionId: string, searchKeyword: string) =>
+      ['consumer', sessionId, 'menu', 'search', { searchKeyword }] as const,
+    menuDetail: (sessionId: string, menuSysId: string) =>
+      ['consumer', sessionId, 'menu', 'detail', menuSysId] as const,
     orderHistory: (sessionId: string) => ['consumer', sessionId, 'order-history'] as const,
   },
 } as const;

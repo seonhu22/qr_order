@@ -44,4 +44,8 @@ export const queryPolicies = {
     retry: false,
     staleTime: staleTimes.instant,
   },
+  consumerMenu: {
+    retry: false,
+    staleTime: staleTimes.short,
+  },
 } as const;
