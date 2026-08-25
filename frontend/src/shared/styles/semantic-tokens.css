@@ -126,6 +126,10 @@
   /* 구분선 — 섹션·리스트 구분 */
   --color-border-divider:  var(--slate-20);
 
+  /* 브랜드 톤 연한 보더 — 연한 브랜드 배경(--color-brand-subtle) 위에 살짝 구분선만 줄 때.
+     --orange-60(#FF6B2B) 14.5% — Consumer 헤더 아이콘·액션 버튼 참고 */
+  --color-border-brand:    rgba(255, 107, 43, 0.145);
+
 
   /* =====================================================
    * COLOR · STATUS — 상태 컬러
