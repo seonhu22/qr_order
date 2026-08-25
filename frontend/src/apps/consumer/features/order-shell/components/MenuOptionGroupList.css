@@ -53,7 +53,7 @@
 
 /* 선택된 항목은 테두리로 표시한다 — 시트 안에서 배경색 대비가 약해 테두리가 더 잘 읽힌다. */
 .menu-option-choice--selected {
-  border-color: var(--color-brand-default);
+  border-color: var(--orange-40);
   background-color: var(--color-bg-selected);
 }
 
