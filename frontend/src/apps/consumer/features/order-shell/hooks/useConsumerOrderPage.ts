@@ -67,6 +67,21 @@ export function useConsumerOrderPage() {
     return ORDER_SHELL_MENU_ITEMS.find((item) => item.id === menuId);
   }
 
+  /** 수량이 0 이하가 되면 그 줄을 장바구니에서 없앤다. */
+  function updateCartLineQty(cartKey: string, delta: number) {
+    setCart((prev) =>
+      prev.flatMap((line) => {
+        if (line.cartKey !== cartKey) return [line];
+        const nextQty = line.qty + delta;
+        return nextQty <= 0 ? [] : [{ ...line, qty: nextQty }];
+      }),
+    );
+  }
+
+  function removeCartLine(cartKey: string) {
+    setCart((prev) => prev.filter((line) => line.cartKey !== cartKey));
+  }
+
   return {
     searchQuery,
     selectedCategory,
@@ -76,6 +91,8 @@ export function useConsumerOrderPage() {
     totalCartQty,
     totalCartPrice,
     addToCart,
+    updateCartLineQty,
+    removeCartLine,
     findMenuItem,
     sheet,
     openMenuDetail: (menuId: string) => openSheet({ type: 'menu-detail', menuId }),

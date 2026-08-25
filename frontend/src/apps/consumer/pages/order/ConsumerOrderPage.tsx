@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/components/button';
+import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { ConsumerBottomSheet } from '@/apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet';
 import { CartBar } from '@/apps/consumer/features/order-shell/components/CartBar';
+import { CartLineItem } from '@/apps/consumer/features/order-shell/components/CartLineItem';
 import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
-import { calcCartLinePrice } from '@/apps/consumer/features/order-shell/cartLine';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -24,6 +25,8 @@ export function ConsumerOrderPage() {
     totalCartQty,
     totalCartPrice,
     addToCart,
+    updateCartLineQty,
+    removeCartLine,
     findMenuItem,
     sheet,
     openMenuDetail,
@@ -32,10 +35,13 @@ export function ConsumerOrderPage() {
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
-  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어 시트 제목을 노출하지 않는다.
-  // 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
-  const sheetTitle = sheet && sheet.type !== 'menu-detail' ? SHEET_TITLE[sheet.type] : undefined;
-  const sheetAriaLabel = sheet?.type === 'menu-detail' ? detailItem?.name : undefined;
+  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니는 아이콘+개수 배지가
+  // 붙은 자체 헤더를 쓰기 때문에 둘 다 공용 시트 제목을 노출하지 않는다. 스크린리더용 이름만
+  // ariaLabel로 따로 넘긴다.
+  const sheetTitle =
+    sheet && sheet.type !== 'menu-detail' && sheet.type !== 'cart' ? SHEET_TITLE[sheet.type] : undefined;
+  const sheetAriaLabel =
+    sheet?.type === 'menu-detail' ? detailItem?.name : sheet?.type === 'cart' ? SHEET_TITLE.cart : undefined;
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isFirstCategoryRender = useRef(true);
@@ -110,22 +116,24 @@ export function ConsumerOrderPage() {
 
         {sheet?.type === 'cart' && (
           <div className="order-shell-sheet">
+            <div className="order-shell-cart-header">
+              <ConsumerIcon id="ci-shopping-cart" size={16} />
+              <span className="order-shell-cart-header__title">장바구니</span>
+              <span className="order-shell-cart-header__count">{totalCartQty}</span>
+            </div>
+
             {cart.length === 0 ? (
               <p className="order-shell-sheet__placeholder">담긴 메뉴가 없습니다.</p>
             ) : (
               <ul className="order-shell-cart-list">
                 {cart.map((line) => (
-                  <li key={line.cartKey} className="order-shell-cart-list__item">
-                    <span className="order-shell-cart-list__name">
-                      {line.name} × {line.qty}
-                      {line.options.length > 0 && (
-                        <span className="order-shell-cart-list__options">
-                          {line.options.map((option) => option.choiceName).join(', ')}
-                        </span>
-                      )}
-                    </span>
-                    <span>{calcCartLinePrice(line).toLocaleString()}원</span>
-                  </li>
+                  <CartLineItem
+                    key={line.cartKey}
+                    line={line}
+                    onIncrease={() => updateCartLineQty(line.cartKey, 1)}
+                    onDecrease={() => updateCartLineQty(line.cartKey, -1)}
+                    onRemove={() => removeCartLine(line.cartKey)}
+                  />
                 ))}
               </ul>
             )}

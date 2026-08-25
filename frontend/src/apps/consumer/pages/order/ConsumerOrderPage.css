@@ -40,6 +40,36 @@
   color: var(--color-brand-default);
 }
 
+/* 참고 저장소 CartSheet 헤더 그대로 — 아이콘 + 제목 + 담은 개수 배지.
+   시트 본문(consumer-bottom-sheet__body)의 좌우 패딩을 음수 마진으로 상쇄해
+   구분선이 시트 폭 전체에 걸치게 한다(이미지 프레임과 같은 방식). */
+.order-shell-cart-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-inline: calc(var(--spacing-8) * -1);
+  padding: var(--spacing-5) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  color: var(--color-text-secondary);
+}
+
+.order-shell-cart-header__title {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.order-shell-cart-header__count {
+  min-width: var(--spacing-9);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  text-align: center;
+}
+
 .order-shell-sheet__placeholder {
   padding: var(--spacing-10) 0;
   text-align: center;
@@ -53,27 +83,6 @@
 .order-shell-cart-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.order-shell-cart-list__item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  font-size: var(--typography-size-body);
-  color: var(--color-text-primary);
-}
-
-.order-shell-cart-list__name {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.order-shell-cart-list__options {
-  font-size: var(--typography-size-caption);
-  color: var(--color-text-tertiary);
 }
 
 /* 폴드 펼침(~717px)부터 웹까지: 메뉴 목록이 1열에서 다열 그리드로 바뀐다. 열 수를 고정하지 않고

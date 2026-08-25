@@ -1,0 +1,84 @@
+/* 참고 저장소(Qrorder) CartSheet 행 구조를 그대로 따른다:
+   이름+줄 합계 → 옵션 라인들 → 1개당 가격+수량 스텝퍼. */
+.cart-line-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding-block: var(--spacing-6);
+}
+
+.cart-line-item + .cart-line-item {
+  border-top: var(--border-1) solid var(--color-border-divider);
+}
+
+.cart-line-item__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.cart-line-item__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.cart-line-item__total {
+  flex-shrink: 0;
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+  white-space: nowrap;
+}
+
+.cart-line-item__options {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.cart-line-item__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-2);
+}
+
+.cart-line-item__unit-price {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* 옵션 리스트 미니 스텝퍼와 달리 여기는 공용 트랙이 없다 — 버튼 각자가 28×28(w-7 h-7),
+   radius-sm(4px)의 독립된 사각형이다(참고 저장소 원본 그대로). 평소엔 연한 회색 채움,
+   수량 1일 때 삭제로 바뀌는 감소 버튼만 빨간 채움 + 흰 아이콘. */
+.cart-line-item__qty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.cart-line-item__qty-button {
+  width: var(--spacing-11);
+  height: var(--spacing-11);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+.cart-line-item__qty-button--danger {
+  background-color: var(--color-status-error-default);
+  color: var(--color-text-inverse);
+}
+
+.cart-line-item__qty-value {
+  min-width: var(--spacing-10);
+  text-align: center;
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
