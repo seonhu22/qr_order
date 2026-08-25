@@ -23,6 +23,8 @@ export function ConsumerHeader() {
   const setSelectedCategory = useConsumerOrderFilterStore((state) => state.setSelectedCategory);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const requestOrderFailure = useConsumerOrderQaStore((state) => state.requestOrderFailure);
+  const requestSessionExpiry = useConsumerOrderQaStore((state) => state.requestSessionExpiry);
+  const requestNetworkError = useConsumerOrderQaStore((state) => state.requestNetworkError);
   const [qaMenuOpen, setQaMenuOpen] = useState(false);
   const qaMenuRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +47,16 @@ export function ConsumerHeader() {
 
   function handleTriggerOrderFailure(type: 'network' | 'duplicate') {
     requestOrderFailure(type);
+    setQaMenuOpen(false);
+  }
+
+  function handleTriggerSessionExpiry(variant: 'timeout' | 'closed') {
+    requestSessionExpiry(variant);
+    setQaMenuOpen(false);
+  }
+
+  function handleTriggerNetworkError() {
+    requestNetworkError();
     setQaMenuOpen(false);
   }
 
@@ -98,7 +110,7 @@ export function ConsumerHeader() {
               <ConsumerIcon id="ci-settings" size={14} />
             </button>
 
-            {/* QA 전용 — 실패 판별 로직이 붙기 전까지 network/duplicate 실패 화면을 미리보기
+            {/* QA 전용 — 실패 판별 로직이 붙기 전까지 주문 실패·세션 만료 화면을 미리보기
                 위한 임시 메뉴. production 빌드에서는 tree-shake 되어 사라진다. */}
             {import.meta.env.DEV && qaMenuOpen && (
               <div className="consumer-header__qa-menu">
@@ -107,6 +119,15 @@ export function ConsumerHeader() {
                 </button>
                 <button type="button" onClick={() => handleTriggerOrderFailure('duplicate')}>
                   주문 실패 (중복)
+                </button>
+                <button type="button" onClick={() => handleTriggerSessionExpiry('timeout')}>
+                  주문 시간 초과
+                </button>
+                <button type="button" onClick={() => handleTriggerSessionExpiry('closed')}>
+                  주문 마감 (결제 완료)
+                </button>
+                <button type="button" onClick={handleTriggerNetworkError}>
+                  통신 오류
                 </button>
               </div>
             )}

@@ -16,10 +16,18 @@ const ORDER_PROCESSING_DELAY_MS = 1800;
 
 /**
  * 주문 제출 진행 단계.
- * 실제 주문 파이프라인은 아직 항상 성공한다 — `error-network`/`error-duplicate`는
- * 실패 판별 로직이 붙기 전까지 QA 전용 트리거(triggerOrderFailure)로만 진입한다.
+ * 실제 주문 파이프라인은 아직 항상 성공한다 — `error-network`/`error-duplicate`와
+ * `session-timeout`/`session-closed`는 실제 판별 로직이 붙기 전까지 QA 전용 트리거로만 진입한다.
  */
-type OrderPhase = 'idle' | 'processing' | 'complete' | 'error-network' | 'error-duplicate';
+type OrderPhase =
+  | 'idle'
+  | 'processing'
+  | 'complete'
+  | 'error-network'
+  | 'error-duplicate'
+  | 'session-timeout'
+  | 'session-closed'
+  | 'network-error';
 
 /**
  * ConsumerOrderPage의 mock 장바구니를 소유한다(feature-local state).
@@ -134,6 +142,21 @@ export function useConsumerOrderPage() {
     setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
   }, []);
 
+  /** QA 전용 — 세션 만료(시간초과·결제 완료로 인한 마감) 화면도 실제로는 아직 도달할 수 없다. */
+  const triggerSessionExpiry = useCallback((variant: 'timeout' | 'closed') => {
+    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    setOrderPhase(variant === 'timeout' ? 'session-timeout' : 'session-closed');
+  }, []);
+
+  /**
+   * QA 전용 — 참고 저장소는 navigator.onLine으로 실제 연결 끊김을 감지하지만,
+   * 여기서는 아직 그 감지 로직을 붙이지 않아 QA 트리거로만 진입한다.
+   */
+  const triggerNetworkError = useCallback(() => {
+    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    setOrderPhase('network-error');
+  }, []);
+
   // 헤더가 보낸 QA 요청을 구독한다 — 요청은 즉발성 이벤트라 렌더링 중 파생값으로 다룰 수 없어
   // effect 안에서 직접 setState하는 대신, 외부 스토어를 구독해 콜백에서만 반응한다.
   useEffect(() => {
@@ -142,8 +165,16 @@ export function useConsumerOrderPage() {
         triggerOrderFailure(state.pendingOrderFailure);
         useConsumerOrderQaStore.getState().clearPendingOrderFailure();
       }
+      if (state.pendingSessionExpiry) {
+        triggerSessionExpiry(state.pendingSessionExpiry);
+        useConsumerOrderQaStore.getState().clearPendingSessionExpiry();
+      }
+      if (state.pendingNetworkError) {
+        triggerNetworkError();
+        useConsumerOrderQaStore.getState().clearPendingNetworkError();
+      }
     });
-  }, [triggerOrderFailure]);
+  }, [triggerOrderFailure, triggerSessionExpiry, triggerNetworkError]);
 
   /** 네트워크 실패 화면의 "다시 시도하기" — 처리중 화면부터 다시 시작한다. */
   function retryOrder() {
@@ -159,6 +190,14 @@ export function useConsumerOrderPage() {
   function viewOrderHistoryFromError() {
     setOrderPhase('idle');
     openSheet({ type: 'order-history' });
+  }
+
+  /**
+   * 통신 오류 화면의 "다시 시도하기" — 참고 저장소는 navigator.onLine을 다시 확인해 온라인일
+   * 때만 닫지만, 실제 감지가 붙기 전까지는 무조건 idle로 되돌린다.
+   */
+  function retryFromNetworkError() {
+    setOrderPhase('idle');
   }
 
   return {
@@ -184,5 +223,6 @@ export function useConsumerOrderPage() {
     retryOrder,
     dismissOrderError,
     viewOrderHistoryFromError,
+    retryFromNetworkError,
   };
 }

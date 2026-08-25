@@ -6,9 +6,11 @@ import { CartBar } from '@/apps/consumer/features/order-shell/components/CartBar
 import { CartLineItem } from '@/apps/consumer/features/order-shell/components/CartLineItem';
 import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
+import { NetworkErrorScreen } from '@/apps/consumer/features/order-shell/components/NetworkErrorScreen';
 import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
 import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
+import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -42,6 +44,7 @@ export function ConsumerOrderPage() {
     retryOrder,
     dismissOrderError,
     viewOrderHistoryFromError,
+    retryFromNetworkError,
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
@@ -198,6 +201,9 @@ export function ConsumerOrderPage() {
           onHistory={viewOrderHistoryFromError}
         />
       )}
+      {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
+      {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
+      {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
     </div>
   );
 }

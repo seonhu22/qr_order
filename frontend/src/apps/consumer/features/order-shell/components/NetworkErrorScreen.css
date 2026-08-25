@@ -1,0 +1,99 @@
+.network-error-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-10);
+  overflow: hidden;
+  text-align: center;
+  background-color: var(--color-bg-surface);
+}
+
+/* 위험(red) 톤 블롭 — 앱 전체 연결 상태 문제를 알리는 화면이라 다른 화면들의 브랜드 톤과 구분한다. */
+.network-error-screen__blob {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-status-error-default);
+  pointer-events: none;
+}
+
+.network-error-screen__blob--top {
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 18rem;
+  opacity: 0.05;
+  transform: translate(35%, -35%);
+}
+
+.network-error-screen__blob--bottom {
+  bottom: 0;
+  left: 0;
+  width: 14rem;
+  height: 14rem;
+  opacity: 0.04;
+  transform: translate(-35%, 35%);
+}
+
+.network-error-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-9);
+  width: 100%;
+  max-width: 20rem;
+}
+
+.network-error-screen__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-17);
+  height: var(--spacing-17);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-status-error-bg-subtle);
+}
+
+.network-error-screen__icon {
+  color: var(--color-status-error-default);
+}
+
+.network-error-screen__title {
+  font-size: var(--typography-size-h2);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-heading);
+}
+
+.network-error-screen__description {
+  margin-top: var(--spacing-4);
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+  line-height: var(--typography-leading-body);
+}
+
+.network-error-screen__action {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .network-error-screen__content {
+    animation: network-error-fade-in 0.4s ease-out;
+  }
+
+  @keyframes network-error-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
