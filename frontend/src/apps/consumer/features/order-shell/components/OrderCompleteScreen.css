@@ -86,7 +86,7 @@
   margin-top: var(--spacing-3);
   font-size: var(--typography-size-body);
   color: var(--color-text-tertiary);
-  line-height: var(--typography-leading-normal);
+  line-height: var(--typography-leading-body);
 }
 
 .order-complete-screen__action {
