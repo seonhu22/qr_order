@@ -8,5 +8,5 @@
 import type { ConsumerMenuItem } from './consumerMenuItem';
 
 export interface ConsumerMenuMainBody {
-  menuList?: ConsumerMenuItem[];
+  menuList: ConsumerMenuItem[];
 }

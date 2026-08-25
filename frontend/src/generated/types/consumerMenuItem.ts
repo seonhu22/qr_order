@@ -9,14 +9,14 @@ import type { ConsumerMenuItemOptionUseYn } from './consumerMenuItemOptionUseYn'
 import type { ConsumerMenuItemSoldOutYn } from './consumerMenuItemSoldOutYn';
 
 export interface ConsumerMenuItem {
-  menuSysId?: string;
-  categorySysId?: string;
-  categoryName?: string;
-  menuName?: string;
-  menuPrice?: number;
+  menuSysId: string;
+  categorySysId: string;
+  categoryName: string;
+  menuName: string;
+  menuPrice: number;
   menuDescription?: string;
   fileSysId?: string;
   menuTag?: string;
-  optionUseYn?: ConsumerMenuItemOptionUseYn;
-  soldOutYn?: ConsumerMenuItemSoldOutYn;
+  optionUseYn: ConsumerMenuItemOptionUseYn;
+  soldOutYn: ConsumerMenuItemSoldOutYn;
 }

@@ -8,8 +8,8 @@
 import type { ConsumerMenuSearchResponse } from './consumerMenuSearchResponse';
 
 export interface ConsumerMenuSearchEnvelope {
-  success?: boolean;
+  success: boolean;
   message?: string;
   error?: string;
-  data?: ConsumerMenuSearchResponse;
+  data: ConsumerMenuSearchResponse;
 }

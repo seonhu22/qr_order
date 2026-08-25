@@ -8,5 +8,5 @@
 import type { ConsumerMenuDetailBody } from './consumerMenuDetailBody';
 
 export interface ConsumerMenuDetailResponse {
-  body?: ConsumerMenuDetailBody;
+  body: ConsumerMenuDetailBody;
 }

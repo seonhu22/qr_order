@@ -25,7 +25,7 @@ import type {
   ConsumerMenuDetailEnvelope,
   ConsumerMenuMainEnvelope,
   ConsumerMenuSearchEnvelope,
-  SearchParams
+  SearchConsumerMenuParams
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
@@ -39,7 +39,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * QR 세션의 사업장에 노출 가능한 메뉴 정보와 활성 옵션을 조회합니다.
  * @summary Consumer 메뉴 상세 조회
  */
-export const getDetail = (
+export const getConsumerMenuDetail = (
     menuSysId: string,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
@@ -54,69 +54,69 @@ export const getDetail = (
 
 
 
-export const getGetDetailQueryKey = (menuSysId?: string,) => {
+export const getGetConsumerMenuDetailQueryKey = (menuSysId?: string,) => {
     return [
     `/api/consumer/menu/${menuSysId}`
     ] as const;
     }
 
     
-export const getGetDetailQueryOptions = <TData = Awaited<ReturnType<typeof getDetail>>, TError = CommonResponse>(menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export const getGetConsumerMenuDetailQueryOptions = <TData = Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError = CommonResponse>(menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDetailQueryKey(menuSysId);
+  const queryKey =  queryOptions?.queryKey ?? getGetConsumerMenuDetailQueryKey(menuSysId);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDetail>>> = ({ signal }) => getDetail(menuSysId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsumerMenuDetail>>> = ({ signal }) => getConsumerMenuDetail(menuSysId, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(menuSysId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: !!(menuSysId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetDetailQueryResult = NonNullable<Awaited<ReturnType<typeof getDetail>>>
-export type GetDetailQueryError = CommonResponse
+export type GetConsumerMenuDetailQueryResult = NonNullable<Awaited<ReturnType<typeof getConsumerMenuDetail>>>
+export type GetConsumerMenuDetailQueryError = CommonResponse
 
 
-export function useGetDetail<TData = Awaited<ReturnType<typeof getDetail>>, TError = CommonResponse>(
- menuSysId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData>> & Pick<
+export function useGetConsumerMenuDetail<TData = Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError = CommonResponse>(
+ menuSysId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDetail>>,
+          Awaited<ReturnType<typeof getConsumerMenuDetail>>,
           TError,
-          Awaited<ReturnType<typeof getDetail>>
+          Awaited<ReturnType<typeof getConsumerMenuDetail>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDetail<TData = Awaited<ReturnType<typeof getDetail>>, TError = CommonResponse>(
- menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData>> & Pick<
+export function useGetConsumerMenuDetail<TData = Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError = CommonResponse>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDetail>>,
+          Awaited<ReturnType<typeof getConsumerMenuDetail>>,
           TError,
-          Awaited<ReturnType<typeof getDetail>>
+          Awaited<ReturnType<typeof getConsumerMenuDetail>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDetail<TData = Awaited<ReturnType<typeof getDetail>>, TError = CommonResponse>(
- menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetConsumerMenuDetail<TData = Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError = CommonResponse>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Consumer 메뉴 상세 조회
  */
 
-export function useGetDetail<TData = Awaited<ReturnType<typeof getDetail>>, TError = CommonResponse>(
- menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetConsumerMenuDetail<TData = Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError = CommonResponse>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuDetail>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetDetailQueryOptions(menuSysId,options)
+  const queryOptions = getGetConsumerMenuDetailQueryOptions(menuSysId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -132,8 +132,8 @@ export function useGetDetail<TData = Awaited<ReturnType<typeof getDetail>>, TErr
  * qrTableInfo 세션의 사업장에 노출 가능한 메뉴를 검색합니다.
  * @summary Consumer 메뉴 검색 및 카테고리 필터
  */
-export const search = (
-    params?: SearchParams,
+export const searchConsumerMenu = (
+    params?: SearchConsumerMenuParams,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
@@ -148,69 +148,69 @@ export const search = (
 
 
 
-export const getSearchQueryKey = (params?: SearchParams,) => {
+export const getSearchConsumerMenuQueryKey = (params?: SearchConsumerMenuParams,) => {
     return [
     `/api/consumer/menu/search`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getSearchQueryOptions = <TData = Awaited<ReturnType<typeof search>>, TError = CommonResponse>(params?: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export const getSearchConsumerMenuQueryOptions = <TData = Awaited<ReturnType<typeof searchConsumerMenu>>, TError = CommonResponse>(params?: SearchConsumerMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearchQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSearchConsumerMenuQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof search>>> = ({ signal }) => search(params, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchConsumerMenu>>> = ({ signal }) => searchConsumerMenu(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type SearchQueryResult = NonNullable<Awaited<ReturnType<typeof search>>>
-export type SearchQueryError = CommonResponse
+export type SearchConsumerMenuQueryResult = NonNullable<Awaited<ReturnType<typeof searchConsumerMenu>>>
+export type SearchConsumerMenuQueryError = CommonResponse
 
 
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = CommonResponse>(
- params: undefined |  SearchParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>> & Pick<
+export function useSearchConsumerMenu<TData = Awaited<ReturnType<typeof searchConsumerMenu>>, TError = CommonResponse>(
+ params: undefined |  SearchConsumerMenuParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search>>,
+          Awaited<ReturnType<typeof searchConsumerMenu>>,
           TError,
-          Awaited<ReturnType<typeof search>>
+          Awaited<ReturnType<typeof searchConsumerMenu>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = CommonResponse>(
- params?: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>> & Pick<
+export function useSearchConsumerMenu<TData = Awaited<ReturnType<typeof searchConsumerMenu>>, TError = CommonResponse>(
+ params?: SearchConsumerMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search>>,
+          Awaited<ReturnType<typeof searchConsumerMenu>>,
           TError,
-          Awaited<ReturnType<typeof search>>
+          Awaited<ReturnType<typeof searchConsumerMenu>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = CommonResponse>(
- params?: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useSearchConsumerMenu<TData = Awaited<ReturnType<typeof searchConsumerMenu>>, TError = CommonResponse>(
+ params?: SearchConsumerMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Consumer 메뉴 검색 및 카테고리 필터
  */
 
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = CommonResponse>(
- params?: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useSearchConsumerMenu<TData = Awaited<ReturnType<typeof searchConsumerMenu>>, TError = CommonResponse>(
+ params?: SearchConsumerMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchConsumerMenu>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getSearchQueryOptions(params,options)
+  const queryOptions = getSearchConsumerMenuQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -226,7 +226,7 @@ export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = C
  * 호출 전에 GET /api/qr/{url}로 qrTableInfo 세션을 먼저 설정해야 합니다.
  * @summary Consumer 메뉴 메인 최초 조회
  */
-export const getMain = (
+export const getConsumerMenuMain = (
     
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
@@ -241,69 +241,69 @@ export const getMain = (
 
 
 
-export const getGetMainQueryKey = () => {
+export const getGetConsumerMenuMainQueryKey = () => {
     return [
     `/api/consumer/menu/main`
     ] as const;
     }
 
     
-export const getGetMainQueryOptions = <TData = Awaited<ReturnType<typeof getMain>>, TError = CommonResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export const getGetConsumerMenuMainQueryOptions = <TData = Awaited<ReturnType<typeof getConsumerMenuMain>>, TError = CommonResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetMainQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetConsumerMenuMainQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMain>>> = ({ signal }) => getMain(requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsumerMenuMain>>> = ({ signal }) => getConsumerMenuMain(requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetMainQueryResult = NonNullable<Awaited<ReturnType<typeof getMain>>>
-export type GetMainQueryError = CommonResponse
+export type GetConsumerMenuMainQueryResult = NonNullable<Awaited<ReturnType<typeof getConsumerMenuMain>>>
+export type GetConsumerMenuMainQueryError = CommonResponse
 
 
-export function useGetMain<TData = Awaited<ReturnType<typeof getMain>>, TError = CommonResponse>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData>> & Pick<
+export function useGetConsumerMenuMain<TData = Awaited<ReturnType<typeof getConsumerMenuMain>>, TError = CommonResponse>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMain>>,
+          Awaited<ReturnType<typeof getConsumerMenuMain>>,
           TError,
-          Awaited<ReturnType<typeof getMain>>
+          Awaited<ReturnType<typeof getConsumerMenuMain>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMain<TData = Awaited<ReturnType<typeof getMain>>, TError = CommonResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData>> & Pick<
+export function useGetConsumerMenuMain<TData = Awaited<ReturnType<typeof getConsumerMenuMain>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMain>>,
+          Awaited<ReturnType<typeof getConsumerMenuMain>>,
           TError,
-          Awaited<ReturnType<typeof getMain>>
+          Awaited<ReturnType<typeof getConsumerMenuMain>>
         > , 'initialData'
       >, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMain<TData = Awaited<ReturnType<typeof getMain>>, TError = CommonResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetConsumerMenuMain<TData = Awaited<ReturnType<typeof getConsumerMenuMain>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Consumer 메뉴 메인 최초 조회
  */
 
-export function useGetMain<TData = Awaited<ReturnType<typeof getMain>>, TError = CommonResponse>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+export function useGetConsumerMenuMain<TData = Awaited<ReturnType<typeof getConsumerMenuMain>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuMain>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetMainQueryOptions(options)
+  const queryOptions = getGetConsumerMenuMainQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

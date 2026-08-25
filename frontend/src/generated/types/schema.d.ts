@@ -1439,7 +1439,7 @@ export interface paths {
          * Consumer 메뉴 상세 조회
          * @description QR 세션의 사업장에 노출 가능한 메뉴 정보와 활성 옵션을 조회합니다.
          */
-        get: operations["getDetail"];
+        get: operations["getConsumerMenuDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1459,7 +1459,7 @@ export interface paths {
          * Consumer 메뉴 검색 및 카테고리 필터
          * @description qrTableInfo 세션의 사업장에 노출 가능한 메뉴를 검색합니다.
          */
-        get: operations["search"];
+        get: operations["searchConsumerMenu"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1479,7 +1479,7 @@ export interface paths {
          * Consumer 메뉴 메인 최초 조회
          * @description 호출 전에 GET /api/qr/{url}로 qrTableInfo 세션을 먼저 설정해야 합니다.
          */
-        get: operations["getMain"];
+        get: operations["getConsumerMenuMain"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2221,9 +2221,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2551,102 +2551,102 @@ export interface components {
             name?: string;
         };
         ConsumerMenuDetailBody: {
-            menuSysId?: string;
-            categorySysId?: string;
-            categoryName?: string;
-            menuName?: string;
+            menuSysId: string;
+            categorySysId: string;
+            categoryName: string;
+            menuName: string;
             /** Format: int32 */
-            menuPrice?: number;
+            menuPrice: number;
             menuDescription?: string;
             fileSysId?: string;
             menuTag?: string;
             /** @enum {string} */
-            optionUseYn?: "Y" | "N";
+            optionUseYn: "Y" | "N";
             /** @enum {string} */
-            soldOutYn?: "Y" | "N";
-            optionGroupList?: components["schemas"]["ConsumerMenuOptionGroup"][];
+            soldOutYn: "Y" | "N";
+            optionGroupList: components["schemas"]["ConsumerMenuOptionGroup"][];
         };
         ConsumerMenuDetailEnvelope: {
-            success?: boolean;
+            success: boolean;
             message?: string;
             error?: string;
-            data?: components["schemas"]["ConsumerMenuDetailResponse"];
+            data: components["schemas"]["ConsumerMenuDetailResponse"];
         };
         ConsumerMenuDetailResponse: {
-            body?: components["schemas"]["ConsumerMenuDetailBody"];
+            body: components["schemas"]["ConsumerMenuDetailBody"];
         };
         ConsumerMenuOptionGroup: {
-            optionGroupSysId?: string;
-            groupName?: string;
+            optionGroupSysId: string;
+            groupName: string;
             /** @enum {string} */
-            requiredYn?: "Y" | "N";
+            requiredYn: "Y" | "N";
             /**
              * @description 01: 단일 선택, 02: 복수 선택, 03: 수량 선택
              * @enum {string}
              */
-            selectionType?: "01" | "02" | "03";
-            optionList?: components["schemas"]["ConsumerMenuOptionItem"][];
+            selectionType: "01" | "02" | "03";
+            optionList: components["schemas"]["ConsumerMenuOptionItem"][];
         };
         ConsumerMenuOptionItem: {
-            menuOptionSysId?: string;
-            menuOptionName?: string;
+            menuOptionSysId: string;
+            menuOptionName: string;
             /** Format: int32 */
-            menuOptionPrice?: number;
+            menuOptionPrice: number;
             menuOptionDescription?: string;
             /**
              * Format: int32
              * @description 수량 선택(03)은 1 이상의 최대 수량, 단일·복수 선택(01/02)은 0
              */
-            maximumNum?: number;
+            maximumNum: number;
             /** @enum {string} */
-            defaultYn?: "Y" | "N";
+            defaultYn: "Y" | "N";
         };
         ConsumerMenuItem: {
-            menuSysId?: string;
-            categorySysId?: string;
-            categoryName?: string;
-            menuName?: string;
+            menuSysId: string;
+            categorySysId: string;
+            categoryName: string;
+            menuName: string;
             /** Format: int32 */
-            menuPrice?: number;
+            menuPrice: number;
             menuDescription?: string;
             fileSysId?: string;
             menuTag?: string;
             /** @enum {string} */
-            optionUseYn?: "Y" | "N";
+            optionUseYn: "Y" | "N";
             /** @enum {string} */
-            soldOutYn?: "Y" | "N";
+            soldOutYn: "Y" | "N";
         };
         ConsumerMenuMainBody: {
-            menuList?: components["schemas"]["ConsumerMenuItem"][];
+            menuList: components["schemas"]["ConsumerMenuItem"][];
         };
         ConsumerMenuSearchEnvelope: {
-            success?: boolean;
+            success: boolean;
             message?: string;
             error?: string;
-            data?: components["schemas"]["ConsumerMenuSearchResponse"];
+            data: components["schemas"]["ConsumerMenuSearchResponse"];
         };
         ConsumerMenuSearchResponse: {
-            body?: components["schemas"]["ConsumerMenuMainBody"];
+            body: components["schemas"]["ConsumerMenuMainBody"];
         };
         ConsumerMenuCategoryItem: {
-            categorySysId?: string;
-            categoryName?: string;
+            categorySysId: string;
+            categoryName: string;
         };
         ConsumerMenuMainEnvelope: {
-            success?: boolean;
+            success: boolean;
             message?: string;
             error?: string;
-            data?: components["schemas"]["ConsumerMenuMainResponse"];
+            data: components["schemas"]["ConsumerMenuMainResponse"];
         };
         ConsumerMenuMainHeader: {
-            categoryList?: components["schemas"]["ConsumerMenuCategoryItem"][];
+            categoryList: components["schemas"]["ConsumerMenuCategoryItem"][];
         };
         ConsumerMenuMainResponse: {
-            storeName?: string;
+            storeName: string;
             /** Format: int32 */
-            tableNum?: number;
-            header?: components["schemas"]["ConsumerMenuMainHeader"];
-            body?: components["schemas"]["ConsumerMenuMainBody"];
+            tableNum: number;
+            header: components["schemas"]["ConsumerMenuMainHeader"];
+            body: components["schemas"]["ConsumerMenuMainBody"];
         };
         ClientUserResponse: {
             sysId?: string;
@@ -2679,9 +2679,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -4982,7 +4982,7 @@ export interface operations {
             };
         };
     };
-    getDetail: {
+    getConsumerMenuDetail: {
         parameters: {
             query?: never;
             header?: never;
@@ -5000,6 +5000,15 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ConsumerMenuDetailEnvelope"];
+                };
+            };
+            /** @description 메뉴 ID가 유효하지 않음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
                 };
             };
             /** @description QR 세션이 없거나 만료됨 */
@@ -5031,7 +5040,7 @@ export interface operations {
             };
         };
     };
-    search: {
+    searchConsumerMenu: {
         parameters: {
             query?: {
                 searchKeyword?: string;
@@ -5052,6 +5061,15 @@ export interface operations {
                     "*/*": components["schemas"]["ConsumerMenuSearchEnvelope"];
                 };
             };
+            /** @description 검색 조건이 허용 길이를 초과함 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
             /** @description QR 세션이 없거나 만료됨 */
             401: {
                 headers: {
@@ -5061,9 +5079,18 @@ export interface operations {
                     "*/*": components["schemas"]["CommonResponse"];
                 };
             };
+            /** @description 메뉴 데이터 조회 실패 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
         };
     };
-    getMain: {
+    getConsumerMenuMain: {
         parameters: {
             query?: never;
             header?: never;
@@ -5083,6 +5110,15 @@ export interface operations {
             };
             /** @description QR 세션이 없거나 만료됨 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+            /** @description 메뉴 데이터 조회 실패 */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

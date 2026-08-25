@@ -10,10 +10,10 @@ import type { ConsumerMenuOptionGroupSelectionType } from './consumerMenuOptionG
 import type { ConsumerMenuOptionItem } from './consumerMenuOptionItem';
 
 export interface ConsumerMenuOptionGroup {
-  optionGroupSysId?: string;
-  groupName?: string;
-  requiredYn?: ConsumerMenuOptionGroupRequiredYn;
+  optionGroupSysId: string;
+  groupName: string;
+  requiredYn: ConsumerMenuOptionGroupRequiredYn;
   /** 01: 단일 선택, 02: 복수 선택, 03: 수량 선택 */
-  selectionType?: ConsumerMenuOptionGroupSelectionType;
-  optionList?: ConsumerMenuOptionItem[];
+  selectionType: ConsumerMenuOptionGroupSelectionType;
+  optionList: ConsumerMenuOptionItem[];
 }

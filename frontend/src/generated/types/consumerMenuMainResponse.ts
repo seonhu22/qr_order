@@ -9,8 +9,8 @@ import type { ConsumerMenuMainHeader } from './consumerMenuMainHeader';
 import type { ConsumerMenuMainBody } from './consumerMenuMainBody';
 
 export interface ConsumerMenuMainResponse {
-  storeName?: string;
-  tableNum?: number;
-  header?: ConsumerMenuMainHeader;
-  body?: ConsumerMenuMainBody;
+  storeName: string;
+  tableNum: number;
+  header: ConsumerMenuMainHeader;
+  body: ConsumerMenuMainBody;
 }

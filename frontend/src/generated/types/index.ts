@@ -144,6 +144,7 @@ export * from './saveMenuDetailParams';
 export * from './saveMenuOptionDetailParams';
 export * from './searchCommonDetailParams';
 export * from './searchCommonParams';
+export * from './searchConsumerMenuParams';
 export * from './searchParams';
 export * from './searchPlantParams';
 export * from './settlementRequest';

@@ -8,8 +8,8 @@
 import type { ConsumerMenuMainResponse } from './consumerMenuMainResponse';
 
 export interface ConsumerMenuMainEnvelope {
-  success?: boolean;
+  success: boolean;
   message?: string;
   error?: string;
-  data?: ConsumerMenuMainResponse;
+  data: ConsumerMenuMainResponse;
 }

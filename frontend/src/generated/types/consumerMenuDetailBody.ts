@@ -10,15 +10,15 @@ import type { ConsumerMenuDetailBodySoldOutYn } from './consumerMenuDetailBodySo
 import type { ConsumerMenuOptionGroup } from './consumerMenuOptionGroup';
 
 export interface ConsumerMenuDetailBody {
-  menuSysId?: string;
-  categorySysId?: string;
-  categoryName?: string;
-  menuName?: string;
-  menuPrice?: number;
+  menuSysId: string;
+  categorySysId: string;
+  categoryName: string;
+  menuName: string;
+  menuPrice: number;
   menuDescription?: string;
   fileSysId?: string;
   menuTag?: string;
-  optionUseYn?: ConsumerMenuDetailBodyOptionUseYn;
-  soldOutYn?: ConsumerMenuDetailBodySoldOutYn;
-  optionGroupList?: ConsumerMenuOptionGroup[];
+  optionUseYn: ConsumerMenuDetailBodyOptionUseYn;
+  soldOutYn: ConsumerMenuDetailBodySoldOutYn;
+  optionGroupList: ConsumerMenuOptionGroup[];
 }

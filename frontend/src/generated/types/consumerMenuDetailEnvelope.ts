@@ -8,8 +8,8 @@
 import type { ConsumerMenuDetailResponse } from './consumerMenuDetailResponse';
 
 export interface ConsumerMenuDetailEnvelope {
-  success?: boolean;
+  success: boolean;
   message?: string;
   error?: string;
-  data?: ConsumerMenuDetailResponse;
+  data: ConsumerMenuDetailResponse;
 }

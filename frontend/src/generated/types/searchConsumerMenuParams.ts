@@ -5,8 +5,14 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
-import type { ConsumerMenuMainBody } from './consumerMenuMainBody';
 
-export interface ConsumerMenuSearchResponse {
-  body: ConsumerMenuMainBody;
-}
+export type SearchConsumerMenuParams = {
+/**
+ * @maxLength 100
+ */
+searchKeyword?: string;
+/**
+ * @maxLength 64
+ */
+categorySysId?: string;
+};

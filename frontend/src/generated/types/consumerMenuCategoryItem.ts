@@ -7,6 +7,6 @@
  */
 
 export interface ConsumerMenuCategoryItem {
-  categorySysId?: string;
-  categoryName?: string;
+  categorySysId: string;
+  categoryName: string;
 }
