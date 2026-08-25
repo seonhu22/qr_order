@@ -34,7 +34,7 @@ QR 인증 후 도착하는 화면이다. 골격 단계라 메뉴·장바구니·
 
 라벨·아이콘 매핑(`MENU_BADGE_CONFIG`)은 `features/order-shell/badgeConfig.ts`에 공용으로 뽑아뒀다. `MenuItemCard`(메뉴 목록 카드)와 `MenuDetailSheet`(메뉴 상세 시트, 메뉴명 위)가 이 배지를 함께 쓴다 — 처음엔 `MenuItemCard.tsx`에 로컬 상수로만 있었는데, 상세 시트에도 같은 배지가 필요해지면서 공용 파일로 옮겼다. CSS 클래스(`menu-item-card__badge*`, `menu-detail-sheet__badge*`)는 화면마다 따로 두되(폴더별 전용 CSS 원칙), 색상 값은 위 표와 동일하게 맞춘다.
 
-옵션 그룹의 `필수`/`선택`/`복수선택`, 옵션 항목의 `품절`은 이 배지와 다른 컴포넌트다 — [옵션 선택 규칙](#옵션-선택-규칙)의 `Badge` 참고.
+옵션 그룹의 `필수`/`선택`/`복수선택`은 이 배지와 다른 컴포넌트다 — [옵션 선택 규칙](#옵션-선택-규칙)의 `Badge` 참고. 옵션 항목의 품절은 별도 표시 없이 선택만 막는다(아래 참고).
 
 ## 아이콘
 
@@ -60,7 +60,7 @@ type ConsumerSheetState =
 | variant | 여는 곳 | 내용 |
 |---|---|---|
 | `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보(배지)·옵션·수량·담기 버튼 (`MenuDetailSheet`) |
-| `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록 + "주문하기" 버튼(disabled, "준비 중입니다") |
+| `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록(비어 있으면 빈 상태) + 총 결제 금액 + 버튼("주문하기" disabled 또는 빈 상태일 때 "메뉴 보러가기") |
 | `order-history` | 헤더 "주문내역" 버튼 | "준비 중입니다" 플레이스홀더만 |
 | `staff-call` | 헤더 "직원호출" 버튼 | "준비 중입니다" 플레이스홀더만 |
 
@@ -98,9 +98,11 @@ type ConsumerSheetState =
 
 `MenuOptionGroupList`(`features/order-shell/components/`)가 이 규칙을 화면으로 옮긴다.
 
-- 체크 표시(원/박스) 자체는 `/dev/radio`·`/dev/checkbox`의 `RadioInput`/`CheckboxInput`을 그대로 가져다 쓴다. 다만 그 컴포넌트의 `label`/`description`은 쓰지 않는다 — 이름·가격·품절 표기는 이 화면 전용 카드형 레이아웃(`menu-option-choice`)이 따로 맡기 때문이다. 대신 컨트롤에 `id={groupId-choiceId}`를 직접 주고, 이름 텍스트를 그 `id`를 가리키는 별도 `<label htmlFor>`로 감싸 접근성 이름(스크린리더·`getByRole(..., { name })`)이 정상적으로 연결되게 한다. `CheckboxInput`은 이때 처음으로 `id` prop을 지원하도록 확장했다(`RadioInput`은 이미 있었다).
-- 그룹 헤더(이름 옆)엔 `Badge`(`shared/components/badge`, `/dev/badge`)로 `필수`/`선택`(단일)과 `복수선택`+`필수`/`선택`(복수)을 오른쪽 끝에 붙인다 — 참고 저장소의 배지 순서·톤을 그대로 따랐다. 옵션 항목의 `품절` 표기도 같은 `Badge`(`size="sm"`)를 쓴다.
+- 체크 표시(원/박스) 자체는 `/dev/radio`·`/dev/checkbox`의 `RadioInput`/`CheckboxInput`을 그대로 가져다 쓴다. 다만 그 컴포넌트의 `label`/`description`은 쓰지 않는다 — 이름·가격 표기는 이 화면 전용 카드형 레이아웃(`menu-option-choice`)이 따로 맡기 때문이다. 대신 컨트롤에 `id={groupId-choiceId}`를 직접 주고, 이름 텍스트를 그 `id`를 가리키는 별도 `<label htmlFor>`로 감싸 접근성 이름(스크린리더·`getByRole(..., { name })`)이 정상적으로 연결되게 한다. `CheckboxInput`은 이때 처음으로 `id` prop을 지원하도록 확장했다(`RadioInput`은 이미 있었다).
+- 그룹 헤더(이름 옆)엔 `Badge`(`shared/components/badge`, `/dev/badge`)로 `필수`/`선택`(단일)과 `복수선택`+`필수`/`선택`(복수)을 오른쪽 끝에 붙인다 — 참고 저장소의 배지 순서·톤을 그대로 따랐다.
 - 옵션 행(`menu-option-choice`)은 항목별 수량 스텝퍼가 나타나도 행 높이가 변하지 않도록 `min-height`를 고정해둔다.
+- 품절 항목은 "품절" 같은 별도 표시 없이 `isChoiceDisabled`로 선택만 막는다 — 이름은 그대로 보여주고, `menu-option-choice--disabled`로 흐리게 표시한다.
+- 옵션 행 라벨(`menu-option-choice__text`)은 부모가 `align-items: center`라 기본값으로는 자기 텍스트 높이만큼만 탭에 반응한다 — `align-self: stretch`로 행 전체 높이만큼 탭 영역을 늘려뒀다(형제 요소인 원/체크박스·가격은 영향 없음).
 
 #### 항목별 수량 조절
 
@@ -147,6 +149,16 @@ type ConsumerSheetState =
 3. **1개당 가격 + 수량 스텝퍼**: 왼쪽에 작은 회색 글씨로 단가(`calcUnitPrice`), 오른쪽에 `QuantityStepperButton` 두 개(28×28px, `radius-sm`, 참고 저장소 그대로) + 수량.
 
 수량 스텝퍼는 다른 두 곳(메뉴 상세 전체 수량, 옵션 항목별 수량)과 틀·동작은 같지만(1 미만으로 안 내려감) 색상이 다르다 — 평소엔 `--color-bg-muted` 회색 채움이고, **수량이 1일 때는 감소 버튼이 삭제 버튼(x)으로 바뀌어 배경이 `--color-status-error-default`(빨강)로 채워진다.** 눌리면 `onRemove`가 호출돼 그 줄 자체가 장바구니에서 사라진다(비활성화가 아니라 삭제).
+
+### 빈 장바구니 상태
+
+`cart.length === 0`이면 목록 대신 참고 저장소 `CartSheet`와 동일한 빈 상태를 보여준다(`order-shell-cart-empty`) — 연한 회색 장바구니 아이콘(`--slate-30`) + "장바구니에 담긴 메뉴가 없습니다." 문구를 세로 가운데 정렬한다.
+
+이때 하단 버튼도 바뀐다: 담긴 게 있으면 비활성화된 "주문하기 (준비 중입니다)"지만, 비어 있으면 **활성화된 "메뉴 보러가기"** 버튼이 `closeSheet`를 호출한다 — 별도 페이지 이동이 아니라 시트를 닫아서(닫힘 애니메이션과 함께) 뒤에 있던 메뉴 목록이 그대로 드러나는 방식이다.
+
+### 총 결제 금액
+
+주문하기/메뉴 보러가기 버튼 바로 위, 구분선 아래에 "총 결제 금액" 라벨과 `totalCartPrice`(`CartBar`가 쓰는 값과 동일)를 양끝 배치로 보여준다(`order-shell-cart-total`) — 참고 저장소 `CartSheet` 푸터 그대로이며, 장바구니가 비어 있어도(0원) 항상 표시된다.
 
 ## CartBar는 `position: fixed`다 (sticky 아님)
 

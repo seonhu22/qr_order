@@ -99,6 +99,14 @@
 - 해결: 실제 사용자처럼 보이는 라벨 텍스트(예: `.menu-option-choice__text`)를 클릭하거나, Playwright의 체크박스/라디오 전용 `.check()`(hit-testing을 우회)를 쓴다. `.click({ force: true })`도 되지만 실제 클릭 가능 여부 검증을 건너뛰므로 지양한다.
 - 참고: `RadioInput`/`CheckboxInput`을 감싸는 새 화면을 Playwright로 자동화할 때 항상 해당되는 문제다.
 
+### 모달/시트가 열릴 때만 애니메이션되고 닫힐 때는 즉시 사라짐
+
+- 증상: `open` prop으로 여닫는 오버레이 컴포넌트(`ConsumerBottomSheet` 등)에 진입 애니메이션(`@keyframes ...`)만 걸어두면, `open`이 `false`가 되는 순간 컴포넌트가 바로 `return null`돼서 나갈 때는 애니메이션 없이 뚝 사라진다.
+- 원인: React는 조건부 렌더링(`if (!open) return null`)이 꺼지는 즉시 언마운트한다 — CSS 애니메이션이 끝날 때까지 기다려주지 않는다. 닫힘 애니메이션을 넣으려면 "실제 언마운트는 애니메이션이 끝난 뒤"로 미뤄야 한다.
+- 수정: `open`과 별개로 `shouldRender`/`isClosing` 상태를 두고, `open`이 `false`로 바뀌는 순간엔 `isClosing`만 켠 채 계속 렌더링하다가 `onAnimationEnd`에서 `shouldRender`를 끈다(`ConsumerBottomSheet.tsx`). `prefers-reduced-motion: reduce`면 애니메이션 자체가 없어 `onAnimationEnd`가 안 오므로, 그 경우엔 `isClosing`을 건너뛰고 바로 `shouldRender`를 끈다.
+- 주의: 이 상태 조정을 `useEffect` 안에서 `setState`하면 `react-hooks/set-state-in-effect` 린트에 걸린다(effect의 setState는 한 프레임 늦게 반영돼 깜빡임 위험도 있다). `useEffect` 대신 렌더 본문에서 `if (open !== prevOpen) { setPrevOpen(open); ...setState... }` 형태로 prop 변경을 감지해 그 자리에서 상태를 조정한다 — React가 공식적으로 권장하는 "prop 변경 시 상태 조정" 패턴이다.
+- 참고: 오버레이 컴포넌트(모달/시트/토스트 등)에 닫힘 애니메이션을 새로 추가할 때 항상 이 패턴을 기준으로 삼는다.
+
 ### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
 
 - 증상: 편집 중(`isDirty`) 검색창에서 **Enter**로 조회하면 "조회하시겠습니까?" 확인 모달이 떴다가 즉시 사라지고 조회가 그대로 실행됨. 같은 동작을 조회 버튼 **클릭**으로 하면 정상적으로 모달이 유지됨.
