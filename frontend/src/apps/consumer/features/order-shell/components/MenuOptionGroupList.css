@@ -44,7 +44,7 @@
   align-items: center;
   gap: var(--spacing-5);
   min-height: var(--spacing-15);
-  padding-inline: var(--spacing-4);
+  padding-inline: var(--spacing-6);
   padding-block: var(--spacing-3);
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
@@ -63,6 +63,10 @@
 
 .menu-option-choice__text {
   flex: 1;
+  /* 부모가 align-items: center라 기본값(자기 콘텐츠 높이만큼만)으로는 행 높이(min-height)만큼
+     탭 영역이 늘어나지 않는다 — 이 라벨만 부모 높이로 늘려서 보이는 높이와 실제 탭 영역을 맞춘다.
+     내부는 이미 align-items: center라 텍스트 위치는 그대로다. */
+  align-self: stretch;
   min-width: 0;
   display: flex;
   align-items: center;

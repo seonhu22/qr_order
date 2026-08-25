@@ -25,11 +25,12 @@ function formatOptionPrice(price: number) {
  *
  * 옵션이 없는 메뉴면 아무것도 렌더링하지 않는다 — 현재 대부분의 mock 메뉴가 이 경우다.
  * 체크 표시 자체(원/박스)는 `/dev/radio`·`/dev/checkbox`의 `RadioInput`/`CheckboxInput`을 그대로
- * 가져다 쓰되, 그 컴포넌트의 `label`/`description`은 사용하지 않는다 — 이름·가격·품절 표기는
+ * 가져다 쓰되, 그 컴포넌트의 `label`/`description`은 사용하지 않는다 — 이름·가격 표기는
  * 이 화면 전용 카드형 레이아웃(`menu-option-choice`)이 따로 맡는다. 대신 컨트롤에 `id`를 직접 주고
  * 이름 텍스트를 그 `id`를 가리키는 별도의 `<label>`로 감싸 접근성 이름(스크린리더·테스트의
  * `getByRole(..., { name })`)이 여전히 정상적으로 연결되게 한다.
  * 복수 선택 항목은 선택되면 개수를 조절할 수 있는 미니 수량 버튼이 함께 나타난다.
+ * 품절 항목은 별도 표시 없이 선택만 막는다(`isChoiceDisabled`) — 이름은 그대로 보여준다.
  */
 export function MenuOptionGroupList({
   groups,
@@ -89,14 +90,7 @@ export function MenuOptionGroupList({
                   )}
 
                   <label htmlFor={inputId} className="menu-option-choice__text">
-                    <span className="menu-option-choice__name">
-                      {choice.name}
-                      {choice.soldOut && (
-                        <Badge tone="neutral" size="sm">
-                          품절
-                        </Badge>
-                      )}
-                    </span>
+                    <span className="menu-option-choice__name">{choice.name}</span>
                   </label>
 
                   {group.selectionType === 'multiple' && selected && (
