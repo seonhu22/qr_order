@@ -9,9 +9,9 @@ import type { QrEntryStatus, UseQrEntryPageResult } from '../types';
 const INVALID_QR_MESSAGE = '유효하지 않은 QR코드입니다.';
 const NETWORK_ERROR_MESSAGE = '네트워크 연결을 확인한 뒤 다시 시도해주세요.';
 
-// 이 단계는 백엔드/MSW 상태와 무관하게 QR 흐름을 확인해야 해서 실제 GET /api/qr/{url} 대신
-// 고정값 mock(connectQrStub)을 쓴다. 실제 API 연동 시 이 플래그만 false로 바꾼다.
-const QR_CONNECT_MOCK_ENABLED = true;
+// 운영 흐름에서는 실제 GET /api/qr/{url}로 QR과 테이블을 검증한다.
+// 로컬 UI 확인이 필요할 때만 true로 바꾸며, 이 경우 고정 응답과 미리보기 정보를 사용한다.
+const QR_CONNECT_MOCK_ENABLED = false;
 
 /**
  * QR 인증 fetch/abort/redirect를 소유한다. QrEntryPage는 이 훅의 결과만 렌더링한다.
@@ -48,6 +48,8 @@ export function useQrEntryPage(url: string | undefined): UseQrEntryPageResult {
         if (abortController.signal.aborted) return;
 
         if (response.success) {
+          // 이전 테이블에서 만든 Consumer 캐시를 제거한 뒤, 검증된 테이블 정보를 주문 화면에 전달한다.
+          // 이를 통해 같은 브라우저에서 다른 QR을 스캔해도 이전 테이블의 메뉴가 재사용되지 않는다.
           queryClient.removeQueries({ queryKey: ['consumer'] });
           navigate('/consumer/order', { replace: true, state: { qrTableInfo: response.data } });
           return;

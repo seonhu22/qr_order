@@ -39,7 +39,9 @@ export function useConsumerSession(): UseConsumerSessionResult {
   const seed = toConsumerSession(state?.qrTableInfo);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.consumer.session,
+    // React Query는 queryKey가 같으면 기존 캐시를 재사용한다. 테이블 ID를 포함해 QR별 세션을 분리하고,
+    // QR 경유 정보가 없는 직접 진입은 실제 테이블 캐시와 섞이지 않도록 별도의 stub 키를 사용한다.
+    queryKey: [...queryKeys.consumer.session, seed?.tableSysId ?? 'stub'],
     queryFn: () => (seed ? Promise.resolve(seed) : fetchConsumerSessionStub()),
     ...queryPolicies.consumerSession,
   });
