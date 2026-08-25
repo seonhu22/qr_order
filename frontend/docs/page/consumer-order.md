@@ -3,14 +3,14 @@
 > 경로: `/consumer/order`
 > 화면: Consumer > 주문(메뉴 목록·장바구니)
 
-QR 인증 후 도착하는 화면이다. 골격 단계라 메뉴·장바구니·주문 데이터는 전부 mock이고, 실제 API 연동 범위는 [`decisions.md` ADR-021](../decisions.md#adr-021--consumer-골격-단계의-mock-경계-원칙) 참고.
+QR 인증 후 도착하는 화면이다. 메뉴 목록, 검색, 상세는 Consumer 메뉴 API를 사용한다. 장바구니와 주문은 아직 화면 로컬 상태다.
 
 ## 헤더와 페이지의 역할 분리
 
 `ConsumerHeader`(`apps/consumer/features/header/components/ConsumerHeader.tsx`)는 `ConsumerLayout`이 마운트하는 고정 영역으로, 브랜드·매장정보·직원호출·주문내역·설정 버튼뿐 아니라 **검색창과 카테고리 탭도 여기서 렌더링한다**. 검색어·선택 카테고리 자체는 `apps/consumer/stores/consumerOrderFilterStore.ts`(zustand)에 있고, `useConsumerOrderPage`(order-shell)가 이 값을 읽어 실제 필터링을 수행한다.
 
 - 처음에는 검색·탭을 order-shell(페이지) 쪽에 두었으나, 참고 UI는 로고·매장정보·검색·탭이 한 헤더 블록이라 그 사이에 불필요한 border·padding 이중 레이어가 생겼다. 헤더로 옮기고 상태만 스토어로 공유하도록 고쳤다.
-- 카테고리 목록(`ORDER_SHELL_CATEGORIES`)은 지금 `ConsumerHeader`가 order-shell의 mock 상수를 직접 참조한다 — Consumer 페이지가 하나뿐인 지금 단계의 실용적 타협이며, 화면이 늘어나면 재검토 대상이다.
+- 카테고리와 매장명, 테이블 번호는 메인 API 응답을 사용한다. 헤더와 페이지가 같은 React Query 키를 사용해 요청은 중복되지 않는다.
 
 ## 카테고리 탭은 필터가 아니라 스크롤이다
 
@@ -84,7 +84,8 @@ type ConsumerSheetState =
 
 - 필수(`required`) + 단일 선택 그룹은 품절이 아닌 첫 항목이 미리 선택된 상태로 열린다 — 사용자가 옵션을 건드리지 않아도 담기가 가능해야 하기 때문이다.
 - 단일 선택은 다른 항목을 고르면 교체될 뿐 해제되지 않는다 — `radio`가 재클릭 시 change를 발생시키지 않으므로 해제 동작 자체를 두지 않았다. 옵션 단일 그룹에 "선택 안 함"이 필요해지면 별도 choice 항목으로 넣는다.
-- 복수 선택은 `maxSelectable`에 도달하면 **새 항목 추가만** 막고, 이미 고른 항목의 해제는 계속 허용한다.
+- 복수 선택은 API가 제공한 항목을 제한 없이 조합한다. 현재 계약에는 그룹 단위 최대 선택 개수가 없다.
+- 수량 선택은 항목별 `maximumNum`까지 증감할 수 있고, `defaultYn`이 기본 선택 수량 1로 반영된다.
 - 필수 그룹 중 하나라도 비어 있으면 담기 버튼이 비활성화된다(`canAddToCart`).
 - 단일 선택은 `radio`, 복수 선택은 `checkbox`로 렌더링해 키보드·스크린리더 동작을 브라우저에 맡긴다.
 
@@ -97,11 +98,11 @@ type ConsumerSheetState =
 총액       = 1개당 가격 × 수량
 ```
 
-옵션 추가 금액은 음수도 허용한다(예: "밥 없이" −1,000원).
+옵션 추가 금액은 음수도 허용하며 수량 선택 옵션은 `옵션 가격 × 선택 수량`으로 계산한다.
 
 ## 장바구니 줄 식별 — `cartKey`
 
-같은 메뉴라도 옵션 조합이 다르면 다른 줄로 남아야 하므로, 병합 기준은 `menuId`가 아니라 `cartKey`다. `buildCartKey`(`cartLine.ts`)가 메뉴 id 뒤에 선택한 옵션 id를 **정렬해서** 이어붙인다 — 선택 순서가 달라도 같은 조합이면 같은 줄로 합쳐진다. 옵션이 없으면 메뉴 id만 쓰므로 옵션 도입 전과 키가 같다.
+같은 메뉴라도 옵션 조합이나 옵션 수량이 다르면 다른 줄로 남아야 하므로, 병합 기준은 `menuId`가 아니라 `cartKey`다. `buildCartKey`(`cartLine.ts`)가 메뉴 id 뒤에 `옵션 id:수량`을 정렬해서 이어붙인다. 선택 순서가 달라도 같은 조합이면 같은 줄로 합쳐진다.
 
 ```
 옵션 없음            menu-3
