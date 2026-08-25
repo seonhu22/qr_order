@@ -7,6 +7,7 @@ import { CartLineItem } from '@/apps/consumer/features/order-shell/components/Ca
 import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
 import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
+import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
@@ -35,8 +36,12 @@ export function ConsumerOrderPage() {
     openCart,
     closeSheet,
     orderPhase,
+    duplicateTime,
     placeOrder,
     confirmOrderComplete,
+    retryOrder,
+    dismissOrderError,
+    viewOrderHistoryFromError,
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
@@ -182,6 +187,17 @@ export function ConsumerOrderPage() {
 
       {orderPhase === 'processing' && <OrderProcessingScreen />}
       {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
+      {orderPhase === 'error-network' && (
+        <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
+      )}
+      {orderPhase === 'error-duplicate' && (
+        <OrderFailureScreen
+          type="duplicate"
+          duplicateTime={duplicateTime}
+          onGoMain={dismissOrderError}
+          onHistory={viewOrderHistoryFromError}
+        />
+      )}
     </div>
   );
 }

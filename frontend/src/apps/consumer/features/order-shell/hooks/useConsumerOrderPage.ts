@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
+import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
 import { ORDER_SHELL_CATEGORIES, ORDER_SHELL_MENU_ITEMS } from '../mock/orderShellMock';
 import { buildCartKey, calcCartLinePrice } from '../cartLine';
 import type {
@@ -15,9 +16,10 @@ const ORDER_PROCESSING_DELAY_MS = 1800;
 
 /**
  * 주문 제출 진행 단계.
- * `processing`/`complete`만 두고 실패(네트워크·중복 주문)는 추후 붙인다 — 지금은 항상 성공한다.
+ * 실제 주문 파이프라인은 아직 항상 성공한다 — `error-network`/`error-duplicate`는
+ * 실패 판별 로직이 붙기 전까지 QA 전용 트리거(triggerOrderFailure)로만 진입한다.
  */
-type OrderPhase = 'idle' | 'processing' | 'complete';
+type OrderPhase = 'idle' | 'processing' | 'complete' | 'error-network' | 'error-duplicate';
 
 /**
  * ConsumerOrderPage의 mock 장바구니를 소유한다(feature-local state).
@@ -29,6 +31,7 @@ export function useConsumerOrderPage() {
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
+  const [duplicateTime, setDuplicateTime] = useState('');
   const orderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sheet = useConsumerSheetStore((state) => state.sheet);
@@ -98,11 +101,10 @@ export function useConsumerOrderPage() {
   }
 
   /**
-   * 장바구니 시트를 닫고 "주문 처리중" 화면을 보여준 뒤, 실제 API가 붙기 전까지는 항상
-   * 성공으로 끝낸다 — 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이.
+   * "주문 처리중" 화면을 보여준 뒤, 실제 API가 붙기 전까지는 항상 성공으로 끝낸다 —
+   * 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이.
    */
-  function placeOrder() {
-    closeSheet();
+  function startOrderProcessing() {
     setOrderPhase('processing');
     orderTimerRef.current = setTimeout(() => {
       setCart([]);
@@ -110,9 +112,53 @@ export function useConsumerOrderPage() {
     }, ORDER_PROCESSING_DELAY_MS);
   }
 
+  /** 장바구니 시트를 닫고 주문 처리를 시작한다. */
+  function placeOrder() {
+    closeSheet();
+    startOrderProcessing();
+  }
+
   /** "주문 완료" 화면의 "메뉴로 돌아가기" — 메인 화면으로 되돌아간다. */
   function confirmOrderComplete() {
     setOrderPhase('idle');
+  }
+
+  /**
+   * QA 전용 — 실패 판별 로직이 아직 없어 실제 흐름에서는 절대 도달하지 않는다.
+   * 참고 저장소의 dev-nav 데모와 동일하게 화면 디자인만 강제로 띄워 확인한다.
+   * 헤더(설정 버튼)에서 consumerOrderQaStore로 요청을 보내면 아래 effect가 소비한다.
+   */
+  const triggerOrderFailure = useCallback((type: 'network' | 'duplicate') => {
+    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    if (type === 'duplicate') setDuplicateTime('10:52');
+    setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
+  }, []);
+
+  // 헤더가 보낸 QA 요청을 구독한다 — 요청은 즉발성 이벤트라 렌더링 중 파생값으로 다룰 수 없어
+  // effect 안에서 직접 setState하는 대신, 외부 스토어를 구독해 콜백에서만 반응한다.
+  useEffect(() => {
+    return useConsumerOrderQaStore.subscribe((state) => {
+      if (state.pendingOrderFailure) {
+        triggerOrderFailure(state.pendingOrderFailure);
+        useConsumerOrderQaStore.getState().clearPendingOrderFailure();
+      }
+    });
+  }, [triggerOrderFailure]);
+
+  /** 네트워크 실패 화면의 "다시 시도하기" — 처리중 화면부터 다시 시작한다. */
+  function retryOrder() {
+    startOrderProcessing();
+  }
+
+  /** 실패 화면의 "메인화면으로 이동" — idle로 되돌아간다. */
+  function dismissOrderError() {
+    setOrderPhase('idle');
+  }
+
+  /** 중복 주문 실패 화면의 "주문내역 확인하기" — idle로 되돌리고 주문내역 시트를 연다. */
+  function viewOrderHistoryFromError() {
+    setOrderPhase('idle');
+    openSheet({ type: 'order-history' });
   }
 
   return {
@@ -132,7 +178,11 @@ export function useConsumerOrderPage() {
     openCart: () => openSheet({ type: 'cart' }),
     closeSheet,
     orderPhase,
+    duplicateTime,
     placeOrder,
     confirmOrderComplete,
+    retryOrder,
+    dismissOrderError,
+    viewOrderHistoryFromError,
   };
 }

@@ -116,6 +116,43 @@
   background-color: var(--color-bg-muted);
 }
 
+/* QA 전용 드롭다운 — 설정 버튼(dev 빌드 한정) 클릭 시 실패 화면 트리거 메뉴를 띄운다.
+   shared/components/input의 .select-dropdown과 같은 톤(카드·그림자)을 쓴다. */
+.consumer-header__qa-wrap {
+  position: relative;
+}
+
+.consumer-header__qa-menu {
+  position: absolute;
+  top: calc(100% + var(--spacing-2));
+  right: 0;
+  z-index: 50;
+  min-width: 9.5rem;
+  padding: var(--spacing-2);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.consumer-header__qa-menu button {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.consumer-header__qa-menu button:hover,
+.consumer-header__qa-menu button:active {
+  background-color: var(--color-bg-muted);
+}
+
 /* 포커스 시각화는 shared/components/input의 .input-control:focus-within 기준과 동일하게 맞춘다. */
 .consumer-header__search {
   display: flex;

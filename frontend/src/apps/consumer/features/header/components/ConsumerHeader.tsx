@@ -1,8 +1,9 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
+import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
 import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/CategoryTabs';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
@@ -21,10 +22,30 @@ export function ConsumerHeader() {
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const setSelectedCategory = useConsumerOrderFilterStore((state) => state.setSelectedCategory);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const requestOrderFailure = useConsumerOrderQaStore((state) => state.requestOrderFailure);
+  const [qaMenuOpen, setQaMenuOpen] = useState(false);
+  const qaMenuRef = useRef<HTMLDivElement>(null);
 
   function handleClearSearch() {
     setSearchQuery('');
     searchInputRef.current?.focus();
+  }
+
+  // QA 메뉴 바깥을 클릭하면 닫는다 — 참고 저장소의 dev-nav와 동일한 상호작용.
+  useEffect(() => {
+    if (!qaMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (event.target instanceof Node && !qaMenuRef.current?.contains(event.target)) {
+        setQaMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [qaMenuOpen]);
+
+  function handleTriggerOrderFailure(type: 'network' | 'duplicate') {
+    requestOrderFailure(type);
+    setQaMenuOpen(false);
   }
 
   return (
@@ -67,9 +88,29 @@ export function ConsumerHeader() {
             주문내역
           </button>
 
-          <button type="button" className="consumer-header__icon-button" aria-label="설정">
-            <ConsumerIcon id="ci-settings" size={14} />
-          </button>
+          <div className="consumer-header__qa-wrap" ref={qaMenuRef}>
+            <button
+              type="button"
+              className="consumer-header__icon-button"
+              aria-label="설정"
+              onClick={import.meta.env.DEV ? () => setQaMenuOpen((prev) => !prev) : undefined}
+            >
+              <ConsumerIcon id="ci-settings" size={14} />
+            </button>
+
+            {/* QA 전용 — 실패 판별 로직이 붙기 전까지 network/duplicate 실패 화면을 미리보기
+                위한 임시 메뉴. production 빌드에서는 tree-shake 되어 사라진다. */}
+            {import.meta.env.DEV && qaMenuOpen && (
+              <div className="consumer-header__qa-menu">
+                <button type="button" onClick={() => handleTriggerOrderFailure('network')}>
+                  주문 실패 (네트워크)
+                </button>
+                <button type="button" onClick={() => handleTriggerOrderFailure('duplicate')}>
+                  주문 실패 (중복)
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
