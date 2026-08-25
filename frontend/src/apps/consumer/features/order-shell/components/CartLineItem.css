@@ -21,15 +21,15 @@
 .cart-line-item__name {
   flex: 1;
   min-width: 0;
-  font-size: var(--typography-size-body);
-  font-weight: var(--typography-weight-ui);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
   color: var(--color-text-primary);
 }
 
 .cart-line-item__total {
   flex-shrink: 0;
-  font-size: var(--typography-size-body);
-  font-weight: var(--typography-weight-heading);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
   color: var(--color-brand-default);
   white-space: nowrap;
 }

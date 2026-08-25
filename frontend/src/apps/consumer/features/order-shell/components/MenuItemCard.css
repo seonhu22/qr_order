@@ -93,7 +93,7 @@
 
 .menu-item-card__name {
   font-size: var(--typography-size-ui);
-  font-weight: var(--typography-weight-ui);
+  font-weight: var(--typography-weight-heading);
   color: var(--color-text-primary);
 }
 
