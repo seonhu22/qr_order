@@ -4,7 +4,7 @@ import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useCo
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/CategoryTabs';
-import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
+import { useConsumerMenuMainQuery } from '@/apps/consumer/features/order-shell/api/consumerMenuApi';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
 
 /**
@@ -15,6 +15,11 @@ import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
  */
 export function ConsumerHeader() {
   const { session } = useConsumerSession();
+  const menuMain = useConsumerMenuMainQuery(session?.tableSysId ?? '');
+  const categories = [
+    '전체',
+    ...(menuMain.data?.categories.map((category) => category.name) ?? []),
+  ];
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
@@ -35,10 +40,14 @@ export function ConsumerHeader() {
         </div>
 
         <div className="consumer-header__store">
-          <p className="consumer-header__store-name">{session?.storeName ?? '매장'}</p>
+          <p className="consumer-header__store-name">
+            {menuMain.data?.storeName ?? session?.storeName ?? '매장'}
+          </p>
           <div className="consumer-header__store-meta">
-            {session?.tableNum != null && (
-              <span className="consumer-header__table-badge">{session.tableNum}번 테이블</span>
+            {(menuMain.data?.tableNum ?? session?.tableNum) != null && (
+              <span className="consumer-header__table-badge">
+                {menuMain.data?.tableNum ?? session?.tableNum}번 테이블
+              </span>
             )}
             {session?.tableQty != null && (
               <span className="consumer-header__seat-count">
@@ -83,6 +92,7 @@ export function ConsumerHeader() {
           placeholder="메뉴 검색"
           className="consumer-header__search-input"
           aria-label="메뉴 검색"
+          maxLength={100}
         />
         {searchQuery && (
           <button
@@ -97,7 +107,7 @@ export function ConsumerHeader() {
       </div>
 
       <CategoryTabs
-        categories={ORDER_SHELL_CATEGORIES}
+        categories={categories}
         selected={selectedCategory}
         onSelect={setSelectedCategory}
       />
