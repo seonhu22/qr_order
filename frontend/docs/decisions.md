@@ -919,5 +919,34 @@ ADR-022와 같은 원칙(ADR-010 선례 — 프론트 우선 구현, 백엔드 �
 
 - 실제 API가 붙으면 `triggerOrderFailure`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 판별 로직에서 호출하도록 바꾸면 된다 — 화면 자체는 이미 완성돼 있어 재작업이 필요 없다.
 - QA 트리거(`consumerOrderQaStore`, 헤더 드롭다운)는 `import.meta.env.DEV` 가드로 production 빌드에서 tree-shake 되어 실사용자에게는 노출되지 않는다.
+- 같은 원인(백엔드 판별 로직 부재)으로 이후 추가한 세션 만료·통신 오류 화면은 [ADR-025](#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다)에서 이 패턴을 그대로 확장한다.
+
+---
+
+## ADR-025 — 세션 만료(시간초과·마감)·통신 오류 화면도 같은 원칙으로 먼저 완성한다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+ADR-024로 주문 실패 2종(`error-network`/`error-duplicate`)을 먼저 화면만 완성해두는 패턴을 세운 뒤, 참고 저장소 `CustomerMenuPage`를 더 살펴보면 같은 성격의 화면이 3개 더 있다 — 세션 만료(`SessionExpiredScreen` variant `timeout`/`closed`)와 통신 오류(`NetworkErrorScreen`). 이 셋도 실제 파이프라인에서는 절대 세팅되지 않고 dev-nav 데모 버튼에서만 호출된다는 점이 ADR-024의 전제와 동일하다.
+
+### 결정
+
+- ADR-024의 `orderPhase` 상태 머신에 `session-timeout`/`session-closed`/`network-error` 세 값을 추가한다 — 별도 상태 머신을 새로 만들지 않고 기존 슬롯을 그대로 확장한다.
+- `consumerOrderQaStore`에 `pendingSessionExpiry`/`pendingNetworkError`를 추가하고, 헤더 QA 드롭다운에도 "주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류" 3개 항목을 추가한다 — 트리거 메커니즘(`.subscribe()` 구독, dev 빌드 가드)은 ADR-024와 동일하다.
+- `NetworkErrorScreen`은 앱 전체의 연결 상태 문제를 알리는 화면이라, 다른 화면들의 브랜드(주황) 톤과 다르게 위험(`--color-status-error-*`, 빨강) 톤 아이콘·블롭을 쓴다 — 참고 저장소도 이 화면만 빨강 계열이다(버튼만은 브랜드색 유지).
+- `SessionExpiredScreen`은 QR을 다시 찍어야 하는 종결 상태라 별도 액션 버튼이 없다(아이콘+제목+설명만).
+
+### 백엔드 협의 항목
+
+- [ ] 세션 만료(시간초과/결제 완료로 인한 마감) 판별 방식 — 폴링/웹소켓/QR 재스캔 감지 등 미정
+- [ ] 통신 오류가 `navigator.onLine` 같은 순수 프론트 감지로 충분한지, API 응답 타임아웃 기준도 함께 둘지
+
+### 결과
+
+- 실제 감지 로직이 붙으면 `triggerSessionExpiry`/`triggerNetworkError`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 로직에서 호출하도록 바꾸면 된다.
+- 참고 저장소에는 없던 `ci-lock` 아이콘을 `consumerSprite.svg`에 추가했다(`session-closed`용) — `ci-clock`은 기존 아이콘을 그대로 재사용했다.
 
 ---

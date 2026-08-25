@@ -162,7 +162,7 @@ type ConsumerSheetState =
 
 ## 주문 제출 흐름
 
-장바구니 시트의 "주문하기"를 누르면 시트를 닫고 곧바로 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다) 참고.
+장바구니 시트의 "주문하기"를 누르면 시트를 닫고 곧바로 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다)·[ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다) 참고.
 
 ### 상태 머신
 
@@ -173,18 +173,19 @@ type ConsumerSheetState =
 | `complete` | `OrderCompleteScreen` | `processing` 시작 1.8초 뒤 자동(참고 저장소 `doOrder` 딜레이와 동일) |
 | `error-network` | `OrderFailureScreen type="network"` | QA 트리거만 |
 | `error-duplicate` | `OrderFailureScreen type="duplicate"` | QA 트리거만 |
+| `session-timeout` | `SessionExpiredScreen variant="timeout"` | QA 트리거만 |
+| `session-closed` | `SessionExpiredScreen variant="closed"` | QA 트리거만 |
+| `network-error` | `NetworkErrorScreen` | QA 트리거만 |
 
 `processing`으로 들어가는 순간 장바구니(`cart`)를 곧바로 비운다 — 참고 저장소도 주문 접수 시점에 비운다. `complete`는 "메뉴로 돌아가기" 버튼 하나로 다시 `idle`로 되돌아간다.
 
-실제 판별 로직(백엔드 응답)이 아직 없어 `placeOrder`는 항상 성공한다 — `error-network`/`error-duplicate` 두 화면은 지금은 아래 QA 트리거로만 도달할 수 있다.
+실제 판별 로직(백엔드 응답, `navigator.onLine`)이 아직 없어 `placeOrder`는 항상 성공한다 — `error-*`/`session-*`/`network-error` 다섯 화면은 지금은 아래 QA 트리거로만 도달할 수 있다.
 
-두 실패 화면(`OrderFailureScreen`)은 하나의 컴포넌트가 `type` prop으로 문구·버튼("메인화면으로 이동"+"다시 시도하기"/"주문내역 확인하기")을 나눠 그린다 — 참고 저장소의 컴포넌트 경계를 그대로 따랐다.
-
-> 세션 만료(시간초과·마감)·통신 오류 화면은 별도 브랜치([ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다))에서 같은 방식으로 `orderPhase`와 QA 드롭다운을 확장한다.
+두 실패 화면(`OrderFailureScreen`)은 하나의 컴포넌트가 `type` prop으로 문구·버튼("메인화면으로 이동"+"다시 시도하기"/"주문내역 확인하기")을 나눠 그리고, 세션 만료 화면(`SessionExpiredScreen`)도 같은 방식으로 `variant` prop 하나가 아이콘(`ci-clock`/`ci-lock`)·문구를 가른다 — 참고 저장소의 컴포넌트 경계를 그대로 따랐다. `NetworkErrorScreen`은 앱 전체의 연결 상태 문제를 알리는 화면이라 다른 화면들의 브랜드(주황) 톤과 다르게 위험(`--color-status-error-*`, 빨강) 톤 아이콘·블롭을 쓴다(버튼만은 참고 저장소도 브랜드색을 유지해 그대로 따름).
 
 ### QA 미리보기 트리거
 
-헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 2개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 각 항목은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고, `useConsumerOrderPage`가 이를 구독해 `orderPhase`를 강제로 바꾼 뒤 요청을 곧바로 비운다.
+헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 5개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 각 항목은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고, `useConsumerOrderPage`가 이를 구독해 `orderPhase`를 강제로 바꾼 뒤 요청을 곧바로 비운다.
 
 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)이 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 값을 `useState`로 구독해 `useEffect`에서 반응하지 않고 zustand의 vanilla `.subscribe()`로 구독한다 — `useState` 구독 방식은 `react-hooks/set-state-in-effect` 린트에 걸린다. 자세한 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
 
