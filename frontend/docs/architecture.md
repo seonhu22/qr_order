@@ -10,6 +10,7 @@
 - [4. 앱 계층 역할 요약](#4-앱-계층-역할-요약)
 - [5. AdminMainLayout — filterSlot 패턴](#5-adminmainlayout--filterslot-패턴)
 - [6. 상태 처리 라우팅 기준](#6-상태-처리-라우팅-기준)
+- [7. Consumer 라우트 기준](#7-consumer-라우트-기준)
 
 ---
 
@@ -117,8 +118,11 @@ frontend/
     apps/
       admin/              ← 관리자 앱
         hooks/ layout/ pages/ routes/ features/
-      client/             ← 추후 확장용 골격
-      consumer/           ← 추후 확장용 골격
+      client/             ← 점주 앱
+        hooks/ layout/ pages/ routes/ features/ stores/
+      consumer/           ← QR 소비자 주문 앱 (골격 — 실제 API 미연동, §7 참고)
+        layout/ routes/ pages/ features/ stores/
+        shared/icons/     ← Consumer 전용 아이콘 sprite (Admin/Client의 shared/assets/icons/와 별도 체계)
     mocks/
       browser.ts / handlers.ts
     shared/
@@ -248,6 +252,8 @@ HTTP 상태에 따른 화면·이동 처리는 **상태 처리(Status Handling)*
 403/404/500 에러 페이지는 여러 앱(admin, client, consumer)에서 같은 시각 요소를 공유하되,
 앱별 이동 경로와 버튼 동작만 라우트 또는 페이지 props로 주입한다. 401은 `ErrorPageTemplate` 대상이 아니며 인증 라우팅에서 로그인 페이지로 redirect한다.
 
+Consumer는 로그인이 없어 이 표의 401/403/404/500 분류를 그대로 따르지 않는다. QR 세션 만료·마감·없음은 `ConsumerSessionGuard`가 `ConsumerStatusScreen`으로 처리하는 별도 카테고리다 — 자세한 배경은 [`decisions.md` ADR-020](./decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드) 참고.
+
 ### 기본 배치
 
 ```text
@@ -360,3 +366,23 @@ function RequireAuth({ children }) {
   retryLabel="새로고침"
 />
 ```
+
+---
+
+## 7. Consumer 라우트 기준
+
+> 추가일: 2026-08-21
+
+Consumer는 QR을 스캔한 손님이 로그인 없이 들어오는 모바일 주문 앱이다. Admin/Client와 달리 사이드바가 없는 전체화면 셸이고, 지금 단계는 **실제 API 연동 없는 골격**이다 — mock/실제 경계와 근거는 [`decisions.md` ADR-021](./decisions.md#adr-021--consumer-골격-단계의-mock-경계-원칙)을 참고한다.
+
+| 경로 | 설명 |
+|---|---|
+| `/qr/:url` | QR 인증 standalone 라우트. 로딩 화면 → 성공 시 `/consumer/order`로 이동, 실패 시 안내 화면. Admin/Client 레이아웃과 무관. |
+| `/consumer` | `ConsumerSessionGuard`(QR 세션 검사) + `ConsumerLayout`(사이드바 없는 모바일 셸)로 감싼 부모 라우트. |
+| `/consumer/order` | 주문 화면(메뉴 목록·장바구니). 현재 유일한 실제 화면. |
+| `/consumer/*` (그 외) | Consumer 컨텍스트 안의 404 — `NotFoundPage`를 `layout="contained"`로 재사용. |
+
+- `ConsumerRoutes.tsx`가 이 라우트들을 소유하고, `shared/routes/AppRoutes.tsx`는 조합만 한다(Admin/Client 라우트 구성과 동일한 패턴).
+- `ConsumerSessionGuard`는 로그인 인증이 아닌 QR 세션 유효성을 확인하는 경계다 — §6의 401 인증 리다이렉트/403·404·500 에러 페이지 어느 쪽에도 속하지 않는 별도 카테고리로 취급한다. 세션 API가 없어 지금은 항상 통과시킨다(ADR-021).
+- 반응형 기준(뷰포트 `@media`를 쓰는 이유, ADR-016과의 차이)은 [ADR-020](./decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드), 모바일 셸 CSS 계약은 [`layout-policy.md` "Consumer 모바일 셸"](./operations/layout-policy.md#consumer-모바일-셸)을 참고한다.
+- 화면별 세부 동작(시트 상태 관리, 배지 시스템, QR 로딩/실패 분기)은 [`page/consumer-order.md`](./page/consumer-order.md), [`page/consumer-qr-entry.md`](./page/consumer-qr-entry.md) 참고.

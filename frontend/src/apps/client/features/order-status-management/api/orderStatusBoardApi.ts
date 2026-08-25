@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { CommonResponse } from '@/generated/types/commonResponse';
 import type { StatusRequest } from '@/generated/types/statusRequest';
+import type { LocalTime } from '@/generated/types/localTime';
 import {
   useBackToCooking,
   useBackToReceiveOrder,
@@ -36,7 +37,7 @@ function assertMutationSucceeded(response: CommonResponse): void {
   }
 }
 
-function toStatusRequest(
+export function toStatusRequest(
   row: OrderBoardRow,
   cancel?: { reason: string; description: string },
 ): StatusRequest {
@@ -45,7 +46,8 @@ function toStatusRequest(
     header: {
       sysId: row.id,
       tableNum: Number(row.tableNum),
-      orderDatetime: row.orderDatetime,
+      // OpenAPI는 LocalTime을 객체로 기술하지만 백엔드 @JsonFormat 계약은 HH:mm 문자열이다.
+      orderDatetime: row.orderDatetime.slice(11, 16) as unknown as LocalTime,
     },
     cancelType: cancel?.reason,
     cancelReason: cancel ? (cancel.reason === 'OTHER' ? cancel.description : '') : undefined,

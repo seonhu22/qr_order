@@ -1,0 +1,179 @@
+.consumer-header {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 좁은 폭(폴드 커버 화면 포함)에서는 브랜드+액션이 한 줄, 매장 정보가 다음 줄로 줄바꿈된다.
+   480px부터는 매장 정보가 브랜드 옆으로 붙어 한 줄로 합쳐진다(참고 저장소의 order 반전 패턴과 동일). */
+.consumer-header__top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--spacing-6);
+  padding: var(--spacing-5) var(--spacing-8) var(--spacing-2);
+}
+
+.consumer-header__brand {
+  order: 1;
+  width: var(--spacing-13);
+  height: var(--spacing-13);
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+
+.consumer-header__store {
+  order: 3;
+  width: 100%;
+  min-width: 0;
+  padding-top: var(--spacing-3);
+}
+
+.consumer-header__store-name {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consumer-header__store-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-1);
+}
+
+.consumer-header__table-badge {
+  display: inline-block;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+  font-size: 0.625rem;
+  font-weight: var(--typography-weight-heading);
+  white-space: nowrap;
+}
+
+.consumer-header__seat-count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-caption);
+  white-space: nowrap;
+}
+
+.consumer-header__actions {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.consumer-header__action-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: var(--spacing-12);
+  padding-inline: var(--spacing-6);
+  border: var(--border-1) solid var(--color-brand-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  cursor: pointer;
+}
+
+.consumer-header__action-button:active {
+  background-color: var(--color-bg-selected);
+}
+
+.consumer-header__icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-12);
+  height: var(--spacing-12);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.consumer-header__icon-button:active {
+  background-color: var(--color-bg-muted);
+}
+
+/* 포커스 시각화는 shared/components/input의 .input-control:focus-within 기준과 동일하게 맞춘다. */
+.consumer-header__search {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin: 0 var(--spacing-8) var(--spacing-4);
+  padding-inline: var(--spacing-6);
+  height: 2.25rem;
+  border: var(--border-1) solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-muted);
+  cursor: text;
+}
+
+.consumer-header__search:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--focus-ring-brand);
+}
+
+.consumer-header__search-icon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.consumer-header__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--typography-size-body);
+  outline: none;
+}
+
+.consumer-header__search-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.consumer-header__search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+@media (min-width: 480px) {
+  .consumer-header__store {
+    order: 2;
+    width: auto;
+    flex: 1;
+    padding-top: 0;
+  }
+
+  .consumer-header__actions {
+    order: 3;
+    margin-left: 0;
+  }
+}

@@ -1,0 +1,93 @@
+.order-shell__empty {
+  padding: var(--spacing-14) var(--spacing-8);
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-body);
+}
+
+/* CartBar가 position: fixed라 일반 흐름 높이를 차지하지 않는다 — 마지막 메뉴 카드가 카트바에
+   가려지지 않도록 카트바가 보일 때만 그 높이만큼 고정값으로 하단 여백을 확보한다. */
+.order-shell--with-cart-bar {
+  padding-bottom: calc(var(--spacing-15) + var(--spacing-8) + env(safe-area-inset-bottom));
+}
+
+.order-shell__category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-8);
+  background-color: var(--color-bg-muted);
+  border-block: var(--border-1) solid var(--color-border-divider);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-secondary);
+}
+
+.order-shell-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.order-shell-sheet__description {
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-body);
+}
+
+.order-shell-sheet__price {
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+}
+
+.order-shell-sheet__placeholder {
+  padding: var(--spacing-10) 0;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+.order-shell-sheet__action {
+  width: 100%;
+}
+
+.order-shell-cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.order-shell-cart-list__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  font-size: var(--typography-size-body);
+  color: var(--color-text-primary);
+}
+
+.order-shell-cart-list__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.order-shell-cart-list__options {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* 폴드 펼침(~717px)부터 웹까지: 메뉴 목록이 1열에서 다열 그리드로 바뀐다. 열 수를 고정하지 않고
+   auto-fit으로 카드 폭(최소 300px)에 맞춰 화면을 꽉 채우며 늘어나므로, 태블릿에서는 2열,
+   넓은 데스크톱에서는 3~4열까지 자연스럽게 늘어난다(ConsumerLayout의 셸 폭 제한 해제와 짝을 이룸).
+   실제 힌지가 있는 기기에서는 --fold-gap만큼 열 사이 간격도 넓어진다(값이 없으면 0). */
+@media (min-width: 717px) {
+  .order-shell__items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    column-gap: var(--fold-gap, 0px);
+  }
+
+  .order-shell__items-grid .menu-item-card {
+    border-right: var(--border-1) solid var(--color-border-divider);
+  }
+}

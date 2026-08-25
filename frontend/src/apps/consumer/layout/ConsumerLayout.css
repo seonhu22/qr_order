@@ -1,0 +1,41 @@
+.consumer-layout {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-bg-app);
+  --fold-gap: 0px;
+}
+
+.consumer-layout__header {
+  flex-shrink: 0;
+  background-color: var(--color-bg-surface);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+  padding-top: env(safe-area-inset-top);
+}
+
+.consumer-layout__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 폴드 펼침(~717px)부터 웹(데스크톱)까지: 좁은 모바일 폭을 벗어나면 셸 폭 제한 없이 화면을
+   꽉 채운다. order-shell의 메뉴 그리드가 auto-fit으로 열 수를 알아서 늘리므로, 셸을 좁은
+   "폰 프레임" 폭으로 가둘 필요가 없다 — 늘어난 모바일 UI가 아니라 실제 반응형 레이아웃이 된다. */
+@media (min-width: 717px) {
+  .consumer-layout {
+    max-width: none;
+  }
+}
+
+/* Viewport Segments API를 지원하는 브라우저(듀얼 스크린·언폴드 상태 폴더블)에서만 실제 힌지 폭을
+   읽어 --fold-gap에 담는 progressive enhancement. 미지원 브라우저는 0으로 남아 영향이 없다. */
+@media (horizontal-viewport-segments: 2) {
+  .consumer-layout {
+    --fold-gap: calc(env(viewport-segment-left 1 0, 0px) - env(viewport-segment-right 0 0, 0px));
+  }
+}
