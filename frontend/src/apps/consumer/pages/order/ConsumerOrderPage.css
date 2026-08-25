@@ -70,9 +70,43 @@
   text-align: center;
 }
 
+/* 참고 저장소 CartSheet 푸터 그대로 — 주문하기 버튼 위에 총 결제 금액을 보여준다. */
+.order-shell-cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-4);
+  border-top: var(--border-1) solid var(--color-border-divider);
+}
+
+.order-shell-cart-total__label {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-secondary);
+}
+
 .order-shell-sheet__placeholder {
   padding: var(--spacing-10) 0;
   text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+/* 참고 저장소 CartSheet의 빈 장바구니 상태 그대로 — 아이콘 + 안내 문구, 세로 가운데 정렬. */
+.order-shell-cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-6);
+  padding-block: var(--spacing-16);
+}
+
+.order-shell-cart-empty__icon {
+  color: var(--slate-30);
+}
+
+.order-shell-cart-empty__text {
+  font-size: var(--typography-size-ui);
   color: var(--color-text-tertiary);
 }
 

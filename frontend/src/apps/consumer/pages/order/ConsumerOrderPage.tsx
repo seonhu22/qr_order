@@ -123,7 +123,10 @@ export function ConsumerOrderPage() {
             </div>
 
             {cart.length === 0 ? (
-              <p className="order-shell-sheet__placeholder">담긴 메뉴가 없습니다.</p>
+              <div className="order-shell-cart-empty">
+                <ConsumerIcon id="ci-shopping-cart" size={36} className="order-shell-cart-empty__icon" />
+                <p className="order-shell-cart-empty__text">장바구니에 담긴 메뉴가 없습니다.</p>
+              </div>
             ) : (
               <ul className="order-shell-cart-list">
                 {cart.map((line) => (
@@ -137,15 +140,33 @@ export function ConsumerOrderPage() {
                 ))}
               </ul>
             )}
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              className="order-shell-sheet__action"
-              disabled
-            >
-              주문하기 (준비 중입니다)
-            </Button>
+
+            <div className="order-shell-cart-total">
+              <span className="order-shell-cart-total__label">총 결제 금액</span>
+              <span className="order-shell-sheet__price">{totalCartPrice.toLocaleString()}원</span>
+            </div>
+
+            {cart.length === 0 ? (
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                className="order-shell-sheet__action"
+                onClick={closeSheet}
+              >
+                메뉴 보러가기
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                className="order-shell-sheet__action"
+                disabled
+              >
+                주문하기 (준비 중입니다)
+              </Button>
+            )}
           </div>
         )}
 
