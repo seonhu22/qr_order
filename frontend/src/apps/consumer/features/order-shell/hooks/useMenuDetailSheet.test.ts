@@ -167,11 +167,49 @@ describe('useMenuDetailSheet', () => {
     expect(result.current.isChoiceDisabled(group, group.choices[0])).toBe(true);
   });
 
+  it('상세 응답에서 품절인 메뉴는 장바구니에 담을 수 없다', () => {
+    const { result } = renderHook(() => useMenuDetailSheet({ ...plainItem, soldOut: true }));
+
+    expect(result.current.canAddToCart).toBe(false);
+  });
+
   it('선택한 옵션을 장바구니 옵션 모양으로 넘긴다', () => {
     const { result } = renderHook(() => useMenuDetailSheet(itemWithOptions));
 
     expect(result.current.selectedOptions).toEqual([
-      { groupId: 'rice', groupName: '밥 선택', choiceId: 'white', choiceName: '백미', price: 0 },
+      {
+        groupId: 'rice',
+        groupName: '밥 선택',
+        choiceId: 'white',
+        choiceName: '백미',
+        price: 0,
+        quantity: 1,
+      },
     ]);
+  });
+
+  it('수량형 옵션은 최대 수량과 가격 계산에 반영된다', () => {
+    const quantityItem: OrderShellMenuItem = {
+      ...plainItem,
+      optionGroups: [
+        {
+          id: 'shot',
+          name: '샷 추가',
+          required: false,
+          selectionType: 'quantity',
+          choices: [{ id: 'espresso', name: '에스프레소 샷', price: 500, maxQuantity: 2 }],
+        },
+      ],
+    };
+    const { result } = renderHook(() => useMenuDetailSheet(quantityItem));
+    const group = quantityItem.optionGroups![0];
+    const choice = group.choices[0];
+
+    act(() => result.current.increaseChoiceQuantity(group, choice));
+    act(() => result.current.increaseChoiceQuantity(group, choice));
+    act(() => result.current.increaseChoiceQuantity(group, choice));
+
+    expect(result.current.getChoiceQuantity('shot', 'espresso')).toBe(2);
+    expect(result.current.totalPrice).toBe(9000);
   });
 });

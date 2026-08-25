@@ -9,6 +9,7 @@ function option(choiceId: string, price: number): OrderShellCartOption {
     choiceId,
     choiceName: choiceId,
     price,
+    quantity: 1,
   };
 }
 
@@ -30,11 +31,21 @@ describe('buildCartKey', () => {
 
     expect(withEgg).not.toBe(withCheese);
   });
+
+  it('같은 옵션도 선택 수량이 다르면 다른 키가 된다', () => {
+    expect(buildCartKey('menu-1', [{ ...option('egg', 1000), quantity: 1 }])).not.toBe(
+      buildCartKey('menu-1', [{ ...option('egg', 1000), quantity: 2 }]),
+    );
+  });
 });
 
 describe('가격 계산', () => {
   it('옵션 추가 금액을 합산한다 — 음수 옵션도 그대로 더한다', () => {
     expect(sumOptionPrice([option('a', 1000), option('b', -500)])).toBe(500);
+  });
+
+  it('수량형 옵션 금액은 선택 수량만큼 합산한다', () => {
+    expect(sumOptionPrice([{ ...option('shot', 500), quantity: 3 }])).toBe(1500);
   });
 
   it('1개당 가격은 기본가 + 옵션 추가 금액이다', () => {

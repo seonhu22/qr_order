@@ -1,6 +1,10 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/server';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { ConsumerOrderPage } from './ConsumerOrderPage';
@@ -9,8 +13,21 @@ import { ConsumerOrderPage } from './ConsumerOrderPage';
 const PLAIN_MENU = '된장찌개';
 const OPTION_MENU = '불고기 정식';
 
-function openMenuDetail(menuName: string) {
-  return userEvent.click(screen.getByRole('button', { name: new RegExp(menuName) }));
+async function openMenuDetail(menuName: string) {
+  return userEvent.click(await screen.findByRole('button', { name: new RegExp(menuName) }));
+}
+
+function renderOrderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <ConsumerOrderPage />
+      </QueryClientProvider>
+    </MemoryRouter>,
+  );
 }
 
 function sheet() {
@@ -23,8 +40,29 @@ beforeEach(() => {
 });
 
 describe('ConsumerOrderPage 메뉴 상세 시트', () => {
+  it('검색 실패를 빈 결과와 구분하고 다시 시도할 수 있다', async () => {
+    let attempts = 0;
+    server.use(
+      http.get('/api/consumer/menu/search', () => {
+        attempts += 1;
+        if (attempts === 1) {
+          return HttpResponse.json({ success: false, message: '검색 실패' }, { status: 500 });
+        }
+        return HttpResponse.json({ success: true, data: { body: { menuList: [] } } });
+      }),
+    );
+    useConsumerOrderFilterStore.setState({ searchQuery: '없는 메뉴', selectedCategory: '전체' });
+
+    renderOrderPage();
+
+    expect(await screen.findByText('검색 결과를 불러오지 못했습니다.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByText('"없는 메뉴"에 대한 메뉴가 없습니다.')).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
   it('메뉴 카드를 누르면 이름·가격·설명·수량·담기 버튼이 있는 시트가 열린다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(PLAIN_MENU);
 
     const dialog = sheet();
@@ -36,14 +74,14 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   });
 
   it('옵션이 없는 메뉴는 시트에 옵션 영역이 없다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(PLAIN_MENU);
 
     expect(within(sheet()).queryByRole('group')).not.toBeInTheDocument();
   });
 
   it('수량을 올리면 담기 버튼의 총액이 함께 오른다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(PLAIN_MENU);
 
     const dialog = sheet();
@@ -58,14 +96,14 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   });
 
   it('수량이 1이면 줄이기 버튼이 비활성화된다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(PLAIN_MENU);
 
     expect(within(sheet()).getByRole('button', { name: '수량 줄이기' })).toBeDisabled();
   });
 
   it('옵션이 있는 메뉴는 필수 그룹이 미리 선택된 채로 열리고 옵션 금액이 총액에 반영된다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(OPTION_MENU);
 
     const dialog = sheet();
@@ -77,22 +115,23 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
     );
   });
 
-  it('복수 선택 옵션은 상한까지만 고를 수 있다', async () => {
-    render(<ConsumerOrderPage />);
+  it('복수 선택 옵션은 여러 항목을 함께 고를 수 있다', async () => {
+    renderOrderPage();
     await openMenuDetail(OPTION_MENU);
 
     const dialog = sheet();
     await userEvent.click(within(dialog).getByRole('checkbox', { name: /계란후라이/ }));
     await userEvent.click(within(dialog).getByRole('checkbox', { name: /치즈 토핑/ }));
 
-    expect(within(dialog).getByRole('checkbox', { name: /당면 사리/ })).toBeDisabled();
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: /당면 사리/ }));
+    expect(within(dialog).getByRole('checkbox', { name: /당면 사리/ })).toBeChecked();
     expect(within(dialog).getByRole('button', { name: /장바구니에 담기/ })).toHaveTextContent(
-      '14,500원',
+      '16,500원',
     );
   });
 
   it('담으면 시트가 닫히고 장바구니 바에 수량과 합계가 나온다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
     await openMenuDetail(PLAIN_MENU);
 
     await userEvent.click(within(sheet()).getByRole('button', { name: '수량 늘리기' }));
@@ -103,7 +142,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   });
 
   it('같은 메뉴라도 옵션 조합이 다르면 장바구니에 별도 줄로 담긴다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
 
     await openMenuDetail(OPTION_MENU);
     await userEvent.click(within(sheet()).getByRole('button', { name: /장바구니에 담기/ }));
@@ -121,7 +160,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   });
 
   it('다른 메뉴를 열면 이전 메뉴의 수량 선택이 남지 않는다', async () => {
-    render(<ConsumerOrderPage />);
+    renderOrderPage();
 
     await openMenuDetail(PLAIN_MENU);
     await userEvent.click(within(sheet()).getByRole('button', { name: '수량 늘리기' }));
@@ -129,5 +168,21 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
 
     await openMenuDetail(OPTION_MENU);
     expect(within(sheet()).getByLabelText('선택한 수량')).toHaveTextContent('1');
+  });
+
+  it('수량형 옵션은 최대 수량과 옵션 가격을 상세 화면에 반영한다', async () => {
+    renderOrderPage();
+    await openMenuDetail('레몬에이드');
+
+    const dialog = sheet();
+    const increase = within(dialog).getByRole('button', { name: '에스프레소 샷 수량 늘리기' });
+    await userEvent.click(increase);
+    await userEvent.click(increase);
+
+    expect(increase).toBeDisabled();
+    expect(within(dialog).getByLabelText('에스프레소 샷 선택 수량')).toHaveTextContent('2');
+    expect(within(dialog).getByRole('button', { name: /장바구니에 담기/ })).toHaveTextContent(
+      '5,500원',
+    );
   });
 });
