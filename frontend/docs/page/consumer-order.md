@@ -20,6 +20,12 @@ QR 인증 후 도착하는 화면이다. 골격 단계라 메뉴·장바구니·
 - 첫 렌더에서는 스크롤하지 않는다(`isFirstCategoryRender` ref로 첫 실행을 건너뜀).
 - `prefers-reduced-motion: reduce`면 `scrollIntoView`의 `behavior`를 `'auto'`로 전환한다.
 
+### 빈 상태(검색 결과 없음·빈 카테고리)
+
+`groupedMenu.length === 0`(검색 결과가 전 카테고리에서 0개)이거나, "전체"가 아닌 카테고리를 선택했는데 그 카테고리에 메뉴가 하나도 없으면(`isSelectedCategoryEmpty`) 목록 대신 참고 저장소와 동일한 빈 상태를 보여준다 — `ci-package` 아이콘(40px, 연한 회색) + 안내 문구(`"${searchQuery}"에 대한 메뉴가 없습니다` 또는 `메뉴가 없습니다`) + 검색어가 있을 때만 "검색 초기화" 링크 버튼(`clearSearch`, `useConsumerOrderPage`가 `consumerOrderFilterStore.setSearchQuery('')`를 래핑).
+
+빈 카테고리는 위 "탭은 필터가 아니라 스크롤" 원칙의 예외다 — 탭을 눌러도 다른 카테고리는 그대로 남아있는 게 기본이지만, 선택한 카테고리에 스크롤할 섹션 자체가 없으면(빈 카테고리) 탭 클릭이 아무 반응 없는 죽은 인터랙션이 되므로 이때만 목록 전체를 빈 상태로 대체한다. mock 카테고리 중 "사이드"는 항상 메뉴가 0개라 이 상태를 확인하는 용도로 남겨뒀다(`orderShellMock.ts`).
+
 ## 배지 시스템
 
 메뉴 카드 배지는 참고 UI(git 저장소)의 Tailwind 클래스 값을 이 프로젝트 토큰 스케일로 그대로 환산했다.
