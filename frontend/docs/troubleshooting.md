@@ -107,6 +107,20 @@
 - 주의: 이 상태 조정을 `useEffect` 안에서 `setState`하면 `react-hooks/set-state-in-effect` 린트에 걸린다(effect의 setState는 한 프레임 늦게 반영돼 깜빡임 위험도 있다). `useEffect` 대신 렌더 본문에서 `if (open !== prevOpen) { setPrevOpen(open); ...setState... }` 형태로 prop 변경을 감지해 그 자리에서 상태를 조정한다 — React가 공식적으로 권장하는 "prop 변경 시 상태 조정" 패턴이다.
 - 참고: 오버레이 컴포넌트(모달/시트/토스트 등)에 닫힘 애니메이션을 새로 추가할 때 항상 이 패턴을 기준으로 삼는다.
 
+### 다른 컴포넌트의 zustand 스토어 변경에 반응해 setState하면 `set-state-in-effect` 린트 에러
+
+- 증상: 헤더(`ConsumerHeader`)에서 zustand 스토어 값을 바꾸고, 다른 컴포넌트(`useConsumerOrderPage`)가 그 값을 `useState`로 구독한 뒤 `useEffect(() => { if (value) setLocalState(...); }, [value])`처럼 반응하면 `react-hooks/set-state-in-effect` 린트 에러가 남(`Calling setState synchronously within an effect can trigger cascading renders`).
+- 원인: 이 규칙은 "effect 본문에서 곧바로 setState를 부르는" 패턴을 렌더링 파생값 계산으로 간주해 막는다. props처럼 렌더 중 계산 가능한 값이면 렌더 본문에서 처리해야 하지만, 외부 스토어의 "방금 눌린 버튼" 같은 즉발성 이벤트는 렌더 중 계산할 방법이 없다 — 그런데도 `useState` 구독 방식은 "값이 바뀌었으니 effect에서 setState"라는 같은 모양이 돼서 규칙에 걸린다.
+- 해결: `useState`로 스토어 값을 구독하는 대신, zustand가 훅과 함께 노출하는 vanilla `.subscribe(callback)`을 `useEffect` 안에서 한 번만 등록하고, 실제 `setState`는 그 콜백 안에서만 부른다(`consumerOrderQaStore`를 구독하는 `useConsumerOrderPage.ts`). effect 본문 자체는 구독 등록/해제만 하므로 규칙에 걸리지 않는다.
+- 참고: React 공식 문서가 권장하는 "외부 시스템 구독" 패턴과 동일하다. [모달/시트 닫힘 애니메이션](#모달시트가-열릴-때만-애니메이션되고-닫힐-때는-즉시-사라짐) 항목의 "렌더 중 상태 조정" 패턴과는 성격이 다르다 — 그건 **자기 자신의 prop** 변화이고, 이건 **남의 스토어에서 온 이벤트**라 렌더 중에 계산할 수 없다.
+
+### 참고 저장소의 Tailwind 값을 숫자만 보고 `--spacing-N` 토큰에 옮기면 간격이 좁아진다
+
+- 증상: 참고 저장소(Qrorder)의 `mt-2`/`mt-3`/`gap-5` 같은 Tailwind 클래스를 이 프로젝트 `--spacing-N` 토큰으로 옮기면서 숫자(2, 3, 5)를 그대로 토큰 번호로 썼더니(`--spacing-2`, `--spacing-3`, `--spacing-5`) 실제 화면 간격이 레퍼런스보다 훨씬 좁게 나옴(`OrderFailureScreen` 최초 구현에서 발견 — 사용자가 "간격이 없어 보인다"고 지적해 확인함).
+- 원인: Tailwind 스페이싱 스케일(`mt-2` = 0.5rem = 8px, 4px 단위)과 이 프로젝트 `--spacing-N` 스케일(`--spacing-2` = 0.25rem = 4px, 2px 단위)은 번호가 같아도 실제 px 값이 다르다. 이 프로젝트 스케일이 더 촘촘히 늘어나 있어, Tailwind 숫자를 그대로 토큰 번호에 대입하면 항상 의도보다 좁게 나온다.
+- 해결: 참고 저장소 값을 옮길 땐 번호가 아니라 **실제 px/rem 값**을 기준으로 `primitive-tokens.css`의 `--spacing-N` 표에서 같은 px를 찾아 매칭한다. 예: `mt-2`(8px) → `--spacing-4`, `mt-3`(12px) → `--spacing-6`, `gap-5`(20px) → `--spacing-9`.
+- 참고: 참고 저장소 스타일을 옮기는 모든 신규 화면에서 반복될 수 있는 실수다. 간격이 유독 좁아 보이면 이 매핑부터 의심한다.
+
 ### Enter로 ConfirmModal을 열면 뜨자마자 바로 확인되어 닫힘
 
 - 증상: 편집 중(`isDirty`) 검색창에서 **Enter**로 조회하면 "조회하시겠습니까?" 확인 모달이 떴다가 즉시 사라지고 조회가 그대로 실행됨. 같은 동작을 조회 버튼 **클릭**으로 하면 정상적으로 모달이 유지됨.

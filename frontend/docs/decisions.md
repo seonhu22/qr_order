@@ -894,3 +894,30 @@ ADR-022와 같은 원칙(ADR-010 선례 — 프론트 우선 구현, 백엔드 �
 - 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellCartOption.qty`와 `useMenuDetailSheet`의 `choiceQty` 상태, 그리고 `inputType`과의 관계다.
 
 ---
+
+## ADR-024 — 주문 실패 화면(네트워크·중복 주문)은 먼저 완성하고, 판별 로직은 QA 트리거로 미리본다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `CustomerMenuPage`의 주문 제출 흐름(`doOrder`/`commitOrder`)을 그대로 따라가 보면, 성공(`OrderCompleteScreen`) 외의 경로 — 주문 실패(`OrderErrorScreen` type `network`/`duplicate`) — 는 실제 주문 파이프라인 어디에서도 세팅되지 않는다. 헤더의 dev-nav 데모 버튼에서만 강제로 호출된다. 우리 프로젝트도 주문 제출 백엔드 API가 아직 없어 같은 상황이다.
+
+### 결정
+
+- `useConsumerOrderPage`의 `orderPhase` 하나로 `idle`/`processing`/`complete`/`error-network`/`error-duplicate` 상태를 전부 표현하는 단일 상태 머신을 둔다. 화면 렌더링은 `ConsumerOrderPage.tsx`가 이 값 하나만 보고 분기한다.
+- 실제 주문 흐름(`placeOrder`)은 참고 저장소의 딜레이(1800ms)를 그대로 따라 항상 성공(`complete`)한다 — 실패 화면은 자동으로는 절대 발생하지 않는다.
+- 화면 디자인·문구는 참고 저장소 그대로 만들어 두되, 진입은 `consumerOrderQaStore`(zustand)를 거쳐 헤더의 설정(⚙) 버튼 — dev 빌드(`import.meta.env.DEV`) 한정 드롭다운 — 에서만 강제로 요청한다.
+- 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)은 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어, 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 요청을 `useState` 구독이 아니라 zustand의 vanilla `.subscribe()`로 구독한다 — 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 제출 API의 실패 응답 스펙(네트워크 오류/중복 주문을 어떻게 구분해 내려줄지)
+
+### 결과
+
+- 실제 API가 붙으면 `triggerOrderFailure`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 판별 로직에서 호출하도록 바꾸면 된다 — 화면 자체는 이미 완성돼 있어 재작업이 필요 없다.
+- QA 트리거(`consumerOrderQaStore`, 헤더 드롭다운)는 `import.meta.env.DEV` 가드로 production 빌드에서 tree-shake 되어 실사용자에게는 노출되지 않는다.
+
+---
