@@ -10,6 +10,8 @@ import './MenuDetailSheet.css';
 type MenuDetailSheetProps = {
   item: OrderShellMenuItem;
   onAddToCart: (item: OrderShellMenuItem, qty: number, options: OrderShellCartOption[]) => void;
+  /** 품절 확인 모달을 거쳐 실시간으로 품절 처리된 옵션 항목 id들. */
+  runtimeSoldoutOptionChoiceIds?: Set<string>;
 };
 
 /**
@@ -19,7 +21,11 @@ type MenuDetailSheetProps = {
  *
  * 수량·옵션 선택 상태는 메뉴마다 새로 시작해야 하므로 호출부에서 메뉴 id를 `key`로 준다.
  */
-export function MenuDetailSheet({ item, onAddToCart }: MenuDetailSheetProps) {
+export function MenuDetailSheet({
+  item,
+  onAddToCart,
+  runtimeSoldoutOptionChoiceIds,
+}: MenuDetailSheetProps) {
   const {
     optionGroups,
     qty,
@@ -34,7 +40,7 @@ export function MenuDetailSheet({ item, onAddToCart }: MenuDetailSheetProps) {
     getChoiceQty,
     increaseChoiceQty,
     decreaseChoiceQty,
-  } = useMenuDetailSheet(item);
+  } = useMenuDetailSheet(item, runtimeSoldoutOptionChoiceIds);
 
   return (
     <div className="menu-detail-sheet">

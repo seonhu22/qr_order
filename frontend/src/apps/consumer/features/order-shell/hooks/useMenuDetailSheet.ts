@@ -24,11 +24,16 @@ function choiceQtyKey(groupId: string, choiceId: string) {
  * 옵션 그룹의 기본 선택값. 단일 선택 + 필수 그룹은 첫 항목을 미리 골라둬야
  * 사용자가 아무것도 건드리지 않아도 담기가 가능하다(백엔드 `defaultYn` 대응 자리).
  */
-function buildInitialSelection(optionGroups: OrderShellOptionGroup[]): SelectedChoiceMap {
+function buildInitialSelection(
+  optionGroups: OrderShellOptionGroup[],
+  runtimeSoldoutOptionChoiceIds: Set<string>,
+): SelectedChoiceMap {
   const initial: SelectedChoiceMap = {};
 
   for (const group of optionGroups) {
-    const firstAvailable = group.choices.find((choice) => !choice.soldOut);
+    const firstAvailable = group.choices.find(
+      (choice) => !choice.soldOut && !runtimeSoldoutOptionChoiceIds.has(choice.id),
+    );
     initial[group.id] =
       group.required && group.selectionType === 'single' && firstAvailable
         ? [firstAvailable.id]
@@ -59,12 +64,15 @@ function toCartOption(
  * 시트가 열릴 때마다 새로 마운트되도록 호출부에서 메뉴 id를 `key`로 주는 것을 전제한다 —
  * 그래야 다른 메뉴를 열었을 때 이전 선택이 남지 않는다.
  */
-export function useMenuDetailSheet(item: OrderShellMenuItem) {
+export function useMenuDetailSheet(
+  item: OrderShellMenuItem,
+  runtimeSoldoutOptionChoiceIds: Set<string> = new Set(),
+) {
   const optionGroups = useMemo(() => item.optionGroups ?? [], [item.optionGroups]);
 
   const [qty, setQty] = useState(MIN_MENU_QTY);
   const [selectedChoices, setSelectedChoices] = useState<SelectedChoiceMap>(() =>
-    buildInitialSelection(optionGroups),
+    buildInitialSelection(optionGroups, runtimeSoldoutOptionChoiceIds),
   );
   const [choiceQty, setChoiceQty] = useState<ChoiceQtyMap>({});
 
@@ -159,7 +167,7 @@ export function useMenuDetailSheet(item: OrderShellMenuItem) {
 
   /** 복수 선택 상한에 걸려 더 고를 수 없는 항목인지. 이미 고른 항목은 해제할 수 있어야 하므로 제외한다. */
   function isChoiceDisabled(group: OrderShellOptionGroup, choice: OrderShellOptionChoice) {
-    if (choice.soldOut) return true;
+    if (choice.soldOut || runtimeSoldoutOptionChoiceIds.has(choice.id)) return true;
     if (group.selectionType !== 'multiple' || group.maxSelectable === undefined) return false;
 
     const current = selectedChoices[group.id] ?? [];
