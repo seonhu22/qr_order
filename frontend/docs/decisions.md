@@ -950,3 +950,32 @@ ADR-024로 주문 실패 2종(`error-network`/`error-duplicate`)을 먼저 화�
 - 참고 저장소에는 없던 `ci-lock` 아이콘을 `consumerSprite.svg`에 추가했다(`session-closed`용) — `ci-clock`은 기존 아이콘을 그대로 재사용했다.
 
 ---
+
+## ADR-026 — 품절 확인 흐름은 QR코드 진입 경로를 데모 트리거로 써서 먼저 완성한다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 품절 확인 모달(`SoldoutModal`)·장바구니 품절 표기·메뉴 목록 품절 배지는 실제 재고 판별 로직 없이, mock 데이터의 정적 `status: 'soldout'`이나 dev-nav의 "한정수량 품절 처리" 버튼으로만 도달한다. 우리 프로젝트도 주문 재고 판별 API가 없어 같은 상황이지만, ADR-024/025의 "설정 버튼 QA 트리거로만 도달"과는 다르게, 이번엔 QR코드별로 이미 있는 mock 테이블 구분(`qr-code-001`~`004`)을 실제 트리거로 재사용하기로 했다 — `qr-code-001`(창가 1번, `table-001`)로 들어오면 무엇을 담아 주문해도 항상 품절 확인 모달이 뜬다.
+
+### 결정
+
+- `useConsumerOrderPage`가 `useConsumerSession`으로 `session.tableSysId === 'table-001'`인지 확인해(`isSoldoutDemoTable`) `placeOrder` 시점에 분기한다 — 데모 테이블이면 처리중 화면 대신 `SoldoutModal`을 띄우고 장바구니 시트는 닫지 않는다.
+- `SoldoutModal`은 참고 저장소처럼 전체화면이 아니라 어두운 배경 위 중앙 카드형 다이얼로그다(z-index 80, 다른 order-shell 오버레이보다 위). "확인" 외에는 닫히지 않는다.
+- 확인한 장바구니 줄은 옵션 유무로 나눠 처리한다 — 옵션 없이 담았으면 메뉴 자체(`soldoutMenuIds`)를, 옵션을 골라 담았으면 그 옵션(`soldoutOptionChoiceIds`)만 품절 처리한다. 메뉴 자체를 항상 품절 처리하는 대안도 검토했지만, 옵션 하나 때문에 메뉴 전체를 못 시키게 되는 건 실제 매장 운영과도 맞지 않아 이 조합을 최종으로 삼았다.
+- 지속 범위를 두 층으로 나눴다 — 장바구니 표기(`soldoutCartKeys`)는 그 줄을 삭제해야 풀리고, 메뉴·옵션 표기(`soldoutMenuIds`/`soldoutOptionChoiceIds`)는 장바구니에서 지워도 풀리지 않는다(실제로 품절이라고 확인한 사실 자체는 그대로이므로). 대신 QA 드롭다운에 "품절 초기화"를 둬서 새로고침 없이 되돌릴 수 있게 했다.
+- `MenuItemCard`/`useMenuDetailSheet`의 품절 렌더링·비활성화는 이미 있던 mock 정적 `soldOut` 필드 처리 로직을 그대로 재사용한다 — 별도 UI를 새로 만들지 않고 "정적 품절"과 "런타임 품절"을 같은 조건식(`||`)으로 합쳤다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시점 재고 판별 API — 메뉴 단위인지 옵션 단위인지, 응답에 어떤 식별자가 오는지
+- [ ] 품절이 발생하면 다른 세션(다른 테이블)에도 실시간으로 반영돼야 하는지(폴링/웹소켓 여부)
+
+### 결과
+
+- 실제 API가 붙으면 `isSoldoutDemoTable` 분기를 실제 재고 응답 판별로 바꾸고, `confirmSoldoutModal`의 메뉴/옵션 분리 로직은 응답이 내려주는 품절 단위에 맞춰 그대로 재사용할 수 있다.
+- `SoldoutModal`의 포커스 트랩·자동 포커스는 admin/client `WrapperModal`과 같은 기법(포커스 저장/복원, Tab 트랩)을 Consumer 전용으로 다시 구현했다 — ADR-020(Consumer는 WrapperModal을 재사용하지 않는다)과 일관된 선택이다.
+
+---

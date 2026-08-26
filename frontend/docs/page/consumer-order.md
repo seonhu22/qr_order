@@ -191,11 +191,43 @@ type ConsumerSheetState =
 
 ### QA 미리보기 트리거
 
-헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 5개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 각 항목은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고, `useConsumerOrderPage`가 이를 구독해 `orderPhase`를 강제로 바꾼 뒤 요청을 곧바로 비운다.
+헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 6개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류"/"품절 초기화")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 앞 5개는 `orderPhase`를 강제로 바꾸고, "품절 초기화"는 [품절 데모](#품절-데모-qr-code-001)의 상태를 되돌린다. 각 항목은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고, `useConsumerOrderPage`가 이를 구독해 처리한 뒤 요청을 곧바로 비운다.
 
 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)이 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 값을 `useState`로 구독해 `useEffect`에서 반응하지 않고 zustand의 vanilla `.subscribe()`로 구독한다 — `useState` 구독 방식은 `react-hooks/set-state-in-effect` 린트에 걸린다. 자세한 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
 
 production 빌드에서는 `import.meta.env.DEV`가 `false`로 굳어 드롭다운·QA 스토어 관련 코드가 tree-shake로 사라진다 — 실사용자에게는 노출되지 않는다.
+
+## 품절 데모 (`qr-code-001`)
+
+QR코드 `qr-code-001`(창가 1번 테이블, `table-001`)로 들어오면 무엇을 담아 주문하든 항상 품절 확인 모달이 뜬다 — 실제 재고 판별 로직이 없어 QR 진입 경로 자체를 데모 트리거로 대신 썼다(`useConsumerOrderPage`의 `isSoldoutDemoTable`). 배경은 [`decisions.md` ADR-026](../decisions.md#adr-026--품절-확인-흐름은-qr코드-진입-경로를-데모-트리거로-써서-먼저-완성한다) 참고.
+
+### 흐름
+
+1. 장바구니 시트에서 "주문하기"를 누르면(`placeOrder`) 시트를 닫지 않고 곧바로 `SoldoutModal`을 띄운다 — 그 시점 장바구니 전체가 대상이다.
+2. `SoldoutModal`은 다른 order-shell 화면과 달리 전체화면이 아니라 어두운 배경 위 중앙 카드형 다이얼로그다(z-index 80, 다른 오버레이보다 위). "확인" 외에는 닫히지 않는다(배경 클릭 무시) — admin/client `WrapperModal`과 같은 기법으로 자동 포커스·Tab 트랩·닫힐 때 포커스 복원을 구현했다(ADR-020에 따라 `WrapperModal` 재사용 대신 Consumer 전용으로 다시 구현).
+3. "확인"을 누르면(`confirmSoldoutModal`) 그 줄들의 `cartKey`를 `soldoutCartKeys`에 기록한다 — 장바구니 시트는 열린 채로 남는다.
+
+### 메뉴 vs 옵션 — 무엇이 품절 처리되는가
+
+확인한 장바구니 줄을 담을 때 옵션을 골랐는지로 나눠 처리한다.
+
+| 담을 때 | 품절 처리 대상 | 메인 목록 영향 |
+|---|---|---|
+| 옵션 없이 담음 | 메뉴 자체(`soldoutMenuIds`) | `MenuItemCard`가 회색조+"품절" 배지로 비활성화 — mock `item.soldOut`과 같은 렌더링을 그대로 재사용(`runtimeSoldout` prop으로 합침) |
+| 옵션을 골라 담음 | 그 옵션 항목(`soldoutOptionChoiceIds`) | 메뉴 자체는 계속 주문 가능, 상세 시트에서 그 옵션만 선택 불가 — mock `choice.soldOut`과 같은 `isChoiceDisabled` 처리를 재사용 |
+
+옵션 하나 때문에 메뉴 전체를 못 시키게 되는 대안도 검토했지만 실제 매장 운영과 맞지 않아, 위 조합(메뉴 단위/옵션 단위 분리)을 최종으로 삼았다.
+
+### 지워야 풀린다 (장바구니) / 세션 내내 안 풀린다 (메뉴·옵션)
+
+- `soldoutCartKeys`(장바구니 표기): 그 줄을 장바구니에서 삭제해야 풀린다. 시트를 닫았다 다시 열어도 유지된다 — 방금 품절이라고 안내받은 메뉴가 다시 열었을 때 아무 일 없었다는 듯 보이면 혼란스럽기 때문이다.
+- `soldoutMenuIds`/`soldoutOptionChoiceIds`(메뉴·옵션 표기): 장바구니에서 지워도 풀리지 않는다 — 실제로 품절이라고 확인한 사실 자체는 변하지 않기 때문이다. 새로고침 없이 되돌리려면 [QA 미리보기 트리거](#qa-미리보기-트리거)의 "품절 초기화"를 쓴다.
+
+### 장바구니 줄 표기
+
+`CartLineItem`은 `soldout` prop이 켜지면(`soldoutCartKeys.has(line.cartKey)`) 세 곳이 바뀐다 — 이름 옆 수량/합계 자리가 삭제 전용 버튼(`QuantityStepperButton icon="remove"` + `qty-button--danger`, 이 줄의 다른 삭제 버튼과 같은 28×28px을 그대로 재사용)으로, 옵션 라인이 취소선으로, 1개당 가격+수량 스텝퍼 자리가 "현재 품절된 메뉴입니다"(빨강, `--typography-size-caption`+`--typography-weight-heading`) + 취소선 가격으로 바뀐다. "주문하기" 버튼은 `hasSoldoutInCart`(장바구니에 아직 품절 표기된 줄이 남아있는지)로 비활성화된다.
+
+`SoldoutModal`의 확인 목록도 같은 메뉴를 옵션만 다르게 여러 줄 담았을 때 서로 구분되도록 옵션명을 이름 뒤에 붙인다(`formatSoldoutItemLabel`, 예: "불고기 정식 (백미, 계란후라이)"). 목록이 화면보다 길어질 수 있어(장바구니 전체가 한 번에 품절 처리되므로) `ConsumerBottomSheet`와 같은 방식으로 모달 카드에 `max-height`를 두고 목록만 내부 스크롤시켜 "확인" 버튼이 항상 화면 안에 남게 했다.
 
 ## CartBar는 `position: fixed`다 (sticky 아님)
 
