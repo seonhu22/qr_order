@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
@@ -13,6 +14,13 @@ import type {
 
 /** 참고 저장소의 `doOrder` 딜레이(1800ms)와 동일 — 실제 API 붙기 전까지 처리 중 화면을 보여주는 용도. */
 const ORDER_PROCESSING_DELAY_MS = 1800;
+
+/**
+ * QR코드 qr-code-001(창가 1번 테이블, table-001)로 들어오면 장바구니 내용과 무관하게 항상
+ * 품절 확인 모달이 뜨도록 하는 데모 트리거 — 참고 저장소의 한정수량 품절 시뮬레이션과 같은
+ * 역할이지만, 실제 재고 판별 로직이 없어 QR코드로 진입 경로를 대신 표시했다.
+ */
+const SOLDOUT_DEMO_TABLE_SYS_ID = 'table-001';
 
 /**
  * 주문 제출 진행 단계.
@@ -42,6 +50,19 @@ export function useConsumerOrderPage() {
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
   const orderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { session } = useConsumerSession();
+  const isSoldoutDemoTable = session?.tableSysId === SOLDOUT_DEMO_TABLE_SYS_ID;
+  const [soldoutModalItems, setSoldoutModalItems] = useState<OrderShellCartLine[] | null>(null);
+  // 품절 확인 모달에서 "확인"한 줄의 cartKey들 — 그 줄을 장바구니에서 지우기 전까지는 시트를
+  // 닫았다 다시 열어도 품절 표기가 유지된다(레퍼런스는 시트를 닫으면 표기가 풀리지만,
+  // 방금 품절이라고 안내받은 메뉴가 아무 일 없었다는 듯 되돌아가는 게 오히려 헷갈려서 바꿨다).
+  const [soldoutCartKeys, setSoldoutCartKeys] = useState<Set<string>>(new Set());
+  // 메뉴 목록·상세 시트에도 품절을 반영하기 위한 상태 — 장바구니와 달리 그 항목을 장바구니에서
+  // 지워도 풀리지 않는다(가게에 실제로 없는 건 그대로다). 옵션 없이 담은 줄은 메뉴 자체가
+  // 품절이라고 보고, 옵션을 골라 담은 줄은 그 옵션이 품절이라고 본다(메뉴 자체는 계속 주문 가능).
+  const [soldoutMenuIds, setSoldoutMenuIds] = useState<Set<string>>(new Set());
+  const [soldoutOptionChoiceIds, setSoldoutOptionChoiceIds] = useState<Set<string>>(new Set());
 
   const sheet = useConsumerSheetStore((state) => state.sheet);
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
@@ -107,6 +128,12 @@ export function useConsumerOrderPage() {
 
   function removeCartLine(cartKey: string) {
     setCart((prev) => prev.filter((line) => line.cartKey !== cartKey));
+    setSoldoutCartKeys((prev) => {
+      if (!prev.has(cartKey)) return prev;
+      const next = new Set(prev);
+      next.delete(cartKey);
+      return next;
+    });
   }
 
   /**
@@ -121,10 +148,43 @@ export function useConsumerOrderPage() {
     }, ORDER_PROCESSING_DELAY_MS);
   }
 
-  /** 장바구니 시트를 닫고 주문 처리를 시작한다. */
+  /**
+   * 장바구니 시트를 닫고 주문 처리를 시작한다. 품절 데모 테이블(qr-code-001)이면 처리중 화면
+   * 대신 품절 확인 모달을 먼저 띄우고, 시트는 닫지 않는다(참고 저장소의 initiateOrder와 동일).
+   */
   function placeOrder() {
+    if (isSoldoutDemoTable) {
+      setSoldoutModalItems(cart);
+      return;
+    }
     closeSheet();
     startOrderProcessing();
+  }
+
+  /**
+   * 품절 확인 모달의 "확인" — 장바구니 줄들을 품절로 표기하고, 메뉴 목록·상세 시트에도 반영한다.
+   * 옵션 없이 담은 줄은 메뉴 자체를 품절 처리하고, 옵션을 골라 담은 줄은 그 옵션만 품절 처리한다.
+   */
+  function confirmSoldoutModal() {
+    if (!soldoutModalItems) return;
+
+    setSoldoutCartKeys(new Set(soldoutModalItems.map((line) => line.cartKey)));
+
+    const newlySoldoutMenuIds = soldoutModalItems
+      .filter((line) => line.options.length === 0)
+      .map((line) => line.menuId);
+    if (newlySoldoutMenuIds.length > 0) {
+      setSoldoutMenuIds((prev) => new Set([...prev, ...newlySoldoutMenuIds]));
+    }
+
+    const newlySoldoutOptionChoiceIds = soldoutModalItems.flatMap((line) =>
+      line.options.map((option) => option.choiceId),
+    );
+    if (newlySoldoutOptionChoiceIds.length > 0) {
+      setSoldoutOptionChoiceIds((prev) => new Set([...prev, ...newlySoldoutOptionChoiceIds]));
+    }
+
+    setSoldoutModalItems(null);
   }
 
   /** "주문 완료" 화면의 "메뉴로 돌아가기" — 메인 화면으로 되돌아간다. */
@@ -158,6 +218,17 @@ export function useConsumerOrderPage() {
     setOrderPhase('network-error');
   }, []);
 
+  /**
+   * QA 전용 — 품절 데모(qr-code-001)에서 한번 확인한 메뉴·옵션은 페이지를 새로고침하기 전까진
+   * 세션 내내 풀리지 않는다. 참고 저장소의 "품절 초기화" dev-nav와 동일하게, 새로고침 없이도
+   * 다시 처음부터 확인해볼 수 있도록 되돌리는 트리거.
+   */
+  const resetSoldoutDemo = useCallback(() => {
+    setSoldoutMenuIds(new Set());
+    setSoldoutOptionChoiceIds(new Set());
+    setSoldoutCartKeys(new Set());
+  }, []);
+
   // 헤더가 보낸 QA 요청을 구독한다 — 요청은 즉발성 이벤트라 렌더링 중 파생값으로 다룰 수 없어
   // effect 안에서 직접 setState하는 대신, 외부 스토어를 구독해 콜백에서만 반응한다.
   useEffect(() => {
@@ -174,8 +245,12 @@ export function useConsumerOrderPage() {
         triggerNetworkError();
         useConsumerOrderQaStore.getState().clearPendingNetworkError();
       }
+      if (state.pendingSoldoutReset) {
+        resetSoldoutDemo();
+        useConsumerOrderQaStore.getState().clearPendingSoldoutReset();
+      }
     });
-  }, [triggerOrderFailure, triggerSessionExpiry, triggerNetworkError]);
+  }, [triggerOrderFailure, triggerSessionExpiry, triggerNetworkError, resetSoldoutDemo]);
 
   /** 네트워크 실패 화면의 "다시 시도하기" — 처리중 화면부터 다시 시작한다. */
   function retryOrder() {
@@ -200,6 +275,8 @@ export function useConsumerOrderPage() {
   function retryFromNetworkError() {
     setOrderPhase('idle');
   }
+
+  const hasSoldoutInCart = cart.some((line) => soldoutCartKeys.has(line.cartKey));
 
   return {
     searchQuery,
@@ -226,5 +303,11 @@ export function useConsumerOrderPage() {
     dismissOrderError,
     viewOrderHistoryFromError,
     retryFromNetworkError,
+    soldoutModalItems,
+    confirmSoldoutModal,
+    soldoutCartKeys,
+    hasSoldoutInCart,
+    soldoutMenuIds,
+    soldoutOptionChoiceIds,
   };
 }
