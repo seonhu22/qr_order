@@ -26,6 +26,16 @@
   color: var(--color-text-primary);
 }
 
+.cart-line-item--soldout .cart-line-item__name {
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+}
+
+.cart-line-item--soldout .cart-line-item__options p {
+  color: var(--slate-30);
+  text-decoration: line-through;
+}
+
 .cart-line-item__total {
   flex-shrink: 0;
   font-size: var(--typography-size-ui);
@@ -51,6 +61,21 @@
 .cart-line-item__unit-price {
   font-size: var(--typography-size-caption);
   color: var(--color-text-tertiary);
+}
+
+/* 품절 표기 — 이름 옆 삭제 버튼은 별도 스타일을 만들지 않고 아래 qty-button--danger를
+   그대로 재사용한다(28×28px, 이 화면의 다른 삭제 버튼과 같은 터치 영역). */
+
+.cart-line-item__soldout-notice {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-status-error-default);
+}
+
+.cart-line-item__soldout-price {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
 }
 
 /* 옵션 리스트 미니 스텝퍼와 달리 여기는 공용 트랙이 없다 — 버튼 각자가 28×28(w-7 h-7),
