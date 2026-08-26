@@ -25,6 +25,7 @@ export function ConsumerHeader() {
   const requestOrderFailure = useConsumerOrderQaStore((state) => state.requestOrderFailure);
   const requestSessionExpiry = useConsumerOrderQaStore((state) => state.requestSessionExpiry);
   const requestNetworkError = useConsumerOrderQaStore((state) => state.requestNetworkError);
+  const requestSoldoutReset = useConsumerOrderQaStore((state) => state.requestSoldoutReset);
   const [qaMenuOpen, setQaMenuOpen] = useState(false);
   const qaMenuRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +58,11 @@ export function ConsumerHeader() {
 
   function handleTriggerNetworkError() {
     requestNetworkError();
+    setQaMenuOpen(false);
+  }
+
+  function handleResetSoldoutDemo() {
+    requestSoldoutReset();
     setQaMenuOpen(false);
   }
 
@@ -111,7 +117,8 @@ export function ConsumerHeader() {
             </button>
 
             {/* QA 전용 — 실패 판별 로직이 붙기 전까지 주문 실패·세션 만료 화면을 미리보기
-                위한 임시 메뉴. production 빌드에서는 tree-shake 되어 사라진다. */}
+                위한 임시 메뉴. 품절 초기화는 qr-code-001 품절 데모를 새로고침 없이 리셋한다.
+                production 빌드에서는 tree-shake 되어 사라진다. */}
             {import.meta.env.DEV && qaMenuOpen && (
               <div className="consumer-header__qa-menu">
                 <button type="button" onClick={() => handleTriggerOrderFailure('network')}>
@@ -128,6 +135,9 @@ export function ConsumerHeader() {
                 </button>
                 <button type="button" onClick={handleTriggerNetworkError}>
                   통신 오류
+                </button>
+                <button type="button" onClick={handleResetSoldoutDemo}>
+                  품절 초기화
                 </button>
               </div>
             )}

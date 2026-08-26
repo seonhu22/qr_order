@@ -11,6 +11,7 @@ import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/compon
 import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
 import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
+import { SoldoutModal } from '@/apps/consumer/features/order-shell/components/SoldoutModal';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -46,6 +47,12 @@ export function ConsumerOrderPage() {
     dismissOrderError,
     viewOrderHistoryFromError,
     retryFromNetworkError,
+    soldoutModalItems,
+    confirmSoldoutModal,
+    soldoutCartKeys,
+    hasSoldoutInCart,
+    soldoutMenuIds,
+    soldoutOptionChoiceIds,
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
@@ -116,7 +123,12 @@ export function ConsumerOrderPage() {
             </div>
             <div className="order-shell__items-grid">
               {group.items.map((item) => (
-                <MenuItemCard key={item.id} item={item} onSelect={() => openMenuDetail(item.id)} />
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  onSelect={() => openMenuDetail(item.id)}
+                  runtimeSoldout={soldoutMenuIds.has(item.id)}
+                />
               ))}
             </div>
           </section>
@@ -140,6 +152,7 @@ export function ConsumerOrderPage() {
               addToCart(item, qty, options);
               closeSheet();
             }}
+            runtimeSoldoutOptionChoiceIds={soldoutOptionChoiceIds}
           />
         )}
 
@@ -165,6 +178,7 @@ export function ConsumerOrderPage() {
                     onIncrease={() => updateCartLineQty(line.cartKey, 1)}
                     onDecrease={() => updateCartLineQty(line.cartKey, -1)}
                     onRemove={() => removeCartLine(line.cartKey)}
+                    soldout={soldoutCartKeys.has(line.cartKey)}
                   />
                 ))}
               </ul>
@@ -192,6 +206,7 @@ export function ConsumerOrderPage() {
                 size="lg"
                 className="order-shell-sheet__action"
                 onClick={placeOrder}
+                disabled={hasSoldoutInCart}
               >
                 주문하기
               </Button>
@@ -220,6 +235,7 @@ export function ConsumerOrderPage() {
       {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
       {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
       {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
+      {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
     </div>
   );
 }
