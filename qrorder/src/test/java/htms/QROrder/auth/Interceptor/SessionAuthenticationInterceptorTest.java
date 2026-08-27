@@ -26,6 +26,7 @@ class SessionAuthenticationInterceptorTest {
 
     private static QrConnectResponse validQrTableInfo() {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
         return qrTableInfo;

@@ -49,6 +49,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsMainMenuForQrSession() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -95,6 +96,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -113,6 +115,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsOnlyMenuBodyForSearch() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -140,6 +143,7 @@ class ConsumerMenuControllerTest {
     @Test
     void passesOptionalSearchParametersToService() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -169,6 +173,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsBadRequestWhenSearchConditionIsTooLong() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -187,6 +192,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenSearchStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -205,6 +211,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsMenuDetailForQrSession() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -240,6 +247,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsNotFoundWithoutClearingQrSessionWhenMenuIsUnavailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -261,6 +269,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenDetailStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -280,6 +289,7 @@ class ConsumerMenuControllerTest {
     @Test
     void hidesInternalDetailsWhenOptionDataViolatesContract() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -334,6 +344,7 @@ class ConsumerMenuControllerTest {
 
     private QrConnectResponse qrTableInfo() {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
         return qrTableInfo;

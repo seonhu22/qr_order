@@ -1,6 +1,7 @@
 package htms.QROrder.qr;
 
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.controller.QrConnectController;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import htms.QROrder.qr.service.QrConnectService;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -63,11 +66,14 @@ class QrConnectControllerTest {
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("qrTableInfo", tableInfo("PC002", 10));
+        session.setAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE,
+                new ConsumerSessionBinding("VISIT-1", "PC002", "TABLE-1", LocalDateTime.now()));
 
         mockMvc.perform(get("/api/qr/qr-code-002").session(session))
                 .andExpect(status().isOk());
 
         assertSame(next, session.getAttribute("qrTableInfo"));
+        assertNull(session.getAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE));
     }
 
     @Test
@@ -76,6 +82,8 @@ class QrConnectControllerTest {
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("qrTableInfo", tableInfo("PC002", 10));
+        session.setAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE,
+                new ConsumerSessionBinding("VISIT-1", "PC002", "TABLE-1", LocalDateTime.now()));
 
         mockMvc.perform(get("/api/qr/broken-qr").session(session))
                 .andExpect(status().isNotFound())
@@ -83,6 +91,7 @@ class QrConnectControllerTest {
                 .andExpect(jsonPath("$.message").value("유효하지 않은 QR코드입니다."));
 
         assertNull(session.getAttribute("qrTableInfo"), "실패한 재연결 뒤 이전 QR 권한이 남으면 안 된다");
+        assertNull(session.getAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE));
     }
 
     @Test
