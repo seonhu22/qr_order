@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -62,6 +63,23 @@ class ConsumerOrderMapperXmlTest {
         assertTrue(normalize(boundSql.getSql()).contains("order_detail_option"));
         assertTrue(boundSql.getParameterMappings().stream()
                 .anyMatch(mapping -> "quantity".equals(mapping.getProperty())));
+    }
+
+    @Test
+    void bindsSharedVisitScopeToAllOrderQueries() {
+        Map<String, Object> parameters = Map.of(
+                "consumerSessionId", "VISIT-1",
+                "sysPlantCd", "PLANT-1",
+                "orderId", "ORDER-1"
+        );
+
+        for (String statement : new String[]{
+                "findOrders", "findOrderDetailHeader", "findOrderItems", "findOrderOptions"}) {
+            String sql = sql(statement, parameters);
+            assertTrue(sql.contains("om.insert_user_id = 'CONSUMER'"));
+            assertTrue(sql.contains("og.link_sys_id = ?"));
+            assertTrue(sql.contains("og.sys_plant_cd = ?"));
+        }
     }
 
     private String sql(String statementId, Object parameter) {

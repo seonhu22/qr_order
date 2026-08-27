@@ -9,6 +9,7 @@ import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredExcepti
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
+import htms.QROrder.consumer.order.service.ConsumerOrderSessionGuard;
 import htms.QROrder.consumer.order.service.ConsumerOrderValidator;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.consumer.session.dto.ConsumerVisitRecord;
@@ -37,7 +38,8 @@ class ConsumerOrderCreationServiceTest {
     private final ConsumerOrderValidator consumerOrderValidator = mock(ConsumerOrderValidator.class);
     private final ConsumerOrderMapper consumerOrderMapper = mock(ConsumerOrderMapper.class);
     private final ConsumerOrderCreationService service = new ConsumerOrderCreationService(
-            consumerVisitService, consumerOrderValidator, consumerOrderMapper);
+            consumerVisitService, consumerOrderValidator, consumerOrderMapper,
+            new ConsumerOrderSessionGuard());
 
     @Test
     void locksVisitAndOrderNumberBeforeWritingCompleteOrder() {
