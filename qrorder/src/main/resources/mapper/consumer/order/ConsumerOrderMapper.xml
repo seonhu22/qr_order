@@ -89,4 +89,115 @@
         )
     </insert>
 
+    <sql id="currentConsumerOrderScope">
+        INNER JOIN order_master om
+            ON om.sys_id = og.link_sys_id
+            AND om.sys_plant_cd = og.sys_plant_cd
+            AND om.insert_user_id = 'CONSUMER'
+    </sql>
+
+    <sql id="currentConsumerOrderPredicate">
+        og.link_sys_id = #{consumerSessionId}
+        AND og.sys_plant_cd = #{sysPlantCd}
+    </sql>
+
+    <select id="findOrders"
+            resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderSummaryRow">
+        SELECT
+            og.sys_id AS order_id,
+            og.order_num AS order_number,
+            og.order_status,
+            COALESCE(SUM(
+                smd.menu_price::bigint * od.qty
+                + COALESCE(option_total.amount, 0)
+            ), 0) AS total_amount,
+            COALESCE(SUM(od.qty), 0) AS item_count,
+            og.insert_datetime AS ordered_at,
+            COALESCE(og.modify_datetime, og.insert_datetime) AS updated_at
+        FROM order_group og
+        <include refid="currentConsumerOrderScope"/>
+        INNER JOIN order_detail od
+            ON od.link_sys_id3 = og.sys_id
+            AND od.link_sys_id = og.link_sys_id
+            AND od.sys_plant_cd = og.sys_plant_cd
+        INNER JOIN store_menu_detail smd
+            ON smd.sys_id = od.link_sys_id2
+            AND smd.sys_plant_cd = od.sys_plant_cd
+        LEFT JOIN (
+            SELECT
+                odo.link_sys_id AS order_item_id,
+                SUM(smod.menu_option_price::bigint * odo.qty) AS amount
+            FROM order_detail_option odo
+            INNER JOIN store_menu_option_detail smod
+                ON smod.sys_id = odo.link_sys_id2
+                AND smod.sys_plant_cd = odo.sys_plant_cd
+            GROUP BY odo.link_sys_id
+        ) option_total ON option_total.order_item_id = od.sys_id
+        WHERE <include refid="currentConsumerOrderPredicate"/>
+        GROUP BY og.sys_id, og.order_num, og.order_status,
+                 og.insert_datetime, og.modify_datetime
+        ORDER BY og.insert_datetime DESC, og.sys_id DESC
+    </select>
+
+    <select id="findOrderDetailHeader"
+            resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderDetailHeaderRow">
+        SELECT
+            og.sys_id AS order_id,
+            og.order_num AS order_number,
+            og.order_status,
+            og.insert_datetime AS ordered_at,
+            COALESCE(og.modify_datetime, og.insert_datetime) AS updated_at
+        FROM order_group og
+        <include refid="currentConsumerOrderScope"/>
+        WHERE <include refid="currentConsumerOrderPredicate"/>
+          AND og.sys_id = #{orderId}
+    </select>
+
+    <select id="findOrderItems"
+            resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderItemRow">
+        SELECT
+            od.sys_id AS order_item_id,
+            smd.sys_id AS menu_sys_id,
+            smd.menu_name,
+            od.qty AS quantity,
+            smd.menu_price AS menu_unit_amount
+        FROM order_group og
+        <include refid="currentConsumerOrderScope"/>
+        INNER JOIN order_detail od
+            ON od.link_sys_id3 = og.sys_id
+            AND od.link_sys_id = og.link_sys_id
+            AND od.sys_plant_cd = og.sys_plant_cd
+        INNER JOIN store_menu_detail smd
+            ON smd.sys_id = od.link_sys_id2
+            AND smd.sys_plant_cd = od.sys_plant_cd
+        WHERE <include refid="currentConsumerOrderPredicate"/>
+          AND og.sys_id = #{orderId}
+        ORDER BY od.insert_datetime ASC, od.sys_id ASC
+    </select>
+
+    <select id="findOrderOptions"
+            resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderOptionRow">
+        SELECT
+            od.sys_id AS order_item_id,
+            smod.sys_id AS option_sys_id,
+            smod.menu_option_name AS option_name,
+            odo.qty AS stored_quantity,
+            smod.menu_option_price AS unit_amount
+        FROM order_group og
+        <include refid="currentConsumerOrderScope"/>
+        INNER JOIN order_detail od
+            ON od.link_sys_id3 = og.sys_id
+            AND od.link_sys_id = og.link_sys_id
+            AND od.sys_plant_cd = og.sys_plant_cd
+        INNER JOIN order_detail_option odo
+            ON odo.link_sys_id = od.sys_id
+            AND odo.sys_plant_cd = od.sys_plant_cd
+        INNER JOIN store_menu_option_detail smod
+            ON smod.sys_id = odo.link_sys_id2
+            AND smod.sys_plant_cd = odo.sys_plant_cd
+        WHERE <include refid="currentConsumerOrderPredicate"/>
+          AND og.sys_id = #{orderId}
+        ORDER BY odo.insert_datetime ASC, odo.sys_id ASC
+    </select>
+
 </mapper>

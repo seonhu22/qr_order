@@ -4,8 +4,6 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
-import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
-import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
@@ -27,17 +25,18 @@ public class ConsumerOrderCreationService {
     private final ConsumerVisitService consumerVisitService;
     private final ConsumerOrderValidator consumerOrderValidator;
     private final ConsumerOrderMapper consumerOrderMapper;
+    private final ConsumerOrderSessionGuard consumerOrderSessionGuard;
 
     @Transactional
     public ConsumerOrderCreateResponse createOrder(
             QrConnectResponse qrTableInfo,
             ConsumerSessionBinding binding,
             ConsumerOrderCreateRequest request) {
-        validateBinding(qrTableInfo, binding);
+        consumerOrderSessionGuard.requireMatchingBinding(qrTableInfo, binding);
 
         ConsumerVisitRecord visit = consumerVisitService.lockBoundVisit(
                 qrTableInfo, binding.getConsumerSessionId());
-        validateActiveVisit(visit);
+        consumerOrderSessionGuard.requireActiveVisit(visit);
 
         ValidatedConsumerOrder validatedOrder = consumerOrderValidator.validate(
                 qrTableInfo.getSysPlantCd(), request);
@@ -91,19 +90,6 @@ public class ConsumerOrderCreationService {
                 validatedOrder.totalAmount(),
                 orderedAt
         );
-    }
-
-    private void validateBinding(QrConnectResponse qrTableInfo, ConsumerSessionBinding binding) {
-        if (binding == null
-                || !binding.belongsTo(qrTableInfo.getSysPlantCd(), qrTableInfo.getSysId())) {
-            throw new ConsumerOrderSessionRequiredException("Consumer 방문 세션을 먼저 확인해주세요.");
-        }
-    }
-
-    private void validateActiveVisit(ConsumerVisitRecord visit) {
-        if (visit == null || !"01".equals(visit.getOrderStatus()) || visit.isExpired()) {
-            throw new ConsumerOrderSessionGoneException("종료되었거나 만료된 방문입니다.");
-        }
     }
 
     private String newUlid() {
