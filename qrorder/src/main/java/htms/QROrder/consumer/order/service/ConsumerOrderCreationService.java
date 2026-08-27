@@ -5,6 +5,7 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
+import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
@@ -95,7 +96,7 @@ public class ConsumerOrderCreationService {
     private void validateBinding(QrConnectResponse qrTableInfo, ConsumerSessionBinding binding) {
         if (binding == null
                 || !binding.belongsTo(qrTableInfo.getSysPlantCd(), qrTableInfo.getSysId())) {
-            throw new ConsumerOrderSessionGoneException("Consumer 방문 세션을 다시 확인해주세요.");
+            throw new ConsumerOrderSessionRequiredException("Consumer 방문 세션을 먼저 확인해주세요.");
         }
     }
 

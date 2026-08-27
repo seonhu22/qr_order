@@ -5,6 +5,7 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
+import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
@@ -91,7 +92,7 @@ class ConsumerOrderCreationServiceTest {
         ConsumerSessionBinding otherTable = new ConsumerSessionBinding(
                 "VISIT-1", "PLANT-1", "TABLE-OTHER", LocalDateTime.now());
 
-        assertThrows(ConsumerOrderSessionGoneException.class,
+        assertThrows(ConsumerOrderSessionRequiredException.class,
                 () -> service.createOrder(qrTableInfo(), otherTable, new ConsumerOrderCreateRequest()));
 
         verifyNoInteractions(consumerVisitService, consumerOrderValidator, consumerOrderMapper);
