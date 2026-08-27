@@ -1,7 +1,7 @@
 # 기존 Consumer API 계약
 
 > 상위 문서: [Consumer MVP API 명세](../consumer-mvp-api-spec.md)  
-> 기준: 현재 백엔드 Controller·DTO. 회의 화면 모델보다 우선한다.
+> 기준: 현재 백엔드 Controller/DTO. 회의 화면 모델보다 우선한다.
 
 ## 공통 JSON 응답
 
@@ -56,7 +56,7 @@ QR과 연결된 유효한 테이블을 조회하고 `qrTableInfo`를 서버 세�
 | `optionGroupSysId` | `string` | 필수 |
 | `groupName` | `string` | 필수 |
 | `requiredYn` | `'Y' \| 'N'` | 필수 |
-| `selectionType` | `'01' \| '02' \| '03'` | 단일·복수·수량 |
+| `selectionType` | `'01' \| '02' \| '03'` | 단일/복수/수량 |
 | `optionList` | `OptionItem[]` | 필수 |
 
 `OptionItem`:
@@ -67,7 +67,7 @@ QR과 연결된 유효한 테이블을 조회하고 `qrTableInfo`를 서버 세�
 | `menuOptionName` | `string` | 필수 |
 | `menuOptionPrice` | `integer` | 원 단위, 필수 |
 | `menuOptionDescription` | `string \| null` | 선택 |
-| `maximumNum` | `integer` | 수량형은 1 이상, 단일·복수는 0 |
+| `maximumNum` | `integer` | 수량형은 1 이상, 단일/복수는 0 |
 | `defaultYn` | `'Y' \| 'N'` | 필수 |
 
 ## `GET /api/consumer/menu/main`
@@ -96,7 +96,7 @@ body.menuList[]: MenuItem
 
 성공 `data.body`는 `MenuItem` 필드 전체와 `optionGroupList: OptionGroup[]`를 가진다.
 
-상태: `200`, 잘못된 ID `400`, QR 세션 없음 `401`, 현재 사업장 메뉴 아님 `404`, 조회·옵션 계약 오류 `500`.
+상태: `200`, 잘못된 ID `400`, QR 세션 없음 `401`, 현재 사업장 메뉴 아님 `404`, 조회/옵션 계약 오류 `500`.
 
 ## `GET /api/consumer/menu/{menuSysId}/image`
 
@@ -104,7 +104,7 @@ body.menuList[]: MenuItem
 - `Content-Disposition: inline`
 - `Cache-Control: private, max-age=3600`
 - QR 세션 없음 `401`
-- 다른 사업장·연결 없음·삭제 파일·이미지 없음 `404`
+- 다른 사업장/연결 없음/삭제 파일/이미지 없음 `404`
 - DB 또는 파일 읽기 실패 `500`
 
 이미지 응답은 `CommonResponse`를 사용하지 않으며 파일 경로와 존재 사유를 노출하지 않는다.

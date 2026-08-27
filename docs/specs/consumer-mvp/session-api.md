@@ -6,7 +6,7 @@
 
 ## 역할
 
-`GET /api/consumer/session`은 QR 진입 후 현재 브라우저의 Consumer 컨텍스트를 복구한다. 개인·기기를 식별하는 API가 아니며, 서버 세션과 DB 주문 상태로 매장·테이블·공유 방문 상태를 확인한다.
+`GET /api/consumer/session`은 QR 진입 후 현재 브라우저의 Consumer 컨텍스트를 복구한다. 개인/기기를 식별하는 API가 아니며, 서버 세션과 DB 주문 상태로 매장/테이블/공유 방문 상태를 확인한다.
 
 ## 요청
 
@@ -53,7 +53,7 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 ## 상태와 HTTP
 
 - 유효한 바인딩과 진행 중 방문: `200`, `status: ACTIVE`
-- DB 결제완료가 확인된 방문: `200`, `status: CLOSED`
+- `payment_yn=Y` 반영 뒤 `order_master` 결제완료 상태가 확인된 방문: `200`, `status: CLOSED`
 - 서버가 바인딩 기록은 확인했으나 5분 정책으로 만료: `200`, `status: EXPIRED`
 - `JSESSIONID` 또는 유효한 QR 바인딩 자체가 없음: `401`
 - 나머지 Consumer API는 `CLOSED` 또는 `EXPIRED`에서 `410`을 반환한다.
@@ -71,18 +71,21 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 - HTTP 세션 자체가 끝나면 QR 재스캔을 요구한다.
 - 재스캔 시 DB 결제 전 공유 방문이 있으면 같은 주문내역에 다시 연결한다.
 
-## 공유 방문 식별 후보
+## 공유 방문 식별
 
-스키마 변경 없이 구현하려면 기존 `order_master`가 한 테이블의 한 후결제 방문을 나타내는지 확인하고, 가능하면 `order_master.sys_id`를 `consumerSessionId`로 재사용한다.
+`order_master`는 한 테이블의 한 후결제 방문/정산 단위이며, `order_master.sys_id`를 `consumerSessionId`로 사용한다.
 
-확인할 항목:
+- QR 연결 또는 최초 `GET /session`에서 해당 테이블의 활성 master를 생성하거나 재사용한다.
+- 결제 전 같은 테이블의 모든 `order_group`은 같은 master에 연결한다.
+- 추가 주문은 활성 master를 재사용한다.
+- 결제가 완료되면 master를 종료하고 이후 주문은 새 방문 master에 연결한다.
+- `payment_yn=Y`는 결제 결과이며, 같은 처리에서 변경되는 master 결제완료 상태를 API 종료 판정 기준으로 삼는다.
+- 같은 테이블에서 방문 시작이 동시에 처리돼도 트랜잭션과 잠금으로 master가 하나만 생기게 한다.
+- 주문 없이 5분 만료된 빈 master는 활성 조회에서 제외하고 다음 방문에서 재사용하지 않는다.
 
-- 주문 전 빈 `order_master` 생성 가능 여부
-- 활성 방문과 결제완료를 판별하는 정확한 컬럼·코드
-- 같은 테이블의 동시 첫 주문에서 master 중복을 막는 잠금 기준
-- `startedAt`에 사용할 기존 시각 컬럼
+빈 master의 만료 표시/정리는 기존 컬럼과 쿼리로 구현한다. 가능한 방법을 확인한 뒤에도 보장할 수 없을 때만 백엔드 담당자에게 스키마 변경을 요청한다.
 
-전제가 맞지 않으면 API 모델을 바꾸거나 DB를 수정하지 않고 백엔드 담당자에게 영속 방문 ID가 필요한 이유를 요청한다.
+기존 스키마로 이 생명주기를 안전하게 만들 수 없다면 DB를 직접 수정하지 않고 근거와 실패 시나리오를 정리해 백엔드 담당자에게 요청한다.
 
 ## QR API 연계
 
@@ -90,8 +93,8 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 
 ## 보안
 
-- 사업장·테이블은 `qrTableInfo`에서만 가져온다.
-- DB에서 현재 사용 가능한 사업장·테이블인지 다시 확인한다.
+- 사업장/테이블은 `qrTableInfo`에서만 가져온다.
+- DB에서 현재 사용 가능한 사업장/테이블인지 다시 확인한다.
 - 다른 테이블의 방문 식별자를 요청으로 주입할 수 없게 한다.
 - 외부 복사 QR 차단은 별도 정책이 확정되기 전까지 해결된 것으로 문서화하지 않는다.
 
@@ -104,4 +107,3 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 - 결제완료 DB 상태에서 `CLOSED`
 - 직원 로그인만 있는 세션은 `401`
 - 다른 QR 재스캔과 무효 QR 실패 시 이전 Consumer 권한 제거
-
