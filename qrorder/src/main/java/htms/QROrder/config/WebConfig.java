@@ -1,5 +1,6 @@
 package htms.QROrder.config;
 
+import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
 import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.auth.Interceptor.RoleCheckInterceptor;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,12 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/auth/email_valid/pwd_change",
                         "/api/auth/pwd_change",
                         "/api/qr/**",
+                        "/api/consumer/**",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**");
+
+        registry.addInterceptor(new ConsumerSessionCheckInterceptor())
+                .order(1)
+                .addPathPatterns("/api/consumer/**");
 
         registry.addInterceptor(new RoleCheckInterceptor())
                 .order(2)

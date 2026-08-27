@@ -1,6 +1,6 @@
 package htms.QROrder.consumer.menu;
 
-import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.consumer.menu.controller.ConsumerMenuController;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuDetailBody;
@@ -42,7 +42,7 @@ class ConsumerMenuControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ConsumerMenuController(consumerMenuService))
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new LoginCheckInterceptor())
+                .addInterceptors(new ConsumerSessionCheckInterceptor())
                 .build();
     }
 
@@ -76,7 +76,7 @@ class ConsumerMenuControllerTest {
         mockMvc.perform(get("/api/consumer/menu/main"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("세션이 만료되었습니다. 다시 로그인해주세요."));
+                .andExpect(jsonPath("$.message").value("QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요."));
 
         verifyNoInteractions(consumerMenuService);
     }
