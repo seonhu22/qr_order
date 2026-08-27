@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class WebConfigAuthenticationTest {
 
+    private static final ConsumerSessionCheckInterceptor CONSUMER_BOUNDARY =
+            new ConsumerSessionCheckInterceptor();
+
     /** InterceptorRegistry.getInterceptors()가 protected라 상속으로 열어 쓴다. */
     private static class ExposedRegistry extends InterceptorRegistry {
         List<Object> registered() {
@@ -32,7 +35,7 @@ class WebConfigAuthenticationTest {
 
     private static List<Object> registeredInterceptors() {
         ExposedRegistry registry = new ExposedRegistry();
-        new WebConfig().addInterceptors(registry);
+        new WebConfig(CONSUMER_BOUNDARY).addInterceptors(registry);
         return registry.registered();
     }
 

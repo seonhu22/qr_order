@@ -4,6 +4,7 @@ import htms.QROrder.qr.dto.QrConnectResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * 직원 로그인(loginUser)은 이 경계의 인증 근거가 되지 않는다.
  * QR 연결로 생성된 qrTableInfo만 인정하며, 구조가 유효한지까지 확인한다.
  */
+@Component
 public class ConsumerSessionCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
