@@ -17,6 +17,7 @@ import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.common.service.FileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import java.util.Set;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class ConsumerMenuService {
 
     private static final Set<String> OPTION_SELECTION_TYPES = Set.of("01", "02", "03");
@@ -131,18 +133,27 @@ public class ConsumerMenuService {
         String fileSysId = consumerMenuMapper.getMenuImageFileSysId(sysPlantCd, menuSysId);
 
         if (fileSysId == null) {
+            // 없는 메뉴, 다른 사업장 메뉴, 비활성 메뉴, 사진 미등록이 한 쿼리에서 모두 null로 나온다.
+            // 나누려면 사업장 조건을 뺀 조회가 필요한데 그게 이 API가 막으려는 형태라 묶어서 남긴다.
+            log.debug("Consumer menu image rejected: no accessible image. sysPlantCd={}, menuSysId={}",
+                    sysPlantCd, menuSysId);
             return null;
         }
 
         FileInfo fileInfo = fileService.getFileInfo(fileSysId);
 
         if (fileInfo == null) {
+            log.debug("Consumer menu image rejected: attach_file row missing. menuSysId={}, fileSysId={}",
+                    menuSysId, fileSysId);
             return null;
         }
 
         MediaType contentType = resolveImageContentType(fileInfo);
 
         if (contentType == null) {
+            log.debug("Consumer menu image rejected: not servable as image. "
+                            + "menuSysId={}, fileSysId={}, mimeType={}, fileExt={}, pdfYn={}",
+                    menuSysId, fileSysId, fileInfo.getMimeType(), fileInfo.getFileExt(), fileInfo.getPdfYn());
             return null;
         }
 
