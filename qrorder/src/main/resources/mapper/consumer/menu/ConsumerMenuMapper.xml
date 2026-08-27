@@ -106,4 +106,30 @@
         order by smog.ord_no asc, smod.ord_no asc
     </select>
 
+    <!--
+        메뉴 이미지의 소유권 확인.
+        파일 ID만으로 조회하면 다른 사업장 파일도 열리므로,
+        QR 세션의 사업장에서 노출 중인 메뉴에 연결된 파일인지까지 함께 확인한다.
+        대표 이미지 선택 규칙은 consumerMenuBase의 file_sys_id 서브쿼리와 같다.
+    -->
+    <select id="getMenuImageFileSysId" resultType="String">
+        select af.sys_id
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+            and smm.use_yn = 'Y'
+            and smm.delete_yn = 'N'
+        inner join attach_file af
+            on af.link_sys_id = smd.file_ulid
+            and af.sys_plant_cd = smd.sys_plant_cd
+            and af.delete_yn = 'N'
+        where smd.sys_id = #{menuSysId}
+        and smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+        order by af.ord_no asc
+        limit 1
+    </select>
+
 </mapper>
