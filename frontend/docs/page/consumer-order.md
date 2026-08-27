@@ -235,4 +235,6 @@ QR코드 `qr-code-001`(창가 1번 테이블, `table-001`)로 들어오면 무�
 
 ## 반응형
 
-717px부터 메뉴 목록이 `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))`로 열 수를 자동으로 늘린다(717px≈2열, 1440px≈4열…). 셸 자체는 폭 제한 없이 화면을 꽉 채운다. 자세한 근거는 [`decisions.md` ADR-020](../decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드), 공통 규칙은 [`layout-policy.md` "Consumer 모바일 셸"](../operations/layout-policy.md#consumer-모바일-셸) 참고.
+717px부터 메뉴 목록이 `grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))`로 열 수를 자동으로 늘린다(717px≈2열, 1440px≈4열…). 셸 자체는 폭 제한 없이 화면을 꽉 채운다. 자세한 근거는 [`decisions.md` ADR-020](../decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드), 공통 규칙은 [`layout-policy.md` "Consumer 모바일 셸"](../operations/layout-policy.md#consumer-모바일-셸) 참고.
+
+`auto-fit`이 아니라 `auto-fill`을 쓴다 — `.order-shell__items-grid`는 카테고리 섹션마다 따로 그려지는데, `auto-fit`은 그리드에 담긴 아이템 수가 계산된 열 수보다 적으면 빈 열을 없애고 카드를 늘려 채운다. 그러면 같은 화면 너비에서도 아이템이 적은 카테고리(예: 디저트 2개)만 카드가 넓어져 다른 카테고리와 열 수가 달라 보인다. `auto-fill`은 아이템 수와 무관하게 항상 같은 열 수를 고정해, 아이템이 모자란 줄엔 카드 대신 빈 공간이 남더라도 모든 카테고리의 열 수·카드 폭이 항상 같다.

@@ -143,13 +143,18 @@
 }
 
 /* 폴드 펼침(~717px)부터 웹까지: 메뉴 목록이 1열에서 다열 그리드로 바뀐다. 열 수를 고정하지 않고
-   auto-fit으로 카드 폭(최소 300px)에 맞춰 화면을 꽉 채우며 늘어나므로, 태블릿에서는 2열,
-   넓은 데스크톱에서는 3~4열까지 자연스럽게 늘어난다(ConsumerLayout의 셸 폭 제한 해제와 짝을 이룸).
+   카드 폭(최소 300px)에 맞춰 화면 너비만큼 늘어나므로, 태블릿에서는 2열, 넓은 데스크톱에서는
+   3~4열까지 자연스럽게 늘어난다(ConsumerLayout의 셸 폭 제한 해제와 짝을 이룸).
+   auto-fit이 아니라 auto-fill을 쓴다 — auto-fit은 그리드마다(카테고리 섹션마다 그리드가 따로다)
+   담긴 아이템 수가 적으면 빈 열을 없애고 카드를 늘려 채워서, 같은 화면 너비에서도 아이템이
+   적은 카테고리만 카드가 넓어지고 열 수가 달라 보이는 문제가 있었다. auto-fill은 아이템 수와
+   무관하게 그 너비에서 항상 같은 열 수를 고정해, 아이템이 모자란 줄엔 카드 대신 빈 공간이
+   남더라도 모든 카테고리의 열 수·카드 폭이 항상 같게 유지된다.
    실제 힌지가 있는 기기에서는 --fold-gap만큼 열 사이 간격도 넓어진다(값이 없으면 0). */
 @media (min-width: 717px) {
   .order-shell__items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     column-gap: var(--fold-gap, 0px);
   }
 
