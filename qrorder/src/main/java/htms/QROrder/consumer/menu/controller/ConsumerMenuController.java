@@ -225,6 +225,7 @@ public class ConsumerMenuController {
     }
 
     @Operation(
+            operationId = "getConsumerMenuImage",
             summary = "Consumer 메뉴 이미지 조회",
             description = "QR 세션 사업장에서 노출 중인 메뉴에 연결된 이미지만 반환한다. "
                     + "다른 사업장 파일, 메뉴에 연결되지 않은 첨부파일, 삭제된 파일은 모두 404로 처리해 "
