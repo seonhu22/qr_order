@@ -73,6 +73,16 @@
           AND om.insert_user_id = 'CONSUMER'
     </select>
 
+    <select id="lockConsumerVisit" resultType="string">
+        SELECT sys_id
+        FROM order_master
+        WHERE sys_id = #{consumerSessionId}
+          AND link_sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+          AND insert_user_id = 'CONSUMER'
+        FOR UPDATE
+    </select>
+
     <insert id="insertConsumerVisit">
         INSERT INTO order_master (
             sys_id,

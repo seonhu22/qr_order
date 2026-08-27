@@ -53,6 +53,18 @@ public class ConsumerVisitService {
     }
 
     @Transactional
+    public ConsumerVisitRecord lockBoundVisit(QrConnectResponse qrTableInfo,
+                                               String consumerSessionId) {
+        String lockedVisitId = consumerVisitMapper.lockConsumerVisit(
+                consumerSessionId, qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+        if (lockedVisitId == null) {
+            return null;
+        }
+        return consumerVisitMapper.findConsumerVisit(
+                consumerSessionId, qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+    }
+
+    @Transactional
     public ConsumerVisitRecord touchBoundVisit(QrConnectResponse qrTableInfo,
                                                 String consumerSessionId) {
         consumerVisitMapper.touchActiveConsumerVisit(

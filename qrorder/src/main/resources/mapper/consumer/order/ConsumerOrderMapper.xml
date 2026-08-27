@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.consumer.order.repository.ConsumerOrderMapper">
+
+    <select id="lockOrderNumberScope" resultType="int">
+        SELECT 1
+        FROM (
+            SELECT pg_advisory_xact_lock(hashtext(#{sysPlantCd}))
+        ) locked_scope
+    </select>
+
+    <select id="findNextOrderNumber" resultType="int">
+        SELECT COALESCE(MAX(order_num), 0) + 1
+        FROM order_group
+        WHERE sys_plant_cd = #{sysPlantCd}
+    </select>
+
+    <insert id="insertOrderGroup">
+        INSERT INTO order_group (
+            sys_id,
+            cancel_yn,
+            cancel_reason,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd,
+            link_sys_id,
+            order_num,
+            order_status
+        ) VALUES (
+            #{orderId},
+            'N',
+            '',
+            'CONSUMER',
+            #{orderedAt},
+            #{sysPlantCd},
+            #{consumerSessionId},
+            #{orderNumber},
+            '01'
+        )
+    </insert>
+
+    <insert id="insertOrderDetail">
+        INSERT INTO order_detail (
+            sys_id,
+            link_sys_id,
+            option_yn,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd,
+            link_sys_id2,
+            link_sys_id3,
+            qty,
+            payment_yn
+        ) VALUES (
+            #{orderItemId},
+            #{consumerSessionId},
+            <choose>
+                <when test="hasOptions">'Y'</when>
+                <otherwise>'N'</otherwise>
+            </choose>,
+            'CONSUMER',
+            #{orderedAt},
+            #{sysPlantCd},
+            #{menuSysId},
+            #{orderId},
+            #{quantity},
+            'N'
+        )
+    </insert>
+
+    <insert id="insertOrderDetailOption">
+        INSERT INTO order_detail_option (
+            sys_id,
+            link_sys_id,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd,
+            link_sys_id2,
+            qty
+        ) VALUES (
+            #{orderOptionId},
+            #{orderItemId},
+            'CONSUMER',
+            #{orderedAt},
+            #{sysPlantCd},
+            #{optionSysId},
+            #{quantity}
+        )
+    </insert>
+
+</mapper>
