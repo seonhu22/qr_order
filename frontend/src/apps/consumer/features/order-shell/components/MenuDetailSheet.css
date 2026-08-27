@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   margin-inline: calc(var(--spacing-8) * -1);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 12 / 6;
   background-color: var(--color-bg-muted);
   color: var(--color-text-tertiary);
   overflow: hidden;
