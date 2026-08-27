@@ -7,6 +7,13 @@
         om.sys_id AS consumer_session_id,
         om.link_sys_id AS table_sys_id,
         om.sys_plant_cd,
+        (
+            SELECT sp.store_nm
+            FROM sys_plant sp
+            WHERE sp.plant_cd = om.sys_plant_cd
+              AND sp.use_yn = 'Y'
+              AND sp.delete_yn = 'N'
+        ) AS store_name,
         om.order_status,
         om.insert_datetime AS started_at,
         COALESCE(om.modify_datetime, om.insert_datetime) AS last_activity_at,
@@ -32,6 +39,14 @@
           AND use_yn = 'Y'
           AND delete_yn = 'N'
         FOR UPDATE
+    </select>
+
+    <select id="findStoreName" resultType="string">
+        SELECT store_nm
+        FROM sys_plant
+        WHERE plant_cd = #{sysPlantCd}
+          AND use_yn = 'Y'
+          AND delete_yn = 'N'
     </select>
 
     <select id="findActiveConsumerVisit"

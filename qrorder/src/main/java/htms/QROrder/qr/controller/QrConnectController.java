@@ -1,6 +1,7 @@
 package htms.QROrder.qr.controller;
 
 import htms.QROrder.common.dto.CommonResponse;
+import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import htms.QROrder.qr.service.QrConnectService;
 import jakarta.servlet.http.HttpSession;
@@ -22,6 +23,8 @@ public class QrConnectController {
                                                         HttpSession session) {
 
         QrConnectResponse response = qrConnectService.getTableInfo(url);
+
+        session.removeAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE);
 
         if (response == null) {
             // 재연결에 실패했는데 이전 QR 권한이 남으면 만료된 테이블로 계속 주문할 수 있다.

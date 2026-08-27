@@ -13,6 +13,8 @@ public interface ConsumerVisitMapper {
                                            String tableSysId,
                                            String sysPlantCd);
 
+    String findStoreName(String sysPlantCd);
+
     void insertConsumerVisit(String consumerSessionId, String tableSysId, String sysPlantCd);
 
     int deleteExpiredEmptyConsumerVisit(String consumerSessionId,

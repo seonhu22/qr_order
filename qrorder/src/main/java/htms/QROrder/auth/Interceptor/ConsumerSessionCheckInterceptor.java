@@ -38,6 +38,8 @@ public class ConsumerSessionCheckInterceptor implements HandlerInterceptor {
 
     private boolean isValidQrTableInfo(Object sessionValue) {
         return sessionValue instanceof QrConnectResponse qrTableInfo
+                && qrTableInfo.getSysId() != null
+                && !qrTableInfo.getSysId().isBlank()
                 && qrTableInfo.getSysPlantCd() != null
                 && !qrTableInfo.getSysPlantCd().isBlank()
                 && qrTableInfo.getTableNum() != null;

@@ -46,6 +46,29 @@ public class ConsumerVisitService {
                 visit.getConsumerSessionId(), tableSysId, sysPlantCd));
     }
 
+    public ConsumerVisitRecord findBoundVisit(QrConnectResponse qrTableInfo,
+                                               String consumerSessionId) {
+        return consumerVisitMapper.findConsumerVisit(
+                consumerSessionId, qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+    }
+
+    @Transactional
+    public ConsumerVisitRecord touchBoundVisit(QrConnectResponse qrTableInfo,
+                                                String consumerSessionId) {
+        consumerVisitMapper.touchActiveConsumerVisit(
+                consumerSessionId, qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+        return consumerVisitMapper.findConsumerVisit(
+                consumerSessionId, qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+    }
+
+    public String findStoreName(String sysPlantCd) {
+        String storeName = consumerVisitMapper.findStoreName(sysPlantCd);
+        if (storeName == null) {
+            throw new IllegalStateException("Consumer 매장 정보를 확인할 수 없습니다.");
+        }
+        return storeName;
+    }
+
     private ConsumerVisitRecord requireVisit(ConsumerVisitRecord visit) {
         if (visit == null) {
             throw new IllegalStateException("Consumer 방문 정보를 확인할 수 없습니다.");

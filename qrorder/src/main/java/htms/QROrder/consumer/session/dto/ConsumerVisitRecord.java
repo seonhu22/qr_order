@@ -9,6 +9,7 @@ public class ConsumerVisitRecord {
     private String consumerSessionId;
     private String tableSysId;
     private String sysPlantCd;
+    private String storeName;
     private String orderStatus;
     private LocalDateTime startedAt;
     private LocalDateTime lastActivityAt;
