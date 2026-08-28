@@ -4,7 +4,7 @@ import htms.QROrder.qr.dto.QrConnectResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
@@ -13,16 +13,22 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * 직원 로그인(loginUser)은 이 경계의 인증 근거가 되지 않는다.
  * QR 연결로 생성된 qrTableInfo만 인정하며, 구조가 유효한지까지 확인한다.
  */
-@Component
-public class ConsumerSessionCheckInterceptor implements HandlerInterceptor {
+@Slf4j
+public class ConsumerAuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                                 HttpServletResponse response,
                                 Object handler) throws Exception {
 
         HttpSession session = request.getSession(false);
+        Object attr = session == null ? null : session.getAttribute("qrTableInfo");
 
-        if (session == null || !isValidQrTableInfo(session.getAttribute("qrTableInfo"))) {
+        if (session == null || !isValidQrTableInfo(attr)) {
+            log.debug("Consumer 401. sessionNull={}, attrClass={}, uri={}",
+                    session == null,
+                    attr == null ? "null" : attr.getClass().getSimpleName(),
+                    request.getRequestURI());
+
             if (session != null) {
                 session.removeAttribute("qrTableInfo");
             }

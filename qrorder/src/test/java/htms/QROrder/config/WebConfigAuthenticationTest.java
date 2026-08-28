@@ -1,6 +1,6 @@
 package htms.QROrder.config;
 
-import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.auth.Interceptor.RoleCheckInterceptor;
 import org.junit.jupiter.api.Test;
@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class WebConfigAuthenticationTest {
 
-    private static final ConsumerSessionCheckInterceptor CONSUMER_BOUNDARY =
-            new ConsumerSessionCheckInterceptor();
-
     /** InterceptorRegistry.getInterceptors()가 protected라 상속으로 열어 쓴다. */
     private static class ExposedRegistry extends InterceptorRegistry {
         List<Object> registered() {
@@ -35,7 +32,7 @@ class WebConfigAuthenticationTest {
 
     private static List<Object> registeredInterceptors() {
         ExposedRegistry registry = new ExposedRegistry();
-        new WebConfig(CONSUMER_BOUNDARY).addInterceptors(registry);
+        new WebConfig().addInterceptors(registry);
         return registry.registered();
     }
 
@@ -71,34 +68,34 @@ class WebConfigAuthenticationTest {
 
     @Test
     void consumerPathsAreGuardedOnlyByConsumerBoundary() {
-        assertGuardedBy("/api/client/consumer/menu/main", ConsumerSessionCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/main", ConsumerAuthInterceptor.class);
         assertNotGuardedBy("/api/client/consumer/menu/main", LoginCheckInterceptor.class);
 
-        assertGuardedBy("/api/client/consumer/menu/search", ConsumerSessionCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/search", ConsumerAuthInterceptor.class);
         assertNotGuardedBy("/api/client/consumer/menu/search", LoginCheckInterceptor.class);
 
-        assertGuardedBy("/api/client/consumer/menu/01JABCDEF", ConsumerSessionCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/01JABCDEF", ConsumerAuthInterceptor.class);
         assertNotGuardedBy("/api/client/consumer/menu/01JABCDEF", LoginCheckInterceptor.class);
     }
 
     @Test
     void staffPathsAreGuardedOnlyByStaffBoundary() {
         assertGuardedBy("/api/client/menu_manage/menu/master/search", LoginCheckInterceptor.class);
-        assertNotGuardedBy("/api/client/menu_manage/menu/master/search", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/client/menu_manage/menu/master/search", ConsumerAuthInterceptor.class);
     }
 
     /** 0824-1의 핵심: 타 매장 메뉴가 노출되던 경로가 직원 경계 안에 남아야 한다. */
     @Test
     void crossTenantMenuDetailPathStaysBehindStaffBoundary() {
         assertGuardedBy("/api/client/menu_manage/menu/detail/search/01JMASTER", LoginCheckInterceptor.class);
-        assertNotGuardedBy("/api/client/menu_manage/menu/detail/search/01JMASTER", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/client/menu_manage/menu/detail/search/01JMASTER", ConsumerAuthInterceptor.class);
     }
 
     /** 첨부파일 조회는 Consumer 경로가 아니므로 직원 경계가 지켜야 한다. */
     @Test
     void attachFileViewStaysBehindStaffBoundary() {
         assertGuardedBy("/api/attach_file/view", LoginCheckInterceptor.class);
-        assertNotGuardedBy("/api/attach_file/view", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/attach_file/view", ConsumerAuthInterceptor.class);
     }
 
     // ---------- 역할 검사는 직원 인증 뒤에 온다 ----------

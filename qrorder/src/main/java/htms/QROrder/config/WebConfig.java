@@ -1,17 +1,13 @@
 package htms.QROrder.config;
 
-import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.auth.Interceptor.RoleCheckInterceptor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
-@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
-
-    private final ConsumerSessionCheckInterceptor consumerSessionCheckInterceptor;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -38,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/client/consumer/**",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**");
 
-        registry.addInterceptor(consumerSessionCheckInterceptor)
+        registry.addInterceptor(new ConsumerAuthInterceptor())
                 .order(1)
                 .addPathPatterns("/api/client/consumer/**");
 

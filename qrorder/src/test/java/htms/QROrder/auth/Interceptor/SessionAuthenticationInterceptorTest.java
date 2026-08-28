@@ -22,7 +22,7 @@ class SessionAuthenticationInterceptorTest {
     private static final String CONSUMER_MESSAGE = "QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요.";
 
     private final LoginCheckInterceptor staffBoundary = new LoginCheckInterceptor();
-    private final ConsumerSessionCheckInterceptor consumerBoundary = new ConsumerSessionCheckInterceptor();
+    private final ConsumerAuthInterceptor consumerBoundary = new ConsumerAuthInterceptor();
 
     private static QrConnectResponse validQrTableInfo() {
         QrConnectResponse qrTableInfo = new QrConnectResponse();

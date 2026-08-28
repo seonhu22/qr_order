@@ -1,6 +1,6 @@
 package htms.QROrder.consumer.menu;
 
-import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.consumer.menu.controller.ConsumerMenuController;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuDetailBody;
@@ -42,7 +42,7 @@ class ConsumerMenuControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ConsumerMenuController(consumerMenuService))
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new ConsumerSessionCheckInterceptor())
+                .addInterceptors(new ConsumerAuthInterceptor())
                 .build();
     }
 

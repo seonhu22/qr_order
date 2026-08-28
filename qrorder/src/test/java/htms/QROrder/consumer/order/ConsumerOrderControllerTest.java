@@ -1,6 +1,6 @@
 package htms.QROrder.consumer.order;
 
-import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.common.exception.GlobalExceptionHandler;
 import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.consumer.order.controller.ConsumerOrderController;
@@ -49,7 +49,7 @@ class ConsumerOrderControllerTest {
                 .standaloneSetup(new ConsumerOrderController(
                         consumerOrderCreationService, consumerOrderQueryService))
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new ConsumerSessionCheckInterceptor())
+                .addInterceptors(new ConsumerAuthInterceptor())
                 .build();
     }
 

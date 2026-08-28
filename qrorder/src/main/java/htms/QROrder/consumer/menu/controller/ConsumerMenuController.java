@@ -247,7 +247,7 @@ public class ConsumerMenuController {
         QrConnectResponse qrTableInfo = getValidQrTableInfo(session);
 
         if (qrTableInfo == null) {
-            // ConsumerSessionCheckInterceptor가 이미 걸러낸다. 여기까지 오면 방어선이므로
+            // ConsumerAuthInterceptor가 이미 걸러낸다. 여기까지 오면 방어선이므로
             // unauthorizedQrSession()을 쓰지 않는다 — 이미지 요청 한 건이 QR 세션을 지우면 안 된다.
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
