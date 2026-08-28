@@ -81,6 +81,7 @@
 }
 
 .consumer-header__action-button {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
@@ -97,6 +98,23 @@
 
 .consumer-header__action-button:active {
   background-color: var(--color-bg-selected);
+}
+
+/* 주문내역 버튼의 누적 주문 수량 배지 — 완료된 주문이 하나라도 생기면 뜬다. */
+.consumer-header__order-history-badge {
+  position: absolute;
+  top: calc(var(--spacing-2) * -1);
+  right: calc(var(--spacing-2) * -1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+  font-size: 0.5625rem;
+  font-weight: var(--typography-weight-strong);
 }
 
 .consumer-header__icon-button {

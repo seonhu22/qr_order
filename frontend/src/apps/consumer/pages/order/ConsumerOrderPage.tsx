@@ -9,6 +9,7 @@ import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/Me
 import { NetworkErrorScreen } from '@/apps/consumer/features/order-shell/components/NetworkErrorScreen';
 import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
 import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
+import { OrderHistorySheet } from '@/apps/consumer/features/order-shell/components/OrderHistorySheet';
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
 import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
 import { SoldoutModal } from '@/apps/consumer/features/order-shell/components/SoldoutModal';
@@ -56,13 +57,19 @@ export function ConsumerOrderPage() {
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
-  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니는 아이콘+개수 배지가
-  // 붙은 자체 헤더를 쓰기 때문에 둘 다 공용 시트 제목을 노출하지 않는다. 스크린리더용 이름만
-  // ariaLabel로 따로 넘긴다.
+  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니·주문내역은 아이콘+
+  // 개수 배지가 붙은 자체 헤더를 쓰기 때문에 셋 다 공용 시트 제목을 노출하지 않는다.
+  // 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
   const sheetTitle =
-    sheet && sheet.type !== 'menu-detail' && sheet.type !== 'cart' ? SHEET_TITLE[sheet.type] : undefined;
+    sheet && sheet.type !== 'menu-detail' && sheet.type !== 'cart' && sheet.type !== 'order-history'
+      ? SHEET_TITLE[sheet.type]
+      : undefined;
   const sheetAriaLabel =
-    sheet?.type === 'menu-detail' ? detailItem?.name : sheet?.type === 'cart' ? SHEET_TITLE.cart : undefined;
+    sheet?.type === 'menu-detail'
+      ? detailItem?.name
+      : sheet?.type === 'cart' || sheet?.type === 'order-history'
+        ? SHEET_TITLE[sheet.type]
+        : undefined;
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isFirstCategoryRender = useRef(true);
@@ -214,7 +221,9 @@ export function ConsumerOrderPage() {
           </div>
         )}
 
-        {(sheet?.type === 'order-history' || sheet?.type === 'staff-call') && (
+        {sheet?.type === 'order-history' && <OrderHistorySheet onClose={closeSheet} />}
+
+        {sheet?.type === 'staff-call' && (
           <p className="order-shell-sheet__placeholder">준비 중입니다.</p>
         )}
       </ConsumerBottomSheet>
