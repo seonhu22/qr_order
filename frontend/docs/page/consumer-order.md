@@ -191,11 +191,13 @@ type ConsumerSheetState =
 
 ### QA 미리보기 트리거
 
-헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 6개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류"/"품절 초기화")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 앞 5개는 `orderPhase`를 강제로 바꾸고, "품절 초기화"는 [품절 데모](#품절-데모-qr-code-001)의 상태를 되돌린다. 각 항목은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고, `useConsumerOrderPage`가 이를 구독해 처리한 뒤 요청을 곧바로 비운다.
+헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 7개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류"/"품절 초기화"/"주문내역 초기화")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 앞 5개는 `orderPhase`를 강제로 바꾸고, "품절 초기화"는 [품절 데모](#품절-데모-qr-code-001)를, "주문내역 초기화"는 [주문내역](#주문내역)을 되돌린다. 앞 6개는 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고 `useConsumerOrderPage`가 이를 구독해 처리하지만, "주문내역 초기화"는 `consumerOrderHistoryStore`가 이미 헤더·order-shell 양쪽에서 접근 가능한 스토어라 그 스토어의 `clearOrders`를 헤더가 직접 호출한다(QA 스토어를 거칠 필요가 없다).
 
 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)이 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 값을 `useState`로 구독해 `useEffect`에서 반응하지 않고 zustand의 vanilla `.subscribe()`로 구독한다 — `useState` 구독 방식은 `react-hooks/set-state-in-effect` 린트에 걸린다. 자세한 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
 
 production 빌드에서는 `import.meta.env.DEV`가 `false`로 굳어 드롭다운·QA 스토어 관련 코드가 tree-shake로 사라진다 — 실사용자에게는 노출되지 않는다.
+
+> **실 배포 전 삭제 대상**: 이 드롭다운(`consumer-header__qa-menu`)과 `consumerOrderQaStore`, 그리고 여기서만 쓰는 각 트리거 함수(`triggerOrderFailure`/`triggerSessionExpiry`/`triggerNetworkError`/`resetSoldoutDemo`, `consumerOrderHistoryStore`의 `clearOrders`)는 전부 실제 판별 로직이 붙기 전까지만 쓰는 임시 스캐폴딩이다. `import.meta.env.DEV` 가드로 production 빌드 결과물에는 이미 안 들어가지만, 그 가드만 믿지 말고 실제 판별 로직(재고 API, 세션 만료 감지 등)이 전부 자리 잡으면 이 QA 트리거 코드 자체를 코드베이스에서 지운다 — 설정(⚙) 버튼도 그때 실제 설정 기능으로 채우거나 없앤다.
 
 ## 품절 데모 (`qr-code-001`)
 
@@ -228,6 +230,26 @@ QR코드 `qr-code-001`(창가 1번 테이블, `table-001`)로 들어오면 무�
 `CartLineItem`은 `soldout` prop이 켜지면(`soldoutCartKeys.has(line.cartKey)`) 세 곳이 바뀐다 — 이름 옆 수량/합계 자리가 삭제 전용 버튼(`QuantityStepperButton icon="remove"` + `qty-button--danger`, 이 줄의 다른 삭제 버튼과 같은 28×28px을 그대로 재사용)으로, 옵션 라인이 취소선으로, 1개당 가격+수량 스텝퍼 자리가 "현재 품절된 메뉴입니다"(빨강, `--typography-size-caption`+`--typography-weight-heading`) + 취소선 가격으로 바뀐다. "주문하기" 버튼은 `hasSoldoutInCart`(장바구니에 아직 품절 표기된 줄이 남아있는지)로 비활성화된다.
 
 `SoldoutModal`의 확인 목록도 같은 메뉴를 옵션만 다르게 여러 줄 담았을 때 서로 구분되도록 옵션명을 이름 뒤에 붙인다(`formatSoldoutItemLabel`, 예: "불고기 정식 (백미, 계란후라이)"). 목록이 화면보다 길어질 수 있어(장바구니 전체가 한 번에 품절 처리되므로) `ConsumerBottomSheet`와 같은 방식으로 모달 카드에 `max-height`를 두고 목록만 내부 스크롤시켜 "확인" 버튼이 항상 화면 안에 남게 했다.
+
+## 주문내역
+
+"주문내역"은 완료된 주문만 담는다 — 결제 여부와 무관하게 "주문하기"가 성공(`startOrderProcessing`의 `setTimeout` 콜백)한 시점의 장바구니 스냅샷을 기록한다. 아직 담기만 하고 주문하지 않은 현재 장바구니는 포함되지 않는다. 배경은 [`decisions.md` ADR-027](../decisions.md#adr-027--주문내역은-주문-건별로-시간과-함께-묶어서-보여준다) 참고.
+
+### 저장 위치
+
+`consumerOrderHistoryStore`(zustand, `apps/consumer/stores/`) — 헤더(배지를 읽어야 함)와 order-shell(`useConsumerOrderPage`, 주문 완료 시 기록해야 함)이 서로 다른 컴포넌트라 페이지 로컬 state 대신 스토어에 둔다. 장바구니와 마찬가지로 새로고침하면 비워지는 mock이다.
+
+### 주문 건별로 시간과 함께 묶어서 보여준다
+
+참고 저장소는 모든 주문의 아이템과 현재 장바구니까지 시간 구분 없이 한 목록으로 합쳐 보여준다(`OrderRecord.time`/`orderId` 필드는 있지만 화면 어디에도 안 쓴다). 같은 메뉴를 다른 시각에 여러 번 주문하면 목록에 이유 설명 없이 같은 이름이 두 번 뜨는 문제가 있어, 이 프로젝트는 주문 건(`OrderShellOrderRecord`)마다 접수 시각과 함께 묶어서 보여주도록 바꿨다 — 배달 앱들의 "주문내역"이 건별로 나뉘어 보이는 것과 같은 기대에 맞춘 것이다.
+
+### 화면 구성
+
+`OrderHistorySheet`(`features/order-shell/components/`)는 장바구니 시트와 같은 톤을 쓴다 — 헤더(아이콘+제목+누적 수량 배지), 빈 상태(아이콘+"주문내역이 없습니다."), 하단 총 결제 금액 행은 `order-shell-cart-header`/`order-shell-cart-empty`/`order-shell-cart-total` 클래스를 그대로 재사용한다. 다만 과거 기록이라 수량 스텝퍼·삭제 버튼 같은 조작 UI는 없고, 하단에 "확인"(닫기) 버튼 하나만 있다 — 처음엔 버튼 없이 스와이프/핸들탭으로만 닫히게 했다가, 다른 시트들과 비교해 허전하고 첫 사용자가 닫는 법을 모를 수 있어 추가했다.
+
+### 헤더 배지
+
+`ConsumerHeader`의 "주문내역" 버튼에 누적 주문 수량 배지가 붙는다(9개 넘으면 "9+", 0개면 배지 자체를 숨김) — 참고 저장소의 `totalOrderedQty` 배지와 동일하게, 주문이 하나라도 생기면 버튼이 "활성화된" 느낌을 준다.
 
 ## CartBar는 `position: fixed`다 (sticky 아님)
 

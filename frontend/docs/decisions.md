@@ -979,3 +979,32 @@ ADR-024로 주문 실패 2종(`error-network`/`error-duplicate`)을 먼저 화�
 - `SoldoutModal`의 포커스 트랩·자동 포커스는 admin/client `WrapperModal`과 같은 기법(포커스 저장/복원, Tab 트랩)을 Consumer 전용으로 다시 구현했다 — ADR-020(Consumer는 WrapperModal을 재사용하지 않는다)과 일관된 선택이다.
 
 ---
+
+## ADR-027 — 주문내역은 주문 건별로 시간과 함께 묶어서 보여준다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 주문내역(`OrderHistorySheet`)은 `commitOrder`가 성공할 때마다 `OrderRecord{ orderId, time, items, total }`를 쌓지만, 화면에서는 모든 주문의 아이템과 **아직 주문하지 않은 현재 장바구니**까지 시간 구분 없이 한 목록으로 합쳐 보여준다 — `time`/`orderId` 필드는 정의만 해두고 어디서도 렌더링하지 않는다. 같은 메뉴를 서로 다른 시각에 두 번 주문하면 목록에 이유 설명 없이 같은 이름이 두 번 뜨는 문제가 있고, 아직 결제 전인 장바구니 내용까지 "내역"에 섞이는 것도 어색하다.
+
+### 결정
+
+- `OrderShellOrderRecord{ orderId, orderedAt, items, total }`를 `useConsumerOrderPage`의 `startOrderProcessing` 성공 시점(장바구니 비우기 직전)에 기록한다 — 결제 여부와 무관하게 "주문하기"가 성공하면 무조건 남는다. 아직 담기만 한 현재 장바구니는 포함하지 않는다.
+- 화면(`OrderHistorySheet`)은 참고 저장소처럼 아이템을 통째로 합치지 않고, 주문 건마다 접수 시각과 함께 묶어서 보여준다 — 배달 앱들의 "주문내역"이 건별로 나뉘어 보이는 것과 같은 사용자 기대에 맞춘 선택이다.
+- 헤더(배지)와 order-shell(기록)이 다른 컴포넌트라 `consumerOrderHistoryStore`(zustand)를 새로 둔다 — `consumerSheetStore`/`consumerOrderFilterStore`와 같은 이유.
+- `ConsumerHeader`의 "주문내역" 버튼에 누적 주문 수량 배지를 추가한다(참고 저장소의 `totalOrderedQty` 배지와 동일).
+
+### 백엔드 협의 항목
+
+- [ ] 주문내역 조회 API 스펙 — 세션(테이블)별로 어떻게 스코프되는지, 새로고침·QR 재스캔 후에도 유지돼야 하는지
+- [ ] "주문 건"의 식별자(`orderId`)를 백엔드가 어떤 형태로 내려주는지
+
+### 결과
+
+- 실제 API가 붙으면 `startOrderProcessing`의 기록 지점을 서버 응답 기반으로 바꾸고, `OrderHistorySheet`의 건별 그룹 렌더링은 그대로 재사용할 수 있다.
+- QA 드롭다운에 "주문내역 초기화"를 추가했다 — `consumerOrderHistoryStore`가 이미 헤더·order-shell 양쪽에서 접근 가능한 스토어라, ADR-024/025/026과 달리 `consumerOrderQaStore`를 거치지 않고 헤더가 스토어의 `clearOrders`를 직접 호출한다.
+- 이 QA 드롭다운 전체(설정 버튼)는 실제 판별 로직이 자리 잡으면 코드베이스에서 지워야 할 임시 스캐폴딩이다 — `import.meta.env.DEV` 가드로 production 빌드에는 이미 안 들어가지만, 그 가드만 믿지 말고 실제로 필요 없어지면 삭제한다.
+
+---
