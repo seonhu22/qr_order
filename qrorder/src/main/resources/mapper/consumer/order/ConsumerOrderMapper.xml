@@ -139,6 +139,20 @@
         ORDER BY og.insert_datetime DESC, og.sys_id DESC
     </select>
 
+    <select id="existsPaidOrder" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM order_group og
+            <include refid="currentConsumerOrderScope"/>
+            INNER JOIN order_detail od
+                ON od.link_sys_id3 = og.sys_id
+                AND od.link_sys_id = og.link_sys_id
+                AND od.sys_plant_cd = og.sys_plant_cd
+            WHERE <include refid="currentConsumerOrderPredicate"/>
+              AND od.payment_yn = 'Y'
+        )
+    </select>
+
     <select id="findOrderDetailHeader"
             resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderDetailHeaderRow">
         SELECT

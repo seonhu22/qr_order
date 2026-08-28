@@ -42,7 +42,7 @@ public class ConsumerSessionService {
     }
 
     private String statusOf(ConsumerVisitRecord visit) {
-        if ("02".equals(visit.getOrderStatus())) {
+        if ("02".equals(visit.getOrderStatus()) || "03".equals(visit.getOrderStatus())) {
             return "CLOSED";
         }
         if (!"01".equals(visit.getOrderStatus())) {

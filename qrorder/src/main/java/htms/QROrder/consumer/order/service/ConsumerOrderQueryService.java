@@ -42,6 +42,7 @@ public class ConsumerOrderQueryService {
                 .stream()
                 .map(this::summary)
                 .toList();
+        requireOpenVisit(binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd());
         consumerVisitService.touchBoundVisit(qrTableInfo, binding.getConsumerSessionId());
         return new ConsumerOrderListResponse(orders);
     }
@@ -67,6 +68,7 @@ public class ConsumerOrderQueryService {
                 binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd(), normalizedOrderId);
 
         ConsumerOrderDetailResponse response = detail(header, itemRows, optionRows);
+        requireOpenVisit(binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd());
         consumerVisitService.touchBoundVisit(qrTableInfo, binding.getConsumerSessionId());
         return response;
     }
@@ -74,9 +76,17 @@ public class ConsumerOrderQueryService {
     private void requireActiveSession(QrConnectResponse qrTableInfo,
                                       ConsumerSessionBinding binding) {
         consumerOrderSessionGuard.requireMatchingBinding(qrTableInfo, binding);
-        ConsumerVisitRecord visit = consumerVisitService.findBoundVisit(
+        ConsumerVisitRecord visit = consumerVisitService.lockBoundVisit(
                 qrTableInfo, binding.getConsumerSessionId());
         consumerOrderSessionGuard.requireActiveVisit(visit);
+        requireOpenVisit(binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd());
+    }
+
+    private void requireOpenVisit(String consumerSessionId, String sysPlantCd) {
+        if (consumerOrderMapper.existsPaidOrder(consumerSessionId, sysPlantCd)) {
+            throw new htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException(
+                    "종료되었거나 만료된 방문입니다.");
+        }
     }
 
     private ConsumerOrderSummary summary(ConsumerOrderSummaryRow row) {

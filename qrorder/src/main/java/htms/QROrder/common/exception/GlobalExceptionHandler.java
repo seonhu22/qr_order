@@ -103,12 +103,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonResponse> handleException(Exception e) {
         log.error("Unhandled exception", e);
-        String cause = e.getCause() != null ? e.getCause().getMessage() : null;
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CommonResponse.<Void>builder()
                         .success(false)
                         .message("오류가 발생했습니다. 관리자에게 문의 바랍니다.")
-                        .error(e.getMessage() + (cause != null ? " | Caused by: " + cause : ""))
                         .build()
                 );
     }
