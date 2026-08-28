@@ -2,6 +2,7 @@ import type { Body } from '@/generated/types/body';
 import type { Footer } from '@/generated/types/footer';
 import type { StatusHeader } from '@/generated/types/statusHeader';
 import type { StatusResponse } from '@/generated/types/statusResponse';
+import type { LocalTime } from '@/generated/types/localTime';
 import { buildOrderBoardDatetime } from '../utils';
 import type {
   OrderBoardMenuItem,
@@ -10,7 +11,13 @@ import type {
 } from '../types';
 import { toOrderBoardStatus } from './statusCodeMapper';
 
-export type OrderStatusCompatibleHeader = StatusHeader & {
+export type OrderStatusCompatibleHeader = Omit<
+  StatusHeader,
+  'orderDatetime' | 'orderTime' | 'cancelDatetime'
+> & {
+  orderDatetime?: string | LocalTime;
+  orderTime?: string | LocalTime;
+  cancelDatetime?: string | LocalTime;
   tableInfo?: string;
   paymentStatus?: OrderBoardPaymentStatus;
   cancelledAt?: string;
@@ -28,8 +35,11 @@ export type OrderStatusCompatibleResponse = Omit<StatusResponse, 'statusList'> &
   }>;
 };
 
-function normalizeDatetime(value?: string): string {
+function normalizeDatetime(value?: string | LocalTime): string {
   if (!value) return buildOrderBoardDatetime(new Date(), 0, 0);
+  if (typeof value !== 'string') {
+    return buildOrderBoardDatetime(new Date(), value.hour ?? 0, value.minute ?? 0);
+  }
   if (/^\d{2}:\d{2}$/.test(value)) {
     const [hours, minutes] = value.split(':').map(Number);
     return buildOrderBoardDatetime(new Date(), hours, minutes);
