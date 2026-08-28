@@ -4,11 +4,17 @@ import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateEnvelope;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
+import htms.QROrder.consumer.order.dto.ConsumerOrderDetailEnvelope;
+import htms.QROrder.consumer.order.dto.ConsumerOrderDetailResponse;
+import htms.QROrder.consumer.order.dto.ConsumerOrderListEnvelope;
+import htms.QROrder.consumer.order.dto.ConsumerOrderListResponse;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
+import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConsumerOrderController {
 
     private final ConsumerOrderCreationService consumerOrderCreationService;
+    private final ConsumerOrderQueryService consumerOrderQueryService;
 
     @Operation(
             operationId = "createConsumerOrder",
@@ -64,6 +73,60 @@ public class ConsumerOrderController {
                         .success(true)
                         .data(response)
                         .build());
+    }
+
+    @Operation(
+            operationId = "getConsumerOrders",
+            summary = "Consumer 공유 주문 목록 조회",
+            description = "현재 QR 방문에 속한 주문 티켓을 최신순으로 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "주문 목록 조회 성공",
+            content = @Content(schema = @Schema(implementation = ConsumerOrderListEnvelope.class)))
+    @ApiResponse(responseCode = "401", description = "QR 또는 Consumer 방문 바인딩 없음",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "410", description = "결제완료 또는 만료된 방문",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "500", description = "처리되지 않은 서버 오류",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @GetMapping
+    public ResponseEntity<CommonResponse> getOrders(HttpSession session) {
+        ConsumerOrderListResponse response = consumerOrderQueryService.getOrders(
+                qrTableInfo(session), consumerBinding(session));
+        return ok(response);
+    }
+
+    @Operation(
+            operationId = "getConsumerOrder",
+            summary = "Consumer 공유 주문 상세 조회",
+            description = "현재 QR 방문에 속한 주문 한 건의 메뉴와 옵션을 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "주문 상세 조회 성공",
+            content = @Content(schema = @Schema(implementation = ConsumerOrderDetailEnvelope.class)))
+    @ApiResponse(responseCode = "400", description = "잘못된 orderId",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "401", description = "QR 또는 Consumer 방문 바인딩 없음",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "404", description = "현재 방문에서 조회할 수 없는 주문",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "410", description = "결제완료 또는 만료된 방문",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "500", description = "처리되지 않은 서버 오류",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @GetMapping("/{orderId}")
+    public ResponseEntity<CommonResponse> getOrder(
+            @Parameter(schema = @Schema(maxLength = 64))
+            @PathVariable String orderId,
+            HttpSession session) {
+        ConsumerOrderDetailResponse response = consumerOrderQueryService.getOrder(
+                qrTableInfo(session), consumerBinding(session), orderId);
+        return ok(response);
+    }
+
+    private ResponseEntity<CommonResponse> ok(Object data) {
+        return ResponseEntity.ok(CommonResponse.builder()
+                .success(true)
+                .data(data)
+                .build());
     }
 
     private QrConnectResponse qrTableInfo(HttpSession session) {
