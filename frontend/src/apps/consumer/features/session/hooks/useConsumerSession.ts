@@ -27,7 +27,7 @@ function toConsumerSession(info: QrTableInfo | undefined): ConsumerSession | nul
 /**
  * 현재 Consumer QR 세션을 조회한다.
  *
- * 백엔드 세션 조회 API(GET /api/consumer/session)가 없어 아직 새로고침 복구는 되지 않는다.
+ * 백엔드 세션 조회 API(GET /api/client/consumer/session)가 없어 아직 새로고침 복구는 되지 않는다.
  * QR 인증 성공 직후 navigate state로 넘어온 테이블 정보가 있으면 그 값으로 세션을 구성하고,
  * 없으면 stub이 3번 테이블 고정값을 돌려준다 — 세션·통신 상태와 무관하게 흐름을 볼 수 있게 하기
  * 위한 것으로, `status`는 지금 항상 'active'다. 'expired'/'closed'/'none' 분기는

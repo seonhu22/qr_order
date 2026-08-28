@@ -70,9 +70,6 @@ qrorder/logs/
 ### Uploads ###
 uploads/
 
-### Test ###
-qrorder/src/test/
-
 ### Claude Code ###
 .claude/
 CLAUDE.md

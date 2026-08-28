@@ -6,6 +6,7 @@ import htms.QROrder.consumer.menu.dto.ConsumerMenuItem;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuMainResponse;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuOptionRow;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuSearchResponse;
+import htms.QROrder.common.service.FileService;
 import htms.QROrder.consumer.menu.repository.ConsumerMenuMapper;
 import htms.QROrder.consumer.menu.service.ConsumerMenuService;
 import htms.QROrder.common.exception.ValidationException;
@@ -27,7 +28,7 @@ class ConsumerMenuServiceTest {
     @Test
     void assemblesMainResponseFromStoreCategoryAndMenuQueries() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         List<ConsumerMenuCategoryItem> categoryList = List.of(new ConsumerMenuCategoryItem());
         List<ConsumerMenuItem> menuList = List.of(new ConsumerMenuItem());
@@ -51,7 +52,7 @@ class ConsumerMenuServiceTest {
     @Test
     void returnsNullWithoutQueryingMenusWhenStoreIsNoLongerAvailable() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getStoreName("PC002")).thenReturn(null);
 
@@ -65,7 +66,7 @@ class ConsumerMenuServiceTest {
     @Test
     void normalizesSearchConditionsAndAssemblesMenuBody() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
         List<ConsumerMenuItem> menuList = List.of(new ConsumerMenuItem());
 
         when(consumerMenuMapper.getStoreName("PC002")).thenReturn("테스트 매장");
@@ -86,7 +87,7 @@ class ConsumerMenuServiceTest {
     @Test
     void treatsBlankSearchConditionsAsMissing() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getStoreName("PC002")).thenReturn("테스트 매장");
         when(consumerMenuMapper.searchMenuList("PC002", null, null)).thenReturn(List.of());
@@ -100,7 +101,7 @@ class ConsumerMenuServiceTest {
     @Test
     void escapesLikeWildcardsBeforeSearching() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getStoreName("PC002")).thenReturn("테스트 매장");
         when(consumerMenuMapper.searchMenuList("PC002", "50\\%\\_할인\\\\메뉴", null))
@@ -114,7 +115,7 @@ class ConsumerMenuServiceTest {
     @Test
     void rejectsOverlongSearchConditionsBeforeQueryingStore() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
@@ -128,7 +129,7 @@ class ConsumerMenuServiceTest {
     @Test
     void returnsNullWithoutSearchingWhenStoreIsNoLongerAvailable() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getStoreName("PC002")).thenReturn(null);
 
@@ -146,7 +147,7 @@ class ConsumerMenuServiceTest {
     @Test
     void assemblesOrderedOptionGroupsForMenuDetail() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         ConsumerMenuItem menu = menu("menu-1", "Y");
         List<ConsumerMenuOptionRow> rows = List.of(
@@ -172,7 +173,7 @@ class ConsumerMenuServiceTest {
     @Test
     void skipsOptionQueryWhenMenuDoesNotUseOptions() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getMenuDetail("PC002", "menu-1")).thenReturn(menu("menu-1", "N"));
 
@@ -186,7 +187,7 @@ class ConsumerMenuServiceTest {
     @Test
     void returnsNullWithoutQueryingOptionsWhenMenuIsUnavailable() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getMenuDetail("PC002", "missing-menu")).thenReturn(null);
 
@@ -198,7 +199,7 @@ class ConsumerMenuServiceTest {
     @Test
     void rejectsOverlongMenuIdBeforeQueryingMenu() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
@@ -212,7 +213,7 @@ class ConsumerMenuServiceTest {
     @Test
     void rejectsUnknownOptionSelectionType() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getMenuDetail("PC002", "menu-1")).thenReturn(menu("menu-1", "Y"));
         when(consumerMenuMapper.getMenuOptionRows("PC002", "menu-1")).thenReturn(List.of(
@@ -228,7 +229,7 @@ class ConsumerMenuServiceTest {
     @Test
     void rejectsNonPositiveMaximumForQuantitySelection() {
         ConsumerMenuMapper consumerMenuMapper = mock(ConsumerMenuMapper.class);
-        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper);
+        ConsumerMenuService consumerMenuService = new ConsumerMenuService(consumerMenuMapper, mock(FileService.class));
 
         when(consumerMenuMapper.getMenuDetail("PC002", "menu-1")).thenReturn(menu("menu-1", "Y"));
         when(consumerMenuMapper.getMenuOptionRows("PC002", "menu-1")).thenReturn(List.of(

@@ -3,6 +3,7 @@ package htms.QROrder.consumer.menu.controller;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuDetailEnvelope;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuDetailResponse;
+import htms.QROrder.consumer.menu.dto.ConsumerMenuImage;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuMainEnvelope;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuMainResponse;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuSearchEnvelope;
@@ -17,7 +18,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,10 +31,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.TimeUnit;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/consumer/menu")
+@RequestMapping("/api/client/consumer/menu")
 public class ConsumerMenuController {
 
     private final ConsumerMenuService consumerMenuService;
@@ -215,6 +222,60 @@ public class ConsumerMenuController {
                         .data(response)
                         .build()
         );
+    }
+
+    @Operation(
+            operationId = "getConsumerMenuImage",
+            summary = "Consumer 메뉴 이미지 조회",
+            description = "QR 세션 사업장에서 노출 중인 메뉴에 연결된 이미지만 반환한다. "
+                    + "다른 사업장 파일, 메뉴에 연결되지 않은 첨부파일, 삭제된 파일은 모두 404로 처리해 "
+                    + "존재 여부가 드러나지 않게 한다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "메뉴 이미지",
+            content = @Content(mediaType = "image/*", schema = @Schema(type = "string", format = "binary"))
+    )
+    @ApiResponse(responseCode = "401", description = "QR 세션이 없거나 만료됨", content = @Content)
+    @ApiResponse(responseCode = "404", description = "조회할 수 없는 메뉴이거나 이미지가 없음", content = @Content)
+    @ApiResponse(responseCode = "500", description = "이미지를 읽을 수 없음", content = @Content)
+    @GetMapping("/{menuSysId}/image")
+    public ResponseEntity<Resource> getMenuImage(
+            @Parameter(schema = @Schema(maxLength = 64))
+            @PathVariable("menuSysId") String menuSysId,
+            HttpSession session) {
+        QrConnectResponse qrTableInfo = getValidQrTableInfo(session);
+
+        if (qrTableInfo == null) {
+            // ConsumerAuthInterceptor가 이미 걸러낸다. 여기까지 오면 방어선이므로
+            // unauthorizedQrSession()을 쓰지 않는다 — 이미지 요청 한 건이 QR 세션을 지우면 안 된다.
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        ConsumerMenuImage image;
+
+        try {
+            image = consumerMenuService.getMenuImage(qrTableInfo.getSysPlantCd(), menuSysId);
+        } catch (DataAccessException exception) {
+            log.error("Failed to load consumer menu image. menuSysId={}", menuSysId, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException exception) {
+            // 파일 메타와 실제 파일이 어긋난 경우. 서버 경로가 응답에 드러나지 않도록 본문 없이 끝낸다.
+            log.error("Failed to read consumer menu image file. menuSysId={}", menuSysId, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                // 메뉴 사진은 잘 바뀌지 않아 브라우저 캐시로 재요청을 줄인다.
+                // QR 세션으로 접근이 갈리는 응답이라 공유 캐시가 저장하지 않도록 private으로 둔다.
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().build().toString())
+                .contentType(image.getContentType())
+                .body(image.getResource());
     }
 
     private QrConnectResponse getValidQrTableInfo(HttpSession session) {

@@ -29,4 +29,9 @@ public interface ConsumerMenuMapper {
             @Param("sysPlantCd") String sysPlantCd,
             @Param("menuSysId") String menuSysId
     );
+
+    String getMenuImageFileSysId(
+            @Param("sysPlantCd") String sysPlantCd,
+            @Param("menuSysId") String menuSysId
+    );
 }

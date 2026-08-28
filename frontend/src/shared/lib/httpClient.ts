@@ -33,7 +33,7 @@ export class HttpError extends Error {
 
 // auth API의 401은 초기 인증 확인/로그인 실패 흐름에서 직접 처리한다.
 // qr/consumer API의 401은 관리자·점주 로그인과 무관한 QR 세션 흐름이라 전역 로그인-만료 모달 대상에서 제외한다.
-const UNAUTHORIZED_EXCLUDED_PREFIXES = ['/api/auth/', '/api/qr/', '/api/consumer/'];
+const UNAUTHORIZED_EXCLUDED_PREFIXES = ['/api/auth/', '/api/qr/', '/api/client/consumer/'];
 
 function shouldNotifyUnauthorized(url: string): boolean {
   return !UNAUTHORIZED_EXCLUDED_PREFIXES.some((prefix) => url.startsWith(prefix));

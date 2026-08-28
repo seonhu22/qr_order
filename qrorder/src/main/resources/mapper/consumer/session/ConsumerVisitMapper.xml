@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.consumer.session.repository.ConsumerVisitMapper">
+
+    <sql id="consumerVisitColumns">
+        om.sys_id AS consumer_session_id,
+        om.link_sys_id AS table_sys_id,
+        om.sys_plant_cd,
+        (
+            SELECT sp.store_nm
+            FROM sys_plant sp
+            WHERE sp.plant_cd = om.sys_plant_cd
+              AND sp.use_yn = 'Y'
+              AND sp.delete_yn = 'N'
+        ) AS store_name,
+        om.order_status,
+        om.insert_datetime AS started_at,
+        COALESCE(om.modify_datetime, om.insert_datetime) AS last_activity_at,
+        EXISTS (
+            SELECT 1
+            FROM order_group og
+            WHERE og.link_sys_id = om.sys_id
+        ) AS has_orders,
+        NOT EXISTS (
+            SELECT 1
+            FROM order_group og
+            WHERE og.link_sys_id = om.sys_id
+        )
+        AND COALESCE(om.modify_datetime, om.insert_datetime) &lt; NOW() - INTERVAL '5 minutes'
+        AS expired
+    </sql>
+
+    <select id="lockAvailableTable" resultType="string">
+        SELECT sys_id
+        FROM table_info
+        WHERE sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+          AND use_yn = 'Y'
+          AND delete_yn = 'N'
+        FOR UPDATE
+    </select>
+
+    <select id="findStoreName" resultType="string">
+        SELECT store_nm
+        FROM sys_plant
+        WHERE plant_cd = #{sysPlantCd}
+          AND use_yn = 'Y'
+          AND delete_yn = 'N'
+    </select>
+
+    <select id="findActiveConsumerVisit"
+            resultType="htms.QROrder.consumer.session.dto.ConsumerVisitRecord">
+        SELECT
+            <include refid="consumerVisitColumns"/>
+        FROM order_master om
+        WHERE om.link_sys_id = #{tableSysId}
+          AND om.sys_plant_cd = #{sysPlantCd}
+          AND om.insert_user_id = 'CONSUMER'
+          AND om.order_status = '01'
+        ORDER BY om.insert_datetime DESC
+        LIMIT 1
+    </select>
+
+    <select id="findConsumerVisit"
+            resultType="htms.QROrder.consumer.session.dto.ConsumerVisitRecord">
+        SELECT
+            <include refid="consumerVisitColumns"/>
+        FROM order_master om
+        WHERE om.sys_id = #{consumerSessionId}
+          AND om.link_sys_id = #{tableSysId}
+          AND om.sys_plant_cd = #{sysPlantCd}
+          AND om.insert_user_id = 'CONSUMER'
+    </select>
+
+    <select id="lockConsumerVisit" resultType="string">
+        SELECT sys_id
+        FROM order_master
+        WHERE sys_id = #{consumerSessionId}
+          AND link_sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+          AND insert_user_id = 'CONSUMER'
+        FOR UPDATE
+    </select>
+
+    <insert id="insertConsumerVisit">
+        INSERT INTO order_master (
+            sys_id,
+            insert_user_id,
+            insert_datetime,
+            sys_plant_cd,
+            order_status,
+            link_sys_id,
+            payment_type
+        ) VALUES (
+            #{consumerSessionId},
+            'CONSUMER',
+            NOW(),
+            #{sysPlantCd},
+            '01',
+            #{tableSysId},
+            'NONE'
+        )
+    </insert>
+
+    <delete id="deleteExpiredEmptyConsumerVisit">
+        DELETE FROM order_master om
+        WHERE om.sys_id = #{consumerSessionId}
+          AND om.link_sys_id = #{tableSysId}
+          AND om.sys_plant_cd = #{sysPlantCd}
+          AND om.insert_user_id = 'CONSUMER'
+          AND om.order_status = '01'
+          AND COALESCE(om.modify_datetime, om.insert_datetime) &lt; NOW() - INTERVAL '5 minutes'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM order_group og
+              WHERE og.link_sys_id = om.sys_id
+          )
+    </delete>
+
+    <update id="touchActiveConsumerVisit">
+        UPDATE order_master
+        SET modify_datetime = NOW()
+        WHERE sys_id = #{consumerSessionId}
+          AND link_sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+          AND insert_user_id = 'CONSUMER'
+          AND order_status = '01'
+    </update>
+
+</mapper>
