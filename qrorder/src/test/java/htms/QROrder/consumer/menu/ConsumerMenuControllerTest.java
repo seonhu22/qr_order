@@ -1,6 +1,6 @@
 package htms.QROrder.consumer.menu;
 
-import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
+import htms.QROrder.auth.Interceptor.ConsumerSessionCheckInterceptor;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.consumer.menu.controller.ConsumerMenuController;
 import htms.QROrder.consumer.menu.dto.ConsumerMenuDetailBody;
@@ -42,13 +42,14 @@ class ConsumerMenuControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ConsumerMenuController(consumerMenuService))
                 .setControllerAdvice(new GlobalExceptionHandler())
-                .addInterceptors(new LoginCheckInterceptor())
+                .addInterceptors(new ConsumerSessionCheckInterceptor())
                 .build();
     }
 
     @Test
     void returnsMainMenuForQrSession() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -61,7 +62,7 @@ class ConsumerMenuControllerTest {
 
         when(consumerMenuService.getMain("PC002", 10)).thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/menu/main")
+        mockMvc.perform(get("/api/client/consumer/menu/main")
                         .sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -73,17 +74,17 @@ class ConsumerMenuControllerTest {
 
     @Test
     void returnsUnauthorizedWithoutQrSession() throws Exception {
-        mockMvc.perform(get("/api/consumer/menu/main"))
+        mockMvc.perform(get("/api/client/consumer/menu/main"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("세션이 만료되었습니다. 다시 로그인해주세요."));
+                .andExpect(jsonPath("$.message").value("QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요."));
 
         verifyNoInteractions(consumerMenuService);
     }
 
     @Test
     void returnsQrUnauthorizedWhenOnlyLoginSessionExists() throws Exception {
-        mockMvc.perform(get("/api/consumer/menu/main")
+        mockMvc.perform(get("/api/client/consumer/menu/main")
                         .sessionAttr("loginUser", new Login()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
@@ -95,6 +96,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -102,7 +104,7 @@ class ConsumerMenuControllerTest {
         session.setAttribute("qrTableInfo", qrTableInfo);
         when(consumerMenuService.getMain("PC002", 10)).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/main").session(session))
+        mockMvc.perform(get("/api/client/consumer/menu/main").session(session))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요."));
@@ -113,6 +115,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsOnlyMenuBodyForSearch() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -125,7 +128,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.search("PC002", "불고기", "category-1"))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/menu/search")
+        mockMvc.perform(get("/api/client/consumer/menu/search")
                         .param("searchKeyword", "불고기")
                         .param("categorySysId", "category-1")
                         .sessionAttr("qrTableInfo", qrTableInfo))
@@ -140,6 +143,7 @@ class ConsumerMenuControllerTest {
     @Test
     void passesOptionalSearchParametersToService() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -148,7 +152,7 @@ class ConsumerMenuControllerTest {
         );
         when(consumerMenuService.search("PC002", "   ", null)).thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/menu/search")
+        mockMvc.perform(get("/api/client/consumer/menu/search")
                         .param("searchKeyword", "   ")
                         .sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isOk())
@@ -157,7 +161,7 @@ class ConsumerMenuControllerTest {
 
     @Test
     void returnsQrUnauthorizedForSearchWithOnlyLoginSession() throws Exception {
-        mockMvc.perform(get("/api/consumer/menu/search")
+        mockMvc.perform(get("/api/client/consumer/menu/search")
                         .sessionAttr("loginUser", new Login()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
@@ -169,13 +173,14 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsBadRequestWhenSearchConditionIsTooLong() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
         when(consumerMenuService.search("PC002", "가".repeat(101), null))
                 .thenThrow(new ValidationException("검색어는 100자 이하여야 합니다."));
 
-        mockMvc.perform(get("/api/consumer/menu/search")
+        mockMvc.perform(get("/api/client/consumer/menu/search")
                         .param("searchKeyword", "가".repeat(101))
                         .sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isBadRequest())
@@ -187,6 +192,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenSearchStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -194,7 +200,7 @@ class ConsumerMenuControllerTest {
         session.setAttribute("qrTableInfo", qrTableInfo);
         when(consumerMenuService.search("PC002", null, null)).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/search").session(session))
+        mockMvc.perform(get("/api/client/consumer/menu/search").session(session))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요."));
@@ -205,6 +211,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsMenuDetailForQrSession() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -227,7 +234,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.isStoreAvailable("PC002")).thenReturn(true);
         when(consumerMenuService.getDetail("PC002", "menu-1")).thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/menu/menu-1")
+        mockMvc.perform(get("/api/client/consumer/menu/menu-1")
                         .sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -240,6 +247,7 @@ class ConsumerMenuControllerTest {
     @Test
     void returnsNotFoundWithoutClearingQrSessionWhenMenuIsUnavailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -249,7 +257,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.isStoreAvailable("PC002")).thenReturn(true);
         when(consumerMenuService.getDetail("PC002", "missing-menu")).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/missing-menu").session(session))
+        mockMvc.perform(get("/api/client/consumer/menu/missing-menu").session(session))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("메뉴를 찾을 수 없습니다."))
@@ -261,6 +269,7 @@ class ConsumerMenuControllerTest {
     @Test
     void clearsQrSessionWhenDetailStoreIsNoLongerAvailable() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -268,7 +277,7 @@ class ConsumerMenuControllerTest {
         session.setAttribute("qrTableInfo", qrTableInfo);
         when(consumerMenuService.isStoreAvailable("PC002")).thenReturn(false);
 
-        mockMvc.perform(get("/api/consumer/menu/menu-1").session(session))
+        mockMvc.perform(get("/api/client/consumer/menu/menu-1").session(session))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요."));
@@ -280,6 +289,7 @@ class ConsumerMenuControllerTest {
     @Test
     void hidesInternalDetailsWhenOptionDataViolatesContract() throws Exception {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
 
@@ -287,7 +297,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.getDetail("PC002", "menu-1"))
                 .thenThrow(new IllegalStateException("정의되지 않은 옵션 선택 코드입니다: 주문 옵션"));
 
-        mockMvc.perform(get("/api/consumer/menu/menu-1")
+        mockMvc.perform(get("/api/client/consumer/menu/menu-1")
                         .sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
@@ -302,7 +312,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.getMain("PC002", 10))
                 .thenThrow(new DataAccessResourceFailureException("relation secret_table does not exist"));
 
-        mockMvc.perform(get("/api/consumer/menu/main").sessionAttr("qrTableInfo", qrTableInfo))
+        mockMvc.perform(get("/api/client/consumer/menu/main").sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").value("메뉴 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요."))
                 .andExpect(jsonPath("$.error").doesNotExist());
@@ -314,7 +324,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.search("PC002", null, null))
                 .thenThrow(new DataAccessResourceFailureException("SQL state 42P01"));
 
-        mockMvc.perform(get("/api/consumer/menu/search").sessionAttr("qrTableInfo", qrTableInfo))
+        mockMvc.perform(get("/api/client/consumer/menu/search").sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").value("메뉴 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요."))
                 .andExpect(jsonPath("$.error").doesNotExist());
@@ -326,7 +336,7 @@ class ConsumerMenuControllerTest {
         when(consumerMenuService.isStoreAvailable("PC002"))
                 .thenThrow(new DataAccessResourceFailureException("mapper XML path"));
 
-        mockMvc.perform(get("/api/consumer/menu/menu-1").sessionAttr("qrTableInfo", qrTableInfo))
+        mockMvc.perform(get("/api/client/consumer/menu/menu-1").sessionAttr("qrTableInfo", qrTableInfo))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").value("메뉴 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요."))
                 .andExpect(jsonPath("$.error").doesNotExist());
@@ -334,6 +344,7 @@ class ConsumerMenuControllerTest {
 
     private QrConnectResponse qrTableInfo() {
         QrConnectResponse qrTableInfo = new QrConnectResponse();
+        qrTableInfo.setSysId("TABLE-1");
         qrTableInfo.setSysPlantCd("PC002");
         qrTableInfo.setTableNum(10);
         return qrTableInfo;

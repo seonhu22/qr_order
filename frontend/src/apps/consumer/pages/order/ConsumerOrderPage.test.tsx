@@ -43,7 +43,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   it('검색 실패를 빈 결과와 구분하고 다시 시도할 수 있다', async () => {
     let attempts = 0;
     server.use(
-      http.get('/api/consumer/menu/search', () => {
+      http.get('/api/client/consumer/menu/search', () => {
         attempts += 1;
         if (attempts === 1) {
           return HttpResponse.json({ success: false, message: '검색 실패' }, { status: 500 });

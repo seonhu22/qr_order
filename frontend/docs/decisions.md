@@ -791,7 +791,7 @@ Consumer(QR 소비자 주문) 앱의 첫 골격 PR에서 Admin/Client에 없던 
 
 [`architecture.md` §6](./architecture.md#6-상태-처리-라우팅-기준)은 401(인증 리다이렉트)과 403/404/500(`ErrorPageTemplate` 기반 에러 페이지)만 다룬다. Consumer의 세션 만료·마감·없음은 둘 다 아니다 — 보여줄 의미 있는 HTTP 상태 코드가 없고(임의로 401/403 등을 표시하면 아직 정해지지 않은 백엔드 세션 API의 의미를 프론트가 먼저 확정하는 셈이 된다), 이동할 로그인 페이지도 없다. 그래서 `ConsumerSessionGuard`(로그인 인증이 아닌 QR 세션 검사)가 `ConsumerStatusScreen`(아이콘+제목+설명+선택적 버튼)을 렌더링하는 것을 세 번째 카테고리로 둔다. 반면 가드를 통과한 뒤 `/consumer/*` 내부의 알 수 없는 경로는 여전히 기존 404 카테고리를 따라 공유 `NotFoundPage`를 그대로 재사용한다.
 
-세션 조회는 `GET /api/consumer/session`이 없어 mock 상태다. 정확한 API 계약과 401/403/409/410의 의미는 여전히 미정이며, 인수인계 문서(`consumer-app-skeleton-handoff.md`) §14 "백엔드 협의 항목"에서 다룬다.
+세션 조회는 `GET /api/client/consumer/session`이 없어 mock 상태다. 정확한 API 계약과 401/403/409/410의 의미는 여전히 미정이며, 인수인계 문서(`consumer-app-skeleton-handoff.md`) §14 "백엔드 협의 항목"에서 다룬다.
 
 **`ConsumerSessionGuard`는 만들되 지금은 끔(`SESSION_GUARD_ENABLED = false`)**
 
@@ -823,7 +823,7 @@ Consumer 골격 작업 도중 반복해서 마주친 질문이 있다: 아직 �
 
 **"실제 로직은 남기고 플래그로 우회" 패턴을 mock 경계의 기본형으로 삼는다**
 
-실제 API가 이미 있지만 아직 그 응답에 의존하고 싶지 않을 때(예: `/api/qr/:url`은 실제로 동작하지만 MSW/백엔드 상태와 무관하게 흐름을 확인해야 함), 또는 API 자체가 없을 때(예: `GET /api/consumer/session`) 모두 아래 형태를 따른다.
+실제 API가 이미 있지만 아직 그 응답에 의존하고 싶지 않을 때(예: `/api/qr/:url`은 실제로 동작하지만 MSW/백엔드 상태와 무관하게 흐름을 확인해야 함), 또는 API 자체가 없을 때(예: `GET /api/client/consumer/session`) 모두 아래 형태를 따른다.
 
 ```ts
 // 실제 호출 코드는 삭제하지 않고 그대로 둔다
@@ -880,7 +880,7 @@ Consumer 메뉴 상세 시트에 옵션 그룹(필수/선택, 단일/복수)을 
 
 - [ ] 옵션 그룹에 단일/복수 선택 구분 컬럼 추가 (`selection_type` 등) 후 DTO·쿼리에 노출
 - [ ] 복수 선택 그룹의 최대 선택 개수를 그룹 단위로 보관할지 결정 (현재 `maximumNum`은 항목 단위)
-- [ ] 소비자용 옵션 조회 API 신설 (`/api/consumer/menu/{menuId}/options` 등) — 관리용 `client/menu_manage/*`를 소비자가 그대로 호출하면 권한 범위가 어긋난다
+- [ ] 소비자용 옵션 조회 API 신설 (`/api/client/consumer/menu/{menuId}/options` 등) — 관리용 `client/menu_manage/*`를 소비자가 그대로 호출하면 권한 범위가 어긋난다
 - [ ] 옵션 항목 "기본 선택"(`defaultYn`) 컬럼 — ADR-010에서 이미 요청한 항목이며, 현재는 "필수 단일 선택 그룹의 첫 항목"으로 대체하고 있다
 
 ### 결과

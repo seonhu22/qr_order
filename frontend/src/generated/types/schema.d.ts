@@ -1428,7 +1428,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/consumer/menu/{menuSysId}": {
+    "/api/client/consumer/menu/{menuSysId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1448,7 +1448,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/consumer/menu/search": {
+    "/api/client/consumer/menu/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -1468,7 +1468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/consumer/menu/main": {
+    "/api/client/consumer/menu/main": {
         parameters: {
             query?: never;
             header?: never;

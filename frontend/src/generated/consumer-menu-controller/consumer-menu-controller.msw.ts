@@ -33,7 +33,7 @@ export const getGetConsumerMenuMainResponseMock = (overrideResponse: Partial< Co
 
 
 export const getGetConsumerMenuDetailMockHandler = (overrideResponse?: ConsumerMenuDetailEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerMenuDetailEnvelope> | ConsumerMenuDetailEnvelope), options?: RequestHandlerOptions) => {
-  return http.get('*/api/consumer/menu/:menuSysId', async (info) => {await delay(1000);
+  return http.get('*/api/client/consumer/menu/:menuSysId', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
@@ -45,7 +45,7 @@ export const getGetConsumerMenuDetailMockHandler = (overrideResponse?: ConsumerM
 }
 
 export const getSearchConsumerMenuMockHandler = (overrideResponse?: ConsumerMenuSearchEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerMenuSearchEnvelope> | ConsumerMenuSearchEnvelope), options?: RequestHandlerOptions) => {
-  return http.get('*/api/consumer/menu/search', async (info) => {await delay(1000);
+  return http.get('*/api/client/consumer/menu/search', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
@@ -57,7 +57,7 @@ export const getSearchConsumerMenuMockHandler = (overrideResponse?: ConsumerMenu
 }
 
 export const getGetConsumerMenuMainMockHandler = (overrideResponse?: ConsumerMenuMainEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerMenuMainEnvelope> | ConsumerMenuMainEnvelope), options?: RequestHandlerOptions) => {
-  return http.get('*/api/consumer/menu/main', async (info) => {await delay(1000);
+  return http.get('*/api/client/consumer/menu/main', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)

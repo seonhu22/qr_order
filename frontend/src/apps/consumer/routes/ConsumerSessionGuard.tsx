@@ -31,7 +31,7 @@ type ConsumerSessionGuardProps = {
   children: ReactNode;
 };
 
-// 실제 세션 조회 API(GET /api/consumer/session)가 없어 지금 단계에서는 가드를 끈다 — QR 세션 여부와
+// 실제 세션 조회 API(GET /api/client/consumer/session)가 없어 지금 단계에서는 가드를 끈다 — QR 세션 여부와
 // 무관하게 children을 그대로 보여준다. 아래 분기 로직은 API가 생겼을 때 그대로 켜서 쓰도록 남겨둔다.
 const SESSION_GUARD_ENABLED = false;
 
