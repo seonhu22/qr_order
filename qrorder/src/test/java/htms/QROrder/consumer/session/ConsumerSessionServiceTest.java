@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -91,13 +90,15 @@ class ConsumerSessionServiceTest {
     }
 
     @Test
-    void rejectsUnsupportedOrderMasterStatus() {
+    void returnsClosedForPaymentNotCompletedVisit() {
         QrConnectResponse qr = qrTableInfo();
         when(consumerVisitService.findBoundVisit(qr, "VISIT-1"))
                 .thenReturn(visit("VISIT-1", "03", false));
 
-        assertThrows(IllegalStateException.class,
-                () -> consumerSessionService.getSession(qr, binding()));
+        ConsumerSessionResponse response = consumerSessionService.getSession(qr, binding());
+
+        assertEquals("CLOSED", response.getStatus());
+        verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
     }
 
     private QrConnectResponse qrTableInfo() {

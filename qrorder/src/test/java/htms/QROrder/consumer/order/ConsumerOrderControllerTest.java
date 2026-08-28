@@ -205,6 +205,18 @@ class ConsumerOrderControllerTest {
                 .andExpect(jsonPath("$.message").value("종료되었거나 만료된 방문입니다."));
     }
 
+    @Test
+    void hidesUnhandledExceptionDetails() throws Exception {
+        when(consumerOrderQueryService.getOrders(any(), any()))
+                .thenThrow(new IllegalStateException("SQL relation order_master does not exist"));
+
+        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message")
+                        .value("오류가 발생했습니다. 관리자에게 문의 바랍니다."))
+                .andExpect(jsonPath("$.error").doesNotExist());
+    }
+
     private org.springframework.test.web.servlet.ResultActions performWithActiveSession()
             throws Exception {
         return mockMvc.perform(post("/api/consumer/orders")

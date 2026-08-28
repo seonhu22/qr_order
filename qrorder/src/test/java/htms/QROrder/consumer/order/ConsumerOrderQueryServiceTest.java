@@ -24,6 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,7 @@ class ConsumerOrderQueryServiceTest {
     @Test
     void returnsOrdersFromCurrentSharedVisit() {
         QrConnectResponse qr = qrTableInfo();
-        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderMapper.findOrders("VISIT-1", "PLANT-1"))
                 .thenReturn(List.of(summary("ORDER-2", 1002, "02", 18_000L, 2L)));
 
@@ -49,13 +50,14 @@ class ConsumerOrderQueryServiceTest {
         assertEquals("1002", response.getOrders().get(0).getOrderNo());
         assertEquals("COOKING", response.getOrders().get(0).getStatus());
         assertEquals(18_000, response.getOrders().get(0).getTotalAmount());
+        verify(consumerVisitService).lockBoundVisit(qr, "VISIT-1");
         verify(consumerVisitService).touchBoundVisit(qr, "VISIT-1");
     }
 
     @Test
     void assemblesDetailAmountsFromStoredOptionQuantity() {
         QrConnectResponse qr = qrTableInfo();
-        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderMapper.findOrderDetailHeader("VISIT-1", "PLANT-1", "ORDER-1"))
                 .thenReturn(header("ORDER-1", 1001, "01"));
         when(consumerOrderMapper.findOrderItems("VISIT-1", "PLANT-1", "ORDER-1"))
@@ -76,7 +78,7 @@ class ConsumerOrderQueryServiceTest {
     @Test
     void hidesOrderOutsideCurrentVisitAsNotFound() {
         QrConnectResponse qr = qrTableInfo();
-        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderMapper.findOrderDetailHeader("VISIT-1", "PLANT-1", "ORDER-OTHER"))
                 .thenReturn(null);
 
@@ -100,7 +102,7 @@ class ConsumerOrderQueryServiceTest {
         QrConnectResponse qr = qrTableInfo();
         ConsumerVisitRecord closed = activeVisit();
         closed.setOrderStatus("02");
-        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(closed);
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(closed);
 
         assertThrows(ConsumerOrderSessionGoneException.class,
                 () -> service.getOrders(qr, binding()));
@@ -109,9 +111,39 @@ class ConsumerOrderQueryServiceTest {
     }
 
     @Test
+    void rejectsUnpaidClosedVisitBeforeQuery() {
+        QrConnectResponse qr = qrTableInfo();
+        ConsumerVisitRecord closed = activeVisit();
+        closed.setOrderStatus("03");
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(closed);
+
+        assertThrows(ConsumerOrderSessionGoneException.class,
+                () -> service.getOrders(qr, binding()));
+
+        verifyNoInteractions(consumerOrderMapper);
+    }
+
+    @Test
+    void rejectsOrderListWhenPaymentCompletesDuringQuery() {
+        QrConnectResponse qr = qrTableInfo();
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerOrderMapper.findOrders("VISIT-1", "PLANT-1"))
+                .thenReturn(List.of(summary("ORDER-2", 1002, "02", 18_000L, 2L)));
+        when(consumerOrderMapper.existsPaidOrder("VISIT-1", "PLANT-1"))
+                .thenReturn(false, true);
+
+        assertThrows(ConsumerOrderSessionGoneException.class,
+                () -> service.getOrders(qr, binding()));
+
+        verify(consumerVisitService).lockBoundVisit(qr, "VISIT-1");
+        verify(consumerOrderMapper).findOrders("VISIT-1", "PLANT-1");
+        verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
+    }
+
+    @Test
     void rejectsStoredOptionQuantityThatCannotBeConvertedToPerMenuQuantity() {
         QrConnectResponse qr = qrTableInfo();
-        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderMapper.findOrderDetailHeader("VISIT-1", "PLANT-1", "ORDER-1"))
                 .thenReturn(header("ORDER-1", 1001, "01"));
         when(consumerOrderMapper.findOrderItems("VISIT-1", "PLANT-1", "ORDER-1"))
