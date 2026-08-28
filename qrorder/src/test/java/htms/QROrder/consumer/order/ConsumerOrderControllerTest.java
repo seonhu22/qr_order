@@ -6,10 +6,15 @@ import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.consumer.order.controller.ConsumerOrderController;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
+import htms.QROrder.consumer.order.dto.ConsumerOrderDetailItem;
+import htms.QROrder.consumer.order.dto.ConsumerOrderDetailResponse;
+import htms.QROrder.consumer.order.dto.ConsumerOrderListResponse;
+import htms.QROrder.consumer.order.dto.ConsumerOrderSummary;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
+import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,25 +24,30 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ConsumerOrderControllerTest {
 
     private ConsumerOrderCreationService consumerOrderCreationService;
+    private ConsumerOrderQueryService consumerOrderQueryService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         consumerOrderCreationService = mock(ConsumerOrderCreationService.class);
+        consumerOrderQueryService = mock(ConsumerOrderQueryService.class);
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new ConsumerOrderController(consumerOrderCreationService))
+                .standaloneSetup(new ConsumerOrderController(
+                        consumerOrderCreationService, consumerOrderQueryService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .addInterceptors(new ConsumerSessionCheckInterceptor())
                 .build();
@@ -136,6 +146,61 @@ class ConsumerOrderControllerTest {
                 .thenThrow(new ConsumerOrderSessionGoneException("종료되었거나 만료된 방문입니다."));
 
         performWithActiveSession()
+                .andExpect(status().isGone())
+                .andExpect(jsonPath("$.message").value("종료되었거나 만료된 방문입니다."));
+    }
+
+    @Test
+    void returnsOrdersFromCurrentSharedVisit() throws Exception {
+        LocalDateTime orderedAt = LocalDateTime.of(2026, 8, 28, 10, 30);
+        ConsumerOrderListResponse response = new ConsumerOrderListResponse(List.of(
+                new ConsumerOrderSummary(
+                        "ORDER-1", "1001", "RECEIVED", 18_000, 2,
+                        orderedAt, orderedAt)));
+        when(consumerOrderQueryService.getOrders(any(), any())).thenReturn(response);
+
+        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.orders[0].orderId").value("ORDER-1"))
+                .andExpect(jsonPath("$.data.orders[0].status").value("RECEIVED"))
+                .andExpect(jsonPath("$.data.orders[0].totalAmount").value(18_000));
+    }
+
+    @Test
+    void returnsOrderDetailFromCurrentSharedVisit() throws Exception {
+        LocalDateTime orderedAt = LocalDateTime.of(2026, 8, 28, 10, 30);
+        ConsumerOrderDetailResponse response = new ConsumerOrderDetailResponse(
+                "ORDER-1", "1001", "RECEIVED", null, 18_000,
+                orderedAt, orderedAt,
+                List.of(new ConsumerOrderDetailItem(
+                        "ITEM-1", "MENU-1", "메뉴", 2, 9_000, 18_000, List.of())));
+        when(consumerOrderQueryService.getOrder(any(), any(), any())).thenReturn(response);
+
+        mockMvc.perform(get("/api/consumer/orders/ORDER-1").session(activeSession()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.orderId").value("ORDER-1"))
+                .andExpect(jsonPath("$.data.requestNote").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].menuName").value("메뉴"))
+                .andExpect(jsonPath("$.data.items[0].lineAmount").value(18_000));
+    }
+
+    @Test
+    void hidesOrderOutsideCurrentVisitAsNotFound() throws Exception {
+        when(consumerOrderQueryService.getOrder(any(), any(), any()))
+                .thenThrow(new ConsumerOrderNotFoundException("주문을 찾을 수 없습니다."));
+
+        mockMvc.perform(get("/api/consumer/orders/ORDER-OTHER").session(activeSession()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("주문을 찾을 수 없습니다."));
+    }
+
+    @Test
+    void mapsClosedVisitOrderListToGone() throws Exception {
+        when(consumerOrderQueryService.getOrders(any(), any()))
+                .thenThrow(new ConsumerOrderSessionGoneException("종료되었거나 만료된 방문입니다."));
+
+        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
                 .andExpect(status().isGone())
                 .andExpect(jsonPath("$.message").value("종료되었거나 만료된 방문입니다."));
     }
