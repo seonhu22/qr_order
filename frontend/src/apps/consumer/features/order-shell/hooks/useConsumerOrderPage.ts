@@ -3,6 +3,7 @@ import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useCo
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
+import { useConsumerOrderHistoryStore } from '@/apps/consumer/stores/consumerOrderHistoryStore';
 import { ORDER_SHELL_CATEGORIES, ORDER_SHELL_MENU_ITEMS } from '../mock/orderShellMock';
 import { buildCartKey, calcCartLinePrice } from '../cartLine';
 import type {
@@ -67,6 +68,7 @@ export function useConsumerOrderPage() {
   const sheet = useConsumerSheetStore((state) => state.sheet);
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
   const closeSheet = useConsumerSheetStore((state) => state.closeSheet);
+  const addOrder = useConsumerOrderHistoryStore((state) => state.addOrder);
 
   useEffect(() => () => {
     if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
@@ -138,11 +140,18 @@ export function useConsumerOrderPage() {
 
   /**
    * "주문 처리중" 화면을 보여준 뒤, 실제 API가 붙기 전까지는 항상 성공으로 끝낸다 —
-   * 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이.
+   * 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이. 이 시점 장바구니를 그대로
+   * 주문내역에 기록한다 — 결제 여부와 무관하게 "주문하기"가 성공하면 무조건 남는다.
    */
   function startOrderProcessing() {
     setOrderPhase('processing');
     orderTimerRef.current = setTimeout(() => {
+      addOrder({
+        orderId: `order-${Date.now()}`,
+        orderedAt: new Date(),
+        items: cart,
+        total: totalCartPrice,
+      });
       setCart([]);
       setOrderPhase('complete');
     }, ORDER_PROCESSING_DELAY_MS);

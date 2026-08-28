@@ -80,3 +80,15 @@ export type OrderShellMenuGroup = {
   category: string;
   items: OrderShellMenuItem[];
 };
+
+/**
+ * "주문하기"로 완료된 주문 한 건 — 그 시점 장바구니 스냅샷. 결제와는 무관하게 주문 처리가
+ * 끝나는 시점(주문 완료 화면 진입)에 기록한다. 아직 담기만 하고 주문하지 않은 장바구니는
+ * 여기 포함되지 않는다.
+ */
+export type OrderShellOrderRecord = {
+  orderId: string;
+  orderedAt: Date;
+  items: OrderShellCartLine[];
+  total: number;
+};
