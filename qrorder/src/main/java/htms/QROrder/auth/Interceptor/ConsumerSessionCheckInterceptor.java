@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Consumer API(/api/consumer/**)의 인증 경계.
+ * Consumer API(/api/client/consumer/**)의 인증 경계.
  *
  * 직원 로그인(loginUser)은 이 경계의 인증 근거가 되지 않는다.
  * QR 연결로 생성된 qrTableInfo만 인정하며, 구조가 유효한지까지 확인한다.

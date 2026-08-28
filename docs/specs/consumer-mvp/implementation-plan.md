@@ -19,7 +19,7 @@
 2. 현재 인증 경계와 메뉴 이미지 테스트를 기준점으로 보존한다.
 3. QR/세션 시작 시 `order_master` 생성/재사용과 빈 master 만료 생명주기를 구현한다.
 4. Consumer 5분 만료를 전역 세션 설정과 분리한다.
-5. `GET /api/consumer/session`을 구현한다.
+5. `GET /api/client/consumer/session`을 구현한다.
 6. 메뉴 이미지 OpenAPI와 프런트 연결을 완료한다.
 7. 주문 생성 트랜잭션과 동시성 경계를 구현한다.
 8. 공유 주문 목록/상세를 구현한다.

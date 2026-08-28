@@ -61,7 +61,7 @@ class ConsumerOrderControllerTest {
                 LocalDateTime.of(2026, 8, 28, 10, 30));
         when(consumerOrderCreationService.createOrder(any(), any(), any())).thenReturn(response);
 
-        mockMvc.perform(post("/api/consumer/orders")
+        mockMvc.perform(post("/api/client/consumer/orders")
                         .session(session)
                         .contentType("application/json")
                         .content(validRequestJson()))
@@ -76,7 +76,7 @@ class ConsumerOrderControllerTest {
 
     @Test
     void rejectsRequestWithoutQrSession() throws Exception {
-        mockMvc.perform(post("/api/consumer/orders")
+        mockMvc.perform(post("/api/client/consumer/orders")
                         .contentType("application/json")
                         .content(validRequestJson()))
                 .andExpect(status().isUnauthorized())
@@ -90,7 +90,7 @@ class ConsumerOrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("qrTableInfo", qrTableInfo());
 
-        mockMvc.perform(post("/api/consumer/orders")
+        mockMvc.perform(post("/api/client/consumer/orders")
                         .session(session)
                         .contentType("application/json")
                         .content(validRequestJson()))
@@ -110,7 +110,7 @@ class ConsumerOrderControllerTest {
 
     @Test
     void mapsMalformedJsonToBadRequest() throws Exception {
-        mockMvc.perform(post("/api/consumer/orders")
+        mockMvc.perform(post("/api/client/consumer/orders")
                         .session(activeSession())
                         .contentType("application/json")
                         .content("{\"items\": [}"))
@@ -159,7 +159,7 @@ class ConsumerOrderControllerTest {
                         orderedAt, orderedAt)));
         when(consumerOrderQueryService.getOrders(any(), any())).thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
+        mockMvc.perform(get("/api/client/consumer/orders").session(activeSession()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orders[0].orderId").value("ORDER-1"))
@@ -177,7 +177,7 @@ class ConsumerOrderControllerTest {
                         "ITEM-1", "MENU-1", "메뉴", 2, 9_000, 18_000, List.of())));
         when(consumerOrderQueryService.getOrder(any(), any(), any())).thenReturn(response);
 
-        mockMvc.perform(get("/api/consumer/orders/ORDER-1").session(activeSession()))
+        mockMvc.perform(get("/api/client/consumer/orders/ORDER-1").session(activeSession()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.orderId").value("ORDER-1"))
                 .andExpect(jsonPath("$.data.requestNote").doesNotExist())
@@ -190,7 +190,7 @@ class ConsumerOrderControllerTest {
         when(consumerOrderQueryService.getOrder(any(), any(), any()))
                 .thenThrow(new ConsumerOrderNotFoundException("주문을 찾을 수 없습니다."));
 
-        mockMvc.perform(get("/api/consumer/orders/ORDER-OTHER").session(activeSession()))
+        mockMvc.perform(get("/api/client/consumer/orders/ORDER-OTHER").session(activeSession()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("주문을 찾을 수 없습니다."));
     }
@@ -200,7 +200,7 @@ class ConsumerOrderControllerTest {
         when(consumerOrderQueryService.getOrders(any(), any()))
                 .thenThrow(new ConsumerOrderSessionGoneException("종료되었거나 만료된 방문입니다."));
 
-        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
+        mockMvc.perform(get("/api/client/consumer/orders").session(activeSession()))
                 .andExpect(status().isGone())
                 .andExpect(jsonPath("$.message").value("종료되었거나 만료된 방문입니다."));
     }
@@ -210,7 +210,7 @@ class ConsumerOrderControllerTest {
         when(consumerOrderQueryService.getOrders(any(), any()))
                 .thenThrow(new IllegalStateException("SQL relation order_master does not exist"));
 
-        mockMvc.perform(get("/api/consumer/orders").session(activeSession()))
+        mockMvc.perform(get("/api/client/consumer/orders").session(activeSession()))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message")
                         .value("오류가 발생했습니다. 관리자에게 문의 바랍니다."))
@@ -219,7 +219,7 @@ class ConsumerOrderControllerTest {
 
     private org.springframework.test.web.servlet.ResultActions performWithActiveSession()
             throws Exception {
-        return mockMvc.perform(post("/api/consumer/orders")
+        return mockMvc.perform(post("/api/client/consumer/orders")
                 .session(activeSession())
                 .contentType("application/json")
                 .content(validRequestJson()));

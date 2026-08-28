@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/consumer/session")
+@RequestMapping("/api/client/consumer/session")
 public class ConsumerSessionController {
 
     private final ConsumerSessionService consumerSessionService;

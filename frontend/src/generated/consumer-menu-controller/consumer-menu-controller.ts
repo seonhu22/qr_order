@@ -46,7 +46,7 @@ export const getConsumerMenuDetail = (
       
       
       return httpClient<ConsumerMenuDetailEnvelope>(
-      {url: `/api/consumer/menu/${menuSysId}`, method: 'GET', signal
+      {url: `/api/client/consumer/menu/${menuSysId}`, method: 'GET', signal
     },
       options);
     }
@@ -56,7 +56,7 @@ export const getConsumerMenuDetail = (
 
 export const getGetConsumerMenuDetailQueryKey = (menuSysId?: string,) => {
     return [
-    `/api/consumer/menu/${menuSysId}`
+    `/api/client/consumer/menu/${menuSysId}`
     ] as const;
     }
 
@@ -139,7 +139,7 @@ export const searchConsumerMenu = (
       
       
       return httpClient<ConsumerMenuSearchEnvelope>(
-      {url: `/api/consumer/menu/search`, method: 'GET',
+      {url: `/api/client/consumer/menu/search`, method: 'GET',
         params, signal
     },
       options);
@@ -150,7 +150,7 @@ export const searchConsumerMenu = (
 
 export const getSearchConsumerMenuQueryKey = (params?: SearchConsumerMenuParams,) => {
     return [
-    `/api/consumer/menu/search`, ...(params ? [params]: [])
+    `/api/client/consumer/menu/search`, ...(params ? [params]: [])
     ] as const;
     }
 
@@ -233,7 +233,7 @@ export const getConsumerMenuMain = (
       
       
       return httpClient<ConsumerMenuMainEnvelope>(
-      {url: `/api/consumer/menu/main`, method: 'GET', signal
+      {url: `/api/client/consumer/menu/main`, method: 'GET', signal
     },
       options);
     }
@@ -243,7 +243,7 @@ export const getConsumerMenuMain = (
 
 export const getGetConsumerMenuMainQueryKey = () => {
     return [
-    `/api/consumer/menu/main`
+    `/api/client/consumer/menu/main`
     ] as const;
     }
 

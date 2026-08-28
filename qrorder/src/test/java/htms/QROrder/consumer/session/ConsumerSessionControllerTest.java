@@ -41,7 +41,7 @@ class ConsumerSessionControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("qrTableInfo", qr);
 
-        mockMvc.perform(get("/api/consumer/session").session(session))
+        mockMvc.perform(get("/api/client/consumer/session").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.consumerSessionId").value("VISIT-1"))
@@ -62,7 +62,7 @@ class ConsumerSessionControllerTest {
         session.setAttribute(ConsumerSessionBinding.SESSION_ATTRIBUTE, binding);
         when(consumerSessionService.getSession(qr, binding)).thenReturn(response("CLOSED"));
 
-        mockMvc.perform(get("/api/consumer/session").session(session))
+        mockMvc.perform(get("/api/client/consumer/session").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("CLOSED"));
 

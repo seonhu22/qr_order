@@ -83,8 +83,8 @@ const mainResponse: ConsumerMenuMainEnvelope = {
 };
 
 export const consumerMenuHandlers = [
-  http.get('*/api/consumer/menu/main', () => HttpResponse.json(mainResponse)),
-  http.get('*/api/consumer/menu/search', ({ request }) => {
+  http.get('*/api/client/consumer/menu/main', () => HttpResponse.json(mainResponse)),
+  http.get('*/api/client/consumer/menu/search', ({ request }) => {
     const keyword = new URL(request.url).searchParams.get('searchKeyword')?.trim().toLowerCase();
     const response: ConsumerMenuSearchEnvelope = {
       success: true,
@@ -98,7 +98,7 @@ export const consumerMenuHandlers = [
     };
     return HttpResponse.json(response);
   }),
-  http.get('*/api/consumer/menu/:menuSysId', ({ params }) => {
+  http.get('*/api/client/consumer/menu/:menuSysId', ({ params }) => {
     const item = ORDER_SHELL_MENU_ITEMS.find((menu) => menu.id === params.menuSysId);
     if (!item) return HttpResponse.json({ success: false, message: '메뉴가 없습니다.' }, { status: 404 });
 

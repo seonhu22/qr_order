@@ -53,27 +53,27 @@
 | 단계 | Method | Path | 문서/상태 |
 |---|---|---|---|
 | 기존 | `GET` | `/api/qr/{url}` | [계약](./consumer-mvp/existing-api.md#get-apiqrurl) |
-| 기존 | `GET` | `/api/consumer/menu/main` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenumain) |
-| 기존 | `GET` | `/api/consumer/menu/search` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenusearch) |
-| 기존 | `GET` | `/api/consumer/menu/{menuSysId}` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenumenusysid) |
-| 오늘 | `GET` | `/api/consumer/session` | [신규 계약](./consumer-mvp/session-api.md) |
-| 오늘 | `GET` | `/api/consumer/menu/{menuSysId}/image` | 백엔드 완료, [연결 계약](./consumer-mvp/existing-api.md#get-apiconsumermenumenusysidimage) |
-| 오늘 | `POST` | `/api/consumer/orders` | [신규 계약](./consumer-mvp/order-api.md#post-apiconsumerorders) |
-| 오늘 | `GET` | `/api/consumer/orders` | [신규 계약](./consumer-mvp/order-api.md#get-apiconsumerorders) |
-| 오늘 | `GET` | `/api/consumer/orders/{orderId}` | [신규 계약](./consumer-mvp/order-api.md#get-apiconsumerordersorderid) |
-| 후속 | `POST` | `/api/consumer/staff-calls` | 직원 호출 UI 이후 |
-| 후속 | `GET` | `/api/consumer/staff-calls/active` | 직원 호출 UI 이후 |
-| 마지막 | `GET` | `/api/consumer/events` | Consumer 전용 SSE |
+| 기존 | `GET` | `/api/client/consumer/menu/main` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenumain) |
+| 기존 | `GET` | `/api/client/consumer/menu/search` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenusearch) |
+| 기존 | `GET` | `/api/client/consumer/menu/{menuSysId}` | [계약](./consumer-mvp/existing-api.md#get-apiconsumermenumenusysid) |
+| 오늘 | `GET` | `/api/client/consumer/session` | [신규 계약](./consumer-mvp/session-api.md) |
+| 오늘 | `GET` | `/api/client/consumer/menu/{menuSysId}/image` | 백엔드 완료, [연결 계약](./consumer-mvp/existing-api.md#get-apiconsumermenumenusysidimage) |
+| 오늘 | `POST` | `/api/client/consumer/orders` | [신규 계약](./consumer-mvp/order-api.md#post-apiconsumerorders) |
+| 오늘 | `GET` | `/api/client/consumer/orders` | [신규 계약](./consumer-mvp/order-api.md#get-apiconsumerorders) |
+| 오늘 | `GET` | `/api/client/consumer/orders/{orderId}` | [신규 계약](./consumer-mvp/order-api.md#get-apiconsumerordersorderid) |
+| 후속 | `POST` | `/api/client/consumer/staff-calls` | 직원 호출 UI 이후 |
+| 후속 | `GET` | `/api/client/consumer/staff-calls/active` | 직원 호출 UI 이후 |
+| 마지막 | `GET` | `/api/client/consumer/events` | Consumer 전용 SSE |
 
 제품 정책이 확정될 때만 추가한다.
 
-- `POST /api/consumer/session/leave`
-- `POST /api/consumer/orders/preview`
-- `POST /api/consumer/orders/{orderId}/cancel-request`
-- `GET /api/consumer/staff-call/types`
-- `GET /api/consumer/staff-calls`
-- `DELETE /api/consumer/staff-calls/{callId}`
-- `GET /api/consumer/session/participants`
+- `POST /api/client/consumer/session/leave`
+- `POST /api/client/consumer/orders/preview`
+- `POST /api/client/consumer/orders/{orderId}/cancel-request`
+- `GET /api/client/consumer/staff-call/types`
+- `GET /api/client/consumer/staff-calls`
+- `DELETE /api/client/consumer/staff-calls/{callId}`
+- `GET /api/client/consumer/session/participants`
 - 서버 장바구니 API 5개(경로 미정)
 
 ## 공통 보안/응답 원칙

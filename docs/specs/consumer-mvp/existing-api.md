@@ -70,7 +70,7 @@ QR과 연결된 유효한 테이블을 조회하고 `qrTableInfo`를 서버 세�
 | `maximumNum` | `integer` | 수량형은 1 이상, 단일/복수는 0 |
 | `defaultYn` | `'Y' \| 'N'` | 필수 |
 
-## `GET /api/consumer/menu/main`
+## `GET /api/client/consumer/menu/main`
 
 성공 `data` 구조:
 
@@ -83,7 +83,7 @@ body.menuList[]: MenuItem
 
 상태: `200`, QR 세션 없음 `401`, 데이터 조회 실패 `500`.
 
-## `GET /api/consumer/menu/search`
+## `GET /api/client/consumer/menu/search`
 
 쿼리:
 
@@ -92,13 +92,13 @@ body.menuList[]: MenuItem
 
 성공 `data.body.menuList`는 `MenuItem[]`이다. 상태: `200`, 길이 오류 `400`, QR 세션 없음 `401`, 조회 실패 `500`.
 
-## `GET /api/consumer/menu/{menuSysId}`
+## `GET /api/client/consumer/menu/{menuSysId}`
 
 성공 `data.body`는 `MenuItem` 필드 전체와 `optionGroupList: OptionGroup[]`를 가진다.
 
 상태: `200`, 잘못된 ID `400`, QR 세션 없음 `401`, 현재 사업장 메뉴 아님 `404`, 조회/옵션 계약 오류 `500`.
 
-## `GET /api/consumer/menu/{menuSysId}/image`
+## `GET /api/client/consumer/menu/{menuSysId}/image`
 
 - 성공 `200`: 이미지 binary, 실제 `Content-Type`
 - `Content-Disposition: inline`

@@ -35,12 +35,12 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/auth/email_valid/pwd_change",
                         "/api/auth/pwd_change",
                         "/api/qr/**",
-                        "/api/consumer/**",
+                        "/api/client/consumer/**",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**");
 
         registry.addInterceptor(consumerSessionCheckInterceptor)
                 .order(1)
-                .addPathPatterns("/api/consumer/**");
+                .addPathPatterns("/api/client/consumer/**");
 
         registry.addInterceptor(new RoleCheckInterceptor())
                 .order(2)

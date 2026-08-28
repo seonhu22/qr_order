@@ -6,12 +6,12 @@
 
 ## 역할
 
-`GET /api/consumer/session`은 QR 진입 후 현재 브라우저의 Consumer 컨텍스트를 복구한다. 개인/기기를 식별하는 API가 아니며, 서버 세션과 DB 주문 상태로 매장/테이블/공유 방문 상태를 확인한다.
+`GET /api/client/consumer/session`은 QR 진입 후 현재 브라우저의 Consumer 컨텍스트를 복구한다. 개인/기기를 식별하는 API가 아니며, 서버 세션과 DB 주문 상태로 매장/테이블/공유 방문 상태를 확인한다.
 
 ## 요청
 
 ```http
-GET /api/consumer/session
+GET /api/client/consumer/session
 Cookie: JSESSIONID=...
 ```
 

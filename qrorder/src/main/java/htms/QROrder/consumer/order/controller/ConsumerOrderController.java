@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/consumer/orders")
+@RequestMapping("/api/client/consumer/orders")
 public class ConsumerOrderController {
 
     private final ConsumerOrderCreationService consumerOrderCreationService;

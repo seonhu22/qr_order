@@ -85,7 +85,7 @@ class ConsumerMenuImageTest {
     void servesOwnedMenuImageInline() throws Exception {
         givenOwnedImage(fileInfo("image/jpeg", ".jpg", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("image/jpeg"))
                 .andExpect(header().string("Content-Disposition", "inline"))
@@ -96,7 +96,7 @@ class ConsumerMenuImageTest {
     void marksImageCacheablePerViewerOnly() throws Exception {
         givenOwnedImage(fileInfo("image/png", ".png", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "max-age=3600, private"));
     }
@@ -108,7 +108,7 @@ class ConsumerMenuImageTest {
         // 다른 사업장 파일이면 소유권 조회 자체가 비어 나온다.
         when(consumerMenuMapper.getMenuImageFileSysId("PC002", "MENU-OF-OTHER-STORE")).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/MENU-OF-OTHER-STORE/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU-OF-OTHER-STORE/image").session(qrSession))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
 
@@ -119,7 +119,7 @@ class ConsumerMenuImageTest {
     void hidesAttachmentNotLinkedToMenu() throws Exception {
         when(consumerMenuMapper.getMenuImageFileSysId("PC002", "MENU001")).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
 
         verifyNoInteractions(fileService);
@@ -130,7 +130,7 @@ class ConsumerMenuImageTest {
         when(consumerMenuMapper.getMenuImageFileSysId("PC002", "MENU001")).thenReturn("FILE001");
         when(fileService.getFileInfo("FILE001")).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
     }
 
@@ -140,7 +140,7 @@ class ConsumerMenuImageTest {
     void refusesToServePdfAsImage() throws Exception {
         givenOwnedImage(fileInfo("application/pdf", ".pdf", "Y"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
     }
 
@@ -148,7 +148,7 @@ class ConsumerMenuImageTest {
     void refusesNonImageMimeType() throws Exception {
         givenOwnedImage(fileInfo("text/html", ".html", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
     }
 
@@ -156,7 +156,7 @@ class ConsumerMenuImageTest {
     void refusesSvgToAvoidInlineScript() throws Exception {
         givenOwnedImage(fileInfo("image/svg+xml", ".svg", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
     }
 
@@ -165,7 +165,7 @@ class ConsumerMenuImageTest {
         // mime_type은 업로드 시 클라이언트가 보낸 값이라 비어 있을 수 있다.
         givenOwnedImage(fileInfo(null, ".PNG", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("image/png"));
     }
@@ -174,7 +174,7 @@ class ConsumerMenuImageTest {
     void fallsBackToFileExtensionWhenMimeTypeIsMalformed() throws Exception {
         givenOwnedImage(fileInfo("not a mime type", ".jpg", "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("image/jpeg"));
     }
@@ -183,7 +183,7 @@ class ConsumerMenuImageTest {
     void hidesFileWithNeitherUsableMimeTypeNorExtension() throws Exception {
         givenOwnedImage(fileInfo(null, null, "N"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
     }
 
@@ -193,7 +193,7 @@ class ConsumerMenuImageTest {
     void doesNotClearQrSessionWhenImageRequestFails() throws Exception {
         when(consumerMenuMapper.getMenuImageFileSysId("PC002", "MENU001")).thenReturn(null);
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isNotFound());
 
         assertNotNull(qrSession.getAttribute("qrTableInfo"),
@@ -203,7 +203,7 @@ class ConsumerMenuImageTest {
     @Test
     void rejectsRequestWithoutQrSession() throws Exception {
         // 실서비스에서는 인터셉터가 먼저 막는다. 컨트롤러 자체 방어선도 확인한다.
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image"))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image"))
                 .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(consumerMenuMapper);
@@ -218,7 +218,7 @@ class ConsumerMenuImageTest {
         when(fileService.readFile(fileInfo))
                 .thenThrow(new RuntimeException("파일을 찾을 수 없습니다: /srv/uploads/2026/08/abc.jpg"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string(""));
     }
@@ -228,7 +228,7 @@ class ConsumerMenuImageTest {
         when(consumerMenuMapper.getMenuImageFileSysId(anyString(), anyString()))
                 .thenThrow(new DataAccessResourceFailureException("connection refused to 10.0.0.5:5432"));
 
-        mockMvc.perform(get("/api/consumer/menu/MENU001/image").session(qrSession))
+        mockMvc.perform(get("/api/client/consumer/menu/MENU001/image").session(qrSession))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string(""));
     }

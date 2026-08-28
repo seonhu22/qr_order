@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/consumer/menu")
+@RequestMapping("/api/client/consumer/menu")
 public class ConsumerMenuController {
 
     private final ConsumerMenuService consumerMenuService;

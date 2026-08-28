@@ -13,7 +13,7 @@
 - 공유 주문 목록은 같은 테이블의 현재 후결제 방문에 속한 `order_group`을 조회한다.
 - 클라이언트 가격은 받지 않고 서버가 현재 메뉴/옵션과 최종 금액을 검증한다.
 
-## `POST /api/consumer/orders`
+## `POST /api/client/consumer/orders`
 
 요청 모델:
 
@@ -85,7 +85,7 @@
 
 서버 재시작이나 다중 서버를 넘는 중복 요청 차단은 MVP 범위가 아니다. 백엔드는 요청 이력 대신 master 생성과 주문 저장의 트랜잭션 일관성을 보장한다.
 
-## `GET /api/consumer/orders`
+## `GET /api/client/consumer/orders`
 
 현재 공유 방문의 주문 티켓을 최신순으로 반환한다. Query와 Body는 없다.
 
@@ -103,7 +103,7 @@
 
 다른 고객이 생성한 주문도 같은 공유 방문이면 포함한다. 같은 테이블의 과거 결제 방문은 제외한다.
 
-## `GET /api/consumer/orders/{orderId}`
+## `GET /api/client/consumer/orders/{orderId}`
 
 현재 공유 방문에 속한 주문 한 건을 반환한다. `orderId`만 조회하지 않고 공유 방문과 사업장 조건을 함께 적용한다.
 

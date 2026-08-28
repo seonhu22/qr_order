@@ -71,14 +71,14 @@ class WebConfigAuthenticationTest {
 
     @Test
     void consumerPathsAreGuardedOnlyByConsumerBoundary() {
-        assertGuardedBy("/api/consumer/menu/main", ConsumerSessionCheckInterceptor.class);
-        assertNotGuardedBy("/api/consumer/menu/main", LoginCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/main", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/client/consumer/menu/main", LoginCheckInterceptor.class);
 
-        assertGuardedBy("/api/consumer/menu/search", ConsumerSessionCheckInterceptor.class);
-        assertNotGuardedBy("/api/consumer/menu/search", LoginCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/search", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/client/consumer/menu/search", LoginCheckInterceptor.class);
 
-        assertGuardedBy("/api/consumer/menu/01JABCDEF", ConsumerSessionCheckInterceptor.class);
-        assertNotGuardedBy("/api/consumer/menu/01JABCDEF", LoginCheckInterceptor.class);
+        assertGuardedBy("/api/client/consumer/menu/01JABCDEF", ConsumerSessionCheckInterceptor.class);
+        assertNotGuardedBy("/api/client/consumer/menu/01JABCDEF", LoginCheckInterceptor.class);
     }
 
     @Test
