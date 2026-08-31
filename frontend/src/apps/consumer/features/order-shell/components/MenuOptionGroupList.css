@@ -109,6 +109,17 @@
   opacity: 0.6;
 }
 
+/* 시각적 크기(24×32px)는 그대로 두고 탭 영역만 40px로 넓힌다 — hit-slop. 옆 버튼과의 간격(28px)
+   안에서 겹치지 않는 범위. */
+.menu-option-choice__qty-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -8px;
+  right: -8px;
+}
+
 .menu-option-choice__qty-value {
   min-width: var(--spacing-9);
   text-align: center;
