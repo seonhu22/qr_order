@@ -1,10 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/components/button';
+import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { ConsumerBottomSheet } from '@/apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet';
 import { CartBar } from '@/apps/consumer/features/order-shell/components/CartBar';
+import { CartLineItem } from '@/apps/consumer/features/order-shell/components/CartLineItem';
 import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components/MenuDetailSheet';
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
-import { calcCartLinePrice } from '@/apps/consumer/features/order-shell/cartLine';
+import { NetworkErrorScreen } from '@/apps/consumer/features/order-shell/components/NetworkErrorScreen';
+import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
+import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
+import { OrderHistorySheet } from '@/apps/consumer/features/order-shell/components/OrderHistorySheet';
+import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
+import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
+import { SoldoutModal } from '@/apps/consumer/features/order-shell/components/SoldoutModal';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import './ConsumerOrderPage.css';
 
@@ -33,21 +41,54 @@ export function ConsumerOrderPage() {
     totalCartQty,
     totalCartPrice,
     addToCart,
+    updateCartLineQty,
+    removeCartLine,
     findMenuItem,
     sheet,
     openMenuDetail,
     openCart,
     closeSheet,
+    clearSearch,
+    orderPhase,
+    duplicateTime,
+    placeOrder,
+    confirmOrderComplete,
+    retryOrder,
+    dismissOrderError,
+    viewOrderHistoryFromError,
+    retryFromNetworkError,
+    soldoutModalItems,
+    confirmSoldoutModal,
+    soldoutCartKeys,
+    hasSoldoutInCart,
+    soldoutMenuIds,
+    soldoutOptionChoiceIds,
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
-  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어 시트 제목을 노출하지 않는다.
+  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니·주문내역은 아이콘+
+  // 개수 배지가 붙은 자체 헤더를 쓰기 때문에 셋 다 공용 시트 제목을 노출하지 않는다.
   // 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
-  const sheetTitle = sheet && sheet.type !== 'menu-detail' ? SHEET_TITLE[sheet.type] : undefined;
-  const sheetAriaLabel = sheet?.type === 'menu-detail' ? detailItem?.name : undefined;
+  const sheetTitle =
+    sheet && sheet.type !== 'menu-detail' && sheet.type !== 'cart' && sheet.type !== 'order-history'
+      ? SHEET_TITLE[sheet.type]
+      : undefined;
+  const sheetAriaLabel =
+    sheet?.type === 'menu-detail'
+      ? detailItem?.name
+      : sheet?.type === 'cart' || sheet?.type === 'order-history'
+        ? SHEET_TITLE[sheet.type]
+        : undefined;
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isFirstCategoryRender = useRef(true);
+
+  // '전체'가 아닌 카테고리를 선택했는데 그 카테고리에 메뉴가 하나도 없으면(=검색 결과가 아니라
+  // 원래 비어 있는 카테고리) 스크롤할 섹션 자체가 없어 탭 클릭이 아무 반응 없는 죽은 인터랙션이
+  // 된다. 이때는 검색 결과가 0개일 때와 같은 안내 문구를 보여준다.
+  const isSelectedCategoryEmpty =
+    selectedCategory !== categories[0] &&
+    !groupedMenu.some((group) => group.category === selectedCategory);
 
   // 카테고리 탭 클릭은 ConsumerHeader가 소유하고(consumerOrderFilterStore), 이 페이지는
   // 선택된 카테고리 변화에 반응해 해당 섹션으로만 스크롤한다. 헤더가 스크롤 영역 밖 고정
@@ -89,10 +130,18 @@ export function ConsumerOrderPage() {
         </div>
       ) : isSearchLoading ? (
         <p className="order-shell__empty">검색 중입니다.</p>
-      ) : groupedMenu.length === 0 ? (
-        <p className="order-shell__empty">
-          {searchQuery ? `"${searchQuery}"에 대한 메뉴가 없습니다.` : '메뉴가 없습니다.'}
-        </p>
+      ) : groupedMenu.length === 0 || isSelectedCategoryEmpty ? (
+        <div className="order-shell__empty">
+          <ConsumerIcon id="ci-package" size={40} className="order-shell__empty-icon" />
+          <p className="order-shell__empty-text">
+            {searchQuery ? `"${searchQuery}"에 대한 메뉴가 없습니다` : '메뉴가 없습니다'}
+          </p>
+          {searchQuery && (
+            <button type="button" className="order-shell__empty-reset" onClick={clearSearch}>
+              검색 초기화
+            </button>
+          )}
+        </div>
       ) : (
         groupedMenu.map((group) => (
           <section
@@ -108,7 +157,12 @@ export function ConsumerOrderPage() {
             </div>
             <div className="order-shell__items-grid">
               {group.items.map((item) => (
-                <MenuItemCard key={item.id} item={item} onSelect={() => openMenuDetail(item.id)} />
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  onSelect={() => openMenuDetail(item.id)}
+                  runtimeSoldout={soldoutMenuIds.has(item.id)}
+                />
               ))}
             </div>
           </section>
@@ -145,52 +199,92 @@ export function ConsumerOrderPage() {
               addToCart(item, qty, options);
               closeSheet();
             }}
+            runtimeSoldoutOptionChoiceIds={soldoutOptionChoiceIds}
           />
         )}
 
         {sheet?.type === 'cart' && (
           <div className="order-shell-sheet">
+            <div className="order-shell-cart-header">
+              <ConsumerIcon id="ci-shopping-cart" size={16} />
+              <span className="order-shell-cart-header__title">장바구니</span>
+              <span className="order-shell-cart-header__count">{totalCartQty}</span>
+            </div>
+
             {cart.length === 0 ? (
-              <p className="order-shell-sheet__placeholder">담긴 메뉴가 없습니다.</p>
+              <div className="order-shell-cart-empty">
+                <ConsumerIcon id="ci-shopping-cart" size={36} className="order-shell-cart-empty__icon" />
+                <p className="order-shell-cart-empty__text">장바구니에 담긴 메뉴가 없습니다.</p>
+              </div>
             ) : (
               <ul className="order-shell-cart-list">
                 {cart.map((line) => (
-                  <li key={line.cartKey} className="order-shell-cart-list__item">
-                    <span className="order-shell-cart-list__name">
-                      {line.name} × {line.qty}
-                      {line.options.length > 0 && (
-                        <span className="order-shell-cart-list__options">
-                          {line.options
-                            .map((option) =>
-                              option.quantity > 1
-                                ? `${option.choiceName} × ${option.quantity}`
-                                : option.choiceName,
-                            )
-                            .join(', ')}
-                        </span>
-                      )}
-                    </span>
-                    <span>{calcCartLinePrice(line).toLocaleString()}원</span>
-                  </li>
+                  <CartLineItem
+                    key={line.cartKey}
+                    line={line}
+                    onIncrease={() => updateCartLineQty(line.cartKey, 1)}
+                    onDecrease={() => updateCartLineQty(line.cartKey, -1)}
+                    onRemove={() => removeCartLine(line.cartKey)}
+                    soldout={soldoutCartKeys.has(line.cartKey)}
+                  />
                 ))}
               </ul>
             )}
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              className="order-shell-sheet__action"
-              disabled
-            >
-              주문하기 (준비 중입니다)
-            </Button>
+
+            <div className="order-shell-cart-total">
+              <span className="order-shell-cart-total__label">총 결제 금액</span>
+              <span className="order-shell-sheet__price">{totalCartPrice.toLocaleString()}원</span>
+            </div>
+
+            {cart.length === 0 ? (
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                className="order-shell-sheet__action"
+                onClick={closeSheet}
+              >
+                메뉴 보러가기
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                className="order-shell-sheet__action"
+                onClick={placeOrder}
+                disabled={hasSoldoutInCart}
+              >
+                주문하기
+              </Button>
+            )}
           </div>
         )}
 
-        {(sheet?.type === 'order-history' || sheet?.type === 'staff-call') && (
+        {sheet?.type === 'order-history' && <OrderHistorySheet onClose={closeSheet} />}
+
+        {sheet?.type === 'staff-call' && (
           <p className="order-shell-sheet__placeholder">준비 중입니다.</p>
         )}
       </ConsumerBottomSheet>
+
+      {orderPhase === 'processing' && <OrderProcessingScreen />}
+      {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
+      {orderPhase === 'error-network' && (
+        <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
+      )}
+      {orderPhase === 'error-duplicate' && (
+        <OrderFailureScreen
+          type="duplicate"
+          duplicateTime={duplicateTime}
+          onGoMain={dismissOrderError}
+          onHistory={viewOrderHistoryFromError}
+        />
+      )}
+      {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
+      {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
+      {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
+      {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
     </div>
   );
 }

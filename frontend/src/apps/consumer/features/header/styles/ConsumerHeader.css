@@ -18,6 +18,7 @@
   width: var(--spacing-13);
   height: var(--spacing-13);
   flex-shrink: 0;
+  border: var(--border-1) solid var(--color-border-brand);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -80,12 +81,13 @@
 }
 
 .consumer-header__action-button {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   height: var(--spacing-12);
   padding-inline: var(--spacing-6);
-  border: var(--border-1) solid var(--color-brand-subtle);
+  border: var(--border-1) solid var(--color-border-brand);
   border-radius: var(--radius-sm);
   background-color: var(--color-brand-subtle);
   color: var(--color-brand-default);
@@ -96,6 +98,23 @@
 
 .consumer-header__action-button:active {
   background-color: var(--color-bg-selected);
+}
+
+/* 주문내역 버튼의 누적 주문 수량 배지 — 완료된 주문이 하나라도 생기면 뜬다. */
+.consumer-header__order-history-badge {
+  position: absolute;
+  top: calc(var(--spacing-2) * -1);
+  right: calc(var(--spacing-2) * -1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+  font-size: 0.5625rem;
+  font-weight: var(--typography-weight-strong);
 }
 
 .consumer-header__icon-button {
@@ -112,6 +131,43 @@
 }
 
 .consumer-header__icon-button:active {
+  background-color: var(--color-bg-muted);
+}
+
+/* QA 전용 드롭다운 — 설정 버튼(dev 빌드 한정) 클릭 시 실패 화면 트리거 메뉴를 띄운다.
+   shared/components/input의 .select-dropdown과 같은 톤(카드·그림자)을 쓴다. */
+.consumer-header__qa-wrap {
+  position: relative;
+}
+
+.consumer-header__qa-menu {
+  position: absolute;
+  top: calc(100% + var(--spacing-2));
+  right: 0;
+  z-index: 50;
+  min-width: 9.5rem;
+  padding: var(--spacing-2);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.consumer-header__qa-menu button {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.consumer-header__qa-menu button:hover,
+.consumer-header__qa-menu button:active {
   background-color: var(--color-bg-muted);
 }
 
@@ -147,6 +203,15 @@
   color: var(--color-text-primary);
   font-size: var(--typography-size-body);
   outline: none;
+}
+
+/* reset.css의 input:focus-visible이 outline을 다시 그리는 것을 막는다 — 이 input의 특이성만으로는
+   못 이긴다(shared/components/input의 .input-control__input:focus-visible과 같은 패턴).
+   포커스 시각화는 위 .consumer-header__search:focus-within이 전담한다. */
+.consumer-header__search-input:focus,
+.consumer-header__search-input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .consumer-header__search-input::placeholder {

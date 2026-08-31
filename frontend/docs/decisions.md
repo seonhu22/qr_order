@@ -889,3 +889,148 @@ Consumer 메뉴 상세 시트에 옵션 그룹(필수/선택, 단일/복수)을 
 - 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellOptionGroup`의 `selectionType`·`maxSelectable`과 그 매핑 로직이다.
 
 ---
+
+## ADR-023 — 복수 선택 옵션 항목별 수량은 mock 전용 `qty`로 둔다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `MenuDetailSheet`를 따라가면서 복수 선택 옵션(예: "치즈 토핑")을 여러 개 담을 수 있는 항목별 수량 스텝퍼를 붙였다. ADR-022가 남긴 `MenuOptionGroupItem.inputType`의 `'수량 설정'` 값이 실제로 이 개념(항목 하나를 몇 개 담을지)과 맞닿아 있을 가능성이 높지만, 백엔드에 이 값을 실제로 몇 개 담았는지 저장·전송하는 필드는 아직 없다.
+
+### 결정
+
+ADR-022와 같은 원칙(ADR-010 선례 — 프론트 우선 구현, 백엔드 계약 정해지면 매핑 재정비)을 그대로 따른다.
+
+- `OrderShellCartOption`에 `qty?: number`를 둔다. 없으면 1개로 취급하며(단일 선택은 항상 이 경우), **mock 전용**임을 타입 주석에 남긴다.
+- 수량 상태는 `useMenuDetailSheet`가 소유한다(`choiceQty`, key: `` `${groupId}__${choiceId}` ``). 복수 선택 항목이 새로 선택될 때마다 1로 초기화한다 — 이전에 해제하기 전 늘려둔 값이 재선택 시 남아있지 않게 하기 위함이다.
+- 가격 계산(`cartLine.ts`의 `sumOptionPrice`/`calcUnitPrice`)은 옵션별 `price * (qty ?? 1)`로 합산해, `qty` 없는 기존 호출부(단일 선택, 테스트의 mock 옵션 등)와 호환된다.
+- 개수 상한은 두지 않는다 — 참고 저장소도 항목별 수량은 무제한이고, 그룹의 `maxSelectable`(몇 "종류"를 고를 수 있는지)과는 별개 축이다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시 옵션 라인마다 개수를 저장할 필드 필요(현재 `MenuOptionDetailItem`류에는 선택 여부만 있고 개수가 없다)
+- [ ] `inputType: '수량 설정'`이 이 "옵션 항목별 개수" 개념과 같은 것인지, 아니면 별도 화면(예: 수량만 조절하는 옵션 그룹)을 가리키는지 확인 필요 — 같은 것이라면 `selectionType`처럼 이 필드로 단일/복수 선택 UI 분기까지 겸할 수 있는지도 함께 정리
+- [ ] 항목별 개수 상한(예: 재고 기반)이 필요한지 여부
+
+### 결과
+
+- 복수 선택 옵션의 항목별 수량 UI·가격 계산은 백엔드 계약 없이 먼저 완성한다.
+- 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellCartOption.qty`와 `useMenuDetailSheet`의 `choiceQty` 상태, 그리고 `inputType`과의 관계다.
+
+---
+
+## ADR-024 — 주문 실패 화면(네트워크·중복 주문)은 먼저 완성하고, 판별 로직은 QA 트리거로 미리본다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `CustomerMenuPage`의 주문 제출 흐름(`doOrder`/`commitOrder`)을 그대로 따라가 보면, 성공(`OrderCompleteScreen`) 외의 경로 — 주문 실패(`OrderErrorScreen` type `network`/`duplicate`) — 는 실제 주문 파이프라인 어디에서도 세팅되지 않는다. 헤더의 dev-nav 데모 버튼에서만 강제로 호출된다. 우리 프로젝트도 주문 제출 백엔드 API가 아직 없어 같은 상황이다.
+
+### 결정
+
+- `useConsumerOrderPage`의 `orderPhase` 하나로 `idle`/`processing`/`complete`/`error-network`/`error-duplicate` 상태를 전부 표현하는 단일 상태 머신을 둔다. 화면 렌더링은 `ConsumerOrderPage.tsx`가 이 값 하나만 보고 분기한다.
+- 실제 주문 흐름(`placeOrder`)은 참고 저장소의 딜레이(1800ms)를 그대로 따라 항상 성공(`complete`)한다 — 실패 화면은 자동으로는 절대 발생하지 않는다.
+- 화면 디자인·문구는 참고 저장소 그대로 만들어 두되, 진입은 `consumerOrderQaStore`(zustand)를 거쳐 헤더의 설정(⚙) 버튼 — dev 빌드(`import.meta.env.DEV`) 한정 드롭다운 — 에서만 강제로 요청한다.
+- 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)은 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어, 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 요청을 `useState` 구독이 아니라 zustand의 vanilla `.subscribe()`로 구독한다 — 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 제출 API의 실패 응답 스펙(네트워크 오류/중복 주문을 어떻게 구분해 내려줄지)
+
+### 결과
+
+- 실제 API가 붙으면 `triggerOrderFailure`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 판별 로직에서 호출하도록 바꾸면 된다 — 화면 자체는 이미 완성돼 있어 재작업이 필요 없다.
+- QA 트리거(`consumerOrderQaStore`, 헤더 드롭다운)는 `import.meta.env.DEV` 가드로 production 빌드에서 tree-shake 되어 실사용자에게는 노출되지 않는다.
+- 같은 원인(백엔드 판별 로직 부재)으로 이후 추가한 세션 만료·통신 오류 화면은 [ADR-025](#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다)에서 이 패턴을 그대로 확장한다.
+
+---
+
+## ADR-025 — 세션 만료(시간초과·마감)·통신 오류 화면도 같은 원칙으로 먼저 완성한다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+ADR-024로 주문 실패 2종(`error-network`/`error-duplicate`)을 먼저 화면만 완성해두는 패턴을 세운 뒤, 참고 저장소 `CustomerMenuPage`를 더 살펴보면 같은 성격의 화면이 3개 더 있다 — 세션 만료(`SessionExpiredScreen` variant `timeout`/`closed`)와 통신 오류(`NetworkErrorScreen`). 이 셋도 실제 파이프라인에서는 절대 세팅되지 않고 dev-nav 데모 버튼에서만 호출된다는 점이 ADR-024의 전제와 동일하다.
+
+### 결정
+
+- ADR-024의 `orderPhase` 상태 머신에 `session-timeout`/`session-closed`/`network-error` 세 값을 추가한다 — 별도 상태 머신을 새로 만들지 않고 기존 슬롯을 그대로 확장한다.
+- `consumerOrderQaStore`에 `pendingSessionExpiry`/`pendingNetworkError`를 추가하고, 헤더 QA 드롭다운에도 "주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류" 3개 항목을 추가한다 — 트리거 메커니즘(`.subscribe()` 구독, dev 빌드 가드)은 ADR-024와 동일하다.
+- `NetworkErrorScreen`은 앱 전체의 연결 상태 문제를 알리는 화면이라, 다른 화면들의 브랜드(주황) 톤과 다르게 위험(`--color-status-error-*`, 빨강) 톤 아이콘·블롭을 쓴다 — 참고 저장소도 이 화면만 빨강 계열이다(버튼만은 브랜드색 유지).
+- `SessionExpiredScreen`은 QR을 다시 찍어야 하는 종결 상태라 별도 액션 버튼이 없다(아이콘+제목+설명만).
+
+### 백엔드 협의 항목
+
+- [ ] 세션 만료(시간초과/결제 완료로 인한 마감) 판별 방식 — 폴링/웹소켓/QR 재스캔 감지 등 미정
+- [ ] 통신 오류가 `navigator.onLine` 같은 순수 프론트 감지로 충분한지, API 응답 타임아웃 기준도 함께 둘지
+
+### 결과
+
+- 실제 감지 로직이 붙으면 `triggerSessionExpiry`/`triggerNetworkError`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 로직에서 호출하도록 바꾸면 된다.
+- 참고 저장소에는 없던 `ci-lock` 아이콘을 `consumerSprite.svg`에 추가했다(`session-closed`용) — `ci-clock`은 기존 아이콘을 그대로 재사용했다.
+
+---
+
+## ADR-026 — 품절 확인 흐름은 QR코드 진입 경로를 데모 트리거로 써서 먼저 완성한다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 품절 확인 모달(`SoldoutModal`)·장바구니 품절 표기·메뉴 목록 품절 배지는 실제 재고 판별 로직 없이, mock 데이터의 정적 `status: 'soldout'`이나 dev-nav의 "한정수량 품절 처리" 버튼으로만 도달한다. 우리 프로젝트도 주문 재고 판별 API가 없어 같은 상황이지만, ADR-024/025의 "설정 버튼 QA 트리거로만 도달"과는 다르게, 이번엔 QR코드별로 이미 있는 mock 테이블 구분(`qr-code-001`~`004`)을 실제 트리거로 재사용하기로 했다 — `qr-code-001`(창가 1번, `table-001`)로 들어오면 무엇을 담아 주문해도 항상 품절 확인 모달이 뜬다.
+
+### 결정
+
+- `useConsumerOrderPage`가 `useConsumerSession`으로 `session.tableSysId === 'table-001'`인지 확인해(`isSoldoutDemoTable`) `placeOrder` 시점에 분기한다 — 데모 테이블이면 처리중 화면 대신 `SoldoutModal`을 띄우고 장바구니 시트는 닫지 않는다.
+- `SoldoutModal`은 참고 저장소처럼 전체화면이 아니라 어두운 배경 위 중앙 카드형 다이얼로그다(z-index 80, 다른 order-shell 오버레이보다 위). "확인" 외에는 닫히지 않는다.
+- 확인한 장바구니 줄은 옵션 유무로 나눠 처리한다 — 옵션 없이 담았으면 메뉴 자체(`soldoutMenuIds`)를, 옵션을 골라 담았으면 그 옵션(`soldoutOptionChoiceIds`)만 품절 처리한다. 메뉴 자체를 항상 품절 처리하는 대안도 검토했지만, 옵션 하나 때문에 메뉴 전체를 못 시키게 되는 건 실제 매장 운영과도 맞지 않아 이 조합을 최종으로 삼았다.
+- 지속 범위를 두 층으로 나눴다 — 장바구니 표기(`soldoutCartKeys`)는 그 줄을 삭제해야 풀리고, 메뉴·옵션 표기(`soldoutMenuIds`/`soldoutOptionChoiceIds`)는 장바구니에서 지워도 풀리지 않는다(실제로 품절이라고 확인한 사실 자체는 그대로이므로). 대신 QA 드롭다운에 "품절 초기화"를 둬서 새로고침 없이 되돌릴 수 있게 했다.
+- `MenuItemCard`/`useMenuDetailSheet`의 품절 렌더링·비활성화는 이미 있던 mock 정적 `soldOut` 필드 처리 로직을 그대로 재사용한다 — 별도 UI를 새로 만들지 않고 "정적 품절"과 "런타임 품절"을 같은 조건식(`||`)으로 합쳤다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시점 재고 판별 API — 메뉴 단위인지 옵션 단위인지, 응답에 어떤 식별자가 오는지
+- [ ] 품절이 발생하면 다른 세션(다른 테이블)에도 실시간으로 반영돼야 하는지(폴링/웹소켓 여부)
+
+### 결과
+
+- 실제 API가 붙으면 `isSoldoutDemoTable` 분기를 실제 재고 응답 판별로 바꾸고, `confirmSoldoutModal`의 메뉴/옵션 분리 로직은 응답이 내려주는 품절 단위에 맞춰 그대로 재사용할 수 있다.
+- `SoldoutModal`의 포커스 트랩·자동 포커스는 admin/client `WrapperModal`과 같은 기법(포커스 저장/복원, Tab 트랩)을 Consumer 전용으로 다시 구현했다 — ADR-020(Consumer는 WrapperModal을 재사용하지 않는다)과 일관된 선택이다.
+
+---
+
+## ADR-027 — 주문내역은 주문 건별로 시간과 함께 묶어서 보여준다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 주문내역(`OrderHistorySheet`)은 `commitOrder`가 성공할 때마다 `OrderRecord{ orderId, time, items, total }`를 쌓지만, 화면에서는 모든 주문의 아이템과 **아직 주문하지 않은 현재 장바구니**까지 시간 구분 없이 한 목록으로 합쳐 보여준다 — `time`/`orderId` 필드는 정의만 해두고 어디서도 렌더링하지 않는다. 같은 메뉴를 서로 다른 시각에 두 번 주문하면 목록에 이유 설명 없이 같은 이름이 두 번 뜨는 문제가 있고, 아직 결제 전인 장바구니 내용까지 "내역"에 섞이는 것도 어색하다.
+
+### 결정
+
+- `OrderShellOrderRecord{ orderId, orderedAt, items, total }`를 `useConsumerOrderPage`의 `startOrderProcessing` 성공 시점(장바구니 비우기 직전)에 기록한다 — 결제 여부와 무관하게 "주문하기"가 성공하면 무조건 남는다. 아직 담기만 한 현재 장바구니는 포함하지 않는다.
+- 화면(`OrderHistorySheet`)은 참고 저장소처럼 아이템을 통째로 합치지 않고, 주문 건마다 접수 시각과 함께 묶어서 보여준다 — 배달 앱들의 "주문내역"이 건별로 나뉘어 보이는 것과 같은 사용자 기대에 맞춘 선택이다.
+- 헤더(배지)와 order-shell(기록)이 다른 컴포넌트라 `consumerOrderHistoryStore`(zustand)를 새로 둔다 — `consumerSheetStore`/`consumerOrderFilterStore`와 같은 이유.
+- `ConsumerHeader`의 "주문내역" 버튼에 누적 주문 수량 배지를 추가한다(참고 저장소의 `totalOrderedQty` 배지와 동일).
+
+### 백엔드 협의 항목
+
+- [ ] 주문내역 조회 API 스펙 — 세션(테이블)별로 어떻게 스코프되는지, 새로고침·QR 재스캔 후에도 유지돼야 하는지
+- [ ] "주문 건"의 식별자(`orderId`)를 백엔드가 어떤 형태로 내려주는지
+
+### 결과
+
+- 실제 API가 붙으면 `startOrderProcessing`의 기록 지점을 서버 응답 기반으로 바꾸고, `OrderHistorySheet`의 건별 그룹 렌더링은 그대로 재사용할 수 있다.
+- QA 드롭다운에 "주문내역 초기화"를 추가했다 — `consumerOrderHistoryStore`가 이미 헤더·order-shell 양쪽에서 접근 가능한 스토어라, ADR-024/025/026과 달리 `consumerOrderQaStore`를 거치지 않고 헤더가 스토어의 `clearOrders`를 직접 호출한다.
+- 이 QA 드롭다운 전체(설정 버튼)는 실제 판별 로직이 자리 잡으면 코드베이스에서 지워야 할 임시 스캐폴딩이다 — `import.meta.env.DEV` 가드로 production 빌드에는 이미 안 들어가지만, 그 가드만 믿지 말고 실제로 필요 없어지면 삭제한다.
+
+---

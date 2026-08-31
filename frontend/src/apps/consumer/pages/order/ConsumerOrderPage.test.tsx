@@ -57,7 +57,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
 
     expect(await screen.findByText('검색 결과를 불러오지 못했습니다.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }));
-    expect(await screen.findByText('"없는 메뉴"에 대한 메뉴가 없습니다.')).toBeInTheDocument();
+    expect(await screen.findByText('"없는 메뉴"에 대한 메뉴가 없습니다')).toBeInTheDocument();
     expect(attempts).toBe(2);
   });
 

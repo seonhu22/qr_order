@@ -7,7 +7,8 @@ import type { OrderShellMenuItem } from '../types';
  * 이미지 URL은 참고 저장소(Qrorder)의 같은 이름 메뉴가 실제로 쓰던 Unsplash 사진을 그대로 재사용한다.
  * 이름이 겹치지 않는 항목은 검증 안 된 URL을 새로 추측해 넣지 않고 아이콘 fallback으로 둔다.
  */
-export const ORDER_SHELL_CATEGORIES = ['전체', '한식', '음료', '디저트'] as const;
+/** '사이드'는 메뉴가 아직 없는 카테고리 — 빈 카테고리 선택 시 안내 문구가 뜨는지 확인하는 mock. */
+export const ORDER_SHELL_CATEGORIES = ['전체', '한식', '음료', '디저트', '사이드'] as const;
 
 export const ORDER_SHELL_MENU_ITEMS: OrderShellMenuItem[] = [
   {

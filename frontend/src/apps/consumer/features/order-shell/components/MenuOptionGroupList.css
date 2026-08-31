@@ -4,38 +4,33 @@
   gap: var(--spacing-6);
 }
 
+.menu-option-group + .menu-option-group {
+  border-top: var(--border-1) solid var(--color-border-divider);
+  padding-top: var(--spacing-6);
+}
+
+/* legend는 기본적으로 내용 너비만큼만 차지해 justify-content: space-between이 fieldset
+   전체가 아니라 legend 자체의 좁은 박스 안에서만 동작한다 — width: 100%로 늘려서 배지가
+   타이틀 옆이 아니라 옵션 그룹 행의 실제 오른쪽 끝에 붙게 한다. */
 .menu-option-group__legend {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: var(--spacing-3);
   padding-bottom: var(--spacing-4);
+}
+
+.menu-option-group__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
 .menu-option-group__name {
   font-size: var(--typography-size-body);
   font-weight: var(--typography-weight-heading);
   color: var(--color-text-primary);
-}
-
-.menu-option-group__tag {
-  padding: 0 var(--spacing-3);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-bg-muted);
-  color: var(--color-text-secondary);
-  font-size: var(--typography-size-caption);
-}
-
-/* --color-brand-text는 흰색이라 연한 브랜드 배경 위에서 읽히지 않는다.
-   메뉴 카드 배지와 같은 방식으로 같은 계열의 진한 색을 직접 쓴다. */
-.menu-option-group__tag--required {
-  background-color: var(--color-brand-subtle);
-  color: var(--orange-80);
-}
-
-.menu-option-group__hint {
-  margin-left: auto;
-  font-size: var(--typography-size-caption);
-  color: var(--color-text-tertiary);
 }
 
 .menu-option-group__choices {
@@ -47,33 +42,39 @@
 .menu-option-choice {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
+  gap: var(--spacing-5);
+  min-height: var(--spacing-15);
+  padding-inline: var(--spacing-6);
+  padding-block: var(--spacing-3);
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
-.menu-option-choice:hover:not(.menu-option-choice--disabled) {
-  background-color: var(--color-bg-hover);
+  transition: border-color var(--transition-ui), background-color var(--transition-ui);
 }
 
 /* 선택된 항목은 테두리로 표시한다 — 시트 안에서 배경색 대비가 약해 테두리가 더 잘 읽힌다. */
-.menu-option-choice:has(.menu-option-choice__input:checked) {
-  border-color: var(--color-brand-default);
+.menu-option-choice--selected {
+  border-color: var(--orange-40);
   background-color: var(--color-bg-selected);
 }
 
 .menu-option-choice--disabled {
-  cursor: not-allowed;
   color: var(--color-text-disabled);
 }
 
-.menu-option-choice__input {
-  accent-color: var(--color-brand-default);
-  width: var(--spacing-5);
-  height: var(--spacing-5);
-  cursor: inherit;
+.menu-option-choice__text {
+  flex: 1;
+  /* 부모가 align-items: center라 기본값(자기 콘텐츠 높이만큼만)으로는 행 높이(min-height)만큼
+     탭 영역이 늘어나지 않는다 — 이 라벨만 부모 높이로 늘려서 보이는 높이와 실제 탭 영역을 맞춘다.
+     내부는 이미 align-items: center라 텍스트 위치는 그대로다. */
+  align-self: stretch;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.menu-option-choice--disabled .menu-option-choice__text {
+  cursor: not-allowed;
 }
 
 .menu-option-choice__name {
@@ -83,18 +84,44 @@
   font-size: var(--typography-size-body);
 }
 
-.menu-option-choice__soldout {
-  padding: 0 var(--spacing-2);
+/* 참고 저장소(Qrorder) MenuDetailSheet의 옵션 수량 스텝퍼를 그대로 따른다 — 버튼에 별도
+   배경/그림자 없이 트랙과 같은 배경 위에서 색상(아이콘 브랜드색, 값 진회색)만으로 구분한다.
+   이 스텝퍼는 항목이 선택된 상태에서만 나타나는데, 선택된 행 배경(--color-bg-selected)이
+   --color-brand-subtle과 같은 --orange-10이라 그대로 쓰면 트랙이 행 배경에 묻혀 버린다.
+   그래서 한 단계 진한 --orange-20을 써서 선택된 행 위에서도 경계가 보이게 한다. */
+.menu-option-choice__qty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding-inline: var(--spacing-2);
   border-radius: var(--radius-sm);
-  background-color: var(--color-bg-muted);
-  color: var(--color-text-tertiary);
+  background-color: var(--orange-20);
+  flex-shrink: 0;
+}
+
+.menu-option-choice__qty-button {
+  width: var(--spacing-10);
+  height: var(--spacing-12);
+  color: var(--color-brand-default);
+}
+
+.menu-option-choice__qty-button:not(:disabled):active {
+  opacity: 0.6;
+}
+
+.menu-option-choice__qty-value {
+  min-width: var(--spacing-9);
+  text-align: center;
   font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
 }
 
 .menu-option-choice__price {
   margin-left: auto;
-  font-size: var(--typography-size-body);
-  color: var(--color-text-secondary);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
 
 .menu-option-choice--quantity {

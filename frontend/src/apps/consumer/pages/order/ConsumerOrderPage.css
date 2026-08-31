@@ -1,8 +1,31 @@
 .order-shell__empty {
-  padding: var(--spacing-14) var(--spacing-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem var(--spacing-8);
   text-align: center;
+}
+
+.order-shell__empty-icon {
+  color: var(--slate-30);
+  margin-bottom: var(--spacing-6);
+}
+
+.order-shell__empty-text {
   color: var(--color-text-tertiary);
-  font-size: var(--typography-size-body);
+  font-size: var(--typography-size-ui);
+}
+
+.order-shell__empty-reset {
+  margin-top: var(--spacing-6);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-brand-default);
+  font-size: var(--typography-size-ui);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* CartBar가 position: fixed라 일반 흐름 높이를 차지하지 않는다 — 마지막 메뉴 카드가 카트바에
@@ -40,9 +63,73 @@
   color: var(--color-brand-default);
 }
 
+/* 참고 저장소 CartSheet 헤더 그대로 — 아이콘 + 제목 + 담은 개수 배지.
+   시트 본문(consumer-bottom-sheet__body)의 좌우 패딩을 음수 마진으로 상쇄해
+   구분선이 시트 폭 전체에 걸치게 한다(이미지 프레임과 같은 방식). */
+.order-shell-cart-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-inline: calc(var(--spacing-8) * -1);
+  padding: var(--spacing-5) var(--spacing-8);
+  border-bottom: var(--border-1) solid var(--color-border-divider);
+  color: var(--color-text-secondary);
+}
+
+.order-shell-cart-header__title {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.order-shell-cart-header__count {
+  min-width: var(--spacing-9);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  text-align: center;
+}
+
+/* 참고 저장소 CartSheet 푸터 그대로 — 주문하기 버튼 위에 총 결제 금액을 보여준다. */
+.order-shell-cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-4);
+  border-top: var(--border-1) solid var(--color-border-divider);
+}
+
+.order-shell-cart-total__label {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-secondary);
+}
+
 .order-shell-sheet__placeholder {
   padding: var(--spacing-10) 0;
   text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+/* 참고 저장소 CartSheet의 빈 장바구니 상태 그대로 — 아이콘 + 안내 문구, 세로 가운데 정렬. */
+.order-shell-cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-6);
+  padding-block: var(--spacing-16);
+}
+
+.order-shell-cart-empty__icon {
+  color: var(--slate-30);
+}
+
+.order-shell-cart-empty__text {
+  font-size: var(--typography-size-ui);
   color: var(--color-text-tertiary);
 }
 
@@ -53,37 +140,21 @@
 .order-shell-cart-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.order-shell-cart-list__item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  font-size: var(--typography-size-body);
-  color: var(--color-text-primary);
-}
-
-.order-shell-cart-list__name {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.order-shell-cart-list__options {
-  font-size: var(--typography-size-caption);
-  color: var(--color-text-tertiary);
 }
 
 /* 폴드 펼침(~717px)부터 웹까지: 메뉴 목록이 1열에서 다열 그리드로 바뀐다. 열 수를 고정하지 않고
-   auto-fit으로 카드 폭(최소 300px)에 맞춰 화면을 꽉 채우며 늘어나므로, 태블릿에서는 2열,
-   넓은 데스크톱에서는 3~4열까지 자연스럽게 늘어난다(ConsumerLayout의 셸 폭 제한 해제와 짝을 이룸).
+   카드 폭(최소 300px)에 맞춰 화면 너비만큼 늘어나므로, 태블릿에서는 2열, 넓은 데스크톱에서는
+   3~4열까지 자연스럽게 늘어난다(ConsumerLayout의 셸 폭 제한 해제와 짝을 이룸).
+   auto-fit이 아니라 auto-fill을 쓴다 — auto-fit은 그리드마다(카테고리 섹션마다 그리드가 따로다)
+   담긴 아이템 수가 적으면 빈 열을 없애고 카드를 늘려 채워서, 같은 화면 너비에서도 아이템이
+   적은 카테고리만 카드가 넓어지고 열 수가 달라 보이는 문제가 있었다. auto-fill은 아이템 수와
+   무관하게 그 너비에서 항상 같은 열 수를 고정해, 아이템이 모자란 줄엔 카드 대신 빈 공간이
+   남더라도 모든 카테고리의 열 수·카드 폭이 항상 같게 유지된다.
    실제 힌지가 있는 기기에서는 --fold-gap만큼 열 사이 간격도 넓어진다(값이 없으면 0). */
 @media (min-width: 717px) {
   .order-shell__items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     column-gap: var(--fold-gap, 0px);
   }
 

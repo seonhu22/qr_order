@@ -78,7 +78,9 @@ body {
 - 하단 고정 CTA(`CartBar` 등)는 스크롤 본문의 자연스러운 마지막 요소로 `position: sticky; bottom: 0`을 사용한다 — `position: fixed` 오버레이로 띄우고 본문 `padding-bottom`을 계산해 맞추는 방식보다 마지막 콘텐츠가 가려지는 문제가 구조적으로 생기지 않는다. `padding-bottom: env(safe-area-inset-bottom)`으로 홈 인디케이터와의 겹침을 막는다.
 - 카테고리 등 섹션 이동은 `window.scrollTo`가 아니라 본문 스크롤 노드 기준 `scrollIntoView`를 사용한다. sticky 헤더가 대상 섹션을 가리지 않도록 각 섹션에 `scroll-margin-top`(sticky 헤더 높이만큼의 고정값)을 준다.
 - 모바일 주요 터치 영역은 최소 44px를 기준으로 한다.
+- 수량 -/+ 버튼처럼 빠르게 연타하는 게 정상 사용 패턴인 컨트롤에는 `touch-action: manipulation`을 준다. 없으면 모바일 브라우저가 연속 탭을 더블탭 확대 제스처로 오인해 화면이 갑자기 확대될 수 있다(`QuantityStepperButton` 참고).
 - 애니메이션은 `@media (prefers-reduced-motion: no-preference)`로 감싸고, JS로 스크롤 애니메이션을 트리거할 때도 `window.matchMedia('(prefers-reduced-motion: reduce)')`를 확인해 `behavior: 'auto'`로 전환한다.
+- 오버레이(모달/시트)에 닫힘 애니메이션을 넣을 땐 `open` prop으로 바로 언마운트하지 않는다 — `shouldRender`/`isClosing` 상태로 애니메이션이 끝날 때까지 렌더링을 유지한 뒤 `onAnimationEnd`에서 언마운트한다(`ConsumerBottomSheet` 참고, 자세한 패턴은 [`troubleshooting.md`](../troubleshooting.md#모달시트가-열릴-때만-애니메이션되고-닫힐-때는-즉시-사라짐)).
 - 반응형은 뷰포트 폭 `@media`가 1차 기준이다. 폴더블 여부를 먼저 판별하려 하지 않고, 넓은 뷰포트에서도 중요한 UI가 중앙에 애매하게 걸리지 않는 레이아웃을 먼저 만든다.
   - `~480px` 미만: 헤더는 아이콘+액션 한 줄 / 매장 정보 다음 줄(`flex-wrap` + `order`로 반전).
   - `~717px` 이상(폴드 펼침·태블릿·웹): 셸의 `max-width` 제한을 없애 화면을 꽉 채운다. 메뉴 목록은 `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))`로 열 수를 고정하지 않고 카드 폭에 맞춰 자동으로 늘어난다(717px≈2열, 1440px≈4열…). 태블릿/데스크톱을 가르는 별도 브레이크포인트 없이 auto-fit이 알아서 처리한다.

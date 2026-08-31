@@ -1,0 +1,18 @@
+.quantity-stepper-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  /* 수량 -/+ 는 빠르게 연타하는 게 정상 사용 패턴이라, 이게 없으면 모바일 브라우저가 연속 탭을
+     더블탭 확대 제스처로 오인해 화면이 갑자기 확대될 수 있다. */
+  touch-action: manipulation;
+}
+
+.quantity-stepper-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

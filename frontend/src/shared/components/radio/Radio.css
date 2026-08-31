@@ -59,18 +59,19 @@
     box-shadow   var(--transition-ui);
 }
 
-/* ── 크기 변형 ── */
+/* ── 크기 변형 — Checkbox(--size-checkbox-*)와 나란히 쓰였을 때 크기가 맞도록
+   같은 16/20/24px 스케일을 쓴다. ── */
 .radio-control--sm .radio-control__box {
-  width: 0.875rem;   /* 14px */
-  height: 0.875rem;
-}
-.radio-control--md .radio-control__box {
   width: 1rem;       /* 16px */
   height: 1rem;
 }
+.radio-control--md .radio-control__box {
+  width: 1.25rem;    /* 20px */
+  height: 1.25rem;
+}
 .radio-control--lg .radio-control__box {
-  width: 1.125rem;   /* 18px */
-  height: 1.125rem;
+  width: 1.5rem;     /* 24px */
+  height: 1.5rem;
 }
 
 /* ── 내부 점 (checked 시 표시) ── */
@@ -85,16 +86,16 @@
 }
 
 .radio-control--sm .radio-control__dot {
-  width: 0.3125rem;  /* 5px */
-  height: 0.3125rem;
+  width: 0.5rem;     /* 8px */
+  height: 0.5rem;
 }
 .radio-control--md .radio-control__dot {
-  width: 0.375rem;   /* 6px */
-  height: 0.375rem;
+  width: 0.625rem;   /* 10px */
+  height: 0.625rem;
 }
 .radio-control--lg .radio-control__dot {
-  width: 0.4375rem;  /* 7px */
-  height: 0.4375rem;
+  width: 0.75rem;    /* 12px */
+  height: 0.75rem;
 }
 
 /* ── 상태: 호버 (disabled 제외) ── */
@@ -208,13 +209,13 @@
 
 /* 원 너비 + row gap 만큼 들여쓰기 → 레이블 텍스트와 정렬 */
 .radio-control--sm .radio-control__helper {
-  padding-left: calc(0.875rem + var(--spacing-4));
-}
-.radio-control--md .radio-control__helper {
   padding-left: calc(1rem + var(--spacing-4));
 }
+.radio-control--md .radio-control__helper {
+  padding-left: calc(1.25rem + var(--spacing-4));
+}
 .radio-control--lg .radio-control__helper {
-  padding-left: calc(1.125rem + var(--spacing-4));
+  padding-left: calc(1.5rem + var(--spacing-4));
 }
 
 .radio-control__hint {

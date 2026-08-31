@@ -183,7 +183,6 @@ describe('useMenuDetailSheet', () => {
         choiceId: 'white',
         choiceName: '백미',
         price: 0,
-        quantity: 1,
       },
     ]);
   });

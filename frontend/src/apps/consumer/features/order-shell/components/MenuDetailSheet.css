@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   margin-inline: calc(var(--spacing-8) * -1);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 12 / 6;
   background-color: var(--color-bg-muted);
   color: var(--color-text-tertiary);
   overflow: hidden;
@@ -26,6 +26,42 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
+}
+
+.menu-detail-sheet__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.menu-detail-sheet__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-pill);
+  border: var(--border-1) solid transparent;
+  font-size: 0.625rem;
+  font-weight: var(--typography-weight-ui);
+  line-height: 1.4;
+}
+
+.menu-detail-sheet__badge--popular {
+  background-color: var(--red-10);
+  border-color: var(--red-20);
+  color: var(--red-50);
+}
+
+.menu-detail-sheet__badge--recommended {
+  background-color: var(--amber-10);
+  border-color: var(--amber-20);
+  color: var(--amber-50);
+}
+
+.menu-detail-sheet__badge--limited {
+  background-color: var(--purple-10);
+  border-color: var(--purple-20);
+  color: var(--purple-50);
 }
 
 .menu-detail-sheet__name {
