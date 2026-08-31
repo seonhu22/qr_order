@@ -31,6 +31,8 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 | `tableName` | `string` | 테이블 이름 |
 | `tableNum` | `integer` | 테이블 번호 |
 | `tableQty` | `integer` | 수용 인원 |
+| `orderingAllowed` | `boolean` | 현재 방문에서 새 주문을 생성할 수 있는지 여부 |
+| `orderingBlockedReason` | `'TABLE_INACTIVE' \| null` | ACTIVE 방문이 테이블 비활성화로 주문 불가한 경우의 사유 |
 | `startedAt` | `string` | `yyyy-MM-dd HH:mm:ss` |
 
 ```json
@@ -45,6 +47,8 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
     "tableName": "내부 1번",
     "tableNum": 3,
     "tableQty": 4,
+    "orderingAllowed": true,
+    "orderingBlockedReason": null,
     "startedAt": "2026-08-27 10:20:30"
   }
 }
@@ -53,10 +57,14 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 ## 상태와 HTTP
 
 - 유효한 바인딩과 진행 중 방문: `200`, `status: ACTIVE`
+- `ACTIVE`이고 테이블 `use_yn=Y`: `orderingAllowed: true`, `orderingBlockedReason: null`
+- `ACTIVE`이고 테이블 `use_yn=N`: `orderingAllowed: false`, `orderingBlockedReason: TABLE_INACTIVE`
 - `payment_yn=Y` 반영 뒤 `order_master` 결제완료 상태가 확인된 방문: `200`, `status: CLOSED`
 - 서버가 바인딩 기록은 확인했으나 5분 정책으로 만료: `200`, `status: EXPIRED`
 - `JSESSIONID` 또는 유효한 QR 바인딩 자체가 없음: `401`
 - 나머지 Consumer API는 `CLOSED` 또는 `EXPIRED`에서 `410`을 반환한다.
+
+`CLOSED`와 `EXPIRED`는 항상 `orderingAllowed: false`, `orderingBlockedReason: null`이다. 테이블 재활성화는 이 방문들을 다시 활성화하지 않는다.
 
 프런트는 API 상태를 화면 모델 `active | closed | expired | none`으로 변환한다. 백엔드 응답 필드와 값을 프런트 모델 때문에 변경하지 않는다.
 
@@ -97,6 +105,7 @@ Path, Query, Body는 없다. `sysPlantCd`, `tableSysId`, `consumerSessionId`를 
 - DB에서 현재 사용 가능한 사업장/테이블인지 다시 확인한다.
 - 다른 테이블의 방문 식별자를 요청으로 주입할 수 없게 한다.
 - 외부 복사 QR 차단은 별도 정책이 확정되기 전까지 해결된 것으로 문서화하지 않는다.
+- 테이블 비활성화는 기존 방문 조회 권한을 종료하지 않고 새 주문 권한만 제거한다.
 
 ## 테스트
 
