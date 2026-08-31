@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1.0
  */
 import type { ConsumerSessionResponseStatus } from './consumerSessionResponseStatus';
+import type { ConsumerSessionResponseOrderingBlockedReason } from './consumerSessionResponseOrderingBlockedReason';
 
 export interface ConsumerSessionResponse {
   consumerSessionId: string;
@@ -16,5 +17,7 @@ export interface ConsumerSessionResponse {
   tableName: string;
   tableNum: number;
   tableQty: number;
+  orderingAllowed: boolean;
+  orderingBlockedReason: ConsumerSessionResponseOrderingBlockedReason;
   startedAt: string;
 }

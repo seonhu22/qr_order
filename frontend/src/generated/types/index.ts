@@ -60,6 +60,7 @@ export * from './consumerOrderListResponse';
 export * from './consumerOrderSummary';
 export * from './consumerSessionEnvelope';
 export * from './consumerSessionResponse';
+export * from './consumerSessionResponseOrderingBlockedReason';
 export * from './consumerSessionResponseStatus';
 export * from './dailySale';
 export * from './downloadAllFileParams';

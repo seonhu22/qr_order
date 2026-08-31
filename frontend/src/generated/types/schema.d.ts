@@ -2898,6 +2898,9 @@ export interface components {
             tableNum: number;
             /** Format: int32 */
             tableQty: number;
+            orderingAllowed: boolean;
+            /** @enum {string|null} */
+            orderingBlockedReason: "TABLE_INACTIVE" | null;
             /** @example 2026-08-27 10:20:30 */
             startedAt: string;
         };
@@ -4454,7 +4457,7 @@ export interface operations {
                     "*/*": components["schemas"]["CommonResponse"];
                 };
             };
-            /** @description 품절 등 주문 상태 충돌 */
+            /** @description 품절 또는 비활성 테이블 등 주문 상태 충돌 (TABLE_INACTIVE) */
             409: {
                 headers: {
                     [name: string]: unknown;
