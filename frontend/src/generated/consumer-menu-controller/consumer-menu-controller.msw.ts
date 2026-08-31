@@ -27,6 +27,8 @@ import type {
 
 export const getGetConsumerMenuDetailResponseMock = (overrideResponse: Partial< ConsumerMenuDetailEnvelope > = {}): ConsumerMenuDetailEnvelope => ({success: faker.datatype.boolean(), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {body: {menuSysId: faker.string.alpha({length: {min: 10, max: 20}}), categorySysId: faker.string.alpha({length: {min: 10, max: 20}}), categoryName: faker.string.alpha({length: {min: 10, max: 20}}), menuName: faker.string.alpha({length: {min: 10, max: 20}}), menuPrice: faker.number.int({min: undefined, max: undefined}), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuTag: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement(['Y','N'] as const), soldOutYn: faker.helpers.arrayElement(['Y','N'] as const), optionGroupList: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({optionGroupSysId: faker.string.alpha({length: {min: 10, max: 20}}), groupName: faker.string.alpha({length: {min: 10, max: 20}}), requiredYn: faker.helpers.arrayElement(['Y','N'] as const), selectionType: faker.helpers.arrayElement(['01','02','03'] as const), optionList: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({menuOptionSysId: faker.string.alpha({length: {min: 10, max: 20}}), menuOptionName: faker.string.alpha({length: {min: 10, max: 20}}), menuOptionPrice: faker.number.int({min: undefined, max: undefined}), menuOptionDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), maximumNum: faker.number.int({min: undefined, max: undefined}), defaultYn: faker.helpers.arrayElement(['Y','N'] as const)}))}))}}, ...overrideResponse})
 
+export const getGetConsumerMenuImageResponseMock = (): Blob => (new Blob(faker.helpers.arrayElements(faker.word.words(10).split(' '))))
+
 export const getSearchConsumerMenuResponseMock = (overrideResponse: Partial< ConsumerMenuSearchEnvelope > = {}): ConsumerMenuSearchEnvelope => ({success: faker.datatype.boolean(), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {body: {menuList: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({menuSysId: faker.string.alpha({length: {min: 10, max: 20}}), categorySysId: faker.string.alpha({length: {min: 10, max: 20}}), categoryName: faker.string.alpha({length: {min: 10, max: 20}}), menuName: faker.string.alpha({length: {min: 10, max: 20}}), menuPrice: faker.number.int({min: undefined, max: undefined}), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuTag: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement(['Y','N'] as const), soldOutYn: faker.helpers.arrayElement(['Y','N'] as const)}))}}, ...overrideResponse})
 
 export const getGetConsumerMenuMainResponseMock = (overrideResponse: Partial< ConsumerMenuMainEnvelope > = {}): ConsumerMenuMainEnvelope => ({success: faker.datatype.boolean(), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {storeName: faker.string.alpha({length: {min: 10, max: 20}}), tableNum: faker.number.int({min: undefined, max: undefined}), header: {categoryList: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({categorySysId: faker.string.alpha({length: {min: 10, max: 20}}), categoryName: faker.string.alpha({length: {min: 10, max: 20}})}))}, body: {menuList: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({menuSysId: faker.string.alpha({length: {min: 10, max: 20}}), categorySysId: faker.string.alpha({length: {min: 10, max: 20}}), categoryName: faker.string.alpha({length: {min: 10, max: 20}}), menuName: faker.string.alpha({length: {min: 10, max: 20}}), menuPrice: faker.number.int({min: undefined, max: undefined}), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), fileSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuTag: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement(['Y','N'] as const), soldOutYn: faker.helpers.arrayElement(['Y','N'] as const)}))}}, ...overrideResponse})
@@ -38,6 +40,18 @@ export const getGetConsumerMenuDetailMockHandler = (overrideResponse?: ConsumerM
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getGetConsumerMenuDetailResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getGetConsumerMenuImageMockHandler = (overrideResponse?: Blob | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Blob> | Blob), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/consumer/menu/:menuSysId/image', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetConsumerMenuImageResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -69,6 +83,7 @@ export const getGetConsumerMenuMainMockHandler = (overrideResponse?: ConsumerMen
 }
 export const getConsumerMenuControllerMock = () => [
   getGetConsumerMenuDetailMockHandler(),
+  getGetConsumerMenuImageMockHandler(),
   getSearchConsumerMenuMockHandler(),
   getGetConsumerMenuMainMockHandler()
 ]

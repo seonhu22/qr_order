@@ -129,6 +129,100 @@ export function useGetConsumerMenuDetail<TData = Awaited<ReturnType<typeof getCo
 
 
 /**
+ * QR 세션 사업장에서 노출 중인 메뉴에 연결된 이미지만 반환한다. 다른 사업장 파일, 메뉴에 연결되지 않은 첨부파일, 삭제된 파일은 모두 404로 처리해 존재 여부가 드러나지 않게 한다.
+ * @summary Consumer 메뉴 이미지 조회
+ */
+export const getConsumerMenuImage = (
+    menuSysId: string,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<Blob>(
+      {url: `/api/client/consumer/menu/${menuSysId}/image`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetConsumerMenuImageQueryKey = (menuSysId?: string,) => {
+    return [
+    `/api/client/consumer/menu/${menuSysId}/image`
+    ] as const;
+    }
+
+    
+export const getGetConsumerMenuImageQueryOptions = <TData = Awaited<ReturnType<typeof getConsumerMenuImage>>, TError = void>(menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConsumerMenuImageQueryKey(menuSysId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsumerMenuImage>>> = ({ signal }) => getConsumerMenuImage(menuSysId, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(menuSysId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConsumerMenuImageQueryResult = NonNullable<Awaited<ReturnType<typeof getConsumerMenuImage>>>
+export type GetConsumerMenuImageQueryError = void
+
+
+export function useGetConsumerMenuImage<TData = Awaited<ReturnType<typeof getConsumerMenuImage>>, TError = void>(
+ menuSysId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConsumerMenuImage>>,
+          TError,
+          Awaited<ReturnType<typeof getConsumerMenuImage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConsumerMenuImage<TData = Awaited<ReturnType<typeof getConsumerMenuImage>>, TError = void>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConsumerMenuImage>>,
+          TError,
+          Awaited<ReturnType<typeof getConsumerMenuImage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConsumerMenuImage<TData = Awaited<ReturnType<typeof getConsumerMenuImage>>, TError = void>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Consumer 메뉴 이미지 조회
+ */
+
+export function useGetConsumerMenuImage<TData = Awaited<ReturnType<typeof getConsumerMenuImage>>, TError = void>(
+ menuSysId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerMenuImage>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConsumerMenuImageQueryOptions(menuSysId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
  * qrTableInfo 세션의 사업장에 노출 가능한 메뉴를 검색합니다.
  * @summary Consumer 메뉴 검색 및 카테고리 필터
  */
