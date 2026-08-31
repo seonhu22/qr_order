@@ -6,6 +6,7 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
+import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
@@ -47,6 +48,7 @@ class ConsumerOrderCreationServiceTest {
         ConsumerSessionBinding binding = binding();
         ConsumerOrderCreateRequest request = new ConsumerOrderCreateRequest();
         ValidatedConsumerOrder validated = validatedOrder();
+        when(consumerVisitService.lockTableForOrdering(qr)).thenReturn(true);
         when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderValidator.validate("PLANT-1", request)).thenReturn(validated);
         when(consumerOrderMapper.lockOrderNumberScope("PLANT-1")).thenReturn(1);
@@ -79,6 +81,7 @@ class ConsumerOrderCreationServiceTest {
         assertEquals(4, option.getValue().getQuantity());
 
         InOrder order = inOrder(consumerVisitService, consumerOrderValidator, consumerOrderMapper);
+        order.verify(consumerVisitService).lockTableForOrdering(qr);
         order.verify(consumerVisitService).lockBoundVisit(qr, "VISIT-1");
         order.verify(consumerOrderValidator).validate("PLANT-1", request);
         order.verify(consumerOrderMapper).lockOrderNumberScope("PLANT-1");
@@ -105,6 +108,7 @@ class ConsumerOrderCreationServiceTest {
         QrConnectResponse qr = qrTableInfo();
         ConsumerVisitRecord expired = activeVisit();
         expired.setExpired(true);
+        when(consumerVisitService.lockTableForOrdering(qr)).thenReturn(true);
         when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(expired);
 
         assertThrows(ConsumerOrderSessionGoneException.class,
@@ -118,6 +122,7 @@ class ConsumerOrderCreationServiceTest {
         QrConnectResponse qr = qrTableInfo();
         ConsumerVisitRecord paid = activeVisit();
         paid.setOrderStatus("02");
+        when(consumerVisitService.lockTableForOrdering(qr)).thenReturn(true);
         when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(paid);
 
         assertThrows(ConsumerOrderSessionGoneException.class,
@@ -130,6 +135,7 @@ class ConsumerOrderCreationServiceTest {
     void doesNotWritePartialOrderWhenValidationFails() {
         QrConnectResponse qr = qrTableInfo();
         ConsumerOrderCreateRequest request = new ConsumerOrderCreateRequest();
+        when(consumerVisitService.lockTableForOrdering(qr)).thenReturn(true);
         when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderValidator.validate("PLANT-1", request))
                 .thenThrow(new ValidationException("옵션 오류"));
@@ -139,6 +145,18 @@ class ConsumerOrderCreationServiceTest {
 
         verifyNoInteractions(consumerOrderMapper);
         verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
+    }
+
+    @Test
+    void rejectsInactiveTableBeforeVisitLockAndDatabaseWrite() {
+        QrConnectResponse qr = qrTableInfo();
+        when(consumerVisitService.lockTableForOrdering(qr)).thenReturn(false);
+
+        assertThrows(ConsumerTableInactiveException.class,
+                () -> service.createOrder(qr, binding(), new ConsumerOrderCreateRequest()));
+
+        verify(consumerVisitService, never()).lockBoundVisit(qr, "VISIT-1");
+        verifyNoInteractions(consumerOrderValidator, consumerOrderMapper);
     }
 
     private ValidatedConsumerOrder validatedOrder() {

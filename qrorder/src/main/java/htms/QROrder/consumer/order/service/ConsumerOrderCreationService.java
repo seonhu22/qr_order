@@ -4,6 +4,7 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
+import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
@@ -33,6 +34,10 @@ public class ConsumerOrderCreationService {
             ConsumerSessionBinding binding,
             ConsumerOrderCreateRequest request) {
         consumerOrderSessionGuard.requireMatchingBinding(qrTableInfo, binding);
+
+        if (!consumerVisitService.lockTableForOrdering(qrTableInfo)) {
+            throw new ConsumerTableInactiveException("현재 테이블에서는 새 주문을 할 수 없습니다.");
+        }
 
         ConsumerVisitRecord visit = consumerVisitService.lockBoundVisit(
                 qrTableInfo, binding.getConsumerSessionId());

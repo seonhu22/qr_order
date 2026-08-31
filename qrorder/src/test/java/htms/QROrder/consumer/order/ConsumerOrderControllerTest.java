@@ -13,6 +13,7 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderSummary;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
+import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
 import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
@@ -138,6 +139,20 @@ class ConsumerOrderControllerTest {
         performWithActiveSession()
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("품절된 메뉴가 포함되어 있습니다."));
+    }
+
+    @Test
+    void mapsInactiveTableToCodedConflict() throws Exception {
+        when(consumerOrderCreationService.createOrder(any(), any(), any()))
+                .thenThrow(new ConsumerTableInactiveException(
+                        "현재 테이블에서는 새 주문을 할 수 없습니다."));
+
+        performWithActiveSession()
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error").value("TABLE_INACTIVE"))
+                .andExpect(jsonPath("$.message")
+                        .value("현재 테이블에서는 새 주문을 할 수 없습니다."));
     }
 
     @Test

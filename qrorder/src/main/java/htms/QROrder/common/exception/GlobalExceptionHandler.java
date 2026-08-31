@@ -8,6 +8,7 @@ import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
+import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CommonResponse> handleConsumerOrderConflict(
             ConsumerOrderConflictException e) {
         return errorResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(ConsumerTableInactiveException.class)
+    public ResponseEntity<CommonResponse> handleConsumerTableInactive(
+            ConsumerTableInactiveException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message(e.getMessage())
+                        .error("TABLE_INACTIVE")
+                        .build());
     }
 
     @ExceptionHandler(EmailValidException.class)
