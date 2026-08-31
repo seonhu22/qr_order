@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Mapper;
 public interface ConsumerVisitMapper {
     String lockAvailableTable(String tableSysId, String sysPlantCd);
 
+    String lockTableUseYn(String tableSysId, String sysPlantCd);
+
     ConsumerVisitRecord findActiveConsumerVisit(String tableSysId, String sysPlantCd);
 
     ConsumerVisitRecord findConsumerVisit(String consumerSessionId,

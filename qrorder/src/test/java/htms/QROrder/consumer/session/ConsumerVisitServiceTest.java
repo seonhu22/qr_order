@@ -137,6 +137,15 @@ class ConsumerVisitServiceTest {
         verify(consumerVisitMapper, never()).findActiveConsumerVisit(anyString(), anyString());
     }
 
+    @Test
+    void locksTableAndAllowsOrderingOnlyWhenUseYnIsY() {
+        when(consumerVisitMapper.lockTableUseYn("TABLE-1", "PLANT-1"))
+                .thenReturn("Y", "N");
+
+        assertEquals(true, service().lockTableForOrdering(qrTableInfo()));
+        assertEquals(false, service().lockTableForOrdering(qrTableInfo()));
+    }
+
     private ConsumerVisitService service() {
         return new ConsumerVisitService(consumerVisitMapper);
     }

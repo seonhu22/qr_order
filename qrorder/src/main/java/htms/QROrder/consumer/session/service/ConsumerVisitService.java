@@ -53,6 +53,13 @@ public class ConsumerVisitService {
     }
 
     @Transactional
+    public boolean lockTableForOrdering(QrConnectResponse qrTableInfo) {
+        String useYn = consumerVisitMapper.lockTableUseYn(
+                qrTableInfo.getSysId(), qrTableInfo.getSysPlantCd());
+        return "Y".equals(useYn);
+    }
+
+    @Transactional
     public ConsumerVisitRecord lockBoundVisit(QrConnectResponse qrTableInfo,
                                                String consumerSessionId) {
         String lockedVisitId = consumerVisitMapper.lockConsumerVisit(

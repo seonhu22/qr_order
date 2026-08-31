@@ -82,6 +82,45 @@ class ConsumerOrderMapperXmlTest {
         }
     }
 
+    @Test
+    void consumerVisitMapperLocksTableBeforeEvaluatingUseYn() throws Exception {
+        Configuration visitConfiguration = configuration(
+                "mapper/consumer/session/ConsumerVisitMapper.xml");
+        Map<String, Object> parameters = Map.of(
+                "tableSysId", "TABLE-1",
+                "sysPlantCd", "PLANT-1");
+        String namespace = "htms.QROrder.consumer.session.repository.ConsumerVisitMapper.";
+        String sql = normalize(visitConfiguration
+                .getMappedStatement(namespace + "lockTableUseYn")
+                .getBoundSql(parameters)
+                .getSql());
+
+        assertTrue(sql.contains("SELECT use_yn FROM table_info"));
+        assertTrue(sql.contains("sys_id = ?"));
+        assertTrue(sql.contains("sys_plant_cd = ?"));
+        assertTrue(sql.endsWith("FOR UPDATE"));
+        assertFalse(sql.contains("use_yn = 'Y'"));
+    }
+
+    @Test
+    void consumerVisitMapperProjectsCurrentTableActivity() throws Exception {
+        Configuration visitConfiguration = configuration(
+                "mapper/consumer/session/ConsumerVisitMapper.xml");
+        Map<String, Object> parameters = Map.of(
+                "consumerSessionId", "VISIT-1",
+                "tableSysId", "TABLE-1",
+                "sysPlantCd", "PLANT-1");
+        String namespace = "htms.QROrder.consumer.session.repository.ConsumerVisitMapper.";
+        String sql = normalize(visitConfiguration
+                .getMappedStatement(namespace + "findConsumerVisit")
+                .getBoundSql(parameters)
+                .getSql());
+
+        assertTrue(sql.contains("FROM table_info ti"));
+        assertTrue(sql.contains("ti.use_yn = 'Y'"));
+        assertTrue(sql.contains("AS table_active"));
+    }
+
     private String sql(String statementId, Object parameter) {
         return normalize(boundSql(statementId, parameter).getSql());
     }
@@ -93,5 +132,13 @@ class ConsumerOrderMapperXmlTest {
 
     private String normalize(String sql) {
         return sql.replaceAll("\\s+", " ").trim();
+    }
+
+    private Configuration configuration(String resource) throws Exception {
+        Configuration parsed = new Configuration();
+        try (InputStream input = Resources.getResourceAsStream(resource)) {
+            new XMLMapperBuilder(input, parsed, resource, parsed.getSqlFragments()).parse();
+        }
+        return parsed;
     }
 }

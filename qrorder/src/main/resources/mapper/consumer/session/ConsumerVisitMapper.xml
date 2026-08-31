@@ -48,6 +48,14 @@
         FOR UPDATE
     </select>
 
+    <select id="lockTableUseYn" resultType="string">
+        SELECT use_yn
+        FROM table_info
+        WHERE sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+        FOR UPDATE
+    </select>
+
     <select id="findStoreName" resultType="string">
         SELECT store_nm
         FROM sys_plant
