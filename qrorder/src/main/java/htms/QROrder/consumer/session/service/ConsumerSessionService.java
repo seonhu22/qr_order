@@ -54,6 +54,10 @@ public class ConsumerSessionService {
     private ConsumerSessionResponse response(QrConnectResponse qrTableInfo,
                                              ConsumerVisitRecord visit,
                                              String status) {
+        boolean orderingAllowed = "ACTIVE".equals(status) && visit.isTableActive();
+        String orderingBlockedReason = "ACTIVE".equals(status) && !visit.isTableActive()
+                ? "TABLE_INACTIVE"
+                : null;
         return new ConsumerSessionResponse(
                 visit.getConsumerSessionId(),
                 status,
@@ -63,6 +67,8 @@ public class ConsumerSessionService {
                 qrTableInfo.getTableName(),
                 qrTableInfo.getTableNum(),
                 qrTableInfo.getTableQty(),
+                orderingAllowed,
+                orderingBlockedReason,
                 visit.getStartedAt()
         );
     }
@@ -81,6 +87,8 @@ public class ConsumerSessionService {
                 qrTableInfo.getTableName(),
                 qrTableInfo.getTableNum(),
                 qrTableInfo.getTableQty(),
+                false,
+                null,
                 binding.getStartedAt()
         );
     }

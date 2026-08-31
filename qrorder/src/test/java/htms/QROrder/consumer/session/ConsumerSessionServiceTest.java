@@ -36,6 +36,8 @@ class ConsumerSessionServiceTest {
         assertEquals("ACTIVE", response.getStatus());
         assertEquals("VISIT-1", response.getConsumerSessionId());
         assertEquals("테스트 매장", response.getStoreName());
+        assertEquals(true, response.isOrderingAllowed());
+        assertEquals(null, response.getOrderingBlockedReason());
         verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
     }
 
@@ -62,6 +64,8 @@ class ConsumerSessionServiceTest {
         ConsumerSessionResponse response = consumerSessionService.getSession(qr, binding());
 
         assertEquals("EXPIRED", response.getStatus());
+        assertEquals(false, response.isOrderingAllowed());
+        assertEquals(null, response.getOrderingBlockedReason());
         verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
     }
 
@@ -74,6 +78,8 @@ class ConsumerSessionServiceTest {
         ConsumerSessionResponse response = consumerSessionService.getSession(qr, binding());
 
         assertEquals("CLOSED", response.getStatus());
+        assertEquals(false, response.isOrderingAllowed());
+        assertEquals(null, response.getOrderingBlockedReason());
         verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
     }
 
@@ -87,6 +93,8 @@ class ConsumerSessionServiceTest {
 
         assertEquals("EXPIRED", response.getStatus());
         assertEquals(STARTED_AT, response.getStartedAt());
+        assertEquals(false, response.isOrderingAllowed());
+        assertEquals(null, response.getOrderingBlockedReason());
     }
 
     @Test
@@ -99,6 +107,21 @@ class ConsumerSessionServiceTest {
 
         assertEquals("CLOSED", response.getStatus());
         verify(consumerVisitService, never()).touchBoundVisit(qr, "VISIT-1");
+    }
+
+    @Test
+    void keepsActiveSessionButBlocksOrderingWhenTableIsInactive() {
+        QrConnectResponse qr = qrTableInfo();
+        ConsumerVisitRecord inactive = visit("VISIT-1", "01", false);
+        inactive.setTableActive(false);
+        when(consumerVisitService.findBoundVisit(qr, "VISIT-1")).thenReturn(inactive);
+        when(consumerVisitService.touchBoundVisit(qr, "VISIT-1")).thenReturn(inactive);
+
+        ConsumerSessionResponse response = consumerSessionService.getSession(qr, binding());
+
+        assertEquals("ACTIVE", response.getStatus());
+        assertEquals(false, response.isOrderingAllowed());
+        assertEquals("TABLE_INACTIVE", response.getOrderingBlockedReason());
     }
 
     private QrConnectResponse qrTableInfo() {
@@ -124,6 +147,7 @@ class ConsumerSessionServiceTest {
         visit.setOrderStatus(orderStatus);
         visit.setStartedAt(STARTED_AT);
         visit.setExpired(expired);
+        visit.setTableActive(true);
         return visit;
     }
 }

@@ -46,6 +46,8 @@ class ConsumerSessionControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.consumerSessionId").value("VISIT-1"))
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.orderingAllowed").value(true))
+                .andExpect(jsonPath("$.data.orderingBlockedReason").isEmpty())
                 .andExpect(jsonPath("$.data.startedAt").value("2026-08-27 10:20:30"));
 
         ConsumerSessionBinding stored = (ConsumerSessionBinding) session.getAttribute(
@@ -82,6 +84,7 @@ class ConsumerSessionControllerTest {
     private ConsumerSessionResponse response(String status) {
         return new ConsumerSessionResponse(
                 "VISIT-1", status, "PLANT-1", "테스트 매장", "TABLE-1",
-                "내부 1번", 3, 4, LocalDateTime.of(2026, 8, 27, 10, 20, 30));
+                "내부 1번", 3, 4, "ACTIVE".equals(status), null,
+                LocalDateTime.of(2026, 8, 27, 10, 20, 30));
     }
 }

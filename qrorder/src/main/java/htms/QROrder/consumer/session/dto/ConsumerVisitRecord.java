@@ -15,4 +15,5 @@ public class ConsumerVisitRecord {
     private LocalDateTime lastActivityAt;
     private boolean hasOrders;
     private boolean expired;
+    private boolean tableActive;
 }

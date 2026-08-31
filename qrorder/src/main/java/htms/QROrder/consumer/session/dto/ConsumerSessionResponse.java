@@ -26,6 +26,11 @@ public class ConsumerSessionResponse {
     private Integer tableNum;
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer tableQty;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    private boolean orderingAllowed;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, types = {"string", "null"},
+            allowableValues = {"TABLE_INACTIVE"})
+    private String orderingBlockedReason;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, type = "string", example = "2026-08-27 10:20:30")
     private LocalDateTime startedAt;

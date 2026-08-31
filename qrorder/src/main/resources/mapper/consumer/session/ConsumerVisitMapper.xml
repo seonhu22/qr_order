@@ -28,7 +28,14 @@
             WHERE og.link_sys_id = om.sys_id
         )
         AND COALESCE(om.modify_datetime, om.insert_datetime) &lt; NOW() - INTERVAL '5 minutes'
-        AS expired
+        AS expired,
+        EXISTS (
+            SELECT 1
+            FROM table_info ti
+            WHERE ti.sys_id = om.link_sys_id
+              AND ti.sys_plant_cd = om.sys_plant_cd
+              AND ti.use_yn = 'Y'
+        ) AS table_active
     </sql>
 
     <select id="lockAvailableTable" resultType="string">
