@@ -61,6 +61,9 @@ export function ConsumerOrderPage() {
     confirmSoldoutModal,
     soldoutCartKeys,
     hasSoldoutInCart,
+    orderingAllowed,
+    orderingBlockedReason,
+    isOrderPending,
     soldoutMenuIds,
     soldoutOptionChoiceIds,
   } = useConsumerOrderPage();
@@ -103,7 +106,8 @@ export function ConsumerOrderPage() {
       selectedCategory === categories[0] ? groupedMenu[0]?.category : selectedCategory;
     if (!targetCategory) return;
 
-    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const prefersReducedMotion =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     sectionRefs.current[targetCategory]?.scrollIntoView?.({
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
       block: 'start',
@@ -169,6 +173,12 @@ export function ConsumerOrderPage() {
         ))
       )}
 
+      {!orderingAllowed && orderingBlockedReason === 'TABLE_INACTIVE' && (
+        <div className="order-shell__ordering-blocked" role="status">
+          현재 테이블에서는 새 주문을 할 수 없습니다. 기존 주문내역은 계속 확인할 수 있습니다.
+        </div>
+      )}
+
       <CartBar totalQty={totalCartQty} totalPrice={totalCartPrice} onOpenCart={openCart} />
 
       <ConsumerBottomSheet
@@ -184,7 +194,12 @@ export function ConsumerOrderPage() {
         {sheet?.type === 'menu-detail' && isDetailError && (
           <div className="order-shell-sheet">
             <p className="order-shell-sheet__placeholder">메뉴 상세를 불러오지 못했습니다.</p>
-            <Button type="button" variant="secondary" size="md" onClick={() => void refetchDetail()}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={() => void refetchDetail()}
+            >
               다시 시도
             </Button>
           </div>
@@ -213,7 +228,11 @@ export function ConsumerOrderPage() {
 
             {cart.length === 0 ? (
               <div className="order-shell-cart-empty">
-                <ConsumerIcon id="ci-shopping-cart" size={36} className="order-shell-cart-empty__icon" />
+                <ConsumerIcon
+                  id="ci-shopping-cart"
+                  size={36}
+                  className="order-shell-cart-empty__icon"
+                />
                 <p className="order-shell-cart-empty__text">장바구니에 담긴 메뉴가 없습니다.</p>
               </div>
             ) : (
@@ -236,6 +255,12 @@ export function ConsumerOrderPage() {
               <span className="order-shell-sheet__price">{totalCartPrice.toLocaleString()}원</span>
             </div>
 
+            {!orderingAllowed && orderingBlockedReason === 'TABLE_INACTIVE' && (
+              <p className="order-shell-cart__ordering-blocked">
+                테이블 사용이 중지되어 새 주문을 접수할 수 없습니다. 장바구니는 그대로 보관됩니다.
+              </p>
+            )}
+
             {cart.length === 0 ? (
               <Button
                 type="button"
@@ -253,7 +278,7 @@ export function ConsumerOrderPage() {
                 size="lg"
                 className="order-shell-sheet__action"
                 onClick={placeOrder}
-                disabled={hasSoldoutInCart}
+                disabled={hasSoldoutInCart || !orderingAllowed || isOrderPending}
               >
                 주문하기
               </Button>
@@ -284,7 +309,9 @@ export function ConsumerOrderPage() {
       {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
       {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
       {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
-      {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
+      {soldoutModalItems && (
+        <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />
+      )}
     </div>
   );
 }

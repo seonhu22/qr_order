@@ -94,6 +94,7 @@ import type { MenuDetailItem } from '../generated/types/menuDetailItem';
 import { orderStatusHandlers } from '../apps/client/features/order-status-management/mock/orderStatusHandlers';
 import { ORDER_HISTORY_MOCK } from '../apps/client/features/order-history/mock/orderHistoryMock';
 import { consumerMenuHandlers } from '../apps/consumer/features/order-shell/mock/consumerMenuHandlers';
+import { consumerApiHandlers } from '../apps/consumer/features/order-shell/mock/consumerApiHandlers';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -1336,6 +1337,7 @@ const settingsHandlers = [
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
+  ...consumerApiHandlers,
   ...consumerMenuHandlers,
   ...authHandlers,
   ...orderStatusHandlers,

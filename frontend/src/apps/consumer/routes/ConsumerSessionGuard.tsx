@@ -25,15 +25,16 @@ const STATUS_SCREEN_CONFIG: Record<
     title: '주문이 마감되었습니다.',
     description: '이용해 주셔서 감사합니다.',
   },
+  error: {
+    iconId: 'ci-wifi-off',
+    title: '세션 정보를 불러오지 못했습니다.',
+    description: '네트워크 상태를 확인한 뒤 새로고침해 주세요.',
+  },
 };
 
 type ConsumerSessionGuardProps = {
   children: ReactNode;
 };
-
-// 실제 세션 조회 API(GET /api/client/consumer/session)가 없어 지금 단계에서는 가드를 끈다 — QR 세션 여부와
-// 무관하게 children을 그대로 보여준다. 아래 분기 로직은 API가 생겼을 때 그대로 켜서 쓰도록 남겨둔다.
-const SESSION_GUARD_ENABLED = false;
 
 /**
  * 로그인 인증이 아닌 QR 세션 유효성을 확인하는 경계.
@@ -42,12 +43,6 @@ const SESSION_GUARD_ENABLED = false;
 export function ConsumerSessionGuard({ children }: ConsumerSessionGuardProps) {
   const { isLoading, status } = useConsumerSession();
 
-  if (!SESSION_GUARD_ENABLED) {
-    return <>{children}</>;
-  }
-
-  // 실제 세션 조회 API가 없어 아직 "로딩"이라 부를 만한 기능이 없다 — 세션 없음 화면이 잠깐 잘못
-  // 보이는 것만 막는 빈 프레임이며, 실제 API 연동 시 여기에 의미 있는 로딩 UI를 넣는다.
   if (isLoading) {
     return <main className="consumer-session-guard" aria-label="세션 확인 중" />;
   }

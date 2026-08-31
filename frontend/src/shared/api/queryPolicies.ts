@@ -48,4 +48,8 @@ export const queryPolicies = {
     retry: false,
     staleTime: staleTimes.short,
   },
+  consumerOrder: {
+    retry: false,
+    staleTime: staleTimes.instant,
+  },
 } as const;

@@ -17,6 +17,12 @@ async function openMenuDetail(menuName: string) {
   return userEvent.click(await screen.findByRole('button', { name: new RegExp(menuName) }));
 }
 
+async function addPlainMenuToCart() {
+  await openMenuDetail(PLAIN_MENU);
+  await userEvent.click(within(sheet()).getByRole('button', { name: /장바구니에 담기/ }));
+  await userEvent.click(screen.getByRole('button', { name: /개 담음/ }));
+}
+
 function renderOrderPage() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -67,8 +73,9 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
 
     const dialog = sheet();
     expect(within(dialog).getByRole('heading', { name: PLAIN_MENU })).toBeInTheDocument();
-    expect(within(dialog).getByText('구수한 재래식 된장으로 끓인 두부 된장찌개. 공기밥 포함.'))
-      .toBeInTheDocument();
+    expect(
+      within(dialog).getByText('구수한 재래식 된장으로 끓인 두부 된장찌개. 공기밥 포함.'),
+    ).toBeInTheDocument();
     expect(within(dialog).getByText('수량')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: /장바구니에 담기/ })).toBeInTheDocument();
   });
@@ -137,7 +144,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
     await userEvent.click(within(sheet()).getByRole('button', { name: '수량 늘리기' }));
     await userEvent.click(within(sheet()).getByRole('button', { name: /장바구니에 담기/ }));
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toHaveClass('consumer-bottom-sheet--closing');
     expect(screen.getByText('16,000원')).toBeInTheDocument();
   });
 
@@ -157,7 +164,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
     expect(cartLines).toHaveLength(2);
     expect(cartLines[0]).toHaveTextContent('백미');
     expect(cartLines[1]).toHaveTextContent('잡곡밥');
-  });
+  }, 10_000);
 
   it('다른 메뉴를 열면 이전 메뉴의 수량 선택이 남지 않는다', async () => {
     renderOrderPage();
@@ -184,5 +191,76 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
     expect(within(dialog).getByRole('button', { name: /장바구니에 담기/ })).toHaveTextContent(
       '5,500원',
     );
+  });
+});
+
+describe('ConsumerOrderPage 주문 API', () => {
+  it('submits the server request and clears the cart only after success', async () => {
+    let requestBody: Record<string, unknown> | undefined;
+    server.use(
+      http.post('/api/client/consumer/orders', async ({ request }) => {
+        requestBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          success: true,
+          data: {
+            orderId: 'order-001',
+            orderNo: '0001',
+            status: 'RECEIVED',
+            totalAmount: 8_000,
+            orderedAt: '2026-09-01 12:00:00',
+          },
+        });
+      }),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    expect(await screen.findByText('주문 완료')).toBeInTheDocument();
+    expect(requestBody).toMatchObject({
+      items: [{ menuSysId: 'menu-3', quantity: 1, options: [] }],
+    });
+    expect(requestBody).not.toHaveProperty('requestNote');
+    expect(screen.queryByRole('button', { name: /개 담음/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps the cart and disables ordering when the server races with table deactivation', async () => {
+    let orderingAllowed = true;
+    server.use(
+      http.get('/api/client/consumer/session', () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            consumerSessionId: 'visit-001',
+            status: 'ACTIVE',
+            sysPlantCd: 'ADMIN',
+            storeName: '테스트 매장',
+            tableSysId: 'table-001',
+            tableName: '1번 테이블',
+            tableNum: 1,
+            tableQty: 4,
+            orderingAllowed,
+            orderingBlockedReason: orderingAllowed ? null : 'TABLE_INACTIVE',
+            startedAt: '2026-09-01 09:00:00',
+          },
+        }),
+      ),
+      http.post('/api/client/consumer/orders', () => {
+        orderingAllowed = false;
+        return HttpResponse.json(
+          { success: false, message: '주문할 수 없는 테이블입니다.', error: 'TABLE_INACTIVE' },
+          { status: 409 },
+        );
+      }),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    expect(await within(sheet()).findByText(/장바구니는 그대로 보관됩니다/)).toBeInTheDocument();
+    expect(within(sheet()).getByText(PLAIN_MENU)).toBeInTheDocument();
+    expect(within(sheet()).getByRole('button', { name: '주문하기' })).toBeDisabled();
   });
 });

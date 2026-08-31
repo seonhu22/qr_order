@@ -1,6 +1,7 @@
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { Button } from '@/shared/components/button';
-import { useConsumerOrderHistoryStore } from '@/apps/consumer/stores/consumerOrderHistoryStore';
+import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
+import { useConsumerOrderDetailsQueries, useConsumerOrdersQuery } from '../api/consumerOrderApi';
 import type { OrderShellCartOption } from '../types';
 import './OrderHistorySheet.css';
 
@@ -27,7 +28,13 @@ function formatOrderTime(date: Date) {
  * 묶어서 보여주도록 바꿨다.
  */
 export function OrderHistorySheet({ onClose }: OrderHistorySheetProps) {
-  const orders = useConsumerOrderHistoryStore((state) => state.orders);
+  const { session } = useConsumerSession();
+  const sessionId = session?.consumerSessionId ?? '';
+  const orderList = useConsumerOrdersQuery(sessionId);
+  const orderDetails = useConsumerOrderDetailsQueries(sessionId, orderList.data ?? []);
+  const orders = orderDetails.flatMap((query) => (query.data ? [query.data] : []));
+  const isLoading = orderList.isLoading || orderDetails.some((query) => query.isLoading);
+  const isError = orderList.isError || orderDetails.some((query) => query.isError);
   const totalOrderedQty = orders.reduce(
     (sum, order) => sum + order.items.reduce((lineSum, line) => lineSum + line.qty, 0),
     0,
@@ -44,7 +51,24 @@ export function OrderHistorySheet({ onClose }: OrderHistorySheetProps) {
         )}
       </div>
 
-      {orders.length === 0 ? (
+      {isLoading ? (
+        <p className="order-shell-sheet__placeholder">주문내역을 불러오는 중입니다.</p>
+      ) : isError ? (
+        <div className="order-shell-cart-empty">
+          <p className="order-shell-cart-empty__text">주문내역을 불러오지 못했습니다.</p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              void orderList.refetch();
+              orderDetails.forEach((query) => void query.refetch());
+            }}
+          >
+            다시 시도
+          </Button>
+        </div>
+      ) : orders.length === 0 ? (
         <div className="order-shell-cart-empty">
           <ConsumerIcon id="ci-receipt" size={36} className="order-shell-cart-empty__icon" />
           <p className="order-shell-cart-empty__text">주문내역이 없습니다.</p>
@@ -55,8 +79,12 @@ export function OrderHistorySheet({ onClose }: OrderHistorySheetProps) {
             {orders.map((order) => (
               <li key={order.orderId} className="order-history-group">
                 <div className="order-history-group__header">
-                  <span className="order-history-group__time">{formatOrderTime(order.orderedAt)} 접수</span>
-                  <span className="order-history-group__total">{order.total.toLocaleString()}원</span>
+                  <span className="order-history-group__time">
+                    {formatOrderTime(order.orderedAt)} 접수
+                  </span>
+                  <span className="order-history-group__total">
+                    {order.total.toLocaleString()}원
+                  </span>
                 </div>
                 <ul className="order-history-group__items">
                   {order.items.map((line) => (

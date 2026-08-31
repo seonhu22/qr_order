@@ -1,22 +1,36 @@
-import type { ConsumerSession } from '../types';
+import { getConsumerSession } from '@/generated/consumer-session-controller/consumer-session-controller';
+import type { ConsumerSessionResponse } from '@/generated/types';
+import type { ConsumerSession, ConsumerSessionStatus } from '../types';
 
-/** 실제 매장명 API가 없는 동안 헤더·배너에 쓰는 임시 매장명. */
+/** QR 연결 응답에는 매장명이 없어 연결 직후 로딩 화면만 임시 문구를 유지한다. */
 export const MOCK_STORE_NAME = '맛나분식';
 
-const FALLBACK_SESSION: ConsumerSession = {
-  sysPlantCd: 'ADMIN',
-  tableSysId: 'table-003',
-  storeName: MOCK_STORE_NAME,
-  tableName: '내부 1번',
-  tableNum: 3,
-  tableQty: 4,
+const STATUS_MAP: Record<
+  ConsumerSessionResponse['status'],
+  Exclude<ConsumerSessionStatus, 'none' | 'error'>
+> = {
+  ACTIVE: 'active',
+  CLOSED: 'closed',
+  EXPIRED: 'expired',
 };
 
-/**
- * GET /api/client/consumer/session 계약이 확정되면 이 함수 본문을 httpClient 호출로 교체한다.
- * 지금은 네트워크 호출이 없는 stub이며, QR을 거치지 않고 들어와도 흐름을 볼 수 있도록
- * 3번 테이블을 고정값으로 돌려준다.
- */
-export function fetchConsumerSessionStub(): Promise<ConsumerSession | null> {
-  return Promise.resolve(FALLBACK_SESSION);
+export function mapConsumerSession(response: ConsumerSessionResponse): ConsumerSession {
+  return {
+    consumerSessionId: response.consumerSessionId,
+    status: STATUS_MAP[response.status],
+    sysPlantCd: response.sysPlantCd,
+    storeName: response.storeName,
+    tableSysId: response.tableSysId,
+    tableName: response.tableName,
+    tableNum: response.tableNum,
+    tableQty: response.tableQty,
+    orderingAllowed: response.orderingAllowed,
+    orderingBlockedReason: response.orderingBlockedReason,
+    startedAt: response.startedAt,
+  };
+}
+
+export async function fetchConsumerSession(signal?: AbortSignal): Promise<ConsumerSession> {
+  const response = await getConsumerSession(undefined, signal);
+  return mapConsumerSession(response.data);
 }

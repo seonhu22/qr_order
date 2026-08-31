@@ -1,13 +1,19 @@
-export type ConsumerSessionStatus = 'active' | 'expired' | 'closed' | 'none';
+export type ConsumerSessionStatus = 'active' | 'expired' | 'closed' | 'none' | 'error';
+
+export type ConsumerOrderingBlockedReason = 'TABLE_INACTIVE' | null;
 
 export type ConsumerSession = {
+  consumerSessionId: string;
+  status: Exclude<ConsumerSessionStatus, 'none' | 'error'>;
   sysPlantCd: string;
   tableSysId: string;
-  /** 실제 매장명 API가 없어 mock 단계에서만 고정값으로 채워진다. */
-  storeName?: string;
-  tableName?: string;
-  tableNum?: number;
-  tableQty?: number;
+  storeName: string;
+  tableName: string;
+  tableNum: number;
+  tableQty: number;
+  orderingAllowed: boolean;
+  orderingBlockedReason: ConsumerOrderingBlockedReason;
+  startedAt: string;
 };
 
 export type UseConsumerSessionResult = {

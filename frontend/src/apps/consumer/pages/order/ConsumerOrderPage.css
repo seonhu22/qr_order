@@ -162,3 +162,22 @@
     border-right: var(--border-1) solid var(--color-border-divider);
   }
 }
+
+.order-shell__ordering-blocked,
+.order-shell-cart__ordering-blocked {
+  color: var(--color-status-error-text);
+  background: var(--color-status-error-bg-subtle);
+  font-size: var(--typography-size-caption);
+  line-height: 1.5;
+}
+
+.order-shell__ordering-blocked {
+  margin: var(--spacing-4) var(--spacing-8);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-md);
+}
+
+.order-shell-cart__ordering-blocked {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-sm);
+}

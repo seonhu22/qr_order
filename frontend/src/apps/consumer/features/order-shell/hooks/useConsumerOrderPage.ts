@@ -1,15 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
+import type { ConsumerSession } from '@/apps/consumer/features/session/types';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
-import { useConsumerOrderHistoryStore } from '@/apps/consumer/stores/consumerOrderHistoryStore';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
+import { queryKeys } from '@/shared/api/queryKeys';
+import { HttpError } from '@/shared/lib/httpClient';
 import {
   useConsumerMenuDetailQuery,
   useConsumerMenuMainQuery,
   useConsumerMenuSearchQuery,
 } from '../api/consumerMenuApi';
+import { isTableInactiveError, useConsumerOrderCreateMutation } from '../api/consumerOrderApi';
 import { buildCartKey, calcCartLinePrice } from '../cartLine';
 import type {
   OrderShellCartLine,
@@ -18,20 +22,9 @@ import type {
   OrderShellMenuItem,
 } from '../types';
 
-/** 참고 저장소의 `doOrder` 딜레이(1800ms)와 동일 — 실제 API 붙기 전까지 처리 중 화면을 보여주는 용도. */
-const ORDER_PROCESSING_DELAY_MS = 1800;
-
-/**
- * QR코드 qr-code-001(창가 1번 테이블, table-001)로 들어오면 장바구니 내용과 무관하게 항상
- * 품절 확인 모달이 뜨도록 하는 데모 트리거 — 참고 저장소의 한정수량 품절 시뮬레이션과 같은
- * 역할이지만, 실제 재고 판별 로직이 없어 QR코드로 진입 경로를 대신 표시했다.
- */
-const SOLDOUT_DEMO_TABLE_SYS_ID = 'table-001';
-
 /**
  * 주문 제출 진행 단계.
- * 실제 주문 파이프라인은 아직 항상 성공한다 — `error-network`/`error-duplicate`와
- * `session-timeout`/`session-closed`는 실제 판별 로직이 붙기 전까지 QA 전용 트리거로만 진입한다.
+ * API 오류 중 테이블 비활성은 장바구니 화면에서 처리하고, 나머지 전체 화면 상태만 관리한다.
  */
 type OrderPhase =
   | 'idle'
@@ -55,11 +48,11 @@ export function useConsumerOrderPage() {
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
-  const orderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queryClient = useQueryClient();
+  const createOrder = useConsumerOrderCreateMutation();
 
   const { session } = useConsumerSession();
-  const sessionId = session?.tableSysId ?? '';
-  const isSoldoutDemoTable = session?.tableSysId === SOLDOUT_DEMO_TABLE_SYS_ID;
+  const sessionId = session?.consumerSessionId ?? '';
   const mainQuery = useConsumerMenuMainQuery(sessionId);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
   const isSearchDebouncing = searchQuery.trim() !== debouncedSearchQuery;
@@ -80,11 +73,6 @@ export function useConsumerOrderPage() {
   const closeSheet = useConsumerSheetStore((state) => state.closeSheet);
   const detailMenuId = sheet?.type === 'menu-detail' ? sheet.menuId : '';
   const detailQuery = useConsumerMenuDetailQuery(sessionId, detailMenuId);
-  const addOrder = useConsumerOrderHistoryStore((state) => state.addOrder);
-
-  useEffect(() => () => {
-    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
-  }, []);
 
   const filteredItems = useMemo(() => {
     if (debouncedSearchQuery) return searchResult.data ?? [];
@@ -98,7 +86,8 @@ export function useConsumerOrderPage() {
 
   // 카테고리 탭은 목록을 필터링하지 않고 해당 섹션으로 스크롤만 이동시킨다 — 전체 목록은 항상 함께 보여준다.
   const groupedMenu = useMemo<OrderShellMenuGroup[]>(() => {
-    return categories.slice(1)
+    return categories
+      .slice(1)
       .map((category) => ({
         category,
         items: filteredItems.filter((item) => item.category === category),
@@ -155,35 +144,51 @@ export function useConsumerOrderPage() {
     });
   }
 
-  /**
-   * "주문 처리중" 화면을 보여준 뒤, 실제 API가 붙기 전까지는 항상 성공으로 끝낸다 —
-   * 참고 저장소의 doOrder/commitOrder와 동일한 흐름·딜레이. 이 시점 장바구니를 그대로
-   * 주문내역에 기록한다 — 결제 여부와 무관하게 "주문하기"가 성공하면 무조건 남는다.
-   */
   function startOrderProcessing() {
+    if (cart.length === 0 || !session?.orderingAllowed || createOrder.isPending) return;
+
     setOrderPhase('processing');
-    orderTimerRef.current = setTimeout(() => {
-      addOrder({
-        orderId: `order-${Date.now()}`,
-        orderedAt: new Date(),
-        items: cart,
-        total: totalCartPrice,
-      });
-      setCart([]);
-      setOrderPhase('complete');
-    }, ORDER_PROCESSING_DELAY_MS);
+    createOrder.mutate(cart, {
+      onSuccess: () => {
+        closeSheet();
+        setCart([]);
+        setOrderPhase('complete');
+        void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
+      },
+      onError: (error) => {
+        if (isTableInactiveError(error)) {
+          queryClient.setQueryData<ConsumerSession>(queryKeys.consumer.session, (current) =>
+            current
+              ? {
+                  ...current,
+                  orderingAllowed: false,
+                  orderingBlockedReason: 'TABLE_INACTIVE',
+                }
+              : current,
+          );
+          void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
+          setOrderPhase('idle');
+          return;
+        }
+
+        if (error instanceof HttpError && error.status === 409) {
+          setSoldoutModalItems(cart);
+          setOrderPhase('idle');
+          return;
+        }
+
+        if (error instanceof HttpError && error.status === 410) {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
+          setOrderPhase('session-closed');
+          return;
+        }
+
+        setOrderPhase('error-network');
+      },
+    });
   }
 
-  /**
-   * 장바구니 시트를 닫고 주문 처리를 시작한다. 품절 데모 테이블(qr-code-001)이면 처리중 화면
-   * 대신 품절 확인 모달을 먼저 띄우고, 시트는 닫지 않는다(참고 저장소의 initiateOrder와 동일).
-   */
   function placeOrder() {
-    if (isSoldoutDemoTable) {
-      setSoldoutModalItems(cart);
-      return;
-    }
-    closeSheet();
     startOrderProcessing();
   }
 
@@ -224,14 +229,12 @@ export function useConsumerOrderPage() {
    * 헤더(설정 버튼)에서 consumerOrderQaStore로 요청을 보내면 아래 effect가 소비한다.
    */
   const triggerOrderFailure = useCallback((type: 'network' | 'duplicate') => {
-    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
     if (type === 'duplicate') setDuplicateTime('10:52');
     setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
   }, []);
 
   /** QA 전용 — 세션 만료(시간초과·결제 완료로 인한 마감) 화면도 실제로는 아직 도달할 수 없다. */
   const triggerSessionExpiry = useCallback((variant: 'timeout' | 'closed') => {
-    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
     setOrderPhase(variant === 'timeout' ? 'session-timeout' : 'session-closed');
   }, []);
 
@@ -240,7 +243,6 @@ export function useConsumerOrderPage() {
    * 여기서는 아직 그 감지 로직을 붙이지 않아 QA 트리거로만 진입한다.
    */
   const triggerNetworkError = useCallback(() => {
-    if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
     setOrderPhase('network-error');
   }, []);
 
@@ -311,7 +313,9 @@ export function useConsumerOrderPage() {
     isLoading: mainQuery.isLoading,
     isError: mainQuery.isError,
     refetch: mainQuery.refetch,
-    isSearchLoading: Boolean(isSearchDebouncing || (debouncedSearchQuery && searchResult.isFetching)),
+    isSearchLoading: Boolean(
+      isSearchDebouncing || (debouncedSearchQuery && searchResult.isFetching),
+    ),
     isSearchError: Boolean(!isSearchDebouncing && debouncedSearchQuery && searchResult.isError),
     refetchSearch: searchResult.refetch,
     isDetailLoading: detailQuery.isLoading,
@@ -342,6 +346,9 @@ export function useConsumerOrderPage() {
     confirmSoldoutModal,
     soldoutCartKeys,
     hasSoldoutInCart,
+    orderingAllowed: session?.orderingAllowed ?? false,
+    orderingBlockedReason: session?.orderingBlockedReason ?? null,
+    isOrderPending: createOrder.isPending,
     soldoutMenuIds,
     soldoutOptionChoiceIds,
   };

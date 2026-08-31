@@ -4,9 +4,9 @@ import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useCo
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
-import { useConsumerOrderHistoryStore } from '@/apps/consumer/stores/consumerOrderHistoryStore';
 import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/CategoryTabs';
 import { useConsumerMenuMainQuery } from '@/apps/consumer/features/order-shell/api/consumerMenuApi';
+import { useConsumerOrdersQuery } from '@/apps/consumer/features/order-shell/api/consumerOrderApi';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
 
 /**
@@ -17,7 +17,8 @@ import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
  */
 export function ConsumerHeader() {
   const { session } = useConsumerSession();
-  const menuMain = useConsumerMenuMainQuery(session?.tableSysId ?? '');
+  const menuMain = useConsumerMenuMainQuery(session?.consumerSessionId ?? '');
+  const orderList = useConsumerOrdersQuery(session?.consumerSessionId ?? '');
   const categories = [
     '전체',
     ...(menuMain.data?.categories.map((category) => category.name) ?? []),
@@ -28,10 +29,7 @@ export function ConsumerHeader() {
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const setSelectedCategory = useConsumerOrderFilterStore((state) => state.setSelectedCategory);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const totalOrderedQty = useConsumerOrderHistoryStore((state) =>
-    state.orders.reduce((sum, order) => sum + order.items.reduce((lineSum, line) => lineSum + line.qty, 0), 0),
-  );
-  const clearOrderHistory = useConsumerOrderHistoryStore((state) => state.clearOrders);
+  const totalOrderedQty = orderList.data?.reduce((sum, order) => sum + order.itemCount, 0) ?? 0;
   const requestOrderFailure = useConsumerOrderQaStore((state) => state.requestOrderFailure);
   const requestSessionExpiry = useConsumerOrderQaStore((state) => state.requestSessionExpiry);
   const requestNetworkError = useConsumerOrderQaStore((state) => state.requestNetworkError);
@@ -73,11 +71,6 @@ export function ConsumerHeader() {
 
   function handleResetSoldoutDemo() {
     requestSoldoutReset();
-    setQaMenuOpen(false);
-  }
-
-  function handleClearOrderHistory() {
-    clearOrderHistory();
     setQaMenuOpen(false);
   }
 
@@ -140,9 +133,7 @@ export function ConsumerHeader() {
               <ConsumerIcon id="ci-settings" size={14} />
             </button>
 
-            {/* QA 전용 — 실패 판별 로직이 붙기 전까지 주문 실패·세션 만료 화면을 미리보기
-                위한 임시 메뉴. 품절 초기화는 qr-code-001 품절 데모를, 주문내역 초기화는 쌓인
-                주문내역을 새로고침 없이 리셋한다. production 빌드에서는 tree-shake 되어 사라진다. */}
+            {/* QA 전용 상태 화면 미리보기. production 빌드에서는 노출되지 않는다. */}
             {import.meta.env.DEV && qaMenuOpen && (
               <div className="consumer-header__qa-menu">
                 <button type="button" onClick={() => handleTriggerOrderFailure('network')}>
@@ -162,9 +153,6 @@ export function ConsumerHeader() {
                 </button>
                 <button type="button" onClick={handleResetSoldoutDemo}>
                   품절 초기화
-                </button>
-                <button type="button" onClick={handleClearOrderHistory}>
-                  주문내역 초기화
                 </button>
               </div>
             )}

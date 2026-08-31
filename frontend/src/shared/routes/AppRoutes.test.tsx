@@ -2,7 +2,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import { AuthContext } from '@/shared/auth/AuthContext';
+import { server } from '@/test/server';
 import AppRoutes from './AppRoutes';
 
 type AuthTestState = {
@@ -111,17 +113,32 @@ describe('AppRoutes auth redirect', () => {
     expect(screen.getByText('로딩 중...')).toBeInTheDocument();
   });
 
-  it('does not block the public QR entry route while auth state is loading', () => {
+  it('does not block the public QR entry route while auth state is loading', async () => {
+    server.use(
+      http.get('/api/qr/valid-id', () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            sysId: 'table-001',
+            tableName: '1번 테이블',
+            tableNum: 1,
+            tableQty: 4,
+            sysPlantCd: 'ADMIN',
+          },
+        }),
+      ),
+    );
     renderRoutes('/qr/valid-id', { isLoading: true });
 
     expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
     expect(screen.getByLabelText('QR 코드 인증 중')).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: '전체' })).toBeInTheDocument();
   });
 
-  it('does not block the consumer order route while auth state is loading', () => {
+  it('does not block the consumer order route while auth state is loading', async () => {
     renderRoutes('/consumer/order', { isLoading: true });
 
     expect(screen.queryByText('로딩 중...')).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '전체' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: '전체' })).toBeInTheDocument();
   });
 });

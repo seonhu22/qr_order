@@ -58,9 +58,7 @@ export type OrderShellCartOption = {
   /**
    * 복수 선택 항목의 개수. 없으면 1개로 취급한다(단일 선택은 항상 1개).
    *
-   * mock 전용 필드 — 백엔드에 옵션 항목별 담은 개수를 저장·전송하는 필드가 아직 없다.
-   * `MenuOptionGroupItem.inputType: '수량 설정'`이 이 개념과 같은 것인지 협의가 필요하다.
-   * 자세한 배경은 ADR-023 참고.
+   * 주문 API의 옵션 `quantity`로 전달되는 선택 수량이다.
    */
   qty?: number;
 };
@@ -94,9 +92,7 @@ export type OrderShellMenuGroup = {
 };
 
 /**
- * "주문하기"로 완료된 주문 한 건 — 그 시점 장바구니 스냅샷. 결제와는 무관하게 주문 처리가
- * 끝나는 시점(주문 완료 화면 진입)에 기록한다. 아직 담기만 하고 주문하지 않은 장바구니는
- * 여기 포함되지 않는다.
+ * 주문 상세 API를 주문내역 화면에서 사용하는 형태로 변환한 모델.
  */
 export type OrderShellOrderRecord = {
   orderId: string;

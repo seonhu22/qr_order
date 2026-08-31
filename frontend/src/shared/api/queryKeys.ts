@@ -167,6 +167,8 @@ export const queryKeys = {
       ['consumer', sessionId, 'menu', 'search', { searchKeyword }] as const,
     menuDetail: (sessionId: string, menuSysId: string) =>
       ['consumer', sessionId, 'menu', 'detail', menuSysId] as const,
-    orderHistory: (sessionId: string) => ['consumer', sessionId, 'order-history'] as const,
+    orders: (sessionId: string) => ['consumer', sessionId, 'orders'] as const,
+    orderDetail: (sessionId: string, orderId: string) =>
+      ['consumer', sessionId, 'orders', orderId] as const,
   },
 } as const;

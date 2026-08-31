@@ -48,9 +48,7 @@ describe('consumerRoutes', () => {
     expect(screen.getByRole('button', { name: '주문 화면으로 이동' })).toBeInTheDocument();
   });
 
-  // ConsumerSessionGuard는 실제 세션 조회 API가 없어 지금은 비활성화돼 있다(SESSION_GUARD_ENABLED).
-  // 그래서 /consumer/order는 QR 세션 없이 열어도 주문 화면을 그대로 보여준다.
-  it('renders the order shell when /consumer/order is opened without a prior QR scan', async () => {
+  it('renders the order shell when the server reports an active Consumer session', async () => {
     renderConsumerRoutes('/consumer/order');
 
     expect(await screen.findByRole('tab', { name: '전체' })).toBeInTheDocument();

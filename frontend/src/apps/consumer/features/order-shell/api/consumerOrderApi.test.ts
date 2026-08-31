@@ -1,0 +1,56 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { HttpError } from '@/shared/lib/httpClient';
+import { buildConsumerOrderRequest, isTableInactiveError } from './consumerOrderApi';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('consumerOrderApi', () => {
+  it('maps cart menu/options and omits requestNote', () => {
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000001');
+
+    expect(
+      buildConsumerOrderRequest([
+        {
+          cartKey: 'menu-1:option-1',
+          menuId: 'menu-1',
+          name: '메뉴',
+          price: 10_000,
+          qty: 2,
+          options: [
+            {
+              groupId: 'group-1',
+              groupName: '옵션',
+              choiceId: 'option-1',
+              choiceName: '선택',
+              price: 500,
+              qty: 2,
+            },
+          ],
+        },
+      ]),
+    ).toEqual({
+      clientRequestId: '00000000-0000-4000-8000-000000000001',
+      items: [
+        {
+          menuSysId: 'menu-1',
+          quantity: 2,
+          options: [{ optionSysId: 'option-1', quantity: 2 }],
+        },
+      ],
+    });
+  });
+
+  it('recognizes only the stable TABLE_INACTIVE 409 code', () => {
+    const response = new Response(null, { status: 409, statusText: 'Conflict' });
+    expect(
+      isTableInactiveError(
+        new HttpError('주문 불가', response, '/api/client/consumer/orders', {
+          error: 'TABLE_INACTIVE',
+        }),
+      ),
+    ).toBe(true);
+    expect(isTableInactiveError(new HttpError('품절', response, '/orders', {}))).toBe(false);
+  });
+});
