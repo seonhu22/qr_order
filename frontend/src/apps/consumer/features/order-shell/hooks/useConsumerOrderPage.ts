@@ -208,15 +208,17 @@ export function useConsumerOrderPage() {
    */
   const triggerOrderFailure = useCallback((type: 'network' | 'duplicate') => {
     if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    closeSheet();
     if (type === 'duplicate') setDuplicateTime('10:52');
     setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
-  }, []);
+  }, [closeSheet]);
 
   /** QA 전용 — 세션 만료(시간초과·결제 완료로 인한 마감) 화면도 실제로는 아직 도달할 수 없다. */
   const triggerSessionExpiry = useCallback((variant: 'timeout' | 'closed') => {
     if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    closeSheet();
     setOrderPhase(variant === 'timeout' ? 'session-timeout' : 'session-closed');
-  }, []);
+  }, [closeSheet]);
 
   /**
    * QA 전용 — 참고 저장소는 navigator.onLine으로 실제 연결 끊김을 감지하지만,
@@ -224,8 +226,9 @@ export function useConsumerOrderPage() {
    */
   const triggerNetworkError = useCallback(() => {
     if (orderTimerRef.current) clearTimeout(orderTimerRef.current);
+    closeSheet();
     setOrderPhase('network-error');
-  }, []);
+  }, [closeSheet]);
 
   /**
    * QA 전용 — 품절 데모(qr-code-001)에서 한번 확인한 메뉴·옵션은 페이지를 새로고침하기 전까진
