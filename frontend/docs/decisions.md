@@ -1042,3 +1042,34 @@ Consumer 화면을 모바일 관점에서 다시 점검한 결과, 반복 탭이
 - 새로 추가하는 소형 아이콘 버튼도 같은 패턴(시각 크기 유지 + 40px hit-slop, 간격 계산해 겹치지 않게)을 따른다.
 
 ---
+
+## ADR-029 — 앱 루트 로딩 화면을 `AppLoadingScreen`(공용)으로 통일한다
+
+**날짜**: 2026-09-01
+**상태**: 채택
+
+### 배경
+
+`/`(및 인증이 필요한 보호 경로)에서 인증 상태(`isLoading`)를 확인하는 동안 `shared/routes/AppRoutes.tsx`가 보여주는 로딩 화면이 있었다.
+
+```tsx
+function LoadingScreen() {
+  return <div className="app-loading">로딩 중...</div>;
+}
+```
+
+`app-loading` 클래스에 대응하는 CSS가 프로젝트 어디에도 없었다(admin/client를 통틀어 유일한 전역 로딩 화면인데도). 스피너도 중앙 정렬도 없이 "로딩 중..." 텍스트만 기본 브라우저 스타일로 뜨는 상태였다.
+
+### 결정
+
+- 참고 저장소(Qrorder)의 `AppLoadingScreen` 컴포넌트(블롭 장식 + "QRorder" 브랜드 로고 + 점 3개 바운스 인디케이터)를 공용 컴포넌트로 새로 만든다 — `apps/consumer/features/qr/components/QrLoadingScreen.tsx`가 이미 같은 컴포넌트를 이 프로젝트 토큰으로 옮겨와 쓰고 있었으므로(참고 저장소의 `CustomerQRScan`에서와 동일), 그 공통 부분(블롭·브랜드 로고·인디케이터)을 `shared/components/loading/AppLoadingScreen.tsx`로 추출하고 `QrLoadingScreen`이 그걸 감싸는 형태로 리팩터했다. 브랜드 아이콘은 consumer 전용 `ConsumerIcon` 대신 admin/client도 쓰는 공용 스프라이트의 `i-qr`(`shared/assets/icons/Icon`)로 바꿨다.
+- 텍스트는 `message` prop으로 받는다 — 앱 루트는 `"로딩 중..."`(기존 문구 유지, `AppRoutes.test.tsx`의 `getByText('로딩 중...')` 그대로 통과), QR 진입은 `"메뉴를 불러오는 중"`(기존 문구 유지).
+- consumer 전용 내용(매장명, 테이블 카드)은 `AppLoadingScreen`의 `children` 슬롯으로 넘긴다 — `QrLoadingScreen`의 외부 API(`tableNum` prop)는 그대로라 호출부(`QrEntryPage.tsx`) 수정은 필요 없었다.
+- 인증 확인이 너무 빨리 끝나면(수십 ms) 로딩 화면이 순간 깜빡이고 사라져 사용자가 인지할 수 없다는 문제가 있어, `AppRoutes.tsx`에 `useMinDisplayDuration` 훅을 추가해 한 번 뜨면 최소 600ms는 유지되게 했다. `active`가 true로 바뀌는 순간은 지연 없이 즉시 반영하고(렌더 중 상태 조정 — `ConsumerBottomSheet`의 `prevOpen`과 같은 패턴), "얼마나 더 유지할지" 계산과 지연된 `setState`만 `useEffect` 안에서 처리한다(effect 안에서 동기적으로 `setState`하지 않는 `react-hooks/set-state-in-effect` 규칙을 지키기 위함).
+
+### 결과
+
+- `shared/components/loading/`도 다른 `shared/components/*` 폴더와 같은 배럴(`index.ts`) 컨벤션을 따른다 — `@/shared/components/loading`으로 import.
+- 앞으로 전체화면 로딩이 필요한 곳(admin/client 등)은 이 컴포넌트를 재사용하면 된다.
+
+---

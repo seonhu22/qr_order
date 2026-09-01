@@ -231,6 +231,10 @@ shared/components/
     index.ts
     FeedbackState.tsx
     FeedbackState.css
+  loading/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    AppLoadingScreen.tsx  ← 전체화면 브랜드 로딩(블롭 + 로고 + 점 인디케이터), consumer QrLoadingScreen과 앱 루트 인증 로딩이 공유
+    AppLoadingScreen.css
   file-attachment/
     index.ts              ← 외부 공개 API (배럴 파일)
     types.ts              ← ServerFile, FileChangeState, props 타입
