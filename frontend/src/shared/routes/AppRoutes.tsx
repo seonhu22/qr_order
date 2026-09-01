@@ -1,9 +1,11 @@
 import { Navigate, useLocation, useRoutes } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthContext';
 import LoginPage from '@/apps/admin/pages/login/LoginPage';
 import { AdminForbiddenPage } from '@/apps/admin/pages/forbidden/AdminForbiddenPage';
+import { AppLoadingScreen } from '@/shared/components/loading';
 
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
@@ -53,7 +55,39 @@ function withProtectedElement(routes: RouteObject[]): RouteObject[] {
 }
 
 function LoadingScreen() {
-  return <div className="app-loading">로딩 중...</div>;
+  return <AppLoadingScreen message="로딩 중..." />;
+}
+
+/** 인증 확인이 너무 빨리 끝나면 로딩 화면이 순간 깜빡이기만 하고 사라져 눈에 안 보인다 —
+    한 번 뜨면 최소 이 시간(ms) 동안은 유지한다. (방지를 위해서)*/
+const MIN_LOADING_DISPLAY_MS = 600;
+
+function useMinDisplayDuration(active: boolean, minMs: number) {
+  const [shouldShow, setShouldShow] = useState(active);
+  const [prevActive, setPrevActive] = useState(active);
+  const shownAtRef = useRef<number | null>(null);
+
+  // active가 true로 바뀌는 순간은 지연 없이 즉시 반영한다(렌더 중 상태 조정 — ConsumerBottomSheet의
+  // prevOpen과 같은 패턴). 시작 시각 기록과 "얼마나 더 유지할지" 계산은 effect에서 담당한다.
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (active) setShouldShow(true);
+  }
+
+  useEffect(() => {
+    if (active) {
+      shownAtRef.current = Date.now();
+      return undefined;
+    }
+
+    if (shownAtRef.current === null) return undefined;
+
+    const remaining = Math.max(0, minMs - (Date.now() - shownAtRef.current));
+    const timer = setTimeout(() => setShouldShow(false), remaining);
+    return () => clearTimeout(timer);
+  }, [active, minMs]);
+
+  return shouldShow;
 }
 
 function resolveDefaultPath(isAuthenticated: boolean, isPasswordChangeRequired: boolean) {
@@ -66,6 +100,7 @@ function isPublicStandalonePath(pathname: string) {
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const showLoading = useMinDisplayDuration(isLoading, MIN_LOADING_DISPLAY_MS);
   const location = useLocation();
   const isPasswordChangeRequired = isAuthenticated && isInitialPasswordChangeRequired(user);
   const publicClientRoutes = clientRoutes.filter((route) => route.path === '/client/login');
@@ -115,7 +150,7 @@ function AppRoutes() {
     },
   ]);
 
-  if (isLoading && !isPublicStandalonePath(location.pathname)) {
+  if (showLoading && !isPublicStandalonePath(location.pathname)) {
     return <LoadingScreen />;
   }
 
