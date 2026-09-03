@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { ConsumerStatusScreen } from '@/apps/consumer/features/status-screen/components/ConsumerStatusScreen';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
 import type { ConsumerSessionStatus } from '@/apps/consumer/features/session/types';
+import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
 import './ConsumerSessionGuard.css';
 
 type InactiveStatus = Exclude<ConsumerSessionStatus, 'active'>;
@@ -42,6 +43,13 @@ type ConsumerSessionGuardProps = {
  */
 export function ConsumerSessionGuard({ children }: ConsumerSessionGuardProps) {
   const { isLoading, status } = useConsumerSession();
+  const clearCart = useConsumerCartStore((state) => state.clearCart);
+
+  useEffect(() => {
+    if (!isLoading && (status === 'none' || status === 'expired' || status === 'closed')) {
+      clearCart();
+    }
+  }, [clearCart, isLoading, status]);
 
   if (isLoading) {
     return <main className="consumer-session-guard" aria-label="세션 확인 중" />;

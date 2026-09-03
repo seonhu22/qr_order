@@ -193,6 +193,7 @@ export function useConsumerOrderPage() {
         }
 
         if (error instanceof HttpError && error.status === 410) {
+          clearCart();
           void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
           setOrderPhase('session-closed');
           return;

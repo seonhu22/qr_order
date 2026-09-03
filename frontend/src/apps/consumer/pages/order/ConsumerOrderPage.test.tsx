@@ -266,4 +266,34 @@ describe('ConsumerOrderPage 주문 API', () => {
     expect(within(sheet()).getByText(PLAIN_MENU)).toBeInTheDocument();
     expect(within(sheet()).getByRole('button', { name: '주문하기' })).toBeDisabled();
   });
+
+  it('일시적인 주문 실패에서는 장바구니를 유지한다', async () => {
+    server.use(
+      http.post('/api/client/consumer/orders', () =>
+        HttpResponse.json({ success: false, message: '서버 오류' }, { status: 500 }),
+      ),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    expect(await screen.findByText('주문 연결이 원활하지 않습니다.')).toBeInTheDocument();
+    expect(useConsumerCartStore.getState().cart).toHaveLength(1);
+  });
+
+  it('주문 중 방문 세션이 종료되면 장바구니를 삭제한다', async () => {
+    server.use(
+      http.post('/api/client/consumer/orders', () =>
+        HttpResponse.json({ success: false, message: '종료된 주문 세션입니다.' }, { status: 410 }),
+      ),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    expect(await screen.findByText(/결제가 완료되어/)).toBeInTheDocument();
+    expect(useConsumerCartStore.getState().cart).toEqual([]);
+  });
 });

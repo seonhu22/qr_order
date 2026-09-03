@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
+import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
 import { ConsumerSessionGuard } from './ConsumerSessionGuard';
 
 vi.mock('@/apps/consumer/features/session/hooks/useConsumerSession', () => ({
@@ -36,6 +37,24 @@ function renderGuard(initialPath = '/consumer/order') {
 describe('ConsumerSessionGuard', () => {
   beforeEach(() => {
     useConsumerSessionMock.mockReset();
+    useConsumerCartStore.setState({
+      scope: {
+        consumerSessionId: 'visit-001',
+        sysPlantCd: 'ADMIN',
+        tableSysId: 'table-001',
+      },
+      cart: [
+        {
+          cartKey: 'menu-1',
+          menuId: 'menu-1',
+          name: '된장찌개',
+          price: 8_000,
+          qty: 1,
+          options: [],
+        },
+      ],
+    });
+    localStorage.clear();
   });
 
   it('renders an empty checking frame while loading', () => {
@@ -85,5 +104,24 @@ describe('ConsumerSessionGuard', () => {
     renderGuard();
 
     expect(screen.getByTestId('pathname')).toHaveTextContent('/consumer/order');
+  });
+
+  it.each(['none', 'expired', 'closed'] as const)(
+    '%s 세션은 이전 방문의 장바구니를 삭제한다',
+    async (status) => {
+      useConsumerSessionMock.mockReturnValue({ isLoading: false, status, session: null });
+
+      renderGuard();
+
+      await waitFor(() => expect(useConsumerCartStore.getState().cart).toEqual([]));
+    },
+  );
+
+  it('일시적인 세션 조회 오류에서는 장바구니를 유지한다', () => {
+    useConsumerSessionMock.mockReturnValue({ isLoading: false, status: 'error', session: null });
+
+    renderGuard();
+
+    expect(useConsumerCartStore.getState().cart).toHaveLength(1);
   });
 });
