@@ -35,7 +35,7 @@ describe('consumerMenuMapper', () => {
       menus: [
         expect.objectContaining({
           id: 'm1',
-          imageUrl: '/api/client/consumer/menu/m1/image',
+          imageUrl: '/api/client/consumer/menu/m1/image?v=file%20id',
           badges: ['popular', 'limited'],
           soldOut: false,
         }),

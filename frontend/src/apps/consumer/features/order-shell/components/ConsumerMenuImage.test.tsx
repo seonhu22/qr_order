@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ConsumerMenuImage } from './ConsumerMenuImage';
 
@@ -51,6 +51,24 @@ describe('ConsumerMenuImage', () => {
     expect(container.querySelector('img')).toHaveAttribute(
       'src',
       '/api/client/consumer/menu/m2/image',
+    );
+  });
+
+  it('온라인으로 복귀하면 실패한 이미지를 다시 로드한다', () => {
+    const { container } = render(
+      <ConsumerMenuImage
+        imageUrl="/api/client/consumer/menu/m1/image"
+        imageClassName="menu-image"
+        fallbackIconSize={20}
+      />,
+    );
+
+    fireEvent.error(container.querySelector('img')!);
+    act(() => window.dispatchEvent(new Event('online')));
+
+    expect(container.querySelector('img')).toHaveAttribute(
+      'src',
+      '/api/client/consumer/menu/m1/image',
     );
   });
 });

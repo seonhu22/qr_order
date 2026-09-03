@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 
 type ConsumerMenuImageProps = {
@@ -14,6 +14,12 @@ export function ConsumerMenuImage({
 }: ConsumerMenuImageProps) {
   const [failedUrl, setFailedUrl] = useState<string>();
   const canShowImage = imageUrl && imageUrl !== failedUrl;
+
+  useEffect(() => {
+    const retryFailedImage = () => setFailedUrl(undefined);
+    window.addEventListener('online', retryFailedImage);
+    return () => window.removeEventListener('online', retryFailedImage);
+  }, []);
 
   if (!canShowImage) {
     return <ConsumerIcon id="ci-utensils" size={fallbackIconSize} />;

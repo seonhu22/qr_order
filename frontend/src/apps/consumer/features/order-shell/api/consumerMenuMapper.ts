@@ -32,7 +32,7 @@ function selectionType(code: string): OrderShellOptionSelectionType {
 
 function imageUrl(menuSysId: string, fileSysId?: string) {
   return fileSysId
-    ? `/api/client/consumer/menu/${encodeURIComponent(menuSysId)}/image`
+    ? `/api/client/consumer/menu/${encodeURIComponent(menuSysId)}/image?v=${encodeURIComponent(fileSysId)}`
     : undefined;
 }
 
