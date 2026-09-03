@@ -184,16 +184,19 @@ export function ConsumerHeader() {
           aria-label="메뉴 검색"
           maxLength={100}
         />
-        {searchQuery && (
-          <button
-            type="button"
-            className="consumer-header__search-clear"
-            aria-label="검색어 지우기"
-            onClick={handleClearSearch}
-          >
-            <ConsumerIcon id="ci-x" size={14} />
-          </button>
-        )}
+        {/* 검색어 유무로 조건부 마운트하지 않고 visibility로만 토글한다 — 포커스된 입력 옆에서
+            DOM이 마운트/언마운트되면 iOS Safari가 포커스 요소를 다시 스크롤해 보여주려다
+            헤더 전체가 위로 밀려 올라간 채 안 돌아오는 버그가 있다. */}
+        <button
+          type="button"
+          className={`consumer-header__search-clear${searchQuery ? '' : ' consumer-header__search-clear--hidden'}`}
+          aria-label="검색어 지우기"
+          aria-hidden={!searchQuery}
+          tabIndex={searchQuery ? 0 : -1}
+          onClick={handleClearSearch}
+        >
+          <ConsumerIcon id="ci-x" size={14} />
+        </button>
       </div>
 
       <CategoryTabs

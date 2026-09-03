@@ -11,6 +11,10 @@
  * ===================================================== */
 
 .btn {
+  /* iOS Safari는 이게 없으면 버튼의 네이티브 외형(옅은 틴트)을 완전히 안 지워서, background-color로
+     칠한 색이 실제보다 칙칙하게 보인다 — background/border를 커스텀하는 모든 버튼에 필요. */
+  -webkit-appearance: none;
+  appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -23,6 +27,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   transition:
     background-color var(--transition-ui),

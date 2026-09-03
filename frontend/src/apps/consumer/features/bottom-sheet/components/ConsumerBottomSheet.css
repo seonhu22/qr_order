@@ -48,6 +48,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   padding: 0 var(--spacing-8) var(--spacing-8);
 }
 

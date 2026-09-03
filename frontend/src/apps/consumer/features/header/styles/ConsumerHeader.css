@@ -100,6 +100,17 @@
   background-color: var(--color-bg-selected);
 }
 
+/* 시각적 높이(32px)는 그대로 두고 세로 탭 영역만 40px로 넓힌다 — hit-slop. 너비는 이미 텍스트 때문에
+   40px를 넘어 좌우는 확장하지 않는다. */
+.consumer-header__action-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+}
+
 /* 주문내역 버튼의 누적 주문 수량 배지 — 완료된 주문이 하나라도 생기면 뜬다. */
 .consumer-header__order-history-badge {
   position: absolute;
@@ -118,6 +129,7 @@
 }
 
 .consumer-header__icon-button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,6 +144,17 @@
 
 .consumer-header__icon-button:active {
   background-color: var(--color-bg-muted);
+}
+
+/* 시각적 크기(32px)는 그대로 두고 탭 영역만 40px로 넓힌다 — hit-slop. 왼쪽은 "주문내역" 버튼과의
+   간격(6px) 안에서만 확장한다. */
+.consumer-header__icon-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
 }
 
 /* QA 전용 드롭다운 — 설정 버튼(dev 빌드 한정) 클릭 시 실패 화면 트리거 메뉴를 띄운다.
@@ -219,6 +242,7 @@
 }
 
 .consumer-header__search-clear {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,6 +251,19 @@
   background: transparent;
   color: var(--color-text-tertiary);
   cursor: pointer;
+}
+
+.consumer-header__search-clear--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 아이콘 크기(14px)는 그대로 두고 탭 영역만 40px로 넓힌다 — hit-slop. 왼쪽은 입력창이라 겹쳐도
+   무해하다. */
+.consumer-header__search-clear::before {
+  content: '';
+  position: absolute;
+  inset: -13px;
 }
 
 @media (min-width: 480px) {
