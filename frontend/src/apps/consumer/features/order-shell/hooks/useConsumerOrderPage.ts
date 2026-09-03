@@ -8,7 +8,7 @@ import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaS
 import {
   isSameConsumerCartScope,
   useConsumerCartStore,
-} from '@/apps/consumer/stores/consumerCartStore';
+} from '@/apps/consumer/features/order-shell/stores/consumerCartStore';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { HttpError } from '@/shared/lib/httpClient';
@@ -56,6 +56,9 @@ export function useConsumerOrderPage() {
   const updateLineQuantity = useConsumerCartStore((state) => state.updateLineQuantity);
   const removeLine = useConsumerCartStore((state) => state.removeLine);
   const clearCart = useConsumerCartStore((state) => state.clearCart);
+  const getOrCreateClientRequestId = useConsumerCartStore(
+    (state) => state.getOrCreateClientRequestId,
+  );
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
   const queryClient = useQueryClient();
@@ -163,45 +166,48 @@ export function useConsumerOrderPage() {
     if (cart.length === 0 || !session?.orderingAllowed || createOrder.isPending) return;
 
     setOrderPhase('processing');
-    createOrder.mutate(cart, {
-      onSuccess: () => {
-        closeSheet();
-        clearCart();
-        setOrderPhase('complete');
-        void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
-      },
-      onError: (error) => {
-        if (isTableInactiveError(error)) {
-          queryClient.setQueryData<ConsumerSession>(queryKeys.consumer.session, (current) =>
-            current
-              ? {
-                  ...current,
-                  orderingAllowed: false,
-                  orderingBlockedReason: 'TABLE_INACTIVE',
-                }
-              : current,
-          );
-          void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
-          setOrderPhase('idle');
-          return;
-        }
-
-        if (error instanceof HttpError && error.status === 409) {
-          setSoldoutModalItems(cart);
-          setOrderPhase('idle');
-          return;
-        }
-
-        if (error instanceof HttpError && error.status === 410) {
+    createOrder.mutate(
+      { cart, clientRequestId: getOrCreateClientRequestId() },
+      {
+        onSuccess: () => {
+          closeSheet();
           clearCart();
-          void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
-          setOrderPhase('session-closed');
-          return;
-        }
+          setOrderPhase('complete');
+          void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
+        },
+        onError: (error) => {
+          if (isTableInactiveError(error)) {
+            queryClient.setQueryData<ConsumerSession>(queryKeys.consumer.session, (current) =>
+              current
+                ? {
+                    ...current,
+                    orderingAllowed: false,
+                    orderingBlockedReason: 'TABLE_INACTIVE',
+                  }
+                : current,
+            );
+            void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
+            setOrderPhase('idle');
+            return;
+          }
 
-        setOrderPhase('error-network');
+          if (error instanceof HttpError && error.status === 409) {
+            setSoldoutModalItems(cart);
+            setOrderPhase('idle');
+            return;
+          }
+
+          if (error instanceof HttpError && error.status === 410) {
+            clearCart();
+            void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
+            setOrderPhase('session-closed');
+            return;
+          }
+
+          setOrderPhase('error-network');
+        },
       },
-    });
+    );
   }
 
   function placeOrder() {
@@ -249,7 +255,7 @@ export function useConsumerOrderPage() {
     setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
   }, []);
 
-  /** QA 전용 — 세션 만료(시간초과·결제 완료로 인한 마감) 화면도 실제로는 아직 도달할 수 없다. */
+  /** QA 전용 — 시간초과 화면은 아직 실제 판별 로직이 없고, 마감 화면은 주문 API의 410으로도 진입한다. */
   const triggerSessionExpiry = useCallback((variant: 'timeout' | 'closed') => {
     setOrderPhase(variant === 'timeout' ? 'session-timeout' : 'session-closed');
   }, []);

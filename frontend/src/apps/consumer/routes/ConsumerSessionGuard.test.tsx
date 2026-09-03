@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
-import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
+import { useConsumerCartStore } from '@/apps/consumer/features/order-shell/stores/consumerCartStore';
 import { ConsumerSessionGuard } from './ConsumerSessionGuard';
 
 vi.mock('@/apps/consumer/features/session/hooks/useConsumerSession', () => ({
@@ -43,6 +43,7 @@ describe('ConsumerSessionGuard', () => {
         sysPlantCd: 'ADMIN',
         tableSysId: 'table-001',
       },
+      clientRequestId: null,
       cart: [
         {
           cartKey: 'menu-1',
@@ -106,7 +107,7 @@ describe('ConsumerSessionGuard', () => {
     expect(screen.getByTestId('pathname')).toHaveTextContent('/consumer/order');
   });
 
-  it.each(['none', 'expired', 'closed'] as const)(
+  it.each(['expired', 'closed'] as const)(
     '%s 세션은 이전 방문의 장바구니를 삭제한다',
     async (status) => {
       useConsumerSessionMock.mockReturnValue({ isLoading: false, status, session: null });
@@ -114,8 +115,19 @@ describe('ConsumerSessionGuard', () => {
       renderGuard();
 
       await waitFor(() => expect(useConsumerCartStore.getState().cart).toEqual([]));
+      expect(JSON.parse(localStorage.getItem('qr-order:consumer-cart')!)).toMatchObject({
+        state: { cart: [] },
+      });
     },
   );
+
+  it('세션 쿠키가 없는 첫 조회에서는 QR 재연결 전까지 장바구니를 유지한다', () => {
+    useConsumerSessionMock.mockReturnValue({ isLoading: false, status: 'none', session: null });
+
+    renderGuard();
+
+    expect(useConsumerCartStore.getState().cart).toHaveLength(1);
+  });
 
   it('일시적인 세션 조회 오류에서는 장바구니를 유지한다', () => {
     useConsumerSessionMock.mockReturnValue({ isLoading: false, status: 'error', session: null });

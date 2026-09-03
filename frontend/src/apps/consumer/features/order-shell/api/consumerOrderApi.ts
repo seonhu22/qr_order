@@ -16,9 +16,12 @@ import type { OrderShellCartLine, OrderShellOrderRecord } from '../types';
 
 type ErrorPayload = { error?: unknown };
 
-export function buildConsumerOrderRequest(cart: OrderShellCartLine[]): ConsumerOrderCreateRequest {
+export function buildConsumerOrderRequest(
+  cart: OrderShellCartLine[],
+  clientRequestId: string = crypto.randomUUID(),
+): ConsumerOrderCreateRequest {
   return {
-    clientRequestId: crypto.randomUUID(),
+    clientRequestId,
     items: cart.map((line) => ({
       menuSysId: line.menuId,
       quantity: line.qty,
@@ -38,8 +41,14 @@ export function isTableInactiveError(error: unknown): boolean {
 
 export function useConsumerOrderCreateMutation() {
   return useMutation({
-    mutationFn: (cart: OrderShellCartLine[]) =>
-      createConsumerOrder(buildConsumerOrderRequest(cart)),
+    mutationFn: ({
+      cart,
+      clientRequestId,
+    }: {
+      cart: OrderShellCartLine[];
+      clientRequestId: string;
+    }) =>
+      createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)),
   });
 }
 

@@ -7,7 +7,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
-import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
+import { useConsumerCartStore } from '@/apps/consumer/features/order-shell/stores/consumerCartStore';
 import { ConsumerOrderPage } from './ConsumerOrderPage';
 
 /** 옵션이 없는 메뉴(디자인 기준 화면)와 옵션이 있는 메뉴 각각의 mock 이름. */
@@ -42,7 +42,7 @@ function sheet() {
 }
 
 beforeEach(() => {
-  useConsumerCartStore.setState({ cart: [], scope: null });
+  useConsumerCartStore.setState({ cart: [], scope: null, clientRequestId: null });
   localStorage.clear();
   useConsumerSheetStore.setState({ sheet: null });
   useConsumerOrderFilterStore.setState({ searchQuery: '', selectedCategory: '전체' });
@@ -280,6 +280,38 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     expect(await screen.findByText('주문 연결이 원활하지 않습니다.')).toBeInTheDocument();
     expect(useConsumerCartStore.getState().cart).toHaveLength(1);
+  });
+
+  it('주문 재시도 시 같은 clientRequestId를 재사용한다', async () => {
+    const requestIds: unknown[] = [];
+    server.use(
+      http.post('/api/client/consumer/orders', async ({ request }) => {
+        const body = (await request.json()) as { clientRequestId?: unknown };
+        requestIds.push(body.clientRequestId);
+        if (requestIds.length === 1) {
+          return HttpResponse.json({ success: false, message: '서버 오류' }, { status: 500 });
+        }
+        return HttpResponse.json({
+          success: true,
+          data: {
+            orderId: 'order-001',
+            orderNo: '0001',
+            status: 'RECEIVED',
+            totalAmount: 8_000,
+            orderedAt: '2026-09-01 12:00:00',
+          },
+        });
+      }),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await userEvent.click(await screen.findByRole('button', { name: '다시 시도하기' }));
+
+    expect(await screen.findByText('주문 완료')).toBeInTheDocument();
+    expect(requestIds).toHaveLength(2);
+    expect(requestIds[1]).toBe(requestIds[0]);
   });
 
   it('주문 중 방문 세션이 종료되면 장바구니를 삭제한다', async () => {

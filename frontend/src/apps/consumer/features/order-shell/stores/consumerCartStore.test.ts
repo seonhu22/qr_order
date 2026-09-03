@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OrderShellMenuItem } from '@/apps/consumer/features/order-shell/types';
 import { useConsumerCartStore } from './consumerCartStore';
 
@@ -17,7 +17,7 @@ const menu: OrderShellMenuItem = {
 };
 
 beforeEach(() => {
-  useConsumerCartStore.setState({ cart: [], scope: null });
+  useConsumerCartStore.setState({ cart: [], scope: null, clientRequestId: null });
   localStorage.clear();
 });
 
@@ -51,12 +51,13 @@ describe('consumerCartStore', () => {
     addItem(menu, 2, []);
     const saved = localStorage.getItem(STORAGE_KEY);
 
-    useConsumerCartStore.setState({ cart: [], scope: null });
+    useConsumerCartStore.setState({ cart: [], scope: null, clientRequestId: null });
     localStorage.setItem(STORAGE_KEY, saved!);
     await useConsumerCartStore.persist.rehydrate();
 
     expect(useConsumerCartStore.getState()).toMatchObject({
       scope,
+      clientRequestId: null,
       cart: [expect.objectContaining({ menuId: 'menu-1', qty: 2 })],
     });
   });
@@ -72,7 +73,66 @@ describe('consumerCartStore', () => {
 
     await useConsumerCartStore.persist.rehydrate();
 
-    expect(useConsumerCartStore.getState()).toMatchObject({ scope: null, cart: [] });
+    expect(useConsumerCartStore.getState()).toMatchObject({
+      scope: null,
+      cart: [],
+      clientRequestId: null,
+    });
+  });
+
+  it('이전 버전의 장바구니는 복원하지 않는다', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          scope,
+          cart: [
+            {
+              cartKey: 'menu-1',
+              menuId: 'menu-1',
+              name: '된장찌개',
+              price: 8_000,
+              qty: 1,
+              options: [],
+            },
+          ],
+        },
+        version: 0,
+      }),
+    );
+
+    await useConsumerCartStore.persist.rehydrate();
+
+    expect(useConsumerCartStore.getState()).toMatchObject({
+      scope: null,
+      cart: [],
+      clientRequestId: null,
+    });
+  });
+
+  it('브라우저 저장소가 실패해도 현재 탭의 장바구니는 동작한다', () => {
+    useConsumerCartStore.getState().bindScope(scope);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('저장소 용량 초과', 'QuotaExceededError');
+    });
+
+    expect(() => useConsumerCartStore.getState().addItem(menu, 1, [])).not.toThrow();
+    expect(useConsumerCartStore.getState().cart).toHaveLength(1);
+  });
+
+  it('같은 장바구니 재시도는 같은 요청 ID를 사용하고 수정 시 새 ID를 만든다', () => {
+    vi.spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000001')
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000002');
+    const store = useConsumerCartStore.getState();
+    store.bindScope(scope);
+    store.addItem(menu, 1, []);
+
+    expect(store.getOrCreateClientRequestId()).toBe('00000000-0000-4000-8000-000000000001');
+    expect(store.getOrCreateClientRequestId()).toBe('00000000-0000-4000-8000-000000000001');
+
+    store.updateLineQuantity('menu-1', 1);
+    expect(store.getOrCreateClientRequestId()).toBe('00000000-0000-4000-8000-000000000002');
   });
 
   it('옵션 조합이 다르면 별도 줄로 담는다', () => {

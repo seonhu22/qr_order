@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { ConsumerStatusScreen } from '@/apps/consumer/features/status-screen/components/ConsumerStatusScreen';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
 import type { ConsumerSessionStatus } from '@/apps/consumer/features/session/types';
-import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
+import { useConsumerCartStore } from '@/apps/consumer/features/order-shell/stores/consumerCartStore';
 import './ConsumerSessionGuard.css';
 
 type InactiveStatus = Exclude<ConsumerSessionStatus, 'active'>;
@@ -46,7 +46,7 @@ export function ConsumerSessionGuard({ children }: ConsumerSessionGuardProps) {
   const clearCart = useConsumerCartStore((state) => state.clearCart);
 
   useEffect(() => {
-    if (!isLoading && (status === 'none' || status === 'expired' || status === 'closed')) {
+    if (!isLoading && (status === 'expired' || status === 'closed')) {
       clearCart();
     }
   }, [clearCart, isLoading, status]);
