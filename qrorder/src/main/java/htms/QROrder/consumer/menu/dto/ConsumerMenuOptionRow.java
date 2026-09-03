@@ -14,4 +14,5 @@ public class ConsumerMenuOptionRow {
     private String menuOptionDescription;
     private Integer maximumNum;
     private String defaultYn;
+    private String soldOutYn;
 }
