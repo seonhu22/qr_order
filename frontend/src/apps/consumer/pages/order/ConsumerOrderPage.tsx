@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/button';
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { ConsumerBottomSheet } from '@/apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet';
@@ -228,23 +229,33 @@ export function ConsumerOrderPage() {
         )}
       </ConsumerBottomSheet>
 
-      {orderPhase === 'processing' && <OrderProcessingScreen />}
-      {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
-      {orderPhase === 'error-network' && (
-        <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
+      {/* body(.consumer-layout__body)는 overflow-y:auto + -webkit-overflow-scrolling:touch 스크롤
+          컨테이너다 — iOS Safari는 이런 스크롤 컨테이너 안의 position:fixed 요소를 진짜 뷰포트가
+          아니라 그 컨테이너 기준으로 잘라 그리는 경우가 있어, 전체화면이어야 할 이 상태 화면들이
+          헤더 아래부터만 덮고 헤더가 그대로 보이는 문제가 생긴다. document.body로 포탈해서
+          스크롤 컨테이너 밖으로 완전히 빼내 해결한다(ConsumerBottomSheet와 같은 방식). */}
+      {createPortal(
+        <>
+          {orderPhase === 'processing' && <OrderProcessingScreen />}
+          {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
+          {orderPhase === 'error-network' && (
+            <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
+          )}
+          {orderPhase === 'error-duplicate' && (
+            <OrderFailureScreen
+              type="duplicate"
+              duplicateTime={duplicateTime}
+              onGoMain={dismissOrderError}
+              onHistory={viewOrderHistoryFromError}
+            />
+          )}
+          {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
+          {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
+          {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
+          {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
+        </>,
+        document.body,
       )}
-      {orderPhase === 'error-duplicate' && (
-        <OrderFailureScreen
-          type="duplicate"
-          duplicateTime={duplicateTime}
-          onGoMain={dismissOrderError}
-          onHistory={viewOrderHistoryFromError}
-        />
-      )}
-      {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
-      {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
-      {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
-      {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
     </div>
   );
 }
