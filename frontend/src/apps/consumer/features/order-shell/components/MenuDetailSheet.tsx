@@ -3,6 +3,7 @@ import { MENU_BADGE_CONFIG } from '../badgeConfig';
 import { useMenuDetailSheet, MAX_MENU_QTY, MIN_MENU_QTY } from '../hooks/useMenuDetailSheet';
 import type { OrderShellCartOption, OrderShellMenuItem } from '../types';
 import { AddToCartButton } from './AddToCartButton';
+import { ConsumerMenuImage } from './ConsumerMenuImage';
 import { MenuOptionGroupList } from './MenuOptionGroupList';
 import { QuantityStepper } from './QuantityStepper';
 import './MenuDetailSheet.css';
@@ -48,11 +49,11 @@ export function MenuDetailSheet({
   return (
     <div className="menu-detail-sheet">
       <div className="menu-detail-sheet__image-frame">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt="" className="menu-detail-sheet__image" />
-        ) : (
-          <ConsumerIcon id="ci-utensils" size={32} />
-        )}
+        <ConsumerMenuImage
+          imageUrl={item.imageUrl}
+          imageClassName="menu-detail-sheet__image"
+          fallbackIconSize={32}
+        />
       </div>
 
       <div className="menu-detail-sheet__info">
