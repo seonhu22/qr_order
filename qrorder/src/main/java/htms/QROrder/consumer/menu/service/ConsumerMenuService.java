@@ -220,7 +220,8 @@ public class ConsumerMenuService {
                     row.getMenuOptionPrice(),
                     row.getMenuOptionDescription(),
                     maximumNum,
-                    row.getDefaultYn()
+                    row.getDefaultYn(),
+                    row.getSoldOutYn()
             ));
         }
 

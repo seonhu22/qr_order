@@ -11,6 +11,7 @@ public class MenuOptionDetailItem {
     private String menuDescription;
     private Integer maximumNum;
     private String defaultYn;
+    private String soldOutYn;
     private String useYn;
     private String fileUlid;
     private Integer ordNo;
