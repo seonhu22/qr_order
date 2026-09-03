@@ -155,4 +155,6 @@ textarea:focus-visible {
 ============================================= */
 html {
     scroll-behavior: smooth;
+    /* 안드로이드 크롬은 커스텀 스타일 버튼이라도 탭할 때마다 기본 회색 하이라이트를 깜빡여 보여준다 */
+    -webkit-tap-highlight-color: transparent;
 }
