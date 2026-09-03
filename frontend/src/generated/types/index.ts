@@ -157,6 +157,7 @@ export * from './ruleDetailRequest';
 export * from './ruleMaster';
 export * from './saveCommonDetailParams';
 export * from './saveFileParams';
+export * from './saveMenuDetailBody';
 export * from './saveMenuDetailParams';
 export * from './saveMenuOptionDetailParams';
 export * from './searchCommonDetailParams';

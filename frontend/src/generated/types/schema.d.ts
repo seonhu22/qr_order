@@ -2305,9 +2305,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2699,9 +2699,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -4340,15 +4340,19 @@ export interface operations {
     };
     saveMenuDetail: {
         parameters: {
-            query: {
-                menuDetailRequest: components["schemas"]["MenuDetailRequest"];
-                fileRequest: components["schemas"]["FileRequest"];
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    menuDetailRequest: components["schemas"]["MenuDetailRequest"];
+                    fileRequest?: components["schemas"]["FileRequest"];
+                };
+            };
+        };
         responses: {
             /** @description OK */
             200: {

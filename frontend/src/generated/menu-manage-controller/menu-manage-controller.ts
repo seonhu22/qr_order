@@ -40,7 +40,7 @@ import type {
   MenuOptionMasterItem,
   MenuOptionMasterRequest,
   MenuOptionMasterResponse,
-  SaveMenuDetailParams,
+  SaveMenuDetailBody,
   SaveMenuOptionDetailParams
 } from '.././types';
 
@@ -631,14 +631,20 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(mutationOptions, queryClient);
     }
     export const saveMenuDetail = (
-    params: SaveMenuDetailParams,
+    saveMenuDetailBody: SaveMenuDetailBody,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
       
-      
+      const formData = new FormData();
+formData.append(`menuDetailRequest`, JSON.stringify(saveMenuDetailBody.menuDetailRequest));
+if(saveMenuDetailBody.fileRequest !== undefined) {
+ formData.append(`fileRequest`, JSON.stringify(saveMenuDetailBody.fileRequest));
+ }
+
       return httpClient<CommonResponse>(
       {url: `/api/client/menu_manage/menu/detail/save`, method: 'POST',
-        params, signal
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
     },
       options);
     }
@@ -646,8 +652,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 export const getSaveMenuDetailMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{params: SaveMenuDetailParams}, TContext>, request?: SecondParameter<typeof httpClient>}
-): UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{params: SaveMenuDetailParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{data: SaveMenuDetailBody}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{data: SaveMenuDetailBody}, TContext> => {
 
 const mutationKey = ['saveMenuDetail'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -659,10 +665,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveMenuDetail>>, {params: SaveMenuDetailParams}> = (props) => {
-          const {params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveMenuDetail>>, {data: SaveMenuDetailBody}> = (props) => {
+          const {data} = props ?? {};
 
-          return  saveMenuDetail(params,requestOptions)
+          return  saveMenuDetail(data,requestOptions)
         }
 
         
@@ -671,15 +677,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SaveMenuDetailMutationResult = NonNullable<Awaited<ReturnType<typeof saveMenuDetail>>>
-    
+    export type SaveMenuDetailMutationBody = SaveMenuDetailBody
     export type SaveMenuDetailMutationError = unknown
 
     export const useSaveMenuDetail = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{params: SaveMenuDetailParams}, TContext>, request?: SecondParameter<typeof httpClient>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMenuDetail>>, TError,{data: SaveMenuDetailBody}, TContext>, request?: SecondParameter<typeof httpClient>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof saveMenuDetail>>,
         TError,
-        {params: SaveMenuDetailParams},
+        {data: SaveMenuDetailBody},
         TContext
       > => {
 
