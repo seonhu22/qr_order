@@ -61,6 +61,8 @@ export function useConsumerOrderPage() {
   );
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
+  // 주문 접수 응답의 사용자 노출용 번호. 성공 시에만 값이 있고, idle로 돌아갈 때 지운다.
+  const [completedOrderNo, setCompletedOrderNo] = useState('');
   const queryClient = useQueryClient();
   const createOrder = useConsumerOrderCreateMutation();
 
@@ -169,9 +171,10 @@ export function useConsumerOrderPage() {
     createOrder.mutate(
       { cart, clientRequestId: getOrCreateClientRequestId() },
       {
-        onSuccess: () => {
+        onSuccess: (created) => {
           closeSheet();
           clearCart();
+          setCompletedOrderNo(created.orderNo);
           setOrderPhase('complete');
           void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
         },
@@ -243,6 +246,7 @@ export function useConsumerOrderPage() {
   /** "주문 완료" 화면의 "메뉴로 돌아가기" — 메인 화면으로 되돌아간다. */
   function confirmOrderComplete() {
     setOrderPhase('idle');
+    setCompletedOrderNo('');
   }
 
   /**
@@ -358,6 +362,7 @@ export function useConsumerOrderPage() {
     clearSearch: () => setSearchQuery(''),
     orderPhase,
     duplicateTime,
+    completedOrderNo,
     placeOrder,
     confirmOrderComplete,
     retryOrder,
