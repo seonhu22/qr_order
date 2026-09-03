@@ -82,6 +82,17 @@
   color: var(--color-text-primary);
 }
 
+.order-complete-screen__order-no {
+  margin-top: var(--spacing-2);
+  font-size: var(--typography-size-body);
+  color: var(--color-text-secondary);
+}
+
+.order-complete-screen__order-no strong {
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
 .order-complete-screen__description {
   margin-top: var(--spacing-3);
   font-size: var(--typography-size-body);
