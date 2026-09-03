@@ -5,6 +5,7 @@ import type { ConsumerSession } from '@/apps/consumer/features/session/types';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
+import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { HttpError } from '@/shared/lib/httpClient';
@@ -14,7 +15,7 @@ import {
   useConsumerMenuSearchQuery,
 } from '../api/consumerMenuApi';
 import { isTableInactiveError, useConsumerOrderCreateMutation } from '../api/consumerOrderApi';
-import { buildCartKey, calcCartLinePrice } from '../cartLine';
+import { calcCartLinePrice } from '../cartLine';
 import type {
   OrderShellCartLine,
   OrderShellCartOption,
@@ -37,15 +38,19 @@ type OrderPhase =
   | 'network-error';
 
 /**
- * ConsumerOrderPage의 mock 장바구니를 소유한다(feature-local state).
- * 장바구니는 이번 PR엔 영속되지 않는 mock — 3단계에서 세션별 격리 store로 교체한다.
- * 검색어·선택 카테고리·시트 열림 상태는 ConsumerHeader와 공유해야 해서 zustand 스토어를 통해 읽는다.
+ * ConsumerOrderPage의 메뉴/주문 흐름을 조립한다.
+ * 장바구니는 Consumer 전용 store가 소유하고, 검색어/선택 카테고리/시트 열림 상태는
+ * ConsumerHeader와 공유하는 각 store에서 읽는다.
  */
 export function useConsumerOrderPage() {
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
-  const [cart, setCart] = useState<OrderShellCartLine[]>([]);
+  const cart = useConsumerCartStore((state) => state.cart);
+  const addCartItem = useConsumerCartStore((state) => state.addItem);
+  const updateLineQuantity = useConsumerCartStore((state) => state.updateLineQuantity);
+  const removeLine = useConsumerCartStore((state) => state.removeLine);
+  const clearCart = useConsumerCartStore((state) => state.clearCart);
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
   const queryClient = useQueryClient();
@@ -102,20 +107,7 @@ export function useConsumerOrderPage() {
    * 같은 메뉴라도 옵션 조합이 다르면 별도 줄로 담는다 — 병합 기준은 `menuId`가 아니라 `cartKey`다.
    */
   function addToCart(item: OrderShellMenuItem, qty = 1, options: OrderShellCartOption[] = []) {
-    const cartKey = buildCartKey(item.id, options);
-
-    setCart((prev) => {
-      const existing = prev.find((line) => line.cartKey === cartKey);
-      if (existing) {
-        return prev.map((line) =>
-          line.cartKey === cartKey ? { ...line, qty: line.qty + qty } : line,
-        );
-      }
-      return [
-        ...prev,
-        { cartKey, menuId: item.id, name: item.name, price: item.price, qty, options },
-      ];
-    });
+    addCartItem(item, qty, options);
   }
 
   function findMenuItem(menuId: string) {
@@ -125,17 +117,11 @@ export function useConsumerOrderPage() {
 
   /** 수량이 0 이하가 되면 그 줄을 장바구니에서 없앤다. */
   function updateCartLineQty(cartKey: string, delta: number) {
-    setCart((prev) =>
-      prev.flatMap((line) => {
-        if (line.cartKey !== cartKey) return [line];
-        const nextQty = line.qty + delta;
-        return nextQty <= 0 ? [] : [{ ...line, qty: nextQty }];
-      }),
-    );
+    updateLineQuantity(cartKey, delta);
   }
 
   function removeCartLine(cartKey: string) {
-    setCart((prev) => prev.filter((line) => line.cartKey !== cartKey));
+    removeLine(cartKey);
     setSoldoutCartKeys((prev) => {
       if (!prev.has(cartKey)) return prev;
       const next = new Set(prev);
@@ -151,7 +137,7 @@ export function useConsumerOrderPage() {
     createOrder.mutate(cart, {
       onSuccess: () => {
         closeSheet();
-        setCart([]);
+        clearCart();
         setOrderPhase('complete');
         void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
       },

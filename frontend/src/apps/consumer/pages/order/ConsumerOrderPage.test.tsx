@@ -7,6 +7,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
+import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
 import { ConsumerOrderPage } from './ConsumerOrderPage';
 
 /** 옵션이 없는 메뉴(디자인 기준 화면)와 옵션이 있는 메뉴 각각의 mock 이름. */
@@ -41,6 +42,7 @@ function sheet() {
 }
 
 beforeEach(() => {
+  useConsumerCartStore.setState({ cart: [] });
   useConsumerSheetStore.setState({ sheet: null });
   useConsumerOrderFilterStore.setState({ searchQuery: '', selectedCategory: '전체' });
 });
