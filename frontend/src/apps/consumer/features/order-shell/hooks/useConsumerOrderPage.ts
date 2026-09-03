@@ -5,7 +5,10 @@ import type { ConsumerSession } from '@/apps/consumer/features/session/types';
 import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
-import { useConsumerCartStore } from '@/apps/consumer/stores/consumerCartStore';
+import {
+  isSameConsumerCartScope,
+  useConsumerCartStore,
+} from '@/apps/consumer/stores/consumerCartStore';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { HttpError } from '@/shared/lib/httpClient';
@@ -46,7 +49,9 @@ export function useConsumerOrderPage() {
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
-  const cart = useConsumerCartStore((state) => state.cart);
+  const storedCart = useConsumerCartStore((state) => state.cart);
+  const cartScope = useConsumerCartStore((state) => state.scope);
+  const bindCartScope = useConsumerCartStore((state) => state.bindScope);
   const addCartItem = useConsumerCartStore((state) => state.addItem);
   const updateLineQuantity = useConsumerCartStore((state) => state.updateLineQuantity);
   const removeLine = useConsumerCartStore((state) => state.removeLine);
@@ -58,6 +63,30 @@ export function useConsumerOrderPage() {
 
   const { session } = useConsumerSession();
   const sessionId = session?.consumerSessionId ?? '';
+  const nextCartScope = session
+    ? {
+        consumerSessionId: session.consumerSessionId,
+        sysPlantCd: session.sysPlantCd,
+        tableSysId: session.tableSysId,
+      }
+    : null;
+  const cart =
+    nextCartScope && isSameConsumerCartScope(cartScope, nextCartScope) ? storedCart : [];
+
+  useEffect(() => {
+    if (!session) return;
+    bindCartScope({
+      consumerSessionId: session.consumerSessionId,
+      sysPlantCd: session.sysPlantCd,
+      tableSysId: session.tableSysId,
+    });
+  }, [
+    bindCartScope,
+    session?.consumerSessionId,
+    session?.sysPlantCd,
+    session?.tableSysId,
+    session,
+  ]);
   const mainQuery = useConsumerMenuMainQuery(sessionId);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
   const isSearchDebouncing = searchQuery.trim() !== debouncedSearchQuery;

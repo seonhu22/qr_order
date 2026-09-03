@@ -42,7 +42,8 @@ function sheet() {
 }
 
 beforeEach(() => {
-  useConsumerCartStore.setState({ cart: [] });
+  useConsumerCartStore.setState({ cart: [], scope: null });
+  localStorage.clear();
   useConsumerSheetStore.setState({ sheet: null });
   useConsumerOrderFilterStore.setState({ searchQuery: '', selectedCategory: '전체' });
 });
