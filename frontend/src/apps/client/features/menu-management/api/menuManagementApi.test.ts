@@ -6,6 +6,15 @@ import {
 } from './menuManagementApi';
 import type { MenuCategoryRow, MenuDetailRow } from '../types';
 
+function readBlobText(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
+
 describe('menuManagementApi', () => {
   it('maps menu category ordNo into save payload', () => {
     const row: MenuCategoryRow = {
@@ -24,7 +33,7 @@ describe('menuManagementApi', () => {
     });
   });
 
-  it('builds indexed form data for menu detail model attribute binding', () => {
+  it('builds the menu detail request as a JSON multipart part', async () => {
     const currentRows: MenuDetailRow[] = [
       {
         id: 'menu-detail-1',
@@ -43,14 +52,35 @@ describe('menuManagementApi', () => {
 
     const request = buildMenuDetailRequest(currentRows, []);
     const formData = buildMenuDetailFormData(request);
+    const menuRequestPart = formData.get('menuDetailRequest');
 
-    expect(formData.get('newItems[0].linkSysId')).toBe('category-1');
-    expect(formData.get('newItems[0].menuName')).toBe('치즈버거');
-    expect(formData.get('newItems[0].menuPrice')).toBe('7000');
-    expect(formData.get('newItems[0].menuDescription')).toBe('기본 치즈버거');
-    expect(formData.get('newItems[0].optionUseYn')).toBe('N');
-    expect(formData.get('newItems[0].useYn')).toBe('Y');
-    expect(formData.has('newItems[0].fileUlid')).toBe(false);
-    expect(formData.get('newItems[0].ordNo')).toBe('1');
+    expect(menuRequestPart).toBeInstanceOf(Blob);
+    expect(JSON.parse(await readBlobText(menuRequestPart as Blob))).toEqual(request);
+    expect(formData.has('newItems[0].menuName')).toBe(false);
+  });
+
+  it('separates the menu request JSON part from attachment fields', async () => {
+    const request = {
+      newItems: [],
+      updateItems: [],
+      delItems: [],
+    };
+    const file = new File(['image'], 'menu.png', { type: 'image/png' });
+
+    const formData = buildMenuDetailFormData(request, {
+      fileUlid: 'FILE-ULID-1',
+      fileChangeState: {
+        newFiles: [file],
+        deletedFiles: [],
+      },
+    });
+    const menuRequestPart = formData.get('menuDetailRequest');
+
+    expect(menuRequestPart).toBeInstanceOf(Blob);
+    const menuRequestJson = await readBlobText(menuRequestPart as Blob);
+    expect(JSON.parse(menuRequestJson)).toEqual(request);
+    expect(formData.has('newItems[0].menuName')).toBe(false);
+    expect(formData.get('newItems[0].file')).toBe(file);
+    expect(formData.get('newItems[0].linkSysId')).toBe('FILE-ULID-1');
   });
 });
