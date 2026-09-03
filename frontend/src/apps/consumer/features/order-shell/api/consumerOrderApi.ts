@@ -16,6 +16,8 @@ import type { OrderShellCartLine, OrderShellOrderRecord } from '../types';
 
 type ErrorPayload = { error?: unknown };
 
+export const CONSUMER_ORDER_REQUEST_TIMEOUT_MS = 15_000;
+
 export function buildConsumerOrderRequest(
   cart: OrderShellCartLine[],
   clientRequestId: string = crypto.randomUUID(),
@@ -39,6 +41,25 @@ export function isTableInactiveError(error: unknown): boolean {
   return payload?.error === 'TABLE_INACTIVE';
 }
 
+export async function submitConsumerOrder(
+  cart: OrderShellCartLine[],
+  clientRequestId: string,
+  timeoutMs: number = CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
+) {
+  const abortController = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => abortController.abort(), timeoutMs);
+
+  try {
+    return await createConsumerOrder(
+      buildConsumerOrderRequest(cart, clientRequestId),
+      undefined,
+      abortController.signal,
+    );
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
+
 export function useConsumerOrderCreateMutation() {
   return useMutation({
     mutationFn: ({
@@ -47,8 +68,7 @@ export function useConsumerOrderCreateMutation() {
     }: {
       cart: OrderShellCartLine[];
       clientRequestId: string;
-    }) =>
-      createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)),
+    }) => submitConsumerOrder(cart, clientRequestId),
   });
 }
 
