@@ -1073,3 +1073,40 @@ function LoadingScreen() {
 - 앞으로 전체화면 로딩이 필요한 곳(admin/client 등)은 이 컴포넌트를 재사용하면 된다.
 
 ---
+
+## ADR-030 — 모바일 브라우저(iOS Safari·안드로이드 크롬) 호환성 수정 모음
+
+**날짜**: 2026-09-02
+**상태**: 채택
+
+### 배경
+
+아이폰 사파리로 Consumer 화면을 실제 확인하면서 데스크톱 크롬에서는 안 보이던 문제가 여럿 발견됐다. 각각 원인이 다르고 파일도 흩어져 있어 항목별로 정리한다.
+
+### 결정
+
+**① 검색 지우기 버튼: 조건부 마운트 → `visibility` 토글** (`ConsumerHeader.tsx`/`.css`)
+검색어 유무로 X 버튼을 `{searchQuery && (...)}`로 마운트/언마운트했는데, 포커스된 입력 옆에서 DOM이 마운트/언마운트되면 iOS Safari가 포커스 요소를 다시 스크롤해 보여주려다 헤더 전체가 위로 밀린 채 안 돌아오는 버그가 있었다. 버튼을 항상 마운트하고 `visibility`/`pointer-events`로만 토글하도록 바꿔 DOM 변경 자체를 없앴다.
+
+**② 공용 `Button`에 `-webkit-appearance: none` 추가** (`shared/components/button/Button.css`)
+`background`/`border`를 커스텀해도 iOS Safari는 버튼의 네이티브 외형(옅은 틴트)을 완전히 안 지우는 경우가 있어, 브랜드 오렌지 배경이 실제보다 칙칙하게 보였다(computed color는 데스크톱과 동일하게 나와 처음엔 안 잡히다가, 리셋 부재가 원인으로 확인됨). 같은 블록에서 `user-select`도 `-webkit-user-select` 프리픽스가 빠져 있어 같이 추가했다. 공용 컴포넌트라 admin/client에도 적용되지만 데스크톱은 원래도 문제가 없어 영향 없다.
+
+**③ `theme-color` 메타 태그 추가** (`index.html`)
+iOS Safari(및 안드로이드 크롬)는 상태바·하단 도구모음 색을 페이지 배경이 아니라 `<meta name="theme-color">` 값으로 정한다. 이게 없어서 브라우저 기본색과 헤더 배경이 어긋나 화면 위아래가 잘린 것처럼 보였다. 헤더 배경(`--color-bg-surface`, `#FFFFFF`)에 맞춰 정적으로 추가했다 — 화면마다 배경이 달라지는 하단(예: 장바구니 담겼을 때 `CartBar`의 브랜드 오렌지)까지 완벽히 맞추려면 JS로 동적 갱신이 필요한데, 이번엔 정적 값으로 우선 개선하고 필요해지면 동적 처리를 추가하기로 했다.
+
+**④ `-webkit-tap-highlight-color: transparent` 추가** (`shared/styles/reset.css`)
+안드로이드 크롬은 커스텀 스타일 버튼이라도 탭할 때마다 기본 회색 하이라이트를 깜빡여 보여준다(iOS Safari는 두드러지지 않아 아이폰 확인만으로는 못 잡음). `html` 규칙에 전역으로 추가했다 — admin/client 포함 앱 전체에 적용되는 리셋이라 부작용 없다.
+
+**⑤ `overscroll-behavior-y: contain` 추가** (`ConsumerBottomSheet.css`의 `__body`, `ConsumerLayout.css`의 `__body`)
+바텀시트나 페이지 본문을 끝까지 스크롤한 뒤 계속 당기면 오버스크롤이 뒤에 깔린 배경으로 새어나가거나(스크롤 체이닝), 안드로이드 크롬의 풀투리프레시 제스처가 잘못 걸릴 수 있어 두 스크롤 컨테이너에 추가했다.
+
+**⑥ 전체화면 상태 화면들을 `document.body`로 포탈** (`ConsumerOrderPage.tsx`)
+`OrderProcessingScreen`/`OrderCompleteScreen`/`OrderFailureScreen`/`SessionExpiredScreen`/`NetworkErrorScreen`/`SoldoutModal`이 전부 `position: fixed`로 전체화면을 덮으려 하는데, 이 컴포넌트들이 렌더링되는 지점이 `.consumer-layout__body`(`overflow-y:auto` + `-webkit-overflow-scrolling:touch` 스크롤 컨테이너) 안이었다. iOS Safari는 이런 스크롤 컨테이너 안의 `position:fixed`를 진짜 뷰포트가 아니라 컨테이너 기준으로 잘라 그리는 경우가 있어, 헤더 아래부터만 덮이고 헤더가 그대로 보이는 버그가 있었다. 이 화면들을 렌더링하는 지점에서 `createPortal`로 `document.body`에 직접 그리도록 바꿔 스크롤 컨테이너 밖으로 완전히 뺐다 — `ConsumerBottomSheet`가 이미 쓰던 것과 같은 패턴(ADR-020)이다. 브라우저별 예외처리가 아니라 문제의 구조적 원인(스크롤 컨테이너 안에 있었다는 것) 자체를 없앤 수정이라 안드로이드에도 부작용 없다.
+
+### 결과
+
+- ①②⑥은 iOS Safari 전용 버그의 수정, ④는 안드로이드 크롬 전용, ③⑤는 두 플랫폼 모두에 도움이 된다.
+- 새로 추가하는 전체화면 오버레이(`position:fixed; inset:0`)는 `.consumer-layout__body`(또는 다른 `overflow` 스크롤 컨테이너) 안에서 직접 렌더링하지 말고, ⑥과 같이 `document.body`로 포탈하거나 `ConsumerLayout` 밖에서 렌더링해야 한다.
+- 실제 기기 검증은 이 branch(`fix/consumer-mobile-qa`) 작업자가 아이폰 사파리로 진행했고, 안드로이드는 각 항목의 알려진 브라우저 특성에 근거해 판단했다(실기기 검증은 아님).
+
+---
