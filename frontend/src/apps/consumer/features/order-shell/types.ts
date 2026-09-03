@@ -96,6 +96,10 @@ export type OrderShellMenuGroup = {
  */
 export type OrderShellOrderRecord = {
   orderId: string;
+  /** 사용자에게 보여주는 짧은 주문번호(예: `A-0032`). 시스템 식별은 `orderId`로 한다. */
+  orderNo: string;
+  /** 백엔드 주문 상태 코드(`RECEIVED`, `PREPARING`, …). 문자열 그대로 보관해 확장에 대비한다. */
+  orderStatus: string;
   orderedAt: Date;
   items: OrderShellCartLine[];
   total: number;

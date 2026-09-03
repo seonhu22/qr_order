@@ -65,6 +65,8 @@ export function useConsumerOrdersQuery(sessionId: string) {
 function mapOrderDetail(detail: ConsumerOrderDetailResponse): OrderShellOrderRecord {
   return {
     orderId: detail.orderId,
+    orderNo: detail.orderNo,
+    orderStatus: detail.status,
     orderedAt: new Date(detail.orderedAt.replace(' ', 'T')),
     total: detail.totalAmount,
     items: detail.items.map((item) => ({
