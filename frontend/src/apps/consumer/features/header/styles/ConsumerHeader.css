@@ -253,6 +253,11 @@
   cursor: pointer;
 }
 
+.consumer-header__search-clear--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* 아이콘 크기(14px)는 그대로 두고 탭 영역만 40px로 넓힌다 — hit-slop. 왼쪽은 입력창이라 겹쳐도
    무해하다. */
 .consumer-header__search-clear::before {
