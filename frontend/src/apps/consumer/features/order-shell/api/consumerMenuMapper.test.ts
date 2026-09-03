@@ -3,7 +3,7 @@ import type { ConsumerMenuDetailEnvelope, ConsumerMenuMainEnvelope } from '@/gen
 import { mapConsumerMenuDetail, mapConsumerMenuMain } from './consumerMenuMapper';
 
 describe('consumerMenuMapper', () => {
-  it('메인 응답의 카테고리, 메뉴, 첨부 이미지를 화면 모델로 변환한다', () => {
+  it('메인 응답의 카테고리, 메뉴, Consumer 전용 이미지를 화면 모델로 변환한다', () => {
     const response: ConsumerMenuMainEnvelope = {
       success: true,
       data: {
@@ -35,12 +35,38 @@ describe('consumerMenuMapper', () => {
       menus: [
         expect.objectContaining({
           id: 'm1',
-          imageUrl: '/api/attach_file/view?sysId=file%20id',
+          imageUrl: '/api/client/consumer/menu/m1/image',
           badges: ['popular', 'limited'],
           soldOut: false,
         }),
       ],
     });
+  });
+
+  it('첨부 이미지가 없으면 이미지 URL을 만들지 않는다', () => {
+    expect(
+      mapConsumerMenuMain({
+        success: true,
+        data: {
+          storeName: '테스트 매장',
+          tableNum: 7,
+          header: { categoryList: [] },
+          body: {
+            menuList: [
+              {
+                menuSysId: 'menu/without-image',
+                categorySysId: 'c1',
+                categoryName: '음료',
+                menuName: '물',
+                menuPrice: 0,
+                optionUseYn: 'N',
+                soldOutYn: 'N',
+              },
+            ],
+          },
+        },
+      }).menus[0].imageUrl,
+    ).toBeUndefined();
   });
 
   it('상세 응답의 단일, 복수, 수량 옵션 계약을 보존한다', () => {

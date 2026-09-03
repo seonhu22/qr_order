@@ -30,8 +30,10 @@ function selectionType(code: string): OrderShellOptionSelectionType {
   return value;
 }
 
-function imageUrl(fileSysId?: string) {
-  return fileSysId ? `/api/attach_file/view?sysId=${encodeURIComponent(fileSysId)}` : undefined;
+function imageUrl(menuSysId: string, fileSysId?: string) {
+  return fileSysId
+    ? `/api/client/consumer/menu/${encodeURIComponent(menuSysId)}/image`
+    : undefined;
 }
 
 function badges(menuTag?: string): OrderShellMenuBadge[] | undefined {
@@ -49,7 +51,7 @@ export function mapConsumerMenuItem(item: ConsumerMenuItem): OrderShellMenuItem 
     category: item.categoryName,
     price: item.menuPrice,
     description: item.menuDescription,
-    imageUrl: imageUrl(item.fileSysId),
+    imageUrl: imageUrl(item.menuSysId, item.fileSysId),
     soldOut: item.soldOutYn === 'Y',
     badges: badges(item.menuTag),
   };
