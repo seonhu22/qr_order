@@ -92,6 +92,18 @@ export type OrderShellMenuGroup = {
 };
 
 /**
+ * 주문 생성 응답을 화면에서 사용하는 형태로 변환한 모델.
+ * 생성 응답에는 항목 목록이 없어 `items`는 두지 않는다 — 항목까지 필요한 화면은 상세 조회를 쓴다.
+ */
+export type OrderShellOrderCreated = {
+  orderId: string;
+  orderNo: string;
+  orderStatus: string;
+  orderedAt: Date;
+  total: number;
+};
+
+/**
  * 주문 상세 API를 주문내역 화면에서 사용하는 형태로 변환한 모델.
  */
 export type OrderShellOrderRecord = {

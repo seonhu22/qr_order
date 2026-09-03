@@ -6,13 +6,18 @@ import {
 } from '@/generated/consumer-order-controller/consumer-order-controller';
 import type {
   ConsumerOrderCreateRequest,
+  ConsumerOrderCreateResponse,
   ConsumerOrderDetailResponse,
   ConsumerOrderSummary,
 } from '@/generated/types';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import { HttpError } from '@/shared/lib/httpClient';
-import type { OrderShellCartLine, OrderShellOrderRecord } from '../types';
+import type {
+  OrderShellCartLine,
+  OrderShellOrderCreated,
+  OrderShellOrderRecord,
+} from '../types';
 
 type ErrorPayload = { error?: unknown };
 
@@ -39,6 +44,16 @@ export function isTableInactiveError(error: unknown): boolean {
   return payload?.error === 'TABLE_INACTIVE';
 }
 
+export function mapOrderCreated(response: ConsumerOrderCreateResponse): OrderShellOrderCreated {
+  return {
+    orderId: response.orderId,
+    orderNo: response.orderNo,
+    orderStatus: response.status,
+    orderedAt: new Date(response.orderedAt.replace(' ', 'T')),
+    total: response.totalAmount,
+  };
+}
+
 export function useConsumerOrderCreateMutation() {
   return useMutation({
     mutationFn: ({
@@ -48,7 +63,9 @@ export function useConsumerOrderCreateMutation() {
       cart: OrderShellCartLine[];
       clientRequestId: string;
     }) =>
-      createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)),
+      createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)).then((envelope) =>
+        mapOrderCreated(envelope.data),
+      ),
   });
 }
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HttpError } from '@/shared/lib/httpClient';
-import { buildConsumerOrderRequest, isTableInactiveError } from './consumerOrderApi';
+import { buildConsumerOrderRequest, isTableInactiveError, mapOrderCreated } from './consumerOrderApi';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -42,6 +42,24 @@ describe('consumerOrderApi', () => {
           options: [{ optionSysId: 'option-1', quantity: 2 }],
         },
       ],
+    });
+  });
+
+  it('maps order create response to camelCase record with parsed date', () => {
+    expect(
+      mapOrderCreated({
+        orderId: 'order-1',
+        orderNo: 'A-0032',
+        status: 'RECEIVED',
+        totalAmount: 21_000,
+        orderedAt: '2026-09-03 12:34:56',
+      }),
+    ).toEqual({
+      orderId: 'order-1',
+      orderNo: 'A-0032',
+      orderStatus: 'RECEIVED',
+      total: 21_000,
+      orderedAt: new Date('2026-09-03T12:34:56'),
     });
   });
 
