@@ -139,17 +139,13 @@
         ORDER BY og.insert_datetime DESC, og.sys_id DESC
     </select>
 
-    <select id="existsPaidOrder" resultType="boolean">
+    <select id="existsClosedVisit" resultType="boolean">
         SELECT EXISTS (
             SELECT 1
             FROM order_group og
             <include refid="currentConsumerOrderScope"/>
-            INNER JOIN order_detail od
-                ON od.link_sys_id3 = og.sys_id
-                AND od.link_sys_id = og.link_sys_id
-                AND od.sys_plant_cd = og.sys_plant_cd
             WHERE <include refid="currentConsumerOrderPredicate"/>
-              AND od.payment_yn = 'Y'
+              AND om.order_status IN ('02', '03')
         )
     </select>
 

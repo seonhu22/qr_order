@@ -95,6 +95,18 @@ class ConsumerOrderMapperXmlTest {
     }
 
     @Test
+    void detectsClosedVisitFromOrderMasterStatusInsteadOfDetailPaymentFlag() {
+        Map<String, Object> parameters = Map.of(
+                "consumerSessionId", "VISIT-1",
+                "sysPlantCd", "PLANT-1");
+
+        String sql = sql("existsClosedVisit", parameters);
+
+        assertTrue(sql.contains("om.order_status IN ('02', '03')"));
+        assertFalse(sql.contains("od.payment_yn"));
+    }
+
+    @Test
     void consumerVisitMapperLocksTableBeforeEvaluatingUseYn() throws Exception {
         Configuration visitConfiguration = configuration(
                 "mapper/consumer/session/ConsumerVisitMapper.xml");

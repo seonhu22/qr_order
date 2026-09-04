@@ -22,7 +22,7 @@ public interface ConsumerOrderMapper {
 
     List<ConsumerOrderSummaryRow> findOrders(String consumerSessionId, String sysPlantCd);
 
-    boolean existsPaidOrder(String consumerSessionId, String sysPlantCd);
+    boolean existsClosedVisit(String consumerSessionId, String sysPlantCd);
 
     ConsumerOrderDetailHeaderRow findOrderDetailHeader(String consumerSessionId,
                                                        String sysPlantCd,

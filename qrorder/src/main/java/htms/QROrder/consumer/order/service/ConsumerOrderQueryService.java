@@ -83,7 +83,7 @@ public class ConsumerOrderQueryService {
     }
 
     private void requireOpenVisit(String consumerSessionId, String sysPlantCd) {
-        if (consumerOrderMapper.existsPaidOrder(consumerSessionId, sysPlantCd)) {
+        if (consumerOrderMapper.existsClosedVisit(consumerSessionId, sysPlantCd)) {
             throw new htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException(
                     "종료되었거나 만료된 방문입니다.");
         }

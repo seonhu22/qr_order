@@ -129,7 +129,7 @@ class ConsumerOrderQueryServiceTest {
         when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
         when(consumerOrderMapper.findOrders("VISIT-1", "PLANT-1"))
                 .thenReturn(List.of(summary("ORDER-2", 1002, "02", 18_000L, 2L)));
-        when(consumerOrderMapper.existsPaidOrder("VISIT-1", "PLANT-1"))
+        when(consumerOrderMapper.existsClosedVisit("VISIT-1", "PLANT-1"))
                 .thenReturn(false, true);
 
         assertThrows(ConsumerOrderSessionGoneException.class,
