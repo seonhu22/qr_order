@@ -65,7 +65,7 @@
             #{menuSysId},
             #{orderId},
             #{quantity},
-            'N'
+            'Y'
         )
     </insert>
 

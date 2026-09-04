@@ -53,6 +53,18 @@ class ConsumerOrderMapperXmlTest {
     }
 
     @Test
+    void marksNewOrderDetailAsPayable() {
+        ConsumerOrderWriteRows.Item row = new ConsumerOrderWriteRows.Item(
+                "ITEM-1", "VISIT-1", "ORDER-1", "MENU-1", "PLANT-1",
+                2, false, LocalDateTime.now());
+
+        String sql = sql("insertOrderDetail", row);
+
+        assertTrue(sql.contains("qty, payment_yn"));
+        assertTrue(sql.endsWith("'Y' )"));
+    }
+
+    @Test
     void bindsStoredOptionQuantity() {
         ConsumerOrderWriteRows.Option row = new ConsumerOrderWriteRows.Option(
                 "ORDER-OPTION-1", "ITEM-1", "OPTION-1", "PLANT-1",
