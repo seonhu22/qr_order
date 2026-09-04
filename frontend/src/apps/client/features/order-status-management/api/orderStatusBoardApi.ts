@@ -1,8 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { CommonResponse } from '@/generated/types/commonResponse';
+import type { PaymentCompleteResponse } from '@/generated/types/paymentCompleteResponse';
 import type { StatusRequest } from '@/generated/types/statusRequest';
 import type { LocalTime } from '@/generated/types/localTime';
 import {
+  getPaymentComplete,
   useBackToCooking,
   useBackToReceiveOrder,
   useCancelOrder,
@@ -10,6 +12,8 @@ import {
   useGetStatusCancelResponses,
   useGoToCooking,
   useGoToServingComplete,
+  useNotPaymentComplete,
+  usePaymentComplete,
 } from '@/generated/order-manage-controller/order-manage-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
@@ -35,6 +39,13 @@ function assertMutationSucceeded(response: CommonResponse): void {
   if (response.success !== true) {
     throw new OrderStatusMutationError(response.message || response.error || '주문 상태를 변경하지 못했습니다.');
   }
+}
+
+function requirePaymentHeader(response: PaymentCompleteResponse) {
+  if (!response.header?.sysId) {
+    throw new OrderStatusMutationError('결제 대상 주문 정보를 불러오지 못했습니다.');
+  }
+  return response.header;
 }
 
 export function toStatusRequest(
@@ -115,4 +126,59 @@ export function useOrderStatusBoardMutations() {
   };
 
   return { mutate };
+}
+
+export function useOrderPaymentMutations() {
+  const queryClient = useQueryClient();
+  const paid = usePaymentComplete();
+  const unpaid = useNotPaymentComplete();
+
+  const refreshPaymentQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.orderStatusBoard.lists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentStatus.masterLists }),
+    ]);
+  };
+
+  const completePaid = async (orderGroupId: string, paymentType: string) => {
+    const normalizedPaymentType = paymentType.trim();
+    if (!normalizedPaymentType) {
+      throw new OrderStatusMutationError('결제수단을 선택해주세요.');
+    }
+
+    const payment = await getPaymentComplete({ sysId: orderGroupId });
+    const header = requirePaymentHeader(payment);
+    const response = await paid.mutateAsync({
+      data: {
+        paymentType: normalizedPaymentType,
+        header,
+        body: payment.body,
+        footer: payment.footer,
+      },
+    });
+
+    assertMutationSucceeded(response);
+    await refreshPaymentQueries();
+  };
+
+  const completeUnpaid = async (orderGroupId: string, reason: string, description: string) => {
+    const payment = await getPaymentComplete({ sysId: orderGroupId });
+    const orderInfo = requirePaymentHeader(payment);
+    const response = await unpaid.mutateAsync({
+      data: {
+        orderInfo,
+        unpaidReason: reason,
+        unpaidDescription: description,
+      },
+    });
+
+    assertMutationSucceeded(response);
+    await refreshPaymentQueries();
+  };
+
+  return {
+    completePaid,
+    completeUnpaid,
+    isPending: paid.isPending || unpaid.isPending,
+  };
 }

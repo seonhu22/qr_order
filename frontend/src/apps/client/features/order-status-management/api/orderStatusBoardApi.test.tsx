@@ -5,7 +5,11 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { server } from '@/test/server';
 import { orderStatusHandlers, resetOrderStatusMockStore } from '../mock/orderStatusHandlers';
-import { useOrderStatusBoardMutations, useOrderStatusBoardQuery } from './orderStatusBoardApi';
+import {
+  useOrderPaymentMutations,
+  useOrderStatusBoardMutations,
+  useOrderStatusBoardQuery,
+} from './orderStatusBoardApi';
 
 function createHarness() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -131,5 +135,67 @@ describe('orderStatusBoardApi', () => {
       cancelType: 'CUSTOMER_REQUEST',
       cancelReason: '',
     });
+  });
+
+  it('결제 대상을 조회한 뒤 선택한 결제수단으로 결제완료 처리한다', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.get('*/api/client/order_manage/status/get_payment_complete', ({ request }) => {
+        expect(new URL(request.url).searchParams.get('sysId')).toBe('order-010');
+        return HttpResponse.json({
+          header: { sysId: 'master-001', tableInfo: '5(창가)', orderDatetime: '2026-09-04 12:00:00' },
+          body: [],
+          footer: { sysId: 'order-010', totalPrice: 42700 },
+        });
+      }),
+      http.post('*/api/client/order_manage/status/payment_complete', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    const { wrapper } = createHarness();
+    const { result } = renderHook(() => useOrderPaymentMutations(), { wrapper });
+
+    await act(async () => {
+      await result.current.completePaid('order-010', 'CARD');
+    });
+
+    expect(requestBody).toMatchObject({
+      paymentType: 'CARD',
+      header: { sysId: 'master-001' },
+      footer: { totalPrice: 42700 },
+    });
+  });
+
+  it('미결제 처리에는 조회한 주문 마스터와 사유를 전송한다', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.get('*/api/client/order_manage/status/get_payment_complete', () =>
+        HttpResponse.json({ header: { sysId: 'master-001' } }),
+      ),
+      http.post('*/api/client/order_manage/status/not_payment_complete', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    const { wrapper } = createHarness();
+    const { result } = renderHook(() => useOrderPaymentMutations(), { wrapper });
+
+    await act(async () => {
+      await result.current.completeUnpaid('order-010', 'CUSTOMER_LEFT', '');
+    });
+
+    expect(requestBody).toEqual({
+      orderInfo: { sysId: 'master-001' },
+      unpaidReason: 'CUSTOMER_LEFT',
+      unpaidDescription: '',
+    });
+  });
+
+  it('결제수단이 없으면 결제 API를 호출하지 않는다', async () => {
+    const { wrapper } = createHarness();
+    const { result } = renderHook(() => useOrderPaymentMutations(), { wrapper });
+
+    await expect(result.current.completePaid('order-010', '  ')).rejects.toThrow('결제수단을 선택해주세요.');
   });
 });
