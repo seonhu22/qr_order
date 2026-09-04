@@ -54,20 +54,28 @@ export function mapOrderCreated(response: ConsumerOrderCreateResponse): OrderShe
     orderedAt: new Date(response.orderedAt.replace(' ', 'T')),
     total: response.totalAmount,
   };
+}
+
+/**
+ * 15초 타임아웃으로 감싼 주문 생성 요청. 응답은 화면 모델(`OrderShellOrderCreated`)로
+ * 변환해 반환한다 — 타임아웃/재시도 정책과 화면 모델 변환을 한 곳에서 다뤄, 호출부는
+ * 어느 계층 관심사인지 신경 쓸 필요가 없다.
+ */
 export async function submitConsumerOrder(
   cart: OrderShellCartLine[],
   clientRequestId: string,
   timeoutMs: number = CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
-) {
+): Promise<OrderShellOrderCreated> {
   const abortController = new AbortController();
   const timeoutId = globalThis.setTimeout(() => abortController.abort(), timeoutMs);
 
   try {
-    return await createConsumerOrder(
+    const envelope = await createConsumerOrder(
       buildConsumerOrderRequest(cart, clientRequestId),
       undefined,
       abortController.signal,
     );
+    return mapOrderCreated(envelope.data);
   } finally {
     globalThis.clearTimeout(timeoutId);
   }
@@ -81,10 +89,6 @@ export function useConsumerOrderCreateMutation() {
     }: {
       cart: OrderShellCartLine[];
       clientRequestId: string;
-    }) =>
-      createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)).then((envelope) =>
-        mapOrderCreated(envelope.data),
-      ),
     }) => submitConsumerOrder(cart, clientRequestId),
   });
 }
