@@ -6,13 +6,18 @@ import {
 } from '@/generated/consumer-order-controller/consumer-order-controller';
 import type {
   ConsumerOrderCreateRequest,
+  ConsumerOrderCreateResponse,
   ConsumerOrderDetailResponse,
   ConsumerOrderSummary,
 } from '@/generated/types';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import { HttpError } from '@/shared/lib/httpClient';
-import type { OrderShellCartLine, OrderShellOrderRecord } from '../types';
+import type {
+  OrderShellCartLine,
+  OrderShellOrderCreated,
+  OrderShellOrderRecord,
+} from '../types';
 
 type ErrorPayload = { error?: unknown };
 
@@ -41,20 +46,36 @@ export function isTableInactiveError(error: unknown): boolean {
   return payload?.error === 'TABLE_INACTIVE';
 }
 
+export function mapOrderCreated(response: ConsumerOrderCreateResponse): OrderShellOrderCreated {
+  return {
+    orderId: response.orderId,
+    orderNo: response.orderNo,
+    orderStatus: response.status,
+    orderedAt: new Date(response.orderedAt.replace(' ', 'T')),
+    total: response.totalAmount,
+  };
+}
+
+/**
+ * 15초 타임아웃으로 감싼 주문 생성 요청. 응답은 화면 모델(`OrderShellOrderCreated`)로
+ * 변환해 반환한다 — 타임아웃/재시도 정책과 화면 모델 변환을 한 곳에서 다뤄, 호출부는
+ * 어느 계층 관심사인지 신경 쓸 필요가 없다.
+ */
 export async function submitConsumerOrder(
   cart: OrderShellCartLine[],
   clientRequestId: string,
   timeoutMs: number = CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
-) {
+): Promise<OrderShellOrderCreated> {
   const abortController = new AbortController();
   const timeoutId = globalThis.setTimeout(() => abortController.abort(), timeoutMs);
 
   try {
-    return await createConsumerOrder(
+    const envelope = await createConsumerOrder(
       buildConsumerOrderRequest(cart, clientRequestId),
       undefined,
       abortController.signal,
     );
+    return mapOrderCreated(envelope.data);
   } finally {
     globalThis.clearTimeout(timeoutId);
   }
@@ -85,6 +106,8 @@ export function useConsumerOrdersQuery(sessionId: string) {
 function mapOrderDetail(detail: ConsumerOrderDetailResponse): OrderShellOrderRecord {
   return {
     orderId: detail.orderId,
+    orderNo: detail.orderNo,
+    orderStatus: detail.status,
     orderedAt: new Date(detail.orderedAt.replace(' ', 'T')),
     total: detail.totalAmount,
     items: detail.items.map((item) => ({

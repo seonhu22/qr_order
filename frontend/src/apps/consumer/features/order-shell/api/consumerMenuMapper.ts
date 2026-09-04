@@ -71,6 +71,7 @@ function mapDetailBody(item: ConsumerMenuDetailBody): OrderShellMenuItem {
         price: choice.menuOptionPrice,
         maxQuantity: group.selectionType === '03' ? choice.maximumNum : undefined,
         defaultSelected: choice.defaultYn === 'Y',
+        soldOut: choice.soldOutYn === 'Y',
       })),
     })),
   };

@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1.0
  */
 import type { ConsumerMenuOptionItemDefaultYn } from './consumerMenuOptionItemDefaultYn';
+import type { ConsumerMenuOptionItemSoldOutYn } from './consumerMenuOptionItemSoldOutYn';
 
 export interface ConsumerMenuOptionItem {
   menuOptionSysId: string;
@@ -15,4 +16,5 @@ export interface ConsumerMenuOptionItem {
   /** 수량 선택(03)은 1 이상의 최대 수량, 단일·복수 선택(01/02)은 0 */
   maximumNum: number;
   defaultYn: ConsumerMenuOptionItemDefaultYn;
+  soldOutYn: ConsumerMenuOptionItemSoldOutYn;
 }

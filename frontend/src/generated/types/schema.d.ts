@@ -2450,6 +2450,7 @@ export interface components {
             /** Format: int32 */
             maximumNum?: number;
             defaultYn?: string;
+            soldOutYn?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -2854,6 +2855,7 @@ export interface components {
             /** Format: int32 */
             maximumNum?: number;
             defaultYn?: string;
+            soldOutYn?: string;
             useYn?: string;
             fileUlid?: string;
             /** Format: int32 */
@@ -3014,6 +3016,8 @@ export interface components {
             maximumNum: number;
             /** @enum {string} */
             defaultYn: "Y" | "N";
+            /** @enum {string} */
+            soldOutYn: "Y" | "N";
         };
         ConsumerMenuItem: {
             menuSysId: string;

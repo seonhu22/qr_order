@@ -1,7 +1,13 @@
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { Button } from '@/shared/components/button';
 import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
+import '@/shared/order-status/orderStatusBadge.css';
+import {
+  ORDER_STATUS_BADGE_CLASS,
+  ORDER_STATUS_LABEL,
+} from '@/shared/order-status/statusMeta';
 import { useConsumerOrderDetailsQueries, useConsumerOrdersQuery } from '../api/consumerOrderApi';
+import { normalizeConsumerOrderStatus } from '../orderStatusMeta';
 import type { OrderShellCartOption } from '../types';
 import './OrderHistorySheet.css';
 
@@ -76,35 +82,46 @@ export function OrderHistorySheet({ onClose }: OrderHistorySheetProps) {
       ) : (
         <>
           <ul className="order-history-list">
-            {orders.map((order) => (
-              <li key={order.orderId} className="order-history-group">
-                <div className="order-history-group__header">
-                  <span className="order-history-group__time">
-                    {formatOrderTime(order.orderedAt)} 접수
-                  </span>
-                  <span className="order-history-group__total">
-                    {order.total.toLocaleString()}원
-                  </span>
-                </div>
-                <ul className="order-history-group__items">
-                  {order.items.map((line) => (
-                    <li key={line.cartKey} className="order-history-item">
-                      <div className="order-history-item__top">
-                        <p className="order-history-item__name">{line.name}</p>
-                        <span className="order-history-item__qty">{line.qty}개</span>
-                      </div>
-                      {line.options.length > 0 && (
-                        <div className="order-history-item__options">
-                          {line.options.map((option) => (
-                            <p key={option.choiceId}>{formatOptionLine(option)}</p>
-                          ))}
-                        </div>
+            {orders.map((order) => {
+              const statusKey = normalizeConsumerOrderStatus(order.orderStatus);
+              return (
+                <li key={order.orderId} className="order-history-group">
+                  <div className="order-history-group__header">
+                    <span className="order-history-group__time">
+                      {formatOrderTime(order.orderedAt)} 접수
+                      <span className="order-history-group__order-no">#{order.orderNo}</span>
+                      {statusKey && (
+                        <span
+                          className={`order-status-badge ${ORDER_STATUS_BADGE_CLASS[statusKey]}`}
+                        >
+                          {ORDER_STATUS_LABEL[statusKey]}
+                        </span>
                       )}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
+                    </span>
+                    <span className="order-history-group__total">
+                      {order.total.toLocaleString()}원
+                    </span>
+                  </div>
+                  <ul className="order-history-group__items">
+                    {order.items.map((line) => (
+                      <li key={line.cartKey} className="order-history-item">
+                        <div className="order-history-item__top">
+                          <p className="order-history-item__name">{line.name}</p>
+                          <span className="order-history-item__qty">{line.qty}개</span>
+                        </div>
+                        {line.options.length > 0 && (
+                          <div className="order-history-item__options">
+                            {line.options.map((option) => (
+                              <p key={option.choiceId}>{formatOptionLine(option)}</p>
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="order-shell-cart-total">
