@@ -67,10 +67,10 @@ type ConsumerSheetState =
 |---|---|---|
 | `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보(배지)·옵션·수량·담기 버튼 (`MenuDetailSheet`) |
 | `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록(비어 있으면 빈 상태) + 총 결제 금액 + 버튼("주문하기" 또는 빈 상태일 때 "메뉴 보러가기") |
-| `order-history` | 헤더 "주문내역" 버튼 | "준비 중입니다" 플레이스홀더만 |
+| `order-history` | 헤더 "주문내역" 버튼 | 헤더(아이콘+누적 수량 배지) + 주문 건별로 시간과 함께 묶은 목록(비어 있으면 빈 상태) + 총 결제 금액 + "확인" 버튼 (`OrderHistorySheet`, ADR-027) |
 | `staff-call` | 헤더 "직원호출" 버튼 | "준비 중입니다" 플레이스홀더만 |
 
-렌더러는 `ConsumerBottomSheet`(신규 primitive, `WrapperModal` 미재사용 — ADR-020) 하나이고, 내용만 `sheet.type`에 따라 `ConsumerOrderPage.tsx`가 조립한다.
+렌더러는 `ConsumerBottomSheet`(신규 primitive, `WrapperModal` 미재사용 — ADR-020) 하나이고, 내용만 `sheet.type`에 따라 `ConsumerOrderPage.tsx`가 조립한다. 열릴 때 첫 포커스 가능 요소로 이동하고 Tab/Shift+Tab을 시트 안에서만 순환시키는 포커스 트랩이 있다(포커스 가능한 요소가 없으면 시트 자체에 머무름) — `SoldoutModal`과 같은 기법.
 
 ## 메뉴 상세 시트 구성
 
@@ -261,3 +261,17 @@ QR코드 `qr-code-001`(창가 1번 테이블, `table-001`)로 들어오면 무�
 717px부터 메뉴 목록이 `grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))`로 열 수를 자동으로 늘린다(717px≈2열, 1440px≈4열…). 셸 자체는 폭 제한 없이 화면을 꽉 채운다. 자세한 근거는 [`decisions.md` ADR-020](../decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드), 공통 규칙은 [`layout-policy.md` "Consumer 모바일 셸"](../operations/layout-policy.md#consumer-모바일-셸) 참고.
 
 `auto-fit`이 아니라 `auto-fill`을 쓴다 — `.order-shell__items-grid`는 카테고리 섹션마다 따로 그려지는데, `auto-fit`은 그리드에 담긴 아이템 수가 계산된 열 수보다 적으면 빈 열을 없애고 카드를 늘려 채운다. 그러면 같은 화면 너비에서도 아이템이 적은 카테고리(예: 디저트 2개)만 카드가 넓어져 다른 카테고리와 열 수가 달라 보인다. `auto-fill`은 아이템 수와 무관하게 항상 같은 열 수를 고정해, 아이템이 모자란 줄엔 카드 대신 빈 공간이 남더라도 모든 카테고리의 열 수·카드 폭이 항상 같다.
+
+## 터치 타겟
+
+Consumer는 QR로 들어오는 모바일 전용 화면이라 모든 인터랙션이 터치다. 수량 스텝퍼(24~32px), 헤더 설정 버튼(32px), 검색 지우기(패딩 없이 아이콘 14px 그대로)처럼 반복 탭이 잦은 소형 버튼들이 iOS HIG(44px)·Material(48px) 권장 최소 터치 타겟보다 작았다.
+
+시각적 크기(배경·아이콘)는 그대로 두고 `::before` 가상 요소로 실제 탭 판정 영역만 넓히는 **hit-slop**을 적용했다 — 클릭은 부모 버튼으로 버블링되므로 `onClick`은 그대로 동작한다. 목표는 **40px 통일**(44px는 자리마다 확보 가능한 여유가 달라 44/40이 뒤섞임), 확장폭은 옆 버튼과의 실제 간격을 계산해 서로 겹치지 않는 선에서 위치마다 다르게 잡았다. 자세한 계산과 위치별 표는 [`decisions.md` ADR-028](../decisions.md#adr-028--소형-버튼은-시각적-크기를-유지하고-hit-slop으로-탭-영역만-넓힌다) 참고.
+
+새 소형 아이콘 버튼을 추가할 때도 같은 패턴(시각 크기 유지 + hit-slop, 옆 인터랙티브 요소와의 간격 계산)을 따른다. `apps/consumer`에 한정된 결정이다 — admin/client는 데스크톱 우선이라 대상이 아니다.
+
+## 모바일 브라우저 호환성
+
+아이폰 사파리로 실기기 확인 중 데스크톱 크롬에서는 안 보이던 버그를 여럿 발견해 고쳤다 — 검색 지우기 버튼 DOM 변경으로 인한 헤더 밀림, 공용 `Button`의 iOS 네이티브 외형 미제거, 전체화면 상태 화면들이 스크롤 컨테이너 안에 있어 헤더가 안 가려지던 문제 등. 안드로이드 크롬 전용 항목(탭 하이라이트)도 하나 있다. 항목별 원인과 수정 내용은 [`decisions.md` ADR-030](../decisions.md#adr-030--모바일-브라우저ios-safari안드로이드-크롬-호환성-수정-모음) 참고.
+
+가장 재사용 가치가 높은 규칙: **전체화면 오버레이(`position:fixed; inset:0`)는 `.consumer-layout__body` 같은 스크롤 컨테이너 안에서 직접 렌더링하지 않는다** — iOS Safari가 진짜 뷰포트가 아니라 그 컨테이너 기준으로 잘라 그려서 헤더 같은 바깥 요소가 안 가려진다. `ConsumerOrderPage.tsx`의 상태 화면들은 `createPortal`로 `document.body`에 그린다(`ConsumerBottomSheet`와 같은 패턴).

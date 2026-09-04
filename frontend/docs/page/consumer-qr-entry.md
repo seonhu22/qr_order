@@ -34,11 +34,11 @@ qr-code-004 → table-004 (테이블 4)
 
 ## 로딩 화면 구성
 
-`QrLoadingScreen`(`apps/consumer/features/qr/components/QrLoadingScreen.tsx`)은 브랜드 로고 행, **매장명**, 테이블 카드(있으면), 애니메이션 점 인디케이터 순서로 쌓인다.
+`QrLoadingScreen`(`apps/consumer/features/qr/components/QrLoadingScreen.tsx`)은 공용 `AppLoadingScreen`(`shared/components/loading` — 블롭 장식, 브랜드 로고 행, 애니메이션 점 인디케이터)을 감싸고, `children`으로 **매장명**과 테이블 카드(있으면)만 얹는다. 브랜드 로고·인디케이터 자체는 앱 루트(`AppRoutes.tsx`)의 인증 로딩 화면과 같은 컴포넌트를 공유한다 — 자세한 배경은 [`decisions.md` ADR-029](../decisions.md#adr-029--앱-루트-로딩-화면을-apploadingscreen공용으로-통일한다) 참고.
 
 - 매장명은 `apps/consumer/features/session/api/consumerSessionApi.ts`의 `MOCK_STORE_NAME`(`'맛나분식'`) 상수를 그대로 쓴다 — 세션 API가 없는 지금 단계에서 로딩 중에도 매장명이 보이도록 하기 위한 임시 값이며, 실제로는 QR 자체(또는 이후 세션 조회)가 매장 식별 정보를 담아야 한다.
 - 테이블 카드는 `previewTableInfo(url)`(`qrConnectStub.ts`)이 돌려주는 값으로 채운다 — 인증 응답을 기다리지 않고 URL만으로 미리 보여주는 것이므로, 실제 API에서는 이 프리뷰 자체가 유지될지 별도 논의가 필요하다.
-- `prefers-reduced-motion: reduce`에서는 점 인디케이터의 bounce·페이드인 애니메이션을 끈다.
+- `prefers-reduced-motion: reduce`에서는 점 인디케이터의 bounce·페이드인 애니메이션을 끈다(`AppLoadingScreen.css`).
 
 ## 성공 시 이전 세션 캐시 격리
 

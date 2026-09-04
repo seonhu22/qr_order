@@ -259,22 +259,25 @@ export function useConsumerOrderPage() {
    * 헤더(설정 버튼)에서 consumerOrderQaStore로 요청을 보내면 아래 effect가 소비한다.
    */
   const triggerOrderFailure = useCallback((type: 'network' | 'duplicate') => {
+    closeSheet();
     if (type === 'duplicate') setDuplicateTime('10:52');
     setOrderPhase(type === 'network' ? 'error-network' : 'error-duplicate');
-  }, []);
+  }, [closeSheet]);
 
   /** QA 전용 — 시간초과 화면은 아직 실제 판별 로직이 없고, 마감 화면은 주문 API의 410으로도 진입한다. */
   const triggerSessionExpiry = useCallback((variant: 'timeout' | 'closed') => {
+    closeSheet();
     setOrderPhase(variant === 'timeout' ? 'session-timeout' : 'session-closed');
-  }, []);
+  }, [closeSheet]);
 
   /**
    * QA 전용 — 참고 저장소는 navigator.onLine으로 실제 연결 끊김을 감지하지만,
    * 여기서는 아직 그 감지 로직을 붙이지 않아 QA 트리거로만 진입한다.
    */
   const triggerNetworkError = useCallback(() => {
+    closeSheet();
     setOrderPhase('network-error');
-  }, []);
+  }, [closeSheet]);
 
   /**
    * QA 전용 — 품절 데모(qr-code-001)에서 한번 확인한 메뉴·옵션은 페이지를 새로고침하기 전까진
