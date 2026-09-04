@@ -128,9 +128,11 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/get_payment_complete")
-    public PaymentCompleteResponse getPaymentComplete(@RequestParam String sysId) {
+    public PaymentCompleteResponse getPaymentComplete(@RequestParam String sysId,
+                                                        HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getPaymentComplete(sysId);
+        return statusService.getPaymentComplete(sysId, loginUser.getSysPlantCd());
     }
 
     @PostMapping("/status/payment_complete")
@@ -139,7 +141,10 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.paymentComplete(paymentCompleteRequest, loginUser.getUserId());
+        statusService.paymentComplete(
+                paymentCompleteRequest,
+                loginUser.getUserId(),
+                loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -155,7 +160,10 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.paymentNotComplete(paymentNotCompleteRequest, loginUser.getUserId());
+        statusService.paymentNotComplete(
+                paymentNotCompleteRequest,
+                loginUser.getUserId(),
+                loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -166,9 +174,11 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/get_change_order")
-    public PaymentCompleteResponse getChangeOrder(@RequestParam String sysId) {
+    public PaymentCompleteResponse getChangeOrder(@RequestParam String sysId,
+                                                   HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getPaymentComplete(sysId);
+        return statusService.getPaymentComplete(sysId, loginUser.getSysPlantCd());
     }
 
     @PostMapping("/status/change_order")

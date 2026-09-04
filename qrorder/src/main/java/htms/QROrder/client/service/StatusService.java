@@ -6,10 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class StatusService {
+
+    private static final Set<String> PAYMENT_TYPES = Set.of("카드", "현금");
 
     private final StatusMapper statusMapper;
 
@@ -68,15 +73,20 @@ public class StatusService {
         statusMapper.backToCooking(header, userId);
     }
 
-    public PaymentCompleteResponse getPaymentComplete(String sysId) {
+    public PaymentCompleteResponse getPaymentComplete(String sysId, String sysPlantCd) {
 
         StatusItem.Header header = new StatusItem.Header();
         header.setSysId(sysId);
 
         PaymentCompleteResponse paymentCompleteResponse = new PaymentCompleteResponse();
-        paymentCompleteResponse.setHeader(statusMapper.getPaymentCompleteHeaders(header));
-        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(header));
-        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header));
+        PaymentCompleteResponse.Header paymentHeader =
+                statusMapper.getPaymentCompleteHeaders(header, sysPlantCd);
+        if (paymentHeader == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 대상 주문을 찾을 수 없습니다.");
+        }
+        paymentCompleteResponse.setHeader(paymentHeader);
+        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(header, sysPlantCd));
+        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header, sysPlantCd));
 
         return paymentCompleteResponse;
     }
@@ -93,22 +103,51 @@ public class StatusService {
     }
 
     public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
-                                    String userId) {
+                                String userId,
+                                String sysPlantCd) {
+
+        if (paymentCompleteRequest == null || !PAYMENT_TYPES.contains(paymentCompleteRequest.getPaymentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "지원하지 않는 결제수단입니다.");
+        }
 
         PaymentCompleteResponse.Header header = paymentCompleteRequest.getHeader();
+        if (header == null || header.getSysId() == null || header.getSysId().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 대상 주문 정보가 필요합니다.");
+        }
         String sysId = header.getSysId();
 
-        statusMapper.paymentCompleteOrderMaster(paymentCompleteRequest.getPaymentType(), sysId, userId);
-        statusMapper.paymentCompleteOrderGroup(sysId, userId);
+        int updated = statusMapper.paymentCompleteOrderMaster(
+                paymentCompleteRequest.getPaymentType(), sysId, userId, sysPlantCd);
+        requireOwnedPaymentTarget(updated);
+        statusMapper.paymentCompleteOrderGroup(sysId, userId, sysPlantCd);
     }
 
     public void paymentNotComplete(PaymentNotCompleteRequest paymentNotCompleteRequest,
-                                    String userId) {
+                                   String userId,
+                                   String sysPlantCd) {
 
+        if (paymentNotCompleteRequest == null
+                || paymentNotCompleteRequest.getOrderInfo() == null
+                || paymentNotCompleteRequest.getOrderInfo().getSysId() == null
+                || paymentNotCompleteRequest.getOrderInfo().getSysId().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 대상 주문 정보가 필요합니다.");
+        }
         String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
 
-        statusMapper.paymentNotCompleteOrderMaster(paymentNotCompleteRequest.getUnpaidReason(), paymentNotCompleteRequest.getUnpaidDescription(), orderMasterSysId, userId);
-        statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId);
+        int updated = statusMapper.paymentNotCompleteOrderMaster(
+                paymentNotCompleteRequest.getUnpaidReason(),
+                paymentNotCompleteRequest.getUnpaidDescription(),
+                orderMasterSysId,
+                userId,
+                sysPlantCd);
+        requireOwnedPaymentTarget(updated);
+        statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId, sysPlantCd);
+    }
+
+    private void requireOwnedPaymentTarget(int updated) {
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 대상 주문을 찾을 수 없습니다.");
+        }
     }
 
     private List<StatusResponse> orderNumClassification(String sysPlantCd) {
