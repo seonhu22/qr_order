@@ -75,7 +75,7 @@ describe('orderStatusHandlers', () => {
   });
 
   it('결제완료는 조회한 마스터 기준으로 현재 테이블 방문 주문을 제거한다', async () => {
-    const payment = await fetch(`${API}/get_payment_complete?sysId=order-004`);
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-005`);
     expect(payment.status).toBe(200);
     const paymentBody = await payment.json();
 
@@ -85,8 +85,21 @@ describe('orderStatusHandlers', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(getOrderStatusMockStore().filter((row) => row.tableNum === '5' && row.orderStatus !== 'CANCELLED'))
+    expect(getOrderStatusMockStore().filter((row) => row.tableNum === '4' && row.orderStatus !== 'CANCELLED'))
       .toHaveLength(0);
+  });
+
+  it('같은 방문에 조리 중 주문이 남아 있으면 결제완료를 거부한다', async () => {
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-004`);
+    const paymentBody = await payment.json();
+
+    const response = await post('payment_complete', {
+      paymentType: '카드',
+      header: paymentBody.header,
+    });
+
+    expect(response.status).toBe(409);
+    expect(getOrderStatusMockStore().some((row) => row.id === 'order-004')).toBe(true);
   });
 
   it('미결제도 현재 테이블 방문의 모든 주문을 제거한다', async () => {

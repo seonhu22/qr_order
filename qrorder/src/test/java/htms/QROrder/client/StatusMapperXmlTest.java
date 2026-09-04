@@ -53,6 +53,8 @@ class StatusMapperXmlTest {
             assertTrue(sql(statement, parameters).contains("sys_plant_cd = ?"));
         }
         assertTrue(sql("paymentNotCompleteOrderGroup", parameters).contains("order_status != '99!'"));
+        assertTrue(sql("lockPaymentMasterStatus", parameters).endsWith("for update"));
+        assertTrue(sql("lockPaymentOrderStatuses", parameters).endsWith("for update"));
     }
 
     private String sql(String statementId, Object parameter) {

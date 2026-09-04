@@ -115,11 +115,12 @@ function tableNumFromPaymentMaster(id?: string): string | undefined {
   return id?.startsWith(PAYMENT_MASTER_PREFIX) ? id.slice(PAYMENT_MASTER_PREFIX.length) : undefined;
 }
 
-function completeTableVisit(tableNum: string): boolean {
-  const hasTarget = rows.some((row) => row.tableNum === tableNum && row.orderStatus !== 'CANCELLED');
-  if (!hasTarget) return false;
+function completeTableVisit(tableNum: string, requireAllServed = false): 'COMPLETED' | 'MISSING' | 'NOT_READY' {
+  const targets = rows.filter((row) => row.tableNum === tableNum && row.orderStatus !== 'CANCELLED');
+  if (targets.length === 0) return 'MISSING';
+  if (requireAllServed && targets.some((row) => row.orderStatus !== 'SERVED')) return 'NOT_READY';
   rows = rows.filter((row) => row.tableNum !== tableNum || row.orderStatus === 'CANCELLED');
-  return true;
+  return 'COMPLETED';
 }
 
 export const orderStatusHandlers: HttpHandler[] = [
@@ -159,15 +160,18 @@ export const orderStatusHandlers: HttpHandler[] = [
       return failure('지원하지 않는 결제수단입니다.');
     }
     const tableNum = tableNumFromPaymentMaster(body.header?.sysId);
-    if (!tableNum || !completeTableVisit(tableNum)) {
+    if (!tableNum) {
       return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
     }
+    const result = completeTableVisit(tableNum, true);
+    if (result === 'MISSING') return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
+    if (result === 'NOT_READY') return failure('모든 주문의 서빙이 완료된 후 결제할 수 있습니다.', 409);
     return HttpResponse.json({ success: true, message: '결제완료.' });
   }),
   http.post('*/api/client/order_manage/status/not_payment_complete', async ({ request }) => {
     const body = await request.json().catch(() => null) as { orderInfo?: { sysId?: string } } | null;
     const tableNum = tableNumFromPaymentMaster(body?.orderInfo?.sysId);
-    if (!tableNum || !completeTableVisit(tableNum)) {
+    if (!tableNum || completeTableVisit(tableNum) === 'MISSING') {
       return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
     }
     return HttpResponse.json({ success: true, message: '미결제완료.' });

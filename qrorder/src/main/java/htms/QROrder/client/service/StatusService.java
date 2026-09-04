@@ -115,6 +115,13 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 대상 주문 정보가 필요합니다.");
         }
         String sysId = header.getSysId();
+        requireOpenPaymentMaster(sysId, sysPlantCd);
+        List<String> orderStatuses = statusMapper.lockPaymentOrderStatuses(sysId, sysPlantCd);
+        if (orderStatuses.isEmpty() || orderStatuses.stream().anyMatch(status -> !"03".equals(status))) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "모든 주문의 서빙이 완료된 후 결제할 수 있습니다.");
+        }
 
         int updated = statusMapper.paymentCompleteOrderMaster(
                 paymentCompleteRequest.getPaymentType(), sysId, userId, sysPlantCd);
@@ -133,6 +140,7 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 대상 주문 정보가 필요합니다.");
         }
         String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
+        requireOpenPaymentMaster(orderMasterSysId, sysPlantCd);
 
         int updated = statusMapper.paymentNotCompleteOrderMaster(
                 paymentNotCompleteRequest.getUnpaidReason(),
@@ -147,6 +155,16 @@ public class StatusService {
     private void requireOwnedPaymentTarget(int updated) {
         if (updated != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 대상 주문을 찾을 수 없습니다.");
+        }
+    }
+
+    private void requireOpenPaymentMaster(String sysId, String sysPlantCd) {
+        String status = statusMapper.lockPaymentMasterStatus(sysId, sysPlantCd);
+        if (status == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 대상 주문을 찾을 수 없습니다.");
+        }
+        if (!"01".equals(status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 결제 처리가 완료된 주문입니다.");
         }
     }
 

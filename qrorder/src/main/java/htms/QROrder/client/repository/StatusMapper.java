@@ -16,6 +16,12 @@ public interface StatusMapper {
     void backToReceiveOrder(StatusItem.Header header, String userId);
     void goToServingComplete(StatusItem.Header header, String userId);
     void backToCooking(StatusItem.Header header, String userId);
+    String lockPaymentMasterStatus(
+            @Param("sysId") String sysId,
+            @Param("sysPlantCd") String sysPlantCd);
+    List<String> lockPaymentOrderStatuses(
+            @Param("sysId") String sysId,
+            @Param("sysPlantCd") String sysPlantCd);
     int paymentCompleteOrderMaster(
             @Param("paymentType") String paymentType,
             @Param("sysId") String sysId,

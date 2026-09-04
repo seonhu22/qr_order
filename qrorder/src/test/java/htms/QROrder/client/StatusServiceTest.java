@@ -46,6 +46,8 @@ class StatusServiceTest {
     @Test
     void completesPaymentWithinLoginPlant() {
         PaymentCompleteRequest request = paidRequest("카드", "MASTER-1");
+        when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
+        when(statusMapper.lockPaymentOrderStatuses("MASTER-1", "PLANT-1")).thenReturn(java.util.List.of("03"));
         when(statusMapper.paymentCompleteOrderMaster("카드", "MASTER-1", "USER-1", "PLANT-1"))
                 .thenReturn(1);
 
@@ -73,9 +75,6 @@ class StatusServiceTest {
         orderInfo.setSysId("MASTER-OTHER");
         request.setOrderInfo(orderInfo);
         request.setUnpaidReason("CUSTOMER_ABSENT");
-        when(statusMapper.paymentNotCompleteOrderMaster(
-                "CUSTOMER_ABSENT", null, "MASTER-OTHER", "USER-1", "PLANT-1"))
-                .thenReturn(0);
 
         ResponseStatusException error = assertThrows(
                 ResponseStatusException.class,
@@ -83,6 +82,21 @@ class StatusServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
         verify(statusMapper, never()).paymentNotCompleteOrderGroup(any(), any(), any());
+    }
+
+    @Test
+    void rejectsPaymentWhenAnyOrderIsNotServed() {
+        PaymentCompleteRequest request = paidRequest("현금", "MASTER-1");
+        when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
+        when(statusMapper.lockPaymentOrderStatuses("MASTER-1", "PLANT-1"))
+                .thenReturn(java.util.List.of("03", "02"));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.paymentComplete(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(statusMapper, never()).paymentCompleteOrderMaster(any(), any(), any(), any());
     }
 
     private PaymentCompleteRequest paidRequest(String paymentType, String masterId) {

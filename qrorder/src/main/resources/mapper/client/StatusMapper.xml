@@ -146,6 +146,23 @@
         and sys_id = #{header.sysId}
     </update>
 
+    <select id="lockPaymentMasterStatus" resultType="string">
+        select order_status
+        from order_master
+        where sys_id = #{sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        for update
+    </select>
+
+    <select id="lockPaymentOrderStatuses" resultType="string">
+        select order_status
+        from order_group
+        where link_sys_id = #{sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status != '99!'
+        for update
+    </select>
+
     <update id="paymentCompleteOrderMaster">
         update order_master set
             payment_type = #{paymentType},
