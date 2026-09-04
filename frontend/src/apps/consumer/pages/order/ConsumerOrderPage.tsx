@@ -51,6 +51,7 @@ export function ConsumerOrderPage() {
     clearSearch,
     orderPhase,
     duplicateTime,
+    completedOrderNo,
     placeOrder,
     confirmOrderComplete,
     retryOrder,
@@ -294,7 +295,9 @@ export function ConsumerOrderPage() {
       </ConsumerBottomSheet>
 
       {orderPhase === 'processing' && <OrderProcessingScreen />}
-      {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
+      {orderPhase === 'complete' && (
+        <OrderCompleteScreen onConfirm={confirmOrderComplete} orderNo={completedOrderNo} />
+      )}
       {orderPhase === 'error-network' && (
         <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
       )}
