@@ -8,6 +8,7 @@ import { calculateMenuItemTotal } from '../utils';
 
 const ORDER_STATUS_API_PATTERN = '*/api/client/order_manage/status/*';
 const ORDER_STATUS_SEARCH_PATTERN = '*/api/client/order_manage/status/search';
+const PAYMENT_MASTER_PREFIX = 'mock-payment-master-';
 
 let rows = createOrderStatusMockStore();
 let lastTransitionAtMs = 0;
@@ -106,6 +107,21 @@ function transitionHandler(path: string, from: OrderBoardStatus[], to: OrderBoar
   });
 }
 
+function paymentMasterId(tableNum: string): string {
+  return `${PAYMENT_MASTER_PREFIX}${tableNum}`;
+}
+
+function tableNumFromPaymentMaster(id?: string): string | undefined {
+  return id?.startsWith(PAYMENT_MASTER_PREFIX) ? id.slice(PAYMENT_MASTER_PREFIX.length) : undefined;
+}
+
+function completeTableVisit(tableNum: string): boolean {
+  const hasTarget = rows.some((row) => row.tableNum === tableNum && row.orderStatus !== 'CANCELLED');
+  if (!hasTarget) return false;
+  rows = rows.filter((row) => row.tableNum !== tableNum || row.orderStatus === 'CANCELLED');
+  return true;
+}
+
 export const orderStatusHandlers: HttpHandler[] = [
   http.get(ORDER_STATUS_SEARCH_PATTERN, () => HttpResponse.json(toStatusResponses(rows))),
   http.get('*/api/client/order_manage/status/search/cancel_reason', ({ request }) => {
@@ -119,6 +135,42 @@ export const orderStatusHandlers: HttpHandler[] = [
       cancelDescription: row.cancelDescription,
       cancelDatetime: row.cancelledAt?.replace('T', ' '),
     });
+  }),
+  http.get('*/api/client/order_manage/status/get_payment_complete', ({ request }) => {
+    const id = new URL(request.url).searchParams.get('sysId');
+    const row = rows.find((item) => item.id === id);
+    if (!row) return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
+    return HttpResponse.json({
+      header: {
+        sysId: paymentMasterId(row.tableNum),
+        tableInfo: row.tableNum,
+        orderDatetime: row.orderDatetime.replace('T', ' '),
+      },
+      body: [],
+      footer: { sysId: row.id, totalPrice: row.totalPrice ?? 0 },
+    });
+  }),
+  http.post('*/api/client/order_manage/status/payment_complete', async ({ request }) => {
+    const body = await request.json().catch(() => null) as {
+      paymentType?: string;
+      header?: { sysId?: string };
+    } | null;
+    if (body?.paymentType !== '카드' && body?.paymentType !== '현금') {
+      return failure('지원하지 않는 결제수단입니다.');
+    }
+    const tableNum = tableNumFromPaymentMaster(body.header?.sysId);
+    if (!tableNum || !completeTableVisit(tableNum)) {
+      return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
+    }
+    return HttpResponse.json({ success: true, message: '결제완료.' });
+  }),
+  http.post('*/api/client/order_manage/status/not_payment_complete', async ({ request }) => {
+    const body = await request.json().catch(() => null) as { orderInfo?: { sysId?: string } } | null;
+    const tableNum = tableNumFromPaymentMaster(body?.orderInfo?.sysId);
+    if (!tableNum || !completeTableVisit(tableNum)) {
+      return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
+    }
+    return HttpResponse.json({ success: true, message: '미결제완료.' });
   }),
   transitionHandler('go_to_cooking', ['RECEIVED'], 'COOKING'),
   transitionHandler('go_to_serving_complete', ['COOKING'], 'SERVED'),

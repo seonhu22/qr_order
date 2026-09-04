@@ -74,6 +74,36 @@ describe('orderStatusHandlers', () => {
     await expect(response.json()).resolves.toMatchObject({ cancelType: 'CUSTOMER_REQUEST' });
   });
 
+  it('결제완료는 조회한 마스터 기준으로 현재 테이블 방문 주문을 제거한다', async () => {
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-004`);
+    expect(payment.status).toBe(200);
+    const paymentBody = await payment.json();
+
+    const response = await post('payment_complete', {
+      paymentType: '카드',
+      header: paymentBody.header,
+    });
+
+    expect(response.status).toBe(200);
+    expect(getOrderStatusMockStore().filter((row) => row.tableNum === '5' && row.orderStatus !== 'CANCELLED'))
+      .toHaveLength(0);
+  });
+
+  it('미결제도 현재 테이블 방문의 모든 주문을 제거한다', async () => {
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-003`);
+    const paymentBody = await payment.json();
+
+    const response = await post('not_payment_complete', {
+      orderInfo: paymentBody.header,
+      unpaidReason: 'CUSTOMER_ABSENT',
+      unpaidDescription: '',
+    });
+
+    expect(response.status).toBe(200);
+    expect(getOrderStatusMockStore().filter((row) => row.tableNum === '2' && row.orderStatus !== 'CANCELLED'))
+      .toHaveLength(0);
+  });
+
   it('식별자 누락, 없는 주문, 잘못된 상태 전환을 거부한다', async () => {
     expect((await post('go_to_cooking', {})).status).toBe(400);
     expect((await post('go_to_cooking', { header: { sysId: 'missing' } })).status).toBe(404);
