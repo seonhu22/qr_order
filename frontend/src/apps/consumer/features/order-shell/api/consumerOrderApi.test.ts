@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createConsumerOrder } from '@/generated/consumer-order-controller/consumer-order-controller';
 import { HttpError } from '@/shared/lib/httpClient';
-import { buildConsumerOrderRequest, isTableInactiveError, mapOrderCreated } from './consumerOrderApi';
 import {
   buildConsumerOrderRequest,
   CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
   isTableInactiveError,
+  mapOrderCreated,
   submitConsumerOrder,
 } from './consumerOrderApi';
 
