@@ -48,6 +48,43 @@ describe('order modal open-time snapshots', () => {
     expect(result.current.tableOrders[0].menuItems[0].options[0].name).toBe('원래 옵션');
   });
 
+  it('결제완료 API가 성공한 뒤에만 완료 안내를 연다', async () => {
+    const row = createRow();
+    const onConfirmPaid = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useOrderPaymentModalFlow({
+      onConfirmPaid,
+      onConfirmUnpaid: vi.fn(),
+    }));
+
+    act(() => {
+      result.current.openPaymentModal(row, [row]);
+      result.current.choosePaid();
+    });
+    await act(async () => result.current.confirmReceipt());
+
+    expect(onConfirmPaid).toHaveBeenCalledWith(['order-1']);
+    expect(result.current.isReceiptOpen).toBe(false);
+    expect(result.current.isPaidNoticeOpen).toBe(true);
+  });
+
+  it('결제완료 API가 실패하면 영수증 화면과 오류를 유지한다', async () => {
+    const row = createRow();
+    const { result } = renderHook(() => useOrderPaymentModalFlow({
+      onConfirmPaid: vi.fn().mockRejectedValue(new Error('결제 서버 오류')),
+      onConfirmUnpaid: vi.fn(),
+    }));
+
+    act(() => {
+      result.current.openPaymentModal(row, [row]);
+      result.current.choosePaid();
+    });
+    await act(async () => result.current.confirmReceipt());
+
+    expect(result.current.isReceiptOpen).toBe(true);
+    expect(result.current.isPaidNoticeOpen).toBe(false);
+    expect(result.current.submitError).toBe('결제 서버 오류');
+  });
+
   it('수정 모달은 Polling 원본과 분리된 draft를 유지한다', () => {
     const row = createRow();
     const { result } = renderHook(() => useOrderEditModalFlow({ onConfirmEdit: vi.fn() }));
