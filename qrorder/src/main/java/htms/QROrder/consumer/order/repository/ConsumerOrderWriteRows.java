@@ -38,4 +38,15 @@ public final class ConsumerOrderWriteRows {
         int quantity;
         LocalDateTime orderedAt;
     }
+
+    @Value
+    public static class Idempotency {
+        String clientRequestId;
+        String sysPlantCd;
+        String orderId;
+        int orderNum;
+        String orderStatus;
+        int totalAmount;
+        LocalDateTime orderedAt;
+    }
 }

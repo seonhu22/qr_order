@@ -16,6 +16,38 @@
         WHERE sys_plant_cd = #{sysPlantCd}
     </select>
 
+    <select id="findIdempotencyRecord"
+            resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderIdempotencyRow">
+        SELECT
+            order_id,
+            order_num,
+            order_status,
+            total_amount,
+            ordered_at
+        FROM consumer_order_idempotency
+        WHERE client_request_id = #{clientRequestId}
+    </select>
+
+    <insert id="insertIdempotencyRecord">
+        INSERT INTO consumer_order_idempotency (
+            client_request_id,
+            sys_plant_cd,
+            order_id,
+            order_num,
+            order_status,
+            total_amount,
+            ordered_at
+        ) VALUES (
+            #{clientRequestId},
+            #{sysPlantCd},
+            #{orderId},
+            #{orderNum},
+            #{orderStatus},
+            #{totalAmount},
+            #{orderedAt}
+        )
+    </insert>
+
     <insert id="insertOrderGroup">
         INSERT INTO order_group (
             sys_id,

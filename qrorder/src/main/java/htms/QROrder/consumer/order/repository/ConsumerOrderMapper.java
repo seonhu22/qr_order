@@ -1,6 +1,7 @@
 package htms.QROrder.consumer.order.repository;
 
 import htms.QROrder.consumer.order.repository.row.ConsumerOrderDetailHeaderRow;
+import htms.QROrder.consumer.order.repository.row.ConsumerOrderIdempotencyRow;
 import htms.QROrder.consumer.order.repository.row.ConsumerOrderItemRow;
 import htms.QROrder.consumer.order.repository.row.ConsumerOrderOptionRow;
 import htms.QROrder.consumer.order.repository.row.ConsumerOrderSummaryRow;
@@ -13,6 +14,10 @@ public interface ConsumerOrderMapper {
     int lockOrderNumberScope(String sysPlantCd);
 
     int findNextOrderNumber(String sysPlantCd);
+
+    ConsumerOrderIdempotencyRow findIdempotencyRecord(String clientRequestId);
+
+    void insertIdempotencyRecord(ConsumerOrderWriteRows.Idempotency idempotency);
 
     void insertOrderGroup(ConsumerOrderWriteRows.Group group);
 

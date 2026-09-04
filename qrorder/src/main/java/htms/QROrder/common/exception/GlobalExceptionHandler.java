@@ -5,6 +5,7 @@ import htms.QROrder.auth.exception.EmailValidException;
 import htms.QROrder.auth.exception.LoginFailException;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
+import htms.QROrder.consumer.order.exception.ConsumerOrderExpiredRequestException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
@@ -68,6 +69,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CommonResponse> handleConsumerOrderConflict(
             ConsumerOrderConflictException e) {
         return errorResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(ConsumerOrderExpiredRequestException.class)
+    public ResponseEntity<CommonResponse> handleConsumerOrderExpiredRequest(
+            ConsumerOrderExpiredRequestException e) {
+        return errorResponse(HttpStatus.GONE, e.getMessage());
     }
 
     @ExceptionHandler(EmailValidException.class)
