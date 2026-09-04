@@ -21,6 +21,8 @@ import type {
 
 type ErrorPayload = { error?: unknown };
 
+export const CONSUMER_ORDER_REQUEST_TIMEOUT_MS = 15_000;
+
 export function buildConsumerOrderRequest(
   cart: OrderShellCartLine[],
   clientRequestId: string = crypto.randomUUID(),
@@ -52,6 +54,23 @@ export function mapOrderCreated(response: ConsumerOrderCreateResponse): OrderShe
     orderedAt: new Date(response.orderedAt.replace(' ', 'T')),
     total: response.totalAmount,
   };
+export async function submitConsumerOrder(
+  cart: OrderShellCartLine[],
+  clientRequestId: string,
+  timeoutMs: number = CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
+) {
+  const abortController = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => abortController.abort(), timeoutMs);
+
+  try {
+    return await createConsumerOrder(
+      buildConsumerOrderRequest(cart, clientRequestId),
+      undefined,
+      abortController.signal,
+    );
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 }
 
 export function useConsumerOrderCreateMutation() {
@@ -66,6 +85,7 @@ export function useConsumerOrderCreateMutation() {
       createConsumerOrder(buildConsumerOrderRequest(cart, clientRequestId)).then((envelope) =>
         mapOrderCreated(envelope.data),
       ),
+    }) => submitConsumerOrder(cart, clientRequestId),
   });
 }
 

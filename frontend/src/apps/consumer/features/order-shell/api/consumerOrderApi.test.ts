@@ -1,8 +1,28 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createConsumerOrder } from '@/generated/consumer-order-controller/consumer-order-controller';
 import { HttpError } from '@/shared/lib/httpClient';
 import { buildConsumerOrderRequest, isTableInactiveError, mapOrderCreated } from './consumerOrderApi';
+import {
+  buildConsumerOrderRequest,
+  CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
+  isTableInactiveError,
+  submitConsumerOrder,
+} from './consumerOrderApi';
+
+vi.mock('@/generated/consumer-order-controller/consumer-order-controller', async (importOriginal) => {
+  const original =
+    await importOriginal<
+      typeof import('@/generated/consumer-order-controller/consumer-order-controller')
+    >();
+
+  return {
+    ...original,
+    createConsumerOrder: vi.fn(),
+  };
+});
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -73,5 +93,49 @@ describe('consumerOrderApi', () => {
       ),
     ).toBe(true);
     expect(isTableInactiveError(new HttpError('품절', response, '/orders', {}))).toBe(false);
+  });
+
+  it('aborts an order request after 15 seconds', async () => {
+    vi.useFakeTimers();
+    const createOrderMock = vi.mocked(createConsumerOrder);
+    createOrderMock.mockImplementation((_request, _options, signal) => {
+      return new Promise((_resolve, reject) => {
+        signal?.addEventListener(
+          'abort',
+          () => reject(new DOMException('The operation was aborted.', 'AbortError')),
+          { once: true },
+        );
+      });
+    });
+
+    const orderPromise = submitConsumerOrder(
+      [],
+      '00000000-0000-4000-8000-000000000001',
+    );
+    const rejection = expect(orderPromise).rejects.toMatchObject({ name: 'AbortError' });
+
+    await vi.advanceTimersByTimeAsync(CONSUMER_ORDER_REQUEST_TIMEOUT_MS);
+
+    await rejection;
+    expect(createOrderMock.mock.calls[0]?.[2]).toMatchObject({ aborted: true });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('clears the timeout when an order succeeds before the limit', async () => {
+    vi.useFakeTimers();
+    vi.mocked(createConsumerOrder).mockResolvedValue({
+      success: true,
+      data: {
+        orderId: 'order-001',
+        orderNo: '0001',
+        status: 'RECEIVED',
+        totalAmount: 12_000,
+        orderedAt: '2026-09-03 22:31:28',
+      },
+    });
+
+    await submitConsumerOrder([], '00000000-0000-4000-8000-000000000001');
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
