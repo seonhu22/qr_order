@@ -8,9 +8,12 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderDetailEnvelope;
 import htms.QROrder.consumer.order.dto.ConsumerOrderDetailResponse;
 import htms.QROrder.consumer.order.dto.ConsumerOrderListEnvelope;
 import htms.QROrder.consumer.order.dto.ConsumerOrderListResponse;
+import htms.QROrder.consumer.order.dto.ConsumerStaffCallRequest;
+import htms.QROrder.consumer.order.dto.ConsumerStaffCallResponse;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
 import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
+import htms.QROrder.consumer.order.service.ConsumerStaffCallService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/client/consumer/orders")
@@ -36,6 +41,7 @@ public class ConsumerOrderController {
 
     private final ConsumerOrderCreationService consumerOrderCreationService;
     private final ConsumerOrderQueryService consumerOrderQueryService;
+    private final ConsumerStaffCallService consumerStaffCallService;
 
     @Operation(
             operationId = "createConsumerOrder",
@@ -143,5 +149,29 @@ public class ConsumerOrderController {
             return binding;
         }
         throw new ConsumerOrderSessionRequiredException("Consumer 방문 세션을 먼저 확인해주세요.");
+    }
+
+    @PostMapping("/staffcall/new")
+    public ResponseEntity<CommonResponse> staffCall(@RequestBody ConsumerStaffCallRequest consumerStaffCallRequest,
+                                                        HttpSession session) {
+
+        String sysPlantCd = qrTableInfo(session).getSysPlantCd();
+
+        consumerStaffCallService.saveConsumerStaffCall(consumerStaffCallRequest, sysPlantCd);
+
+        return ResponseEntity.ok(
+                CommonResponse.builder()
+                        .success(true)
+                        .message("생성 완료.")
+                        .build()
+        );
+    }
+
+    @GetMapping("/staffcall/search")
+    public List<ConsumerStaffCallResponse> getConsumerStaffCall(HttpSession session) {
+
+        String sysPlantCd = qrTableInfo(session).getSysPlantCd();
+
+        return consumerStaffCallService.getConsumerStaffCall(sysPlantCd);
     }
 }
