@@ -14,12 +14,14 @@ import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-man
 import {
   ORDER_BOARD_STATUS_BADGE_CLASS,
   ORDER_CANCEL_REASON_OPTIONS,
+  ORDER_PAYMENT_TYPE_OPTIONS,
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
 import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
 import { DeleteConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
 import { SelectInput, TextareaInput, TextInput } from '@/shared/components/input';
+import { RadioGroup } from '@/shared/components/radio';
 import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
@@ -242,13 +244,21 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isReceiptOpen}
         title="결제 완료 처리"
-        primaryAction={{ label: '확인', disabled: true }}
-        secondaryAction={{ label: '닫기', onClick: paymentModal.closeReceipt }}
+        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmReceipt }}
+        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeReceipt }}
         onClose={paymentModal.closeReceipt}
       >
         <div className="order-payment-receipt">
           <p className="order-payment-receipt__table">{paymentModal.tableOrders[0]?.tableNum}번 테이블</p>
-          <p className="order-cancel-modal__notice-desc">결제 API 연동 후 처리할 수 있습니다.</p>
+          <RadioGroup
+            name="order-payment-type"
+            label="결제수단"
+            direction="row"
+            options={ORDER_PAYMENT_TYPE_OPTIONS}
+            value={paymentModal.paymentType}
+            errorText={paymentModal.paymentTypeError ? '결제수단을 선택해주세요.' : undefined}
+            onChange={paymentModal.changePaymentType}
+          />
 
           <div className="order-payment-receipt__order-list">
             {paymentModal.tableOrders.map((order) => (
@@ -331,6 +341,9 @@ export function OrderStatusManagementPage() {
               </span>
             </div>
           </div>
+          {paymentModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
+          )}
         </div>
       </WrapperModal>
 
@@ -347,15 +360,15 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isUnpaidEditorOpen}
         title="미결제 처리"
-        primaryAction={{ label: '확인', disabled: true }}
-        secondaryAction={{ label: '닫기', onClick: paymentModal.closeUnpaidEditor }}
+        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmUnpaid }}
+        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeUnpaidEditor }}
         onClose={paymentModal.closeUnpaidEditor}
       >
         <div className="order-cancel-modal__form">
           <div className="order-cancel-modal__notice">
             <p className="order-cancel-modal__notice-title">미결제사유를 선택해 주세요.</p>
             <p className="order-cancel-modal__notice-desc">
-              미결제로 처리하면 이전 단계로 되돌릴 수 없습니다.
+              현재 방문의 모든 주문을 미결제로 처리하며 이전 단계로 되돌릴 수 없습니다.
               <br />
               미결제 사유를 정확히 선택한 후 진행해 주세요.
             </p>
@@ -379,6 +392,9 @@ export function OrderStatusManagementPage() {
               errorText={paymentModal.errors.description ? '상세 사유를 입력해주세요.' : undefined}
               onChange={(event) => paymentModal.changeDescription(event.target.value)}
             />
+          )}
+          {paymentModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
           )}
         </div>
       </WrapperModal>

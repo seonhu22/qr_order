@@ -157,11 +157,11 @@ describe('orderStatusBoardApi', () => {
     const { result } = renderHook(() => useOrderPaymentMutations(), { wrapper });
 
     await act(async () => {
-      await result.current.completePaid('order-010', 'CARD');
+      await result.current.completePaid('order-010', '카드');
     });
 
     expect(requestBody).toMatchObject({
-      paymentType: 'CARD',
+      paymentType: '카드',
       header: { sysId: 'master-001' },
       footer: { totalPrice: 42700 },
     });

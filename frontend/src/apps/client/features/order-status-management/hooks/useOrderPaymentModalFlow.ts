@@ -19,7 +19,7 @@ type UnpaidEditorErrors = {
 };
 
 type UseOrderPaymentModalFlowParams = {
-  onConfirmPaid: (ids: string[]) => Promise<void> | void;
+  onConfirmPaid: (ids: string[], paymentType: string) => Promise<void> | void;
   onConfirmUnpaid: (id: string, reason: string, description: string) => Promise<void> | void;
 };
 
@@ -31,6 +31,8 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   const [tableOrders, setTableOrders] = useState<OrderBoardRow[]>([]);
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
+  const [paymentType, setPaymentType] = useState('');
+  const [paymentTypeError, setPaymentTypeError] = useState(false);
   const [errors, setErrors] = useState<UnpaidEditorErrors>(INITIAL_ERRORS);
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -45,6 +47,8 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   const resetForm = () => {
     setReason('');
     setDescription('');
+    setPaymentType('');
+    setPaymentTypeError(false);
     setErrors(INITIAL_ERRORS);
   };
 
@@ -73,16 +77,26 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const closeReceipt = () => {
+    if (isPending) return;
     setIsReceiptOpen(false);
     resetAll();
   };
 
+  const changePaymentType = (value: string) => {
+    setPaymentType(value);
+    setPaymentTypeError(false);
+  };
+
   const confirmReceipt = async () => {
     if (tableOrders.length === 0 || isPending) return;
+    if (!paymentType) {
+      setPaymentTypeError(true);
+      return;
+    }
     setIsPending(true);
     setSubmitError(null);
     try {
-      await onConfirmPaid(tableOrders.map((order) => order.id));
+      await onConfirmPaid(tableOrders.map((order) => order.id), paymentType);
       setIsReceiptOpen(false);
       setTargetRow(null);
       setTableOrders([]);
@@ -105,6 +119,7 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const closeUnpaidEditor = () => {
+    if (isPending) return;
     setIsUnpaidEditorOpen(false);
     resetAll();
   };
@@ -152,6 +167,8 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
     tableOrders,
     reason,
     description,
+    paymentType,
+    paymentTypeError,
     errors,
     isOtherReason,
     isChoiceOpen,
@@ -165,6 +182,7 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
     closeChoice,
     choosePaid,
     closeReceipt,
+    changePaymentType,
     confirmReceipt,
     closePaidNotice,
     chooseUnpaid,

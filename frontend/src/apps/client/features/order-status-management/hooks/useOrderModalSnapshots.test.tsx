@@ -60,9 +60,10 @@ describe('order modal open-time snapshots', () => {
       result.current.openPaymentModal(row, [row]);
       result.current.choosePaid();
     });
+    act(() => result.current.changePaymentType('카드'));
     await act(async () => result.current.confirmReceipt());
 
-    expect(onConfirmPaid).toHaveBeenCalledWith(['order-1']);
+    expect(onConfirmPaid).toHaveBeenCalledWith(['order-1'], '카드');
     expect(result.current.isReceiptOpen).toBe(false);
     expect(result.current.isPaidNoticeOpen).toBe(true);
   });
@@ -78,11 +79,31 @@ describe('order modal open-time snapshots', () => {
       result.current.openPaymentModal(row, [row]);
       result.current.choosePaid();
     });
+    act(() => result.current.changePaymentType('카드'));
     await act(async () => result.current.confirmReceipt());
 
     expect(result.current.isReceiptOpen).toBe(true);
     expect(result.current.isPaidNoticeOpen).toBe(false);
     expect(result.current.submitError).toBe('결제 서버 오류');
+  });
+
+  it('결제수단을 선택하지 않으면 결제완료 처리를 호출하지 않는다', async () => {
+    const row = createRow();
+    const onConfirmPaid = vi.fn();
+    const { result } = renderHook(() => useOrderPaymentModalFlow({
+      onConfirmPaid,
+      onConfirmUnpaid: vi.fn(),
+    }));
+
+    act(() => {
+      result.current.openPaymentModal(row, [row]);
+      result.current.choosePaid();
+    });
+    await act(async () => result.current.confirmReceipt());
+
+    expect(onConfirmPaid).not.toHaveBeenCalled();
+    expect(result.current.paymentTypeError).toBe(true);
+    expect(result.current.isReceiptOpen).toBe(true);
   });
 
   it('수정 모달은 Polling 원본과 분리된 draft를 유지한다', () => {

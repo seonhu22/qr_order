@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   useOrderCancelReasonQuery,
+  useOrderPaymentMutations,
   useOrderStatusBoardMutations,
   useOrderStatusBoardQuery,
 } from '../api/orderStatusBoardApi';
@@ -140,9 +141,14 @@ export function useOrderStatusBoardPage() {
 
   const cancelModal = useOrderCancelModalFlow({ onConfirmCancel: executeCancel });
 
-  // TODO(order-payment-api): 결제 API 계약 연결 전에는 query data를 로컬에서 성공 처리하지 않는다.
-  const executePaid = (_ids: string[]) => undefined;
-  const executeUnpaid = (_id: string, _reason: string, _description: string) => undefined;
+  const paymentMutations = useOrderPaymentMutations();
+  const executePaid = (ids: string[], paymentType: string) => {
+    const orderGroupId = ids[0];
+    if (!orderGroupId) return Promise.resolve();
+    return paymentMutations.completePaid(orderGroupId, paymentType);
+  };
+  const executeUnpaid = (id: string, reason: string, description: string) =>
+    paymentMutations.completeUnpaid(id, reason, description);
 
   const paymentModal = useOrderPaymentModalFlow({
     onConfirmPaid: executePaid,

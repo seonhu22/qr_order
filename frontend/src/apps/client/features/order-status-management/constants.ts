@@ -1,4 +1,5 @@
 import type { SelectOption } from '@/shared/components/input';
+import type { RadioOption } from '@/shared/components/radio';
 import type { OrderBoardStatus } from './types';
 
 export const ORDER_BOARD_COLUMNS: { status: OrderBoardStatus; label: string }[] = [
@@ -46,4 +47,10 @@ export const ORDER_UNPAID_REASON_OPTIONS: SelectOption[] = [
   { value: 'PAYMENT_DECLINED', label: '결제 거절' },
   { value: 'PAY_LATER', label: '추후 결제 예정' },
   { value: ORDER_UNPAID_REASON_OTHER_VALUE, label: '기타' },
+];
+
+/** 백엔드 payment_type에 저장하고 결제 조회 화면에서 그대로 표시하는 MVP 결제수단 값. */
+export const ORDER_PAYMENT_TYPE_OPTIONS: RadioOption[] = [
+  { value: '카드', label: '카드' },
+  { value: '현금', label: '현금' },
 ];
