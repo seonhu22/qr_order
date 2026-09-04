@@ -6,7 +6,7 @@ import type { OrderStatusKey } from '@/shared/order-status/statusMeta';
  * 미지원 코드는 `null`을 반환해 배지를 렌더하지 않도록 한다(라벨 없이 raw 문자열이
  * 노출되는 것보다 낫다는 판단이다).
  */
-const RAW_TO_KEY: Record<string, OrderStatusKey> = {
+const RAW_TO_KEY: Partial<Record<string, OrderStatusKey>> = {
   RECEIVED: 'RECEIVED',
   PREPARING: 'COOKING',
   COOKING: 'COOKING',
