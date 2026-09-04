@@ -44,6 +44,7 @@ function toOptionGroups(item: (typeof ORDER_SHELL_MENU_ITEMS)[number]): Consumer
             menuOptionPrice: 500,
             maximumNum: 2,
             defaultYn: 'N',
+            soldOutYn: 'N',
           },
         ],
       },
@@ -61,6 +62,7 @@ function toOptionGroups(item: (typeof ORDER_SHELL_MENU_ITEMS)[number]): Consumer
       menuOptionPrice: choice.price,
       maximumNum: 0,
       defaultYn: index === 0 && group.required ? 'Y' : 'N',
+      soldOutYn: choice.soldOut ? 'Y' : 'N',
     })),
   }));
 }
