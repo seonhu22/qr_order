@@ -23,4 +23,6 @@ public class ConsumerMenuOptionItem {
     private Integer maximumNum;
     @Schema(allowableValues = {"Y", "N"}, requiredMode = Schema.RequiredMode.REQUIRED)
     private String defaultYn;
+    @Schema(allowableValues = {"Y", "N"}, requiredMode = Schema.RequiredMode.REQUIRED)
+    private String soldOutYn;
 }

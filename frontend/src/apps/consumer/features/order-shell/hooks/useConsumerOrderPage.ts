@@ -240,6 +240,10 @@ export function useConsumerOrderPage() {
       setSoldoutOptionChoiceIds((prev) => new Set([...prev, ...newlySoldoutOptionChoiceIds]));
     }
 
+    // 서버 품절 필드(soldOutYn)가 항목 단위까지 확장돼, 로컬 즉시 마킹과 별개로 서버 진실도
+    // 함께 끌어오도록 메뉴 목록·상세 캐시를 무효화한다. 로컬은 refetch 도착 전 즉시 반응용이다.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.menuAll(sessionId) });
+
     setSoldoutModalItems(null);
   }
 

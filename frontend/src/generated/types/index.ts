@@ -43,6 +43,7 @@ export * from './consumerMenuOptionGroupRequiredYn';
 export * from './consumerMenuOptionGroupSelectionType';
 export * from './consumerMenuOptionItem';
 export * from './consumerMenuOptionItemDefaultYn';
+export * from './consumerMenuOptionItemSoldOutYn';
 export * from './consumerMenuSearchEnvelope';
 export * from './consumerMenuSearchResponse';
 export * from './consumerOrderCreateEnvelope';

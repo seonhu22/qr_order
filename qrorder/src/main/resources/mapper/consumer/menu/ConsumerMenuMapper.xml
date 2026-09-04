@@ -92,7 +92,8 @@
             smod.menu_option_price,
             smod.menu_description as menu_option_description,
             smod.maximum_num,
-            smod.default_yn
+            smod.default_yn,
+            smod.sold_out_yn
         from store_menu_option_group smog
         inner join store_menu_option_detail smod
             on smod.link_sys_id = smog.sys_id

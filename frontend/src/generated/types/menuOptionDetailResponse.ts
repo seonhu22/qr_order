@@ -14,6 +14,7 @@ export interface MenuOptionDetailResponse {
   menuDescription?: string;
   maximumNum?: number;
   defaultYn?: string;
+  soldOutYn?: string;
   useYn?: string;
   fileUlid?: string;
   ordNo?: number;

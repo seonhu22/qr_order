@@ -162,6 +162,8 @@ export const queryKeys = {
   },
   consumer: {
     session: ['consumer', 'session'] as const,
+    /** 메인·검색·상세 메뉴 쿼리 공통 접두어 — 옵션 품절 갱신처럼 메뉴 전체를 무효화할 때 쓴다. */
+    menuAll: (sessionId: string) => ['consumer', sessionId, 'menu'] as const,
     menuMain: (sessionId: string) => ['consumer', sessionId, 'menu', 'main'] as const,
     menuSearch: (sessionId: string, searchKeyword: string) =>
       ['consumer', sessionId, 'menu', 'search', { searchKeyword }] as const,
