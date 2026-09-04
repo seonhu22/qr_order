@@ -1,6 +1,7 @@
 package htms.QROrder.client;
 
 import htms.QROrder.client.dto.StatusItem;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.Configuration;
@@ -8,8 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StatusMapperXmlTest {
@@ -55,6 +58,16 @@ class StatusMapperXmlTest {
         assertTrue(sql("paymentNotCompleteOrderGroup", parameters).contains("order_status != '99!'"));
         assertTrue(sql("lockPaymentMasterStatus", parameters).endsWith("for update"));
         assertTrue(sql("lockPaymentOrderStatuses", parameters).endsWith("for update"));
+    }
+
+    @Test
+    void mapsTimestampColumnsToDateTimeFields() throws Exception {
+        for (String fieldName : new String[]{"orderDatetime", "cancelDatetime"}) {
+            var field = StatusItem.Header.class.getDeclaredField(fieldName);
+
+            assertEquals(LocalDateTime.class, field.getType());
+            assertEquals("yyyy-MM-dd HH:mm:ss", field.getAnnotation(JsonFormat.class).pattern());
+        }
     }
 
     private String sql(String statementId, Object parameter) {

@@ -57,8 +57,8 @@ export function toStatusRequest(
     header: {
       sysId: row.id,
       tableNum: Number(row.tableNum),
-      // OpenAPI는 LocalTime을 객체로 기술하지만 백엔드 @JsonFormat 계약은 HH:mm 문자열이다.
-      orderDatetime: row.orderDatetime.slice(11, 16) as unknown as LocalTime,
+      // 생성 타입 갱신 전까지 백엔드 LocalDateTime 문자열 계약을 명시적으로 적용한다.
+      orderDatetime: row.orderDatetime.replace('T', ' ').slice(0, 19) as unknown as LocalTime,
     },
     cancelType: cancel?.reason,
     cancelReason: cancel ? (cancel.reason === 'OTHER' ? cancel.description : '') : undefined,
