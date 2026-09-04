@@ -23,6 +23,11 @@
   color: var(--color-text-tertiary);
 }
 
+.order-history-group__order-no {
+  margin-left: var(--spacing-2);
+  color: var(--color-text-secondary);
+}
+
 .order-history-group__total {
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-strong);
