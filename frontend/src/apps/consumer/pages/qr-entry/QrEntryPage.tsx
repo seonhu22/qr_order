@@ -26,8 +26,9 @@ export function QrEntryPage() {
     return (
       <main className="qr-entry-page" aria-label="QR 코드 인증 실패">
         <ConsumerStatusScreen
-          iconId="ci-qr-code"
+          iconId="ci-qr-broken"
           title={message || '유효하지 않은 QR코드입니다.'}
+          description={'QR코드를 확인하고 다시 시도해 주세요.\n테이블 위 QR코드를 다시 스캔해 주세요.'}
         />
       </main>
     );

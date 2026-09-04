@@ -1,16 +1,54 @@
 .consumer-status-screen {
+  position: relative;
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-8);
   padding: var(--spacing-10);
   padding-top: calc(var(--spacing-10) + env(safe-area-inset-top));
   padding-bottom: calc(var(--spacing-10) + env(safe-area-inset-bottom));
+  overflow: hidden;
   text-align: center;
-  background-color: var(--color-bg-app);
+  background-color: var(--color-bg-surface);
+}
+
+/* QrLoadingScreen·OrderCompleteScreen과 같은 블롭 배경 패턴 */
+.consumer-status-screen__blob {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+  pointer-events: none;
+}
+
+.consumer-status-screen__blob--top {
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 18rem;
+  opacity: 0.06;
+  transform: translate(35%, -35%);
+}
+
+.consumer-status-screen__blob--bottom {
+  bottom: 0;
+  left: 0;
+  width: 14rem;
+  height: 14rem;
+  opacity: 0.04;
+  transform: translate(-35%, 35%);
+}
+
+.consumer-status-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-8);
+  width: 100%;
+  max-width: 20rem;
 }
 
 .consumer-status-screen__icon-wrap {
@@ -23,8 +61,8 @@
 }
 
 .consumer-status-screen__icon-wrap--neutral {
-  background-color: var(--color-bg-muted);
-  color: var(--color-text-tertiary);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
 }
 
 .consumer-status-screen__icon-wrap--danger {
@@ -48,4 +86,21 @@
   margin-top: var(--spacing-2);
   width: 100%;
   max-width: 20rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .consumer-status-screen__content {
+    animation: consumer-status-fade-in 0.4s ease-out;
+  }
+
+  @keyframes consumer-status-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
