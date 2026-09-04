@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import '@/shared/order-status/orderStatusBadge.css';
 import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';

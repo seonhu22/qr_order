@@ -1,23 +1,19 @@
 import type { SelectOption } from '@/shared/components/input';
+import { ORDER_STATUS_BADGE_CLASS, ORDER_STATUS_LABEL } from '@/shared/order-status/statusMeta';
 import type { OrderBoardStatus } from './types';
 
 export const ORDER_BOARD_COLUMNS: { status: OrderBoardStatus; label: string }[] = [
-  { status: 'RECEIVED', label: '접수' },
-  { status: 'COOKING', label: '조리중' },
-  { status: 'SERVED', label: '서빙완료' },
-  { status: 'CANCELLED', label: '취소' },
+  { status: 'RECEIVED', label: ORDER_STATUS_LABEL.RECEIVED },
+  { status: 'COOKING', label: ORDER_STATUS_LABEL.COOKING },
+  { status: 'SERVED', label: ORDER_STATUS_LABEL.SERVED },
+  { status: 'CANCELLED', label: ORDER_STATUS_LABEL.CANCELLED },
 ];
 
 /**
  * 칸반 컬럼 숫자 라벨(`OrderStatusColumn.css`의 `.order-status-column__count`)과 같은 색상 매핑.
- * 결제 처리 영수증·주문 수정 모달에서 주문 상태 배지(`.order-status-badge`)로 재사용한다.
+ * 결제 처리 영수증/주문 수정 모달에서 주문 상태 배지(`.order-status-badge`)로 재사용한다.
  */
-export const ORDER_BOARD_STATUS_BADGE_CLASS: Record<OrderBoardStatus, string> = {
-  RECEIVED: 'order-status-badge--received',
-  COOKING: 'order-status-badge--cooking',
-  SERVED: 'order-status-badge--served',
-  CANCELLED: 'order-status-badge--cancelled',
-};
+export const ORDER_BOARD_STATUS_BADGE_CLASS: Record<OrderBoardStatus, string> = ORDER_STATUS_BADGE_CLASS;
 
 /** "이전" 버튼이 되돌리는 직전 상태. RECEIVED/CANCELLED는 되돌릴 곳이 없어 제외한다. */
 export const ORDER_BOARD_PREV_STATUS: Partial<Record<OrderBoardStatus, OrderBoardStatus>> = {
