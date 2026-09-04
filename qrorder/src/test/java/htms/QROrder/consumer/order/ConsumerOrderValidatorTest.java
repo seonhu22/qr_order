@@ -180,6 +180,6 @@ class ConsumerOrderValidatorTest {
     }
 
     private ConsumerMenuOptionItem option(String optionId, int price, int maximum) {
-        return new ConsumerMenuOptionItem(optionId, "옵션", price, null, maximum, "N");
+        return new ConsumerMenuOptionItem(optionId, "옵션", price, null, maximum, "N", "N");
     }
 }
