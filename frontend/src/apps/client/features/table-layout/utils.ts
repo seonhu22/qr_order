@@ -10,7 +10,7 @@ function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: numbe
 function pickClosest(candidates: number[], threshold: number): number | null {
   let best: number | null = null;
   for (const delta of candidates) {
-    if (Math.abs(delta) > threshold) continue;
+    if (Math.abs(delta) >= threshold) continue;
     if (best === null || Math.abs(delta) < Math.abs(best)) best = delta;
   }
   return best;
