@@ -32,6 +32,7 @@ import { QuantityStepperButton } from '@/apps/consumer/features/order-shell/comp
 import '@/apps/consumer/features/order-shell/components/QuantityStepper.css';
 import '@/apps/consumer/features/order-shell/components/MenuOptionGroupList.css';
 import '@/apps/consumer/features/order-shell/components/CartLineItem.css';
+import '@/apps/consumer/features/staff-call/components/StaffCallSheetContent.css';
 
 const SEGMENT_SLIDE_OPTIONS = ['작게', '보통', '크게'] as const;
 
@@ -158,7 +159,7 @@ function SegmentSlideDemo() {
 export default function ButtonGuide() {
   const [toggleMap, setToggleMap] = useState<Record<string, boolean | string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [qtyDemo, setQtyDemo] = useState({ main: 1, option: 1, cart: 1 });
+  const [qtyDemo, setQtyDemo] = useState({ main: 1, option: 1, cart: 1, staffCall: 1 });
 
   const toggle = (key: string) =>
     setToggleMap((p) => ({ ...p, [key]: !p[key] }));
@@ -651,7 +652,7 @@ export default function ButtonGuide() {
       {/* ── 8. 수량 스텝퍼 버튼 (QuantityStepperButton) ── */}
       <Section
         title="수량 스텝퍼 버튼 (QuantityStepperButton)"
-        desc="consumer 주문 화면의 -/+/x 아이콘 버튼 하나를 3곳이 공유한다. 배경·크기 같은
+        desc="consumer 주문 화면의 -/+/x 아이콘 버튼 하나를 4곳이 공유한다. 배경·크기 같은
           컨테이너 스타일만 각 화면 CSS(className)로 다르게 입힌다 — apps/consumer/features/order-shell/components/QuantityStepperButton.tsx"
       >
         <Row label="메뉴 상세 전체 수량 (QuantityStepper) — 회색 트랙 + 흰 배경 그림자 버튼">
@@ -713,6 +714,32 @@ export default function ButtonGuide() {
               className="cart-line-item__qty-button"
               iconSize={11}
               onClick={() => setQtyDemo((p) => ({ ...p, cart: p.cart + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="직원호출 선택 항목 수량 (StaffCallSheetContent) — 장바구니 줄 수량과 같은 크기·색 규약">
+          <div className="staff-call-sheet__stepper">
+            <QuantityStepperButton
+              icon={qtyDemo.staffCall <= 1 ? 'remove' : 'minus'}
+              className={`staff-call-sheet__qty-button${
+                qtyDemo.staffCall <= 1 ? ' staff-call-sheet__qty-button--danger' : ''
+              }`}
+              iconSize={11}
+              onClick={() =>
+                qtyDemo.staffCall <= 1
+                  ? setQtyDemo((p) => ({ ...p, staffCall: 1 })) /* 데모에선 삭제 대신 1로 고정 */
+                  : setQtyDemo((p) => ({ ...p, staffCall: p.staffCall - 1 }))
+              }
+              ariaLabel={qtyDemo.staffCall <= 1 ? '삭제' : '수량 줄이기'}
+            />
+            <output className="staff-call-sheet__qty-value" aria-label="수량">{qtyDemo.staffCall}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="staff-call-sheet__qty-button"
+              iconSize={11}
+              onClick={() => setQtyDemo((p) => ({ ...p, staffCall: p.staffCall + 1 }))}
               ariaLabel="수량 늘리기"
             />
           </div>
