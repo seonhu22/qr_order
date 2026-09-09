@@ -1,0 +1,69 @@
+.staff-call-toast {
+  position: fixed;
+  top: var(--spacing-8);
+  left: var(--spacing-8);
+  right: var(--spacing-8);
+  max-width: 24rem;
+  margin-inline: auto;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--radius-lg);
+  background-color: var(--slate-90);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-xl);
+}
+
+.staff-call-toast__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--spacing-12);
+  height: var(--spacing-12);
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand-default);
+}
+
+.staff-call-toast__title {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+}
+
+.staff-call-toast__desc {
+  margin-top: var(--spacing-1);
+  font-size: var(--typography-size-caption);
+  color: var(--slate-40);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .staff-call-toast {
+    animation: staff-call-toast-in 0.2s ease-out;
+  }
+
+  .staff-call-toast__icon-bell {
+    animation: staff-call-toast-bounce 0.6s infinite;
+  }
+}
+
+@keyframes staff-call-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes staff-call-toast-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15%);
+  }
+}

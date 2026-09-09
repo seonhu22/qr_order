@@ -91,8 +91,8 @@ export function ConsumerBottomSheet({
       if (event.key !== 'Tab' || !dialogRef.current) return;
 
       const elements = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
-      // 포커스 가능한 요소가 하나도 없으면(예: "준비 중입니다" 안내만 있는 직원호출) 순환시킬
-      // 대상이 없으니, Tab 자체를 막아 시트(tabIndex=-1) 포커스에 계속 머무르게 한다.
+      // 포커스 가능한 요소가 하나도 없으면 순환시킬 대상이 없으니, Tab 자체를 막아
+      // 시트(tabIndex=-1) 포커스에 계속 머무르게 한다.
       if (elements.length === 0) {
         event.preventDefault();
         dialogRef.current.focus();

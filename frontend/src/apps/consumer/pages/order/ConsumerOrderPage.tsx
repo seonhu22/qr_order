@@ -14,6 +14,8 @@ import { OrderHistorySheet } from '@/apps/consumer/features/order-shell/componen
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
 import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
 import { SoldoutModal } from '@/apps/consumer/features/order-shell/components/SoldoutModal';
+import { StaffCallSheetContent } from '@/apps/consumer/features/staff-call/components/StaffCallSheetContent';
+import { StaffCallToast } from '@/apps/consumer/features/staff-call/components/StaffCallToast';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import './ConsumerOrderPage.css';
@@ -58,17 +60,14 @@ export function ConsumerOrderPage() {
   } = useConsumerOrderPage();
 
   const detailItem = sheet?.type === 'menu-detail' ? findMenuItem(sheet.menuId) : undefined;
-  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니·주문내역은 아이콘+
-  // 개수 배지가 붙은 자체 헤더를 쓰기 때문에 셋 다 공용 시트 제목을 노출하지 않는다.
-  // 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
-  const sheetTitle =
-    sheet && sheet.type !== 'menu-detail' && sheet.type !== 'cart' && sheet.type !== 'order-history'
-      ? SHEET_TITLE[sheet.type]
-      : undefined;
+  // 메뉴 상세는 이미지가 시트 맨 위에 오고 메뉴명이 그 아래에 있어, 장바구니·주문내역·직원호출은
+  // 아이콘+제목(+개수 배지 또는 토글)이 붙은 자체 헤더를 쓰기 때문에 넷 다 공용 시트 제목을
+  // 노출하지 않는다 — 지금 있는 시트 종류가 이 넷뿐이라 ConsumerBottomSheet의 title prop은
+  // 실제로는 항상 비워 둔다. 스크린리더용 이름만 ariaLabel로 따로 넘긴다.
   const sheetAriaLabel =
     sheet?.type === 'menu-detail'
       ? detailItem?.name
-      : sheet?.type === 'cart' || sheet?.type === 'order-history'
+      : sheet?.type === 'cart' || sheet?.type === 'order-history' || sheet?.type === 'staff-call'
         ? SHEET_TITLE[sheet.type]
         : undefined;
 
@@ -145,12 +144,7 @@ export function ConsumerOrderPage() {
 
       <CartBar totalQty={totalCartQty} totalPrice={totalCartPrice} onOpenCart={openCart} />
 
-      <ConsumerBottomSheet
-        open={sheet !== null}
-        onClose={closeSheet}
-        title={sheetTitle}
-        ariaLabel={sheetAriaLabel}
-      >
+      <ConsumerBottomSheet open={sheet !== null} onClose={closeSheet} ariaLabel={sheetAriaLabel}>
         {sheet?.type === 'menu-detail' && detailItem && (
           // 메뉴가 바뀌면 수량·옵션 선택이 초기화되도록 메뉴 id를 key로 준다.
           <MenuDetailSheet
@@ -224,9 +218,7 @@ export function ConsumerOrderPage() {
 
         {sheet?.type === 'order-history' && <OrderHistorySheet onClose={closeSheet} />}
 
-        {sheet?.type === 'staff-call' && (
-          <p className="order-shell-sheet__placeholder">준비 중입니다.</p>
-        )}
+        {sheet?.type === 'staff-call' && <StaffCallSheetContent onClose={closeSheet} />}
       </ConsumerBottomSheet>
 
       {/* body(.consumer-layout__body)는 overflow-y:auto + -webkit-overflow-scrolling:touch 스크롤
@@ -253,6 +245,7 @@ export function ConsumerOrderPage() {
           {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
           {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
           {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
+          <StaffCallToast />
         </>,
         document.body,
       )}

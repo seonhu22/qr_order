@@ -100,6 +100,28 @@
   background-color: var(--color-bg-selected);
 }
 
+/* 직원호출 완료 후 4초간(consumerStaffCallStore) 채워진 스타일로 바뀐다 — 참고 저장소와 동일. */
+.consumer-header__action-button--staff-called {
+  border-color: var(--color-brand-default);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-inverse);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .consumer-header__staff-call-bell--bounce {
+    animation: consumer-header-bell-bounce 0.6s infinite;
+  }
+}
+
+@keyframes consumer-header-bell-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15%);
+  }
+}
+
 /* 시각적 높이(32px)는 그대로 두고 세로 탭 영역만 40px로 넓힌다 — hit-slop. 너비는 이미 텍스트 때문에
    40px를 넘어 좌우는 확장하지 않는다. */
 .consumer-header__action-button::before {

@@ -5,6 +5,7 @@ import { useConsumerSheetStore } from '@/apps/consumer/stores/consumerSheetStore
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { useConsumerOrderQaStore } from '@/apps/consumer/stores/consumerOrderQaStore';
 import { useConsumerOrderHistoryStore } from '@/apps/consumer/stores/consumerOrderHistoryStore';
+import { useConsumerStaffCallStore } from '@/apps/consumer/stores/consumerStaffCallStore';
 import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/CategoryTabs';
 import { ORDER_SHELL_CATEGORIES } from '@/apps/consumer/features/order-shell/mock/orderShellMock';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
@@ -18,6 +19,7 @@ import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
 export function ConsumerHeader() {
   const { session } = useConsumerSession();
   const openSheet = useConsumerSheetStore((state) => state.openSheet);
+  const staffCalled = useConsumerStaffCallStore((state) => state.called);
   const searchQuery = useConsumerOrderFilterStore((state) => state.searchQuery);
   const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
@@ -101,10 +103,16 @@ export function ConsumerHeader() {
         <div className="consumer-header__actions">
           <button
             type="button"
-            className="consumer-header__action-button"
+            className={`consumer-header__action-button${
+              staffCalled ? ' consumer-header__action-button--staff-called' : ''
+            }`}
             onClick={() => openSheet({ type: 'staff-call' })}
           >
-            <ConsumerIcon id="ci-bell" size={12} />
+            <ConsumerIcon
+              id="ci-bell"
+              size={12}
+              className={staffCalled ? 'consumer-header__staff-call-bell--bounce' : undefined}
+            />
             직원호출
           </button>
           <button
