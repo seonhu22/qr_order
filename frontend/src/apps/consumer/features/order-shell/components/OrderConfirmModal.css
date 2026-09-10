@@ -1,0 +1,79 @@
+.order-confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8);
+  background-color: var(--color-bg-overlay);
+}
+
+.order-confirm-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 17.5rem;
+  padding: var(--spacing-10);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-modal);
+}
+
+.order-confirm-modal__title {
+  margin-bottom: var(--spacing-8);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+  line-height: var(--typography-leading-heading);
+  text-align: center;
+}
+
+/* order-shell-cart-total/order-shell-sheet__price(장바구니 시트 총 결제 금액)와 같은 라벨·강조 규약,
+   박스는 SoldoutModal의 연한 회색 강조 박스와 같은 톤(--color-bg-muted). */
+.order-confirm-modal__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-8);
+  padding: var(--spacing-5) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-muted);
+}
+
+.order-confirm-modal__total-label {
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.order-confirm-modal__total-price {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+}
+
+.order-confirm-modal__actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.order-confirm-modal__action {
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .order-confirm-modal {
+    animation: order-confirm-modal-pop-in 0.2s ease-out;
+  }
+
+  @keyframes order-confirm-modal-pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

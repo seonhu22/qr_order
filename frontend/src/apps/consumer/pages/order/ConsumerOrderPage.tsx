@@ -9,6 +9,7 @@ import { MenuDetailSheet } from '@/apps/consumer/features/order-shell/components
 import { MenuItemCard } from '@/apps/consumer/features/order-shell/components/MenuItemCard';
 import { NetworkErrorScreen } from '@/apps/consumer/features/order-shell/components/NetworkErrorScreen';
 import { OrderCompleteScreen } from '@/apps/consumer/features/order-shell/components/OrderCompleteScreen';
+import { OrderConfirmModal } from '@/apps/consumer/features/order-shell/components/OrderConfirmModal';
 import { OrderFailureScreen } from '@/apps/consumer/features/order-shell/components/OrderFailureScreen';
 import { OrderHistorySheet } from '@/apps/consumer/features/order-shell/components/OrderHistorySheet';
 import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/components/OrderProcessingScreen';
@@ -45,7 +46,10 @@ export function ConsumerOrderPage() {
     clearSearch,
     orderPhase,
     duplicateTime,
+    orderConfirmOpen,
     placeOrder,
+    confirmPlaceOrder,
+    cancelPlaceOrder,
     confirmOrderComplete,
     retryOrder,
     dismissOrderError,
@@ -245,6 +249,13 @@ export function ConsumerOrderPage() {
           {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
           {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}
           {soldoutModalItems && <SoldoutModal items={soldoutModalItems} onConfirm={confirmSoldoutModal} />}
+          {orderConfirmOpen && (
+            <OrderConfirmModal
+              totalPrice={totalCartPrice}
+              onConfirm={confirmPlaceOrder}
+              onCancel={cancelPlaceOrder}
+            />
+          )}
           <StaffCallToast />
         </>,
         document.body,

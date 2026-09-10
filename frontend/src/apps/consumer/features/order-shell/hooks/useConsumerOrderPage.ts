@@ -50,6 +50,7 @@ export function useConsumerOrderPage() {
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
+  const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
   const orderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { session } = useConsumerSession();
@@ -158,16 +159,28 @@ export function useConsumerOrderPage() {
   }
 
   /**
-   * 장바구니 시트를 닫고 주문 처리를 시작한다. 품절 데모 테이블(qr-code-001)이면 처리중 화면
-   * 대신 품절 확인 모달을 먼저 띄우고, 시트는 닫지 않는다(참고 저장소의 initiateOrder와 동일).
+   * "주문하기" 클릭 — 품절 데모 테이블(qr-code-001)이면 처리중 화면 대신 품절 확인 모달을
+   * 먼저 띄우고, 그 외에는 주문 확인 모달을 띄운다(ADR-032, 참고 저장소에는 없는 화면).
+   * 두 경우 다 장바구니 시트는 아직 닫지 않는다(참고 저장소의 initiateOrder와 동일한 원칙).
    */
   function placeOrder() {
     if (isSoldoutDemoTable) {
       setSoldoutModalItems(cart);
       return;
     }
+    setOrderConfirmOpen(true);
+  }
+
+  /** 주문 확인 모달의 "주문하기" — 그제서야 장바구니 시트를 닫고 처리중 화면으로 넘어간다. */
+  function confirmPlaceOrder() {
+    setOrderConfirmOpen(false);
     closeSheet();
     startOrderProcessing();
+  }
+
+  /** 주문 확인 모달의 "취소" — 장바구니 시트로 돌아간다. */
+  function cancelPlaceOrder() {
+    setOrderConfirmOpen(false);
   }
 
   /**
@@ -309,7 +322,10 @@ export function useConsumerOrderPage() {
     clearSearch: () => setSearchQuery(''),
     orderPhase,
     duplicateTime,
+    orderConfirmOpen,
     placeOrder,
+    confirmPlaceOrder,
+    cancelPlaceOrder,
     confirmOrderComplete,
     retryOrder,
     dismissOrderError,
