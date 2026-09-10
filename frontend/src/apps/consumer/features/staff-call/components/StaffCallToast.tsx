@@ -14,6 +14,7 @@ import './StaffCallToast.css';
 export function StaffCallToast() {
   const called = useConsumerStaffCallStore((state) => state.called);
   const message = useConsumerStaffCallStore((state) => state.message);
+  const dismiss = useConsumerStaffCallStore((state) => state.dismiss);
 
   const [shouldRender, setShouldRender] = useState(called);
   const [isClosing, setIsClosing] = useState(false);
@@ -52,6 +53,9 @@ export function StaffCallToast() {
         <p className="staff-call-toast__title">직원 호출 완료</p>
         <p className="staff-call-toast__desc">{message} · 잠시만 기다려 주세요</p>
       </div>
+      <button type="button" className="staff-call-toast__close" onClick={dismiss} aria-label="알림 닫기">
+        <ConsumerIcon id="ci-x" size={14} />
+      </button>
     </div>
   );
 }

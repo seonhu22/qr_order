@@ -14,6 +14,7 @@ type ConsumerStaffCallStore = {
   called: boolean;
   message: string;
   notifyCalled: (summary: string) => void;
+  dismiss: () => void;
 };
 
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -25,5 +26,10 @@ export const useConsumerStaffCallStore = create<ConsumerStaffCallStore>((set) =>
     if (hideTimer) clearTimeout(hideTimer);
     set({ called: true, message: summary });
     hideTimer = setTimeout(() => set({ called: false }), CALLED_HIGHLIGHT_MS);
+  },
+  /** 토스트의 닫기(X) 버튼 — 참고 저장소의 setStaffCalled(false)와 동일하게 자동 타이머보다 먼저 끈다. */
+  dismiss: () => {
+    if (hideTimer) clearTimeout(hideTimer);
+    set({ called: false });
   },
 }));
