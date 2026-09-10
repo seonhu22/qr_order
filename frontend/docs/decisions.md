@@ -1135,3 +1135,26 @@ iOS Safari(및 안드로이드 크롬)는 상태바·하단 도구모음 색을 
 - Client 쪽 호출 항목 커스터마이즈(`ClientStaffCallSettings`) 연동은 아직 결정된 바 없다 — 항목 목록을 백엔드/관리자 설정에서 가져오게 되면 `STAFF_CALL_ITEMS` mock 상수를 API 응답으로 교체해야 한다.
 
 ---
+
+## ADR-032 — 주문 확인 모달을 새로 추가한다
+
+**날짜**: 2026-09-10
+**상태**: 채택
+
+### 배경
+
+기존 `placeOrder`는 장바구니 시트의 "주문하기"를 누르면 사전 확인 없이 바로 시트를 닫고 `OrderProcessingScreen`으로 넘어갔다(참고 저장소도 동일). 실수로 주문이 잘못 나가는 걸 막기 위해 마지막 확인 단계를 추가하기로 했는데, 참고 저장소(Qrorder)의 `CustomerMenuPage`에는 이 화면 자체가 없어 이번엔 포팅할 대상이 없다 — 이 프로젝트에서 직접 설계한 첫 Consumer 화면이다.
+
+### 결정
+
+- `OrderConfirmModal`(`features/order-shell/components/`)을 새로 만든다. 레퍼런스가 없어 기존 `SoldoutModal`의 다이얼로그 계약(어두운 배경 위 중앙 카드, 배경 클릭으로 안 닫힘, 포커스 트랩, `radius-2xl`+`shadow-modal`, pop-in 애니메이션)을 그대로 재사용했다 — 이미 검증된 Consumer 모달 패턴이라 새로 고민할 이유가 없었다.
+- 내용은 "정말 주문하시겠습니까?" 식의 단순 확인이 아니라 장바구니 시트가 이미 쓰는 "총 결제 금액" 라벨과 같은 규약(`order-shell-cart-total__label`/`order-shell-sheet__price`)으로 총 금액(`totalCartPrice`)을 보여준다 — 처음엔 담은 수량도 함께 보여줬지만, 실제 화면 시안을 보고 장바구니 시트의 총 결제 금액 표기와 통일하는 쪽으로 수정했다.
+- `useConsumerOrderPage.placeOrder`는 품절 데모 테이블(`isSoldoutDemoTable`)이 아니면 더 이상 곧바로 `closeSheet`+`startOrderProcessing`을 호출하지 않고, `orderConfirmOpen`을 켜서 모달을 띄우기만 한다. 장바구니 시트는 그대로 열려 있다. 모달의 "취소"(`cancelPlaceOrder`)는 모달만 닫고, "주문하기"(`confirmPlaceOrder`)를 눌러야 그제서야 시트를 닫고 처리중으로 넘어간다.
+- 품절 데모 테이블 흐름(`SoldoutModal`)은 이 변경과 무관하다 — `placeOrder`에서 품절 분기가 먼저 걸러지므로 두 모달이 동시에 뜰 일은 없다.
+
+### 결과
+
+- 참고 저장소에 없던 화면이라 향후 참고 저장소가 이 기능을 추가하면 문구·레이아웃이 다를 수 있다 — 그때 다시 맞춰볼 대상이다.
+- 주문 실패/세션 만료 등 QA 트리거 화면들(ADR-024/025)은 여전히 `confirmPlaceOrder` 이후 `startOrderProcessing`부터 진입하므로 이번 변경의 영향을 받지 않는다.
+
+---

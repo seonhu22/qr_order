@@ -168,14 +168,14 @@ type ConsumerSheetState =
 
 ## 주문 제출 흐름
 
-장바구니 시트의 "주문하기"를 누르면 시트를 닫고 곧바로 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다)·[ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다) 참고.
+장바구니 시트의 "주문하기"를 누르면 곧바로 처리중으로 넘어가지 않고, 먼저 `OrderConfirmModal`(제목 + "총 결제 금액" 요약 + 취소/주문하기 버튼, 참고 저장소에는 없어 새로 설계함 — [ADR-032](../decisions.md#adr-032--주문-확인-모달을-새로-추가한다))을 띄운다. 이때 장바구니 시트는 닫지 않는다. 모달의 "취소"는 장바구니 시트로 돌아가고, "주문하기"를 눌러야 그제서야 시트를 닫고 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다)·[ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다) 참고.
 
 ### 상태 머신
 
 | `orderPhase` | 화면 | 진입 경로 |
 |---|---|---|
 | `idle` | 없음(기본) | — |
-| `processing` | `OrderProcessingScreen` | "주문하기" 클릭 |
+| `processing` | `OrderProcessingScreen` | 주문 확인 모달의 "주문하기" 클릭 |
 | `complete` | `OrderCompleteScreen` | `processing` 시작 1.8초 뒤 자동(참고 저장소 `doOrder` 딜레이와 동일) |
 | `error-network` | `OrderFailureScreen type="network"` | QA 트리거만 |
 | `error-duplicate` | `OrderFailureScreen type="duplicate"` | QA 트리거만 |
