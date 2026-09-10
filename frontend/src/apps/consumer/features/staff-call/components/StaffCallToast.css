@@ -1,10 +1,10 @@
+/* CartBar/헤더처럼 max-width로 가운데 정렬하지 않고 좌우 여백만 두고 폭을 채운다 —
+   화면이 넓어져도 작은 박스로 남지 않고 항상 화면 너비에 맞춰 늘어난다. */
 .staff-call-toast {
   position: fixed;
   top: var(--spacing-8);
   left: var(--spacing-8);
   right: var(--spacing-8);
-  max-width: 24rem;
-  margin-inline: auto;
   z-index: 90;
   display: flex;
   align-items: center;
@@ -27,6 +27,11 @@
   background-color: var(--color-brand-default);
 }
 
+.staff-call-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+
 .staff-call-toast__title {
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-heading);
@@ -43,6 +48,13 @@
     animation: staff-call-toast-in 0.2s ease-out;
   }
 
+  /* 사라질 때(4초 후 자동 소멸, 참고 저장소와 동일) 위로 살짝 뜨며 페이드아웃 — 나타날 때의
+     역순. forwards로 마지막 프레임(투명·위로 이동한 상태)을 유지해, 언마운트되기 직전
+     원래 모습으로 되튀는 걸 막는다(ConsumerBottomSheet와 같은 이유). */
+  .staff-call-toast--closing {
+    animation: staff-call-toast-out 0.2s ease-in forwards;
+  }
+
   .staff-call-toast__icon-bell {
     animation: staff-call-toast-bounce 0.6s infinite;
   }
@@ -56,6 +68,17 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes staff-call-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
