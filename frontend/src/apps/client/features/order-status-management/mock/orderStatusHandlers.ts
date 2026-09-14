@@ -169,7 +169,18 @@ export const orderStatusHandlers: HttpHandler[] = [
     return HttpResponse.json({ success: true, message: '결제완료.' });
   }),
   http.post('*/api/client/order_manage/status/not_payment_complete', async ({ request }) => {
-    const body = await request.json().catch(() => null) as { orderInfo?: { sysId?: string } } | null;
+    const body = await request.json().catch(() => null) as {
+      orderInfo?: { sysId?: string };
+      unpaidReason?: string;
+      unpaidDescription?: string;
+    } | null;
+    const ALLOWED_UNPAID_REASONS = new Set(['CARD_DEVICE_ERROR', 'CUSTOMER_ABSENT', 'PAYMENT_DECLINED', 'PAY_LATER', 'OTHER']);
+    if (!body?.unpaidReason || !ALLOWED_UNPAID_REASONS.has(body.unpaidReason)) {
+      return failure('유효하지 않은 미결제 사유입니다.');
+    }
+    if (body.unpaidReason === 'OTHER' && !body.unpaidDescription?.trim()) {
+      return failure('기타 사유 선택 시 상세 설명이 필요합니다.');
+    }
     const tableNum = tableNumFromPaymentMaster(body?.orderInfo?.sysId);
     if (!tableNum || completeTableVisit(tableNum) === 'MISSING') {
       return failure('결제 대상 주문을 찾을 수 없습니다.', 404);
