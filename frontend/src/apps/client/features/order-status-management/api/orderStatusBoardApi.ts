@@ -2,7 +2,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { CommonResponse } from '@/generated/types/commonResponse';
 import type { PaymentCompleteResponse } from '@/generated/types/paymentCompleteResponse';
 import type { StatusRequest } from '@/generated/types/statusRequest';
-import type { LocalTime } from '@/generated/types/localTime';
 import {
   getPaymentComplete,
   useBackToCooking,
@@ -57,8 +56,7 @@ export function toStatusRequest(
     header: {
       sysId: row.id,
       tableNum: Number(row.tableNum),
-      // 생성 타입 갱신 전까지 백엔드 LocalDateTime 문자열 계약을 명시적으로 적용한다.
-      orderDatetime: row.orderDatetime.replace('T', ' ').slice(0, 19) as unknown as LocalTime,
+      orderDatetime: row.orderDatetime.replace('T', ' ').slice(0, 19),
     },
     cancelType: cancel?.reason,
     cancelReason: cancel ? (cancel.reason === 'OTHER' ? cancel.description : '') : undefined,
