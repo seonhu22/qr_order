@@ -6,16 +6,18 @@
 export type StaffCallItem = {
   id: string;
   label: string;
+  /** true면 칩에 +아이콘·수량 뱃지가 붙고 리스트에서 수량 조절이 가능하다. false면 체크 아이콘만 쓰고 on/off만 표현한다. */
+  showQty: boolean;
 };
 
 export const STAFF_CALL_ITEMS: StaffCallItem[] = [
-  { id: 'water', label: '물' },
-  { id: 'plate', label: '앞접시' },
-  { id: 'cup', label: '컵' },
-  { id: 'napkin', label: '냅킨' },
-  { id: 'wetTowel', label: '물티슈' },
-  { id: 'spoon', label: '수저' },
-  { id: 'fork', label: '젓가락' },
-  { id: 'banchan', label: '반찬추가' },
-  { id: 'sauce', label: '소스추가' },
+  { id: 'water', label: '물', showQty: true },
+  { id: 'plate', label: '앞접시', showQty: true },
+  { id: 'cup', label: '컵', showQty: true },
+  { id: 'napkin', label: '냅킨', showQty: true },
+  { id: 'wetTowel', label: '물티슈', showQty: true },
+  { id: 'spoon', label: '수저', showQty: true },
+  { id: 'fork', label: '젓가락', showQty: true },
+  { id: 'banchan', label: '반찬추가', showQty: false },
+  { id: 'sauce', label: '소스추가', showQty: false },
 ];
