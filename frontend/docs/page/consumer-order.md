@@ -68,7 +68,7 @@ type ConsumerSheetState =
 | `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보(배지)·옵션·수량·담기 버튼 (`MenuDetailSheet`) |
 | `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록(비어 있으면 빈 상태) + 총 결제 금액 + 버튼("주문하기" 또는 빈 상태일 때 "메뉴 보러가기") |
 | `order-history` | 헤더 "주문내역" 버튼 | 헤더(아이콘+누적 수량 배지) + 주문 건별로 시간과 함께 묶은 목록(비어 있으면 빈 상태) + 총 결제 금액 + "확인" 버튼 (`OrderHistorySheet`, ADR-027) |
-| `staff-call` | 헤더 "직원호출" 버튼 | 헤더(아이콘+제목+범용 호출 토글) + 호출 항목 칩 + 선택 항목 수량 조절 + "호출하기" 버튼 (`StaffCallSheetContent`, mock — ADR-031) |
+| `staff-call` | 헤더 "직원호출" 버튼 | 헤더(고정) + 선택 항목 수량 조절(내부 스크롤) + 호출 항목 칩(on/off, `showQty`로 수량형/단순형 구분, 고정) + "호출하기" 버튼(고정) (`StaffCallSheetContent`, mock — ADR-031/033/034) |
 
 렌더러는 `ConsumerBottomSheet`(신규 primitive, `WrapperModal` 미재사용 — ADR-020) 하나이고, 내용만 `sheet.type`에 따라 `ConsumerOrderPage.tsx`가 조립한다. 열릴 때 첫 포커스 가능 요소로 이동하고 Tab/Shift+Tab을 시트 안에서만 순환시키는 포커스 트랩이 있다(포커스 가능한 요소가 없으면 시트 자체에 머무름) — `SoldoutModal`과 같은 기법.
 
