@@ -61,12 +61,50 @@ class StatusMapperXmlTest {
     }
 
     @Test
+    void scopesOrderStatusMutationsToPlantAndExpectedState() {
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId("GROUP-1");
+        Map<String, Object> parameters = Map.of(
+                "header", header,
+                "cancelType", "CUSTOMER_REQUEST",
+                "cancelReason", "",
+                "cancelDescription", "",
+                "userId", "USER-1",
+                "sysPlantCd", "PLANT-1",
+                "expectedStatus", "01");
+
+        for (String statement : new String[]{
+                "cancelOrder", "goToCooking", "backToReceiveOrder",
+                "goToServingComplete", "backToCooking"}) {
+            String sql = sql(statement, parameters);
+            assertTrue(sql.contains("sys_plant_cd = ?"));
+            assertTrue(sql.contains("order_status = ?") || sql.contains("order_status in"));
+        }
+        assertTrue(sql("lockOrderGroupStatus", parameters).endsWith("for update"));
+    }
+
+    @Test
+    void buildsVisitWideReceiptFromMasterScope() {
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId("MASTER-1");
+        Map<String, Object> parameters = Map.of("header", header, "sysPlantCd", "PLANT-1");
+
+        for (String statement : new String[]{
+                "getPaymentCompleteBodyItems", "getPaymentCompleteFooterItems"}) {
+            String sql = sql(statement, parameters);
+            assertTrue(sql.contains("og.link_sys_id = ?"));
+            assertTrue(sql.contains("og.order_status != '99!'"));
+        }
+    }
+
+    @Test
     void mapsTimestampColumnsToDateTimeFields() throws Exception {
         for (String fieldName : new String[]{"orderDatetime", "cancelDatetime"}) {
             var field = StatusItem.Header.class.getDeclaredField(fieldName);
 
             assertEquals(LocalDateTime.class, field.getType());
             assertEquals("yyyy-MM-dd HH:mm:ss", field.getAnnotation(JsonFormat.class).pattern());
+            assertEquals("date-time", field.getAnnotation(io.swagger.v3.oas.annotations.media.Schema.class).format());
         }
     }
 

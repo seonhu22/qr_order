@@ -11,11 +11,18 @@ public interface StatusMapper {
     List<StatusItem.Header> getStatusHeaderItems(String sysPlantCd);
     List<StatusItem.Body> getStatusBodyItems(String sysPlantCd);
     List<StatusItem.Footer> getStatusFooterItems(String sysPlantCd);
-    void cancelOrder(StatusItem.Header header, String cancelType, String cancelReason, String cancelDescription, String userId);
-    void goToCooking(StatusItem.Header header, String userId);
-    void backToReceiveOrder(StatusItem.Header header, String userId);
-    void goToServingComplete(StatusItem.Header header, String userId);
-    void backToCooking(StatusItem.Header header, String userId);
+    int cancelOrder(@Param("header") StatusItem.Header header, @Param("cancelType") String cancelType,
+                    @Param("cancelReason") String cancelReason, @Param("cancelDescription") String cancelDescription,
+                    @Param("userId") String userId, @Param("sysPlantCd") String sysPlantCd);
+    int goToCooking(@Param("header") StatusItem.Header header, @Param("userId") String userId,
+                    @Param("sysPlantCd") String sysPlantCd, @Param("expectedStatus") String expectedStatus);
+    int backToReceiveOrder(@Param("header") StatusItem.Header header, @Param("userId") String userId,
+                           @Param("sysPlantCd") String sysPlantCd, @Param("expectedStatus") String expectedStatus);
+    int goToServingComplete(@Param("header") StatusItem.Header header, @Param("userId") String userId,
+                            @Param("sysPlantCd") String sysPlantCd, @Param("expectedStatus") String expectedStatus);
+    int backToCooking(@Param("header") StatusItem.Header header, @Param("userId") String userId,
+                      @Param("sysPlantCd") String sysPlantCd, @Param("expectedStatus") String expectedStatus);
+    String lockOrderGroupStatus(@Param("sysId") String sysId, @Param("sysPlantCd") String sysPlantCd);
     String lockPaymentMasterStatus(
             @Param("sysId") String sysId,
             @Param("sysPlantCd") String sysPlantCd);
@@ -41,7 +48,8 @@ public interface StatusMapper {
             @Param("sysId") String sysId,
             @Param("userId") String userId,
             @Param("sysPlantCd") String sysPlantCd);
-    StatusCancelResponse getStatusCancelResponses(String sysId);
+    StatusCancelResponse getStatusCancelResponses(@Param("sysId") String sysId,
+                                                  @Param("sysPlantCd") String sysPlantCd);
     PaymentCompleteResponse.Header getPaymentCompleteHeaders(
             @Param("header") StatusItem.Header header,
             @Param("sysPlantCd") String sysPlantCd);
@@ -51,5 +59,9 @@ public interface StatusMapper {
     PaymentCompleteResponse.Footer getPaymentCompleteFooterItems(
             @Param("header") StatusItem.Header header,
             @Param("sysPlantCd") String sysPlantCd);
-    void changeOrder(List<String> listDetailSysId, String userId);
+    List<String> lockChangeableOrderDetailIds(@Param("listDetailSysId") List<String> listDetailSysId,
+                                              @Param("sysPlantCd") String sysPlantCd);
+    int changeOrder(@Param("listDetailSysId") List<String> listDetailSysId,
+                    @Param("userId") String userId,
+                    @Param("sysPlantCd") String sysPlantCd);
 }

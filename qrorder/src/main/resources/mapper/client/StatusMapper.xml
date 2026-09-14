@@ -108,6 +108,8 @@
             modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status in ('01', '02', '03')
     </update>
 
     <update id="goToCooking">
@@ -117,6 +119,8 @@
             modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status = #{expectedStatus}
     </update>
 
     <update id="backToReceiveOrder">
@@ -126,6 +130,8 @@
             modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status = #{expectedStatus}
     </update>
 
     <update id="goToServingComplete">
@@ -135,6 +141,8 @@
             modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status = #{expectedStatus}
     </update>
 
     <update id="backToCooking">
@@ -144,7 +152,17 @@
             modify_datetime = now()
         where 1=1
         and sys_id = #{header.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and order_status = #{expectedStatus}
     </update>
+
+    <select id="lockOrderGroupStatus" resultType="string">
+        select order_status
+        from order_group
+        where sys_id = #{sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        for update
+    </select>
 
     <select id="lockPaymentMasterStatus" resultType="string">
         select order_status
@@ -217,6 +235,7 @@
         from order_group og
         where 1=1
         and sys_id = #{sysId}
+        and sys_plant_cd = #{sysPlantCd}
     </select>
 
     <select id="getPaymentCompleteHeaders" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Header">
@@ -246,6 +265,8 @@
             smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0) as price ,
             od.payment_yn
         from order_detail od
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
@@ -256,8 +277,9 @@
             group by odo.link_sys_id
         ) opt_sum on opt_sum.link_sys_id = od.sys_id
         where 1=1
-        and od.link_sys_id3 = #{header.sysId}
+        and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
+        and og.order_status != '99!'
         union all
         select
             od.link_sys_id3 as link_sys_id ,
@@ -269,18 +291,21 @@
             smod.menu_option_price * odo.qty as price ,
             'Y' as payment_yn
         from order_detail od
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
         inner join order_detail_option odo
             on odo.link_sys_id = od.sys_id
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
-        and od.link_sys_id3 = #{header.sysId}
+        and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
+        and og.order_status != '99!'
     </select>
 
     <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Footer">
         select
-            od.link_sys_id3 as sys_id ,
+            #{header.sysId} as sys_id ,
             sum(
                 case
                     when od.payment_yn = 'Y'
@@ -289,6 +314,8 @@
                 end
             ) as total_price
         from order_detail od
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
@@ -299,9 +326,24 @@
             group by odo.link_sys_id
         ) opt_sum on opt_sum.link_sys_id = od.sys_id
         where 1=1
-        and od.link_sys_id3 = #{header.sysId}
+        and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
-        group by od.link_sys_id3
+        and og.order_status != '99!'
+    </select>
+
+    <select id="lockChangeableOrderDetailIds" resultType="string">
+        select od.sys_id
+        from order_detail od
+        inner join order_group og
+            on og.sys_id = od.link_sys_id3
+        where od.sys_id in
+        <foreach collection="listDetailSysId" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and od.sys_plant_cd = #{sysPlantCd}
+        and og.sys_plant_cd = #{sysPlantCd}
+        and og.order_status in ('01', '02', '03')
+        for update of od
     </select>
 
     <update id="changeOrder">
@@ -314,6 +356,14 @@
         <foreach collection="listDetailSysId" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and sys_plant_cd = #{sysPlantCd}
+        and exists (
+            select 1
+            from order_group og
+            where og.sys_id = order_detail.link_sys_id3
+            and og.sys_plant_cd = #{sysPlantCd}
+            and og.order_status in ('01', '02', '03')
+        )
     </update>
 
 </mapper>
