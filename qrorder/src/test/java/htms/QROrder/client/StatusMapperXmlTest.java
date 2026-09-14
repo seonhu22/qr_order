@@ -61,6 +61,23 @@ class StatusMapperXmlTest {
     }
 
     @Test
+    void requiresOpenMasterStatusOnPaymentWriteToPreventDoubleClose() {
+        Map<String, Object> parameters = Map.of(
+                "paymentType", "카드",
+                "unpaidReason", "CUSTOMER_ABSENT",
+                "unpaidDescription", "",
+                "sysId", "MASTER-1",
+                "userId", "USER-1",
+                "sysPlantCd", "PLANT-1");
+
+        for (String statement : new String[]{"paymentCompleteOrderMaster", "paymentNotCompleteOrderMaster"}) {
+            assertTrue(
+                    sql(statement, parameters).contains("order_status = '01'"),
+                    statement + " must filter by open status to guard against concurrent double-close");
+        }
+    }
+
+    @Test
     void scopesOrderStatusMutationsToPlantAndExpectedState() {
         StatusItem.Header header = new StatusItem.Header();
         header.setSysId("GROUP-1");

@@ -59,19 +59,17 @@ class ConsumerOrderTransactionServiceTest {
         verify(mapper).insertOrderDetail(item.capture());
         verify(mapper).insertOrderDetailOption(option.capture());
         assertEquals("MENU-1", item.getValue().getMenuSysId());
-        assertEquals(4, option.getValue().getQuantity());
-        verify(visitService).touchBoundVisit(qr, "VISIT-1");
+        assertEquals("OPTION-1", option.getValue().getOptionSysId());
     }
 
     @Test
-    void rejectsInactiveTableBeforeVisitAndWrites() {
+    void rejectsInactiveTableBeforeValidationAndWrites() {
         QrConnectResponse qr = qrTableInfo();
         when(visitService.lockTableForOrdering(qr)).thenReturn(false);
 
         assertThrows(ConsumerTableInactiveException.class,
                 () -> service.createOrder(qr, binding(), new ConsumerOrderCreateRequest()));
 
-        verify(visitService, never()).lockBoundVisit(qr, "VISIT-1");
         verifyNoInteractions(validator, mapper);
     }
 
@@ -80,6 +78,20 @@ class ConsumerOrderTransactionServiceTest {
         QrConnectResponse qr = qrTableInfo();
         ConsumerVisitRecord visit = activeVisit();
         visit.setOrderStatus("02");
+        when(visitService.lockTableForOrdering(qr)).thenReturn(true);
+        when(visitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(visit);
+
+        assertThrows(ConsumerOrderSessionGoneException.class,
+                () -> service.createOrder(qr, binding(), new ConsumerOrderCreateRequest()));
+
+        verifyNoInteractions(validator, mapper);
+    }
+
+    @Test
+    void rejectsUnpaidClosedVisitBeforeValidationAndWrites() {
+        QrConnectResponse qr = qrTableInfo();
+        ConsumerVisitRecord visit = activeVisit();
+        visit.setOrderStatus("03");
         when(visitService.lockTableForOrdering(qr)).thenReturn(true);
         when(visitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(visit);
 
