@@ -1,7 +1,7 @@
 ---
 title: "fix: 방문 결제 완료/미결제 처리 보강"
 type: fix
-status: active
+status: implemented
 date: 2026-09-14
 scope: backend+frontend
 ownership-note: 백엔드 서비스/로직 수정 허용. DB 스키마 변경 금지(권한 없음).
