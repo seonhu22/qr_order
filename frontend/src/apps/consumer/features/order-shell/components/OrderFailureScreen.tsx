@@ -3,20 +3,20 @@ import { Button } from '@/shared/components/button';
 import './OrderFailureScreen.css';
 
 type OrderFailureScreenProps = {
-  type: 'network' | 'duplicate';
+  type: 'network' | 'duplicate' | 'ambiguous';
   /** type이 'duplicate'일 때만 사용 — 먼저 접수된 주문 시각. */
   duplicateTime?: string;
   /** "메인화면으로 이동" 클릭. */
   onGoMain: () => void;
   /** type이 'network'일 때 "다시 시도하기" 클릭. */
   onRetry?: () => void;
-  /** type이 'duplicate'일 때 "주문내역 확인하기" 클릭. */
+  /** 중복/결과 미확인 상태에서 "주문내역 확인하기" 클릭. */
   onHistory?: () => void;
 };
 
 /**
  * 주문 제출 실패 전체화면 — 참고 저장소(Qrorder)의 OrderErrorScreen과 동일한 구성을
- * 이 프로젝트 토큰으로 재현한다. network/duplicate 두 사례를 하나의 컴포넌트로 다룬다.
+ * 이 프로젝트 토큰으로 재현한다. network/duplicate/ambiguous 사례를 하나의 컴포넌트로 다룬다.
  */
 export function OrderFailureScreen({
   type,
@@ -44,7 +44,7 @@ export function OrderFailureScreen({
               메인으로 이동해 다시 주문해 주세요.
             </p>
           </div>
-        ) : (
+        ) : type === 'duplicate' ? (
           <div className="order-failure-screen__text">
             <p className="order-failure-screen__title">
               이미 같은 테이블에서
@@ -62,6 +62,19 @@ export function OrderFailureScreen({
                 {duplicateTime} 접수 완료
               </div>
             )}
+          </div>
+        ) : (
+          <div className="order-failure-screen__text">
+            <p className="order-failure-screen__title">
+              주문 처리 결과를
+              <br />
+              바로 확인할 수 없습니다
+            </p>
+            <p className="order-failure-screen__description">
+              같은 주문을 다시 보내지 말고,
+              <br />
+              주문 내역에서 접수 여부를 확인해 주세요.
+            </p>
           </div>
         )}
 

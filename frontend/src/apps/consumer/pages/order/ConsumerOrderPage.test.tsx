@@ -315,6 +315,33 @@ describe('ConsumerOrderPage 주문 API', () => {
     expect(requestIds[1]).toBe(requestIds[0]);
   });
 
+  it('멱등성 충돌에서는 재주문하지 않고 장바구니와 요청 식별자를 유지한다', async () => {
+    let postCount = 0;
+    server.use(
+      http.post('/api/client/consumer/orders', () => {
+        postCount += 1;
+        return HttpResponse.json(
+          {
+            success: false,
+            message: '동일한 주문 요청을 처리 중입니다.',
+            error: 'IDEMPOTENCY_IN_PROGRESS',
+          },
+          { status: 409 },
+        );
+      }),
+    );
+
+    renderOrderPage();
+    await addPlainMenuToCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    expect(await screen.findByText(/주문 처리 결과를/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도하기' })).not.toBeInTheDocument();
+    expect(useConsumerCartStore.getState().cart).toHaveLength(1);
+    expect(useConsumerCartStore.getState().clientRequestId).toBeTruthy();
+    expect(postCount).toBe(1);
+  });
+
   it('주문 중 방문 세션이 종료되면 장바구니를 삭제한다', async () => {
     server.use(
       http.post('/api/client/consumer/orders', () =>

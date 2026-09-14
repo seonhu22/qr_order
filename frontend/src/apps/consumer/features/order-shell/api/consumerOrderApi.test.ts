@@ -4,6 +4,7 @@ import { HttpError } from '@/shared/lib/httpClient';
 import {
   buildConsumerOrderRequest,
   CONSUMER_ORDER_REQUEST_TIMEOUT_MS,
+  getConsumerOrderIdempotencyErrorCode,
   isTableInactiveError,
   mapOrderCreated,
   submitConsumerOrder,
@@ -93,6 +94,26 @@ describe('consumerOrderApi', () => {
       ),
     ).toBe(true);
     expect(isTableInactiveError(new HttpError('품절', response, '/orders', {}))).toBe(false);
+  });
+
+  it('extracts only supported idempotency 409 error codes', () => {
+    const response = new Response(null, { status: 409, statusText: 'Conflict' });
+    for (const code of [
+      'IDEMPOTENCY_IN_PROGRESS',
+      'IDEMPOTENCY_KEY_EXPIRED',
+      'IDEMPOTENCY_PAYLOAD_MISMATCH',
+    ]) {
+      expect(
+        getConsumerOrderIdempotencyErrorCode(
+          new HttpError('멱등성 충돌', response, '/orders', { error: code }),
+        ),
+      ).toBe(code);
+    }
+    expect(
+      getConsumerOrderIdempotencyErrorCode(
+        new HttpError('품절', response, '/orders', { error: 'TABLE_INACTIVE' }),
+      ),
+    ).toBeNull();
   });
 
   it('aborts an order request after 15 seconds', async () => {
