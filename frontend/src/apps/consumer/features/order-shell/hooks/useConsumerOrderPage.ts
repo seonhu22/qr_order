@@ -17,7 +17,11 @@ import {
   useConsumerMenuMainQuery,
   useConsumerMenuSearchQuery,
 } from '../api/consumerMenuApi';
-import { isTableInactiveError, useConsumerOrderCreateMutation } from '../api/consumerOrderApi';
+import {
+  getConsumerOrderIdempotencyErrorCode,
+  isTableInactiveError,
+  useConsumerOrderCreateMutation,
+} from '../api/consumerOrderApi';
 import { calcCartLinePrice } from '../cartLine';
 import type {
   OrderShellCartLine,
@@ -36,6 +40,7 @@ type OrderPhase =
   | 'complete'
   | 'error-network'
   | 'error-duplicate'
+  | 'error-ambiguous'
   | 'session-timeout'
   | 'session-closed'
   | 'network-error';
@@ -191,6 +196,12 @@ export function useConsumerOrderPage() {
             );
             void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
             setOrderPhase('idle');
+            return;
+          }
+
+          if (getConsumerOrderIdempotencyErrorCode(error)) {
+            closeSheet();
+            setOrderPhase('error-ambiguous');
             return;
           }
 

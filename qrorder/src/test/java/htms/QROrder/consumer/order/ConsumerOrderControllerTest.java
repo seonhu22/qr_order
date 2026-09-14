@@ -11,6 +11,7 @@ import htms.QROrder.consumer.order.dto.ConsumerOrderDetailResponse;
 import htms.QROrder.consumer.order.dto.ConsumerOrderListResponse;
 import htms.QROrder.consumer.order.dto.ConsumerOrderSummary;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
+import htms.QROrder.consumer.order.exception.ConsumerOrderIdempotencyException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
@@ -153,6 +154,21 @@ class ConsumerOrderControllerTest {
                 .andExpect(jsonPath("$.error").value("TABLE_INACTIVE"))
                 .andExpect(jsonPath("$.message")
                         .value("현재 테이블에서는 새 주문을 할 수 없습니다."));
+    }
+
+    @Test
+    void mapsIdempotencyFailureToCodedConflict() throws Exception {
+        when(consumerOrderCreationService.createOrder(any(), any(), any()))
+                .thenThrow(new ConsumerOrderIdempotencyException(
+                        ConsumerOrderIdempotencyException.PAYLOAD_MISMATCH,
+                        "같은 요청 식별자로 다른 주문 내용을 전송할 수 없습니다."));
+
+        performWithActiveSession()
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error").value("IDEMPOTENCY_PAYLOAD_MISMATCH"))
+                .andExpect(jsonPath("$.message")
+                        .value("같은 요청 식별자로 다른 주문 내용을 전송할 수 없습니다."));
     }
 
     @Test

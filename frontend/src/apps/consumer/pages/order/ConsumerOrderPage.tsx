@@ -317,6 +317,13 @@ export function ConsumerOrderPage() {
               onHistory={viewOrderHistoryFromError}
             />
           )}
+          {orderPhase === 'error-ambiguous' && (
+            <OrderFailureScreen
+              type="ambiguous"
+              onGoMain={dismissOrderError}
+              onHistory={viewOrderHistoryFromError}
+            />
+          )}
           {orderPhase === 'session-timeout' && <SessionExpiredScreen variant="timeout" />}
           {orderPhase === 'session-closed' && <SessionExpiredScreen variant="closed" />}
           {orderPhase === 'network-error' && <NetworkErrorScreen onRetry={retryFromNetworkError} />}

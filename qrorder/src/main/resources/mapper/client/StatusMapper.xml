@@ -190,6 +190,7 @@
         where 1=1
         and sys_id = #{sysId}
         and sys_plant_cd = #{sysPlantCd}
+        and order_status = '01'
     </update>
 
     <update id="paymentCompleteOrderGroup">
@@ -213,6 +214,7 @@
         where 1=1
         and sys_id = #{sysId}
         and sys_plant_cd = #{sysPlantCd}
+        and order_status = '01'
     </update>
 
     <update id="paymentNotCompleteOrderGroup">

@@ -155,7 +155,7 @@ class StatusServiceTest {
     }
 
     @Test
-    void rejectsUnpaidClosureWhenAnyOrderIsNotServed() {
+    void completesUnpaidVisitWithMixedOrderStatuses() {
         PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
         PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
         orderInfo.setSysId("MASTER-1");
@@ -164,14 +164,61 @@ class StatusServiceTest {
         when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
         when(statusMapper.lockPaymentOrderStatuses("MASTER-1", "PLANT-1"))
                 .thenReturn(java.util.List.of("03", "02"));
+        when(statusMapper.paymentNotCompleteOrderMaster(any(), any(), any(), any(), any()))
+                .thenReturn(1);
+
+        statusService.paymentNotComplete(request, "USER-1", "PLANT-1");
+
+        verify(statusMapper).paymentNotCompleteOrderGroup("MASTER-1", "USER-1", "PLANT-1");
+    }
+
+    @Test
+    void rejectsUnpaidClosureWithMissingReason() {
+        PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
+        PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
+        orderInfo.setSysId("MASTER-1");
+        request.setOrderInfo(orderInfo);
+        request.setUnpaidReason(null);
 
         ResponseStatusException error = assertThrows(
                 ResponseStatusException.class,
                 () -> statusService.paymentNotComplete(request, "USER-1", "PLANT-1"));
 
-        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
         verify(statusMapper, never()).paymentNotCompleteOrderMaster(any(), any(), any(), any(), any());
-        verify(statusMapper, never()).paymentNotCompleteOrderGroup(any(), any(), any());
+    }
+
+    @Test
+    void rejectsUnpaidClosureWithUnsupportedReason() {
+        PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
+        PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
+        orderInfo.setSysId("MASTER-1");
+        request.setOrderInfo(orderInfo);
+        request.setUnpaidReason("INVALID_REASON");
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.paymentNotComplete(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(statusMapper, never()).paymentNotCompleteOrderMaster(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void rejectsUnpaidClosureWithOtherReasonAndBlankDescription() {
+        PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
+        PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
+        orderInfo.setSysId("MASTER-1");
+        request.setOrderInfo(orderInfo);
+        request.setUnpaidReason("OTHER");
+        request.setUnpaidDescription("   ");
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.paymentNotComplete(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(statusMapper, never()).paymentNotCompleteOrderMaster(any(), any(), any(), any(), any());
     }
 
     @Test

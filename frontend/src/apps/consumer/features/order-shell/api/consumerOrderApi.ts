@@ -21,6 +21,14 @@ import type {
 
 type ErrorPayload = { error?: unknown };
 
+export const CONSUMER_ORDER_IDEMPOTENCY_ERROR_CODES = [
+  'IDEMPOTENCY_IN_PROGRESS',
+  'IDEMPOTENCY_KEY_EXPIRED',
+  'IDEMPOTENCY_PAYLOAD_MISMATCH',
+] as const;
+export type ConsumerOrderIdempotencyErrorCode =
+  (typeof CONSUMER_ORDER_IDEMPOTENCY_ERROR_CODES)[number];
+
 export const CONSUMER_ORDER_REQUEST_TIMEOUT_MS = 15_000;
 
 export function buildConsumerOrderRequest(
@@ -44,6 +52,17 @@ export function isTableInactiveError(error: unknown): boolean {
   if (!(error instanceof HttpError) || error.status !== 409) return false;
   const payload = error.payload as ErrorPayload | undefined;
   return payload?.error === 'TABLE_INACTIVE';
+}
+
+export function getConsumerOrderIdempotencyErrorCode(
+  error: unknown,
+): ConsumerOrderIdempotencyErrorCode | null {
+  if (!(error instanceof HttpError) || error.status !== 409) return null;
+  const code = (error.payload as ErrorPayload | undefined)?.error;
+  return typeof code === 'string' &&
+    CONSUMER_ORDER_IDEMPOTENCY_ERROR_CODES.includes(code as ConsumerOrderIdempotencyErrorCode)
+    ? (code as ConsumerOrderIdempotencyErrorCode)
+    : null;
 }
 
 export function mapOrderCreated(response: ConsumerOrderCreateResponse): OrderShellOrderCreated {

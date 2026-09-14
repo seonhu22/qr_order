@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 public class StatusService {
 
     private static final Set<String> PAYMENT_TYPES = Set.of("카드", "현금");
+    private static final Set<String> UNPAID_REASONS =
+            Set.of("CARD_DEVICE_ERROR", "CUSTOMER_ABSENT", "PAYMENT_DECLINED", "PAY_LATER", "OTHER");
 
     private final StatusMapper statusMapper;
 
@@ -166,8 +168,10 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 대상 주문 정보가 필요합니다.");
         }
         String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
+        requireValidUnpaidReason(paymentNotCompleteRequest.getUnpaidReason(),
+                paymentNotCompleteRequest.getUnpaidDescription());
         requireOpenPaymentMaster(orderMasterSysId, sysPlantCd);
-        requireAllOrdersServed(orderMasterSysId, sysPlantCd);
+        requireNonCancelledOrdersExist(orderMasterSysId, sysPlantCd);
 
         int updated = statusMapper.paymentNotCompleteOrderMaster(
                 paymentNotCompleteRequest.getUnpaidReason(),
@@ -226,6 +230,22 @@ public class StatusService {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "모든 주문의 서빙이 완료된 후 결제할 수 있습니다.");
+        }
+    }
+
+    private void requireNonCancelledOrdersExist(String sysId, String sysPlantCd) {
+        List<String> orderStatuses = statusMapper.lockPaymentOrderStatuses(sysId, sysPlantCd);
+        if (orderStatuses.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "처리할 주문이 없습니다.");
+        }
+    }
+
+    private void requireValidUnpaidReason(String reason, String description) {
+        if (reason == null || !UNPAID_REASONS.contains(reason)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 미결제 사유입니다.");
+        }
+        if ("OTHER".equals(reason) && (description == null || description.isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기타 사유 선택 시 상세 설명이 필요합니다.");
         }
     }
 
