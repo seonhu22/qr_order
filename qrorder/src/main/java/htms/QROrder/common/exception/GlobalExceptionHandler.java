@@ -10,16 +10,18 @@ import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@Slf4j
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateException.class)
@@ -94,6 +96,16 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<CommonResponse> handleResponseStatusException(
+            ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode())
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message(e.getReason())
+                        .build());
+    }
+
     @ExceptionHandler(EmailValidException.class)
     public ResponseEntity<CommonResponse> handleEmailValidException(EmailValidException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -120,17 +132,6 @@ public class GlobalExceptionHandler {
                 .body(CommonResponse.<Void>builder()
                         .success(false)
                         .message("리소스를 찾을 수 없습니다.")
-                        .build()
-                );
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<CommonResponse> handleException(Exception e) {
-        log.error("Unhandled exception", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(CommonResponse.<Void>builder()
-                        .success(false)
-                        .message("오류가 발생했습니다. 관리자에게 문의 바랍니다.")
                         .build()
                 );
     }

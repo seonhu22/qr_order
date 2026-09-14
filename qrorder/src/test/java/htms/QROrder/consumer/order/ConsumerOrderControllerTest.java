@@ -2,6 +2,7 @@ package htms.QROrder.consumer.order;
 
 import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.common.exception.GlobalExceptionHandler;
+import htms.QROrder.common.exception.GlobalFallbackExceptionHandler;
 import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.consumer.order.controller.ConsumerOrderController;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
@@ -50,7 +51,8 @@ class ConsumerOrderControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ConsumerOrderController(
                         consumerOrderCreationService, consumerOrderQueryService))
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(
+                        new GlobalExceptionHandler(), new GlobalFallbackExceptionHandler())
                 .addInterceptors(new ConsumerAuthInterceptor())
                 .build();
     }
