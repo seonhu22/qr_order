@@ -49,7 +49,7 @@ public class ConsumerOrderValidator {
                 request.getClientRequestId().strip(), List.copyOf(validatedItems), totalAmount);
     }
 
-    private void validateRequest(ConsumerOrderCreateRequest request) {
+    public void validateRequest(ConsumerOrderCreateRequest request) {
         if (request == null) {
             throw new ValidationException("주문 요청이 필요합니다.");
         }

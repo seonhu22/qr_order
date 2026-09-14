@@ -53,7 +53,9 @@ public class ConsumerOrderController {
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     @ApiResponse(responseCode = "404", description = "현재 사업장에서 주문할 수 없는 메뉴 또는 옵션",
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
-    @ApiResponse(responseCode = "409", description = "품절 또는 비활성 테이블 등 주문 상태 충돌 (TABLE_INACTIVE)",
+    @ApiResponse(responseCode = "409", description = "품절/비활성 테이블/중복 요청 상태 충돌 "
+            + "(TABLE_INACTIVE, IDEMPOTENCY_IN_PROGRESS, IDEMPOTENCY_KEY_EXPIRED, "
+            + "IDEMPOTENCY_PAYLOAD_MISMATCH)",
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     @ApiResponse(responseCode = "410", description = "결제완료 또는 만료된 방문",
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
