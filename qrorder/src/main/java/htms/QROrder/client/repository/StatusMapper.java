@@ -23,6 +23,9 @@ public interface StatusMapper {
     int backToCooking(@Param("header") StatusItem.Header header, @Param("userId") String userId,
                       @Param("sysPlantCd") String sysPlantCd, @Param("expectedStatus") String expectedStatus);
     String lockOrderGroupStatus(@Param("sysId") String sysId, @Param("sysPlantCd") String sysPlantCd);
+    String findConsumerSessionIdByOrderGroup(
+            @Param("sysId") String sysId,
+            @Param("sysPlantCd") String sysPlantCd);
     String lockPaymentMasterStatus(
             @Param("sysId") String sysId,
             @Param("sysPlantCd") String sysPlantCd);

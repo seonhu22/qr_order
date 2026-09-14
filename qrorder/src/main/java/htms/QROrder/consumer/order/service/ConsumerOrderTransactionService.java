@@ -4,6 +4,8 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
 import htms.QROrder.consumer.order.repository.ConsumerOrderWriteRows;
@@ -27,6 +29,7 @@ public class ConsumerOrderTransactionService {
     private final ConsumerOrderValidator consumerOrderValidator;
     private final ConsumerOrderMapper consumerOrderMapper;
     private final ConsumerOrderSessionGuard consumerOrderSessionGuard;
+    private final ConsumerEventPublisher consumerEventPublisher;
 
     @Transactional
     public ConsumerOrderCreateResponse createOrder(
@@ -83,6 +86,10 @@ public class ConsumerOrderTransactionService {
         }
 
         consumerVisitService.touchBoundVisit(qrTableInfo, binding.getConsumerSessionId());
+        consumerEventPublisher.publishAfterCommit(
+                qrTableInfo.getSysPlantCd(),
+                binding.getConsumerSessionId(),
+                ConsumerEventService.ORDER_CREATED);
         log.info("Consumer order created. clientRequestId={}, orderId={}, consumerSessionId={}",
                 validatedOrder.clientRequestId(), orderId, binding.getConsumerSessionId());
 

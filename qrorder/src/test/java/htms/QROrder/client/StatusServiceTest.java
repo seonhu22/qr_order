@@ -7,6 +7,8 @@ import htms.QROrder.client.dto.StatusItem;
 import htms.QROrder.client.dto.StatusRequest;
 import htms.QROrder.client.repository.StatusMapper;
 import htms.QROrder.client.service.StatusService;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +31,9 @@ class StatusServiceTest {
 
     @Mock
     private StatusMapper statusMapper;
+
+    @Mock
+    private ConsumerEventPublisher eventPublisher;
 
     @InjectMocks
     private StatusService statusService;
@@ -68,10 +73,14 @@ class StatusServiceTest {
         when(statusMapper.lockOrderGroupStatus("GROUP-1", "PLANT-1")).thenReturn("01");
         when(statusMapper.goToCooking(any(), eq("USER-1"), eq("PLANT-1"), eq("01")))
                 .thenReturn(1);
+        when(statusMapper.findConsumerSessionIdByOrderGroup("GROUP-1", "PLANT-1"))
+                .thenReturn("VISIT-1");
 
         statusService.goToCooking(request, "USER-1", "PLANT-1");
 
         verify(statusMapper).goToCooking(request.getHeader(), "USER-1", "PLANT-1", "01");
+        verify(eventPublisher).publishAfterCommit(
+                "PLANT-1", "VISIT-1", ConsumerEventService.STATUS_CHANGED);
     }
 
     @Test
@@ -124,6 +133,8 @@ class StatusServiceTest {
         statusService.paymentComplete(request, "USER-1", "PLANT-1");
 
         verify(statusMapper).paymentCompleteOrderGroup("MASTER-1", "USER-1", "PLANT-1");
+        verify(eventPublisher).publishAfterCommit(
+                "PLANT-1", "MASTER-1", ConsumerEventService.VISIT_CLOSED);
     }
 
     @Test
@@ -152,6 +163,27 @@ class StatusServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
         verify(statusMapper, never()).paymentNotCompleteOrderGroup(any(), any(), any());
+    }
+
+    @Test
+    void publishesVisitClosedAfterUnpaidClosure() {
+        PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
+        PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
+        orderInfo.setSysId("MASTER-1");
+        request.setOrderInfo(orderInfo);
+        request.setUnpaidReason("CUSTOMER_ABSENT");
+        when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
+        when(statusMapper.lockPaymentOrderStatuses("MASTER-1", "PLANT-1"))
+                .thenReturn(java.util.List.of("03"));
+        when(statusMapper.paymentNotCompleteOrderMaster(
+                "CUSTOMER_ABSENT", null, "MASTER-1", "USER-1", "PLANT-1"))
+                .thenReturn(1);
+
+        statusService.paymentNotComplete(request, "USER-1", "PLANT-1");
+
+        verify(statusMapper).paymentNotCompleteOrderGroup("MASTER-1", "USER-1", "PLANT-1");
+        verify(eventPublisher).publishAfterCommit(
+                "PLANT-1", "MASTER-1", ConsumerEventService.VISIT_CLOSED);
     }
 
     @Test
