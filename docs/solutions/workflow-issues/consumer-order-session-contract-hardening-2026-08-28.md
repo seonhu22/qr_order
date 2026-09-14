@@ -1,7 +1,7 @@
 ---
 title: Consumer 주문/세션 API는 master 종료 상태와 잠금 기준을 먼저 고정한다
 date: 2026-08-28
-last_updated: 2026-09-14
+last_updated: 2026-09-15
 category: workflow-issues
 module: consumer-order
 problem_type: workflow_issue
@@ -82,6 +82,8 @@ requestNote: null 또는 빈 문자열만 허용
 ```
 
 테스트는 `ConsumerOrderMapperXmlTest`에서 상세 유효 플래그와 방문 종료 기준의 분리를, `StatusMapperXmlTest`에서 매장 범위/잠금/방문 영수증 범위를, `StatusServiceTest`에서 다른 매장 접근 및 결제완료/미결제의 미서빙 주문 거부를 검증한다. `OrderManageControllerTest`는 로그인 매장이 모든 변경 API에 전달되는지 확인한다. Mock도 현재 방문 전체 처리와 혼합 상태 `409`를 실제 API와 동일하게 유지한다.
+
+수동 QA에서도 같은 범위를 사용한다. 선택한 서빙완료 카드와 같은 방문에 접수/조리 중 주문이 남아 있으면 `POST /payment_complete`의 `409`는 정상이다. 다른 주문이 없는 새 방문을 사용하거나 모든 비취소 주문을 서빙 완료한 뒤 성공과 `VISIT_CLOSED`를 확인한다. `GET /get_payment_complete`에 선택 카드 외 주문이 포함되는 것도 방문 전체 영수증 계약에 따른 결과다.
 
 병합 후에는 화면 성공만 확인하지 말고 응답의 사용자 노출 필드와 OpenAPI 생성 타입도 특성 테스트로 고정한다. 이번 연동에서는 주문 생성 응답의 `orderNo` prop 전달 누락과 `LocalDateTime`/`LocalTime` 생성 타입 드리프트가 각각 테스트와 새 백엔드 OpenAPI 재생성으로 발견됐다.
 
