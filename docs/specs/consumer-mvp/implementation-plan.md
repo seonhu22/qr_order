@@ -4,6 +4,7 @@
 > 세션 계약: [Consumer 세션 API](./session-api.md)  
 > 주문 계약: [Consumer 주문 API 계약](./order-api.md)
 > 정책 근거: [Consumer MVP 정책 결정](./policy-decisions.md)
+> 핵심 수동 QA: [001/002/003 통합 시나리오](./manual-qa-001-003.md)
 
 ## 제약
 
