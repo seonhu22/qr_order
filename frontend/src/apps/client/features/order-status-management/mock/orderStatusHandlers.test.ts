@@ -123,6 +123,31 @@ describe('orderStatusHandlers', () => {
     expect((await post('go_to_cooking', { header: { sysId: 'order-009' } })).status).toBe(409);
   });
 
+  it('미결제 사유가 없으면 400을 반환한다', async () => {
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-003`);
+    const paymentBody = await payment.json();
+
+    const response = await post('not_payment_complete', {
+      orderInfo: paymentBody.header,
+    });
+
+    expect(response.status).toBe(400);
+    expect(getOrderStatusMockStore().some((row) => row.tableNum === '2' && row.orderStatus !== 'CANCELLED')).toBe(true);
+  });
+
+  it('미결제 기타 사유에 상세 설명이 없으면 400을 반환한다', async () => {
+    const payment = await fetch(`${API}/get_payment_complete?sysId=order-003`);
+    const paymentBody = await payment.json();
+
+    const response = await post('not_payment_complete', {
+      orderInfo: paymentBody.header,
+      unpaidReason: 'OTHER',
+      unpaidDescription: '',
+    });
+
+    expect(response.status).toBe(400);
+  });
+
   it('미등록 주문 API를 실제 서버로 우회시키지 않는다', async () => {
     const response = await post('unknown_action', { header: { sysId: 'order-010' } });
     expect(response.status).toBe(501);

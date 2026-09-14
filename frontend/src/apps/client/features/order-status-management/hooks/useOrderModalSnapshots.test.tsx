@@ -114,4 +114,43 @@ describe('order modal open-time snapshots', () => {
     row.menuItems[0].name = 'Polling 변경 메뉴';
     expect(result.current.draftOrders[0].menuItems[0].name).toBe('원래 메뉴');
   });
+
+  it('미결제 API가 성공한 뒤에만 완료 안내를 연다', async () => {
+    const row = createRow();
+    const onConfirmUnpaid = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useOrderPaymentModalFlow({
+      onConfirmPaid: vi.fn(),
+      onConfirmUnpaid,
+    }));
+
+    act(() => {
+      result.current.openPaymentModal(row, [row]);
+      result.current.chooseUnpaid();
+    });
+    act(() => result.current.changeReason('CUSTOMER_ABSENT'));
+    await act(async () => result.current.confirmUnpaid());
+
+    expect(onConfirmUnpaid).toHaveBeenCalledWith('order-1', 'CUSTOMER_ABSENT', '');
+    expect(result.current.isUnpaidEditorOpen).toBe(false);
+    expect(result.current.isUnpaidNoticeOpen).toBe(true);
+  });
+
+  it('미결제 API가 실패하면 사유 입력 화면과 오류를 유지한다', async () => {
+    const row = createRow();
+    const { result } = renderHook(() => useOrderPaymentModalFlow({
+      onConfirmPaid: vi.fn(),
+      onConfirmUnpaid: vi.fn().mockRejectedValue(new Error('서버 오류')),
+    }));
+
+    act(() => {
+      result.current.openPaymentModal(row, [row]);
+      result.current.chooseUnpaid();
+    });
+    act(() => result.current.changeReason('CUSTOMER_ABSENT'));
+    await act(async () => result.current.confirmUnpaid());
+
+    expect(result.current.isUnpaidEditorOpen).toBe(true);
+    expect(result.current.isUnpaidNoticeOpen).toBe(false);
+    expect(result.current.submitError).toBe('서버 오류');
+  });
 });
