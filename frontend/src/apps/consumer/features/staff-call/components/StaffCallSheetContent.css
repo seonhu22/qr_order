@@ -4,6 +4,12 @@
   gap: var(--spacing-6);
 }
 
+.staff-call-sheet__scroll-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
 /* order-shell-cart-header와 같은 아이콘-제목 간격(spacing-4)·음수 마진 트릭을 그대로 맞춘다 —
    토글이 들어가도 헤더 행의 기본 높이는 cart/order-history 헤더와 같게 유지한다
    (토글 자체 높이가 아니라 padding-block으로만 사이즈를 준다, 아래 __toggle 참고). */
@@ -58,15 +64,22 @@
 .staff-call-sheet__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
+}
+
+/* 선택된 항목이 있어 칩 위에 목록이 먼저 올 때만 구분선을 준다 — 항목이 없을 때(칩만 있을 때)는
+   스크롤 영역의 첫 요소라 구분선이 필요 없다. */
+.staff-call-sheet__selected-list + .staff-call-sheet__chips {
+  padding-top: var(--spacing-6);
+  border-top: var(--border-1) solid var(--color-border-divider);
 }
 
 .staff-call-sheet__chip {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   height: var(--spacing-12);
-  padding-inline: var(--spacing-4);
+  padding-inline: var(--spacing-6);
   border: var(--border-1) solid var(--color-border-divider);
   border-radius: var(--radius-pill);
   background-color: var(--color-bg-surface);
@@ -80,11 +93,31 @@
   color: var(--slate-30);
 }
 
+/* on 상태 — 토글 버튼(꽉 채운 스타일)과 달리 연한 브랜드 틴트로만 표시한다(참고 저장소와 동일). */
+.staff-call-sheet__chip--on {
+  border-color: var(--color-border-brand);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+
+.staff-call-sheet__chip--on .staff-call-sheet__chip-icon {
+  color: var(--color-brand-default);
+}
+
+.staff-call-sheet__chip-qty {
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-brand-default);
+}
+
+/* 참고 저장소의 `subtle-box`("스크롤 안의 스크롤")와 같은 역할 — 헤더·칩·"호출하기" 버튼은
+   고정하고 선택 목록만 내부에서 스크롤시킨다(ADR-034). 항목을 많이 고를수록 버튼이 화면
+   밖으로 밀려나 손이 닿기 어려워지는 걸 막기 위함이다. */
 .staff-call-sheet__selected-list {
   display: flex;
   flex-direction: column;
-  padding-top: var(--spacing-3);
-  border-top: var(--border-1) solid var(--color-border-divider);
+  max-height: 45vh;
+  overflow-y: auto;
+  padding-right: var(--spacing-3);
 }
 
 .staff-call-sheet__selected-row {
