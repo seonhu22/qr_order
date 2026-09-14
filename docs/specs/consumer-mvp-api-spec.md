@@ -1,7 +1,7 @@
 # Consumer MVP API 문서 허브
 
-> 상태: 구현 전 검토  
-> 갱신일: 2026-08-27  
+> 상태: Consumer 세션/메뉴/주문/SSE 구현, `dev:real` 수동 QA 진행
+> 갱신일: 2026-09-14
 > 결제 방식: 현장 후결제
 
 ## 목표
@@ -43,10 +43,10 @@
 - QR 연결 또는 최초 세션 조회에서 활성 `order_master`를 생성/재사용하고 그 ID를 `consumerSessionId`로 반환한다.
 - 주문 없이 5분 만료된 빈 master는 다음 방문에서 재사용하지 않는다.
 - `payment_yn=Y` 반영 뒤 변경되는 `order_master` 결제완료 상태를 방문 종료 신호로 사용한다.
-- 중복 제출은 프런트의 요청 진행 중 잠금으로 막으며, 서버 재시작/다중 서버 멱등성은 MVP 범위가 아니다.
+- 중복 제출은 프런트 요청 잠금과 단일 서버 10분 멱등성 저장소로 막으며, 서버 재시작/다중 서버 영속성은 MVP 범위가 아니다.
 - 주문 전 5분 무활동 만료, 주문 후 결제완료까지 유지한다.
 - 직원 호출은 UI 작업 시점으로 미룬다.
-- Consumer SSE는 동기 API 연결과 QA 뒤 마지막에 구현한다.
+- Consumer SSE는 동기 API를 데이터 원본으로 유지하는 변경 신호로 사용한다.
 
 ## API 목록
 
@@ -63,7 +63,7 @@
 | 오늘 | `GET` | `/api/client/consumer/orders/{orderId}` | [신규 계약](./consumer-mvp/order-api.md#get-apiconsumerordersorderid) |
 | 후속 | `POST` | `/api/client/consumer/staff-calls` | 직원 호출 UI 이후 |
 | 후속 | `GET` | `/api/client/consumer/staff-calls/active` | 직원 호출 UI 이후 |
-| 마지막 | `GET` | `/api/client/consumer/events` | Consumer 전용 SSE |
+| 완료/QA 필요 | `GET` | `/api/client/consumer/events` | 아래 Consumer 전용 SSE 계약 |
 
 제품 정책이 확정될 때만 추가한다.
 
@@ -85,6 +85,18 @@
 - 클라이언트의 가격/사업장/테이블 값을 신뢰하지 않는다.
 - 다른 사업장/방문 리소스는 `404`로 처리해 존재 여부를 숨긴다.
 - 주문 저장은 최종 검증부터 상세/옵션 저장까지 하나의 트랜잭션이다.
+
+## Consumer 전용 SSE 계약
+
+- `GET /api/client/consumer/events`는 `text/event-stream`을 반환한다.
+- 별도 channel ID는 받지 않고 QR 브라우저 세션의 사업장/방문 ID로 채널을 결정한다.
+- 활성 방문만 구독할 수 있으며 기존 Consumer 인증 인터셉터를 그대로 적용한다.
+- 이벤트는 `ORDER_CREATED`, `STATUS_CHANGED`, `VISIT_CLOSED` 세 종류다.
+- payload는 항상 빈 문자열이다. 수신한 프런트는 기존 주문/세션 HTTP API를 재조회한다.
+- 업무 트랜잭션이 commit된 뒤 신호를 보내며, 신호 전송 실패는 업무 응답을 실패로 바꾸지 않는다.
+- 서버는 25초 heartbeat와 30분 emitter timeout을 사용하고, 브라우저에는 3초 재연결 간격을 안내한다.
+- 프런트는 연결 오류 동안만 5초 polling하며 재연결/화면 이탈/세션 종료 시 timer와 연결을 정리한다.
+- emitter가 서버 메모리에 있으므로 현재 보장은 단일 서버 인스턴스로 제한된다.
 
 ## 구현 시 확인
 
