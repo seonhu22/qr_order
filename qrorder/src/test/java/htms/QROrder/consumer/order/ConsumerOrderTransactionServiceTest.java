@@ -4,6 +4,8 @@ import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.repository.ConsumerOrderMapper;
@@ -34,8 +36,9 @@ class ConsumerOrderTransactionServiceTest {
     private final ConsumerVisitService visitService = mock(ConsumerVisitService.class);
     private final ConsumerOrderValidator validator = mock(ConsumerOrderValidator.class);
     private final ConsumerOrderMapper mapper = mock(ConsumerOrderMapper.class);
+    private final ConsumerEventPublisher eventPublisher = mock(ConsumerEventPublisher.class);
     private final ConsumerOrderTransactionService service = new ConsumerOrderTransactionService(
-            visitService, validator, mapper, new ConsumerOrderSessionGuard());
+            visitService, validator, mapper, new ConsumerOrderSessionGuard(), eventPublisher);
 
     @Test
     void locksAndWritesTheCompleteValidatedOrder() {
@@ -60,6 +63,10 @@ class ConsumerOrderTransactionServiceTest {
         verify(mapper).insertOrderDetailOption(option.capture());
         assertEquals("MENU-1", item.getValue().getMenuSysId());
         assertEquals("OPTION-1", option.getValue().getOptionSysId());
+        assertEquals(4, option.getValue().getQuantity());
+        verify(visitService).touchBoundVisit(qr, "VISIT-1");
+        verify(eventPublisher).publishAfterCommit(
+                "PLANT-1", "VISIT-1", ConsumerEventService.ORDER_CREATED);
     }
 
     @Test
@@ -71,6 +78,7 @@ class ConsumerOrderTransactionServiceTest {
                 () -> service.createOrder(qr, binding(), new ConsumerOrderCreateRequest()));
 
         verifyNoInteractions(validator, mapper);
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -85,6 +93,7 @@ class ConsumerOrderTransactionServiceTest {
                 () -> service.createOrder(qr, binding(), new ConsumerOrderCreateRequest()));
 
         verifyNoInteractions(validator, mapper);
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -113,6 +122,7 @@ class ConsumerOrderTransactionServiceTest {
 
         verifyNoInteractions(mapper);
         verify(visitService, never()).touchBoundVisit(qr, "VISIT-1");
+        verifyNoInteractions(eventPublisher);
     }
 
     private ValidatedConsumerOrder validatedOrder() {

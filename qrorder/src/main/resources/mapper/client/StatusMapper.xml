@@ -164,6 +164,13 @@
         for update
     </select>
 
+    <select id="findConsumerSessionIdByOrderGroup" resultType="string">
+        select link_sys_id
+        from order_group
+        where sys_id = #{sysId}
+        and sys_plant_cd = #{sysPlantCd}
+    </select>
+
     <select id="lockPaymentMasterStatus" resultType="string">
         select order_status
         from order_master

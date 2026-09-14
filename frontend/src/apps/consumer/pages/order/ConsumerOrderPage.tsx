@@ -15,6 +15,8 @@ import { OrderProcessingScreen } from '@/apps/consumer/features/order-shell/comp
 import { SessionExpiredScreen } from '@/apps/consumer/features/order-shell/components/SessionExpiredScreen';
 import { SoldoutModal } from '@/apps/consumer/features/order-shell/components/SoldoutModal';
 import { useConsumerOrderPage } from '@/apps/consumer/features/order-shell/hooks/useConsumerOrderPage';
+import { useConsumerEvents } from '@/apps/consumer/features/events/hooks/useConsumerEvents';
+import { useConsumerSession } from '@/apps/consumer/features/session/hooks/useConsumerSession';
 import './ConsumerOrderPage.css';
 
 const SHEET_TITLE: Record<string, string> = {
@@ -24,6 +26,9 @@ const SHEET_TITLE: Record<string, string> = {
 };
 
 export function ConsumerOrderPage() {
+  const { session } = useConsumerSession();
+  useConsumerEvents(session?.consumerSessionId ?? '', session?.status === 'active');
+
   const {
     searchQuery,
     selectedCategory,

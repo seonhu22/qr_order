@@ -60,7 +60,7 @@ origin: docs/brainstorms/2026-09-08-consumer-api-integration-qa-hardening-requir
 ## Key Technical Decisions
 
 - 결제 완료/미결제를 별도 검증 경로로 분리한다. 금전 수납과 운영상 손실 종료는 허용 시점이 다르기 때문이다.
-- 미결제 사유는 현재 Client 선택지와 동일한 허용 목록을 서버 권위로 검증한다. `OTHER`일 때만 공백이 아닌 상세 설명을 요구한다.
+- 미결제 사유 허용 목록: `CARD_DEVICE_ERROR` / `CUSTOMER_ABSENT` / `PAYMENT_DECLINED` / `PAY_LATER` / `OTHER`. `OTHER`일 때만 공백이 아닌 상세 설명을 요구한다. (출처: `frontend/src/apps/client/features/order-status-management/constants.ts`)
 - 클라이언트가 보낸 금액/body/footer는 결제 권위 데이터로 사용하지 않는다. 서버가 로그인 매장과 master 기준으로 대상을 다시 확인한다.
 - 이미 종료된 방문이나 동시 중복 처리는 `409`, 다른 매장/없는 대상은 `404`, 잘못된 입력은 `400`으로 구분한다.
 

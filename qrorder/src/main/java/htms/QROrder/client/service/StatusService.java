@@ -2,6 +2,8 @@ package htms.QROrder.client.service;
 
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.StatusMapper;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class StatusService {
             Set.of("CARD_DEVICE_ERROR", "CUSTOMER_ABSENT", "PAYMENT_DECLINED", "PAY_LATER", "OTHER");
 
     private final StatusMapper statusMapper;
+    private final ConsumerEventPublisher consumerEventPublisher;
 
     public List<StatusResponse> getStatus(String sysPlantCd){
 
@@ -45,6 +48,7 @@ public class StatusService {
 
         requireUpdatedOrder(statusMapper.cancelOrder(
                 header, cancelType, cancelReason, cancelDescription, userId, sysPlantCd));
+        publishStatusChanged(header.getSysId(), sysPlantCd);
     }
 
     public void goToCooking(StatusRequest statusRequest,
@@ -55,6 +59,7 @@ public class StatusService {
         requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("01"));
 
         requireUpdatedOrder(statusMapper.goToCooking(header, userId, sysPlantCd, "01"));
+        publishStatusChanged(header.getSysId(), sysPlantCd);
     }
 
     public void backToReceiveOrder(StatusRequest statusRequest,
@@ -65,6 +70,7 @@ public class StatusService {
         requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("02"));
 
         requireUpdatedOrder(statusMapper.backToReceiveOrder(header, userId, sysPlantCd, "02"));
+        publishStatusChanged(header.getSysId(), sysPlantCd);
     }
 
     public void goToServingComplete(StatusRequest statusRequest,
@@ -75,6 +81,7 @@ public class StatusService {
         requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("02"));
 
         requireUpdatedOrder(statusMapper.goToServingComplete(header, userId, sysPlantCd, "02"));
+        publishStatusChanged(header.getSysId(), sysPlantCd);
     }
 
     public void backToCooking(StatusRequest statusRequest,
@@ -85,6 +92,7 @@ public class StatusService {
         requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("03"));
 
         requireUpdatedOrder(statusMapper.backToCooking(header, userId, sysPlantCd, "03"));
+        publishStatusChanged(header.getSysId(), sysPlantCd);
     }
 
     public PaymentCompleteResponse getPaymentComplete(String sysId, String sysPlantCd) {
@@ -155,6 +163,8 @@ public class StatusService {
                 paymentCompleteRequest.getPaymentType(), sysId, userId, sysPlantCd);
         requireOwnedPaymentTarget(updated);
         statusMapper.paymentCompleteOrderGroup(sysId, userId, sysPlantCd);
+        consumerEventPublisher.publishAfterCommit(
+                sysPlantCd, sysId, ConsumerEventService.VISIT_CLOSED);
     }
 
     public void paymentNotComplete(PaymentNotCompleteRequest paymentNotCompleteRequest,
@@ -181,6 +191,19 @@ public class StatusService {
                 sysPlantCd);
         requireOwnedPaymentTarget(updated);
         statusMapper.paymentNotCompleteOrderGroup(orderMasterSysId, userId, sysPlantCd);
+        consumerEventPublisher.publishAfterCommit(
+                sysPlantCd, orderMasterSysId, ConsumerEventService.VISIT_CLOSED);
+    }
+
+    private void publishStatusChanged(String orderGroupId, String sysPlantCd) {
+        String consumerSessionId = statusMapper.findConsumerSessionIdByOrderGroup(
+                orderGroupId, sysPlantCd);
+        if (consumerSessionId == null || consumerSessionId.isBlank()) {
+            log.warn("Consumer status event skipped: visit not found. orderGroupId={}", orderGroupId);
+            return;
+        }
+        consumerEventPublisher.publishAfterCommit(
+                sysPlantCd, consumerSessionId, ConsumerEventService.STATUS_CHANGED);
     }
 
     private void requireOwnedPaymentTarget(int updated) {
