@@ -7,7 +7,7 @@
 
 ## 표기 규칙
 
-- **결제완료 제외**: 조회 응답의 결제상태가 `PAID`(완료)인 주문은 어떤 컬럼에도 표시하지 않는다. 현재 결제완료 저장 API는 연동 전이므로 모달 조작만으로 카드를 제거하지 않는다.
+- **결제완료 제외**: 조회 응답의 결제상태가 `PAID`(완료)인 주문은 어떤 컬럼에도 표시하지 않는다. 결제완료 API 성공 뒤 주문현황/결제현황 쿼리를 무효화해 서버 상태를 다시 조회한다.
 - **취소는 당일만 표시**: 취소(`CANCELLED`) 컬럼은 취소 처리 시각(`cancelledAt`)이 오늘 날짜인 주문만 보여준다. 어제 이전에 취소된 주문은 보드에서 제외된다.
 - 컬럼 헤더의 숫자는 위 두 규칙을 적용하고 남은(=화면에 실제로 보이는) 카드 수다.
 - 최초 조회 카드는 각 컬럼 안에서 주문 접수 시각(`orderDatetime`) 오름차순으로 정렬한다.
@@ -66,23 +66,23 @@
 
 ## 결제 처리 (모달 흐름)
 
-> 현재 결제 대상 선택·영수증·미결제 사유 입력 UI까지만 유지한다. 최종 결제완료/미결제 저장은 백엔드 계약 연동 전까지 비활성화되어 있으며 보드 데이터를 변경하지 않는다.
+> 결제완료/미결제 모두 실제 API와 연결되어 있다. 결제 영수증은 클릭한 주문 그룹이 속한 방문(`order_master`)의 미취소 주문 전체를 서버에서 다시 조회한다. 프론트가 보낸 영수증 본문/합계는 표시용이며, 서버의 대상 식별과 상태 검증을 대신하지 않는다.
 
 `useOrderPaymentModalFlow` (위치: `features/order-status-management/hooks/useOrderPaymentModalFlow.ts`)가 모달 단계와 입력 draft를 관리한다.
 
 1. **결제완료/미결제/닫기 선택** — `WrapperModal`(size="sm", Figma 360px와 동일). 버튼이 3개라 `WrapperModal`의 기본 footer(최대 2개)를 쓰지 않고, `children` 안에 버튼 3개(`결제완료`=primary, `미결제`=neutral, `닫기`=outline)를 직접 두고 `.order-payment-modal__actions`로 footer처럼 보이게 스타일링했다. 이 모달은 `primaryAction`/`secondaryAction`을 아예 전달하지 않는다. "미결제"는 처음엔 danger(빨강)였다가, 수정 모달의 메뉴 줄 "취소" 버튼과 색을 맞춰달라는 요청으로 `neutral`로 바꿨다.
    - **결제완료**: 선택 모달을 닫고 2-A단계(영수증 확인) 모달을 연다.
    - **미결제**: 선택 모달을 닫고 2-B단계(미결제사유 입력) 모달을 연다.
-2-A. **결제완료 영수증 확인** — `WrapperModal`(size="md", Figma 480px와 동일). Figma 디자인은 **같은 테이블의 결제 대상 주문을 전부 합친 영수증**이다(주문 단위가 아니라 테이블 단위 결제). `getPayableOrdersForTable(rows, tableNum)`(위치: `utils.ts`)이 클릭한 카드와 같은 `tableNum`이면서 `orderStatus === 'SERVED'`이고 아직 `paymentStatus !== 'PAID'`인 주문을 전부 모아 영수증에 렌더한다(접수/조리중 주문은 아직 결제 대상이 아니라서 제외). 최종 "확인"은 API 계약 연동 전까지 안내만 표시하며 결제상태를 바꾸지 않는다.
+2-A. **결제완료 영수증 확인** — `WrapperModal`(size="md", Figma 480px와 동일). 화면은 같은 테이블의 서빙완료/미결제 카드를 묶어 미리 보여준다. 확인할 때는 첫 주문 그룹 ID로 서버 영수증을 다시 조회하고, 서버가 반환한 방문 마스터 ID를 사용해 결제완료 API를 호출한다. 서버는 같은 매장/같은 방문 범위와 전체 주문의 서빙완료 상태를 검증한 뒤 결제를 처리한다.
    - 주문번호 옆에 그 주문의 칸반 상태를 배지로 보여준다(`.order-status-badge`, `getOrderBoardStatusLabel`/`ORDER_BOARD_STATUS_BADGE_CLASS` — `utils.ts`/`constants.ts`). 색상은 칸반 컬럼 숫자 라벨(`.order-status-column__count`)과 동일하게 접수=info/조리중=warning/서빙완료=success/취소=error를 그대로 맞췄다. 이 영수증은 `getPayableOrdersForTable`이 이미 `SERVED`만 모아서 항상 같은 배지가 찍히지만, 주문 수정 모달과 시각 언어를 통일하기 위해 동일하게 표시한다.
    - 각 메뉴/옵션 줄은 Figma와 동일하게 "메뉴명+수량 / 수량 / 단가 / 금액(수량×단가)" 4열로 보여준다(`.order-payment-receipt__line`, CSS grid). 이 때문에 `OrderBoardMenuItem`/`OrderBoardOptionItem`에 `unitPrice`(단가)가 필요해졌고, 주문 총액은 더 이상 저장값이 아니라 항상 `calculateOrderTotal`(`utils.ts`)로 메뉴/옵션 단가에서 계산한다 — 카드(`OrderStatusCard`)도 같은 함수를 쓴다. 저장된 `totalPrice` 필드는 단가와 어긋날 수 있어 타입에서 제거했다.
    - 주문이 많아 모달이 넘치면 "{테이블}번 테이블" 제목과 맨 아래 "총 주문건/총 주문메뉴/총합" 요약은 고정해서 항상 보이고, 그 사이의 주문 내역(`.order-payment-receipt__order-list`)만 내부 스크롤된다. `.order-payment-receipt`/`.order-payment-receipt__order-list`가 `flex: 1 1 auto; min-height: 0`으로 `.base-modal__content`의 flex 체인([`docs/components/Modal.md` #23](../components/Modal.md))을 이어받아 모달의 실제 남는 공간만 채우고, `max-height: min(45vh, 22rem)`은 항목이 적어 공간이 남을 때 지나치게 늘어나지 않게 막는 상한선으로만 둔다.
 2-B. **미결제사유 입력** — `WrapperModal`(size="md"). 안내문 2줄 + 미결제사유 콤보(필수) + "기타" 선택 시에만 나타나는 상세입력 textarea(필수). 취소 처리의 1단계와 동일한 구조다. **결제완료와 달리 미결제는 클릭한 카드 1건에만 적용된다** — 같은 테이블의 다른 주문에 영향을 주지 않는다(Figma에 미결제의 테이블 묶음 처리가 명시돼 있지 않아 단일 주문 단위로 유지).
-3. **확인** → 유효성 검사는 수행하지만, 최종 미결제 저장은 API 계약 연동 전까지 안내만 표시하고 `paymentStatus`를 바꾸지 않는다.
+3. **확인** → 입력 유효성 검사 후 클릭한 주문 그룹의 서버 영수증 정보를 다시 조회하고 미결제 API를 호출한다. 성공하면 주문현황/결제현황을 다시 조회하며, 실패하면 모달을 유지하고 오류를 표시한다.
 
 미결제사유 옵션은 `constants.ts`의 `ORDER_UNPAID_REASON_OPTIONS`에서 관리하며(카드 단말기 오류/고객 부재/결제 거절/추후 결제 예정/기타), 취소사유와 마찬가지로 백엔드에 확정된 목록이 없어 임의로 정의했다.
 
-선택한 사유와 상세입력은 모달 draft로만 유지한다. 백엔드 계약 연동 후 미결제 요청의 `unpaidReason`/`unpaidDescription`으로 전달해야 한다.
+선택한 사유와 상세입력은 확인 전까지 모달 draft로 유지하고, 확인 시 `unpaidReason`/`unpaidDescription`으로 전달한다.
 
 mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확인할 수 있도록 4번 테이블(1건, `order-005`) / 2번 테이블(2건, `order-003`,`order-023`) / 5번 테이블(3건, `order-004`,`order-021`,`order-022`)을 일부러 넣어뒀다.
 
@@ -231,7 +231,7 @@ SSE는 보류하고 React Query Polling을 사용한다. 주문 목록 쿼리의
 - 취소사유 조회의 생성 타입은 중첩 `header.sysId`를 충분히 표현하지 못해 wrapper에서 요청 형태를 맞춘다.
 - 임시 처리는 실제 백엔드 응답과 OpenAPI가 반영되고 Orval을 regenerate한 뒤 제거한다.
 
-결제완료·미결제·주문수정은 화면과 draft 흐름만 유지한다. 최종 API 계약이 확정되기 전에는 서버 요청이나 로컬 성공 처리를 하지 않는다. 주문 경과 타이머도 이번 범위에서 보류한다.
+결제완료/미결제는 서버 API와 연결되어 있다. 주문수정은 화면과 draft 흐름만 유지하며 최종 저장 API 연동 전에는 서버 요청이나 로컬 성공 처리를 하지 않는다. 주문 경과 타이머도 이번 범위에서 보류한다.
 
 ## QA 체크리스트
 
