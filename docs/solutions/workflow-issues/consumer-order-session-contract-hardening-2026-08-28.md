@@ -1,7 +1,7 @@
 ---
 title: Consumer 주문/세션 API는 master 종료 상태와 잠금 기준을 먼저 고정한다
 date: 2026-08-28
-last_updated: 2026-09-04
+last_updated: 2026-09-14
 category: workflow-issues
 module: consumer-order
 problem_type: workflow_issue
@@ -35,18 +35,21 @@ Consumer 주문/세션 MVP를 구현한 뒤 리뷰에서 네 가지가 함께 �
 
 ## Guidance
 
-Consumer 방문/결제 API를 추가할 때는 아래 여섯 가지를 먼저 고정한다.
+Consumer 방문/결제 API를 추가할 때는 아래 일곱 가지를 먼저 고정한다.
 
 1. 상태 책임 분리: `order_detail.payment_yn`은 금액/정산에 포함되는 유효 상세 여부이고, 방문 종료의 권위는 아니다.
 2. 세션 종료 매핑: `order_master.order_status`가 `02` 또는 `03`이면 모두 `CLOSED`로 본다. `order_group.order_status = 03`은 서빙완료이므로 같은 코드값을 혼용하지 않는다.
 3. 조회 선형화: 주문 생성/목록/상세는 모두 같은 `order_master` 행을 잠근 뒤 `ACTIVE` 여부를 확인하고 이어서 조회한다.
-4. 결제 선형화: 로그인 매장 범위의 `order_master`를 먼저 잠그고 열린 상태인지 확인한 뒤, 취소되지 않은 모든 `order_group`을 잠근다. 결제완료는 모든 그룹이 `03`/서빙완료일 때만 허용한다.
+4. 결제 선형화: 로그인 매장 범위의 `order_master`를 먼저 잠그고 열린 상태인지 확인한 뒤, 취소되지 않은 모든 `order_group`을 잠근다. 결제완료와 미결제 모두 모든 그룹이 `03`/서빙완료일 때만 허용한다.
 5. 내부 오류 차단: 처리되지 않은 예외는 로그에만 상세 원인을 남기고, 응답은 고정 메시지와 일반 에러 코드만 내려준다.
 6. 문서 동기화: 저장 컬럼이 없는 필드는 "지원 예정"처럼 쓰지 말고 현재 허용 범위를 명시한다. 이번 MVP의 `requestNote`는 `null` 또는 빈 문자열만 허용한다.
+7. Client 변경 경계: 상태 변경/취소/취소사유 조회/주문 상세 변경은 요청 ID만 신뢰하지 않는다. 로그인 매장과 기대 상태를 SQL 조건에 포함하고 행을 잠근 뒤 영향 행 수를 검증한다.
 
 ## Why This Matters
 
-`payment_yn='Y'`를 결제완료로 해석하면 정상 신규 주문이 즉시 닫힌 방문으로 판정되고, 반대로 신규 상세를 `N`으로 저장하면 주문현황/정산 합계에서 빠진다. 잠금 없이 결제 가능 상태를 검사하면 영수증 확인 뒤 추가된 주문이나 아직 조리 중인 주문까지 방문 전체 결제에 포함될 수 있다. 마스터 잠금은 Consumer 주문 생성과 결제를 직렬화하고, 그룹 잠금/상태 검증은 화면에서 확인하지 않은 주문의 결제를 막는다.
+`payment_yn='Y'`를 결제완료로 해석하면 정상 신규 주문이 즉시 닫힌 방문으로 판정되고, 반대로 신규 상세를 `N`으로 저장하면 주문현황/정산 합계에서 빠진다. 잠금 없이 결제 가능 상태를 검사하면 영수증 확인 뒤 추가된 주문이나 아직 조리 중인 주문까지 방문 전체 결제에 포함될 수 있다. 마스터 잠금은 Consumer 주문 생성과 결제를 직렬화하고, 그룹 잠금/상태 검증은 화면에서 확인하지 않은 주문의 결제를 막는다. UI가 미결제 버튼을 서빙완료 카드에만 보여줘도 API를 직접 호출할 수 있으므로 결제완료와 미결제에 같은 서버 검증이 필요하다.
+
+영수증 조회는 클릭한 `order_group`에서 로그인 매장의 `order_master`를 찾은 뒤 같은 방문의 미취소 주문 전체를 조회해야 한다. 화면이 보낸 본문과 합계는 표시용이며 결제 권위 데이터가 아니다. 상태 변경도 프론트 버튼 배치가 아니라 서버의 매장/현재 상태 조건이 권위다.
 
 ## When to Apply
 
@@ -72,11 +75,15 @@ status 02/03 -> CLOSED
 payment_yn Y -> 유효 상세/금액 포함
 master FOR UPDATE -> ACTIVE 재확인 -> 조회
 결제 master FOR UPDATE -> 모든 비취소 group 03 확인 -> 방문 전체 결제
+미결제 master FOR UPDATE -> 모든 비취소 group 03 확인 -> 방문 전체 미결제
+group ID + 로그인 매장 + 기대 상태 -> FOR UPDATE -> 영향 행 1건 확인
 message: "오류가 발생했습니다. 관리자에게 문의 바랍니다."
 requestNote: null 또는 빈 문자열만 허용
 ```
 
-테스트는 `ConsumerOrderMapperXmlTest`에서 상세 유효 플래그와 방문 종료 기준의 분리를, `StatusMapperXmlTest`에서 매장 범위/잠금을, `StatusServiceTest`에서 다른 매장 접근 및 미서빙 주문 결제 거부를 검증한다. Mock도 현재 방문 전체 처리와 혼합 상태 `409`를 실제 API와 동일하게 유지한다.
+테스트는 `ConsumerOrderMapperXmlTest`에서 상세 유효 플래그와 방문 종료 기준의 분리를, `StatusMapperXmlTest`에서 매장 범위/잠금/방문 영수증 범위를, `StatusServiceTest`에서 다른 매장 접근 및 결제완료/미결제의 미서빙 주문 거부를 검증한다. `OrderManageControllerTest`는 로그인 매장이 모든 변경 API에 전달되는지 확인한다. Mock도 현재 방문 전체 처리와 혼합 상태 `409`를 실제 API와 동일하게 유지한다.
+
+병합 후에는 화면 성공만 확인하지 말고 응답의 사용자 노출 필드와 OpenAPI 생성 타입도 특성 테스트로 고정한다. 이번 연동에서는 주문 생성 응답의 `orderNo` prop 전달 누락과 `LocalDateTime`/`LocalTime` 생성 타입 드리프트가 각각 테스트와 새 백엔드 OpenAPI 재생성으로 발견됐다.
 
 ## Related
 

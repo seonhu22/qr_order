@@ -23,11 +23,13 @@ public class StatusItem {
         private String sysId;
         private Integer orderNum;
         private Integer tableNum;
+        @Schema(type = "string", format = "date-time", example = "2026-09-08 14:30:00")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime orderDatetime;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
+        @Schema(type = "string", format = "date-time", example = "2026-09-08 14:45:00")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime cancelDatetime;
     }

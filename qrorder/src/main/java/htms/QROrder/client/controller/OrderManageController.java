@@ -53,7 +53,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.cancelOrder(statusRequest, loginUser.getUserId());
+        statusService.cancelOrder(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -69,7 +69,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.goToCooking(statusRequest, loginUser.getUserId());
+        statusService.goToCooking(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -85,7 +85,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.backToReceiveOrder(statusRequest, loginUser.getUserId());
+        statusService.backToReceiveOrder(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -101,7 +101,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.goToServingComplete(statusRequest, loginUser.getUserId());
+        statusService.goToServingComplete(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -117,7 +117,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.backToCooking(statusRequest, loginUser.getUserId());
+        statusService.backToCooking(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -187,7 +187,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.changeOrder(listDetailSysId, loginUser.getUserId());
+        statusService.changeOrder(listDetailSysId, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -198,8 +198,10 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/search/cancel_reason")
-    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId) {
+    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId,
+                                                          HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getStatusCancelResponses(sysId);
+        return statusService.getStatusCancelResponses(sysId, loginUser.getSysPlantCd());
     }
 }

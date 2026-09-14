@@ -2390,10 +2390,18 @@ export interface components {
             orderNum?: number;
             /** Format: int32 */
             tableNum?: number;
-            orderDatetime?: components["schemas"]["LocalTime"];
+            /**
+             * Format: date-time
+             * @example 2026-09-08 14:30:00
+             */
+            orderDatetime?: string;
             orderTime?: components["schemas"]["LocalTime"];
             orderStatus?: string;
-            cancelDatetime?: components["schemas"]["LocalTime"];
+            /**
+             * Format: date-time
+             * @example 2026-09-08 14:45:00
+             */
+            cancelDatetime?: string;
         };
         StatusRequest: {
             /** Format: int32 */

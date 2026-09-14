@@ -3,7 +3,7 @@
 > 경로: `/consumer/order`
 > 화면: Consumer > 주문(메뉴 목록·장바구니)
 
-QR 인증 후 도착하는 화면이다. 메뉴 목록, 검색, 상세는 Consumer 메뉴 API를 사용한다. 장바구니와 주문은 아직 화면 로컬 상태다.
+QR 인증 후 도착하는 화면이다. 메뉴 목록/검색/상세/주문 생성/주문 목록과 상세는 Consumer API를 사용한다. 장바구니는 방문 범위로 격리한 브라우저 저장소를 사용한다.
 
 ## 헤더와 페이지의 역할 분리
 
@@ -139,7 +139,7 @@ type ConsumerSheetState =
 
 ## 장바구니
 
-`useConsumerOrderPage`가 소유하는 순수 React state다. 세션별 격리나 새로고침 유지가 없고, 페이지를 벗어나면(언마운트) 그냥 사라진다 — 3단계에서 실제 장바구니 store로 교체할 대상.
+`consumerCartStore`가 Zustand persist로 소유한다. `consumerSessionId`/`sysPlantCd`/`tableSysId`가 모두 같은 방문에서만 복원하며, 범위가 달라지면 장바구니와 `clientRequestId`를 함께 초기화한다. 같은 방문에서는 새로고침 후에도 유지한다.
 
 `addToCart` 외에 `updateCartLineQty(cartKey, delta)`(수량이 0 이하가 되면 그 줄을 배열에서 없앤다)와 `removeCartLine(cartKey)`가 있다.
 
@@ -177,22 +177,22 @@ type ConsumerSheetState =
 |---|---|---|
 | `idle` | 없음(기본) | — |
 | `processing` | `OrderProcessingScreen` | "주문하기" 클릭 |
-| `complete` | `OrderCompleteScreen` | `processing` 시작 1.8초 뒤 자동(참고 저장소 `doOrder` 딜레이와 동일) |
-| `error-network` | `OrderFailureScreen type="network"` | QA 트리거만 |
+| `complete` | `OrderCompleteScreen` | 주문 생성 API가 성공하면 응답의 주문번호와 함께 표시 |
+| `error-network` | `OrderFailureScreen type="network"` | 네트워크 오류/15초 타임아웃 또는 QA 트리거 |
 | `error-duplicate` | `OrderFailureScreen type="duplicate"` | QA 트리거만 |
 | `session-timeout` | `SessionExpiredScreen variant="timeout"` | QA 트리거만 |
-| `session-closed` | `SessionExpiredScreen variant="closed"` | QA 트리거만 |
+| `session-closed` | `SessionExpiredScreen variant="closed"` | 주문 API의 410 응답 또는 QA 트리거 |
 | `network-error` | `NetworkErrorScreen` | QA 트리거만 |
 
-`processing`으로 들어가는 순간 장바구니(`cart`)를 곧바로 비운다 — 참고 저장소도 주문 접수 시점에 비운다. `complete`는 "메뉴로 돌아가기" 버튼 하나로 다시 `idle`로 되돌아간다.
+`processing`에서는 주문 생성 응답을 기다린다. 장바구니와 `clientRequestId`는 201 성공 응답을 받은 뒤에만 비우며, 완료 화면에는 응답의 `orderNo`를 표시한다. `complete`는 "메뉴로 돌아가기" 버튼 하나로 다시 `idle`로 되돌아간다.
 
-실제 판별 로직(백엔드 응답, `navigator.onLine`)이 아직 없어 `placeOrder`는 항상 성공한다 — `error-*`/`session-*`/`network-error` 다섯 화면은 지금은 아래 QA 트리거로만 도달할 수 있다.
+주문 요청은 15초 뒤 중단한다. `409/TABLE_INACTIVE`는 주문만 막고 장바구니와 요청 ID를 유지하며, 그 밖의 409는 품절 확인 흐름으로 보낸다. 410은 방문 종료로 판단해 장바구니를 지운다. 네트워크 오류/타임아웃은 실패 화면을 보여주되 장바구니와 요청 ID를 유지하므로 다시 시도할 때 같은 `clientRequestId`를 전송한다. 서버 영속 멱등성은 별도 DB 작업 전까지 보장되지 않는다.
 
 두 실패 화면(`OrderFailureScreen`)은 하나의 컴포넌트가 `type` prop으로 문구·버튼("메인화면으로 이동"+"다시 시도하기"/"주문내역 확인하기")을 나눠 그리고, 세션 만료 화면(`SessionExpiredScreen`)도 같은 방식으로 `variant` prop 하나가 아이콘(`ci-clock`/`ci-lock`)·문구를 가른다 — 참고 저장소의 컴포넌트 경계를 그대로 따랐다. `NetworkErrorScreen`은 앱 전체의 연결 상태 문제를 알리는 화면이라 다른 화면들의 브랜드(주황) 톤과 다르게 위험(`--color-status-error-*`, 빨강) 톤 아이콘·블롭을 쓴다(버튼만은 참고 저장소도 브랜드색을 유지해 그대로 따름).
 
 ### QA 미리보기 트리거
 
-헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 7개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류"/"품절 초기화"/"주문내역 초기화")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 앞 5개는 `orderPhase`를 강제로 바꾸고, "품절 초기화"는 [품절 데모](#품절-데모-qr-code-001)를, "주문내역 초기화"는 [주문내역](#주문내역)을 되돌린다. 앞 6개는 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 요청을 적어두고 `useConsumerOrderPage`가 이를 구독해 처리하지만, "주문내역 초기화"는 `consumerOrderHistoryStore`가 이미 헤더·order-shell 양쪽에서 접근 가능한 스토어라 그 스토어의 `clearOrders`를 헤더가 직접 호출한다(QA 스토어를 거칠 필요가 없다).
+헤더의 설정(⚙, `consumer-header__icon-button`) 버튼은 평소엔 아무 동작이 없다가, dev 빌드(`import.meta.env.DEV`)에서만 클릭 시 드롭다운으로 6개 항목("주문 실패 (네트워크)"/"주문 실패 (중복)"/"주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류"/"품절 초기화")을 보여준다(참고 저장소의 dev-nav와 동일한 상호작용 — 바깥 클릭 시 닫힘). 앞 5개는 `orderPhase`를 강제로 바꾸고, "품절 초기화"는 [품절 데모](#품절-데모-qr-code-001)를 되돌린다. 6개 요청은 `consumerOrderQaStore`(`apps/consumer/stores/`, zustand)에 기록하고 `useConsumerOrderPage`가 구독해 처리한다. 서버 주문내역은 QA 메뉴에서 임의로 초기화하지 않는다.
 
 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)이 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 값을 `useState`로 구독해 `useEffect`에서 반응하지 않고 zustand의 vanilla `.subscribe()`로 구독한다 — `useState` 구독 방식은 `react-hooks/set-state-in-effect` 린트에 걸린다. 자세한 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
 
@@ -234,11 +234,11 @@ QR코드 `qr-code-001`(창가 1번 테이블, `table-001`)로 들어오면 무�
 
 ## 주문내역
 
-"주문내역"은 완료된 주문만 담는다 — 결제 여부와 무관하게 "주문하기"가 성공(`startOrderProcessing`의 `setTimeout` 콜백)한 시점의 장바구니 스냅샷을 기록한다. 아직 담기만 하고 주문하지 않은 현재 장바구니는 포함되지 않는다. 배경은 [`decisions.md` ADR-027](../decisions.md#adr-027--주문내역은-주문-건별로-시간과-함께-묶어서-보여준다) 참고.
+"주문내역"은 현재 Consumer 방문의 주문 목록 API를 조회한 뒤 주문별 상세 API를 조합해 표시한다. 주문 생성 성공 시 목록 캐시를 무효화해 새 주문을 다시 조회하며, 아직 제출하지 않은 장바구니는 포함하지 않는다. 배경은 [`decisions.md` ADR-027](../decisions.md#adr-027--주문내역은-주문-건별로-시간과-함께-묶어서-보여준다) 참고.
 
 ### 저장 위치
 
-`consumerOrderHistoryStore`(zustand, `apps/consumer/stores/`) — 헤더(배지를 읽어야 함)와 order-shell(`useConsumerOrderPage`, 주문 완료 시 기록해야 함)이 서로 다른 컴포넌트라 페이지 로컬 state 대신 스토어에 둔다. 장바구니와 마찬가지로 새로고침하면 비워지는 mock이다.
+서버의 방문별 주문 목록/상세가 원본이다. TanStack Query 캐시에 보관하고 정책에 따라 갱신하며, 브라우저 새로고침 뒤에도 서버에서 다시 조회한다.
 
 ### 주문 건별로 시간과 함께 묶어서 보여준다
 

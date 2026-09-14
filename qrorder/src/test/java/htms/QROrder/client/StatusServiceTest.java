@@ -3,6 +3,8 @@ package htms.QROrder.client;
 import htms.QROrder.client.dto.PaymentCompleteRequest;
 import htms.QROrder.client.dto.PaymentCompleteResponse;
 import htms.QROrder.client.dto.PaymentNotCompleteRequest;
+import htms.QROrder.client.dto.StatusItem;
+import htms.QROrder.client.dto.StatusRequest;
 import htms.QROrder.client.repository.StatusMapper;
 import htms.QROrder.client.service.StatusService;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +44,73 @@ class StatusServiceTest {
         assertEquals("MASTER-1", response.getHeader().getSysId());
         verify(statusMapper).getPaymentCompleteBodyItems(any(), eq("PLANT-1"));
         verify(statusMapper).getPaymentCompleteFooterItems(any(), eq("PLANT-1"));
+    }
+
+    @Test
+    void loadsVisitWideReceiptUsingResolvedMasterId() {
+        PaymentCompleteResponse.Header paymentHeader = new PaymentCompleteResponse.Header();
+        paymentHeader.setSysId("MASTER-1");
+        when(statusMapper.getPaymentCompleteHeaders(any(), eq("PLANT-1"))).thenReturn(paymentHeader);
+
+        statusService.getPaymentComplete("GROUP-1", "PLANT-1");
+
+        verify(statusMapper).getPaymentCompleteBodyItems(
+                org.mockito.ArgumentMatchers.argThat(header -> "MASTER-1".equals(header.getSysId())),
+                eq("PLANT-1"));
+        verify(statusMapper).getPaymentCompleteFooterItems(
+                org.mockito.ArgumentMatchers.argThat(header -> "MASTER-1".equals(header.getSysId())),
+                eq("PLANT-1"));
+    }
+
+    @Test
+    void changesOrderStatusOnlyFromExpectedStateWithinLoginPlant() {
+        StatusRequest request = statusRequest("GROUP-1");
+        when(statusMapper.lockOrderGroupStatus("GROUP-1", "PLANT-1")).thenReturn("01");
+        when(statusMapper.goToCooking(any(), eq("USER-1"), eq("PLANT-1"), eq("01")))
+                .thenReturn(1);
+
+        statusService.goToCooking(request, "USER-1", "PLANT-1");
+
+        verify(statusMapper).goToCooking(request.getHeader(), "USER-1", "PLANT-1", "01");
+    }
+
+    @Test
+    void rejectsOrderStatusChangeOutsideLoginPlant() {
+        StatusRequest request = statusRequest("GROUP-OTHER");
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.goToCooking(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
+        verify(statusMapper, never()).goToCooking(any(), any(), any(), any());
+    }
+
+    @Test
+    void rejectsOrderStatusChangeFromUnexpectedState() {
+        StatusRequest request = statusRequest("GROUP-1");
+        when(statusMapper.lockOrderGroupStatus("GROUP-1", "PLANT-1")).thenReturn("03");
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.goToCooking(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(statusMapper, never()).goToCooking(any(), any(), any(), any());
+    }
+
+    @Test
+    void rejectsMixedPlantOrderDetailChangesWithoutPartialUpdate() {
+        when(statusMapper.lockChangeableOrderDetailIds(anyList(), eq("PLANT-1")))
+                .thenReturn(java.util.List.of("DETAIL-1"));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.changeOrder(
+                        java.util.List.of("DETAIL-1", "DETAIL-OTHER"), "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
+        verify(statusMapper, never()).changeOrder(anyList(), any(), any());
     }
 
     @Test
@@ -85,6 +155,26 @@ class StatusServiceTest {
     }
 
     @Test
+    void rejectsUnpaidClosureWhenAnyOrderIsNotServed() {
+        PaymentNotCompleteRequest request = new PaymentNotCompleteRequest();
+        PaymentCompleteResponse.Header orderInfo = new PaymentCompleteResponse.Header();
+        orderInfo.setSysId("MASTER-1");
+        request.setOrderInfo(orderInfo);
+        request.setUnpaidReason("CUSTOMER_ABSENT");
+        when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
+        when(statusMapper.lockPaymentOrderStatuses("MASTER-1", "PLANT-1"))
+                .thenReturn(java.util.List.of("03", "02"));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> statusService.paymentNotComplete(request, "USER-1", "PLANT-1"));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(statusMapper, never()).paymentNotCompleteOrderMaster(any(), any(), any(), any(), any());
+        verify(statusMapper, never()).paymentNotCompleteOrderGroup(any(), any(), any());
+    }
+
+    @Test
     void rejectsPaymentWhenAnyOrderIsNotServed() {
         PaymentCompleteRequest request = paidRequest("현금", "MASTER-1");
         when(statusMapper.lockPaymentMasterStatus("MASTER-1", "PLANT-1")).thenReturn("01");
@@ -104,6 +194,14 @@ class StatusServiceTest {
         PaymentCompleteResponse.Header header = new PaymentCompleteResponse.Header();
         header.setSysId(masterId);
         request.setPaymentType(paymentType);
+        request.setHeader(header);
+        return request;
+    }
+
+    private StatusRequest statusRequest(String groupId) {
+        StatusRequest request = new StatusRequest();
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId(groupId);
         request.setHeader(header);
         return request;
     }

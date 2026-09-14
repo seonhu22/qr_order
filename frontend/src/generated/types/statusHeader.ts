@@ -11,8 +11,8 @@ export interface StatusHeader {
   sysId?: string;
   orderNum?: number;
   tableNum?: number;
-  orderDatetime?: LocalTime;
+  orderDatetime?: string;
   orderTime?: LocalTime;
   orderStatus?: string;
-  cancelDatetime?: LocalTime;
+  cancelDatetime?: string;
 }

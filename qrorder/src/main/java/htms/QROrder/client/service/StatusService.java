@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,46 +32,57 @@ public class StatusService {
     }
 
     public void cancelOrder(StatusRequest statusRequest,
-                            String userId) {
+                            String userId,
+                            String sysPlantCd) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = requireOrderHeader(statusRequest);
+        requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("01", "02", "03"));
         String cancelReason = statusRequest.getCancelReason();
         String cancelDescription = statusRequest.getCancelDescription();
         String cancelType = statusRequest.getCancelType();
 
-        statusMapper.cancelOrder(header, cancelType, cancelReason, cancelDescription, userId);
+        requireUpdatedOrder(statusMapper.cancelOrder(
+                header, cancelType, cancelReason, cancelDescription, userId, sysPlantCd));
     }
 
     public void goToCooking(StatusRequest statusRequest,
-                            String userId) {
+                            String userId,
+                            String sysPlantCd) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = requireOrderHeader(statusRequest);
+        requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("01"));
 
-        statusMapper.goToCooking(header, userId);
+        requireUpdatedOrder(statusMapper.goToCooking(header, userId, sysPlantCd, "01"));
     }
 
     public void backToReceiveOrder(StatusRequest statusRequest,
-                                    String userId) {
+                                    String userId,
+                                    String sysPlantCd) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = requireOrderHeader(statusRequest);
+        requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("02"));
 
-        statusMapper.backToReceiveOrder(header, userId);
+        requireUpdatedOrder(statusMapper.backToReceiveOrder(header, userId, sysPlantCd, "02"));
     }
 
     public void goToServingComplete(StatusRequest statusRequest,
-                                        String userId) {
+                                        String userId,
+                                        String sysPlantCd) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = requireOrderHeader(statusRequest);
+        requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("02"));
 
-        statusMapper.goToServingComplete(header, userId);
+        requireUpdatedOrder(statusMapper.goToServingComplete(header, userId, sysPlantCd, "02"));
     }
 
     public void backToCooking(StatusRequest statusRequest,
-                                String userId) {
+                                String userId,
+                                String sysPlantCd) {
 
-        StatusItem.Header header = statusRequest.getHeader();
+        StatusItem.Header header = requireOrderHeader(statusRequest);
+        requireOrderGroupStatus(header.getSysId(), sysPlantCd, Set.of("03"));
 
-        statusMapper.backToCooking(header, userId);
+        requireUpdatedOrder(statusMapper.backToCooking(header, userId, sysPlantCd, "03"));
     }
 
     public PaymentCompleteResponse getPaymentComplete(String sysId, String sysPlantCd) {
@@ -85,21 +97,40 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 대상 주문을 찾을 수 없습니다.");
         }
         paymentCompleteResponse.setHeader(paymentHeader);
-        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(header, sysPlantCd));
-        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(header, sysPlantCd));
+        StatusItem.Header visitHeader = new StatusItem.Header();
+        visitHeader.setSysId(paymentHeader.getSysId());
+        paymentCompleteResponse.setBody(statusMapper.getPaymentCompleteBodyItems(visitHeader, sysPlantCd));
+        paymentCompleteResponse.setFooter(statusMapper.getPaymentCompleteFooterItems(visitHeader, sysPlantCd));
 
         return paymentCompleteResponse;
     }
 
     public void changeOrder(List<String> listDetailSysId,
-                                String userId) {
+                            String userId,
+                            String sysPlantCd) {
 
-        statusMapper.changeOrder(listDetailSysId, userId);
+        if (listDetailSysId == null || listDetailSysId.isEmpty()
+                || listDetailSysId.stream().anyMatch(id -> id == null || id.isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "변경할 주문 항목이 필요합니다.");
+        }
+        Set<String> requestedIds = new HashSet<>(listDetailSysId);
+        List<String> ownedIds = statusMapper.lockChangeableOrderDetailIds(listDetailSysId, sysPlantCd);
+        if (requestedIds.size() != listDetailSysId.size()
+                || !new HashSet<>(ownedIds).equals(requestedIds)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "변경할 주문 항목을 찾을 수 없습니다.");
+        }
+        if (statusMapper.changeOrder(listDetailSysId, userId, sysPlantCd) != requestedIds.size()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "주문 상태가 변경되어 수정하지 못했습니다.");
+        }
     }
 
-    public StatusCancelResponse getStatusCancelResponses(String sysId) {
+    public StatusCancelResponse getStatusCancelResponses(String sysId, String sysPlantCd) {
 
-        return statusMapper.getStatusCancelResponses(sysId);
+        StatusCancelResponse response = statusMapper.getStatusCancelResponses(sysId, sysPlantCd);
+        if (response == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "취소 주문을 찾을 수 없습니다.");
+        }
+        return response;
     }
 
     public void paymentComplete(PaymentCompleteRequest paymentCompleteRequest,
@@ -116,12 +147,7 @@ public class StatusService {
         }
         String sysId = header.getSysId();
         requireOpenPaymentMaster(sysId, sysPlantCd);
-        List<String> orderStatuses = statusMapper.lockPaymentOrderStatuses(sysId, sysPlantCd);
-        if (orderStatuses.isEmpty() || orderStatuses.stream().anyMatch(status -> !"03".equals(status))) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "모든 주문의 서빙이 완료된 후 결제할 수 있습니다.");
-        }
+        requireAllOrdersServed(sysId, sysPlantCd);
 
         int updated = statusMapper.paymentCompleteOrderMaster(
                 paymentCompleteRequest.getPaymentType(), sysId, userId, sysPlantCd);
@@ -141,6 +167,7 @@ public class StatusService {
         }
         String orderMasterSysId = paymentNotCompleteRequest.getOrderInfo().getSysId();
         requireOpenPaymentMaster(orderMasterSysId, sysPlantCd);
+        requireAllOrdersServed(orderMasterSysId, sysPlantCd);
 
         int updated = statusMapper.paymentNotCompleteOrderMaster(
                 paymentNotCompleteRequest.getUnpaidReason(),
@@ -158,6 +185,31 @@ public class StatusService {
         }
     }
 
+    private StatusItem.Header requireOrderHeader(StatusRequest request) {
+        if (request == null || request.getHeader() == null
+                || request.getHeader().getSysId() == null
+                || request.getHeader().getSysId().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 정보가 필요합니다.");
+        }
+        return request.getHeader();
+    }
+
+    private void requireOrderGroupStatus(String sysId, String sysPlantCd, Set<String> allowedStatuses) {
+        String status = statusMapper.lockOrderGroupStatus(sysId, sysPlantCd);
+        if (status == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다.");
+        }
+        if (!allowedStatuses.contains(status)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "허용되지 않은 주문 상태 변경입니다.");
+        }
+    }
+
+    private void requireUpdatedOrder(int updated) {
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "주문 상태가 변경되어 처리하지 못했습니다.");
+        }
+    }
+
     private void requireOpenPaymentMaster(String sysId, String sysPlantCd) {
         String status = statusMapper.lockPaymentMasterStatus(sysId, sysPlantCd);
         if (status == null) {
@@ -165,6 +217,15 @@ public class StatusService {
         }
         if (!"01".equals(status)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 결제 처리가 완료된 주문입니다.");
+        }
+    }
+
+    private void requireAllOrdersServed(String sysId, String sysPlantCd) {
+        List<String> orderStatuses = statusMapper.lockPaymentOrderStatuses(sysId, sysPlantCd);
+        if (orderStatuses.isEmpty() || orderStatuses.stream().anyMatch(status -> !"03".equals(status))) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "모든 주문의 서빙이 완료된 후 결제할 수 있습니다.");
         }
     }
 

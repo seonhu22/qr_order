@@ -303,7 +303,9 @@ export function ConsumerOrderPage() {
       {createPortal(
         <>
           {orderPhase === 'processing' && <OrderProcessingScreen />}
-          {orderPhase === 'complete' && <OrderCompleteScreen onConfirm={confirmOrderComplete} />}
+          {orderPhase === 'complete' && (
+            <OrderCompleteScreen orderNo={completedOrderNo} onConfirm={confirmOrderComplete} />
+          )}
           {orderPhase === 'error-network' && (
             <OrderFailureScreen type="network" onGoMain={dismissOrderError} onRetry={retryOrder} />
           )}
