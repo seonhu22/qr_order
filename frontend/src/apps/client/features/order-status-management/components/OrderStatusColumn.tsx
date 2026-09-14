@@ -6,9 +6,11 @@ type OrderStatusColumnProps = {
   column: OrderBoardColumnData;
   actions: OrderBoardCardActions;
   lastMovedIds: string[];
+  pendingOrderIds: Set<string>;
+  mutationErrors: Map<string, string>;
 };
 
-export function OrderStatusColumn({ column, actions, lastMovedIds }: OrderStatusColumnProps) {
+export function OrderStatusColumn({ column, actions, lastMovedIds, pendingOrderIds, mutationErrors }: OrderStatusColumnProps) {
   return (
     <section
       className={`order-status-column order-status-column--${column.status.toLowerCase()}`}
@@ -30,6 +32,8 @@ export function OrderStatusColumn({ column, actions, lastMovedIds }: OrderStatus
                 row={row}
                 actions={actions}
                 isMoved={lastMovedIds.includes(row.id)}
+                isPending={pendingOrderIds.has(row.id)}
+                mutationError={mutationErrors.get(row.id)}
               />
             ))
           )}

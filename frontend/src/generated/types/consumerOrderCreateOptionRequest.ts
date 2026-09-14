@@ -6,8 +6,9 @@
  * OpenAPI spec version: v1.0
  */
 
-export interface Header {
-  sysId?: string;
-  tableInfo?: string;
-  orderDatetime?: string;
+export interface ConsumerOrderCreateOptionRequest {
+  /** @maxLength 64 */
+  optionSysId: string;
+  /** @minimum 1 */
+  quantity: number;
 }

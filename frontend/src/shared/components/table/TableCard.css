@@ -318,9 +318,50 @@
   color: var(--color-text-secondary);
 }
 
+/* 변경구분 배지 — 등록(success) / 수정(info) / 삭제(error) */
+.status-badge--create {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.status-badge--update {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.status-badge--delete {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
+
+/* 만료 상태 배지 — 만료(error) / 미만료(neutral) */
+.status-badge--expired {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
+
+.status-badge--empty {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-tertiary);
+}
+
+/* 라이선스 기간 배지 — 기간 구분일 뿐 상태 의미가 없어 둘 다 neutral */
+.status-badge--period-1m,
+.status-badge--period-12m {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
 /* 권한 배지는 2글자 이상 텍스트를 표시하므로 feature 전용 배지(기본) 사이즈를 사용한다 */
 .status-badge--admin,
-.status-badge--staff {
+.status-badge--staff,
+.status-badge--create,
+.status-badge--update,
+.status-badge--delete,
+.status-badge--expired,
+.status-badge--empty,
+.status-badge--period-1m,
+.status-badge--period-12m {
   height: auto;
   min-width: 0;
   padding: 0.1875rem 0.5rem;

@@ -35,6 +35,7 @@ import {
   useSaveMenuOptionDetailsMutation,
   useSaveMenuOptionGroupsMutation,
 } from '../api/menuOptionApi';
+import { OPTION_SELECTION_TYPE } from '../constants';
 
 const EMPTY_OPTION_DETAIL_FILE_STATE: FileChangeState = { newFiles: [], deletedFiles: [] };
 
@@ -302,7 +303,7 @@ export function useMenuOptionManagementPage() {
     // 주문 옵션 ↔ 수량 설정은 수량 설정 컬럼 하나만 생기거나 사라지는 차이다.
     // 컬럼이 "새로 생기는"(수량 설정으로 바뀌는) 경우에만 필수값이 비어있을 수 있으므로,
     // 그 경우에만 옵션 항목이 저장되기 전까지 그룹 저장을 막는다.
-    if (pendingGroupInputTypeChange.nextValue === '수량 설정') {
+    if (pendingGroupInputTypeChange.nextValue === OPTION_SELECTION_TYPE.QUANTITY) {
       setGroupIdNeedingDetailSync(pendingGroupInputTypeChange.rowId);
     }
     setPendingGroupInputTypeChange(null);

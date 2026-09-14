@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @Controller
 @ControllerAdvice
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(Ordered.LOWEST_PRECEDENCE - 1)
 @RequiredArgsConstructor
 @RequestMapping("/api/audit")
 public class AuditController {

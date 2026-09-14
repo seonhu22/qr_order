@@ -166,6 +166,11 @@ shared/components/
     types.ts
     Radio.css
     RadioInput.tsx
+  badge/
+    index.ts
+    types.ts
+    Badge.css
+    Badge.tsx              ← 짧은 텍스트 라벨/태그. 알약형이 아닌 radius-sm(4px)
   toggle/
     index.ts
     types.ts
@@ -226,6 +231,10 @@ shared/components/
     index.ts
     FeedbackState.tsx
     FeedbackState.css
+  loading/
+    index.ts              ← 외부 공개 API (배럴 파일)
+    AppLoadingScreen.tsx  ← 전체화면 브랜드 로딩(블롭 + 로고 + 점 인디케이터), consumer QrLoadingScreen과 앱 루트 인증 로딩이 공유
+    AppLoadingScreen.css
   file-attachment/
     index.ts              ← 외부 공개 API (배럴 파일)
     types.ts              ← ServerFile, FileChangeState, props 타입
@@ -398,7 +407,8 @@ http://localhost:3000/dev/input
 | `/dev/select` | SelectInput 크기·상태·검색·그룹핑·기능 전체 예시 |
 | `/dev/filter` | 검색폼(필터카드) 레이아웃 4종(키워드만 / 키워드+날짜range / 콤보+키워드+날짜range / 콤보+키워드+기간 프리셋+날짜range) + 규약 체크리스트 |
 | `/dev/modal` | Modal 크기·상태·레이아웃 전체 예시 |
-| `/dev/button` | Button / LinkButton 12가지 변형·3가지 크기·7가지 상태 예시 |
+| `/dev/button` | Button / LinkButton 12가지 변형·3가지 크기·7가지 상태 예시, ActionButtons, QuantityStepperButton(메뉴 상세·옵션 리스트·장바구니 3곳 실사용 스타일) |
+| `/dev/badge` | Badge 톤(neutral/brand/success/warning/error)·크기(sm/md) 예시 |
 | `/dev/checkbox` | CheckboxInput 크기·상태·indeterminate·그룹 예시 |
 | `/dev/radio` | RadioInput / RadioGroup 크기·상태·그룹(col/row) 예시 |
 | `/dev/toggle` | ToggleInput 크기·상태(ON/OFF/disabled/loading) 예시 |

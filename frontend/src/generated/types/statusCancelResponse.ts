@@ -9,4 +9,6 @@
 export interface StatusCancelResponse {
   cancelReason?: string;
   cancelDescription?: string;
+  cancelDatetime?: string;
+  cancelType?: string;
 }

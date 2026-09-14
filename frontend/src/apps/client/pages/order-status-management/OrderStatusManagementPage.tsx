@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import '@/shared/order-status/orderStatusBadge.css';
 import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
@@ -14,12 +15,14 @@ import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-man
 import {
   ORDER_BOARD_STATUS_BADGE_CLASS,
   ORDER_CANCEL_REASON_OPTIONS,
+  ORDER_PAYMENT_TYPE_OPTIONS,
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
 import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
 import { DeleteConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
 import { SelectInput, TextareaInput, TextInput } from '@/shared/components/input';
+import { RadioGroup } from '@/shared/components/radio';
 import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
@@ -71,16 +74,27 @@ export function OrderStatusManagementPage() {
   return (
     <>
       <section className="order-status-management-page" aria-label="주문 상태 관리">
-        <OrderStatusManagementHeader onReset={actions.handleReset} />
+        <OrderStatusManagementHeader
+          onRefresh={actions.handleRefresh}
+          syncStatus={status.isInitialError || status.isSyncError ? 'error' : status.isRefreshing ? 'refreshing' : 'synced'}
+        />
         {status.isLoading ? (
           <FeedbackState variant="loading" title="주문 현황을 불러오는 중입니다." />
-        ) : status.isError ? (
-          <FeedbackState variant="error" title="주문 현황을 불러오지 못했습니다." />
+        ) : status.isInitialError ? (
+          <FeedbackState
+            variant="error"
+            title="주문 현황을 불러오지 못했습니다."
+            description="잠시 후 다시 시도해주세요."
+          >
+            <Button variant="outline" size="md" onClick={actions.handleRefresh}>다시 시도</Button>
+          </FeedbackState>
         ) : (
           <OrderStatusBoard
             columns={data.columns}
             actions={actions.cardActions}
             lastMovedIds={data.lastMovedIds}
+            pendingOrderIds={data.pendingOrderIds}
+            mutationErrors={data.mutationErrors}
           />
         )}
       </section>
@@ -131,13 +145,16 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={cancelModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: '확인', onClick: cancelModal.confirmCancel }}
+        primaryAction={{ label: '확인', loading: cancelModal.isPending, onClick: cancelModal.confirmCancel }}
         secondaryAction={{ label: '닫기', onClick: cancelModal.closeConfirm }}
         onClose={cancelModal.closeConfirm}
       >
         <div className="order-cancel-modal__notice">
           <p className="order-cancel-modal__notice-title">주문을 취소하시겠습니까?</p>
           <p className="order-cancel-modal__notice-desc">취소된 주문은 되돌릴 수 없습니다.</p>
+          {cancelModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{cancelModal.submitError}</p>
+          )}
         </div>
       </WrapperModal>
 
@@ -172,7 +189,15 @@ export function OrderStatusManagementPage() {
             label="취소사유"
             readOnly
             rows={3}
-            value={cancelReasonView.row ? formatOrderCancelReasonDisplay(cancelReasonView.row) : ''}
+            value={
+              cancelReasonView.isLoading
+                ? '불러오는 중입니다.'
+                : cancelReasonView.isError
+                  ? '취소 사유를 불러오지 못했습니다.'
+                  : cancelReasonView.row
+                    ? formatOrderCancelReasonDisplay(cancelReasonView.row)
+                    : ''
+            }
           />
         </div>
       </WrapperModal>
@@ -220,12 +245,21 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isReceiptOpen}
         title="결제 완료 처리"
-        primaryAction={{ label: '확인', onClick: paymentModal.confirmReceipt }}
-        secondaryAction={{ label: '닫기', onClick: paymentModal.closeReceipt }}
+        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmReceipt }}
+        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeReceipt }}
         onClose={paymentModal.closeReceipt}
       >
         <div className="order-payment-receipt">
           <p className="order-payment-receipt__table">{paymentModal.tableOrders[0]?.tableNum}번 테이블</p>
+          <RadioGroup
+            name="order-payment-type"
+            label="결제수단"
+            direction="row"
+            options={ORDER_PAYMENT_TYPE_OPTIONS}
+            value={paymentModal.paymentType}
+            errorText={paymentModal.paymentTypeError ? '결제수단을 선택해주세요.' : undefined}
+            onChange={paymentModal.changePaymentType}
+          />
 
           <div className="order-payment-receipt__order-list">
             {paymentModal.tableOrders.map((order) => (
@@ -308,6 +342,9 @@ export function OrderStatusManagementPage() {
               </span>
             </div>
           </div>
+          {paymentModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
+          )}
         </div>
       </WrapperModal>
 
@@ -324,15 +361,15 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isUnpaidEditorOpen}
         title="미결제 처리"
-        primaryAction={{ label: '확인', onClick: paymentModal.confirmUnpaid }}
-        secondaryAction={{ label: '닫기', onClick: paymentModal.closeUnpaidEditor }}
+        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmUnpaid }}
+        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeUnpaidEditor }}
         onClose={paymentModal.closeUnpaidEditor}
       >
         <div className="order-cancel-modal__form">
           <div className="order-cancel-modal__notice">
             <p className="order-cancel-modal__notice-title">미결제사유를 선택해 주세요.</p>
             <p className="order-cancel-modal__notice-desc">
-              미결제로 처리하면 이전 단계로 되돌릴 수 없습니다.
+              현재 방문의 모든 주문을 미결제로 처리하며 이전 단계로 되돌릴 수 없습니다.
               <br />
               미결제 사유를 정확히 선택한 후 진행해 주세요.
             </p>
@@ -356,6 +393,9 @@ export function OrderStatusManagementPage() {
               errorText={paymentModal.errors.description ? '상세 사유를 입력해주세요.' : undefined}
               onChange={(event) => paymentModal.changeDescription(event.target.value)}
             />
+          )}
+          {paymentModal.submitError && (
+            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
           )}
         </div>
       </WrapperModal>
@@ -511,13 +551,14 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={editModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: '확인', onClick: editModal.confirmSave }}
+        primaryAction={{ label: '확인', disabled: true }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeConfirm }}
         onClose={editModal.closeConfirm}
       >
         <div className="order-cancel-modal__notice">
           <p className="order-cancel-modal__notice-title">주문수정 하시겠습니까?</p>
           <p className="order-cancel-modal__notice-desc">수정하시면 이전 단계로 되돌릴 수 없습니다.</p>
+          <p className="order-cancel-modal__notice-desc">주문 수정 API 연동 후 저장할 수 있습니다.</p>
         </div>
       </WrapperModal>
 

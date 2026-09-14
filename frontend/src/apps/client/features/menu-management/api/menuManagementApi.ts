@@ -165,27 +165,6 @@ export function hasMenuDetailChanges(request: MenuDetailRequest) {
   );
 }
 
-// 카테고리-메뉴 저장 시 json 대신 FormData 인덱스 방식으로 변경
-function appendMenuDetailItem(
-  formData: FormData,
-  fieldName: 'newItems' | 'updateItems' | 'delItems',
-  index: number,
-  item: MenuDetailItem,
-) {
-  const prefix = `${fieldName}[${index}]`;
-
-  if (item.sysId) formData.append(`${prefix}.sysId`, item.sysId);
-  if (item.linkSysId) formData.append(`${prefix}.linkSysId`, item.linkSysId);
-  if (item.menuName) formData.append(`${prefix}.menuName`, item.menuName);
-  if (item.menuPrice != null) formData.append(`${prefix}.menuPrice`, String(item.menuPrice));
-  if (item.menuDescription) formData.append(`${prefix}.menuDescription`, item.menuDescription);
-  if (item.optionUseYn) formData.append(`${prefix}.optionUseYn`, item.optionUseYn);
-  if (item.linkSysId2) formData.append(`${prefix}.linkSysId2`, item.linkSysId2);
-  if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
-  if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
-  if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));
-}
-
 // 첨부파일은 편집 중인 한 행에만 연결된다. 신규 행처럼 fileUlid가 아직 없으면
 // 파일이 필수가 아니므로 linkSysId 없이 보내고, 값이 없는 필드는 채우지 않는다.
 function appendMenuDetailFileFields(
@@ -215,16 +194,10 @@ export function buildMenuDetailFormData(
   fileInfo?: { fileUlid?: string; fileChangeState?: FileChangeState },
 ): FormData {
   const formData = new FormData();
-
-  request.newItems?.forEach((item, index) => {
-    appendMenuDetailItem(formData, 'newItems', index, item);
-  });
-  request.updateItems?.forEach((item, index) => {
-    appendMenuDetailItem(formData, 'updateItems', index, item);
-  });
-  request.delItems?.forEach((item, index) => {
-    appendMenuDetailItem(formData, 'delItems', index, item);
-  });
+  formData.append(
+    'menuDetailRequest',
+    new Blob([JSON.stringify(request)], { type: 'application/json' }),
+  );
 
   appendMenuDetailFileFields(formData, fileInfo?.fileUlid, fileInfo?.fileChangeState);
 

@@ -92,6 +92,7 @@ src/mocks/handlers.ts            ← 생성된 핸들러 통합 등록
 - 화면에서는 가능하면 wrapper 훅을 통해 사용한다.
 - 인증 관련 요청은 generated handler 대신 커스텀 MSW 핸들러를 우선 사용한다.
 - 현재 wrapper 적용 범위는 `auth/me`, `login`, `logout`, `dashboard/info`까지다.
+- 주문 상태 관리는 generated 조회·mutation을 feature wrapper에서 조합해 Polling, 응답 변환, 성공 판정, invalidate를 관리한다.
 - 특정 기능 화면 실구현이 확정되기 전에는 generated 훅을 억지로 wrapper로 늘리지 않는다.
 
 ---
@@ -247,6 +248,30 @@ const myFeatureSaveOverrideHandler = http.post(
 - `newItems`는 보통 `sysId`가 없는 상태로 오므로 mock에서 직접 생성해 부여한다.
 - generated 저장 핸들러를 이 방식으로 대체했다면 `getSaveXxxMockHandler` import/등록을 `handlers.ts`에서 제거한다(같은 경로에 두 핸들러를 동시에 두지 않는다 — MSW는 첫 매칭만 쓰므로 우리 핸들러가 위에 있으면 동작은 하지만 죽은 import가 남는다).
 - 로딩 스피너(`isSaving`) 동작까지 확인하려면 핸들러 안에 `await delay(1000)`(msw의 `delay`)을 추가했다가 확인 후 제거한다. 평소엔 즉시 응답하는 게 개발 흐름상 더 편하므로 delay는 기본적으로 넣지 않는다.
+
+### 상태형 Mock API
+
+조회와 여러 상태 변경 endpoint가 같은 데이터를 공유해야 하는 화면은 feature 전용 상태형 MSW를 사용한다. 주문 상태 관리가 이 패턴의 적용 예다.
+
+```text
+GET /status/search
+        ↓ 같은 메모리 저장소 사용
+POST /status/go_to_cooking
+POST /status/go_to_serving_complete
+POST /status/back_to_receive_order
+POST /status/back_to_cooking
+POST /status/cancel_order
+```
+
+- 최초 fixture를 직접 변경하지 않고 deep clone한 저장소를 사용한다.
+- 테스트마다 reset하여 이전 테스트의 mutation 결과가 남지 않게 한다.
+- POST 성공 후 다음 GET이 변경된 상태를 반환해야 한다.
+- 존재하지 않는 주문과 허용되지 않은 상태 전이는 실패시킨다.
+- feature handler는 generated handler보다 먼저 등록한다.
+- 주문 상태 API의 미등록 경로는 fail-closed 응답을 반환해 실제 백엔드로 우회하지 않게 한다.
+- `dev:real`에서는 MSW 자체가 비활성화되므로 feature handler가 실제 요청을 가로채지 않는다.
+
+generated 타입에 아직 없는 필드는 generated 파일을 수정하지 않고 feature-local 호환 타입에서만 임시로 표현한다. 백엔드 명세 반영 후 `generate:schema`과 `generate`를 실행하고 호환 필드와 TODO를 제거한다.
 
 ---
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface OrderHistoryMapper {
-    List<OrderMasterHistoryItem> getOrderMasterHistory(String orderStatus, LocalDate startDate, LocalDate endDate);
+    List<OrderMasterHistoryItem> getOrderMasterHistory(String orderStatus, String searchKeyword, LocalDate startDate, LocalDate endDate, String sysPlantCd);
     List<OrderTotalPriceItem> getOrderMasterTotalPrice(List<String> sysId);
     List<OrderDetailHistoryItem> getOrderDetailHistory(List<String> masterSysIds);
     List<OrderTotalPriceItem> getOrderDetailTotalPrice(List<String> sysId);

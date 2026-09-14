@@ -28,6 +28,10 @@ import {
 } from '@/shared/components/button';
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { QuantityStepperButton } from '@/apps/consumer/features/order-shell/components/QuantityStepperButton';
+import '@/apps/consumer/features/order-shell/components/QuantityStepper.css';
+import '@/apps/consumer/features/order-shell/components/MenuOptionGroupList.css';
+import '@/apps/consumer/features/order-shell/components/CartLineItem.css';
 
 const SEGMENT_SLIDE_OPTIONS = ['작게', '보통', '크게'] as const;
 
@@ -154,6 +158,7 @@ function SegmentSlideDemo() {
 export default function ButtonGuide() {
   const [toggleMap, setToggleMap] = useState<Record<string, boolean | string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [qtyDemo, setQtyDemo] = useState({ main: 1, option: 1, cart: 1 });
 
   const toggle = (key: string) =>
     setToggleMap((p) => ({ ...p, [key]: !p[key] }));
@@ -640,6 +645,77 @@ export default function ButtonGuide() {
           <ResetTableButton disabled />
           <PrintListTableButton disabled />
           <SaveTableButton loading />
+        </Row>
+      </Section>
+
+      {/* ── 8. 수량 스텝퍼 버튼 (QuantityStepperButton) ── */}
+      <Section
+        title="수량 스텝퍼 버튼 (QuantityStepperButton)"
+        desc="consumer 주문 화면의 -/+/x 아이콘 버튼 하나를 3곳이 공유한다. 배경·크기 같은
+          컨테이너 스타일만 각 화면 CSS(className)로 다르게 입힌다 — apps/consumer/features/order-shell/components/QuantityStepperButton.tsx"
+      >
+        <Row label="메뉴 상세 전체 수량 (QuantityStepper) — 회색 트랙 + 흰 배경 그림자 버튼">
+          <div className="quantity-stepper__control">
+            <QuantityStepperButton
+              icon="minus"
+              className="quantity-stepper__button"
+              onClick={() => setQtyDemo((p) => ({ ...p, main: Math.max(1, p.main - 1) }))}
+              disabled={qtyDemo.main <= 1}
+              ariaLabel="수량 줄이기"
+            />
+            <output className="quantity-stepper__value">{qtyDemo.main}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="quantity-stepper__button"
+              onClick={() => setQtyDemo((p) => ({ ...p, main: p.main + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="옵션 리스트 항목별 수량 (MenuOptionGroupList) — 트랙과 같은 배경, 버튼 자체는 배경 없음">
+          <div className="menu-option-choice__qty">
+            <QuantityStepperButton
+              icon="minus"
+              className="menu-option-choice__qty-button"
+              iconSize={10}
+              onClick={() => setQtyDemo((p) => ({ ...p, option: Math.max(1, p.option - 1) }))}
+              disabled={qtyDemo.option <= 1}
+              ariaLabel="수량 줄이기"
+            />
+            <output className="menu-option-choice__qty-value" aria-label="수량">{qtyDemo.option}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="menu-option-choice__qty-button"
+              iconSize={10}
+              onClick={() => setQtyDemo((p) => ({ ...p, option: p.option + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="장바구니 줄 수량 (CartLineItem) — 버튼마다 독립된 사각형, 1일 때 감소 버튼이 삭제(x)로 전환">
+          <div className="cart-line-item__qty">
+            <QuantityStepperButton
+              icon={qtyDemo.cart <= 1 ? 'remove' : 'minus'}
+              className={`cart-line-item__qty-button${qtyDemo.cart <= 1 ? ' cart-line-item__qty-button--danger' : ''}`}
+              iconSize={11}
+              onClick={() =>
+                qtyDemo.cart <= 1
+                  ? setQtyDemo((p) => ({ ...p, cart: 1 })) /* 데모에선 삭제 대신 1로 고정 */
+                  : setQtyDemo((p) => ({ ...p, cart: p.cart - 1 }))
+              }
+              ariaLabel={qtyDemo.cart <= 1 ? '삭제' : '수량 줄이기'}
+            />
+            <output className="cart-line-item__qty-value" aria-label="수량">{qtyDemo.cart}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="cart-line-item__qty-button"
+              iconSize={11}
+              onClick={() => setQtyDemo((p) => ({ ...p, cart: p.cart + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
         </Row>
       </Section>
     </div>

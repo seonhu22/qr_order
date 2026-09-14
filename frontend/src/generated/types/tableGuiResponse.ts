@@ -15,6 +15,6 @@ export interface TableGuiResponse {
   width?: number;
   tableType?: string;
   objectType?: string;
-  ycoordinate?: number;
   xcoordinate?: number;
+  ycoordinate?: number;
 }

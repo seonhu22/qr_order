@@ -50,6 +50,12 @@ mapToCommonMasterPayload;
 
 날짜 파라미터 포맷은 화면 input 형식보다 백엔드 계약을 우선한다.
 
+## API가 아직 없거나 mock으로 우회해야 할 때
+
+> 추가일: 2026-08-21
+
+백엔드 API가 아직 없거나(예: Consumer 세션 조회), 있어도 흐름 확인을 위해 잠시 mock으로 우회해야 할 때(예: Consumer QR 인증)는 실제 호출 코드를 지우지 않고 `XXX_MOCK_ENABLED` 같은 플래그로 우회한다. 패턴과 근거는 [`decisions.md` ADR-021](../decisions.md#adr-021--consumer-골격-단계의-mock-경계-원칙) 참고.
+
 ## 관련 문서
 
 - [API 코드 생성 가이드](../api-codegen.md)

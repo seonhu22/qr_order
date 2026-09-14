@@ -7,6 +7,30 @@
 
 ---
 
+## ADR-023 — Consumer 메뉴 API 연동과 옵션 수량 계약
+
+**날짜**: 2026-08-24
+**상태**: 채택
+
+### 배경
+
+Consumer 메뉴 메인, 검색, 상세 API가 추가되어 주문 화면의 하드코딩 메뉴를 제거할 수 있게 됐다. 상세 API는 옵션 선택 방식을 01 단일, 02 복수, 03 수량으로 제공하고 수량형 항목의 최대값을 `maximumNum`으로 제공한다.
+
+### 결정
+
+- 메인 응답은 매장명, 테이블 번호, 카테고리, 메뉴 목록의 기준 데이터로 사용한다.
+- 검색어는 300ms 지연 후 서버 검색 API로 전달한다. 빈 검색어는 메인 목록을 그대로 사용한다.
+- 상세 시트를 열 때 상세 API를 호출하고 로딩과 실패 상태를 시트 안에 표시한다.
+- API 코드값은 `consumerMenuMapper` 한 곳에서 화면 모델로 변환한다.
+- 수량형 옵션 가격은 옵션 단가와 선택 수량을 곱한다. 장바구니 키에도 옵션 수량을 포함한다.
+- React Query 키에는 QR 테이블 세션 식별자를 포함해 세션 사이의 캐시 혼입을 방지한다.
+
+### 결과
+
+메뉴 데이터와 옵션 계약의 기준은 Consumer API가 된다. MSW는 같은 응답 모양을 제공해 화면 테스트가 실제 매핑 계층을 통과하도록 한다.
+
+---
+
 ## ADR-001 — API 코드 생성 도구: Orval 채택
 
 **날짜**: 2026-03-31
@@ -702,5 +726,413 @@ ADR-015에서는 `table_gui`의 update SQL이 `table_info.sys_id` 매칭이라 �
 
 - `frontend/src/apps/client/features/qr-code/utils/qrCodePrint.ts` — `generateQrDataUrl` 래퍼
 - 그 외 직접 사용 금지. QR 생성이 다른 feature에도 필요해지면 본 유틸을 `shared/`로 승격
+
+---
+
+## ADR-019 — 주문 상태 시각: SQL `::time` 대신 원본 `LocalDateTime` 유지
+
+**날짜**: 2026-08-06
+**상태**: 채택
+
+### 배경
+
+주문 상태 조회 QA 중 PostgreSQL `timestamp` 컬럼을 Java `LocalTime` DTO로 직접 매핑해 500 오류가 발생했다. 과거에는 카드에 `HH:mm`만 표시하려고 `orderDatetime`을 `LocalDateTime`에서 `LocalTime`으로 변경했지만, SQL은 `og.insert_datetime` 원본 `timestamp`를 그대로 반환하고 있었다.
+
+### 검토한 방식
+
+- **SQL `::time` 변환**: 기존 `LocalTime` 계약과 `HH:mm` 표시를 유지하고 JDBC 오류를 작게 수정할 수 있다. 그러나 날짜가 사라져 전날과 당일 주문을 구분할 수 없고, 당일 취소 필터·자정 전후 정렬·향후 경과시간 계산에서 프론트가 오늘 날짜를 임의로 복원해야 한다.
+- **원본 `LocalDateTime` 응답(채택)**: DB의 날짜와 시간을 손실 없이 전달하고 프론트가 화면에서 `HH:mm`만 표시한다. 응답 정보는 늘지만 표시 책임과 데이터 책임이 분리된다.
+
+### 결정
+
+- `StatusItem.Header.orderDatetime`, `StatusItem.Header.cancelDatetime`, `StatusCancelResponse.cancelDatetime`은 `LocalDateTime`을 사용한다.
+- JSON은 프로젝트 규칙인 `yyyy-MM-dd HH:mm:ss` 공백 형식으로 직렬화한다.
+- 프론트 mapper는 공백을 `T`로 정규화해 내부 ISO 형태로 보존하고, 카드에서만 `HH:mm`으로 표시한다.
+- OpenAPI를 갱신하고 Orval regenerate 후 생성 타입에 날짜·시간 계약이 반영됐는지 확인한다.
+
+### 결과
+
+- PostgreSQL `timestamp`와 Java DTO 타입 불일치를 제거한다.
+- 날짜 손실 없이 당일 취소 필터와 시간 정렬 기준을 유지한다.
+- API 원본과 UI 표시 형식을 분리해 다른 화면에서도 같은 시각을 재사용할 수 있다.
+
+---
+
+## ADR-020 — Consumer 앱 골격: 뷰포트 반응형과 QR 세션 가드
+
+**날짜**: 2026-08-20
+**상태**: 채택
+
+### 배경
+
+Consumer(QR 소비자 주문) 앱의 첫 골격 PR에서 Admin/Client에 없던 세 가지 상황이 새로 생겼다: 사이드바가 없는 전체화면 모바일 셸의 반응형 기준, 로그인이 아닌 QR 세션 유효성을 판단해야 하는 보호 라우트, 메뉴상세·장바구니·주문내역·직원호출이 공유하는 바텀시트 UI. 세 항목 모두 기존 문서의 결정을 그대로 재사용할 수 없어 하나의 ADR로 묶어 기록한다.
+
+### 결정
+
+**뷰포트 `@media`가 1차, Viewport Segments API는 progressive enhancement (ADR-016과 대비)**
+
+[ADR-016](#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-레이아웃-기준)은 Client가 열고 닫을 수 있는 사이드바를 가져 뷰포트 폭과 실제 콘텐츠 폭이 어긋나기 때문에 컨테이너 쿼리를 채택했다. Consumer는 사이드바가 없는 전체화면 앱이라 콘텐츠 폭이 항상 뷰포트 폭과 같다 — ADR-016의 전제가 성립하지 않는다. 따라서 Consumer는 표준 뷰포트 `@media`를 1차 기준으로 삼는다.
+
+디자인/퍼블리싱 단계에서는 "폴더블인지"를 먼저 판별하려 하지 않는다. 대신 넓은 뷰포트에서도 중요한 UI가 화면 중앙에 애매하게 걸리지 않는 레이아웃을 뷰포트 폭 기준으로 먼저 만들고, 그 위에 실제 힌지 정보를 얻을 수 있는 기기에서만 `@media (horizontal-viewport-segments: 2)`로 세밀하게 보정한다 — 미지원 브라우저는 이 블록 자체가 매치되지 않아 1차 레이아웃 그대로 동작하므로 폴백이 따로 필요 없다.
+
+브레이크포인트:
+
+| 구간 | 기준 | 적용 |
+|---|---|---|
+| ~480px 미만 | `ConsumerHeader` | 아이콘+액션 한 줄, 매장 정보가 다음 줄로 wrap (`flex-wrap` + `order`) |
+| 480px 이상 | `ConsumerHeader` | 매장 정보가 아이콘 옆으로 붙어 한 줄로 합쳐짐 |
+| ~653px | 폴드 커버 화면 상한 | 별도 규칙 없음 — 480px 규칙 안에서 자연스럽게 처리됨 |
+| ~717px 이상 | 폴드 펼침·태블릿·웹(데스크톱) | `ConsumerLayout` 셸의 `max-width` 제한을 없애 뷰포트를 꽉 채운다. `order-shell` 메뉴 목록은 `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))`로 열 수를 고정하지 않고 카드 폭에 맞춰 자동으로 늘린다(717px≈2열, 1024px≈3열, 1440px≈4열…) |
+| `horizontal-viewport-segments: 2` 매치 시 | 실제 듀얼세그먼트 지원 기기 | `--fold-gap`(힌지 폭, `env(viewport-segment-*)`)을 그리드의 `column-gap`에 반영해 카드가 힌지 위에 걸치지 않게 함 |
+
+717px 이상은 "웹은 화면을 꽉 채운다"는 요구사항에 맞춰 셸 폭 제한을 아예 두지 않는다. 태블릿과 데스크톱을 가르는 별도 브레이크포인트가 없어도 auto-fit 그리드가 폭에 맞춰 열 수를 알아서 조절하므로 두 경우 모두 자연스럽게 채워진다.
+
+**QR 세션 가드는 401 리다이렉트·에러 페이지에 이은 세 번째 상태 처리 카테고리**
+
+[`architecture.md` §6](./architecture.md#6-상태-처리-라우팅-기준)은 401(인증 리다이렉트)과 403/404/500(`ErrorPageTemplate` 기반 에러 페이지)만 다룬다. Consumer의 세션 만료·마감·없음은 둘 다 아니다 — 보여줄 의미 있는 HTTP 상태 코드가 없고(임의로 401/403 등을 표시하면 아직 정해지지 않은 백엔드 세션 API의 의미를 프론트가 먼저 확정하는 셈이 된다), 이동할 로그인 페이지도 없다. 그래서 `ConsumerSessionGuard`(로그인 인증이 아닌 QR 세션 검사)가 `ConsumerStatusScreen`(아이콘+제목+설명+선택적 버튼)을 렌더링하는 것을 세 번째 카테고리로 둔다. 반면 가드를 통과한 뒤 `/consumer/*` 내부의 알 수 없는 경로는 여전히 기존 404 카테고리를 따라 공유 `NotFoundPage`를 그대로 재사용한다.
+
+세션 조회는 `GET /api/client/consumer/session`이 없어 mock 상태다. 정확한 API 계약과 401/403/409/410의 의미는 여전히 미정이며, 인수인계 문서(`consumer-app-skeleton-handoff.md`) §14 "백엔드 협의 항목"에서 다룬다.
+
+**`ConsumerSessionGuard`는 만들되 지금은 끔(`SESSION_GUARD_ENABLED = false`)**
+
+실제 세션 조회 API가 없는 상태에서 "세션 없음" 화면을 항상 보여주면, QR을 거치지 않고 `/consumer/order`를 직접 열어 화면을 확인/데모하려 할 때마다 막힌다. 가드 로직 자체는 나중에 API가 생겼을 때 그대로 켜서 쓰도록 [`ConsumerSessionGuard.tsx`](../src/apps/consumer/routes/ConsumerSessionGuard.tsx)에 남겨두고, 최상단에 `SESSION_GUARD_ENABLED` 상수 하나로 우회한다 — 꺼져 있는 동안은 세션 상태와 무관하게 children을 그대로 렌더링한다. 같은 이유로 세션 조회의 로딩 분기도 실제 로딩이라 부를 기능이 없어 문구 없는 빈 프레임으로만 남겨뒀다(쿼리가 항상 `pending`으로 시작하는 순간의 화면 깜빡임만 막는 용도).
+
+**`ConsumerBottomSheet`는 `WrapperModal`을 재사용하지 않고 신규 primitive로 작성**
+
+기존 `shared/components/modal/wrapper/WrapperModal`은 화면 중앙 다이얼로그 계약(포커스 트랩, 다중 모달 스택, body 스크롤 잠금)을 갖는다. Consumer 하단 시트는 이와 달리 화면 하단에서 슬라이드로 열리고, 드래그 핸들 스와이프로 닫히며, 항상 한 번에 하나만 열린다(다중 스택 불필요). 또한 이 프로젝트는 이미 `html/body`를 `overflow: hidden`으로 고정해 두어(`global.css`) `WrapperModal`의 body 스크롤 잠금 로직이 애초에 의미가 없다. 계약이 겹치지 않아 `apps/consumer/features/bottom-sheet/components/ConsumerBottomSheet`로 새로 작성했다. 메뉴상세·장바구니·주문내역·직원호출 4개 기능이 공유하며, 다른 앱에서도 동일한 계약으로 재사용될 때만 `shared/components`로 승격한다.
+
+### 결과
+
+- Consumer 반응형 작업은 ADR-016의 컨테이너 쿼리 패턴을 따르지 않아도 된다 — 표준 `@media`가 1차 기준이고, Viewport Segments API는 그 위에 얹는 progressive enhancement다.
+- Consumer의 상태 처리는 architecture.md §6의 표에 없다고 해서 누락된 것이 아니라 의도된 세 번째 카테고리다.
+- `/consumer/order`는 지금 QR 세션 없이 열어도 주문 화면이 보인다 — 버그가 아니라 `SESSION_GUARD_ENABLED = false`로 인한 의도된 현재 상태이며, 세션 API가 붙으면 이 값만 뒤집는다.
+- 바텀시트 신규 작성은 `WrapperModal` 승격 실패가 아니라 계약이 다른 별도 컴포넌트를 만든 것이다.
+
+---
+
+## ADR-021 — Consumer 골격 단계의 mock 경계 원칙
+
+**날짜**: 2026-08-21
+**상태**: 채택
+
+### 배경
+
+Consumer 골격 작업 도중 반복해서 마주친 질문이 있다: 아직 없는 백엔드 API를 mock으로 채울 때, 그 mock을 어디에 어떻게 두어야 나중에 실제 API로 바꾸기 쉬운가? ADR-020은 `SESSION_GUARD_ENABLED` 하나만 다뤘지만, 이후 QR 인증(`connectQrStub`)에도 같은 요구가 생겨 패턴으로 정리해둔다.
+
+### 결정
+
+**"실제 로직은 남기고 플래그로 우회" 패턴을 mock 경계의 기본형으로 삼는다**
+
+실제 API가 이미 있지만 아직 그 응답에 의존하고 싶지 않을 때(예: `/api/qr/:url`은 실제로 동작하지만 MSW/백엔드 상태와 무관하게 흐름을 확인해야 함), 또는 API 자체가 없을 때(예: `GET /api/client/consumer/session`) 모두 아래 형태를 따른다.
+
+```ts
+// 실제 호출 코드는 삭제하지 않고 그대로 둔다
+const XXX_MOCK_ENABLED = true; // 또는 SESSION_GUARD_ENABLED = false 처럼 반대 극성
+
+const result = XXX_MOCK_ENABLED ? await xxxStub(...) : await xxxReal(...);
+```
+
+- 실제 함수 호출부는 지우지 않는다 — 나중에 플래그 하나만 뒤집으면 원래 경로로 복귀한다.
+- stub 함수는 별도 파일(`*Stub.ts`)로 분리해 "이 부분은 mock"이 파일 단위로 드러나게 한다.
+- stub의 응답 모양은 **실제 API가 이미 있으면 그 응답을 그대로 베끼고**, 없으면 화면에 필요한 최소 모양으로 임의로 정하되 타입에 주석으로 "mock 전용"임을 남긴다 — 실제 계약이 나오면 이 타입과 매핑 로직은 다시 손볼 대상이라는 뜻이다.
+- 이 패턴은 Consumer뿐 아니라 다른 앱에서 같은 상황(API는 있지만 흐름 확인엔 방해, 또는 API 자체가 미정)이 생기면 동일하게 적용한다.
+
+### 결과
+
+- 앞으로 Consumer(또는 다른 앱)에서 "API는 있는데 mock으로 우회해야 하는 상황"이 생기면 새로 고민하지 않고 이 ADR의 플래그 패턴을 그대로 적용한다.
+- mock 응답 타입에 "mock 전용" 표시가 있으면, 실제 API 연동 시 그 타입과 매핑 로직부터 다시 봐야 한다는 신호로 읽는다.
+
+---
+
+## ADR-022 — 옵션 단일/복수 선택은 프론트에서 먼저 정의한다
+
+**날짜**: 2026-08-21
+**상태**: 채택
+
+> 2026-08-24: Consumer 상세 API가 `selectionType` 01/02/03과 `defaultYn`, `maximumNum`을 제공하면서 이 결정의 mock 전용 계약은 ADR-023으로 대체됐다.
+
+### 배경
+
+Consumer 메뉴 상세 시트에 옵션 그룹(필수/선택, 단일/복수)을 붙이려고 백엔드 계약을 확인한 결과, **단일 선택과 복수 선택을 구분할 필드가 없었다**.
+
+`MenuOptionGroupItem`이 가진 값은 다음과 같다.
+
+| 필드 | 의미 | 단일/복수 판단에 쓸 수 있나 |
+|---|---|---|
+| `requiredYn` | 필수 선택 여부 | 아니오 — 필수/선택만 구분 |
+| `inputType` | `'주문 옵션'` \| `'수량 설정'` | 아니오 — 옵션이냐 수량이냐만 구분 |
+| `maximumNum` | 옵션 **항목**(detail)의 수량 상한 | 아니오 — 그룹이 아니라 항목 단위 값 |
+
+`inputType`의 실제 값은 client 앱 옵션 관리 화면의 `INPUT_TYPE_OPTIONS`에서 확인했다. 즉 "한 그룹에서 하나만 고를 수 있는가, 여러 개를 고를 수 있는가"는 현재 DB·API 어디에도 없다.
+
+또한 소비자용 옵션 조회 API 자체가 없다. 지금 있는 옵션 엔드포인트는 전부 `/api/client/menu_manage/option/*`으로 사장님 관리용이다.
+
+### 결정
+
+[ADR-010](#adr-010--옵션-관리-백엔드에-없는-필드는-프론트-우선-구현-저장-시-미전송)의 선례를 따라 **프론트에서 먼저 정의하고, 백엔드 계약이 정해지면 매핑을 다시 잡는다.**
+
+- 화면 모델 `OrderShellOptionGroup`에 `selectionType: 'single' | 'multiple'`을 둔다.
+- 이 필드는 **mock 전용**임을 타입 주석에 남긴다 — ADR-021의 "mock 응답 타입에 표시를 남긴다" 규칙과 같은 맥락이다.
+- 복수 선택 상한은 그룹 단위 `maxSelectable`로 둔다. 백엔드의 `maximumNum`은 항목 단위 값이라 의미가 달라 그대로 매핑하지 않는다.
+- 옵션 데이터는 `orderShellMock.ts`에 함께 둔다. 소비자용 조회 API가 없어 별도 stub 파일을 만들 실제 호출부가 아직 없기 때문이다 — API가 생기면 ADR-021의 플래그 + `*Stub.ts` 패턴으로 옮긴다.
+
+### 백엔드 협의 항목
+
+- [ ] 옵션 그룹에 단일/복수 선택 구분 컬럼 추가 (`selection_type` 등) 후 DTO·쿼리에 노출
+- [ ] 복수 선택 그룹의 최대 선택 개수를 그룹 단위로 보관할지 결정 (현재 `maximumNum`은 항목 단위)
+- [ ] 소비자용 옵션 조회 API 신설 (`/api/client/consumer/menu/{menuId}/options` 등) — 관리용 `client/menu_manage/*`를 소비자가 그대로 호출하면 권한 범위가 어긋난다
+- [ ] 옵션 항목 "기본 선택"(`defaultYn`) 컬럼 — ADR-010에서 이미 요청한 항목이며, 현재는 "필수 단일 선택 그룹의 첫 항목"으로 대체하고 있다
+
+### 결과
+
+- 옵션 UI는 백엔드 계약을 기다리지 않고 먼저 완성한다.
+- 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellOptionGroup`의 `selectionType`·`maxSelectable`과 그 매핑 로직이다.
+
+---
+
+## ADR-023 — 복수 선택 옵션 항목별 수량은 mock 전용 `qty`로 둔다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `MenuDetailSheet`를 따라가면서 복수 선택 옵션(예: "치즈 토핑")을 여러 개 담을 수 있는 항목별 수량 스텝퍼를 붙였다. ADR-022가 남긴 `MenuOptionGroupItem.inputType`의 `'수량 설정'` 값이 실제로 이 개념(항목 하나를 몇 개 담을지)과 맞닿아 있을 가능성이 높지만, 백엔드에 이 값을 실제로 몇 개 담았는지 저장·전송하는 필드는 아직 없다.
+
+### 결정
+
+ADR-022와 같은 원칙(ADR-010 선례 — 프론트 우선 구현, 백엔드 계약 정해지면 매핑 재정비)을 그대로 따른다.
+
+- `OrderShellCartOption`에 `qty?: number`를 둔다. 없으면 1개로 취급하며(단일 선택은 항상 이 경우), **mock 전용**임을 타입 주석에 남긴다.
+- 수량 상태는 `useMenuDetailSheet`가 소유한다(`choiceQty`, key: `` `${groupId}__${choiceId}` ``). 복수 선택 항목이 새로 선택될 때마다 1로 초기화한다 — 이전에 해제하기 전 늘려둔 값이 재선택 시 남아있지 않게 하기 위함이다.
+- 가격 계산(`cartLine.ts`의 `sumOptionPrice`/`calcUnitPrice`)은 옵션별 `price * (qty ?? 1)`로 합산해, `qty` 없는 기존 호출부(단일 선택, 테스트의 mock 옵션 등)와 호환된다.
+- 개수 상한은 두지 않는다 — 참고 저장소도 항목별 수량은 무제한이고, 그룹의 `maxSelectable`(몇 "종류"를 고를 수 있는지)과는 별개 축이다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시 옵션 라인마다 개수를 저장할 필드 필요(현재 `MenuOptionDetailItem`류에는 선택 여부만 있고 개수가 없다)
+- [ ] `inputType: '수량 설정'`이 이 "옵션 항목별 개수" 개념과 같은 것인지, 아니면 별도 화면(예: 수량만 조절하는 옵션 그룹)을 가리키는지 확인 필요 — 같은 것이라면 `selectionType`처럼 이 필드로 단일/복수 선택 UI 분기까지 겸할 수 있는지도 함께 정리
+- [ ] 항목별 개수 상한(예: 재고 기반)이 필요한지 여부
+
+### 결과
+
+- 복수 선택 옵션의 항목별 수량 UI·가격 계산은 백엔드 계약 없이 먼저 완성한다.
+- 실제 API가 붙을 때 다시 봐야 할 지점은 `OrderShellCartOption.qty`와 `useMenuDetailSheet`의 `choiceQty` 상태, 그리고 `inputType`과의 관계다.
+
+---
+
+## ADR-024 — 주문 실패 화면(네트워크·중복 주문)은 먼저 완성하고, 판별 로직은 QA 트리거로 미리본다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder) `CustomerMenuPage`의 주문 제출 흐름(`doOrder`/`commitOrder`)을 그대로 따라가 보면, 성공(`OrderCompleteScreen`) 외의 경로 — 주문 실패(`OrderErrorScreen` type `network`/`duplicate`) — 는 실제 주문 파이프라인 어디에서도 세팅되지 않는다. 헤더의 dev-nav 데모 버튼에서만 강제로 호출된다. 우리 프로젝트도 주문 제출 백엔드 API가 아직 없어 같은 상황이다.
+
+### 결정
+
+- `useConsumerOrderPage`의 `orderPhase` 하나로 `idle`/`processing`/`complete`/`error-network`/`error-duplicate` 상태를 전부 표현하는 단일 상태 머신을 둔다. 화면 렌더링은 `ConsumerOrderPage.tsx`가 이 값 하나만 보고 분기한다.
+- 실제 주문 흐름(`placeOrder`)은 참고 저장소의 딜레이(1800ms)를 그대로 따라 항상 성공(`complete`)한다 — 실패 화면은 자동으로는 절대 발생하지 않는다.
+- 화면 디자인·문구는 참고 저장소 그대로 만들어 두되, 진입은 `consumerOrderQaStore`(zustand)를 거쳐 헤더의 설정(⚙) 버튼 — dev 빌드(`import.meta.env.DEV`) 한정 드롭다운 — 에서만 강제로 요청한다.
+- 헤더(요청하는 쪽)와 order-shell(화면을 그리는 쪽)은 서로 다른 컴포넌트라 콜백을 직접 넘길 수 없어, 스토어를 이벤트 버스처럼 쓴다. `useConsumerOrderPage`는 이 요청을 `useState` 구독이 아니라 zustand의 vanilla `.subscribe()`로 구독한다 — 이유는 [`troubleshooting.md`](../troubleshooting.md#다른-컴포넌트의-zustand-스토어-변경에-반응해-setstate하면-set-state-in-effect-린트-에러) 참고.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 제출 API의 실패 응답 스펙(네트워크 오류/중복 주문을 어떻게 구분해 내려줄지)
+
+### 결과
+
+- 실제 API가 붙으면 `triggerOrderFailure`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 판별 로직에서 호출하도록 바꾸면 된다 — 화면 자체는 이미 완성돼 있어 재작업이 필요 없다.
+- QA 트리거(`consumerOrderQaStore`, 헤더 드롭다운)는 `import.meta.env.DEV` 가드로 production 빌드에서 tree-shake 되어 실사용자에게는 노출되지 않는다.
+- 같은 원인(백엔드 판별 로직 부재)으로 이후 추가한 세션 만료·통신 오류 화면은 [ADR-025](#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다)에서 이 패턴을 그대로 확장한다.
+
+---
+
+## ADR-025 — 세션 만료(시간초과·마감)·통신 오류 화면도 같은 원칙으로 먼저 완성한다
+
+**날짜**: 2026-08-25
+**상태**: 채택
+
+### 배경
+
+ADR-024로 주문 실패 2종(`error-network`/`error-duplicate`)을 먼저 화면만 완성해두는 패턴을 세운 뒤, 참고 저장소 `CustomerMenuPage`를 더 살펴보면 같은 성격의 화면이 3개 더 있다 — 세션 만료(`SessionExpiredScreen` variant `timeout`/`closed`)와 통신 오류(`NetworkErrorScreen`). 이 셋도 실제 파이프라인에서는 절대 세팅되지 않고 dev-nav 데모 버튼에서만 호출된다는 점이 ADR-024의 전제와 동일하다.
+
+### 결정
+
+- ADR-024의 `orderPhase` 상태 머신에 `session-timeout`/`session-closed`/`network-error` 세 값을 추가한다 — 별도 상태 머신을 새로 만들지 않고 기존 슬롯을 그대로 확장한다.
+- `consumerOrderQaStore`에 `pendingSessionExpiry`/`pendingNetworkError`를 추가하고, 헤더 QA 드롭다운에도 "주문 시간 초과"/"주문 마감 (결제 완료)"/"통신 오류" 3개 항목을 추가한다 — 트리거 메커니즘(`.subscribe()` 구독, dev 빌드 가드)은 ADR-024와 동일하다.
+- `NetworkErrorScreen`은 앱 전체의 연결 상태 문제를 알리는 화면이라, 다른 화면들의 브랜드(주황) 톤과 다르게 위험(`--color-status-error-*`, 빨강) 톤 아이콘·블롭을 쓴다 — 참고 저장소도 이 화면만 빨강 계열이다(버튼만은 브랜드색 유지).
+- `SessionExpiredScreen`은 QR을 다시 찍어야 하는 종결 상태라 별도 액션 버튼이 없다(아이콘+제목+설명만).
+
+### 백엔드 협의 항목
+
+- [ ] 세션 만료(시간초과/결제 완료로 인한 마감) 판별 방식 — 폴링/웹소켓/QR 재스캔 감지 등 미정
+- [ ] 통신 오류가 `navigator.onLine` 같은 순수 프론트 감지로 충분한지, API 응답 타임아웃 기준도 함께 둘지
+
+### 결과
+
+- 실제 감지 로직이 붙으면 `triggerSessionExpiry`/`triggerNetworkError`(`useConsumerOrderPage.ts`)를 `consumerOrderQaStore` 대신 실제 로직에서 호출하도록 바꾸면 된다.
+- 참고 저장소에는 없던 `ci-lock` 아이콘을 `consumerSprite.svg`에 추가했다(`session-closed`용) — `ci-clock`은 기존 아이콘을 그대로 재사용했다.
+
+---
+
+## ADR-026 — 품절 확인 흐름은 QR코드 진입 경로를 데모 트리거로 써서 먼저 완성한다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 품절 확인 모달(`SoldoutModal`)·장바구니 품절 표기·메뉴 목록 품절 배지는 실제 재고 판별 로직 없이, mock 데이터의 정적 `status: 'soldout'`이나 dev-nav의 "한정수량 품절 처리" 버튼으로만 도달한다. 우리 프로젝트도 주문 재고 판별 API가 없어 같은 상황이지만, ADR-024/025의 "설정 버튼 QA 트리거로만 도달"과는 다르게, 이번엔 QR코드별로 이미 있는 mock 테이블 구분(`qr-code-001`~`004`)을 실제 트리거로 재사용하기로 했다 — `qr-code-001`(창가 1번, `table-001`)로 들어오면 무엇을 담아 주문해도 항상 품절 확인 모달이 뜬다.
+
+### 결정
+
+- `useConsumerOrderPage`가 `useConsumerSession`으로 `session.tableSysId === 'table-001'`인지 확인해(`isSoldoutDemoTable`) `placeOrder` 시점에 분기한다 — 데모 테이블이면 처리중 화면 대신 `SoldoutModal`을 띄우고 장바구니 시트는 닫지 않는다.
+- `SoldoutModal`은 참고 저장소처럼 전체화면이 아니라 어두운 배경 위 중앙 카드형 다이얼로그다(z-index 80, 다른 order-shell 오버레이보다 위). "확인" 외에는 닫히지 않는다.
+- 확인한 장바구니 줄은 옵션 유무로 나눠 처리한다 — 옵션 없이 담았으면 메뉴 자체(`soldoutMenuIds`)를, 옵션을 골라 담았으면 그 옵션(`soldoutOptionChoiceIds`)만 품절 처리한다. 메뉴 자체를 항상 품절 처리하는 대안도 검토했지만, 옵션 하나 때문에 메뉴 전체를 못 시키게 되는 건 실제 매장 운영과도 맞지 않아 이 조합을 최종으로 삼았다.
+- 지속 범위를 두 층으로 나눴다 — 장바구니 표기(`soldoutCartKeys`)는 그 줄을 삭제해야 풀리고, 메뉴·옵션 표기(`soldoutMenuIds`/`soldoutOptionChoiceIds`)는 장바구니에서 지워도 풀리지 않는다(실제로 품절이라고 확인한 사실 자체는 그대로이므로). 대신 QA 드롭다운에 "품절 초기화"를 둬서 새로고침 없이 되돌릴 수 있게 했다.
+- `MenuItemCard`/`useMenuDetailSheet`의 품절 렌더링·비활성화는 이미 있던 mock 정적 `soldOut` 필드 처리 로직을 그대로 재사용한다 — 별도 UI를 새로 만들지 않고 "정적 품절"과 "런타임 품절"을 같은 조건식(`||`)으로 합쳤다.
+
+### 백엔드 협의 항목
+
+- [ ] 주문 시점 재고 판별 API — 메뉴 단위인지 옵션 단위인지, 응답에 어떤 식별자가 오는지
+- [ ] 품절이 발생하면 다른 세션(다른 테이블)에도 실시간으로 반영돼야 하는지(폴링/웹소켓 여부)
+
+### 결과
+
+- 실제 API가 붙으면 `isSoldoutDemoTable` 분기를 실제 재고 응답 판별로 바꾸고, `confirmSoldoutModal`의 메뉴/옵션 분리 로직은 응답이 내려주는 품절 단위에 맞춰 그대로 재사용할 수 있다.
+- `SoldoutModal`의 포커스 트랩·자동 포커스는 admin/client `WrapperModal`과 같은 기법(포커스 저장/복원, Tab 트랩)을 Consumer 전용으로 다시 구현했다 — ADR-020(Consumer는 WrapperModal을 재사용하지 않는다)과 일관된 선택이다.
+
+---
+
+## ADR-027 — 주문내역은 주문 건별로 시간과 함께 묶어서 보여준다
+
+**날짜**: 2026-08-26
+**상태**: 채택
+
+### 배경
+
+참고 저장소(Qrorder)의 주문내역(`OrderHistorySheet`)은 `commitOrder`가 성공할 때마다 `OrderRecord{ orderId, time, items, total }`를 쌓지만, 화면에서는 모든 주문의 아이템과 **아직 주문하지 않은 현재 장바구니**까지 시간 구분 없이 한 목록으로 합쳐 보여준다 — `time`/`orderId` 필드는 정의만 해두고 어디서도 렌더링하지 않는다. 같은 메뉴를 서로 다른 시각에 두 번 주문하면 목록에 이유 설명 없이 같은 이름이 두 번 뜨는 문제가 있고, 아직 결제 전인 장바구니 내용까지 "내역"에 섞이는 것도 어색하다.
+
+### 결정
+
+- `OrderShellOrderRecord{ orderId, orderedAt, items, total }`를 `useConsumerOrderPage`의 `startOrderProcessing` 성공 시점(장바구니 비우기 직전)에 기록한다 — 결제 여부와 무관하게 "주문하기"가 성공하면 무조건 남는다. 아직 담기만 한 현재 장바구니는 포함하지 않는다.
+- 화면(`OrderHistorySheet`)은 참고 저장소처럼 아이템을 통째로 합치지 않고, 주문 건마다 접수 시각과 함께 묶어서 보여준다 — 배달 앱들의 "주문내역"이 건별로 나뉘어 보이는 것과 같은 사용자 기대에 맞춘 선택이다.
+- 헤더(배지)와 order-shell(기록)이 다른 컴포넌트라 `consumerOrderHistoryStore`(zustand)를 새로 둔다 — `consumerSheetStore`/`consumerOrderFilterStore`와 같은 이유.
+- `ConsumerHeader`의 "주문내역" 버튼에 누적 주문 수량 배지를 추가한다(참고 저장소의 `totalOrderedQty` 배지와 동일).
+
+### 백엔드 협의 항목
+
+- [ ] 주문내역 조회 API 스펙 — 세션(테이블)별로 어떻게 스코프되는지, 새로고침·QR 재스캔 후에도 유지돼야 하는지
+- [ ] "주문 건"의 식별자(`orderId`)를 백엔드가 어떤 형태로 내려주는지
+
+### 결과
+
+- 실제 API가 붙으면 `startOrderProcessing`의 기록 지점을 서버 응답 기반으로 바꾸고, `OrderHistorySheet`의 건별 그룹 렌더링은 그대로 재사용할 수 있다.
+- QA 드롭다운에 "주문내역 초기화"를 추가했다 — `consumerOrderHistoryStore`가 이미 헤더·order-shell 양쪽에서 접근 가능한 스토어라, ADR-024/025/026과 달리 `consumerOrderQaStore`를 거치지 않고 헤더가 스토어의 `clearOrders`를 직접 호출한다.
+- 이 QA 드롭다운 전체(설정 버튼)는 실제 판별 로직이 자리 잡으면 코드베이스에서 지워야 할 임시 스캐폴딩이다 — `import.meta.env.DEV` 가드로 production 빌드에는 이미 안 들어가지만, 그 가드만 믿지 말고 실제로 필요 없어지면 삭제한다.
+
+---
+
+## ADR-028 — 소형 버튼은 시각적 크기를 유지하고 hit-slop으로 탭 영역만 넓힌다
+
+**날짜**: 2026-08-31
+**상태**: 채택
+
+### 배경
+
+Consumer 화면을 모바일 관점에서 다시 점검한 결과, 반복 탭이 잦은 소형 버튼들(수량 스텝퍼, 헤더 아이콘 버튼, 검색 지우기)이 iOS HIG(44px)·Material(48px) 권장 최소 터치 타겟보다 작았다 — 수량 스텝퍼 24~32px, 헤더 설정 버튼 32px, 검색 지우기는 패딩 없이 아이콘 크기(14px) 그대로였다. 시각적 크기를 그대로 키우면 카드 밀도·옵션 리스트 줄 높이 등 기존 디자인이 흔들린다.
+
+### 결정
+
+- 시각적 버튼 크기(배경·아이콘)는 그대로 두고, `::before` 가상 요소로 실제 탭 판정 영역만 넓히는 hit-slop 기법을 쓴다. `content: ''; position: absolute;`로 버튼 바깥까지 영역을 확장하되, 클릭은 부모 버튼으로 버블링돼 `onClick`이 정상 동작한다.
+- 목표 탭 영역은 **40px로 통일**한다. 44px는 자리마다 확보 가능한 여유(옆 버튼과의 간격)가 달라 44/40이 뒤섞이는데, 40px는 가장 좁은 자리(헤더 설정 버튼 — 옆 "주문내역" 버튼과 6px 간격)까지 포함해 모든 위치에서 겹치지 않고 균일하게 적용된다. WCAG 2.5.8(AA) 최소 기준(24px)은 넉넉히 충족하고 44px 권장치에도 근접한 실용적 타협값이다.
+- 각 위치의 확장폭은 옆 버튼과의 실제 간격을 계산해 서로 겹치지 않는 선에서 정했다.
+
+| 위치 | 시각적 크기 | 확장(상하 / 좌우) | 비고 |
+|---|---|---|---|
+| 메뉴상세 메인 수량 스텝퍼 (`quantity-stepper__button`) | 32×32 | 4px / 4px | |
+| 옵션별 수량 스텝퍼 (`menu-option-choice__qty-button`) | 24×32 | 4px / 8px | 옆 버튼과의 간격(28px)에 맞춰 좌우를 더 넓힘 |
+| 장바구니 수량 스텝퍼 (`cart-line-item__qty-button`) | 28×28 | 6px / 6px | |
+| 헤더 설정 버튼 (`consumer-header__icon-button`) | 32×32 | 4px / 4px | 왼쪽 "주문내역" 버튼과 6px 간격 — 가장 좁은 자리 |
+| 헤더 액션 버튼(직원호출·주문내역) (`consumer-header__action-button`) | 높이 32 | 4px / 0px | 너비는 텍스트로 이미 44px 초과, 세로만 확장 |
+| 검색 지우기(X) (`consumer-header__search-clear`) | 14×14, 패딩 없음 | 13px / 13px | 왼쪽은 입력창이라 겹쳐도 무해해 여유 있게 확장 |
+
+- Playwright로 실제 브라우저에서 검증했다 — 장바구니 수량 버튼의 보이는 28px 박스 바깥 5px 지점(확장된 hit-slop 안, 시각적 박스 밖)을 클릭해 수량이 실제로 증가하는지 확인했다.
+
+### 결과
+
+- `apps/consumer` 범위에 한정한다 — admin/client는 데스크톱 우선이라 이번 대상이 아니다.
+- 공용 컴포넌트 `QuantityStepperButton`의 `position: relative`는 base 클래스(`quantity-stepper-button`)에서 한 번만 선언하고, 확장폭(hit-slop `::before`의 `inset`)은 각 컨텍스트별 CSS 파일이 개별 지정한다.
+- 새로 추가하는 소형 아이콘 버튼도 같은 패턴(시각 크기 유지 + 40px hit-slop, 간격 계산해 겹치지 않게)을 따른다.
+
+---
+
+## ADR-029 — 앱 루트 로딩 화면을 `AppLoadingScreen`(공용)으로 통일한다
+
+**날짜**: 2026-09-01
+**상태**: 채택
+
+### 배경
+
+`/`(및 인증이 필요한 보호 경로)에서 인증 상태(`isLoading`)를 확인하는 동안 `shared/routes/AppRoutes.tsx`가 보여주는 로딩 화면이 있었다.
+
+```tsx
+function LoadingScreen() {
+  return <div className="app-loading">로딩 중...</div>;
+}
+```
+
+`app-loading` 클래스에 대응하는 CSS가 프로젝트 어디에도 없었다(admin/client를 통틀어 유일한 전역 로딩 화면인데도). 스피너도 중앙 정렬도 없이 "로딩 중..." 텍스트만 기본 브라우저 스타일로 뜨는 상태였다.
+
+### 결정
+
+- 참고 저장소(Qrorder)의 `AppLoadingScreen` 컴포넌트(블롭 장식 + "QRorder" 브랜드 로고 + 점 3개 바운스 인디케이터)를 공용 컴포넌트로 새로 만든다 — `apps/consumer/features/qr/components/QrLoadingScreen.tsx`가 이미 같은 컴포넌트를 이 프로젝트 토큰으로 옮겨와 쓰고 있었으므로(참고 저장소의 `CustomerQRScan`에서와 동일), 그 공통 부분(블롭·브랜드 로고·인디케이터)을 `shared/components/loading/AppLoadingScreen.tsx`로 추출하고 `QrLoadingScreen`이 그걸 감싸는 형태로 리팩터했다. 브랜드 아이콘은 consumer 전용 `ConsumerIcon` 대신 admin/client도 쓰는 공용 스프라이트의 `i-qr`(`shared/assets/icons/Icon`)로 바꿨다.
+- 텍스트는 `message` prop으로 받는다 — 앱 루트는 `"로딩 중..."`(기존 문구 유지, `AppRoutes.test.tsx`의 `getByText('로딩 중...')` 그대로 통과), QR 진입은 `"메뉴를 불러오는 중"`(기존 문구 유지).
+- consumer 전용 내용(매장명, 테이블 카드)은 `AppLoadingScreen`의 `children` 슬롯으로 넘긴다 — `QrLoadingScreen`의 외부 API(`tableNum` prop)는 그대로라 호출부(`QrEntryPage.tsx`) 수정은 필요 없었다.
+- 인증 확인이 너무 빨리 끝나면(수십 ms) 로딩 화면이 순간 깜빡이고 사라져 사용자가 인지할 수 없다는 문제가 있어, `AppRoutes.tsx`에 `useMinDisplayDuration` 훅을 추가해 한 번 뜨면 최소 600ms는 유지되게 했다. `active`가 true로 바뀌는 순간은 지연 없이 즉시 반영하고(렌더 중 상태 조정 — `ConsumerBottomSheet`의 `prevOpen`과 같은 패턴), "얼마나 더 유지할지" 계산과 지연된 `setState`만 `useEffect` 안에서 처리한다(effect 안에서 동기적으로 `setState`하지 않는 `react-hooks/set-state-in-effect` 규칙을 지키기 위함).
+
+### 결과
+
+- `shared/components/loading/`도 다른 `shared/components/*` 폴더와 같은 배럴(`index.ts`) 컨벤션을 따른다 — `@/shared/components/loading`으로 import.
+- 앞으로 전체화면 로딩이 필요한 곳(admin/client 등)은 이 컴포넌트를 재사용하면 된다.
+
+---
+
+## ADR-030 — 모바일 브라우저(iOS Safari·안드로이드 크롬) 호환성 수정 모음
+
+**날짜**: 2026-09-02
+**상태**: 채택
+
+### 배경
+
+아이폰 사파리로 Consumer 화면을 실제 확인하면서 데스크톱 크롬에서는 안 보이던 문제가 여럿 발견됐다. 각각 원인이 다르고 파일도 흩어져 있어 항목별로 정리한다.
+
+### 결정
+
+**① 검색 지우기 버튼: 조건부 마운트 → `visibility` 토글** (`ConsumerHeader.tsx`/`.css`)
+검색어 유무로 X 버튼을 `{searchQuery && (...)}`로 마운트/언마운트했는데, 포커스된 입력 옆에서 DOM이 마운트/언마운트되면 iOS Safari가 포커스 요소를 다시 스크롤해 보여주려다 헤더 전체가 위로 밀린 채 안 돌아오는 버그가 있었다. 버튼을 항상 마운트하고 `visibility`/`pointer-events`로만 토글하도록 바꿔 DOM 변경 자체를 없앴다.
+
+**② 공용 `Button`에 `-webkit-appearance: none` 추가** (`shared/components/button/Button.css`)
+`background`/`border`를 커스텀해도 iOS Safari는 버튼의 네이티브 외형(옅은 틴트)을 완전히 안 지우는 경우가 있어, 브랜드 오렌지 배경이 실제보다 칙칙하게 보였다(computed color는 데스크톱과 동일하게 나와 처음엔 안 잡히다가, 리셋 부재가 원인으로 확인됨). 같은 블록에서 `user-select`도 `-webkit-user-select` 프리픽스가 빠져 있어 같이 추가했다. 공용 컴포넌트라 admin/client에도 적용되지만 데스크톱은 원래도 문제가 없어 영향 없다.
+
+**③ `theme-color` 메타 태그 추가** (`index.html`)
+iOS Safari(및 안드로이드 크롬)는 상태바·하단 도구모음 색을 페이지 배경이 아니라 `<meta name="theme-color">` 값으로 정한다. 이게 없어서 브라우저 기본색과 헤더 배경이 어긋나 화면 위아래가 잘린 것처럼 보였다. 헤더 배경(`--color-bg-surface`, `#FFFFFF`)에 맞춰 정적으로 추가했다 — 화면마다 배경이 달라지는 하단(예: 장바구니 담겼을 때 `CartBar`의 브랜드 오렌지)까지 완벽히 맞추려면 JS로 동적 갱신이 필요한데, 이번엔 정적 값으로 우선 개선하고 필요해지면 동적 처리를 추가하기로 했다.
+
+**④ `-webkit-tap-highlight-color: transparent` 추가** (`shared/styles/reset.css`)
+안드로이드 크롬은 커스텀 스타일 버튼이라도 탭할 때마다 기본 회색 하이라이트를 깜빡여 보여준다(iOS Safari는 두드러지지 않아 아이폰 확인만으로는 못 잡음). `html` 규칙에 전역으로 추가했다 — admin/client 포함 앱 전체에 적용되는 리셋이라 부작용 없다.
+
+**⑤ `overscroll-behavior-y: contain` 추가** (`ConsumerBottomSheet.css`의 `__body`, `ConsumerLayout.css`의 `__body`)
+바텀시트나 페이지 본문을 끝까지 스크롤한 뒤 계속 당기면 오버스크롤이 뒤에 깔린 배경으로 새어나가거나(스크롤 체이닝), 안드로이드 크롬의 풀투리프레시 제스처가 잘못 걸릴 수 있어 두 스크롤 컨테이너에 추가했다.
+
+**⑥ 전체화면 상태 화면들을 `document.body`로 포탈** (`ConsumerOrderPage.tsx`)
+`OrderProcessingScreen`/`OrderCompleteScreen`/`OrderFailureScreen`/`SessionExpiredScreen`/`NetworkErrorScreen`/`SoldoutModal`이 전부 `position: fixed`로 전체화면을 덮으려 하는데, 이 컴포넌트들이 렌더링되는 지점이 `.consumer-layout__body`(`overflow-y:auto` + `-webkit-overflow-scrolling:touch` 스크롤 컨테이너) 안이었다. iOS Safari는 이런 스크롤 컨테이너 안의 `position:fixed`를 진짜 뷰포트가 아니라 컨테이너 기준으로 잘라 그리는 경우가 있어, 헤더 아래부터만 덮이고 헤더가 그대로 보이는 버그가 있었다. 이 화면들을 렌더링하는 지점에서 `createPortal`로 `document.body`에 직접 그리도록 바꿔 스크롤 컨테이너 밖으로 완전히 뺐다 — `ConsumerBottomSheet`가 이미 쓰던 것과 같은 패턴(ADR-020)이다. 브라우저별 예외처리가 아니라 문제의 구조적 원인(스크롤 컨테이너 안에 있었다는 것) 자체를 없앤 수정이라 안드로이드에도 부작용 없다.
+
+### 결과
+
+- ①②⑥은 iOS Safari 전용 버그의 수정, ④는 안드로이드 크롬 전용, ③⑤는 두 플랫폼 모두에 도움이 된다.
+- 새로 추가하는 전체화면 오버레이(`position:fixed; inset:0`)는 `.consumer-layout__body`(또는 다른 `overflow` 스크롤 컨테이너) 안에서 직접 렌더링하지 말고, ⑥과 같이 `document.body`로 포탈하거나 `ConsumerLayout` 밖에서 렌더링해야 한다.
+- 실제 기기 검증은 이 branch(`fix/consumer-mobile-qa`) 작업자가 아이폰 사파리로 진행했고, 안드로이드는 각 항목의 알려진 브라우저 특성에 근거해 판단했다(실기기 검증은 아님).
 
 ---

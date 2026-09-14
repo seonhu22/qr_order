@@ -91,6 +91,10 @@ import type { MenuMasterItem } from '../generated/types/menuMasterItem';
 import type { MenuMasterRequest } from '../generated/types/menuMasterRequest';
 import type { MenuDetailRequest } from '../generated/types/menuDetailRequest';
 import type { MenuDetailItem } from '../generated/types/menuDetailItem';
+import { orderStatusHandlers } from '../apps/client/features/order-status-management/mock/orderStatusHandlers';
+import { ORDER_HISTORY_MOCK } from '../apps/client/features/order-history/mock/orderHistoryMock';
+import { consumerMenuHandlers } from '../apps/consumer/features/order-shell/mock/consumerMenuHandlers';
+import { consumerApiHandlers } from '../apps/consumer/features/order-shell/mock/consumerApiHandlers';
 
 const CHANGE_TYPE_AUDIT_FLAG_MAP: Record<string, string> = {
   '01': 'I',
@@ -367,7 +371,7 @@ const tableGuiOverrideHandler = http.get('*/api/client/store_manage/table_gui/se
   return HttpResponse.json(buildTableGuiMockRows());
 });
 
-function toTableGuiObjectType(value?: string): TableGuiObjectType | undefined {
+function normalizeTableGuiObjectType(value: string | undefined): TableGuiObjectType | undefined {
   return value === '01' || value === '02' || value === '03' ? value : undefined;
 }
 
@@ -388,7 +392,7 @@ const tableGuiSaveOverrideHandler = http.post(
       // sys_id를 생성해서 새 행으로 넣는 동작을 흉내낸다.
       TABLE_GUI_MOCK_ROWS.push({
         ...item,
-        objectType: toTableGuiObjectType(item.objectType),
+        objectType: normalizeTableGuiObjectType(item.objectType),
         sysId: item.sysId ?? `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
     });
@@ -495,6 +499,46 @@ const paymentStatusMasterOverrideHandler = http.get(
     });
 
     return HttpResponse.json(filtered);
+  },
+);
+
+const orderHistoryStatusCode = {
+  RECEIVED: '01',
+  COOKING: '02',
+  SERVED: '03',
+  CANCELLED: '99!',
+} as const;
+
+const orderHistoryOverrideHandler = http.get(
+  '*/api/client/order_manage/history/search',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const startDate = url.searchParams.get('startDate') ?? '';
+    const endDate = url.searchParams.get('endDate') ?? '';
+    const keyword = url.searchParams.get('searchKeyword')?.trim() ?? '';
+    const status = url.searchParams.get('orderStatus') ?? '';
+
+    const filtered = ORDER_HISTORY_MOCK.filter((row) => {
+      const rowDate = row.orderDatetime.slice(0, 10);
+      return (
+        (!startDate || rowDate >= startDate) &&
+        (!endDate || rowDate <= endDate) &&
+        (!keyword || row.orderNo.includes(keyword) || row.tableNum.includes(keyword)) &&
+        (!status || orderHistoryStatusCode[row.orderStatus] === status)
+      );
+    });
+
+    return HttpResponse.json({
+      orderMasterHistory: filtered.map((row) => ({
+        sysId: row.id,
+        orderNo: row.orderNo,
+        tableNum: row.tableNum,
+        orderStatus: orderHistoryStatusCode[row.orderStatus],
+        paymentStatus: row.paymentStatus === 'PAID' ? 'Y' : 'N',
+        orderStartDatetime: row.orderDatetime.replace('T', ' '),
+      })),
+      orderDetailHistory: [],
+    });
   },
 );
 
@@ -1293,7 +1337,10 @@ const settingsHandlers = [
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
 export const handlers = [
+  ...consumerApiHandlers,
+  ...consumerMenuHandlers,
   ...authHandlers,
+  ...orderStatusHandlers,
   signupBusinessVerificationOverrideHandler,
   paymentOverrideHandler,
   plantStatusOverrideHandler,
@@ -1303,6 +1350,7 @@ export const handlers = [
   messageOverrideHandler,
   messageSaveOverrideHandler,
   clientUserOverrideHandler,
+  orderHistoryOverrideHandler,
   paymentStatusMasterOverrideHandler,
   paymentStatusDetailOverrideHandler,
   settlementOverrideHandler,

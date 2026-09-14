@@ -13,38 +13,7 @@
   }
 }
 
-/* ── 주문 상태 배지 — 칸반 컬럼 숫자 라벨과 같은 색상. 결제 처리/주문 수정 모달의 주문번호 옆에 붙인다 ── */
-.order-status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: var(--spacing-2);
-  padding: 0 var(--spacing-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--typography-size-caption);
-  font-weight: var(--typography-weight-strong);
-  vertical-align: middle;
-}
-
-.order-status-badge--received {
-  background-color: var(--color-status-info-bg);
-  color: var(--color-status-info-text);
-}
-
-.order-status-badge--cooking {
-  background-color: var(--color-status-warning-bg);
-  color: var(--color-status-warning-text);
-}
-
-.order-status-badge--served {
-  background-color: var(--color-status-success-bg);
-  color: var(--color-status-success-text);
-}
-
-.order-status-badge--cancelled {
-  background-color: var(--color-status-error-bg);
-  color: var(--color-status-error-text);
-}
+/* 배지 CSS는 shared/order-status/orderStatusBadge.css로 이관 — 페이지 컴포넌트에서 import한다. */
 
 /* ── 주문 취소 처리 모달 ── */
 .order-cancel-modal__form {

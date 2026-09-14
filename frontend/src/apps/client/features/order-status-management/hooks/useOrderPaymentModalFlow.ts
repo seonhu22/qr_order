@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { ORDER_UNPAID_REASON_OTHER_VALUE } from '../constants';
 import type { OrderBoardRow } from '../types';
+import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type UnpaidEditorErrors = {
   reason: boolean;
@@ -18,8 +19,8 @@ type UnpaidEditorErrors = {
 };
 
 type UseOrderPaymentModalFlowParams = {
-  onConfirmPaid: (ids: string[]) => void;
-  onConfirmUnpaid: (id: string, reason: string, description: string) => void;
+  onConfirmPaid: (ids: string[], paymentType: string) => Promise<void> | void;
+  onConfirmUnpaid: (id: string, reason: string, description: string) => Promise<void> | void;
 };
 
 const INITIAL_ERRORS: UnpaidEditorErrors = { reason: false, description: false };
@@ -30,18 +31,24 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   const [tableOrders, setTableOrders] = useState<OrderBoardRow[]>([]);
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
+  const [paymentType, setPaymentType] = useState('');
+  const [paymentTypeError, setPaymentTypeError] = useState(false);
   const [errors, setErrors] = useState<UnpaidEditorErrors>(INITIAL_ERRORS);
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isPaidNoticeOpen, setIsPaidNoticeOpen] = useState(false);
   const [isUnpaidEditorOpen, setIsUnpaidEditorOpen] = useState(false);
   const [isUnpaidNoticeOpen, setIsUnpaidNoticeOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isOtherReason = reason === ORDER_UNPAID_REASON_OTHER_VALUE;
 
   const resetForm = () => {
     setReason('');
     setDescription('');
+    setPaymentType('');
+    setPaymentTypeError(false);
     setErrors(INITIAL_ERRORS);
   };
 
@@ -52,9 +59,10 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const openPaymentModal = (row: OrderBoardRow, payableTableOrders: OrderBoardRow[]) => {
-    setTargetRow(row);
-    setTableOrders(payableTableOrders);
+    setTargetRow(cloneOrderBoardRow(row));
+    setTableOrders(payableTableOrders.map(cloneOrderBoardRow));
     resetForm();
+    setSubmitError(null);
     setIsChoiceOpen(true);
   };
 
@@ -69,17 +77,35 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const closeReceipt = () => {
+    if (isPending) return;
     setIsReceiptOpen(false);
     resetAll();
   };
 
-  const confirmReceipt = () => {
-    if (tableOrders.length === 0) return;
-    onConfirmPaid(tableOrders.map((order) => order.id));
-    setIsReceiptOpen(false);
-    setTargetRow(null);
-    setTableOrders([]);
-    setIsPaidNoticeOpen(true);
+  const changePaymentType = (value: string) => {
+    setPaymentType(value);
+    setPaymentTypeError(false);
+  };
+
+  const confirmReceipt = async () => {
+    if (tableOrders.length === 0 || isPending) return;
+    if (!paymentType) {
+      setPaymentTypeError(true);
+      return;
+    }
+    setIsPending(true);
+    setSubmitError(null);
+    try {
+      await onConfirmPaid(tableOrders.map((order) => order.id), paymentType);
+      setIsReceiptOpen(false);
+      setTargetRow(null);
+      setTableOrders([]);
+      setIsPaidNoticeOpen(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '결제완료 처리에 실패했습니다.');
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const closePaidNotice = () => {
@@ -93,6 +119,7 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   };
 
   const closeUnpaidEditor = () => {
+    if (isPending) return;
     setIsUnpaidEditorOpen(false);
     resetAll();
   };
@@ -109,18 +136,26 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
     setErrors((prev) => ({ ...prev, description: false }));
   };
 
-  const confirmUnpaid = () => {
+  const confirmUnpaid = async () => {
     const nextErrors: UnpaidEditorErrors = {
       reason: !reason,
       description: isOtherReason && !description.trim(),
     };
     setErrors(nextErrors);
     if (nextErrors.reason || nextErrors.description) return;
-    if (!targetRow) return;
+    if (!targetRow || isPending) return;
 
-    onConfirmUnpaid(targetRow.id, reason, isOtherReason ? description.trim() : '');
-    setIsUnpaidEditorOpen(false);
-    setIsUnpaidNoticeOpen(true);
+    setIsPending(true);
+    setSubmitError(null);
+    try {
+      await onConfirmUnpaid(targetRow.id, reason, isOtherReason ? description.trim() : '');
+      setIsUnpaidEditorOpen(false);
+      setIsUnpaidNoticeOpen(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '미결제 처리에 실패했습니다.');
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const closeUnpaidNotice = () => {
@@ -132,6 +167,8 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
     tableOrders,
     reason,
     description,
+    paymentType,
+    paymentTypeError,
     errors,
     isOtherReason,
     isChoiceOpen,
@@ -139,10 +176,13 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
     isPaidNoticeOpen,
     isUnpaidEditorOpen,
     isUnpaidNoticeOpen,
+    isPending,
+    submitError,
     openPaymentModal,
     closeChoice,
     choosePaid,
     closeReceipt,
+    changePaymentType,
     confirmReceipt,
     closePaidNotice,
     chooseUnpaid,

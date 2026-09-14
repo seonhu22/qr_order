@@ -17,12 +17,15 @@
             object_type
         from table_info si
         where 1=1
-        and exists (
-            select
-                1
-            from qr_code qc
-            where 1=1
-            and qc.link_sys_id = si.sys_id
+        and (
+            si.object_type in ('02', '03')
+            or exists (
+                select
+                    1
+                from qr_code qc
+                where 1=1
+                and qc.link_sys_id = si.sys_id
+            )
         )
         and si.sys_plant_cd = #{sysPlantCd}
         and delete_yn = 'N'
@@ -32,17 +35,40 @@
 
     <update id="newTableGui">
         <foreach collection="newItems" item="item" separator=";">
-            update table_info set
-                x_coordinate = #{item.xCoordinate},
-                y_coordinate = #{item.yCoordinate},
-                height = #{item.height},
-                width = #{item.width},
-                table_type = #{item.tableType},
-                object_type = #{item.objectType},
-                modify_datetime = now(),
-                modify_user_id = #{userId}
-            where 1=1
-            and sys_id = #{item.sysId}
+            insert into table_info (
+                sys_id ,
+                table_num ,
+                table_qty ,
+                use_yn ,
+                delete_yn ,
+                table_name ,
+                x_coordinate ,
+                y_coordinate ,
+                height ,
+                width ,
+                table_type ,
+                object_type ,
+                insert_datetime ,
+                insert_user_id ,
+                sys_plant_cd
+            )
+            values (
+                #{item.sysId},
+                #{item.tableNum},
+                #{item.tableQty},
+                'Y',
+                'N',
+                #{item.tableName},
+                #{item.xCoordinate},
+                #{item.yCoordinate},
+                #{item.height},
+                #{item.width},
+                #{item.tableType},
+                #{item.objectType},
+                now(),
+                #{userId},
+                #{sysPlantCd}
+            )
         </foreach>
     </update>
 

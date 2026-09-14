@@ -100,8 +100,7 @@ export const queryKeys = {
       searchKeyword?: string;
       auditFlag?: string;
       changeType: string;
-    }) =>
-      [...changeHistoryListsKey, params] as const,
+    }) => [...changeHistoryListsKey, params] as const,
   },
   notice: {
     lists: noticeListsKey,
@@ -148,7 +147,8 @@ export const queryKeys = {
   },
   settlement: {
     lists: settlementListsKey,
-    detail: (params: { startDate: string; endDate: string }) => [...settlementListsKey, params] as const,
+    detail: (params: { startDate: string; endDate: string }) =>
+      [...settlementListsKey, params] as const,
   },
   clientInquiry: {
     lists: clientInquiryListsKey,
@@ -159,5 +159,18 @@ export const queryKeys = {
   },
   tableLayout: {
     lists: tableLayoutListsKey,
+  },
+  consumer: {
+    session: ['consumer', 'session'] as const,
+    /** 메인·검색·상세 메뉴 쿼리 공통 접두어 — 옵션 품절 갱신처럼 메뉴 전체를 무효화할 때 쓴다. */
+    menuAll: (sessionId: string) => ['consumer', sessionId, 'menu'] as const,
+    menuMain: (sessionId: string) => ['consumer', sessionId, 'menu', 'main'] as const,
+    menuSearch: (sessionId: string, searchKeyword: string) =>
+      ['consumer', sessionId, 'menu', 'search', { searchKeyword }] as const,
+    menuDetail: (sessionId: string, menuSysId: string) =>
+      ['consumer', sessionId, 'menu', 'detail', menuSysId] as const,
+    orders: (sessionId: string) => ['consumer', sessionId, 'orders'] as const,
+    orderDetail: (sessionId: string, orderId: string) =>
+      ['consumer', sessionId, 'orders', orderId] as const,
   },
 } as const;

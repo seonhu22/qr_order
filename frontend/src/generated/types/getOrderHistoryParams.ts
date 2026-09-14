@@ -7,7 +7,8 @@
  */
 
 export type GetOrderHistoryParams = {
-orderStatus: string;
+orderStatus?: string;
+searchKeyword?: string;
 startDate: string;
 endDate: string;
 };

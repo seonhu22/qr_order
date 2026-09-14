@@ -47,10 +47,7 @@ export function UseYnBadge({ value }: UseYnBadgeProps) {
  * 변경구분(등록/수정/삭제) 전용 배지.
  *
  * @description
- * TODO:
- * - 현재는 임시 클래스명을 사용한다.
- * - 디자인 확정 후 TableCard.css 또는 전용 CSS에서
- *   `status-badge--create/update/delete` 스타일을 추가해야 한다.
+ * `status-badge--create`(success)/`update`(info)/`delete`(error) 톤으로 구분한다.
  */
 export function ChangeTypeBadge({ value }: ChangeTypeBadgeProps) {
   const className =
@@ -67,9 +64,7 @@ export function ChangeTypeBadge({ value }: ChangeTypeBadgeProps) {
  * 만료 상태 전용 배지.
  *
  * @description
- * TODO:
- * - 현재는 임시 클래스명을 사용한다.
- * - 디자인 확정 후 `status-badge--expired`, `status-badge--empty` 스타일을 추가해야 한다.
+ * `status-badge--expired`(error)/`empty`(neutral) 톤으로 구분한다.
  */
 export function ExpirationStatusBadge({ value }: ExpirationStatusBadgeProps) {
   const className = value === '만료' ? 'status-badge--expired' : 'status-badge--empty';
@@ -81,9 +76,7 @@ export function ExpirationStatusBadge({ value }: ExpirationStatusBadgeProps) {
  * 라이선스 기간 전용 배지.
  *
  * @description
- * TODO:
- * - 현재는 임시 클래스명을 사용한다.
- * - 디자인 확정 후 `status-badge--period-1m`, `status-badge--period-12m` 스타일을 추가해야 한다.
+ * 기간 구분일 뿐 상태 의미가 없어 `status-badge--period-1m`/`period-12m` 둘 다 neutral 톤이다.
  */
 export function LicensePeriodBadge({ value }: LicensePeriodBadgeProps) {
   const className = value === '1개월' ? 'status-badge--period-1m' : 'status-badge--period-12m';

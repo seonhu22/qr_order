@@ -20,9 +20,13 @@ public class OrderHistoryService {
 
     private final OrderHistoryMapper orderHistoryMapper;
 
-    public OrderHistoryResponse getOrderHistory(String orderStatus, LocalDate startDate, LocalDate endDate) {
+    public OrderHistoryResponse getOrderHistory(String orderStatus,
+                                                    String searchKeyword,
+                                                    LocalDate startDate,
+                                                    LocalDate endDate,
+                                                    String sysPlantCd) {
 
-        List<OrderMasterHistoryItem> orderMasterHistory = setMasterTotalPriceData(orderHistoryMapper.getOrderMasterHistory(orderStatus, startDate, endDate));
+        List<OrderMasterHistoryItem> orderMasterHistory = setMasterTotalPriceData(orderHistoryMapper.getOrderMasterHistory(orderStatus, searchKeyword, startDate, endDate, sysPlantCd));
         List<OrderDetailHistoryItem> orderDetailHistory = setDetailTotalPriceAndOptionData(getOrderDetailHistory(orderMasterHistory));
 
         OrderHistoryResponse orderHistoryResponse = new OrderHistoryResponse();

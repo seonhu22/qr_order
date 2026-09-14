@@ -10,9 +10,11 @@ export interface MenuOptionDetailResponse {
   sysId?: string;
   linkSysId?: string;
   menuOptionName?: string;
-  menuOptionPrice?: string;
+  menuOptionPrice?: number;
   menuDescription?: string;
-  maximumNum?: string;
+  maximumNum?: number;
+  defaultYn?: string;
+  soldOutYn?: string;
   useYn?: string;
   fileUlid?: string;
   ordNo?: number;

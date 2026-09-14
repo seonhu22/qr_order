@@ -42,6 +42,14 @@
   background-color: var(--color-status-error-default);
 }
 
+.order-status-header__sync--refreshing {
+  color: var(--color-text-tertiary);
+}
+
+.order-status-header__sync--refreshing .order-status-header__sync-dot {
+  background-color: var(--color-text-tertiary);
+}
+
 .order-status-header__reset {
   background-color: var(--color-bg-surface);
 }

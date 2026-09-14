@@ -1,0 +1,138 @@
+.app-loading-screen {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-10);
+  overflow: hidden;
+  background-color: var(--color-bg-surface);
+}
+
+.app-loading-screen__blob {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+  pointer-events: none;
+}
+
+.app-loading-screen__blob--top {
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 18rem;
+  opacity: 0.06;
+  transform: translate(35%, -35%);
+}
+
+.app-loading-screen__blob--bottom {
+  bottom: 0;
+  left: 0;
+  width: 14rem;
+  height: 14rem;
+  opacity: 0.04;
+  transform: translate(-35%, 35%);
+}
+
+.app-loading-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 20rem;
+}
+
+.app-loading-screen__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.app-loading-screen__brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-13);
+  height: var(--spacing-13);
+  border-radius: var(--radius-md);
+  background-color: var(--color-brand-default);
+  color: var(--color-text-on-brand);
+}
+
+.app-loading-screen__brand-text {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-brand-default);
+}
+
+.app-loading-screen__brand-text strong {
+  font-weight: var(--typography-weight-strong);
+}
+
+.app-loading-screen__indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-size-body);
+}
+
+.app-loading-screen__dots {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.app-loading-screen__dots span {
+  display: block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-brand-default);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-loading-screen__content {
+    animation: app-loading-fade-in 0.45s ease-out;
+  }
+
+  .app-loading-screen__dots span {
+    animation: app-loading-bounce 0.9s ease-in-out infinite;
+  }
+
+  .app-loading-screen__dots span:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .app-loading-screen__dots span:nth-child(3) {
+    animation-delay: 0.36s;
+  }
+
+  @keyframes app-loading-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes app-loading-bounce {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-4px);
+    }
+  }
+}

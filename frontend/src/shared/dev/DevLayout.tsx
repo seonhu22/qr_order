@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { path: '/dev/select', label: 'SelectInput' },
   { path: '/dev/filter', label: '검색폼(필터카드)' },
   { path: '/dev/button',   label: 'Button' },
+  { path: '/dev/badge',    label: 'Badge' },
   { path: '/dev/checkbox', label: 'CheckboxInput' },
   { path: '/dev/radio',    label: 'RadioInput' },
   { path: '/dev/toggle',     label: 'ToggleInput' },

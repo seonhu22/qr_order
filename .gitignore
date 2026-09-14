@@ -70,17 +70,24 @@ qrorder/logs/
 ### Uploads ###
 uploads/
 
-### Test ###
-qrorder/src/test/
-
 ### Claude Code ###
 .claude/
 CLAUDE.md
 /docs/agent-reports/
 AGENTS.md
 
+### 프로젝트 문서 ###
+# docs/plans/와 docs/solutions/는 팀 공유 문서이므로 Git에서 추적한다.
+# 개인 초안과 로컬 전용 메모만 제외한다.
+/docs/plans/private/
+/docs/plans/drafts/
+/docs/solutions/private/
+/docs/solutions/drafts/
+/docs/**/*.local.md
+
 ### 백엔드 테스트파일 ###
 qrorder/src/test/
 
 ### 프론트 bypass를 위한 로컬 환경설정 파일 ###
 frontend/.env.local
+.worktrees/

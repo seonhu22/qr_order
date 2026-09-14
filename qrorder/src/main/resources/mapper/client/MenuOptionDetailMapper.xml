@@ -12,6 +12,7 @@
             menu_description ,
             maximum_num ,
             default_yn ,
+            sold_out_yn ,
             use_yn ,
             file_ulid ,
             ord_no
@@ -31,6 +32,7 @@
             menu_description ,
             maximum_num ,
             default_yn ,
+            sold_out_yn ,
             use_yn ,
             ord_no ,
             delete_yn ,
@@ -49,6 +51,7 @@
                 #{item.menuDescription},
                 #{item.maximumNum} ,
                 #{item.defaultYn} ,
+                #{item.soldOutYn} ,
                 #{item.useYn},
                 #{item.ordNo},
                 'N',
@@ -68,6 +71,7 @@
                 menu_description = #{item.menuDescription} ,
                 maximum_num = #{item.maximumNum} ,
                 default_yn = #{item.defaultYn} ,
+                sold_out_yn = #{item.soldOutYn} ,
                 use_yn = #{item.useYn} ,
                 ord_no = #{item.ordNo} ,
                 modify_datetime = now(),
@@ -110,6 +114,7 @@
             menu_description ,
             maximum_num ,
             default_yn ,
+            sold_out_yn ,
             use_yn ,
             file_ulid ,
             ord_no
@@ -130,6 +135,7 @@
             menu_description ,
             maximum_num ,
             default_yn ,
+            sold_out_yn ,
             use_yn ,
             file_ulid ,
             ord_no

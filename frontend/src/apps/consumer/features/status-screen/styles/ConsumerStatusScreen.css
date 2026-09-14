@@ -1,0 +1,51 @@
+.consumer-status-screen {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-10);
+  padding-top: calc(var(--spacing-10) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--spacing-10) + env(safe-area-inset-bottom));
+  text-align: center;
+  background-color: var(--color-bg-app);
+}
+
+.consumer-status-screen__icon-wrap {
+  width: var(--spacing-16);
+  height: var(--spacing-16);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consumer-status-screen__icon-wrap--neutral {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-tertiary);
+}
+
+.consumer-status-screen__icon-wrap--danger {
+  background-color: var(--red-10);
+  color: var(--red-50);
+}
+
+.consumer-status-screen__title {
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.consumer-status-screen__description {
+  font-size: var(--typography-size-body);
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+}
+
+.consumer-status-screen__action {
+  margin-top: var(--spacing-2);
+  width: 100%;
+  max-width: 20rem;
+}

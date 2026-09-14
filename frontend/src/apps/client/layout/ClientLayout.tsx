@@ -35,7 +35,8 @@ export function ClientLayout() {
     }
 
     setActiveSection(nextSection);
-  }, [currentSection, location.pathname, setActiveSection]);
+    if (nextSection) openSidebar();
+  }, [currentSection, location.pathname, setActiveSection, openSidebar]);
 
   const handleSectionChange = (section: ClientSection) => {
     setActiveSection(section);

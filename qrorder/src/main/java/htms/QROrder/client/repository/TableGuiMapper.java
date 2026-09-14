@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper
 public interface TableGuiMapper {
     List<TableGuiResponse> getTableGui(String sysPlantCd);
-    void newTableGui(List<TableGuiItem> newItems, String userId);
+    void newTableGui(List<TableGuiItem> newItems, String userId, String sysPlantCd);
     void updateTableGui(List<TableGuiItem> updateItems, String userId);
     void delTableGui(List<TableGuiItem> delItems, String userId);
     List<TableGuiItem> getOldData(List<TableGuiItem> updateItems);

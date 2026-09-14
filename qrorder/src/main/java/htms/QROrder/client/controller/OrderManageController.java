@@ -27,18 +27,24 @@ public class OrderManageController {
 
     // 주문 이력 조회
     @GetMapping("/history/search")
-    public OrderHistoryResponse getOrderHistory(@RequestParam String orderStatus,
+    public OrderHistoryResponse getOrderHistory(@RequestParam (required = false) String orderStatus,
+                                                @RequestParam (required = false) String searchKeyword,
                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                                HttpSession session) {
 
-        return orderHistoryService.getOrderHistory(orderStatus, startDate, endDate);
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return orderHistoryService.getOrderHistory(orderStatus, searchKeyword, startDate, endDate, login.getSysPlantCd());
     }
 
     // 주문 상태 관리
     @GetMapping("/status/search")
-    public List<StatusResponse> getStatus() {
+    public List<StatusResponse> getStatus(HttpSession session) {
 
-        return statusService.getStatus();
+        Login login = (Login) session.getAttribute("loginUser");
+
+        return statusService.getStatus(login.getSysPlantCd());
     }
 
     @PostMapping("/status/cancel_order")
@@ -47,7 +53,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.cancelOrder(statusRequest, loginUser.getUserId());
+        statusService.cancelOrder(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -63,7 +69,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.goToCooking(statusRequest, loginUser.getUserId());
+        statusService.goToCooking(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -79,7 +85,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.backToReceiveOrder(statusRequest, loginUser.getUserId());
+        statusService.backToReceiveOrder(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -95,7 +101,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.goToServingComplete(statusRequest, loginUser.getUserId());
+        statusService.goToServingComplete(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -111,7 +117,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.backToCooking(statusRequest, loginUser.getUserId());
+        statusService.backToCooking(statusRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -122,9 +128,11 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/get_payment_complete")
-    public PaymentCompleteResponse getPaymentComplete(@RequestParam String sysId) {
+    public PaymentCompleteResponse getPaymentComplete(@RequestParam String sysId,
+                                                        HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getPaymentComplete(sysId);
+        return statusService.getPaymentComplete(sysId, loginUser.getSysPlantCd());
     }
 
     @PostMapping("/status/payment_complete")
@@ -133,7 +141,10 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.paymentComplete(paymentCompleteRequest, loginUser.getUserId());
+        statusService.paymentComplete(
+                paymentCompleteRequest,
+                loginUser.getUserId(),
+                loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -149,7 +160,10 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.paymentNotComplete(paymentNotCompleteRequest, loginUser.getUserId());
+        statusService.paymentNotComplete(
+                paymentNotCompleteRequest,
+                loginUser.getUserId(),
+                loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -160,9 +174,11 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/get_change_order")
-    public PaymentCompleteResponse getChangeOrder(@RequestParam String sysId) {
+    public PaymentCompleteResponse getChangeOrder(@RequestParam String sysId,
+                                                   HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getPaymentComplete(sysId);
+        return statusService.getPaymentComplete(sysId, loginUser.getSysPlantCd());
     }
 
     @PostMapping("/status/change_order")
@@ -171,7 +187,7 @@ public class OrderManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        statusService.changeOrder(listDetailSysId, loginUser.getUserId());
+        statusService.changeOrder(listDetailSysId, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -182,8 +198,10 @@ public class OrderManageController {
     }
 
     @GetMapping("/status/search/cancel_reason")
-    public StatusCancelResponse getStatusCancelResponses(StatusRequest statusRequest) {
+    public StatusCancelResponse getStatusCancelResponses(@RequestParam String sysId,
+                                                          HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return statusService.getStatusCancelResponses(statusRequest);
+        return statusService.getStatusCancelResponses(sysId, loginUser.getSysPlantCd());
     }
 }
