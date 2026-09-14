@@ -221,6 +221,7 @@ describe('ConsumerOrderPage 주문 API', () => {
     await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
 
     expect(await screen.findByText('주문 완료')).toBeInTheDocument();
+    expect(screen.getByText('0001')).toBeInTheDocument();
     expect(requestBody).toMatchObject({
       items: [{ menuSysId: 'menu-3', quantity: 1, options: [] }],
     });
