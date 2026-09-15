@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.consumer.order.repository.ConsumerStaffCallMapper">
+
+    <select id="getConsumerStaffCall" resultType="htms.QROrder.consumer.order.dto.ConsumerStaffCallResponse">
+        select
+            csc.sys_id ,
+            csc.call_cd ,
+            null as call_nm ,
+            csc.description ,
+            csc.read_yn
+        from consumer_staff_call csc
+        where 1=1
+        and csc.sys_plant_cd = #{sysPlantCd}
+    </select>
+
+    <insert id="saveConsumerStaffCall">
+        insert into consumer_staff_call (
+            sys_id,
+            call_cd,
+            description,
+            read_yn,
+            insert_datetime,
+            sys_plant_cd
+        ) values (
+            #{consumerStaffCall.sysId},
+            #{consumerStaffCall.callCd},
+            #{consumerStaffCall.description},
+            'N',
+            now(),
+            #{sysPlantCd}
+        )
+    </insert>
+
+</mapper>
