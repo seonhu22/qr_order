@@ -19,8 +19,6 @@ export const queryPolicies = {
   clientRealtimeStatus: {
     retry: false,
     staleTime: staleTimes.instant,
-    refetchInterval: 5_000,
-    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   },
   // staleTime: 0이라도 같은 query key로 setState만 다시 부르면 refetch가 발동하지 않는다.

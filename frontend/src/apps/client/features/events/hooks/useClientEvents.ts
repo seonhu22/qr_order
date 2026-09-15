@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useClientStaffCallNotifyStore, type ClientStaffCallEvent } from '@/apps/client/stores/clientStaffCallNotifyStore';
+import { queryKeys } from '@/shared/api/queryKeys';
 
 const RECONNECT_MS = 3_000;
 
 export function useClientEvents(active: boolean) {
   const receive = useClientStaffCallNotifyStore((state) => state.receive);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!active) return undefined;
@@ -27,6 +30,11 @@ export function useClientEvents(active: boolean) {
         try { receive(JSON.parse((event as MessageEvent<string>).data) as ClientStaffCallEvent); }
         catch { /* 잘못된 이벤트 하나는 다음 이벤트 수신을 막지 않는다. */ }
       });
+      source.addEventListener('ORDER_STATUS_CHANGED', () => {
+        if (disposed) return;
+        try { queryClient.invalidateQueries({ queryKey: queryKeys.orderStatusBoard.lists }); }
+        catch { /* 쿼리 무효화 실패는 다음 이벤트 처리를 막지 않는다. */ }
+      });
       source.onerror = () => {
         source?.close();
         source = null;
@@ -41,5 +49,5 @@ export function useClientEvents(active: boolean) {
       if (reconnectTimer !== null) clearTimeout(reconnectTimer);
       source?.close();
     };
-  }, [active, receive]);
+  }, [active, receive, queryClient]);
 }
