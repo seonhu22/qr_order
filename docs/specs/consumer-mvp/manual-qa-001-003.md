@@ -137,9 +137,10 @@
 - polling으로 상태가 갱신된다.
 - 재연결 후 반복 polling이 멈추고 SSE 연결이 하나만 유지된다.
 
-결과: [ ] 통과 / [x] 실패
+결과: [x] 통과 / [ ] 실패
 
-- q-7 polling 5초간 하는 것을 관찰, 상태 변경도 pliing으로 갱신되는 것을 확인, 차단 해재 후 sse가 작용되지 않는지 5초 마다 polling을 계속 진행하고 있다. fix/consumer-sse-reconnect에서 수정
+- 1차 확인에서 차단 해제 후에도 5초 polling이 계속되어 `fix/consumer-sse-reconnect`에서 명시적 재연결을 적용했다.
+- 재검증에서 차단 중 5초 polling/상태 갱신과 차단 해제 후 SSE 복구/polling 중단을 확인했다.
 
 ## 시간 의존 확인 / 003
 
