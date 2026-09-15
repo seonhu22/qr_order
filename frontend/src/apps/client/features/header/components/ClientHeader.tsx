@@ -64,7 +64,11 @@ export function ClientHeader({
       <button type="button" className="client-header__staff-call" onClick={onStaffCallsRead}
         aria-label={`미확인 직원호출 ${unreadStaffCalls}건`}>
         <Icon id="i-bell" size={18} />
-        {unreadStaffCalls > 0 && <span>{unreadStaffCalls > 99 ? '99+' : unreadStaffCalls}</span>}
+        {unreadStaffCalls > 0 && (
+          <span className="client-header__staff-call-badge">
+            {unreadStaffCalls > 99 ? '99+' : unreadStaffCalls}
+          </span>
+        )}
       </button>
     </div>
   );

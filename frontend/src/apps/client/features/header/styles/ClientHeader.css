@@ -60,8 +60,33 @@
   gap: var(--spacing-9);
 }
 
-.client-header__staff-call { margin-left: auto; position: relative; border: 0; background: none; cursor: pointer; color: var(--color-text-secondary); }
-.client-header__staff-call span { position: absolute; top: -8px; right: -10px; min-width: 18px; padding: 1px 4px; border-radius: 9px; background: var(--color-danger-default); color: white; font-size: 10px; }
+.client-header__staff-call {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--width-5);
+  height: var(--height-6);
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.client-header__staff-call-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 9px;
+  background: var(--color-status-error-default);
+  color: var(--color-text-inverse);
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
 
 .client-header__nav-item {
   font-size: var(--typography-size-ui);
