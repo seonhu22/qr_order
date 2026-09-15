@@ -78,7 +78,7 @@ export function StaffCallManagementTable({
         ariaLabel: '직원호출 항목',
         tableAriaLabel: '직원호출 항목 테이블',
         guideText:
-          "※ 사용여부가 '사용'인 항목만 consumer 화면 직원호출 칩에 노출되며, 순서 이동으로 정한 순서가 그대로 칩 노출 순서가 됩니다.",
+          "※ 사용여부가 '사용'인 항목만 고객 오더 화면 직원호출 칩에 노출되며, 선택방식이 다건이면 해당 항목을 여러 번(수량) 호출할 수 있고, 단건이면 한 번만 호출할 수 있습니다.",
         emptyRowsText,
       }}
       statusText={{
