@@ -15,6 +15,11 @@ type UseDetailTableSaveFlowParams = {
   isDirty?: boolean;
   applyServerValidationErrors?: (message: string) => DetailRowErrorState;
   saveErrorMessage?: string;
+  /**
+   * validateRows가 true를 반환했을 때 보여줄 안내 문구. 기본은 필수값 누락 기준 문구.
+   * 실패 사유에 따라 문구를 다르게 보여줘야 하면 함수로 전달한다 — requestSave 시점에 호출된다.
+   */
+  invalidValueMessage?: string | (() => string);
 };
 
 /**
@@ -26,6 +31,7 @@ export function useDetailTableSaveFlow({
   isDirty,
   applyServerValidationErrors,
   saveErrorMessage = '상세 저장 중 오류가 발생했습니다.',
+  invalidValueMessage = '빈값을 채워주세요.',
 }: UseDetailTableSaveFlowParams) {
   const [notice, setNotice] = useState<NoticeState>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
@@ -50,9 +56,12 @@ export function useDetailTableSaveFlow({
     );
 
     if (hasErrors) {
+      const description =
+        typeof invalidValueMessage === 'function' ? invalidValueMessage() : invalidValueMessage;
+
       setNotice({
         title: '알림',
-        description: '빈값을 채워주세요.',
+        description,
         onConfirm: () => {
           setRowErrors(nextErrors);
           setNotice(null);

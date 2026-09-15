@@ -7,6 +7,7 @@ import { StoreInfoPage } from '@/apps/client/pages/store-info/StoreInfoPage';
 import { ClientUserPage } from '@/apps/client/pages/client-user/ClientUserPage';
 import { MenuManagementPage } from '@/apps/client/pages/menu-management/MenuManagementPage';
 import { MenuOptionManagementPage } from '@/apps/client/pages/menu-option/MenuOptionManagementPage';
+import { StaffCallManagementPage } from '@/apps/client/pages/staff-call-management/StaffCallManagementPage';
 import { StoreTableManagementPage } from '@/apps/client/pages/store-table/StoreTableManagementPage';
 import { QrCodeManagementPage } from '@/apps/client/pages/qr-code/QrCodeManagementPage';
 import { TableLayoutPage } from '@/apps/client/pages/table-layout/TableLayoutPage';
@@ -61,6 +62,10 @@ export const clientRoutes: RouteObject[] = [
       {
         path: 'menu/info/option',
         element: <MenuOptionManagementPage />,
+      },
+      {
+        path: 'menu/info/staff-call',
+        element: <StaffCallManagementPage />,
       },
       {
         path: 'order/history/list',

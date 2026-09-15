@@ -70,6 +70,7 @@ export function useConsumerOrderPage() {
   const [completedOrderNo, setCompletedOrderNo] = useState('');
   const queryClient = useQueryClient();
   const createOrder = useConsumerOrderCreateMutation();
+  const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
 
   const { session } = useConsumerSession();
   const sessionId = session?.consumerSessionId ?? '';
@@ -195,6 +196,7 @@ export function useConsumerOrderPage() {
                 : current,
             );
             void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
+            openSheet({ type: 'cart' });
             setOrderPhase('idle');
             return;
           }
@@ -224,8 +226,24 @@ export function useConsumerOrderPage() {
     );
   }
 
+  /**
+   * "주문하기" 클릭 시 주문 확인 모달을 먼저 띄운다.
+   * 서버 검증 전이므로 장바구니 시트와 저장된 요청 정보는 유지한다.
+   */
   function placeOrder() {
+    setOrderConfirmOpen(true);
+  }
+
+  /** 주문 확인 모달의 "주문하기" — 그제서야 장바구니 시트를 닫고 처리중 화면으로 넘어간다. */
+  function confirmPlaceOrder() {
+    setOrderConfirmOpen(false);
+    closeSheet();
     startOrderProcessing();
+  }
+
+  /** 주문 확인 모달의 "취소" — 장바구니 시트로 돌아간다. */
+  function cancelPlaceOrder() {
+    setOrderConfirmOpen(false);
   }
 
   /**
@@ -381,7 +399,10 @@ export function useConsumerOrderPage() {
     orderPhase,
     duplicateTime,
     completedOrderNo,
+    orderConfirmOpen,
     placeOrder,
+    confirmPlaceOrder,
+    cancelPlaceOrder,
     confirmOrderComplete,
     retryOrder,
     dismissOrderError,

@@ -772,6 +772,36 @@ export type EditableDetailColumn = {
 - 배지 자체의 시각 스타일은 `AccessLogDetailTable`의 `access-log-table__user-badge`처럼 feature CSS에서 정의한다(공용 컴포넌트로 제공하지 않음).
 - 마스터 클릭마다 선택값이 바뀌는 화면이라면 `selectedMaster`가 없을 때 `titleBadge`를 `undefined`로 둔다.
 
+### 카드 높이를 페이지에 맞추는 className — `table.className`
+
+> 추가일: 2026-09-15
+
+`EditableDetailTable`의 `table.className`은 내부 `TableCard`(`article.common-code-card`)에 그대로 전달된다. 마스터/디테일 좌우 분할 없이 **테이블 하나가 화면 전체**인 페이지에서, 행 수와 무관하게 카드가 남은 세로 공간을 항상 채우게 하려면 이 클래스를 페이지 CSS의 훅으로 쓴다(`order-history-page`가 커스텀 `<table>`에 쓰던 것과 같은 원칙을 `EditableDetailTable`에도 적용).
+
+```tsx
+<EditableDetailTable
+  table={{
+    title: '직원호출 항목',
+    className: 'staff-call-management-table',
+    ariaLabel: '직원호출 항목',
+    tableAriaLabel: '직원호출 항목 테이블',
+  }}
+  // ...
+/>
+```
+
+```css
+/* 페이지 CSS */
+.staff-call-management-page > .staff-call-management-table {
+  flex: 1;
+  min-height: 0;
+}
+```
+
+- `TableCard`는 이미 `.common-code-card { display:flex; flex-direction:column; min-height:0 }`이고 내부 `.common-table-wrap`도 `flex:1`이라, 카드 자신의 높이만 페이지 쪽에서 `flex:1`로 정해주면 나머지는 자동으로 채워진다.
+- 마스터/디테일 좌우 분할 레이아웃(`menu-management-page__layout` 등)은 구조상 이미 높이를 채우므로 이 className이 필요 없다 — 검색 카드 + 테이블 하나만 세로로 쌓는 페이지(`staff-call-management-page`)에서만 쓴다.
+- 적용 예: `StaffCallManagementTable`(직원호출 관리).
+
 ### 테이블 수정 버튼
 
 행 오른쪽 끝 수정 아이콘 버튼은 `EditTableButton` 공용 컴포넌트를 사용한다.

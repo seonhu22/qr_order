@@ -108,12 +108,6 @@
   color: var(--color-text-secondary);
 }
 
-.order-shell-sheet__placeholder {
-  padding: var(--spacing-10) 0;
-  text-align: center;
-  color: var(--color-text-tertiary);
-}
-
 /* 참고 저장소 CartSheet의 빈 장바구니 상태 그대로 — 아이콘 + 안내 문구, 세로 가운데 정렬. */
 .order-shell-cart-empty {
   display: flex;

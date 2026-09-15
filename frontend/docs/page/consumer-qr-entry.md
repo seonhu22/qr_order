@@ -12,7 +12,7 @@
 | status | 의미 | 렌더링 |
 |---|---|---|
 | `checking` | 인증 진행 중 | `QrLoadingScreen` |
-| `invalid` | QR 자체가 유효하지 않음(HTTP 4xx) | `ConsumerStatusScreen` (`ci-qr-code`), 재시도 버튼 없음 |
+| `invalid` | QR 자체가 유효하지 않음(HTTP 4xx) | `ConsumerStatusScreen` (`ci-qr-broken`, 안내 설명 포함), 재시도 버튼 없음 |
 | `network-error` | 통신 실패(4xx가 아닌 나머지: 5xx, 네트워크 오류, abort) | `ConsumerStatusScreen` (`ci-alert-triangle`, `tone="danger"`), 재시도 버튼 있음 |
 
 무효 QR과 통신 오류를 분리하는 기준은 `HttpError`(`shared/lib/httpClient.ts`)의 `status` 필드다: `error instanceof HttpError && status`가 4xx면 `invalid`(다시 시도해도 같은 QR이 유효해지지 않으므로 재시도 버튼을 주지 않음), 그 외는 `network-error`(같은 요청을 다시 시도하면 성공할 수 있으므로 `retry()` 제공)로 분류한다. 이 판단 기준 자체는 mock이 아니라 실제 HTTP 관례를 그대로 읽는 것이라, `QR_CONNECT_MOCK_ENABLED`를 꺼도(실 API 연동 후에도) 그대로 유지된다.
@@ -27,10 +27,9 @@
 qr-code-001 → table-001 (테이블 1)
 qr-code-002 → table-002 (테이블 2)
 qr-code-003 → table-003 (테이블 3)
-qr-code-004 → table-004 (테이블 4)
 ```
 
-목록에 없는 `:url`은 `invalid`로 분류된다. 지연 시간은 `MOCK_LOADING_DELAY_MS = 5000`(5초) — 로딩 화면 자체를 눈으로 확인할 수 있도록 일부러 짧지 않게 잡았다. 실제 API 응답 속도를 흉내내는 값이 아니므로 실 연동 시 의미 없어진다.
+목록에 없는 `:url`은 `invalid`로 분류된다. `qr-code-004`는 의도적으로 이 맵에서 빠져 있다 — "유효하지 않은 QR코드" 화면(`ConsumerStatusScreen`)을 `/qr/qr-code-004`로 언제든 확인할 수 있는 데모 트리거다. 지연 시간은 `MOCK_LOADING_DELAY_MS = 5000`(5초) — 로딩 화면 자체를 눈으로 확인할 수 있도록 일부러 짧지 않게 잡았다. 실제 API 응답 속도를 흉내내는 값이 아니므로 실 연동 시 의미 없어진다.
 
 ## 로딩 화면 구성
 
@@ -47,3 +46,5 @@ qr-code-004 → table-004 (테이블 4)
 ## `ConsumerSessionGuard`와의 관계
 
 이 화면은 `ConsumerSessionGuard`(`apps/consumer/routes/ConsumerSessionGuard.tsx`) 진입 **이전** 단계다. 가드는 `/consumer/*` 하위 라우트에서 세션 상태(`active`/`expired`/`closed`/`none`)를 판정하는 별도 로직이고, 지금은 `SESSION_GUARD_ENABLED = false`로 항상 통과시킨다. QR 인증 실패(`invalid`/`network-error`)와 세션 만료/마감은 서로 다른 원인이라 같은 `ConsumerStatusScreen` 컴포넌트를 공유하되 상태 판단 로직은 분리돼 있다 — 자세한 설계 근거는 [`decisions.md` ADR-020](../decisions.md#adr-020--consumer-앱-골격-뷰포트-반응형과-qr-세션-가드) 참고.
+
+`ConsumerStatusScreen`은 참고 저장소(Qrorder)의 `InvalidQRPage`와 같은 블롭 배경(`AppLoadingScreen`/`QrLoadingScreen`과 동일 패턴)을 쓴다 — `invalid`/`network-error`/세션 만료·마감 3곳 전부에 공통 적용된다. 아이콘 원 배경도 중립(`neutral`) 톤일 땐 브랜드 톤(`--color-brand-subtle`/`--color-brand-default`)으로, 위험(`danger`) 톤일 땐 기존 빨강 톤을 유지한다.

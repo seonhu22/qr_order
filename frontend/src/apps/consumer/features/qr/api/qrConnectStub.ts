@@ -4,6 +4,9 @@ import type { QrTableInfo } from './qrConnectApi';
  * 백엔드/MSW 상태와 무관하게 QR 인식 흐름을 항상 볼 수 있게 하는 고정값 mock.
  * 실제 GET /api/qr/{url} 호출(connectQr)은 그대로 남겨두고, useQrEntryPage의
  * QR_CONNECT_MOCK_ENABLED 플래그가 꺼지면 다시 connectQr을 쓴다.
+ *
+ * qr-code-004는 의도적으로 이 맵에서 뺐다 — "유효하지 않은 QR코드" 화면(ConsumerStatusScreen)을
+ * 언제든 확인할 수 있는 데모 트리거로 쓴다.
  */
 const MOCK_QR_TABLE_MAP: Record<string, QrTableInfo> = {
   'qr-code-001': {
@@ -24,13 +27,6 @@ const MOCK_QR_TABLE_MAP: Record<string, QrTableInfo> = {
     sysId: 'table-003',
     tableName: '내부 1번',
     tableNum: 3,
-    tableQty: 4,
-    sysPlantCd: 'ADMIN',
-  },
-  'qr-code-004': {
-    sysId: 'table-004',
-    tableName: '내부 2번',
-    tableNum: 4,
     tableQty: 4,
     sysPlantCd: 'ADMIN',
   },

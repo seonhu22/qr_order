@@ -24,6 +24,14 @@ async function addPlainMenuToCart() {
   await userEvent.click(screen.getByRole('button', { name: /개 담음/ }));
 }
 
+async function submitOrderFromCart() {
+  await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+  await userEvent.click(
+    within(screen.getByRole('alertdialog', { name: '주문하시겠습니까?' }))
+      .getByRole('button', { name: '주문하기' }),
+  );
+}
+
 function renderOrderPage() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -218,7 +226,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
 
     expect(await screen.findByText('주문 완료')).toBeInTheDocument();
     expect(screen.getByText('0001')).toBeInTheDocument();
@@ -261,7 +269,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
 
     expect(await within(sheet()).findByText(/장바구니는 그대로 보관됩니다/)).toBeInTheDocument();
     expect(within(sheet()).getByText(PLAIN_MENU)).toBeInTheDocument();
@@ -277,7 +285,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
 
     expect(await screen.findByText('주문 연결이 원활하지 않습니다.')).toBeInTheDocument();
     expect(useConsumerCartStore.getState().cart).toHaveLength(1);
@@ -307,7 +315,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
     await userEvent.click(await screen.findByRole('button', { name: '다시 시도하기' }));
 
     expect(await screen.findByText('주문 완료')).toBeInTheDocument();
@@ -333,7 +341,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
 
     expect(await screen.findByText(/주문 처리 결과를/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '다시 시도하기' })).not.toBeInTheDocument();
@@ -351,7 +359,7 @@ describe('ConsumerOrderPage 주문 API', () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+    await submitOrderFromCart();
 
     expect(await screen.findByText(/결제가 완료되어/)).toBeInTheDocument();
     expect(useConsumerCartStore.getState().cart).toEqual([]);

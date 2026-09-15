@@ -1,0 +1,22 @@
+/* 직원호출 관리 페이지 — 검색 카드 + 편집 테이블 두 영역만 세로 정렬 (order-history-page와 동일 원칙) */
+
+.staff-call-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+/* 행 수와 무관하게 검색 카드를 제외한 나머지 높이를 항상 채운다 (order-history-page와 동일 원칙) */
+.staff-call-management-page > .staff-call-management-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .staff-call-management-page {
+    gap: var(--spacing-4);
+  }
+}

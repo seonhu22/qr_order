@@ -1025,6 +1025,15 @@ const menuOverrideHandler = http.get('*/api/system/settings/menu/search', () => 
       menuUrl: '/client/menu/info/option',
     },
     {
+      sysId: 'c29',
+      menuCd: 'MNU_INFO_STAFF_CALL',
+      menuNm: '직원호출 관리',
+      parentMenuCd: 'MNU_INFO',
+      ordNo: '3',
+      treeLevel: '3',
+      menuUrl: '/client/menu/info/staff-call',
+    },
+    {
       sysId: 'c14',
       menuCd: 'ORD',
       menuNm: '주문',

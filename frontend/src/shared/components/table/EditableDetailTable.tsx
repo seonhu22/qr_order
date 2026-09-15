@@ -27,6 +27,8 @@ type EditableDetailTableProps<
     title?: string;
     /** 제목 옆(헤더 액션 영역)에 표시할 배지 — 선택된 마스터 라벨 등 */
     titleBadge?: ReactNode;
+    /** TableCard 루트(article)에 추가할 클래스 — 페이지에서 카드 높이를 제어할 때 사용 */
+    className?: string;
     ariaLabel: string;
     tableAriaLabel: string;
     /** 카드 헤더와 테이블 사이에 표시할 안내문구(SystemMenuTree 패턴). */
@@ -94,6 +96,7 @@ export function EditableDetailTable<
   const {
     title,
     titleBadge,
+    className,
     ariaLabel,
     tableAriaLabel,
     guideText,
@@ -245,6 +248,7 @@ export function EditableDetailTable<
           title
         )
       }
+      className={className}
       ariaLabel={ariaLabel}
       actionsClassName="common-code-card__actions--detail"
       actions={

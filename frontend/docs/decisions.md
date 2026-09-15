@@ -1136,3 +1136,142 @@ iOS Safari(및 안드로이드 크롬)는 상태바·하단 도구모음 색을 
 - 실제 기기 검증은 이 branch(`fix/consumer-mobile-qa`) 작업자가 아이폰 사파리로 진행했고, 안드로이드는 각 항목의 알려진 브라우저 특성에 근거해 판단했다(실기기 검증은 아님).
 
 ---
+
+## ADR-031 — 직원호출 시트는 참고 저장소 `StaffCallSheet`를 그대로 재현한다
+
+**날짜**: 2026-09-09
+**상태**: 채택
+
+### 배경
+
+`staff-call` 시트는 그동안 "준비 중입니다" 플레이스홀더만 있었다. 처음 구현할 때 참고 저장소를 확인하지 않고 단순 확인 버튼 하나로 만들었는데, 실제로는 `CustomerMenuPage.tsx`의 `StaffCallSheet`에 항목별 수량·범용 호출 토글·헤더 하이라이트·토스트까지 갖춘 완성된 설계가 있었다. 다른 Consumer 화면들과 같은 기준으로 참고 저장소를 그대로 재현하도록 다시 만든다.
+
+### 결정
+
+- 시트 헤더는 벨 아이콘 + "직원호출" 제목(고정 텍스트) + 우측 토글 버튼(범용 호출 on/off)으로 구성한다. 항목 선택과 별개로 토글만 켜도 "호출하기"가 활성화된다.
+- 본문은 `STAFF_CALL_ITEMS`(물/앞접시/컵/냅킨/물티슈/수저/젓가락/반찬추가/소스추가 9종, `features/staff-call/mock/staffCallItems.ts`) 칩 목록이다. 칩을 탭하면 아래 선택 목록에 수량 1로 추가되고, 이미 있으면 +1된다.
+- 선택된 항목의 수량 조절은 새로 만들지 않고 기존 `QuantityStepperButton`(메뉴 상세·옵션·장바구니가 공유하는 그 컴포넌트)을 재사용한다 — 수량 1에서 감소 버튼이 삭제(X)로 바뀌는 동작까지 동일한 계약이라 그대로 맞는다.
+- "호출하기"는 토글이 켜져 있거나 선택된 항목이 1개 이상일 때만 활성화되고, 누르면 "직원호출, 소스추가 2개"처럼 요약 문자열을 만들어 시트를 닫는다. 참고 저장소처럼 사전 확인 모달은 없다(주문의 `placeOrder`와 같은 원칙).
+- 헤더의 "직원호출" 버튼(호출 후 4초간 채워진 스타일 + 벨 바운스)과 화면 하단 토스트("직원 호출 완료 · {요약} · 잠시만 기다려 주세요", 4초 후 자동 소멸)가 같은 "최근 호출됨" 상태를 봐야 해서 `consumerStaffCallStore`(zustand)를 새로 둔다 — `consumerOrderHistoryStore`(ADR-027)와 같은 이유. 토스트는 ADR-030의 원칙대로 `document.body`로 포탈하고, 사라질 때도 참고 저장소처럼 위로 살짝 뜨며 페이드아웃한다(`ConsumerBottomSheet`와 같은 "닫힘 애니메이션 끝날 때까지 렌더 유지" 패턴).
+- 토스트에는 4초를 기다리지 않고 바로 닫을 수 있는 X 버튼도 있다(참고 저장소 갱신분 반영) — `consumerStaffCallStore.dismiss()`가 타이머를 정리하고 `called`를 바로 끈다. 헤더 하이라이트도 같은 상태를 보므로 X를 누르면 둘 다 같이 꺼진다.
+- 참고 저장소에는 Client(관리자) 쪽에 호출 항목을 커스터마이즈하는 `ClientStaffCallSettings`도 있었지만, 다른 아이콘·라벨 체계를 쓰고 있고 지금 `StaffCallSheet`와 연동돼 있지 않은 별도 설계였다. 이번 작업 범위(Consumer, mock)에서는 제외하고 항목 목록은 고정 상수로 둔다.
+
+### 결과
+
+- 실제 API가 붙으면 `api/staffCallApi.ts`의 `callStaffStub`만 `httpClient` 호출로 교체하면 되고, 시트 UI·헤더·토스트는 그대로 재사용할 수 있다.
+- Client 쪽 호출 항목 커스터마이즈(`ClientStaffCallSettings`) 연동은 아직 결정된 바 없다 — 항목 목록을 백엔드/관리자 설정에서 가져오게 되면 `STAFF_CALL_ITEMS` mock 상수를 API 응답으로 교체해야 한다.
+
+---
+
+## ADR-032 — 주문 확인 모달을 새로 추가한다
+
+**날짜**: 2026-09-10
+**상태**: 채택
+
+### 배경
+
+기존 `placeOrder`는 장바구니 시트의 "주문하기"를 누르면 사전 확인 없이 바로 시트를 닫고 `OrderProcessingScreen`으로 넘어갔다(참고 저장소도 동일). 실수로 주문이 잘못 나가는 걸 막기 위해 마지막 확인 단계를 추가하기로 했는데, 참고 저장소(Qrorder)의 `CustomerMenuPage`에는 이 화면 자체가 없어 이번엔 포팅할 대상이 없다 — 이 프로젝트에서 직접 설계한 첫 Consumer 화면이다.
+
+### 결정
+
+- `OrderConfirmModal`(`features/order-shell/components/`)을 새로 만든다. 레퍼런스가 없어 기존 `SoldoutModal`의 다이얼로그 계약(어두운 배경 위 중앙 카드, 배경 클릭으로 안 닫힘, 포커스 트랩, `radius-2xl`+`shadow-modal`, pop-in 애니메이션)을 그대로 재사용했다 — 이미 검증된 Consumer 모달 패턴이라 새로 고민할 이유가 없었다.
+- 내용은 "정말 주문하시겠습니까?" 식의 단순 확인이 아니라 장바구니 시트가 이미 쓰는 "총 결제 금액" 라벨과 같은 규약(`order-shell-cart-total__label`/`order-shell-sheet__price`)으로 총 금액(`totalCartPrice`)을 보여준다 — 처음엔 담은 수량도 함께 보여줬지만, 실제 화면 시안을 보고 장바구니 시트의 총 결제 금액 표기와 통일하는 쪽으로 수정했다.
+- `useConsumerOrderPage.placeOrder`는 품절 데모 테이블(`isSoldoutDemoTable`)이 아니면 더 이상 곧바로 `closeSheet`+`startOrderProcessing`을 호출하지 않고, `orderConfirmOpen`을 켜서 모달을 띄우기만 한다. 장바구니 시트는 그대로 열려 있다. 모달의 "취소"(`cancelPlaceOrder`)는 모달만 닫고, "주문하기"(`confirmPlaceOrder`)를 눌러야 그제서야 시트를 닫고 처리중으로 넘어간다.
+- 품절 데모 테이블 흐름(`SoldoutModal`)은 이 변경과 무관하다 — `placeOrder`에서 품절 분기가 먼저 걸러지므로 두 모달이 동시에 뜰 일은 없다.
+
+### 결과
+
+- 참고 저장소에 없던 화면이라 향후 참고 저장소가 이 기능을 추가하면 문구·레이아웃이 다를 수 있다 — 그때 다시 맞춰볼 대상이다.
+- 주문 실패/세션 만료 등 QA 트리거 화면들(ADR-024/025)은 여전히 `confirmPlaceOrder` 이후 `startOrderProcessing`부터 진입하므로 이번 변경의 영향을 받지 않는다.
+
+---
+
+## ADR-033 — 직원호출 칩은 `showQty`로 수량형/단순형을 구분한다
+
+**날짜**: 2026-09-10
+**상태**: 채택
+
+### 배경
+
+기존 직원호출 칩은 전부 "탭할 때마다 +1"만 있었고, on/off 개념이 없었다. 참고 저장소가 이후 `STAFF_CALL_ITEMS`에 `showQty` 필드를 추가해 항목마다 다른 상호작용(수량형 vs 단순 체크형)을 지원하도록 갱신했다 — 물/앞접시/컵/냅킨/물티슈/수저/젓가락은 `showQty: true`, 반찬추가/소스추가는 `showQty: false`.
+
+### 결정
+
+- `StaffCallItem`에 `showQty: boolean`을 추가하고 참고 저장소와 동일하게 값을 매긴다.
+- 칩은 항목 공통으로 on/off 토글이다(기존의 "누를 때마다 +1"에서 변경). on/off 진실값은 `activeIds`(Set)가 갖고, 수량은 `showQty: true` 항목에 한해 `itemQty`가 별도로 관리한다 — `showQty: false` 항목은 수량 개념이 없어 `itemQty`만으로는 on 상태를 표현할 수 없기 때문이다.
+- 칩을 켤 때 `showQty: true` 항목은 수량을 1로 초기화하고, 끌 때는 `activeIds`에서 제거함과 동시에 `itemQty`에서도 지운다.
+- 칩 아이콘은 `showQty: true`면 `ci-plus`, `false`면 `ci-check`(참고 저장소의 Plus/Check와 동일). on 상태 스타일은 헤더의 "직원호출" 토글(꽉 채운 스타일)과 다르게 연한 브랜드 틴트(`--color-brand-subtle`/`--color-border-brand`)만 준다 — 참고 저장소도 칩과 토글의 스타일을 구분해서 쓴다.
+- `showQty: true`이고 on 상태인 칩에는 수량 뱃지를 함께 보여준다.
+- 하단 선택 목록에서 `showQty: true` 항목만 수량 스테퍼(기존 `QuantityStepperButton` 그대로 재사용)를 보여주고, `showQty: false` 항목은 이름만 보여준다.
+- 리스트의 수량 스테퍼에서 수량이 0 이하가 되면 `activeIds`에서도 제거해 칩이 자동으로 off된다(참고 저장소의 `changeQty`와 동일).
+
+### 결과
+
+- 이후 새 항목을 추가할 때는 `showQty` 값만 정하면 칩·리스트·요약 문자열 동작이 전부 그대로 적용된다.
+- 이번 작업도 ADR-021 mock 경계 원칙을 그대로 따른다 — 백엔드 API나 Client 쪽 `ClientStaffCallSettings` 연동은 여전히 범위 밖이고, 항목 목록은 고정 상수(mock)로 남는다.
+
+---
+
+## ADR-034 — 직원호출 시트는 헤더·칩·버튼을 고정하고 선택 목록만 내부 스크롤한다
+
+**날짜**: 2026-09-10
+**상태**: 채택
+
+### 배경
+
+칩으로 고를 수 있는 항목이 9개까지 늘어날 수 있는데, 헤더·칩·선택 목록·"호출하기" 버튼이 전부 `ConsumerBottomSheet`의 공용 스크롤 영역(`__body`, `overflow-y: auto`) 안에 평범한 블록으로 쌓여 있었다. 항목을 많이 고를수록 선택 목록이 길어지면서 버튼이 화면 아래로 밀려나, 매번 시트 전체를 스크롤해야 버튼에 손이 닿는 문제가 있었다 — 항목을 하나 고를 때마다 스크롤 위치가 다시 바뀌어 터치 피로도가 높다.
+
+참고 저장소(Qrorder)의 `StaffCallSheet`를 다시 보니 이미 이 문제를 해결해 두었다: 헤더와 푸터(호출하기 버튼)는 `shrink-0`으로 고정하고, 칩+선택 목록만 `subtle-box flex-1`(`overflow: auto`, 저장소 주석: "서브 스크롤 — 스크롤 안의 스크롤") 안에 넣어 그 부분만 스크롤되게 했다.
+
+### 결정
+
+- `StaffCallSheetContent`의 선택 항목 목록(`.staff-call-sheet__selected-list`)에만 `max-height: 45vh; overflow-y: auto;`를 준다. 헤더·칩·"호출하기" 버튼은 전부 이 목록 밖(같은 `.staff-call-sheet` flex-column의 형제)에 그대로 둬서 항상 보이는 위치에 고정된다 — 칩은 9개뿐이라 스크롤 없이도 항상 다 보여도 된다고 판단해, 참고 저장소처럼 칩까지 스크롤 영역에 묶지 않고 목록만 감쌌다.
+- 참고 저장소는 `flex-1`(부모가 고정 높이일 때만 의미 있음)을 쓰지만, 우리 시트는 콘텐츠에 맞춰 자동으로 커지다가 `ConsumerBottomSheet`의 `max-height: 92vh`에서 캡되는 구조라 `flex-1` 대신 `max-height`로 직접 캡을 준다 — 목록이 짧을 때는 내용만큼만 차지하고(스크롤 없음), 길어지면 45vh에서 캡되어 그 안에서만 스크롤된다.
+- `ConsumerBottomSheet`(공용 primitive) 자체는 건드리지 않는다 — 이 문제는 지금 직원호출 시트에서만 확인됐고, 다른 시트(장바구니·주문내역)까지 구조를 바꾸는 건 이번 범위 밖이다.
+- 참고 저장소는 칩이 먼저, 선택 목록이 그 아래다. 여기서는 순서를 반대로 뒀다 — 선택 목록(수량 조절처럼 자주 만지는 조작)을 헤더 바로 아래 가장 가까운 위치에 두고, 새 항목을 고르는 칩은 그 아래로 내렸다. 목록이 있을 때만 칩 영역 위에 구분선을 준다(`.staff-call-sheet__selected-list + .staff-call-sheet__chips`) — 목록이 없으면(아직 아무것도 안 골랐으면) 칩이 스크롤 영역의 첫 요소라 구분선이 필요 없다.
+
+### 결과
+
+- 항목을 9개(최대) 다 고른 상태에서도 헤더·칩·"호출하기" 버튼이 화면 밖으로 밀려나지 않고, 선택 목록만 자체 스크롤되는 것을 실제로 확인했다(짧은 뷰포트에서 목록 내부 스크롤이 실제로 걸리는 것도 확인).
+- 장바구니·주문내역 시트도 항목이 많아지면 같은 문제를 겪을 수 있다 — 그때 이 ADR의 `__scroll-area` 패턴을 재사용할 수 있다.
+
+---
+
+## ADR-035 — Client 직원호출 관리 화면을 추가한다
+
+**날짜**: 2026-09-15
+**상태**: 채택
+
+### 배경
+
+Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상수(`STAFF_CALL_ITEMS`)로 고정돼 있는데, 실제로는 매장(Client)마다 어떤 항목을 노출할지 설정할 수 있어야 한다. 참고 저장소(Qrorder)에도 사이드바 `메뉴 관리 > 메뉴 정보 관리 > 직원호출 관리`(`/menus/staff-call`)에 해당 설정 화면(`StaffCallManagement.tsx`)이 이미 있다 — 검색 필터 + 인라인 편집 테이블(호출명/선택방식[단건·다건]/사용여부) + 저장 확인 모달.
+
+이 작업 시점에 실제 DB에 관련 테이블이 이미 존재했다(`sys_id, call_cd, call_nm, single_yn, description, insert_datetime, sys_plant_cd`). 다만 이 테이블을 쓰는 백엔드 컨트롤러는 아직 없다(다른 팀원의 백엔드 브랜치에 "call_cd 공통코드로 생성 필요"라는 커밋만 있고 아직 병합 전).
+
+### 결정
+
+- **화면 위치**: `apps/client/menu/info/staff-call` — 기존 `메뉴 정보 관리` 그룹("메뉴 관리", "옵션 관리"의 형제)에 넣는다. 참고 저장소와 동일한 계층.
+- **데이터 모델**: 참고 저장소의 임의 한글 필드 대신 실제 DB 컬럼명 기준(`callCd`/`callNm`/`singleYn`/`description`)으로 타입을 맞췄다 — 나중에 API가 붙을 때 타입을 그대로 재사용하기 위함. `useYn`(사용여부)과 `ordNo`(표시 순서)는 DB에 대응 컬럼이 없는 **화면 전용 mock 필드**다 — 사용자 확인 후 참고 저장소처럼 화면엔 넣어두되(B안), 나중에 DB에 컬럼이 추가되면 연결하기로 했다.
+- **mock 우선 구현**: 컨트롤러가 없으므로 ADR-021과 같은 원칙으로 `api/staffCallManagementApi.ts`는 저장 stub(`saveStaffCallItemsStub`)만 두고, 실제 계약이 정해지면 이 함수 본문만 교체한다. `single_yn`은 향후 공통코드에서 값을 받아올 예정이지만 아직 공통코드 데이터가 없어(사용자 확인), 지금은 단순 `Y`/`N` 셀렉트(라벨: 단건/다건)로 mock 처리하고 공통코드 연동용 훅은 미리 만들지 않는다(데이터 없는 상태의 추측성 구현 방지).
+- **테이블 컴포넌트 재사용— "synthetic master"**: 이 화면은 마스터를 선택해 상세를 보는 구조가 아니라 매장당 하나뿐인 평평한 목록이다(사용자 확인: "마스터를 선택해서 상세목록이 나오는 구조가 애초에 아니야"). 그런데 공용 `EditableMasterTable`은 컬럼이 코드/이름/사용여부/수정 4개로 고정돼 있어 우리 컬럼 수(호출명/선택방식/설명/사용여부)를 못 담고, `EditableDetailTable`은 컬럼이 자유롭지만 `selectedMaster`가 있어야 빈 상태를 벗어나는 구조다. 그래서 고정된 가짜 마스터 상수(`STAFF_CALL_MASTER = { id: 'staff-call' }`)를 항상 `selectedMaster`로 넘겨 상세 테이블 하나만 쓴다 — 화면에는 마스터 선택 UI 자체가 없다. 행추가/삭제/**순서 이동**(위/아래)이 전부 `EditableDetailTable`에 이미 있어서(사용자 확인: "행 추가 삭제 순서를 이동해서 어떻게 보이고 넣을지 설정하는 게시판") 새로 구현할 게 거의 없었다.
+- **조회/초기화도 dirty guard를 거친다**: 편집 중 조회하면 새 행이 필터에 가려질 수 있어, 다른 Client 편집 화면처럼 `useFilterDirtyCheck` + `ConfirmModal`을 적용했다. 상세는 [`page/staff-call-management.md`](../page/staff-call-management.md#조회--초기화) 참고.
+- **저장 검증에 중복 호출명 체크 추가**: `useDetailTableSaveFlow`의 `invalidValueMessage`가 함수도 받도록 확장해 실패 사유별로 문구를 다르게 보여준다. 상세는 [`page/staff-call-management.md`](../page/staff-call-management.md#저장) 참고.
+
+### Client 메뉴 등록의 진짜 소스는 `src/mocks/handlers.ts`다
+
+작업 중 `frontend/docs/admin-navigation.md` 기반 리서치로는 "`sys_menu`에 CLIENT 트리가 없어 프론트 상수 `CLIENT_MENUS_BY_SECTION`(`shared/menu/clientNavigation.ts`)이 실제 소스"라고 파악했으나, 실제로 확인해보니 **이미 CLIENT 트리 mock 데이터가 있었다** — `createClientNavigationData`가 `useAdminMenuCatalogQuery`(`useGetMenu` MSW mock)로 먼저 조회하고, 결과가 있으면 그걸 쓰고 **없을 때만** `CLIENT_MENUS_BY_SECTION` fallback을 쓴다. 이 mock 카탈로그의 실제 데이터는 `src/mocks/handlers.ts`의 플랫 트리 배열(`menuCd`/`menuNm`/`parentMenuCd`/`ordNo`/`treeLevel`/`menuUrl`)이다.
+
+그래서 새 메뉴를 추가하려면 **두 곳 다** 갱신해야 한다.
+1. `src/mocks/handlers.ts` — 실제로 사이드바에 렌더링되는 소스(`MNU_INFO_STAFF_CALL`, `sysId: 'c29'` 추가)
+2. `shared/menu/clientNavigation.ts`의 `CLIENT_MENUS_BY_SECTION` — 위 mock이 비어있을 때만 쓰이는 fallback(기존 `MNU_INFO_MNG`/`MNU_INFO_OPT`와 나란히 추가)
+
+둘 중 하나만 갱신하면(특히 1번을 빼먹으면) 실제 화면에는 메뉴가 안 보이면서 라우트·타입체크는 전부 정상이라 원인 파악이 헷갈릴 수 있다 — 이번에 실제로 겪었다.
+
+### 결과
+
+- 사이드바 `메뉴 > 메뉴 정보 관리 > 직원호출 관리` 진입, 브레드크럼, 행추가/삭제/순서이동/검색/저장 확인 모달까지 실제 브라우저로 전부 확인했다.
+- 검증 실패 모달에 `primaryAction`을 안 넘겨 셀 에러가 반영되지 않던 버그를 `hasConfirmAction` + `confirmNotice` 연결로 고쳤다.
+- 백엔드 컨트롤러가 붙으면 `api/staffCallManagementApi.ts`의 stub과 `types.ts`의 mock 전용 필드(`useYn`, `ordNo`) 처리만 다시 보면 된다.
+- Consumer 쪽 `STAFF_CALL_ITEMS`(mock/staffCallItems.ts)와 이 화면의 데이터를 실제로 연결하는 것은 아직 범위 밖이다 — 둘 다 백엔드 API가 없어 각자 mock으로 존재한다.
+
+---

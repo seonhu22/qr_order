@@ -68,7 +68,7 @@ type ConsumerSheetState =
 | `menu-detail` | 메뉴 카드 클릭 | 이미지·메뉴 정보(배지)·옵션·수량·담기 버튼 (`MenuDetailSheet`) |
 | `cart` | `CartBar` 클릭 | 헤더(아이콘+개수 배지) + 담은 항목 목록(비어 있으면 빈 상태) + 총 결제 금액 + 버튼("주문하기" 또는 빈 상태일 때 "메뉴 보러가기") |
 | `order-history` | 헤더 "주문내역" 버튼 | 헤더(아이콘+누적 수량 배지) + 주문 건별로 시간과 함께 묶은 목록(비어 있으면 빈 상태) + 총 결제 금액 + "확인" 버튼 (`OrderHistorySheet`, ADR-027) |
-| `staff-call` | 헤더 "직원호출" 버튼 | "준비 중입니다" 플레이스홀더만 |
+| `staff-call` | 헤더 "직원호출" 버튼 | 헤더(고정) + 선택 항목 수량 조절(내부 스크롤) + 호출 항목 칩(on/off, `showQty`로 수량형/단순형 구분, 고정) + "호출하기" 버튼(고정) (`StaffCallSheetContent`, mock — ADR-031/033/034) |
 
 렌더러는 `ConsumerBottomSheet`(신규 primitive, `WrapperModal` 미재사용 — ADR-020) 하나이고, 내용만 `sheet.type`에 따라 `ConsumerOrderPage.tsx`가 조립한다. 열릴 때 첫 포커스 가능 요소로 이동하고 Tab/Shift+Tab을 시트 안에서만 순환시키는 포커스 트랩이 있다(포커스 가능한 요소가 없으면 시트 자체에 머무름) — `SoldoutModal`과 같은 기법.
 
@@ -86,13 +86,13 @@ type ConsumerSheetState =
 
 수량·옵션 선택 상태는 `useMenuDetailSheet`(feature 훅)가 소유한다. 다른 메뉴를 열었을 때 이전 선택이 남지 않도록 `ConsumerOrderPage`가 `key={detailItem.id}`로 시트를 새로 마운트한다.
 
-`QuantityStepper`의 증감 버튼은 `QuantityStepperButton`(`features/order-shell/components/`)을 쓴다. 이 버튼 하나를 메뉴 상세 전체 수량·옵션 항목별 수량([항목별 수량 조절](#항목별-수량-조절))·장바구니 줄 수량([장바구니](#장바구니)) 세 곳이 공유하고, 배경·크기 같은 컨테이너 스타일만 각 화면 CSS(`className`)로 다르게 입힌다. `/dev/button`에 세 스타일이 나란히 있다.
+`QuantityStepper`의 증감 버튼은 `QuantityStepperButton`(`features/order-shell/components/`)을 쓴다. 이 버튼 하나를 메뉴 상세 전체 수량·옵션 항목별 수량([항목별 수량 조절](#항목별-수량-조절))·장바구니 줄 수량([장바구니](#장바구니))·직원호출 선택 항목 수량(ADR-031) 네 곳이 공유하고, 배경·크기 같은 컨테이너 스타일만 각 화면 CSS(`className`)로 다르게 입힌다. `/dev/button`에 네 스타일이 나란히 있다(직원호출은 장바구니 줄 수량과 같은 크기·색 규약을 쓰는 별도 클래스다).
 
 ### 시트 제목을 쓰지 않는다
 
 디자인상 이미지가 시트 맨 위에 오고 메뉴명은 그 아래에 있어, `ConsumerBottomSheet`의 `title`(시각적 제목)을 넘기지 않는다. 대신 primitive에 `ariaLabel` prop을 추가해 스크린리더용 이름만 따로 전달한다.
 
-`cart`도 같은 이유로 공용 `title`을 쓰지 않는다 — 참고 저장소의 `CartSheet` 헤더(아이콘+제목+담은 개수 배지)를 그대로 가져오면서, `ConsumerOrderPage.tsx`가 직접 `order-shell-cart-header`를 렌더링하도록 바꿨다(`ci-shopping-cart` 아이콘 + "장바구니" + `totalCartQty` 배지). `ariaLabel`은 다이얼로그 접근성 이름으로 "장바구니"를 그대로 넘긴다. `order-history`/`staff-call`은 아직 플레이스홀더뿐이라 기존대로 공용 `title`을 쓴다.
+`cart`·`order-history`·`staff-call` 모두 같은 이유로 공용 `title`을 쓰지 않는다 — 참고 저장소 헤더 구성(아이콘+제목 뒤에 각각 담은 개수 배지/누적 수량 배지/범용 호출 토글)을 그대로 가져와 `ConsumerOrderPage.tsx`/`OrderHistorySheet`/`StaffCallSheetContent`가 각자 커스텀 헤더를 렌더링한다. `ariaLabel`은 다이얼로그 접근성 이름으로 각각 "장바구니"/"주문내역"/"직원호출"을 그대로 넘긴다.
 
 ### 옵션 선택 규칙
 
@@ -169,14 +169,14 @@ type ConsumerSheetState =
 
 ## 주문 제출 흐름
 
-장바구니 시트의 "주문하기"를 누르면 시트를 닫고 곧바로 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다)·[ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다) 참고.
+장바구니 시트의 "주문하기"를 누르면 곧바로 처리중으로 넘어가지 않고, 먼저 `OrderConfirmModal`(제목 + "총 결제 금액" 요약 + 취소/주문하기 버튼, 참고 저장소에는 없어 새로 설계함 — [ADR-032](../decisions.md#adr-032--주문-확인-모달을-새로-추가한다))을 띄운다. 이때 장바구니 시트는 닫지 않는다. 모달의 "취소"는 장바구니 시트로 돌아가고, "주문하기"를 눌러야 그제서야 시트를 닫고 `useConsumerOrderPage`의 `orderPhase` 상태 머신이 전체화면 오버레이를 보여준다. 이 흐름이 지금 뜻하는 바와 한계는 [`decisions.md` ADR-024](../decisions.md#adr-024--주문-실패-화면네트워크중복-주문은-먼저-완성하고-판별-로직은-qa-트리거로-미리본다)·[ADR-025](../decisions.md#adr-025--세션-만료시간초과마감통신-오류-화면도-같은-원칙으로-먼저-완성한다) 참고.
 
 ### 상태 머신
 
 | `orderPhase` | 화면 | 진입 경로 |
 |---|---|---|
 | `idle` | 없음(기본) | — |
-| `processing` | `OrderProcessingScreen` | "주문하기" 클릭 |
+| `processing` | `OrderProcessingScreen` | 주문 확인 모달의 "주문하기" 클릭 |
 | `complete` | `OrderCompleteScreen` | 주문 생성 API가 성공하면 응답의 주문번호와 함께 표시 |
 | `error-network` | `OrderFailureScreen type="network"` | 네트워크 오류/15초 타임아웃 또는 QA 트리거 |
 | `error-duplicate` | `OrderFailureScreen type="duplicate"` | QA 트리거만 |
