@@ -83,6 +83,19 @@ describe('calculateOrderTotal', () => {
       }],
     })).toBe(21000);
   });
+
+  it('서버 총액이 0이어도 표시할 메뉴 금액이 있으면 항목 합계를 사용한다', () => {
+    expect(calculateOrderTotal({
+      totalPrice: 0,
+      menuItems: [{
+        id: 'menu-1',
+        name: '불고기 버거',
+        quantity: 4,
+        unitPrice: 8000,
+        options: [],
+      }],
+    })).toBe(32000);
+  });
 });
 
 describe('filterVisibleOrderBoardRows', () => {

@@ -91,16 +91,18 @@ describe('useConsumerEvents', () => {
     });
   });
 
-  it('polls only while disconnected and stops after reconnect', () => {
+  it('polls while disconnected, creates a new stream, and stops after reconnect', () => {
     const { unmount } = renderHook(() => useConsumerEvents('VISIT-1', true), { wrapper });
     const source = MockEventSource.instances[0];
 
     act(() => source.onerror?.(new Event('error')));
     act(() => vi.advanceTimersByTime(5_000));
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.consumer.session });
+    expect(source.close).toHaveBeenCalledOnce();
+    expect(MockEventSource.instances).toHaveLength(2);
     invalidate.mockClear();
 
-    act(() => source.onopen?.(new Event('open')));
+    act(() => MockEventSource.instances[1].onopen?.(new Event('open')));
     act(() => vi.advanceTimersByTime(10_000));
     expect(invalidate).not.toHaveBeenCalled();
 
