@@ -1210,3 +1210,42 @@ iOS Safari(및 안드로이드 크롬)는 상태바·하단 도구모음 색을 
 - 장바구니·주문내역 시트도 항목이 많아지면 같은 문제를 겪을 수 있다 — 그때 이 ADR의 `__scroll-area` 패턴을 재사용할 수 있다.
 
 ---
+
+## ADR-035 — Client 직원호출 관리 화면을 추가한다
+
+**날짜**: 2026-09-15
+**상태**: 채택
+
+### 배경
+
+Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상수(`STAFF_CALL_ITEMS`)로 고정돼 있는데, 실제로는 매장(Client)마다 어떤 항목을 노출할지 설정할 수 있어야 한다. 참고 저장소(Qrorder)에도 사이드바 `메뉴 관리 > 메뉴 정보 관리 > 직원호출 관리`(`/menus/staff-call`)에 해당 설정 화면(`StaffCallManagement.tsx`)이 이미 있다 — 검색 필터 + 인라인 편집 테이블(호출명/선택방식[단건·다건]/사용여부) + 저장 확인 모달.
+
+이 작업 시점에 실제 DB에 관련 테이블이 이미 존재했다(`sys_id, call_cd, call_nm, single_yn, description, insert_datetime, sys_plant_cd`). 다만 이 테이블을 쓰는 백엔드 컨트롤러는 아직 없다(다른 팀원의 백엔드 브랜치에 "call_cd 공통코드로 생성 필요"라는 커밋만 있고 아직 병합 전).
+
+### 결정
+
+- **화면 위치**: `apps/client/menu/info/staff-call` — 기존 `메뉴 정보 관리` 그룹("메뉴 관리", "옵션 관리"의 형제)에 넣는다. 참고 저장소와 동일한 계층.
+- **데이터 모델**: 참고 저장소의 임의 한글 필드 대신 실제 DB 컬럼명 기준(`callCd`/`callNm`/`singleYn`/`description`)으로 타입을 맞췄다 — 나중에 API가 붙을 때 타입을 그대로 재사용하기 위함. `useYn`(사용여부)과 `ordNo`(표시 순서)는 DB에 대응 컬럼이 없는 **화면 전용 mock 필드**다 — 사용자 확인 후 참고 저장소처럼 화면엔 넣어두되(B안), 나중에 DB에 컬럼이 추가되면 연결하기로 했다.
+- **mock 우선 구현**: 컨트롤러가 없으므로 ADR-021과 같은 원칙으로 `api/staffCallManagementApi.ts`는 저장 stub(`saveStaffCallItemsStub`)만 두고, 실제 계약이 정해지면 이 함수 본문만 교체한다. `single_yn`은 향후 공통코드에서 값을 받아올 예정이지만 아직 공통코드 데이터가 없어(사용자 확인), 지금은 단순 `Y`/`N` 셀렉트(라벨: 단건/다건)로 mock 처리하고 공통코드 연동용 훅은 미리 만들지 않는다(데이터 없는 상태의 추측성 구현 방지).
+- **테이블 컴포넌트 재사용— "synthetic master"**: 이 화면은 마스터를 선택해 상세를 보는 구조가 아니라 매장당 하나뿐인 평평한 목록이다(사용자 확인: "마스터를 선택해서 상세목록이 나오는 구조가 애초에 아니야"). 그런데 공용 `EditableMasterTable`은 컬럼이 코드/이름/사용여부/수정 4개로 고정돼 있어 우리 컬럼 수(호출명/선택방식/설명/사용여부)를 못 담고, `EditableDetailTable`은 컬럼이 자유롭지만 `selectedMaster`가 있어야 빈 상태를 벗어나는 구조다. 그래서 고정된 가짜 마스터 상수(`STAFF_CALL_MASTER = { id: 'staff-call' }`)를 항상 `selectedMaster`로 넘겨 상세 테이블 하나만 쓴다 — 화면에는 마스터 선택 UI 자체가 없다. 행추가/삭제/**순서 이동**(위/아래)이 전부 `EditableDetailTable`에 이미 있어서(사용자 확인: "행 추가 삭제 순서를 이동해서 어떻게 보이고 넣을지 설정하는 게시판") 새로 구현할 게 거의 없었다.
+- **조회/초기화도 dirty guard를 거친다**: 편집 중 조회하면 새 행이 필터에 가려질 수 있어, 다른 Client 편집 화면처럼 `useFilterDirtyCheck` + `ConfirmModal`을 적용했다. 상세는 [`page/staff-call-management.md`](../page/staff-call-management.md#조회--초기화) 참고.
+- **저장 검증에 중복 호출명 체크 추가**: `useDetailTableSaveFlow`의 `invalidValueMessage`가 함수도 받도록 확장해 실패 사유별로 문구를 다르게 보여준다. 상세는 [`page/staff-call-management.md`](../page/staff-call-management.md#저장) 참고.
+
+### Client 메뉴 등록의 진짜 소스는 `src/mocks/handlers.ts`다
+
+작업 중 `frontend/docs/admin-navigation.md` 기반 리서치로는 "`sys_menu`에 CLIENT 트리가 없어 프론트 상수 `CLIENT_MENUS_BY_SECTION`(`shared/menu/clientNavigation.ts`)이 실제 소스"라고 파악했으나, 실제로 확인해보니 **이미 CLIENT 트리 mock 데이터가 있었다** — `createClientNavigationData`가 `useAdminMenuCatalogQuery`(`useGetMenu` MSW mock)로 먼저 조회하고, 결과가 있으면 그걸 쓰고 **없을 때만** `CLIENT_MENUS_BY_SECTION` fallback을 쓴다. 이 mock 카탈로그의 실제 데이터는 `src/mocks/handlers.ts`의 플랫 트리 배열(`menuCd`/`menuNm`/`parentMenuCd`/`ordNo`/`treeLevel`/`menuUrl`)이다.
+
+그래서 새 메뉴를 추가하려면 **두 곳 다** 갱신해야 한다.
+1. `src/mocks/handlers.ts` — 실제로 사이드바에 렌더링되는 소스(`MNU_INFO_STAFF_CALL`, `sysId: 'c29'` 추가)
+2. `shared/menu/clientNavigation.ts`의 `CLIENT_MENUS_BY_SECTION` — 위 mock이 비어있을 때만 쓰이는 fallback(기존 `MNU_INFO_MNG`/`MNU_INFO_OPT`와 나란히 추가)
+
+둘 중 하나만 갱신하면(특히 1번을 빼먹으면) 실제 화면에는 메뉴가 안 보이면서 라우트·타입체크는 전부 정상이라 원인 파악이 헷갈릴 수 있다 — 이번에 실제로 겪었다.
+
+### 결과
+
+- 사이드바 `메뉴 > 메뉴 정보 관리 > 직원호출 관리` 진입, 브레드크럼, 행추가/삭제/순서이동/검색/저장 확인 모달까지 실제 브라우저로 전부 확인했다.
+- 검증 실패 모달에 `primaryAction`을 안 넘겨 셀 에러가 반영되지 않던 버그를 `hasConfirmAction` + `confirmNotice` 연결로 고쳤다.
+- 백엔드 컨트롤러가 붙으면 `api/staffCallManagementApi.ts`의 stub과 `types.ts`의 mock 전용 필드(`useYn`, `ordNo`) 처리만 다시 보면 된다.
+- Consumer 쪽 `STAFF_CALL_ITEMS`(mock/staffCallItems.ts)와 이 화면의 데이터를 실제로 연결하는 것은 아직 범위 밖이다 — 둘 다 백엔드 API가 없어 각자 mock으로 존재한다.
+
+---
