@@ -157,9 +157,8 @@ public class ConsumerOrderController {
     public ResponseEntity<CommonResponse> staffCall(@RequestBody ConsumerStaffCallRequest consumerStaffCallRequest,
                                                         HttpSession session) {
 
-        String sysPlantCd = qrTableInfo(session).getSysPlantCd();
-
-        consumerStaffCallService.saveConsumerStaffCall(consumerStaffCallRequest, sysPlantCd);
+        consumerStaffCallService.saveConsumerStaffCall(
+                consumerStaffCallRequest, qrTableInfo(session), consumerBinding(session));
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -172,8 +171,7 @@ public class ConsumerOrderController {
     @GetMapping("/staffcall/search")
     public List<ConsumerStaffCallResponse> getConsumerStaffCall(HttpSession session) {
 
-        String sysPlantCd = qrTableInfo(session).getSysPlantCd();
-
-        return consumerStaffCallService.getConsumerStaffCall(sysPlantCd);
+        return consumerStaffCallService.getConsumerStaffCall(
+                qrTableInfo(session), consumerBinding(session));
     }
 }

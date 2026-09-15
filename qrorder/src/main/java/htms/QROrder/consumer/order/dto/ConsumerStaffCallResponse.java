@@ -7,6 +7,6 @@ public class ConsumerStaffCallResponse {
     private String sysId;
     private String callCd;
     private String callNm;
+    private String singleYn;
     private String description;
-    private String readYn;
 }

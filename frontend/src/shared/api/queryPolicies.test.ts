@@ -2,13 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { queryPolicies } from './queryPolicies';
 
 describe('clientRealtimeStatus query policy', () => {
-  it('5초 Polling, 백그라운드 중단, 포커스 재조회를 명시한다', () => {
+  it('SSE 갱신을 사용하고 포커스 복귀 시 안전망으로 재조회한다', () => {
     expect(queryPolicies.clientRealtimeStatus).toMatchObject({
       retry: false,
       staleTime: 0,
-      refetchInterval: 5_000,
-      refetchIntervalInBackground: false,
       refetchOnWindowFocus: true,
     });
+    expect(queryPolicies.clientRealtimeStatus).not.toHaveProperty('refetchInterval');
   });
 });

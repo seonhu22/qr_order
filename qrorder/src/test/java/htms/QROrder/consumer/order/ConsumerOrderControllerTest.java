@@ -18,6 +18,7 @@ import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerTableInactiveException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
 import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
+import htms.QROrder.consumer.order.service.ConsumerStaffCallService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,8 @@ class ConsumerOrderControllerTest {
         consumerOrderQueryService = mock(ConsumerOrderQueryService.class);
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ConsumerOrderController(
-                        consumerOrderCreationService, consumerOrderQueryService))
+                        consumerOrderCreationService, consumerOrderQueryService,
+                        mock(ConsumerStaffCallService.class)))
                 .setControllerAdvice(
                         new GlobalExceptionHandler(), new GlobalFallbackExceptionHandler())
                 .addInterceptors(new ConsumerAuthInterceptor())
