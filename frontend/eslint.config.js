@@ -6,7 +6,7 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'coverage', 'node_modules'],
+    ignores: ['dist', 'coverage', 'node_modules', 'src/generated/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -61,7 +61,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/context/**/*.{js,jsx,ts,tsx}'],
+    files: ['src/context/**/*.{js,jsx,ts,tsx}', 'src/**/contexts/**/*.{js,jsx,ts,tsx}'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

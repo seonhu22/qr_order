@@ -8,6 +8,8 @@ import { AdminHeader } from '@/apps/admin/features/header/components/AdminHeader
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import { useAdminMenuOpenAccessLog } from '@/apps/admin/hooks/useAdminMenuOpenAccessLog';
 import { AdminMenuAccessLogProvider } from '@/apps/admin/contexts/AdminMenuAccessLogContext';
+import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
+import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 
 /**
  * 관리자 메인 레이아웃
@@ -18,7 +20,7 @@ import { AdminMenuAccessLogProvider } from '@/apps/admin/contexts/AdminMenuAcces
  * - React Router `<Outlet />` 으로 `/admin/main` 등 child route를 렌더링한다.
  *
  * @example
- * // AdminRoutes.jsx
+ * // AdminRoutes.tsx
  * { path: '/admin', element: <AdminLayout />, children: [...] }
  */
 export function AdminLayout() {
@@ -26,6 +28,9 @@ export function AdminLayout() {
   const sidebarRef = useRef<HTMLElement | null>(null);
   // 하위 화면에서 저장 전 메뉴 로그 완료 여부를 확인할 수 있도록 상태를 공유한다.
   const menuAccessLogStatus = useAdminMenuOpenAccessLog();
+  const { pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
+    useGuardedNavigate();
+  const isCustomLeaveAction = pendingLeaveAction?.type === 'custom';
 
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
@@ -65,6 +70,28 @@ export function AdminLayout() {
           </main>
         </div>
       </div>
+
+      <ConfirmModal
+        open={pendingLeaveAction !== null}
+        tone="info"
+        title={
+          isCustomLeaveAction
+            ? pendingLeaveAction.title ?? '확인'
+            : '다른 화면으로 이동하시겠습니까?'
+        }
+        description={
+          isCustomLeaveAction
+            ? pendingLeaveAction.description
+            : '저장하지 않은 내용이 있습니다.\n이동하면 변경사항이 사라집니다.'
+        }
+        helperText={isCustomLeaveAction ? pendingLeaveAction.helperText : undefined}
+        onClose={cancelPendingLeaveAction}
+        primaryAction={{
+          label: isCustomLeaveAction ? pendingLeaveAction.confirmLabel ?? '확인' : '이동',
+          onClick: confirmPendingLeaveAction,
+        }}
+        secondaryAction={{ onClick: cancelPendingLeaveAction }}
+      />
     </AdminMenuAccessLogProvider>
   );
 }

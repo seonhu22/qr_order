@@ -50,16 +50,16 @@ describe('SystemMenuPage', () => {
         menuCd: 'SYS',
         menuNm: '시스템',
         parentMenuCd: ROOT_PARENT_MENU_CD,
-        ordNo: '1',
-        treeLevel: '1',
+        ordNo: 1,
+        treeLevel: 0,
       },
       {
         sysId: 'menu-1',
         menuCd: 'MENU',
         menuNm: '메뉴 관리',
         parentMenuCd: 'SYS',
-        ordNo: '1',
-        treeLevel: '2',
+        ordNo: 1,
+        treeLevel: 1,
         menuUrl: '/admin/system/menu',
       },
     ];
@@ -112,7 +112,7 @@ describe('SystemMenuPage', () => {
           menuNm: '메뉴 관리 수정',
           parentMenuCd: 'SYS',
           ordNo: 1,
-          treeLevel: 2,
+          treeLevel: 1,
           menuUrl: '/admin/system/menu',
         },
       ],
@@ -148,7 +148,7 @@ describe('SystemMenuPage', () => {
         menuNm: '신규 루트',
         parentMenuCd: ROOT_PARENT_MENU_CD,
         ordNo: 2,
-        treeLevel: 1,
+        treeLevel: 0,
         menuUrl: '/admin/new-root',
       }),
     ]);
@@ -179,8 +179,8 @@ describe('SystemMenuPage', () => {
         menuCd: 'NEW_ROOT',
         menuNm: '신규 루트',
         parentMenuCd: ROOT_PARENT_MENU_CD,
-        ordNo: '2',
-        treeLevel: '1',
+        ordNo: 2,
+        treeLevel: 0,
         menuUrl: '/admin/new-root',
       },
     ];
@@ -228,7 +228,7 @@ describe('SystemMenuPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
     expect(screen.getByRole('dialog', { name: '알림' })).toHaveTextContent(
-      '메뉴코드와 메뉴 명은 필수 입력 항목입니다.',
+      '빈값을 채워주세요.',
     );
     expect(saveRequests).toHaveLength(0);
   });
@@ -260,7 +260,7 @@ describe('SystemMenuPage', () => {
           menuNm: '메뉴 관리',
           parentMenuCd: 'SYS',
           ordNo: 1,
-          treeLevel: 2,
+          treeLevel: 1,
           menuUrl: '/admin/system/menu',
         },
       ],

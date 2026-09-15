@@ -32,6 +32,8 @@ export type InputCellModel = {
   className?: string;
   controlState?: '' | 'readonly' | 'error' | 'success' | 'disabled';
   readOnly?: boolean;
+  /** 네이티브 input type. 기본값은 'text'. */
+  inputType?: 'text' | 'number';
   onChange: (value: string) => void;
   onClearError?: () => void;
 };
@@ -57,6 +59,12 @@ export type SelectCellModel = {
 
 export type EditButtonCellModel = {
   type: 'editButton';
+  ariaLabel: string;
+  onClick: React.ComponentProps<'button'>['onClick'];
+};
+
+export type PrintButtonCellModel = {
+  type: 'printButton';
   ariaLabel: string;
   onClick: React.ComponentProps<'button'>['onClick'];
 };
@@ -87,6 +95,14 @@ export type LicensePeriodBadgeCellModel = {
   value: LicensePeriodBadgeValue;
 };
 
+export type AuthorityBadgeCellModel = {
+  type: 'authorityBadge';
+  /** 백엔드 권한 코드 (예: 'ADMIN', 'ADMIN_OWNER', 'STAFF') */
+  code: string;
+  /** 표시 라벨 (공통 콤보 또는 도메인 라벨 매핑값) */
+  label: string;
+};
+
 export type CustomCellModel = {
   type: 'custom';
   render: () => ReactNode;
@@ -98,11 +114,13 @@ export type SharedTableCell =
   | CheckboxCellModel
   | SelectCellModel
   | EditButtonCellModel
+  | PrintButtonCellModel
   | PasswordResetButtonCellModel
   | UseYnBadgeCellModel
   | ChangeTypeBadgeCellModel
   | ExpirationStatusBadgeCellModel
   | LicensePeriodBadgeCellModel
+  | AuthorityBadgeCellModel
   | CustomCellModel;
 
 export type SharedTableRow = {

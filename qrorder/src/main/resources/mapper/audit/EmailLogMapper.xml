@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.audit.repository.EmailLogMapper">
+
+    <insert id="sendEmailLog">
+        insert into sys_email_log (
+            sys_id,
+            success_status,
+            email_to,
+            email_cc,
+            subject,
+            body,
+            insert_datetime,
+            insert_user_id,
+            sys_plant_cd
+        )
+        values (
+            #{emailLog.sysId},
+            #{emailLog.successStatus},
+            #{emailLog.emailTo},
+            #{emailLog.emailCc},
+            #{emailLog.subject},
+            #{emailLog.body},
+            now(),
+            #{userId},
+            #{sysPlantCd}
+        )
+    </insert>
+
+</mapper>

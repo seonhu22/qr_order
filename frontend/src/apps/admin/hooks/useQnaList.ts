@@ -1,5 +1,6 @@
 import { useGetQna } from '@/generated/settings-controller/settings-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 
 export function useQnaList(searchKeyword = '') {
   return useGetQna(
@@ -7,8 +8,8 @@ export function useQnaList(searchKeyword = '') {
     {
       query: {
         queryKey: queryKeys.qna.list(searchKeyword),
+        ...queryPolicies.adminCrudList,
         retry: false,
-        staleTime: 1000 * 60,
       },
     },
   );

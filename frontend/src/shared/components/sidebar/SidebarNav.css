@@ -185,5 +185,5 @@
 
 /* 펼침 상태 */
 .sidebar-nav__chevron--open {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }

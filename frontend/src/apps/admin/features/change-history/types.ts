@@ -3,5 +3,7 @@ export type ChangeHistoryRow = {
   auditFlag: string;
   menuNm: string;
   auditTrailContents: string;
+  insertUserNm: string;
+  modifyUserNm: string;
   insertDatetime: string;
 };

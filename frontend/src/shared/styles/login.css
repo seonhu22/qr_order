@@ -140,6 +140,34 @@
   gap: var(--spacing-6);
 }
 
+/* 아이디 중복확인 행 */
+.login-card__id-check-row {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.login-card__id-check-row .input-control {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 이메일 인증 타이머 — InputWrapper hint 패턴과 동일한 간격·폰트 */
+.signup-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+  font-family: var(--typography-font-base);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  line-height: var(--typography-leading-ui);
+  color: var(--color-brand-default);
+}
+
+.signup-timer--expired {
+  color: var(--color-status-error-text);
+}
+
 /* 개인정보 동의 박스 */
 .login-card__consent-box {
   display: flex;

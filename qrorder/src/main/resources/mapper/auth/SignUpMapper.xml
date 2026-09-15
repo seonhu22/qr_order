@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.auth.repository.SignUpMapper">
+
+    <insert id="newPlant">
+        insert into sys_plant (
+            sys_id,
+            plant_cd,
+            plant_nm,
+            use_yn,
+            delete_yn,
+            insert_datetime,
+            insert_user_id,
+            emp_nm,
+            phone_number,
+            reg_num
+        )
+        values (
+            #{sysId},
+            #{businessRegiNum},
+            #{plantNm},
+            'Y',
+            'N',
+            now(),
+            #{userId},
+            #{userNm},
+            #{phoneNumber},
+            #{businessRegiNum}
+        )
+    </insert>
+
+    <insert id="newUser">
+        insert into sys_user (
+            sys_id ,
+            user_id ,
+            user_nm ,
+            user_password ,
+            email ,
+            email_valid_yn ,
+            init_yn ,
+            password_fail_cnt ,
+            delete_yn,
+            insert_user_id ,
+            insert_datetime,
+            plant_cd,
+            user_role
+        )
+        values (
+            #{sysId},
+            #{userId},
+            #{userNm},
+            #{password},
+            #{email} ,
+            'Y',
+            'N',
+            0,
+            'N',
+            #{userId},
+            now(),
+            #{businessRegiNum},
+            '01'
+        )
+    </insert>
+
+    <select id="idDuplicateChk" resultType="boolean">
+        select
+            count(*) > 0
+        from sys_user
+        where 1=1
+        and user_id = #{userId}
+        and delete_yn = 'N'
+    </select>
+
+
+</mapper>

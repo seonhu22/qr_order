@@ -8,8 +8,9 @@
  * @module dev/InputGuide
  */
 
-import { useState } from 'react';
-import { TextInput, TextareaInput } from '@/shared/components/input';
+import { useState, useEffect } from 'react';
+import { TextInput, TextareaInput, InputWrapper, InputBase } from '@/shared/components/input';
+import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 import './devStyles/InputGuide.css';
 
@@ -55,6 +56,31 @@ function Card({
 export default function InputGuide() {
   const [value, setValue] = useState('');
   const [pwValue, setPwValue] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [emailVerifyCode, setEmailVerifyCode] = useState('');
+
+  useEffect(() => {
+    if (timerSeconds <= 0) return;
+    const id = setTimeout(() => setTimerSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [timerSeconds]);
+
+  const formatTimer = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const timerActive = emailSent && !emailVerified && timerSeconds > 0;
+  const timerExpired = emailSent && !emailVerified && timerSeconds === 0;
+  const emailDisabled = timerActive;
+
+  const handleSendCode = () => {
+    setEmailSent(true);
+    setEmailVerifyCode('');
+    setTimerSeconds(300);
+  };
+  const handleVerifyCode = () => {
+    setEmailVerified(true);
+    setTimerSeconds(0);
+  };
 
   return (
     <div className="dev-guide">
@@ -325,6 +351,134 @@ export default function InputGuide() {
               hint="최대 1000자까지 입력 가능합니다"
             />
           </div>
+        </Section>
+
+        {/* ─── 아이디 중복확인 ────────────────────────────── */}
+        <Section title="아이디 중복확인">
+          <Card label="idle" width="320px">
+            <InputWrapper inputId="id-idle" label="아이디" required>
+              <div className="input-guide__inline-row">
+                <InputBase id="id-idle" size="lg" placeholder="아이디를 입력하세요" />
+                <Button type="button" size="lg" variant="outline">중복확인</Button>
+              </div>
+            </InputWrapper>
+          </Card>
+          <Card label="available" width="320px">
+            <InputWrapper inputId="id-ok" label="아이디" required successText="사용 가능한 아이디입니다.">
+              <div className="input-guide__inline-row">
+                <InputBase id="id-ok" size="lg" value="qrorder_user" controlState="success" onChange={() => {}} />
+                <Button type="button" size="lg" variant="outline">중복확인</Button>
+              </div>
+            </InputWrapper>
+          </Card>
+          <Card label="taken" width="320px">
+            <InputWrapper inputId="id-fail" label="아이디" required errorText="이미 사용 중인 아이디입니다.">
+              <div className="input-guide__inline-row">
+                <InputBase id="id-fail" size="lg" value="admin" controlState="error" onChange={() => {}} />
+                <Button type="button" size="lg" variant="outline">중복확인</Button>
+              </div>
+            </InputWrapper>
+          </Card>
+        </Section>
+
+        {/* ─── 이메일 인증 ─────────────────────────────────── */}
+        <Section title="이메일 인증 타이머">
+          <Card label="인터랙티브 데모" width="340px">
+            <div className="input-guide__demo-stack">
+              <InputWrapper
+                inputId="demo-email"
+                label="이메일"
+                required
+                successText={emailVerified ? '이메일 인증이 완료되었습니다.' : undefined}
+              >
+                <div className="input-guide__inline-row">
+                  <InputBase
+                    id="demo-email"
+                    type="email"
+                    size="lg"
+                    placeholder="이메일을 입력하세요"
+                    disabled={emailDisabled}
+                    controlState={emailVerified ? 'success' : emailDisabled ? 'disabled' : ''}
+                  />
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    disabled={emailVerified}
+                    onClick={handleSendCode}
+                  >
+                    {timerActive ? '재전송' : '인증'}
+                  </Button>
+                </div>
+              </InputWrapper>
+              {emailSent && !emailVerified && (
+                <InputWrapper inputId="demo-code" label="인증 코드" required>
+                  <>
+                    <div className="input-guide__inline-row">
+                      <InputBase
+                        id="demo-code"
+                        size="lg"
+                        placeholder="인증 코드를 입력하세요"
+                        value={emailVerifyCode}
+                        disabled={timerExpired}
+                        controlState={timerExpired ? 'disabled' : ''}
+                        onChange={(e) => setEmailVerifyCode(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        size="lg"
+                        variant="outline"
+                        disabled={timerExpired}
+                        onClick={handleVerifyCode}
+                      >
+                        확인
+                      </Button>
+                    </div>
+                    {timerActive && (
+                      <span className="input-guide__timer">
+                        <Icon id="i-clock" size={13} />
+                        남은 시간 {formatTimer(timerSeconds)}
+                      </span>
+                    )}
+                    {timerExpired && (
+                      <span className="input-guide__timer input-guide__timer--expired">
+                        <Icon id="i-clock" size={13} />
+                        인증 시간이 만료되었습니다. 이메일을 다시 입력 후 재시도해주세요.
+                      </span>
+                    )}
+                  </>
+                </InputWrapper>
+              )}
+            </div>
+          </Card>
+          <Card label="타이머 활성 (정적)" width="340px">
+            <InputWrapper inputId="static-code" label="인증 코드" required>
+              <>
+                <div className="input-guide__inline-row">
+                  <InputBase id="static-code" size="lg" placeholder="인증 코드를 입력하세요" />
+                  <Button type="button" size="lg" variant="outline">확인</Button>
+                </div>
+                <span className="input-guide__timer">
+                  <Icon id="i-clock" size={13} />
+                  남은 시간 4:30
+                </span>
+              </>
+            </InputWrapper>
+          </Card>
+          <Card label="타이머 만료 (정적)" width="340px">
+            <InputWrapper inputId="expired-code" label="인증 코드" required>
+              <>
+                <div className="input-guide__inline-row">
+                  <InputBase id="expired-code" size="lg" placeholder="인증 코드를 입력하세요" disabled controlState="disabled" />
+                  <Button type="button" size="lg" variant="outline" disabled>확인</Button>
+                </div>
+                <span className="input-guide__timer input-guide__timer--expired">
+                  <Icon id="i-clock" size={13} />
+                  인증 시간이 만료되었습니다. 이메일을 다시 입력 후 재시도해주세요.
+                </span>
+              </>
+            </InputWrapper>
+          </Card>
         </Section>
 
         <div className="input-guide-section-title">

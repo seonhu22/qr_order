@@ -1,0 +1,90 @@
+.order-status-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.order-status-column__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  margin-bottom: var(--spacing-6);
+}
+
+.order-status-column__title {
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.order-status-column__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-strong);
+}
+
+.order-status-column--received .order-status-column__count {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.order-status-column--cooking .order-status-column__count {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.order-status-column--served .order-status-column__count {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.order-status-column--cancelled .order-status-column__count {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}
+
+.order-status-column__panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-6);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-card);
+  background-color: var(--color-bg-muted);
+  overflow: hidden;
+}
+
+.order-status-column--cancelled .order-status-column__panel {
+  border-color: var(--color-status-error-border-subtle);
+  background-color: var(--color-status-error-bg-subtle);
+}
+
+.order-status-column__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--spacing-1);
+}
+
+.order-status-column__empty {
+  margin: 0;
+  padding: var(--spacing-4);
+  text-align: center;
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-tertiary);
+}

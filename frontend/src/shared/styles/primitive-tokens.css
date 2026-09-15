@@ -83,6 +83,19 @@
   --amber-90:  #78350F;
   --amber-100: #451A03;
 
+  /* Purple — Consumer 한정수량 배지에 사용 */
+  --purple-0:   #FFFFFF;
+  --purple-10:  #FAF5FF;
+  --purple-20:  #F3E8FF;  /* 한정수량 배경 */
+  --purple-30:  #E9D5FF;  /* 한정수량 보더 */
+  --purple-40:  #D8B4FE;
+  --purple-50:  #A855F7;  /* 한정수량 기본 */
+  --purple-60:  #9333EA;
+  --purple-70:  #7E22CE;
+  --purple-80:  #6B21A8;
+  --purple-90:  #581C87;
+  --purple-100: #3B0764;
+
   /* Blue — 정보·안내 상태에 사용 */
   --blue-0:   #FFFFFF;
   --blue-10:  #EFF6FF;

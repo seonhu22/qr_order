@@ -1,0 +1,118 @@
+export type OrderShellMenuBadge = 'popular' | 'recommended' | 'limited';
+
+/**
+ * 옵션 그룹 하나에서 고를 수 있는 개별 항목.
+ * 백엔드 `MenuOptionDetailItem`의 화면 모델이며 `price`는 메뉴 기본가에 더해지는 추가 금액이다.
+ */
+export type OrderShellOptionChoice = {
+  id: string;
+  name: string;
+  price: number;
+  soldOut?: boolean;
+  maxQuantity?: number;
+  defaultSelected?: boolean;
+};
+
+/**
+ * 옵션 그룹의 선택 방식.
+ *
+ * Consumer API의 `selectionType` 코드 01/02/03을 화면에서 읽기 쉬운 값으로 변환한다.
+ */
+export type OrderShellOptionSelectionType = 'single' | 'multiple' | 'quantity';
+
+/**
+ * 옵션 그룹의 화면 모델. 백엔드 `MenuOptionGroupItem`에 대응한다.
+ * `maxSelectable`은 `selectionType: 'multiple'`일 때만 의미가 있고, 없으면 상한이 없다.
+ */
+export type OrderShellOptionGroup = {
+  id: string;
+  name: string;
+  required: boolean;
+  selectionType: OrderShellOptionSelectionType;
+  maxSelectable?: number;
+  choices: OrderShellOptionChoice[];
+};
+
+export type OrderShellMenuItem = {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description?: string;
+  imageUrl?: string;
+  soldOut?: boolean;
+  badges?: OrderShellMenuBadge[];
+  optionGroups?: OrderShellOptionGroup[];
+};
+
+/**
+ * 장바구니에 담긴 선택 옵션 한 건. 담을 당시의 이름·가격을 그대로 보관해
+ * 메뉴 정보가 나중에 바뀌어도 담긴 줄의 표시가 흔들리지 않게 한다.
+ */
+export type OrderShellCartOption = {
+  groupId: string;
+  groupName: string;
+  choiceId: string;
+  choiceName: string;
+  price: number;
+  /**
+   * 복수 선택 항목의 개수. 없으면 1개로 취급한다(단일 선택은 항상 1개).
+   *
+   * 주문 API의 옵션 `quantity`로 전달되는 선택 수량이다.
+   */
+  qty?: number;
+};
+
+export type OrderShellCategory = {
+  id: string;
+  name: string;
+};
+
+export type OrderShellMenuMain = {
+  storeName: string;
+  tableNum: number;
+  categories: OrderShellCategory[];
+  menus: OrderShellMenuItem[];
+};
+
+export type OrderShellCartLine = {
+  /** 같은 메뉴라도 옵션 조합이 다르면 다른 줄이 되도록 옵션까지 반영한 키 (`buildCartKey`) */
+  cartKey: string;
+  menuId: string;
+  name: string;
+  /** 메뉴 기본가 (옵션 추가 금액은 `options`에 따로 둔다) */
+  price: number;
+  qty: number;
+  options: OrderShellCartOption[];
+};
+
+export type OrderShellMenuGroup = {
+  category: string;
+  items: OrderShellMenuItem[];
+};
+
+/**
+ * 주문 생성 응답을 화면에서 사용하는 형태로 변환한 모델.
+ * 생성 응답에는 항목 목록이 없어 `items`는 두지 않는다 — 항목까지 필요한 화면은 상세 조회를 쓴다.
+ */
+export type OrderShellOrderCreated = {
+  orderId: string;
+  orderNo: string;
+  orderStatus: string;
+  orderedAt: Date;
+  total: number;
+};
+
+/**
+ * 주문 상세 API를 주문내역 화면에서 사용하는 형태로 변환한 모델.
+ */
+export type OrderShellOrderRecord = {
+  orderId: string;
+  /** 사용자에게 보여주는 짧은 주문번호(예: `A-0032`). 시스템 식별은 `orderId`로 한다. */
+  orderNo: string;
+  /** 백엔드 주문 상태 코드(`RECEIVED`, `PREPARING`, …). 문자열 그대로 보관해 확장에 대비한다. */
+  orderStatus: string;
+  orderedAt: Date;
+  items: OrderShellCartLine[];
+  total: number;
+};

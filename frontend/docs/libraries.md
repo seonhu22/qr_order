@@ -117,6 +117,17 @@
 - 접속이력, 변경이력, 쿠폰 기간 등 날짜 처리 요구가 명세에 많다.
 - 사용법이 비교적 단순하고 번들 부담이 크지 않다.
 
+### @dnd-kit/core
+
+사용 목적: 테이블 배치 관리(`/client/store/table/layout`) 화면의 드래그앤드롭(내부시설 배치, 캔버스 내 재배치)
+
+선정 이유:
+- 네이티브 HTML5 Drag & Drop API는 터치 입력을 지원하지 않아 모바일/태블릿에서 동작하지 않는다.
+- `PointerSensor` 하나로 마우스·터치·펜 입력을 동일하게 처리한다.
+- `useDraggable`/`useDroppable`/`DragOverlay`로 필요한 만큼만 가져다 쓸 수 있어 번들 부담이 적다(풀 프레임워크가 아닌 헤드리스 라이브러리).
+
+자세한 도입 배경은 [`docs/decisions.md`](./decisions.md)의 ADR-015를 참고한다. 내부시설 자유 리사이즈는 dnd-kit이 지원하지 않는 영역이라 별도 Pointer Events로 직접 구현했다([`docs/page/table-layout-management.md`](./page/table-layout-management.md) 참고).
+
 ### ESLint
 
 사용 목적: 코드 품질 점검, 위험한 패턴 사전 방지

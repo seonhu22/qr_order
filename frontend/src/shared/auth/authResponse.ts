@@ -11,7 +11,7 @@
  */
 
 interface AuthPayload {
-  success: boolean;
+  success?: boolean;
   user?: unknown;
   data?: unknown;
 }

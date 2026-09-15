@@ -7,6 +7,7 @@ import {
 import type { Payment } from '@/generated/types/payment';
 import type { PaymentResponse } from '@/generated/types/paymentResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { PaymentRateRow } from '../types';
 
 export function mapToPaymentRateRow(res: PaymentResponse): PaymentRateRow {
@@ -38,6 +39,7 @@ export function usePaymentRatesQuery(searchKeyword = '') {
     {
       query: {
         queryKey: queryKeys.payment.list(searchKeyword),
+        ...queryPolicies.adminCrudList,
       },
     },
   );

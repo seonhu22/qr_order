@@ -453,6 +453,57 @@ function SimpleDefaultModalSection() {
  * @example
  * <GuideCard label="기본 모달" description="size=sm" onOpen={() => {}} />
  */
+/**
+ * 모달이 여러 겹 쌓였을 때 ESC가 가장 위(나중에 연) 모달 1개만 닫는지 확인하는 섹션이다.
+ * `WrapperModal`은 열린 인스턴스를 mount 순서대로 모듈 스코프 스택에 쌓아두고, keydown 시점에
+ * 스택 맨 위인 인스턴스만 onClose를 호출한다(`docs/components/Modal.md` #22).
+ */
+function StackedModalSection() {
+  const [isParentOpen, setIsParentOpen] = useState(false);
+  const [isChildOpen, setIsChildOpen] = useState(false);
+
+  const closeParent = () => {
+    setIsParentOpen(false);
+    setIsChildOpen(false);
+  };
+
+  return (
+    <>
+      <div className="modal-guide__card">
+        <p className="modal-guide__card-label">Stacked Modals (ESC 스택)</p>
+        <p className="modal-guide__card-description">
+          부모 모달을 연 뒤 안에서 자식 모달을 한 번 더 연다. ESC를 누르면 자식 모달 1개만 닫히고,
+          한 번 더 누르면 부모 모달이 닫힌다(한 번에 둘 다 닫히면 회귀).
+        </p>
+        <button className="modal-guide__card-button" type="button" onClick={() => setIsParentOpen(true)}>
+          모달 열기
+        </button>
+      </div>
+
+      <WrapperModal
+        open={isParentOpen}
+        title="부모 모달"
+        subtitle="ESC를 누르면 이 모달이 아니라 자식 모달부터 닫혀야 한다"
+        secondaryAction={{ label: '자식 모달 열기', onClick: () => setIsChildOpen(true) }}
+        primaryAction={{ label: '닫기', onClick: closeParent }}
+        onClose={closeParent}
+      >
+        <p className="modal-guide__card-description">
+          자식 모달이 열려 있는 동안 ESC를 누르면 이 모달의 onClose는 호출되지 않는다.
+        </p>
+      </WrapperModal>
+
+      <WrapperModal
+        open={isChildOpen}
+        title="자식 모달"
+        subtitle="부모 모달 위에 쌓여 있다 — ESC는 이 모달만 닫는다"
+        primaryAction={{ label: '닫기', onClick: () => setIsChildOpen(false) }}
+        onClose={() => setIsChildOpen(false)}
+      />
+    </>
+  );
+}
+
 function GuideCard({
   label,
   description,
@@ -564,6 +615,13 @@ export default function ModalGuide() {
             <DeleteListConfirmModalSection />
             <SaveConfirmModalSection />
             <EditConfirmModalSection />
+          </div>
+        </section>
+
+        <section className="modal-guide__section">
+          <h2 className="modal-guide__section-title">Stacked Modals</h2>
+          <div className="modal-guide__grid">
+            <StackedModalSection />
           </div>
         </section>
 

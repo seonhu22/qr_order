@@ -55,10 +55,11 @@ type TreeMenuProps<T> = {
   selectedId?: string;               // 현재 선택된 노드 ID
   onSelect?: (id: string) => void;   // 노드 클릭 콜백
   defaultExpandedIds?: string[];     // 초기 펼침 상태 노드 ID 목록
-  expandTrigger?: { id: string; n: number } | null;
-                                     // 특정 노드 하나만 강제로 펼치는 신호.
-                                     // n 카운터가 바뀔 때마다 동일 id라도 재발동.
-                                     // 하위추가 후 부모 노드를 자동 펼칠 때 사용.
+  expandTrigger?: { ids: string[]; n: number } | null;
+                                     // 특정 노드들을 강제로 펼치는 신호.
+                                     // n 카운터가 바뀔 때마다 동일 ids라도 재발동.
+                                     // 하위추가 후 부모 노드를 자동 펼치거나,
+                                     // 저장 유효성 검사 오류 노드의 조상을 펼칠 때 사용.
   className?: string;                // 루트 div에 추가할 CSS 클래스
   ariaLabel?: string;                // 컨테이너 aria-label
   emptyMessage?: string;             // nodes가 빈 배열일 때 tbody에 표시할 메시지. 기본값 없음

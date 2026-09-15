@@ -20,6 +20,7 @@ import type { CommonDetailRequest } from '@/generated/types/commonDetailRequest'
 import type { CommonMaster } from '@/generated/types/commonMaster';
 import type { SaveCommonDetailParams } from '@/generated/types/saveCommonDetailParams';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { DetailCode, MasterCode } from '../types';
 
 /**
@@ -170,6 +171,7 @@ export function useCommonCodeMastersQuery(searchKeyword = '') {
   return useSearchCommon(searchKeyword ? { searchKeyword } : undefined, {
     query: {
       queryKey: queryKeys.commonCode.masters(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
   });
 }
@@ -186,6 +188,7 @@ export function useCommonCodeDetailsQuery(masterId: string, searchKeyword = '') 
     query: {
       queryKey: queryKeys.commonCode.details(masterId, searchKeyword),
       enabled: Boolean(masterId),
+      ...queryPolicies.adminCrudList,
     },
   });
 }

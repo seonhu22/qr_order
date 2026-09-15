@@ -1,8 +1,9 @@
 import { CheckboxInput } from '@/shared/components/checkbox';
 import { InputBase, InputWrapper, SelectInput } from '@/shared/components/input';
 import type { SelectOption } from '@/shared/components/input';
-import { EditTableButton, PasswordResetButton } from '@/shared/components/button';
+import { EditTableButton, PasswordResetButton, PrintRowTableButton } from '@/shared/components/button';
 import {
+  AuthorityBadge,
   ChangeTypeBadge,
   ExpirationStatusBadge,
   LicensePeriodBadge,
@@ -23,6 +24,7 @@ type TableCellInputProps = {
   className?: string;
   controlState?: '' | 'readonly' | 'error' | 'success' | 'disabled';
   readOnly?: boolean;
+  inputType?: 'text' | 'number';
   onChange: (value: string) => void;
   onClearError?: () => void;
 };
@@ -49,6 +51,11 @@ type TableCellEditButtonProps = {
   onClick: React.ComponentProps<typeof EditTableButton>['onClick'];
 };
 
+type TableCellPrintButtonProps = {
+  ariaLabel: string;
+  onClick: React.ComponentProps<typeof PrintRowTableButton>['onClick'];
+};
+
 type TableCellPasswordResetButtonProps = {
   disabled?: boolean;
   onClick: React.ComponentProps<typeof PasswordResetButton>['onClick'];
@@ -70,6 +77,11 @@ type TableCellLicensePeriodBadgeProps = {
   value: LicensePeriodBadgeValue;
 };
 
+type TableCellAuthorityBadgeProps = {
+  code: string;
+  label: string;
+};
+
 /**
  * 테이블 인라인 input 셀.
  *
@@ -84,6 +96,7 @@ export function TableCellInput({
   className = 'common-table__input',
   controlState = '',
   readOnly = false,
+  inputType = 'text',
   onChange,
   onClearError,
 }: TableCellInputProps) {
@@ -91,6 +104,7 @@ export function TableCellInput({
     <InputWrapper inputId={inputId}>
       <InputBase
         id={inputId}
+        type={inputType}
         size="sm"
         className={className}
         controlState={controlState}
@@ -164,6 +178,13 @@ export function TableCellEditButton({ ariaLabel, onClick }: TableCellEditButtonP
 }
 
 /**
+ * 테이블 QR 출력 아이콘 셀.
+ */
+export function TableCellPrintButton({ ariaLabel, onClick }: TableCellPrintButtonProps) {
+  return <PrintRowTableButton ariaLabel={ariaLabel} onClick={onClick} />;
+}
+
+/**
  * 테이블 비밀번호 초기화 버튼 셀.
  */
 export function TableCellPasswordResetButton({
@@ -203,4 +224,11 @@ export function TableCellLicensePeriodBadge({
   value,
 }: TableCellLicensePeriodBadgeProps) {
   return <LicensePeriodBadge value={value} />;
+}
+
+/**
+ * 권한 배지 셀.
+ */
+export function TableCellAuthorityBadge({ code, label }: TableCellAuthorityBadgeProps) {
+  return <AuthorityBadge code={code} label={label} />;
 }

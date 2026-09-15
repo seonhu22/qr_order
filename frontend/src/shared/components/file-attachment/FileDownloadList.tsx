@@ -139,7 +139,8 @@ function DownloadRow({ file, onDownload }: DownloadRowProps) {
           {file.originalFileNm}
         </span>
         <span className="file-attachment__item-size">
-          {formatFileSize(file.fileSize)}
+          {/* 서버는 fileSize를 MB 단위 소수 문자열로 내려주므로 bytes로 환산해서 넘긴다 */}
+          {formatFileSize(parseFloat(file.fileSize) * 1024 * 1024)}
         </span>
       </button>
       {/* 다운로드 아이콘 버튼 — 삭제 버튼과 동일 크기(1.5rem), 호버 색만 다름 */}

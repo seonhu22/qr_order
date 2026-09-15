@@ -15,15 +15,19 @@ export type AuthUnauthorizedEventDetail = {
 export type AuthUnauthorizedEvent = CustomEvent<AuthUnauthorizedEventDetail>;
 
 export function resolveLoginPath(pathname: string): string {
+  if (pathname.startsWith('/client')) {
+    return '/client/login';
+  }
+
   if (pathname.startsWith('/admin')) {
     return '/admin/login';
   }
 
-  return '/admin/login';
+  return '/client/login';
 }
 
 export function isLoginPath(pathname: string): boolean {
-  return pathname === '/admin/login';
+  return pathname === '/admin/login' || pathname === '/client/login';
 }
 
 export function notifyUnauthorized(detail: AuthUnauthorizedEventDetail = {}) {

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
@@ -22,9 +23,11 @@ function renderPage() {
   const queryClient = createQueryClient();
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <CommonCodePage />
-    </QueryClientProvider>,
+    <MemoryRouter initialEntries={['/admin/system/common-code']}>
+      <QueryClientProvider client={queryClient}>
+        <CommonCodePage />
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -256,7 +259,7 @@ describe('CommonCodePage', () => {
     });
     fireEvent.click(within(editorDialog).getByRole('button', { name: '확인' }));
 
-    expect(screen.getByRole('dialog', { name: '수정된 내용을 저장하시겠습니까?' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '수정하시겠습니까?' })).toBeInTheDocument();
   });
 
   it('opens delete confirm modal and shows success notice after deleting checked rows', async () => {

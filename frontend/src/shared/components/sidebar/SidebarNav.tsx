@@ -89,7 +89,7 @@ function GroupItems({
       >
         <span className={labelClass}>{group.label}</span>
         <span className={`sidebar-nav__chevron${isExpanded ? ' sidebar-nav__chevron--open' : ''}`}>
-          <Icon id={isExpanded ? 'i-chevron-up' : 'i-chevron-right'} size={13} />
+          <Icon id="i-chevron-right" size={13} />
         </span>
       </button>
 
@@ -173,7 +173,7 @@ export function SidebarNav({
                 <span
                   className={`sidebar-nav__chevron${isDepth1Expanded ? ' sidebar-nav__chevron--open' : ''}`}
                 >
-                  <Icon id={isDepth1Expanded ? 'i-chevron-up' : 'i-chevron-right'} size={13} />
+                  <Icon id="i-chevron-right" size={13} />
                 </span>
               </button>
 

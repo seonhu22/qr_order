@@ -15,7 +15,7 @@ public class FileValidationService {
 
     private static final List<String> ALLOWED_EXTENSIONS = List.of(
             "doc", "docx", "xls", "xlsx", "ppt", "pptx", "pdf",
-            "png", "txt", "zip"
+            "png", "txt", "zip", "jpg", "jpeg", "jpe"
     );
 
     private static final List<String> PDF_ALLOWED_EXTENSIONS = List.of(

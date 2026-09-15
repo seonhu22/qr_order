@@ -27,10 +27,14 @@ public class AuthApiController {
             );
         }
 
+        String role = (String) session.getAttribute("role");
+
         LoginResponse meResponse = LoginResponse.builder()
                 .userId(loginUser.getUserId())
                 .userName(loginUser.getUserNm())
                 .sysPlantCd(loginUser.getSysPlantCd())
+                .role(role)
+                .staffRole(loginUser.getUserRole())
                 .initPwdRequired(loginUser.getInitYn().equals("Y"))
                 .build();
 

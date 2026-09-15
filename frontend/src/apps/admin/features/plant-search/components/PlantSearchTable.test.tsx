@@ -38,7 +38,7 @@ describe('PlantSearchTable', () => {
   it('renders empty message when rows are empty', () => {
     render(<PlantSearchTable rows={[]} isLoading={false} isError={false} />);
 
-    expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+    expect(screen.getByText('데이터가 없습니다.')).toBeInTheDocument();
   });
 
   it('renders plant rows when data exists', () => {

@@ -9,6 +9,7 @@
 import { useSearchPlant } from '@/generated/settings-controller/settings-controller';
 import type { Plant } from '@/generated/types/plant';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { PlantSearchRow } from '../types';
 
 /**
@@ -55,6 +56,7 @@ export function usePlantSearchQuery(searchKeyword = '', enabled = true) {
       query: {
         queryKey: queryKeys.plant.list(searchKeyword),
         enabled,
+        ...queryPolicies.adminCrudList,
       },
     },
   );

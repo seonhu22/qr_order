@@ -49,6 +49,15 @@ downloadAllFile({ linkSysId: row.fileUlid });
 `GET /api/attach_file` 응답은 화면 표시와 다운로드에 필요한 일부 필드만 내려올 수 있다.
 저장 API의 `updateItems`, `delItems`는 더 많은 메타데이터를 포함할 수 있다.
 
+`fileSize`는 bytes가 아니라 **MB 단위로 환산된 소수 문자열**이다 (예: `"2.35"`).
+화면에 용량을 표시할 때 `formatFileSize`(bytes 입력을 가정)에 그대로 넘기지 말고, bytes로 환산한 뒤 전달한다.
+
+```ts
+formatFileSize(parseFloat(file.fileSize) * 1024 * 1024)
+```
+
+> 추가일: 2026-07-21 — `FileDownloadList`가 `fileSize`를 bytes로 오인해 항상 `0 KB`로 표시되던 문제 수정.
+
 ## 저장 API Payload
 
 현재 저장 API는 `multipart/form-data`를 기준으로 한다.

@@ -1,15 +1,19 @@
-import { useGetQna, useUpdateQna } from '@/generated/settings-controller/settings-controller';
-import {
-  useGetAttachFile,
-  downloadFile,
-  downloadAllFile,
-} from '@/generated/file-controller/file-controller';
+import { useMutation } from '@tanstack/react-query';
+import { useGetQna } from '@/generated/settings-controller/settings-controller';
+import { useGetAttachFile } from '@/generated/file-controller/file-controller';
+import type { CommonResponse } from '@/generated/types/commonResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
+import { httpClient } from '@/shared/lib/httpClient';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
 import type { ServerFile } from '@/shared/components/file-attachment';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
-import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
+import {
+  downloadAllServerFiles,
+  downloadServerFile,
+  mapFileResponseToServerFile,
+} from '@/shared/utils/attachFile';
 import type { InquiryManageRow, InquiryAnswerStatus } from '../types';
 
 export { mapFileResponseToServerFile };
@@ -23,29 +27,34 @@ export function mapToInquiryManageRow(res: QnaResponse, index: number): InquiryM
     title: res.qnaTitle ?? '-',
     content: res.qnaDescription ?? '-',
     plant: '-',
-    registrant: '-',
-    registeredAt: formatDateTimeForDisplay(res.startDate) || '-',
+    registrant: res.writeUsername ?? '-',
+    registeredAt: formatDateTimeForDisplay(res.writeDatetime) || '-',
+    // TODO: 수정일자 — brd_qna에 modify_datetime 컬럼은 있지만(QnaMapper.xml updateQna에서 갱신),
+    // getQna select와 QnaResponse에는 빠져 있어 화면에 내려줄 값이 없다.
+    // 백엔드가 select 목록과 DTO에 modify_datetime을 추가하면 res.modifyDatetime을 매핑한다.
     updatedAt: '-',
-    answeredAt: answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
+    answeredAt:
+      answerStatus === 'answered' ? formatDateTimeForDisplay(res.answerDatetime) || '-' : '-',
+    answerer: answerStatus === 'answered' ? (res.answerUserName ?? '-') : '-',
     answerStatus,
     answerContent: res.answerDescription ?? '',
   };
 }
 
 export function useInquiryManageQuery(searchKeyword = '') {
-  return useGetQna(
-    searchKeyword ? { searchKeyword } : undefined,
-    {
-      query: {
-        queryKey: queryKeys.qna.list(searchKeyword),
-      },
+  return useGetQna(searchKeyword ? { searchKeyword } : undefined, {
+    query: {
+      queryKey: queryKeys.qna.list(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
-  );
+  });
 }
 
 /**
  * 현재 inquiry update API는 일반 수정 CRUD가 아니라 답변 등록/수정 용도다.
  * 백엔드가 실제로 사용하는 필드만 우선 조립한다.
+ *
+ * 답변 첨부파일은 FileRequest의 indexed field 계약을 확인한 뒤 같은 FormData에 추가한다.
  */
 export function buildInquiryAnswerUpdateRequest(
   row: Pick<InquiryManageRow, 'sysId'>,
@@ -58,32 +67,42 @@ export function buildInquiryAnswerUpdateRequest(
   };
 }
 
+export function buildInquiryAnswerFormData(request: QnaRequest): FormData {
+  const formData = new FormData();
+
+  Object.entries(request).forEach(([key, value]) => {
+    if (value !== undefined) {
+      formData.append(key, value);
+    }
+  });
+
+  return formData;
+}
+
+export function updateInquiryAnswer(request: QnaRequest, signal?: AbortSignal) {
+  return httpClient<CommonResponse>({
+    url: '/api/system/settings/board/qna/update',
+    method: 'POST',
+    data: buildInquiryAnswerFormData(request),
+    signal,
+  });
+}
+
 export function useInquiryAnswerMutation() {
-  return useUpdateQna();
+  return useMutation({
+    mutationFn: (request: QnaRequest) => updateInquiryAnswer(request),
+  });
 }
 
 export function useInquiryAttachFileQuery(fileUlid: string | undefined) {
-  return useGetAttachFile(
-    { linkSysId: fileUlid ?? '' },
-    { query: { enabled: Boolean(fileUlid) } },
-  );
+  const trimmed = fileUlid?.trim() ?? '';
+  return useGetAttachFile({ linkSysId: trimmed }, { query: { enabled: trimmed.length > 0 } });
 }
 
 export async function downloadInquiryFile(file: ServerFile): Promise<void> {
-  const blob = await downloadFile({ sysId: file.sysId });
-  triggerBlobDownload(blob, file.originalFileNm);
+  await downloadServerFile(file);
 }
 
 export async function downloadAllInquiryFiles(fileUlid: string): Promise<void> {
-  const blob = await downloadAllFile({ linkSysId: fileUlid });
-  triggerBlobDownload(blob, 'files.zip');
-}
-
-function triggerBlobDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadAllServerFiles(fileUlid);
 }

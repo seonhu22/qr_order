@@ -9,10 +9,14 @@
             sat.menu_cd ,
             sm.menu_nm ,
             sat.audit_trail_contents ,
-            sat.insert_datetime
+            sat.insert_datetime,
+            sat.insert_user_id,
+            su.user_nm as insert_user_nm
         from sys_audit_trail sat
         left join sys_menu sm
             on sm.menu_cd = sat.menu_cd
+        left join sys_user su
+            on su.user_id = sat.insert_user_id
         where 1=1
         <if test="searchKeyword != null and searchKeyword != ''">
             and (
@@ -20,7 +24,17 @@
                 sat.audit_trail_contents like concat('%', #{searchKeyword}, '%')
             )
         </if>
+        <if test="changeType == '01'">
+            and sat.audit_flag = 'I'
+        </if>
+        <if test="changeType == '02'">
+            and sat.audit_flag = 'U'
+        </if>
+        <if test="changeType == '03'">
+            and sat.audit_flag = 'D'
+        </if>
         and sat.insert_datetime between #{startDate} and #{endDate}
         order by sat.insert_datetime desc
     </select>
+
 </mapper>

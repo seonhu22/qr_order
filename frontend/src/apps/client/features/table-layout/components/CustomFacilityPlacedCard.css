@@ -1,0 +1,73 @@
+.custom-facility-placed-card {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  width: max-content;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text-secondary);
+  /* 저장 전까지 캔버스에서만 보이는 휘발성 데이터임을 배경/테두리로만 옅게 나타낸다 — element opacity를
+     쓰면 아이콘·텍스트까지 함께 흐려져서, 대신 배경/테두리 색 자체에 알파를 섞는다(orange-60 rgba, 다른
+     --color-brand-* 토큰과 동일한 표기 방식). */
+  border: var(--border-1) dashed rgba(255, 107, 43, 0.5);
+  background-color: rgba(255, 107, 43, 0.08);
+}
+
+/* 전체보기(보기 전용)에서는 편집 중임을 안내할 필요가 없어 내부시설과 같은 스타일로 보여준다. */
+.custom-facility-placed-card--view-only {
+  border: var(--border-1) solid var(--color-border-default);
+  background-color: var(--color-bg-muted);
+}
+
+.custom-facility-placed-card__label {
+  white-space: nowrap;
+}
+
+.custom-facility-placed-card__remove {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  /* 작은 카드에서는 리사이즈 핸들의 넓어진 터치 히트 영역(.table-layout-canvas__resize-handle)과
+     겹칠 수 있다 — 겹치는 영역에서는 삭제 버튼이 클릭을 먼저 받도록 더 높은 z-index를 둔다. */
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.custom-facility-placed-card__remove:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+/* 작게 */
+.custom-facility-placed-card--small {
+  min-height: 3.5rem;
+  padding: var(--spacing-3) var(--spacing-7) var(--spacing-3) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+/* 보통 */
+.custom-facility-placed-card--medium {
+  min-height: 4.25rem;
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-4) var(--spacing-4);
+  font-size: var(--font-size-base);
+}
+
+/* 크게 */
+.custom-facility-placed-card--large {
+  min-height: 5.5rem;
+  padding: var(--spacing-5) var(--spacing-9) var(--spacing-5) var(--spacing-5);
+  font-size: var(--font-size-lg);
+}

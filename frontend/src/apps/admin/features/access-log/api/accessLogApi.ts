@@ -9,10 +9,10 @@ import {
 import type { SysAccessLogDetail } from '@/generated/types/sysAccessLogDetail';
 import type { SysAccessLogMaster } from '@/generated/types/sysAccessLogMaster';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import type { QueryDateRangeParams } from '@/shared/utils/queryDateRange';
 import type { AccessLogDetailRow, AccessLogMasterRow } from '../types';
-import type { AccessLogSearchParams } from '../utils/accessLogDateUtils';
 
 function getSafeText(value?: string) {
   return value ?? '';
@@ -59,6 +59,7 @@ export function useAccessLogMasterQuery(params: QueryDateRangeParams) {
     query: {
       queryKey: queryKeys.accessLog.masters(params),
       enabled: Boolean(startDate && endDate),
+      ...queryPolicies.searchResult,
     },
   });
 }
@@ -70,6 +71,7 @@ export function useAccessLogDetailQuery(sysId: string) {
       query: {
         queryKey: queryKeys.accessLog.details(sysId),
         enabled: Boolean(sysId),
+        ...queryPolicies.searchResult,
       },
     },
   );

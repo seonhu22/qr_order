@@ -24,6 +24,38 @@
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="SQL_FILE"/>
     </logger>
+    <logger name="htms.QROrder.audit.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.client.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.common.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.home.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.log.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.popup.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.qr.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
+    <logger name="htms.QROrder.system.repository" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SQL_FILE"/>
+    </logger>
 
     <!-- Profile별 설정 -->
     <springProfile name="dev">
@@ -32,6 +64,14 @@
 
     <springProfile name="prod">
         <logger name="htms.QROrder.auth.repository" level="INFO"/>
+        <logger name="htms.QROrder.audit.repository" level="INFO"/>
+        <logger name="htms.QROrder.client.repository" level="INFO"/>
+        <logger name="htms.QROrder.common.repository" level="INFO"/>
+        <logger name="htms.QROrder.home.repository" level="INFO"/>
+        <logger name="htms.QROrder.log.repository" level="INFO"/>
+        <logger name="htms.QROrder.popup.repository" level="INFO"/>
+        <logger name="htms.QROrder.qr.repository" level="INFO"/>
+        <logger name="htms.QROrder.system.repository" level="INFO"/>
         <logger name="htms.QROrder" level="WARN"/>
     </springProfile>
 

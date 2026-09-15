@@ -1,4 +1,4 @@
-import '@/apps/admin/features/common/styles/AdminMainNavigation.css';
+import { PageNavigation } from '@/shared/components/navigation';
 import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 
 type AdminMainNavigationProps = {
@@ -15,13 +15,5 @@ export function AdminMainNavigation({ depth1, depth2, current }: AdminMainNaviga
   const resolvedCurrent =
     breadcrumb?.current || currentMenu?.menuNm || currentNavigation?.itemLabel || current;
 
-  return (
-    <nav className="admin-main-navigation" aria-label="현재 위치">
-      <span className="admin-main-navigation__item">{resolvedDepth1}</span>
-      <span className="admin-main-navigation__separator">/</span>
-      <span className="admin-main-navigation__item">{resolvedDepth2}</span>
-      <span className="admin-main-navigation__separator">/</span>
-      <strong className="admin-main-navigation__current">{resolvedCurrent}</strong>
-    </nav>
-  );
+  return <PageNavigation depth1={resolvedDepth1} depth2={resolvedDepth2} current={resolvedCurrent} />;
 }

@@ -75,7 +75,7 @@ export function Button({
     `btn--${size}`,
     isIconVariant ? 'btn--icon-square' : '',
     loading ? 'btn--loading' : '',
-    variant === 'toggle' && selected ? 'btn--selected' : '',
+    (variant === 'toggle' || variant === 'segment') && selected ? 'btn--selected' : '',
     isDisabled && !loading ? 'btn--disabled' : '',
     className,
   ]

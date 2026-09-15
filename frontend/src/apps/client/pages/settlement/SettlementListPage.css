@@ -1,0 +1,212 @@
+/* 정산 조회 페이지 — 검색폼 + 가로 5칸 통계 카드 + 안내문구 + 매출 내역 테이블 */
+
+.settlement-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  min-height: 0;
+  flex: 1;
+}
+
+.settlement-page > .settlement-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 더 줄인다. */
+@container client-main (max-width: 1200px) {
+  .settlement-page {
+    gap: var(--spacing-4);
+  }
+}
+
+/* ── 검색 폼 (날짜 프리셋 + 날짜range + 버튼만, 키워드/콤보 없음) ── */
+.settlement-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.settlement-filters__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.settlement-filters__preset {
+  flex-shrink: 0;
+  width: 9rem;
+}
+
+.settlement-filters__date-range {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.settlement-filters__date-range .input-wrapper {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.settlement-filters__date-sep {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.settlement-filters__actions {
+  display: inline-flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.settlement-filters__error {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-status-error-default);
+}
+
+.settlement-filters__hint {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── 가로 5칸 통계 카드 ── */
+.settlement-summary-cards {
+  display: flex;
+  gap: var(--spacing-5);
+}
+
+.settlement-summary-card {
+  flex: 1;
+  min-width: 0;
+  min-height: 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  justify-content: center;
+  padding: var(--spacing-8);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.settlement-summary-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-brand-default);
+}
+
+/* 아이콘 색은 Figma 원본 색상과 맞춘다 — success/info는 "-text"(어두운 톤)가 아니라
+   "-default"(밝은 톤)를 써야 #10B981/#3B82F6과 일치한다. */
+.settlement-summary-card__icon--total {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-default);
+}
+
+.settlement-summary-card__icon--cancel {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-default);
+}
+
+.settlement-summary-card__icon--discount {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-default);
+}
+
+.settlement-summary-card__icon--order {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-default);
+}
+
+.settlement-summary-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.settlement-summary-card__label {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.settlement-summary-card__value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
+  font-size: var(--typography-size-h3);
+  font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.settlement-summary-card__value span {
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-secondary);
+}
+
+.settlement-summary-card__caption {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.settlement-summary-card__caption--cancel {
+  color: var(--color-status-error-default);
+}
+
+/* 순매출 카드 — 강조 배경 */
+.settlement-summary-card--highlight {
+  background-color: var(--color-brand-default);
+  border-color: var(--color-brand-default);
+}
+
+.settlement-summary-card--highlight .settlement-summary-card__icon--net {
+  background-color: rgba(255, 255, 255, 0.23);
+  color: var(--color-brand-text);
+}
+
+.settlement-summary-card--highlight .settlement-summary-card__label,
+.settlement-summary-card--highlight .settlement-summary-card__value,
+.settlement-summary-card--highlight .settlement-summary-card__caption {
+  color: var(--color-brand-text);
+}
+
+.settlement-summary-card--highlight .settlement-summary-card__value span {
+  color: var(--color-brand-text);
+  opacity: 0.85;
+}
+
+/* ── 안내문구(순매출 계산식) ── */
+.settlement-page__formula-hint {
+  margin: 0;
+  padding: var(--spacing-5) var(--spacing-5);
+  border-left: 2px solid var(--color-brand-default);
+  background-color: var(--color-bg-surface);
+  border-top: var(--border-1) solid var(--color-border-default);
+  border-right: var(--border-1) solid var(--color-border-default);
+  border-bottom: var(--border-1) solid var(--color-border-default);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.settlement-page__formula-hint strong {
+  color: var(--color-text-tertiary);
+  font-weight: var(--typography-weight-heading);
+}

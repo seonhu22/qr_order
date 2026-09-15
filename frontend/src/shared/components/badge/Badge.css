@@ -1,0 +1,53 @@
+/* =====================================================
+ * Badge 컴포넌트 스타일
+ * - semantic-tokens.css 변수만 사용, Tailwind 미사용
+ * - 짧은 텍스트 라벨용 — 알약형(pill)이 아니라 살짝만 둥근 사각형을 쓴다
+ *   (기존 admin의 .status-badge, 참고 디자인의 rounded-[3px] 배지와 톤을 맞춤)
+ * ===================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge--sm {
+  padding: 0.0625rem var(--spacing-2);
+  font-size: 0.625rem;
+}
+
+.badge--md {
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--typography-size-caption);
+}
+
+.badge--neutral {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+
+.badge--brand {
+  background-color: var(--color-brand-subtle);
+  color: var(--orange-80);
+}
+
+.badge--success {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.badge--warning {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.badge--error {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}

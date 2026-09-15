@@ -1,11 +1,11 @@
 // src/apps/admin/features/header/components/AdminHeader.tsx
 
 import '@/apps/admin/features/header/styles/AdminHeader.css';
-import { useNavigate } from 'react-router-dom';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { useAdminNavigationMenus } from '@/apps/admin/hooks/useAdminNavigationMenus';
 import { useAdminLayoutStore } from '@/apps/admin/stores/adminLayoutStore';
 import type { AdminSection } from '@/apps/admin/stores/adminLayoutStore';
+import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 
 /**
  * 관리자 레이아웃 상단 헤더
@@ -16,7 +16,7 @@ import type { AdminSection } from '@/apps/admin/stores/adminLayoutStore';
  *   · --current:  현재 URL이 속한 섹션 (실제 페이지 위치)
  */
 export function AdminHeader() {
-  const navigate = useNavigate();
+  const { guardedNavigate } = useGuardedNavigate();
   const { currentSection, headerSections } = useAdminNavigationMenus();
 
   const toggleSidebar = useAdminLayoutStore((state) => state.toggleSidebar);
@@ -25,9 +25,10 @@ export function AdminHeader() {
   const setActiveSection = useAdminLayoutStore((state) => state.setActiveSection);
 
   const handleHomeClick = () => {
-    navigate('/admin/main');
-    setActiveSection(null);
-    closeSidebar();
+    guardedNavigate('/admin/main', undefined, () => {
+      setActiveSection(null);
+      closeSidebar();
+    });
   };
 
   const handleNavClick = (section: AdminSection) => {

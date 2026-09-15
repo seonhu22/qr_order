@@ -1,0 +1,16 @@
+.add-to-cart-button {
+  width: 100%;
+}
+
+/* Button이 children을 .btn__text로 한 번 감싸므로, 양끝 배치는 그 안쪽에서 잡는다. */
+.add-to-cart-button .btn__text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--spacing-4);
+}
+
+.add-to-cart-button__price {
+  font-weight: var(--typography-weight-heading);
+}

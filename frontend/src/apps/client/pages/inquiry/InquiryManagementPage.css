@@ -1,0 +1,108 @@
+/* 문의사항 관리 페이지 — 검색 카드 + 목록 카드 두 영역만 세로 정렬 */
+
+.inquiry-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  min-height: 0;
+  flex: 1;
+}
+
+/* 태블릿 폭(client-main 컨테이너 기준 — ADR-016)에서는 간격을 줄인다. */
+@container client-main (max-width: 1200px) {
+  .inquiry-management-page {
+    gap: var(--spacing-4);
+  }
+}
+
+.inquiry-management-page > .inquiry-list-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── 검색 폼 ── */
+.inquiry-list-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 1.0625rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.inquiry-list-filters__status {
+  flex-shrink: 0;
+  width: 10rem;
+}
+
+.inquiry-list-filters__keyword {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.inquiry-list-filters__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+/* ── 답변상태 배지 ── */
+.inquiry-answer-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  white-space: nowrap;
+}
+
+.inquiry-answer-badge--answered {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.inquiry-answer-badge--pending {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+/* ── 등록/상세 모달 폼 ── */
+.inquiry-editor-form,
+.inquiry-detail-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+/* ── 답변완료 안내 배너 (상세 모달 상단) ── */
+.inquiry-detail-answered-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: 0.5625rem 0.8125rem;
+  border: var(--border-1) solid var(--color-status-success-border-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-status-success-bg-subtle);
+}
+
+.inquiry-detail-answered-banner__left {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-status-success-text);
+}
+
+/* FormAlert--success와 동일하게 아이콘만 더 밝은 success-default를 쓴다 */
+.inquiry-detail-answered-banner__left svg {
+  color: var(--color-status-success-default);
+}
+
+.inquiry-detail-answered-banner__date {
+  font-size: var(--typography-size-ui);
+  color: var(--color-status-success-text);
+}

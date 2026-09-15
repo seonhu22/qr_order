@@ -19,10 +19,11 @@ public class AuditTrailService {
 
     private final AuditTrailMapper auditTrailMapper;
 
-    public List<AuditTrail> getAuditTrail(String searchKeyword,
+    public List<AuditTrail> getAuditTrail(String changeType,
+                                            String searchKeyword,
                                             LocalDateTime startDate,
                                             LocalDateTime endDate) {
 
-        return auditTrailMapper.getAuditTrail(searchKeyword, startDate, endDate);
+        return auditTrailMapper.getAuditTrail(changeType, searchKeyword, startDate, endDate);
     }
 }

@@ -34,7 +34,14 @@ export type AdminNavigationData = {
   breadcrumb?: AdminMenuBreadcrumb;
 };
 
+export type AdminNavigationOptions = {
+  /** treeLevel 0(최상위 구분) 메뉴 코드. 지정 시 해당 루트에 속한 메뉴만 사용한다. */
+  rootMenuCd?: string;
+};
+
 const ROOT_PARENT_MENU_CD = 'ROOT';
+// 관리자 화면(어드민)에 해당하는 treeLevel 0 메뉴 코드
+export const ADMIN_ROOT_MENU_CD = 'ADMIN';
 
 function sortByOrdNo<T extends { ordNo: number }>(items: readonly T[]) {
   return [...items].sort((a, b) => a.ordNo - b.ordNo);
@@ -52,6 +59,60 @@ function dedupeMenuItems(items: readonly MenuCatalogItem[]) {
   }
 
   return [...uniqueByMenuCd.values()];
+}
+
+// parentMenuCd를 따라 올라가며 treeLevel 0인 최상위 구분 메뉴의 menuCd를 찾는다.
+// 순환 참조가 있거나 ROOT까지 끊김 없이 treeLevel 0에 도달하지 못하면 undefined를 반환한다.
+function getRootMenuCd(
+  item: MenuCatalogItem,
+  itemByMenuCd: ReadonlyMap<string, MenuCatalogItem>,
+) {
+  const visited = new Set<string>();
+  let cursor: MenuCatalogItem | undefined = item;
+
+  while (cursor) {
+    if (visited.has(cursor.menuCd)) {
+      return undefined;
+    }
+
+    visited.add(cursor.menuCd);
+
+    if (cursor.treeLevel === 0) {
+      return cursor.menuCd;
+    }
+
+    const parentMenuCd = cursor.parentMenuCd?.trim();
+    if (!parentMenuCd || parentMenuCd === ROOT_PARENT_MENU_CD) {
+      return undefined;
+    }
+
+    cursor = itemByMenuCd.get(parentMenuCd);
+  }
+
+  return undefined;
+}
+
+// rootMenuCd가 주어지면 해당 treeLevel 0 메뉴 하위에 속한 항목만 남긴다.
+// rootMenuCd가 없거나 카탈로그에 해당 treeLevel 0 메뉴 자체가 없으면(0depth 구분이 없는 경우) 필터링 없이 전체를 반환한다.
+function filterMenuItemsByRoot(
+  items: readonly MenuCatalogItem[],
+  rootMenuCd?: string,
+) {
+  const normalizedRootMenuCd = rootMenuCd?.trim();
+  if (!normalizedRootMenuCd) {
+    return [...items];
+  }
+
+  const itemByMenuCd = new Map(items.map((item) => [item.menuCd, item]));
+  const hasRequestedRoot = items.some(
+    (item) => item.menuCd === normalizedRootMenuCd && item.treeLevel === 0,
+  );
+
+  if (!hasRequestedRoot) {
+    return [...items];
+  }
+
+  return items.filter((item) => getRootMenuCd(item, itemByMenuCd) === normalizedRootMenuCd);
 }
 
 function createsParentCycle(
@@ -181,7 +242,8 @@ function buildSidebarMenusForSection(sectionNode: AdminMenuTreeNode): SidebarNav
 }
 
 export function buildAdminMenuTree(items: readonly MenuCatalogItem[]): AdminMenuTreeNode[] {
-  const normalizedItems = dedupeMenuItems(items);
+  // treeLevel 0은 구분을 위한 ROOT 마커 항목이므로 트리 구성에서 제외한다.
+  const normalizedItems = dedupeMenuItems(items.filter((item) => item.treeLevel !== 0));
   const itemByMenuCd = new Map(normalizedItems.map((item) => [item.menuCd, item]));
   const nodeByMenuCd = new Map<string, AdminMenuTreeNode>();
   const roots: AdminMenuTreeNode[] = [];
@@ -229,9 +291,10 @@ export function buildAdminMenuTree(items: readonly MenuCatalogItem[]): AdminMenu
 export function createAdminNavigationData(
   items: readonly MenuCatalogItem[],
   pathname: string,
+  options: AdminNavigationOptions = {},
 ): AdminNavigationData {
   const normalizedPathname = normalizeMenuPath(pathname);
-  const normalizedItems = dedupeMenuItems(items);
+  const normalizedItems = filterMenuItemsByRoot(dedupeMenuItems(items), options.rootMenuCd);
   const tree = buildAdminMenuTree(normalizedItems);
 
   const sectionEntries = tree

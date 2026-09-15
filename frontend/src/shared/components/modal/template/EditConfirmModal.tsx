@@ -15,7 +15,8 @@
  * @example
  * <EditConfirmModal
  *   open={open}
- *   description="변경사항을 수정하시겠습니까?"
+ *   title="수정하시겠습니까?"
+ *   description="변경된 내용이 저장됩니다."
  *   onClose={() => setOpen(false)}
  * />
  */

@@ -25,24 +25,25 @@ import './devStyles/FileAttachmentGuide.css';
  * 목업 데이터
  * ===================================================== */
 
+/* fileSize는 bytes가 아니라 서버 계약대로 MB 단위 소수 문자열이다. */
 const MOCK_FILES: ServerFile[] = [
   {
     sysId: 'notice', linkSysId: '001',
     originalFileNm: '계획서_2025.pdf', convertFileNm: 'abc123.pdf',
     fileExt: 'pdf', mimeType: 'application/pdf',
-    fileSize: '2457600', filePath: '/files/abc123.pdf', ordNo: 1, pdfYn: 'Y',
+    fileSize: '2.34', filePath: '/files/abc123.pdf', ordNo: 1, pdfYn: 'Y',
   },
   {
     sysId: 'notice', linkSysId: '001',
     originalFileNm: '현장사진.png', convertFileNm: 'def456.png',
     fileExt: 'png', mimeType: 'image/png',
-    fileSize: '1048576', filePath: '/files/def456.png', ordNo: 2, pdfYn: 'N',
+    fileSize: '1.00', filePath: '/files/def456.png', ordNo: 2, pdfYn: 'N',
   },
   {
     sysId: 'notice', linkSysId: '001',
     originalFileNm: '결과보고서.xlsx', convertFileNm: 'ghi789.xlsx',
     fileExt: 'xlsx', mimeType: 'application/vnd.ms-excel',
-    fileSize: '512000', filePath: '/files/ghi789.xlsx', ordNo: 3, pdfYn: 'N',
+    fileSize: '0.49', filePath: '/files/ghi789.xlsx', ordNo: 3, pdfYn: 'N',
   },
 ];
 
@@ -52,13 +53,13 @@ const MOCK_FILES_MANY: ServerFile[] = [
     sysId: 'notice', linkSysId: '001',
     originalFileNm: '추가파일_1.zip', convertFileNm: 'jkl000.zip',
     fileExt: 'zip', mimeType: 'application/zip',
-    fileSize: '3145728', filePath: '/files/jkl000.zip', ordNo: 4, pdfYn: 'N',
+    fileSize: '3.00', filePath: '/files/jkl000.zip', ordNo: 4, pdfYn: 'N',
   },
   {
     sysId: 'notice', linkSysId: '001',
     originalFileNm: '추가파일_2.docx', convertFileNm: 'mno111.docx',
     fileExt: 'docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    fileSize: '204800', filePath: '/files/mno111.docx', ordNo: 5, pdfYn: 'N',
+    fileSize: '0.20', filePath: '/files/mno111.docx', ordNo: 5, pdfYn: 'N',
   },
 ];
 

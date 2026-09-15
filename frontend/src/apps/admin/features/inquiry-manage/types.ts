@@ -11,6 +11,7 @@ export type InquiryManageRow = {
   registeredAt: string;
   updatedAt: string;
   answeredAt: string;
+  answerer: string;
   answerStatus: InquiryAnswerStatus;
   answerContent: string;
 };

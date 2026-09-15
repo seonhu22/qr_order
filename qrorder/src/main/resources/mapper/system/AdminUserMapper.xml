@@ -21,6 +21,7 @@
         and su.plant_cd = 'ADMIN'
         and su.delete_yn = 'N'
         and sp.delete_yn = 'N'
+        order by su.user_id asc
     </select>
 
     <insert id="newAdminUser">
@@ -44,7 +45,7 @@
                 #{item.userId},
                 #{item.userNm},
                 #{tempPwd},
-                'N',
+                'Y',
                 0,
                 #{item.plantCd},
                 'N',
@@ -87,6 +88,7 @@
             <foreach collection="adminUser" item="item" open="(" separator="," close=")">
                 #{item.userId}
             </foreach>
+        and delete_yn = 'N'
     </select>
 
     <select id="getDuplicateData" resultType="htms.QROrder.system.dto.AdminUserResponse">

@@ -11,6 +11,7 @@ import type { AdminUserRequest } from '@/generated/types/adminUserRequest';
 import type { Combo } from '@/generated/types/combo';
 import type { AdminUserResponse } from '@/generated/types/adminUserResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { SelectOption } from '@/shared/components/input';
 import type { AdminUserRow } from '../types';
 import { ADMIN_USER_PLANT_FALLBACK_OPTIONS } from '../constants';
@@ -104,10 +105,11 @@ export function hasAdminUserChanges(request: AdminUserRequest) {
 /**
  * 관리자 목록 조회 wrapper hook
  */
-export function useAdminUserQuery(searchKeyword = '') {
-  return useGetAdminUser(searchKeyword ? { searchKeyword } : undefined, {
+export function useAdminUserQuery() {
+  return useGetAdminUser(undefined, {
     query: {
-      queryKey: queryKeys.adminUser.list(searchKeyword),
+      queryKey: queryKeys.adminUser.lists,
+      ...queryPolicies.adminCrudList,
     },
   });
 }

@@ -12,6 +12,7 @@ import { useCodeMasterModalFlow } from '@/shared/hooks/useCodeMasterModalFlow';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import type { DetailCode, MasterCode } from '../types';
@@ -251,7 +252,7 @@ export function useCommonCodePageState() {
     isCreateMode: boolean,
   ) => {
     await saveMasterMutation.mutateAsync(master, isCreateMode);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masterLists });
   };
 
   /**
@@ -272,7 +273,7 @@ export function useCommonCodePageState() {
     }
 
     await deleteMastersMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masters() });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.commonCode.masterLists });
 
     if (targets.some((row) => row.id === effectiveSelectedMasterId)) {
       setSelectedMasterId('');
@@ -310,7 +311,7 @@ export function useCommonCodePageState() {
 
     await saveDetailsMutation.mutateAsync(request);
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.commonCode.details(selectedMaster.id),
+      queryKey: queryKeys.commonCode.detailLists,
     });
     setDetailRowsByMaster((prev) => {
       const next = { ...prev };
@@ -366,6 +367,9 @@ export function useCommonCodePageState() {
     onSaveRow: saveMaster,
     onDeleteRows: deleteCheckedMasters,
   });
+
+  // 상세 테이블 변경 또는 마스터 추가/수정 모달의 미저장 변경 중 하나라도 있으면 이탈방지
+  usePreventLeave(isDetailDirty || masterFlow.isDirty);
 
   /**
    * page가 shared hook의 내부 구조를 직접 알지 않도록,

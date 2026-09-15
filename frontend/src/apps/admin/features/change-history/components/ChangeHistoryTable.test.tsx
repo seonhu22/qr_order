@@ -12,6 +12,8 @@ describe('ChangeHistoryTable', () => {
             auditFlag: 'FI',
             menuNm: '공지사항 관리',
             auditTrailContents: '첨부파일 등록',
+            insertUserNm: '관리자',
+            modifyUserNm: '',
             insertDatetime: '2026-05-06 10:00:00',
           },
         ]}
@@ -33,6 +35,8 @@ describe('ChangeHistoryTable', () => {
             auditFlag: 'U',
             menuNm: '메뉴 관리',
             auditTrailContents: '메뉴명 수정',
+            insertUserNm: '관리자',
+            modifyUserNm: '운영담당자',
             insertDatetime: '2026-05-06 11:00:00',
           },
         ]}
@@ -58,6 +62,8 @@ describe('ChangeHistoryTable', () => {
               ' 시스템id: 01KQFAWD8GP0XCBJMKNY7D9TDK',
               ' 파일 경로: /Users/seon/Documents/github/qr_order/uploads/BRD_NTC_MNG/2026/04',
             ].join('\n'),
+            insertUserNm: '관리자',
+            modifyUserNm: '',
             insertDatetime: '2026-05-06 12:00:00',
           },
         ]}
@@ -73,5 +79,40 @@ describe('ChangeHistoryTable', () => {
     expect(
       screen.getByText('/Users/seon/Documents/github/qr_order/uploads/BRD_NTC_MNG/2026/04'),
     ).toHaveClass('change-history-contents__value');
+  });
+
+  it('renders insert and modify user names centered with fallback', () => {
+    render(
+      <ChangeHistoryTable
+        rows={[
+          {
+            id: 'change-4',
+            auditFlag: 'U',
+            menuNm: '쿠폰 관리',
+            auditTrailContents: '쿠폰명 수정',
+            insertUserNm: '관리자',
+            modifyUserNm: '운영담당자',
+            insertDatetime: '2026-05-06 13:00:00',
+          },
+          {
+            id: 'change-5',
+            auditFlag: 'I',
+            menuNm: '공지사항 관리',
+            auditTrailContents: '공지 등록',
+            insertUserNm: '',
+            modifyUserNm: '',
+            insertDatetime: '2026-05-06 14:00:00',
+          },
+        ]}
+        isLoading={false}
+        isError={false}
+      />,
+    );
+
+    expect(screen.getByRole('columnheader', { name: '등록자' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '수정자' })).toBeInTheDocument();
+    expect(screen.getByText('관리자')).toBeInTheDocument();
+    expect(screen.getByText('운영담당자')).toBeInTheDocument();
+    expect(screen.getAllByText('-')).toHaveLength(2);
   });
 });

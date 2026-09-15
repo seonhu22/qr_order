@@ -17,8 +17,8 @@ const MENU_FIXTURES: Menu[] = [
     menuCd: 'commonCode',
     menuNm: '공통코드',
     parentMenuCd: 'ROOT',
-    ordNo: '1',
-    treeLevel: '1',
+    ordNo: 1,
+    treeLevel: 1,
     menuUrl: '/admin/system/common-code',
   },
   {
@@ -26,8 +26,8 @@ const MENU_FIXTURES: Menu[] = [
     menuCd: 'plantSearch',
     menuNm: '사업장 조회',
     parentMenuCd: 'ROOT',
-    ordNo: '2',
-    treeLevel: '1',
+    ordNo: 2,
+    treeLevel: 1,
     menuUrl: '/admin/system/plant/',
   },
   {
@@ -35,8 +35,8 @@ const MENU_FIXTURES: Menu[] = [
     menuCd: 'noticeManage',
     menuNm: '공지사항',
     parentMenuCd: 'ROOT',
-    ordNo: '3',
-    treeLevel: '1',
+    ordNo: 3,
+    treeLevel: 1,
     menuUrl: '/admin/notice/manage',
   },
   {
@@ -44,8 +44,8 @@ const MENU_FIXTURES: Menu[] = [
     menuCd: 'menuFolder',
     menuNm: '폴더형 메뉴',
     parentMenuCd: 'ROOT',
-    ordNo: '4',
-    treeLevel: '1',
+    ordNo: 4,
+    treeLevel: 1,
     menuUrl: '',
   },
 ];

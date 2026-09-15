@@ -1,0 +1,160 @@
+.menu-option-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.menu-option-group + .menu-option-group {
+  border-top: var(--border-1) solid var(--color-border-divider);
+  padding-top: var(--spacing-6);
+}
+
+/* legend는 기본적으로 내용 너비만큼만 차지해 justify-content: space-between이 fieldset
+   전체가 아니라 legend 자체의 좁은 박스 안에서만 동작한다 — width: 100%로 늘려서 배지가
+   타이틀 옆이 아니라 옵션 그룹 행의 실제 오른쪽 끝에 붙게 한다. */
+.menu-option-group__legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-4);
+}
+
+.menu-option-group__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.menu-option-group__name {
+  font-size: var(--typography-size-body);
+  font-weight: var(--typography-weight-heading);
+  color: var(--color-text-primary);
+}
+
+.menu-option-group__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.menu-option-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5);
+  min-height: var(--spacing-15);
+  padding-inline: var(--spacing-6);
+  padding-block: var(--spacing-3);
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-ui), background-color var(--transition-ui);
+}
+
+/* 선택된 항목은 테두리로 표시한다 — 시트 안에서 배경색 대비가 약해 테두리가 더 잘 읽힌다. */
+.menu-option-choice--selected {
+  border-color: var(--orange-40);
+  background-color: var(--color-bg-selected);
+}
+
+.menu-option-choice--disabled {
+  color: var(--color-text-disabled);
+}
+
+.menu-option-choice__text {
+  flex: 1;
+  /* 부모가 align-items: center라 기본값(자기 콘텐츠 높이만큼만)으로는 행 높이(min-height)만큼
+     탭 영역이 늘어나지 않는다 — 이 라벨만 부모 높이로 늘려서 보이는 높이와 실제 탭 영역을 맞춘다.
+     내부는 이미 align-items: center라 텍스트 위치는 그대로다. */
+  align-self: stretch;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.menu-option-choice--disabled .menu-option-choice__text {
+  cursor: not-allowed;
+}
+
+.menu-option-choice__name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--typography-size-body);
+}
+
+/* 참고 저장소(Qrorder) MenuDetailSheet의 옵션 수량 스텝퍼를 그대로 따른다 — 버튼에 별도
+   배경/그림자 없이 트랙과 같은 배경 위에서 색상(아이콘 브랜드색, 값 진회색)만으로 구분한다.
+   이 스텝퍼는 항목이 선택된 상태에서만 나타나는데, 선택된 행 배경(--color-bg-selected)이
+   --color-brand-subtle과 같은 --orange-10이라 그대로 쓰면 트랙이 행 배경에 묻혀 버린다.
+   그래서 한 단계 진한 --orange-20을 써서 선택된 행 위에서도 경계가 보이게 한다. */
+.menu-option-choice__qty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--orange-20);
+  flex-shrink: 0;
+}
+
+.menu-option-choice__qty-button {
+  width: var(--spacing-10);
+  height: var(--spacing-12);
+  color: var(--color-brand-default);
+}
+
+.menu-option-choice__qty-button:not(:disabled):active {
+  opacity: 0.6;
+}
+
+/* 시각적 크기(24×32px)는 그대로 두고 탭 영역만 40px로 넓힌다 — hit-slop. 옆 버튼과의 간격(28px)
+   안에서 겹치지 않는 범위. */
+.menu-option-choice__qty-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -8px;
+  right: -8px;
+}
+
+.menu-option-choice__qty-value {
+  min-width: var(--spacing-9);
+  text-align: center;
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+}
+
+.menu-option-choice__price {
+  margin-left: auto;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.menu-option-choice--quantity {
+  cursor: default;
+}
+
+.menu-option-choice__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-left: var(--spacing-3);
+}
+
+.menu-option-choice__stepper button {
+  width: 2rem;
+  height: 2rem;
+  border: var(--border-1) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-default);
+  color: var(--color-text-primary);
+}
+
+.menu-option-choice__stepper button:disabled {
+  color: var(--color-text-disabled);
+}

@@ -1,6 +1,6 @@
 # 주요 설정 파일 설명
 
-> 주요 설정 파일(vite.config.js · tsconfig.json · ESLint · Prettier 등) 역할과 인증 구조를 다룬다.
+> Vite, TypeScript, ESLint, Prettier, 앱 진입점, 테스트·정적 파일 설정의 역할을 요약한다. 전체 문서 지도는 [README.md](./README.md)를 기준으로 본다.
 
 ## 목차
 
@@ -8,13 +8,13 @@
 - [2. `tsconfig.json`](#2-tsconfigjson)
 - [3. `eslint.config.js`](#3-eslintconfigjs)
 - [4. `.prettierrc.json`](#4-prettierrcjson)
-- [5. `src/main.jsx`](#5-srcmainjsx)
-- [6. `src/App.jsx`](#6-srcappjsx)
+- [5. `src/main.tsx`](#5-srcmaintsx)
+- [6. `src/App.tsx`](#6-srcapptsx)
 - [7. `src/shared/styles/*`](#7-srcsharedstyles)
 - [8. `src/shared/components/*/index.ts`](#8-srcsharedcomponentsindexts)
 - [9. `src/test/*`](#9-srctest)
 - [10. `public/*`](#10-public)
-- [11. 인증 구조](#11-인증-구조)
+- [11. 관련 문서](#11-관련-문서)
 
 ---
 
@@ -60,7 +60,7 @@
 
 ---
 
-## 5. `src/main.jsx`
+## 5. `src/main.tsx`
 
 - React 앱 진입점
 - `import.meta.env`를 기준으로 MSW 활성화 여부를 판단
@@ -68,7 +68,7 @@
 
 ---
 
-## 6. `src/App.jsx`
+## 6. `src/App.tsx`
 
 - `BrowserRouter`, `QueryClientProvider`, `AuthProvider`를 앱 최상단에 연결
 - 라우팅, 서버 상태 관리, 인증 컨텍스트의 시작점 역할
@@ -117,8 +117,13 @@
 
 ---
 
-## 11. 인증 구조
+## 11. 관련 문서
 
-로그인 흐름, 인증 상태 관리, 비밀번호 강제 변경 정책은 별도 문서로 관리한다.
-
-→ [`docs/auth.md`](./auth.md)
+| 문서 | 내용 |
+|---|---|
+| [문서 지도](./README.md) | 전체 문서 입구 |
+| [아키텍처](./architecture.md) | 폴더 구조, 레이어 역할, 라우팅 기준 |
+| [운영 원칙](./operations.md) | 상태 관리, API 호출, 리팩토링, 페이지 패턴 |
+| [공용 컴포넌트](./components.md) | shared component 작성 규칙과 상세 컴포넌트 문서 |
+| [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 비밀번호 정책 |
+| [라이브러리](./libraries.md) | 테스트 도구와 주요 라이브러리 선택 근거 |

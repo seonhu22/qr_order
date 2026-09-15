@@ -15,7 +15,8 @@
  * @example
  * <SaveConfirmModal
  *   open={open}
- *   description="입력한 정보를 저장하시겠습니까?"
+ *   title="저장하시겠습니까?"
+ *   description="입력하신 내용을 저장합니다."
  *   onClose={() => setOpen(false)}
  * />
  */

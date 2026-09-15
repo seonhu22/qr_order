@@ -1,5 +1,8 @@
 import type { FileResponse } from '@/generated/types/fileResponse';
-import type { ServerFile } from '@/shared/components/file-attachment';
+import type { FileChangeState, ServerFile } from '@/shared/components/file-attachment';
+import { downloadAllFile, downloadFile } from '@/generated/file-controller/file-controller';
+import { httpClient } from '@/shared/lib/httpClient';
+import { triggerBlobDownload } from './downloadBlob';
 
 /**
  * BE FileResponse → FileInputGroup/FileDownloadList 가 쓰는 ServerFile 로 변환.
@@ -19,4 +22,57 @@ export function mapFileResponseToServerFile(f: FileResponse): ServerFile {
     ordNo: f.ordNo ?? 0,
     pdfYn: f.pdfYn ?? 'N',
   };
+}
+
+export async function downloadServerFile(file: ServerFile): Promise<void> {
+  const blob = await downloadFile({ sysId: file.sysId });
+  triggerBlobDownload(blob, file.originalFileNm);
+}
+
+export async function downloadAllServerFiles(linkSysId: string, filename = 'files.zip'): Promise<void> {
+  const blob = await downloadAllFile({ linkSysId });
+  triggerBlobDownload(blob, filename);
+}
+
+export function getDefaultAttachFilePath(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `/${year}/${month}`;
+}
+
+export function buildAttachFileSaveFormData(
+  linkSysId: string,
+  fileChangeState: FileChangeState,
+): FormData {
+  const formData = new FormData();
+  const filePath = getDefaultAttachFilePath();
+
+  fileChangeState.newFiles.forEach((file, index) => {
+    formData.append(`newItems[${index}].file`, file);
+    formData.append(`newItems[${index}].linkSysId`, linkSysId);
+    formData.append(`newItems[${index}].convertFileNm`, crypto.randomUUID());
+    formData.append(`newItems[${index}].filePath`, filePath);
+    formData.append(`newItems[${index}].ordNo`, String(index + 1));
+  });
+
+  fileChangeState.deletedFiles.forEach((file, index) => {
+    formData.append(`delItems[${index}].sysId`, file.sysId);
+  });
+
+  return formData;
+}
+
+export async function saveAttachFiles(
+  linkSysId: string,
+  fileChangeState: FileChangeState,
+): Promise<void> {
+  if (fileChangeState.newFiles.length === 0 && fileChangeState.deletedFiles.length === 0) {
+    return;
+  }
+
+  await httpClient({
+    url: '/api/attach_file/save',
+    method: 'POST',
+    data: buildAttachFileSaveFormData(linkSysId, fileChangeState),
+  });
 }

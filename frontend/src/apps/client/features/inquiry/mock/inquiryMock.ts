@@ -1,0 +1,40 @@
+import type { ClientQnaResponse } from '@/generated/types/clientQnaResponse';
+
+export const INQUIRY_MOCK_ROWS: ClientQnaResponse[] = [
+  {
+    sysId: 'inquiry-1',
+    qnaTitle: '결제 오류 문의',
+    qnaDescription: '카드 결제 시 오류가 발생합니다. 확인 부탁드립니다.',
+    writeUserName: '점주01',
+    writeDatetime: '2026-06-20 10:00:00',
+    fileUlid: 'file-uuid-client-inquiry-1',
+    answerYn: 'Y',
+    answerUserName: 'admin01',
+    answerDatetime: '2026-06-21 09:30:00',
+    answerDescription: '결제 모듈 점검 후 정상화되었습니다. 다시 시도해주세요.',
+  },
+  {
+    sysId: 'inquiry-2',
+    qnaTitle: '메뉴 등록 방법 문의',
+    qnaDescription: '메뉴에 옵션을 추가하는 방법을 알고 싶습니다.',
+    writeUserName: '점주01',
+    writeDatetime: '2026-06-18 14:20:00',
+    fileUlid: '',
+    answerYn: 'N',
+    answerUserName: '',
+    answerDatetime: '',
+    answerDescription: '',
+  },
+  {
+    sysId: 'inquiry-3',
+    qnaTitle: 'QR코드 재발급 요청',
+    qnaDescription: '테이블 QR코드가 훼손되어 재발급을 요청합니다.',
+    writeUserName: '점주02',
+    writeDatetime: '2026-06-15 11:05:00',
+    fileUlid: '',
+    answerYn: 'Y',
+    answerUserName: 'admin02',
+    answerDatetime: '2026-06-16 08:40:00',
+    answerDescription: '재발급 절차 안내드립니다. QR 관리 화면에서 재발급 버튼을 이용해주세요.',
+  },
+];

@@ -1,7 +1,5 @@
 // src/shared/components/modal/wrapper/WrapperModal.tsx
 
-// TODO : Portal 적용하여 DOM 트리 최상단에 렌더링하도록 개선
-// TODO : Dimmed 기능 확인 필요
 /**
  * @fileoverview 공용 모달 레이아웃 래퍼 컴포넌트
  *
@@ -11,7 +9,11 @@
  * - `layout="notice"`일 때는 닫기 버튼을 숨기고 icon, title, subtitle을 가운데 정렬한다.
  * - footer는 액션 객체 존재 여부에 따라 버튼을 렌더링한다.
  * - 버튼의 외형은 공용 Button이 담당하고, modal은 배치용 스타일만 유지한다.
+ * - createPortal로 DOM 최상단(document.body)에 렌더링한다.
+ * - 모달이 열려 있는 동안 body 스크롤을 잠그고, 닫히면 이전 상태로 복원한다.
  * - ESC·overlay 클릭은 항상 `onClose`를 호출한다. dirty 판단과 경고 모달 표시는 호출부가 담당한다.
+ * - 모달이 여러 겹 쌓여 있을 때(예: 편집 모달 위에 하위 모달이 열린 경우) ESC는 가장 위(나중에 열린) 모달 1개만
+ *   닫는다 — 열린 모달들을 mount 순서대로 쌓아두고, keydown 시점에 스택 맨 위인 인스턴스만 `onClose`를 호출한다.
  *
  * @example
  * <WrapperModal
@@ -36,7 +38,8 @@
  * />
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/button';
 import { MODAL_SIZE_CLASS_MAP } from '../base/modal.constants';
 import '../base/modal.css';
@@ -51,12 +54,18 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
 
+let bodyScrollLockCount = 0;
+let previousBodyOverflow = '';
+
+/** 현재 열려 있는 WrapperModal 인스턴스를 mount 순서대로 쌓아둔다. ESC는 맨 위(마지막) 항목만 처리한다. */
+let openModalStack: string[] = [];
+
 /**
  * 공용 모달 래퍼를 렌더링한다.
  *
  * @param {WrapperModalProps} props 모달 렌더링에 필요한 속성
  * @param {boolean} props.open 모달 노출 여부
- * @param {boolean} [props.isDirty=false] 폼에 입력값이 있으면 true — ESC·overlay 닫기를 막는다
+ * @param {boolean} [props.isDirty=false] 호출부가 dirty 확인 흐름을 구성할 때 전달하는 상태값. WrapperModal은 직접 닫기를 막지 않는다
  * @param {'default' | 'notice'} [props.layout='default'] 상단 레이아웃 방식
  * @param {'sm' | 'md' | 'lg' | 'xl'} [props.size='sm'] 모달 폭 크기
  * @param {string} [props.title] 모달 제목
@@ -71,7 +80,7 @@ const FOCUSABLE_SELECTOR = [
  */
 export function WrapperModal({
   open,
-  isDirty = false,
+  isDirty: _isDirty = false,
   layout = 'default',
   size = 'sm',
   title,
@@ -86,20 +95,65 @@ export function WrapperModal({
   onClose,
 }: WrapperModalProps) {
   const dialogRef = useRef<HTMLElement>(null);
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null);
+  const modalId = useId();
 
-  /* ─── ESC 닫기 ─── */
+  /* ─── body 스크롤 잠금 ─── */
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+
+    if (bodyScrollLockCount === 0) {
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+    bodyScrollLockCount += 1;
+
+    return () => {
+      bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+      if (bodyScrollLockCount === 0) {
+        document.body.style.overflow = previousBodyOverflow;
+      }
+    };
+  }, [open]);
+
+  /* ─── ESC 닫기(스택 맨 위 모달만) ─── */
   useEffect(() => {
     if (!open) return undefined;
 
+    // onClose가 매 렌더마다 새로 만들어지는 호출부가 있어 이 effect가 자주 재실행될 수 있다.
+    // 이미 쌓여 있는 항목은 다시 밀어넣지 않아야 스택 순서(연 순서)가 흐트러지지 않는다.
+    if (!openModalStack.includes(modalId)) {
+      openModalStack = [...openModalStack, modalId];
+    }
+
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
+      if (event.key !== 'Escape') return;
+      if (openModalStack[openModalStack.length - 1] !== modalId) return;
+      onClose();
     };
 
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [open, onClose]);
+    return () => {
+      openModalStack = openModalStack.filter((id) => id !== modalId);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [open, onClose, modalId]);
+
+  /* ─── 직전 포커스 저장/복원 ─── */
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+
+    previousFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    return () => {
+      const previousFocusedElement = previousFocusedElementRef.current;
+      if (previousFocusedElement && document.contains(previousFocusedElement)) {
+        previousFocusedElement.focus();
+      }
+      previousFocusedElementRef.current = null;
+    };
+  }, [open]);
 
   /* ─── 포커스 트랩 + 첫 입력 필드 자동 포커스 ─── */
   useEffect(() => {
@@ -113,7 +167,9 @@ export function WrapperModal({
     const firstInput = allFocusable.find(
       (el) => !el.classList.contains('base-modal__close'),
     );
-    firstInput?.focus();
+    // 모달을 연 키 입력(예: Enter)의 keyup이 막 포커스된 버튼에 떨어져
+    // 즉시 클릭되는 것을 막기 위해 다음 tick으로 포커스를 미룬다.
+    const focusTimer = window.setTimeout(() => firstInput?.focus(), 0);
 
     // Tab / Shift+Tab 포커스 트랩
     const handleTab = (e: KeyboardEvent) => {
@@ -141,7 +197,10 @@ export function WrapperModal({
     };
 
     window.addEventListener('keydown', handleTab);
-    return () => window.removeEventListener('keydown', handleTab);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleTab);
+    };
   }, [open]);
 
   if (!open) {
@@ -185,7 +244,11 @@ export function WrapperModal({
   const hasPrimaryAction = Boolean(primaryAction);
   const hasSecondaryAction = Boolean(secondaryAction);
 
-  return (
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const modal = (
     <div
       className="base-modal-overlay"
       role="presentation"
@@ -240,9 +303,32 @@ export function WrapperModal({
           {children ? <div className="base-modal__content">{children}</div> : null}
         </div>
 
-        <footer className="base-modal__footer">
-          {hasPrimaryAction && hasSecondaryAction ? (
-            <>
+        {(hasPrimaryAction || hasSecondaryAction) && (
+          <footer className="base-modal__footer">
+            {hasPrimaryAction && hasSecondaryAction ? (
+              <>
+                <Button
+                  loading={resolvedPrimaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedPrimaryAction.variant ?? 'primary'}
+                  disabled={resolvedPrimaryAction.disabled}
+                  type="button"
+                  onClick={handlePrimaryAction}
+                >
+                  {resolvedPrimaryAction.label ?? '확인'}
+                </Button>
+                <Button
+                  loading={resolvedSecondaryAction.loading}
+                  size={buttonSize}
+                  variant={resolvedSecondaryAction.variant ?? 'outline'}
+                  disabled={resolvedSecondaryAction.disabled}
+                  type="button"
+                  onClick={handleSecondaryAction}
+                >
+                  {resolvedSecondaryAction.label ?? '닫기'}
+                </Button>
+              </>
+            ) : (
               <Button
                 loading={resolvedPrimaryAction.loading}
                 size={buttonSize}
@@ -253,31 +339,12 @@ export function WrapperModal({
               >
                 {resolvedPrimaryAction.label ?? '확인'}
               </Button>
-              <Button
-                loading={resolvedSecondaryAction.loading}
-                size={buttonSize}
-                variant={resolvedSecondaryAction.variant ?? 'outline'}
-                disabled={resolvedSecondaryAction.disabled}
-                type="button"
-                onClick={handleSecondaryAction}
-              >
-                {resolvedSecondaryAction.label ?? '닫기'}
-              </Button>
-            </>
-          ) : hasPrimaryAction ? (
-            <Button
-              loading={resolvedPrimaryAction.loading}
-              size={buttonSize}
-              variant={resolvedPrimaryAction.variant ?? 'primary'}
-              disabled={resolvedPrimaryAction.disabled}
-              type="button"
-              onClick={handlePrimaryAction}
-            >
-              {resolvedPrimaryAction.label ?? '확인'}
-            </Button>
-          ) : null}
-        </footer>
+            )}
+          </footer>
+        )}
       </section>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

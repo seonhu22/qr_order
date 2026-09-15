@@ -84,7 +84,7 @@ export function SystemMenuPage() {
       <SaveConfirmModal
         open={uiProps.isSaveConfirmOpen}
         title="저장하시겠습니까?"
-        description="메뉴 정보를 저장합니다."
+        description="입력하신 내용을 저장합니다."
         primaryAction={{
           label: '확인',
           loading: uiProps.isConfirming,

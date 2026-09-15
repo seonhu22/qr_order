@@ -4,6 +4,7 @@ import {
   createDefaultQueryDateRangeDraft,
   createDefaultQueryDateRangeParams,
   createQueryDateRangeParams,
+  toQueryDateParam,
   toQueryDateTimeParam,
   validateQueryDateRange,
 } from './queryDateRange';
@@ -12,6 +13,12 @@ describe('queryDateRange', () => {
   it('converts datetime-local values into query params', () => {
     expect(toQueryDateTimeParam('2026-04-28T10:30')).toBe('2026-04-28 10:30:00');
     expect(toQueryDateTimeParam('')).toBe('');
+  });
+
+  it('converts datetime-local values into date-only query params', () => {
+    expect(toQueryDateParam('2026-04-28T10:30')).toBe('2026-04-28');
+    expect(toQueryDateParam('2026-04-28')).toBe('2026-04-28');
+    expect(toQueryDateParam('')).toBe('');
   });
 
   it('creates query params from draft values', () => {

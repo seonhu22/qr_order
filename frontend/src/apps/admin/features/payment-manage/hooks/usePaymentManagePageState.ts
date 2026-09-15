@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   mapToPaymentRateRow,
   useDeletePaymentRatesMutation,
@@ -47,13 +48,13 @@ export function usePaymentManagePageState() {
   const handleSaveRow = async (editorRow: PaymentEditorRow, isCreateMode: boolean) => {
     const row = editorRowToPaymentRateRow(editorRow);
     await saveMutation.mutateAsync(row, isCreateMode);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list(keyword) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.lists });
   };
 
   const handleDeleteRows = async () => {
     const targets = rows.filter((row) => effectiveCheckedIds.includes(row.id));
     await deleteMutation.mutateAsync(targets);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.list(keyword) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payment.lists });
     setCheckedIds([]);
     return targets.length;
   };
@@ -63,6 +64,8 @@ export function usePaymentManagePageState() {
     onSaveRow: handleSaveRow,
     onDeleteRows: handleDeleteRows,
   });
+
+  usePreventLeave(modalFlow.isDirty);
 
   const modalProps = {
     editor: {

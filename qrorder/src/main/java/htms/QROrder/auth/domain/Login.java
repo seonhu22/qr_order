@@ -10,5 +10,7 @@ public class Login {
     private String userPassword;
     private Integer passwordFailCnt;
     private String initYn;
+    private String emailValidYn;
     private String sysPlantCd;
+    private String userRole;
 }

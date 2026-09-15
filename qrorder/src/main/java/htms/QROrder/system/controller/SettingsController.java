@@ -448,11 +448,12 @@ public class SettingsController {
     }
 
     @GetMapping("/log/audittrail")
-    public List<AuditTrail> getAuditTrail(@RequestParam(required = false) String searchKeyword,
+    public List<AuditTrail> getAuditTrail(@RequestParam String changeType,
+                                            @RequestParam(required = false) String searchKeyword,
                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate) {
 
-        return auditTrailService.getAuditTrail(searchKeyword, startDate, endDate);
+        return auditTrailService.getAuditTrail(changeType, searchKeyword, startDate, endDate);
     }
 
     @GetMapping("/board/notice/search")
@@ -527,13 +528,14 @@ public class SettingsController {
     }
 
     @PostMapping("/board/qna/update")
-    public ResponseEntity<CommonResponse> updateQna(@RequestBody QnaRequest qnaRequest,
+    public ResponseEntity<CommonResponse> updateQna(@ModelAttribute QnaRequest qnaRequest,
+                                                        @ModelAttribute FileRequest fileRequest,
                                                         HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        qnaService.updateQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        qnaService.updateQna(qnaRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

@@ -26,8 +26,9 @@
   overflow: auto;
 }
 
-/* 컬럼이 압축되지 않도록 최소 너비 지정 */
-.access-log-master-table .common-table { min-width: 45rem; }
+/* 컬럼이 압축되지 않도록 최소 너비 지정
+   마스터는 일시 컬럼 2개를 고정 폭(xl)으로 잡아, 남는 IP 컬럼이 눌리지 않도록 50rem을 준다. */
+.access-log-master-table .common-table { min-width: 50rem; }
 .access-log-detail-table .common-table { min-width: 45rem; }
 
 /* TableCardContentState가 렌더하는 children(table-wrap)이 카드 높이를 채우도록 */

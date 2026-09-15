@@ -35,7 +35,7 @@ type SystemMenuTreeProps = {
   onSelect: (id: string) => void;
   onUpdateData: (id: string, patch: Partial<MenuData>) => void;
   defaultExpandedIds?: string[];
-  expandTrigger?: { id: string; n: number } | null;
+  expandTrigger?: { ids: string[]; n: number } | null;
   canAddChild: boolean;
   canDelete: boolean;
   canMoveUp: boolean;
@@ -107,7 +107,9 @@ export function SystemMenuTree({
           className="common-table__input"
           value={node.data?.name ?? ''}
           aria-label={`${node.label} 메뉴명`}
-          controlState={nodeErrors.name.has(node.id) ? 'error' : ''}
+          controlState={
+            nodeErrors.name.has(node.id) || nodeErrors.depth.has(node.id) ? 'error' : ''
+          }
           onChange={(e) => onUpdateData(node.id, { name: e.target.value })}
         />
       ),
@@ -128,7 +130,9 @@ export function SystemMenuTree({
               : undefined
           }
           aria-label={`${node.label} 메뉴주소`}
-          controlState={nodeErrors.path.has(node.id) ? 'error' : ''}
+          controlState={
+            nodeErrors.path.has(node.id) || nodeErrors.depth.has(node.id) ? 'error' : ''
+          }
           onChange={(e) => onUpdateData(node.id, { path: e.target.value })}
         />
       ),
@@ -199,7 +203,9 @@ export function SystemMenuTree({
                   aria-label={`${node.label} 메뉴코드`}
                   readOnly={!node.data?.isNew}
                   controlState={
-                    !node.data?.isNew
+                    nodeErrors.depth.has(node.id)
+                      ? 'error'
+                      : !node.data?.isNew
                       ? 'readonly'
                       : nodeErrors.code.has(node.id)
                       ? 'error'

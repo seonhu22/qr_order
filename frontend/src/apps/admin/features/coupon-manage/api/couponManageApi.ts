@@ -5,6 +5,7 @@ import {
 import type { PaymentCoupon } from '@/generated/types/paymentCoupon';
 import type { PaymentCouponRequest } from '@/generated/types/paymentCouponRequest';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { CouponRow } from '../types';
 
 export function mapToCouponRow(item: PaymentCoupon): CouponRow {
@@ -46,6 +47,7 @@ export function useCouponQuery(searchKeyword = '') {
   return useGetPaymentCoupon(searchKeyword ? { searchKeyword } : undefined, {
     query: {
       queryKey: queryKeys.coupon.list(searchKeyword),
+      ...queryPolicies.adminCrudList,
     },
   });
 }

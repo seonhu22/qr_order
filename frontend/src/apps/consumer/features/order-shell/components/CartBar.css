@@ -1,0 +1,27 @@
+.cart-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--spacing-15);
+  padding: var(--spacing-4) var(--spacing-8);
+  padding-bottom: calc(var(--spacing-4) + env(safe-area-inset-bottom));
+  border: none;
+  background-color: var(--color-brand-default);
+  color: var(--color-text-on-brand);
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-heading);
+  cursor: pointer;
+}
+
+.cart-bar__summary,
+.cart-bar__price {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}

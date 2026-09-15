@@ -24,6 +24,8 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
               <col className="common-table__col--md" />
               <col className="change-history-table__col--menu" />
               <col />
+              <col className="change-history-table__col--user" />
+              <col className="change-history-table__col--user" />
               <col className="change-history-table__col--date" />
             </colgroup>
             <thead>
@@ -31,12 +33,14 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
                 <th scope="col">변경 구분</th>
                 <th scope="col">메뉴명</th>
                 <th scope="col">수정내용</th>
+                <th scope="col">등록자</th>
+                <th scope="col">수정자</th>
                 <th scope="col">수정일자</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={4} className="common-table__empty">조회 결과가 없습니다.</td></tr>
+                <tr><td colSpan={6} className="common-table__empty">조회 결과가 없습니다.</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>
@@ -48,6 +52,12 @@ export function ChangeHistoryTable({ rows, isLoading, isError }: ChangeHistoryTa
                     <td className="change-history-table__cell--menu" title={row.menuNm}>{row.menuNm}</td>
                     <td className="change-history-table__cell--contents" title={row.auditTrailContents}>
                       <ChangeHistoryContents contents={row.auditTrailContents} />
+                    </td>
+                    <td className="common-table__cell--center change-history-table__cell--user">
+                      {row.insertUserNm || '-'}
+                    </td>
+                    <td className="common-table__cell--center change-history-table__cell--user">
+                      {row.modifyUserNm || '-'}
                     </td>
                     <td className="common-table__cell--center change-history-table__cell--date">
                       {row.insertDatetime}

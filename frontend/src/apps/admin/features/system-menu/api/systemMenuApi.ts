@@ -67,20 +67,37 @@ export function mapToMenuNode(menu: Menu): MenuNode {
  */
 export function buildMenuTree(menus: Menu[]): MenuNode[] {
   const nodeByMenuCd = new Map<string, MenuNode>();
+  const parentMenuCdByMenuCd = new Map<string, string>();
   const roots: MenuNode[] = [];
 
   menus.forEach((menu) => {
     nodeByMenuCd.set(menu.menuCd, mapToMenuNode(menu));
+    parentMenuCdByMenuCd.set(menu.menuCd, menu.parentMenuCd);
   });
 
-  menus.forEach((menu) => {
-    const node = nodeByMenuCd.get(menu.menuCd);
-    if (!node) return;
+  /**
+   * menuCd의 부모를 따라 올라가며 자기 자신을 다시 만나면 순환 참조로 판단한다.
+   * 순환 참조가 있으면 트리 구성/순회 시 무한 재귀가 발생하므로 루트로 분리한다.
+   */
+  function hasCyclicParent(menuCd: string): boolean {
+    const visited = new Set<string>();
+    let current = parentMenuCdByMenuCd.get(menuCd);
 
-    const parentMenuCd = menu.parentMenuCd;
+    while (current && current !== ROOT_PARENT_MENU_CD) {
+      if (visited.has(current)) return true;
+      visited.add(current);
+      current = parentMenuCdByMenuCd.get(current);
+    }
+    return false;
+  }
+
+  // menuCd가 중복된 행이 있어도 nodeByMenuCd 기준으로 한 번씩만 처리해
+  // 같은 노드가 트리에 중복으로 들어가는 것을 방지한다.
+  nodeByMenuCd.forEach((node, menuCd) => {
+    const parentMenuCd = parentMenuCdByMenuCd.get(menuCd) ?? '';
     const parentNode = parentMenuCd ? nodeByMenuCd.get(parentMenuCd) : undefined;
 
-    if (!parentNode || parentMenuCd === ROOT_PARENT_MENU_CD) {
+    if (!parentNode || parentMenuCd === ROOT_PARENT_MENU_CD || hasCyclicParent(menuCd)) {
       roots.push(node);
       return;
     }
@@ -133,7 +150,7 @@ export function flattenMenuNodes(nodes: MenuNode[]): FlattenedMenuNode[] {
         node,
         parentMenuCd,
         ordNo: index + 1,
-        treeLevel: depth + 1,
+        treeLevel: depth,
       };
 
       result.push(flattened);

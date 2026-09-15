@@ -1,13 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import { mapToPlantStatusRow, usePlantStatusQuery } from '../api/plantStatusApi';
 
 export function usePlantStatusPage() {
-  const [hasSearched, setHasSearched] = useState(false);
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
 
-  const query = usePlantStatusQuery(appliedKeyword.trim(), hasSearched);
+  const query = usePlantStatusQuery(appliedKeyword.trim());
 
   const rows = useMemo(
     () => (query.data ?? []).map(mapToPlantStatusRow),
@@ -16,12 +15,10 @@ export function usePlantStatusPage() {
 
   const handleSearch = () => {
     if (!draftKeyword.trim()) return;
-    setHasSearched(true);
     applyDraftKeyword();
   };
 
   const handleReset = () => {
-    setHasSearched(false);
     resetKeywords();
   };
 
@@ -39,7 +36,7 @@ export function usePlantStatusPage() {
     },
     uiProps: {
       draftKeyword,
-      emptyMessage: hasSearched ? '조회 결과가 없습니다.' : '데이터가 없습니다.',
+      emptyMessage: '조회 결과가 없습니다.',
     },
   };
 }

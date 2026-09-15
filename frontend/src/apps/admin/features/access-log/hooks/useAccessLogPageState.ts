@@ -18,44 +18,28 @@ import {
 } from '../api/accessLogApi';
 import type { AccessLogMasterRow } from '../types';
 import {
-  createDefaultQueryDateRangeDraft,
   createDefaultQueryDateRangeParams,
   createQueryDateRangeParams,
-  validateQueryDateRange,
 } from '@/shared/utils/queryDateRange';
+import { useQueryDateRangeDraft } from '@/shared/hooks/useQueryDateRangeDraft';
+import { areQueryParamsEqual } from '@/shared/utils/queryParams';
 
 export function useAccessLogPageState() {
-  const defaultDateRange = useMemo(() => createDefaultQueryDateRangeDraft(), []);
   const [draftKeyword, setDraftKeyword] = useState('');
-  const [draftStartDate, setDraftStartDate] = useState(defaultDateRange.startDate);
-  const [draftEndDate, setDraftEndDate] = useState(defaultDateRange.endDate);
-  const [dateRangeError, setDateRangeError] = useState('');
+  const {
+    draftStartDate,
+    draftEndDate,
+    dateRangeError,
+    handleStartDateChange,
+    handleEndDateChange,
+    resetDraftDateRange,
+    validateDraftDateRange,
+  } = useQueryDateRangeDraft();
 
   /* 페이지 진입 시 기본 7일 범위로 즉시 조회 */
   const [searchParams, setSearchParams] = useState(createDefaultQueryDateRangeParams);
 
   const [selectedRow, setSelectedRow] = useState<AccessLogMasterRow | null>(null);
-
-  const validateDateRange = (start: string, end: string): boolean => {
-    const nextError = validateQueryDateRange(start, end);
-    setDateRangeError(nextError);
-
-    if (nextError) {
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleStartDateChange = (value: string) => {
-    setDraftStartDate(value);
-    if (value && draftEndDate) validateDateRange(value, draftEndDate);
-  };
-
-  const handleEndDateChange = (value: string) => {
-    setDraftEndDate(value);
-    if (draftStartDate) validateDateRange(draftStartDate, value);
-  };
 
   const masterQuery = useAccessLogMasterQuery({
     startDate: searchParams.startDate,
@@ -84,17 +68,19 @@ export function useAccessLogPageState() {
   );
 
   const handleSearch = () => {
-    if (!validateDateRange(draftStartDate, draftEndDate)) return;
-    setSearchParams(createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword));
+    if (!validateDraftDateRange()) return;
+    const nextParams = createQueryDateRangeParams(draftStartDate, draftEndDate, draftKeyword);
+    if (areQueryParamsEqual(nextParams, searchParams)) {
+      void masterQuery.refetch();
+    } else {
+      setSearchParams(nextParams);
+    }
     setSelectedRow(null);
   };
 
   const handleReset = () => {
-    const nextDefaultDateRange = createDefaultQueryDateRangeDraft();
     setDraftKeyword('');
-    setDraftStartDate(nextDefaultDateRange.startDate);
-    setDraftEndDate(nextDefaultDateRange.endDate);
-    setDateRangeError('');
+    resetDraftDateRange();
     setSearchParams(createDefaultQueryDateRangeParams());
     setSelectedRow(null);
   };

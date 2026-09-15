@@ -65,9 +65,9 @@
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
-        and sys_id
-        <foreach collection="payment" open="(" separator="," close=")">
-            #{payment.sysId}
+        and sys_id in
+        <foreach collection="payment" item="item" open="(" separator="," close=")">
+            #{item.sysId}
         </foreach>
     </delete>
 

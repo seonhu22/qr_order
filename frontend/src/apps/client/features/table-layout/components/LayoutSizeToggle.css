@@ -1,0 +1,44 @@
+.layout-size-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.layout-size-toggle__label {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.layout-size-toggle__group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-md);
+}
+
+/* 흰 배경은 슬라이딩 인디케이터가 담당 — 버튼 자체의 선택 배경은 끈다 */
+.layout-size-toggle__group .btn--segment {
+  position: relative;
+  z-index: 1;
+}
+
+.layout-size-toggle__group .btn--segment.btn--selected {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.layout-size-toggle__indicator {
+  position: absolute;
+  top: var(--spacing-1);
+  bottom: var(--spacing-1);
+  left: 0;
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-ui), width var(--transition-ui);
+}

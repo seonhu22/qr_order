@@ -11,7 +11,7 @@ function createServerFile(overrides: Partial<ServerFile> = {}): ServerFile {
     convertFileNm: 'converted-1',
     fileExt: '.docx',
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    fileSize: '1024',
+    fileSize: '0.01',
     filePath: '/2026/05',
     ordNo: 1,
     pdfYn: 'N',

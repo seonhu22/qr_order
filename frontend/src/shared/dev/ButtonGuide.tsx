@@ -3,12 +3,12 @@
  *
  * @description
  * - 로컬 개발 전용 미리보기 페이지 (/dev/button)
- * - 10가지 변형 × 3가지 크기 × 7가지 상태 × LinkButton 예시
+ * - 12가지 변형 × 3가지 크기 × 7가지 상태 × LinkButton 예시
  *
  * @module dev/ButtonGuide
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, LinkButton } from '@/shared/components/button';
 import {
   AddChildRowTableButton,
@@ -20,13 +20,21 @@ import {
   SaveTableButton,
   MoveUpTableButton,
   MoveDownTableButton,
+  PrintListTableButton,
+  PrintRowTableButton,
   ResetFilterButton,
   ResetTableButton,
   SearchFilterButton,
 } from '@/shared/components/button';
 import type { ButtonVariant, ButtonSize } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { QuantityStepperButton } from '@/apps/consumer/features/order-shell/components/QuantityStepperButton';
+import '@/apps/consumer/features/order-shell/components/QuantityStepper.css';
+import '@/apps/consumer/features/order-shell/components/MenuOptionGroupList.css';
+import '@/apps/consumer/features/order-shell/components/CartLineItem.css';
+import '@/apps/consumer/features/staff-call/components/StaffCallSheetContent.css';
 
+const SEGMENT_SLIDE_OPTIONS = ['작게', '보통', '크게'] as const;
 
 /* =====================================================
  * 가이드 레이아웃 헬퍼
@@ -80,6 +88,69 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
   );
 }
 
+/**
+ * segment 변형의 실제 사용 패턴 — 슬라이딩 인디케이터.
+ * `apps/client/features/table-layout/components/LayoutSizeToggle.tsx`와 동일한 구조다.
+ * 흰 배경은 인디케이터가 담당하고, 버튼 자체의 선택 배경은 투명 처리한다.
+ */
+function SegmentSlideDemo() {
+  const [value, setValue] = useState<typeof SEGMENT_SLIDE_OPTIONS[number]>('보통');
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const groupEl = groupRef.current;
+    if (!groupEl) return;
+    const index = SEGMENT_SLIDE_OPTIONS.indexOf(value);
+    const buttonEl = groupEl.querySelectorAll('button')[index];
+    if (!buttonEl) return;
+    const groupRect = groupEl.getBoundingClientRect();
+    const buttonRect = buttonEl.getBoundingClientRect();
+    setIndicatorStyle({ left: buttonRect.left - groupRect.left, width: buttonRect.width });
+  }, [value]);
+
+  return (
+    <div
+      ref={groupRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        gap: 4,
+        padding: 4,
+        background: 'var(--color-bg-muted)',
+        borderRadius: 'var(--radius-md)',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          bottom: 4,
+          left: 0,
+          background: 'var(--color-bg-surface)',
+          borderRadius: 'var(--radius-button)',
+          boxShadow: 'var(--shadow-card)',
+          transition: 'transform var(--transition-ui), width var(--transition-ui)',
+          transform: `translateX(${indicatorStyle.left}px)`,
+          width: indicatorStyle.width,
+        }}
+      />
+      {SEGMENT_SLIDE_OPTIONS.map((label) => (
+        <Button
+          key={label}
+          variant="segment"
+          size="md"
+          selected={value === label}
+          onClick={() => setValue(label)}
+          style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
+        >
+          {label}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 
 /* =====================================================
  * 가이드 페이지
@@ -88,6 +159,7 @@ function StateLabel({ label, children }: { label: string; children: React.ReactN
 export default function ButtonGuide() {
   const [toggleMap, setToggleMap] = useState<Record<string, boolean | string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [qtyDemo, setQtyDemo] = useState({ main: 1, option: 1, cart: 1, staffCall: 1 });
 
   const toggle = (key: string) =>
     setToggleMap((p) => ({ ...p, [key]: !p[key] }));
@@ -136,7 +208,7 @@ export default function ButtonGuide() {
       </Section>
 
       {/* ── 1. 변형(Type) ── */}
-      <Section title="변형 (Variant)" desc="10가지 버튼 변형 — MD 사이즈 기준">
+      <Section title="변형 (Variant)" desc="12가지 버튼 변형 — MD 사이즈 기준">
         <Row label="primary">
           <Button variant="primary" size="md">저장</Button>
           <Button variant="primary" size="md" leftIcon={<Icon id="i-plus" size={15} />}>신규 등록</Button>
@@ -145,6 +217,14 @@ export default function ButtonGuide() {
         <Row label="secondary">
           <Button variant="secondary" size="md">취소</Button>
           <Button variant="secondary" size="md" leftIcon={<Icon id="i-download" size={15} />}>내보내기</Button>
+        </Row>
+        <Row label="tinted — 옅은 브랜드 배경 (모달 본문 안 가벼운 추가 액션, 예: 메뉴 추가)">
+          <Button variant="tinted" size="sm" leftIcon={<Icon id="i-plus" size={13} />}>메뉴 추가</Button>
+          <Button variant="tinted" size="md" leftIcon={<Icon id="i-plus" size={15} />}>메뉴 추가</Button>
+        </Row>
+        <Row label="neutral — 진한 슬레이트 솔리드 (표/리스트 줄 단위 취소 등 톤다운된 보조 액션)">
+          <Button variant="neutral" size="sm">취소</Button>
+          <Button variant="neutral" size="md">취소</Button>
         </Row>
         <Row label="outline">
           <Button variant="outline" size="md">초기화</Button>
@@ -203,6 +283,9 @@ export default function ButtonGuide() {
           >
             다크
           </Button>
+        </Row>
+        <Row label="segment — 슬라이딩 인디케이터 (TableLayoutPage 배치 크기 토글, 클릭해보세요)">
+          <SegmentSlideDemo />
         </Row>
       </Section>
 
@@ -305,7 +388,7 @@ export default function ButtonGuide() {
             disabled — 전체 변형
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {(['primary', 'secondary', 'outline', 'ghost', 'danger'] as ButtonVariant[]).map((v) => (
+            {(['primary', 'secondary', 'outline', 'ghost', 'danger', 'tinted', 'neutral'] as ButtonVariant[]).map((v) => (
               <Button key={v} variant={v} size="md" disabled>{v}</Button>
             ))}
           </div>
@@ -544,14 +627,122 @@ export default function ButtonGuide() {
         <Row label="테이블 행 수정 아이콘 (EditTableButton)">
           <EditTableButton ariaLabel="수정" onClick={() => {}} />
         </Row>
+        <Row label="QR 출력 (QrCodeManagementTable 내부 구성)">
+          <AddRowTableButton onClick={() => {}} />
+          <DeleteRowTableButton onClick={() => {}} />
+          <PrintListTableButton onClick={() => {}} />
+          <SaveTableButton onClick={() => {}} />
+        </Row>
+        <Row label="테이블 행 QR 출력 아이콘 (PrintRowTableButton)">
+          <PrintRowTableButton ariaLabel="QR 출력" onClick={() => {}} />
+        </Row>
         <Row label="disabled 상태">
           <CreateTableButton disabled />
           <DeleteTableButton disabled />
           <EditTableButton ariaLabel="수정 비활성" disabled />
+          <PrintRowTableButton ariaLabel="QR 출력 비활성" disabled />
           <MoveUpTableButton ariaLabel="위로 이동 비활성" disabled />
           <AddChildRowTableButton disabled />
           <ResetTableButton disabled />
+          <PrintListTableButton disabled />
           <SaveTableButton loading />
+        </Row>
+      </Section>
+
+      {/* ── 8. 수량 스텝퍼 버튼 (QuantityStepperButton) ── */}
+      <Section
+        title="수량 스텝퍼 버튼 (QuantityStepperButton)"
+        desc="consumer 주문 화면의 -/+/x 아이콘 버튼 하나를 4곳이 공유한다. 배경·크기 같은
+          컨테이너 스타일만 각 화면 CSS(className)로 다르게 입힌다 — apps/consumer/features/order-shell/components/QuantityStepperButton.tsx"
+      >
+        <Row label="메뉴 상세 전체 수량 (QuantityStepper) — 회색 트랙 + 흰 배경 그림자 버튼">
+          <div className="quantity-stepper__control">
+            <QuantityStepperButton
+              icon="minus"
+              className="quantity-stepper__button"
+              onClick={() => setQtyDemo((p) => ({ ...p, main: Math.max(1, p.main - 1) }))}
+              disabled={qtyDemo.main <= 1}
+              ariaLabel="수량 줄이기"
+            />
+            <output className="quantity-stepper__value">{qtyDemo.main}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="quantity-stepper__button"
+              onClick={() => setQtyDemo((p) => ({ ...p, main: p.main + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="옵션 리스트 항목별 수량 (MenuOptionGroupList) — 트랙과 같은 배경, 버튼 자체는 배경 없음">
+          <div className="menu-option-choice__qty">
+            <QuantityStepperButton
+              icon="minus"
+              className="menu-option-choice__qty-button"
+              iconSize={10}
+              onClick={() => setQtyDemo((p) => ({ ...p, option: Math.max(1, p.option - 1) }))}
+              disabled={qtyDemo.option <= 1}
+              ariaLabel="수량 줄이기"
+            />
+            <output className="menu-option-choice__qty-value" aria-label="수량">{qtyDemo.option}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="menu-option-choice__qty-button"
+              iconSize={10}
+              onClick={() => setQtyDemo((p) => ({ ...p, option: p.option + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="장바구니 줄 수량 (CartLineItem) — 버튼마다 독립된 사각형, 1일 때 감소 버튼이 삭제(x)로 전환">
+          <div className="cart-line-item__qty">
+            <QuantityStepperButton
+              icon={qtyDemo.cart <= 1 ? 'remove' : 'minus'}
+              className={`cart-line-item__qty-button${qtyDemo.cart <= 1 ? ' cart-line-item__qty-button--danger' : ''}`}
+              iconSize={11}
+              onClick={() =>
+                qtyDemo.cart <= 1
+                  ? setQtyDemo((p) => ({ ...p, cart: 1 })) /* 데모에선 삭제 대신 1로 고정 */
+                  : setQtyDemo((p) => ({ ...p, cart: p.cart - 1 }))
+              }
+              ariaLabel={qtyDemo.cart <= 1 ? '삭제' : '수량 줄이기'}
+            />
+            <output className="cart-line-item__qty-value" aria-label="수량">{qtyDemo.cart}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="cart-line-item__qty-button"
+              iconSize={11}
+              onClick={() => setQtyDemo((p) => ({ ...p, cart: p.cart + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
+        </Row>
+
+        <Row label="직원호출 선택 항목 수량 (StaffCallSheetContent) — 장바구니 줄 수량과 같은 크기·색 규약">
+          <div className="staff-call-sheet__stepper">
+            <QuantityStepperButton
+              icon={qtyDemo.staffCall <= 1 ? 'remove' : 'minus'}
+              className={`staff-call-sheet__qty-button${
+                qtyDemo.staffCall <= 1 ? ' staff-call-sheet__qty-button--danger' : ''
+              }`}
+              iconSize={11}
+              onClick={() =>
+                qtyDemo.staffCall <= 1
+                  ? setQtyDemo((p) => ({ ...p, staffCall: 1 })) /* 데모에선 삭제 대신 1로 고정 */
+                  : setQtyDemo((p) => ({ ...p, staffCall: p.staffCall - 1 }))
+              }
+              ariaLabel={qtyDemo.staffCall <= 1 ? '삭제' : '수량 줄이기'}
+            />
+            <output className="staff-call-sheet__qty-value" aria-label="수량">{qtyDemo.staffCall}</output>
+            <QuantityStepperButton
+              icon="plus"
+              className="staff-call-sheet__qty-button"
+              iconSize={11}
+              onClick={() => setQtyDemo((p) => ({ ...p, staffCall: p.staffCall + 1 }))}
+              ariaLabel="수량 늘리기"
+            />
+          </div>
         </Row>
       </Section>
     </div>

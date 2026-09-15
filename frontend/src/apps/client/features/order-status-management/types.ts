@@ -1,0 +1,96 @@
+export type OrderBoardStatus = 'RECEIVED' | 'COOKING' | 'SERVED' | 'CANCELLED';
+export type OrderBoardPaymentStatus = 'PENDING' | 'PAID' | 'UNPAID' | 'REFUNDED';
+
+export type OrderBoardOptionItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  /** 옵션 1개당 가격 */
+  unitPrice: number;
+};
+
+export type OrderBoardMenuItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  /** 메뉴 1개당 가격(옵션 가격 제외) */
+  unitPrice: number;
+  options: OrderBoardOptionItem[];
+};
+
+export type OrderBoardRow = {
+  id: string;
+  orderNo: string;
+  tableNum: string;
+  orderStatus: OrderBoardStatus;
+  paymentStatus: OrderBoardPaymentStatus;
+  /** 서버가 주문 상세를 기준으로 계산한 주문 총액 */
+  totalPrice?: number;
+  /** ISO 형식("YYYY-MM-DDTHH:mm:ss") 주문 접수 시각 */
+  orderDatetime: string;
+  /** 상태 섹션에 마지막으로 진입한 시각. Mock에서는 이동한 카드를 섹션 맨 아래에 정렬할 때 사용한다. */
+  statusChangedAt?: string;
+  /** 취소 처리 시각. CANCELLED 상태의 취소사유 모달에서 표시한다. */
+  cancelledAt?: string;
+  /** 취소사유 유형 코드. CANCELLED 상태일 때만 존재한다. */
+  cancelType?: string;
+  /** 취소 유형이 "기타"일 때 입력한 실제 취소 사유. */
+  cancelReason?: string;
+  /** 기존 API와의 호환을 위한 추가 설명. */
+  cancelDescription?: string;
+  /** 미결제사유 선택값. UNPAID 상태일 때만 존재한다. */
+  unpaidReason?: string;
+  /** 미결제사유가 "기타"일 때 입력한 상세 내용. */
+  unpaidDescription?: string;
+  menuItems: OrderBoardMenuItem[];
+};
+
+export type OrderBoardColumnData = {
+  status: OrderBoardStatus;
+  label: string;
+  rows: OrderBoardRow[];
+};
+
+export type OrderBoardCardActions = {
+  onStartCooking: (id: string) => void | Promise<void>;
+  onServe: (id: string) => void | Promise<void>;
+  onPay: (row: OrderBoardRow) => void;
+  onMoveBack: (id: string) => void | Promise<void>;
+  onCancel: (row: OrderBoardRow) => void;
+  onEdit: (row: OrderBoardRow) => void;
+  onShowCancelReason: (row: OrderBoardRow) => void;
+  /** 취소 컬럼에서 카드를 화면에서만 지운다(실제 데이터는 삭제하지 않음). */
+  onDismiss: (id: string) => void;
+};
+
+/** "주문 수정" 모달의 "메뉴 추가" > "옵션 추가"에서 고를 수 있는 옵션 카탈로그 항목 */
+export type MenuCatalogOption = {
+  id: string;
+  name: string;
+  /** 옵션 1개당 가격 */
+  unitPrice: number;
+};
+
+export type MenuCatalogOptionSelectionType = 'single' | 'multi';
+
+/**
+ * 옵션을 묶어서 보여줄 카테고리(예: "맵기 조절", "고기추가").
+ * - `single`: 카테고리 내에서 정확히 1개를 필수로 선택한다(라디오 동작, 기본값은 첫 옵션).
+ * - `multi`: 옵션별로 수량을 따로 선택한다(+/- 조절, 0개면 미선택).
+ */
+export type MenuCatalogOptionCategory = {
+  category: string;
+  selectionType: MenuCatalogOptionSelectionType;
+  options: MenuCatalogOption[];
+};
+
+/** "주문 수정" 모달의 "메뉴 추가"에서 고를 수 있는 메뉴 카탈로그 항목 */
+export type MenuCatalogItem = {
+  id: string;
+  name: string;
+  /** 메뉴 1개당 가격(옵션 가격 제외) */
+  unitPrice: number;
+  /** 메뉴 목록을 묶어서 보여줄 분류명(예: "메인 메뉴", "음료수") */
+  category: string;
+  optionCategories: MenuCatalogOptionCategory[];
+};

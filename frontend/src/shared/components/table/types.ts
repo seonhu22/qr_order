@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 export type TableCardProps = {
-  /** 카드 타이틀. undefined이면 header 전체를 렌더링하지 않는다. */
-  title?: string;
+  /** 카드 타이틀. undefined이면 header 전체를 렌더링하지 않는다. ReactNode를 허용해 제목 옆 배지 등을 함께 넣을 수 있다. */
+  title?: ReactNode;
   /** 헤더 우측 액션 버튼 영역 */
   actions?: ReactNode;
   /** 액션 컨테이너에 추가할 CSS 클래스 (예: 'common-code-card__actions--detail') */

@@ -1,0 +1,94 @@
+.table-layout-canvas-card {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 헤더(타이틀)는 고정하고 캔버스 영역만 스크롤되게 한다. 캔버스는 고정 크기라 화면이 좁으면
+   늘어나는 대신 스크롤된다(좌표가 항상 같은 의미를 갖게 하기 위함). */
+.table-layout-canvas-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* 전체 보기(축소) 상태에서 줄어든 시각적 크기만큼만 레이아웃 공간을 차지하게 한다 — 평소(scale=1)에는
+   캔버스 원래 크기와 같아 추가 스크롤 공간이 생기지 않는다. */
+.table-layout-canvas-scale {
+  flex-shrink: 0;
+}
+
+.table-layout-canvas {
+  position: relative;
+  background-image: radial-gradient(var(--color-bg-app) 1.5px, transparent 1.5px);
+  background-position: 0 0;
+}
+
+.table-layout-canvas__item {
+  position: absolute;
+  /* 삭제 버튼(z-index: 2)/리사이즈 핸들(z-index: 1)의 z-index 비교가 이 아이템 내부로만 한정되게 한다.
+     이게 없으면 두 배치 아이템이 겹칠 때, 한쪽의 삭제 버튼이 캔버스 전체 기준으로 비교되어 다른 아이템의
+     카드 전체보다 위에 떠 보이는 문제가 있었다. */
+  isolation: isolate;
+  touch-action: none;
+}
+
+.table-layout-canvas__item--resizable {
+  display: flex;
+}
+
+.table-layout-canvas__item--resizable .facility-placed-card,
+.table-layout-canvas__item--resizable .custom-facility-placed-card {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* 시각적으로는 작은 모서리 화살표(::after)만 보이지만, 실제 터치/클릭이 반응하는 히트 영역은
+   44px(터치 권장 최소 크기)로 더 넓게 잡는다 — 부모(.table-layout-canvas__item)에 overflow: hidden이
+   없어서 카드 경계 밖으로 살짝 넘쳐도 잘리지 않고 그대로 반응한다. */
+.table-layout-canvas__resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  /* 삭제 버튼(.facility-placed-card__remove, z-index: 2)과 겹치는 영역에서는 삭제 버튼이 우선 잡히게 한다. */
+  z-index: 1;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.table-layout-canvas__resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+  border-right: var(--border-2) solid var(--color-border-default);
+  border-bottom: var(--border-2) solid var(--color-border-default);
+}
+
+.table-layout-canvas__item--table-example {
+  top: var(--spacing-6);
+  left: var(--spacing-6);
+}
+
+.table-layout-canvas__item--facility-example {
+  top: var(--spacing-6);
+  left: 18rem;
+}
+
+.table-layout-canvas--small {
+  background-size: var(--spacing-6) var(--spacing-6);
+}
+
+.table-layout-canvas--medium {
+  background-size: var(--spacing-7) var(--spacing-7);
+}
+
+.table-layout-canvas--large {
+  background-size: var(--spacing-8) var(--spacing-8);
+}

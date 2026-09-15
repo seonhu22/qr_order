@@ -1,0 +1,32 @@
+/* 사장님 칸반 컬럼 숫자 라벨과 같은 색상. 결제/주문 수정 모달, 손님 주문내역 시트에서 공용으로 쓴다. */
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--spacing-2);
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-strong);
+  vertical-align: middle;
+}
+
+.order-status-badge--received {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-text);
+}
+
+.order-status-badge--cooking {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.order-status-badge--served {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-text);
+}
+
+.order-status-badge--cancelled {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-text);
+}

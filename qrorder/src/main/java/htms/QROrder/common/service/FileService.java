@@ -63,7 +63,9 @@ public class FileService {
                             String sysPlantCd,
                             String menuCd) {
 
-        List<FileIO> newItems = fileRequest.getNewItems();
+        List<FileIO> newItems = fileRequest.getNewItems().stream()
+                .filter(item -> item.getFile() != null && !item.getFile().isEmpty())
+                .collect(Collectors.toList());
         List<FileInfo> updateItems = fileRequest.getUpdateItems();
         List<FileInfo> delItems = fileRequest.getDelItems();
 
@@ -99,7 +101,7 @@ public class FileService {
                 .map(ioReq -> buildFileInfo(ioReq, convertedFiles))
                 .collect(Collectors.toList());
 
-        auditService.insertNewAuditTrailData(fileInfos, menuCd, "attach_file", userId, sysPlantCd);
+        //auditService.insertNewAuditTrailData(fileInfos, menuCd, "attach_file", userId, sysPlantCd);
         fileMapper.newFile(fileInfos, userId, sysPlantCd);
         fileIOService.IOInsertFile(newItems);
     }
@@ -146,7 +148,7 @@ public class FileService {
 
         List<FileInfo> oldData = fileMapper.getOldData(updateItems);
 
-        auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "attach_file", userId, sysPlantCd);
+        //auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "attach_file", userId, sysPlantCd);
         fileMapper.updateFile(updateItems, userId);
     }
 
@@ -157,7 +159,7 @@ public class FileService {
 
         List<String> ids = delItems.stream().map(FileInfo::getSysId).collect(Collectors.toList());
 
-        auditService.insertDeleteAuditTrailData(delItems, menuCd, "attach_file", userId, sysPlantCd);
+        //auditService.insertDeleteAuditTrailData(delItems, menuCd, "attach_file", userId, sysPlantCd);
         fileMapper.delFile(ids, userId);
         fileIOService.IODelFile(delItems);
     }
