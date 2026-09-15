@@ -10,8 +10,17 @@ import { useClientNavigationMenus } from '@/apps/client/hooks/useClientNavigatio
 import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 import { useMenuOpenAccessLog } from '@/shared/hooks/useMenuOpenAccessLog';
 import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
+import { useAuth } from '@/shared/auth/AuthContext';
+import { useClientEvents } from '@/apps/client/features/events/hooks/useClientEvents';
+import { useClientStaffCallNotifyStore } from '@/apps/client/stores/clientStaffCallNotifyStore';
 
 export function ClientLayout() {
+  const { isAuthenticated } = useAuth();
+  useClientEvents(isAuthenticated);
+  const unreadStaffCalls = useClientStaffCallNotifyStore((state) => state.unreadCount);
+  const latestStaffCall = useClientStaffCallNotifyStore((state) => state.latest);
+  const markStaffCallsRead = useClientStaffCallNotifyStore((state) => state.markRead);
+  const dismissStaffCall = useClientStaffCallNotifyStore((state) => state.dismiss);
   const location = useLocation();
   const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
     useGuardedNavigate();
@@ -70,6 +79,8 @@ export function ClientLayout() {
             onSectionChange={handleSectionChange}
             onToggleSidebar={toggleSidebar}
             onHomeClick={handleHomeClick}
+            unreadStaffCalls={unreadStaffCalls}
+            onStaffCallsRead={markStaffCallsRead}
           />
         </header>
         <main className="client-layout__main">
@@ -99,6 +110,13 @@ export function ClientLayout() {
         }}
         secondaryAction={{ onClick: cancelPendingLeaveAction }}
       />
+      {latestStaffCall && (
+        <div className="client-layout__staff-call-toast" role="status">
+          <strong>{latestStaffCall.tableName} 직원호출</strong>
+          <span>{latestStaffCall.items.map((item) => `${item.callName}${item.quantity > 1 ? ` ${item.quantity}개` : ''}`).join(', ')}</span>
+          <button type="button" onClick={dismissStaffCall} aria-label="직원호출 알림 닫기">×</button>
+        </div>
+      )}
     </div>
   );
 }

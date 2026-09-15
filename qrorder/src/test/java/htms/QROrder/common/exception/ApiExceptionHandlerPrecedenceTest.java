@@ -11,6 +11,7 @@ import htms.QROrder.consumer.order.controller.ConsumerOrderController;
 import htms.QROrder.consumer.order.exception.ConsumerOrderIdempotencyException;
 import htms.QROrder.consumer.order.service.ConsumerOrderCreationService;
 import htms.QROrder.consumer.order.service.ConsumerOrderQueryService;
+import htms.QROrder.consumer.order.service.ConsumerStaffCallService;
 import htms.QROrder.consumer.session.dto.ConsumerSessionBinding;
 import htms.QROrder.qr.dto.QrConnectResponse;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,8 @@ class ApiExceptionHandlerPrecedenceTest {
     void preservesCodedIdempotencyConflictWithAuditAdvicePresent() throws Exception {
         ConsumerOrderCreationService creationService = mock(ConsumerOrderCreationService.class);
         ConsumerOrderController controller = new ConsumerOrderController(
-                creationService, mock(ConsumerOrderQueryService.class));
+                creationService, mock(ConsumerOrderQueryService.class),
+                mock(ConsumerStaffCallService.class));
         when(creationService.createOrder(any(), any(), any()))
                 .thenThrow(new ConsumerOrderIdempotencyException(
                         ConsumerOrderIdempotencyException.PAYLOAD_MISMATCH,

@@ -1,99 +1,81 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useConsumerStaffCallStore } from '@/apps/consumer/stores/consumerStaffCallStore';
-import { callStaffStub } from '../api/staffCallApi';
-import { STAFF_CALL_ITEMS } from '../mock/staffCallItems';
+import { callStaff, fetchStaffCallSettings } from '../api/staffCallApi';
 
-/**
- * 직원호출 시트의 항목별 on/off·수량·범용 호출 토글 상태를 소유한다. 참고 저장소의
- * `StaffCallSheet` 로컬 state와 동일한 계약이며, 시트가 닫혔다 다시 열리면 컴포넌트가 새로
- * 마운트되어 초기화된다 — 별도의 리셋 로직이 필요 없다.
- *
- * on/off 진실값은 `activeIds`가 갖는다 — `showQty: false` 아이템은 수량 개념이 없어
- * `itemQty`만으로는 on 상태를 표현할 수 없기 때문이다(ADR-033).
- */
 export function useStaffCall() {
   const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
   const [itemQty, setItemQty] = useState<Record<string, number>>({});
-  const [staffToggle, setStaffToggle] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const notifyCalled = useConsumerStaffCallStore((state) => state.notifyCalled);
+  const settingsQuery = useQuery({
+    queryKey: ['consumer', 'staff-call-settings'],
+    queryFn: ({ signal }) => fetchStaffCallSettings(signal),
+    staleTime: 60_000,
+  });
+  const items = (settingsQuery.data ?? []).map((setting) => ({
+    id: setting.callCd,
+    label: setting.callNm,
+    showQty: setting.singleYn !== 'Y',
+  }));
 
-  /** 칩 클릭 — 모든 아이템 공통 on/off 토글. showQty 아이템만 수량을 같이 켜고/끈다. */
   function toggleItem(id: string, showQty: boolean) {
-    setActiveIds((prev) => {
-      const next = new Set(prev);
+    setSubmitError(null);
+    setActiveIds((previous) => {
+      const next = new Set(previous);
       if (next.has(id)) {
         next.delete(id);
-        if (showQty) {
-          setItemQty((qtyPrev) => {
-            const { [id]: _removed, ...rest } = qtyPrev;
-            return rest;
-          });
-        }
+        if (showQty) setItemQty(({ [id]: _removed, ...rest }) => rest);
       } else {
         next.add(id);
-        if (showQty) {
-          setItemQty((qtyPrev) => ({ ...qtyPrev, [id]: 1 }));
-        }
+        if (showQty) setItemQty((quantity) => ({ ...quantity, [id]: 1 }));
       }
       return next;
     });
   }
 
-  /** 리스트 내부 수량 조절(showQty 아이템 전용) — 0 이하로 내려가면 칩도 같이 off된다. */
   function changeQty(id: string, delta: number) {
-    setItemQty((prev) => {
-      const next = (prev[id] ?? 1) + delta;
+    setItemQty((previous) => {
+      const next = (previous[id] ?? 1) + delta;
       if (next <= 0) {
-        setActiveIds((idsPrev) => {
-          const nextIds = new Set(idsPrev);
-          nextIds.delete(id);
-          return nextIds;
-        });
-        const { [id]: _removed, ...rest } = prev;
+        setActiveIds((ids) => new Set([...ids].filter((value) => value !== id)));
+        const { [id]: _removed, ...rest } = previous;
         return rest;
       }
-      return { ...prev, [id]: next };
+      return { ...previous, [id]: Math.min(next, 99) };
     });
   }
 
-  function toggleStaffCall() {
-    setStaffToggle((prev) => !prev);
-  }
+  const activeItems = items.filter((item) => activeIds.has(item.id));
+  const hasAny = activeItems.length > 0;
+  const buildSummary = () => activeItems.map((item) => {
+    const quantity = itemQty[item.id] ?? 1;
+    return item.showQty && quantity > 1 ? `${item.label} ${quantity}개` : item.label;
+  }).join(', ');
 
-  const activeItems = STAFF_CALL_ITEMS.filter((item) => activeIds.has(item.id));
-  const hasAny = activeItems.length > 0 || staffToggle;
-
-  /** "직원호출, 소스추가"처럼 토글·항목을 하나의 요약 문자열로 합친다. showQty 아이템만 수량을 붙인다. */
-  function buildSummary() {
-    const parts: string[] = [];
-    if (staffToggle) parts.push('직원호출');
-    activeItems.forEach((item) => {
-      if (item.showQty) {
-        const qty = itemQty[item.id] ?? 1;
-        parts.push(qty > 1 ? `${item.label} ${qty}개` : item.label);
-      } else {
-        parts.push(item.label);
-      }
-    });
-    return parts.join(', ');
-  }
-
-  function confirmCall() {
+  async function confirmCall() {
     const summary = buildSummary();
-    void callStaffStub(summary);
-    notifyCalled(summary);
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      await callStaff(activeItems.map((item) => ({
+        callCd: item.id,
+        quantity: itemQty[item.id] ?? 1,
+      })));
+      notifyCalled(summary);
+      return true;
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '직원 호출에 실패했습니다.');
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return {
-    items: STAFF_CALL_ITEMS,
-    activeIds,
-    itemQty,
-    staffToggle,
-    activeItems,
-    hasAny,
-    toggleItem,
-    changeQty,
-    toggleStaffCall,
-    confirmCall,
+    items, activeIds, itemQty, activeItems, hasAny, isSubmitting, submitError,
+    isLoading: settingsQuery.isLoading, loadError: settingsQuery.error,
+    toggleItem, changeQty, confirmCall,
   };
 }

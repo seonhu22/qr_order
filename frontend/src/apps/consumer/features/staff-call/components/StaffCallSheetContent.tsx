@@ -23,18 +23,19 @@ export function StaffCallSheetContent({ onClose }: StaffCallSheetContentProps) {
     items,
     activeIds,
     itemQty,
-    staffToggle,
     activeItems,
     hasAny,
     toggleItem,
     changeQty,
-    toggleStaffCall,
     confirmCall,
+    isSubmitting,
+    submitError,
+    isLoading,
+    loadError,
   } = useStaffCall();
 
-  function handleConfirm() {
-    confirmCall();
-    onClose();
+  async function handleConfirm() {
+    if (await confirmCall()) onClose();
   }
 
   return (
@@ -42,19 +43,11 @@ export function StaffCallSheetContent({ onClose }: StaffCallSheetContentProps) {
       <div className="staff-call-sheet__header">
         <ConsumerIcon id="ci-bell" size={16} />
         <span className="staff-call-sheet__header-title">직원호출</span>
-        <button
-          type="button"
-          className={`staff-call-sheet__toggle${staffToggle ? ' staff-call-sheet__toggle--on' : ''}`}
-          onClick={toggleStaffCall}
-          aria-pressed={staffToggle}
-        >
-          <ConsumerIcon id="ci-bell" size={11} />
-          직원호출
-          <span className="staff-call-sheet__toggle-dot" aria-hidden="true" />
-        </button>
       </div>
 
       <div className="staff-call-sheet__scroll-area">
+        {isLoading && <p role="status">호출 항목을 불러오는 중입니다.</p>}
+        {loadError && <p role="alert">호출 항목을 불러오지 못했습니다.</p>}
         {activeItems.length > 0 && (
           <ul className="staff-call-sheet__selected-list">
             {activeItems.map((item) => {
@@ -122,11 +115,12 @@ export function StaffCallSheetContent({ onClose }: StaffCallSheetContentProps) {
         variant="primary"
         size="lg"
         className="order-shell-sheet__action"
-        disabled={!hasAny}
+        disabled={!hasAny || isSubmitting}
         onClick={handleConfirm}
       >
-        호출하기
+        {isSubmitting ? '호출 중...' : '호출하기'}
       </Button>
+      {submitError && <p role="alert">{submitError}</p>}
     </div>
   );
 }

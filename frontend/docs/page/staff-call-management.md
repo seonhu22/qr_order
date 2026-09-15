@@ -41,3 +41,11 @@ dirty일 때 조회·초기화는 `useFilterDirtyCheck` + `ConfirmModal`을 거�
 ## 메뉴 등록 시 주의
 
 Client 사이드바에 새 메뉴를 추가하려면 `shared/menu/clientNavigation.ts`의 `CLIENT_MENUS_BY_SECTION`(fallback)뿐 아니라 **`src/mocks/handlers.ts`의 메뉴 카탈로그 mock 데이터도 같이 추가해야 실제 화면에 나타난다** — 자세한 이유는 ADR-035 참고.
+
+## Consumer 호출/Client 알림 연동
+
+- Consumer 항목의 원본은 `consumer_staff_call_setting`이다. `use_yn`/`ord_no`가 없으므로 모든 행을 노출하고 `insert_datetime`, `sys_id` 순으로 정렬한다.
+- Consumer는 설정의 `callCd`와 수량 배열을 POST 한 번으로 보낸다. 서버는 현재 QR 방문이 활성 상태인지와 각 코드가 해당 매장 설정인지 확인한 뒤 한 트랜잭션으로 저장한다.
+- 저장 커밋 뒤 `STAFF_CALLED`를 한 번 발행한다. payload는 `tableSysId`, `tableName`, `items(callCd/callName/quantity)`, `calledAt`이다.
+- Client는 로그인 세션의 `sysPlantCd`로 정한 `/api/sse/client/subscribe`만 구독한다. 브라우저가 매장 코드를 URL로 선택하지 못한다.
+- 배지/최근 토스트는 메모리 상태라 새로고침하면 초기화된다. 재연결은 최선 노력 방식이며 현재 DDL에 이벤트 ID/호출 묶음 ID가 없어 끊긴 동안의 replay는 보장하지 않는다.

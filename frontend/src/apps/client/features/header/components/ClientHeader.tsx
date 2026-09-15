@@ -9,6 +9,8 @@ type ClientHeaderProps = {
   onSectionChange: (section: ClientSection) => void;
   onToggleSidebar: () => void;
   onHomeClick: () => void;
+  unreadStaffCalls: number;
+  onStaffCallsRead: () => void;
 };
 
 export function ClientHeader({
@@ -18,6 +20,8 @@ export function ClientHeader({
   onSectionChange,
   onToggleSidebar,
   onHomeClick,
+  unreadStaffCalls,
+  onStaffCallsRead,
 }: ClientHeaderProps) {
   return (
     <div className="client-header">
@@ -57,6 +61,11 @@ export function ClientHeader({
           </button>
         ))}
       </nav>
+      <button type="button" className="client-header__staff-call" onClick={onStaffCallsRead}
+        aria-label={`미확인 직원호출 ${unreadStaffCalls}건`}>
+        <Icon id="i-bell" size={18} />
+        {unreadStaffCalls > 0 && <span>{unreadStaffCalls > 99 ? '99+' : unreadStaffCalls}</span>}
+      </button>
     </div>
   );
 }

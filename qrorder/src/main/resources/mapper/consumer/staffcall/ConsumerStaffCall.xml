@@ -5,14 +5,14 @@
 
     <select id="getConsumerStaffCall" resultType="htms.QROrder.consumer.order.dto.ConsumerStaffCallResponse">
         select
-            csc.sys_id ,
-            csc.call_cd ,
-            null as call_nm ,
-            csc.description ,
-            csc.read_yn
-        from consumer_staff_call csc
-        where 1=1
-        and csc.sys_plant_cd = #{sysPlantCd}
+            setting.sys_id,
+            setting.call_cd,
+            setting.call_nm,
+            setting.single_yn,
+            setting.description
+        from consumer_staff_call_setting setting
+        where setting.sys_plant_cd = #{sysPlantCd}
+        order by setting.insert_datetime asc, setting.sys_id asc
     </select>
 
     <insert id="saveConsumerStaffCall">
@@ -24,9 +24,9 @@
             insert_datetime,
             sys_plant_cd
         ) values (
-            #{consumerStaffCall.sysId},
-            #{consumerStaffCall.callCd},
-            #{consumerStaffCall.description},
+            #{sysId},
+            #{callCd},
+            #{description},
             'N',
             now(),
             #{sysPlantCd}
