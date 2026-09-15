@@ -95,10 +95,11 @@ export function calculateMenuItemTotal(menu: OrderBoardMenuItem): number {
   return menu.unitPrice * menu.quantity + optionsTotal;
 }
 
-/** 서버 총액을 우선 사용한다. 아직 저장되지 않은 주문 수정 draft만 화면 항목으로 계산한다. */
+/** 서버 총액을 우선하되, 0원 응답과 양수 항목이 충돌하면 카드에 표시한 항목 합계를 사용한다. */
 export function calculateOrderTotal(row: Pick<OrderBoardRow, 'totalPrice' | 'menuItems'>): number {
-  return row.totalPrice
-    ?? row.menuItems.reduce((sum, menu) => sum + calculateMenuItemTotal(menu), 0);
+  const itemsTotal = row.menuItems.reduce((sum, menu) => sum + calculateMenuItemTotal(menu), 0);
+  if (row.totalPrice === undefined || (row.totalPrice === 0 && itemsTotal > 0)) return itemsTotal;
+  return row.totalPrice;
 }
 
 /** 메뉴 추가 모달에서 카탈로그를 카테고리별로 묶어 보여줄 때 쓴다(처음 등장한 순서를 그대로 유지). */

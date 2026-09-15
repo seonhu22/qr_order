@@ -4,6 +4,7 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { createConsumerEventSource } from '../api/consumerEventSource';
 
 const DISCONNECTED_POLL_INTERVAL_MS = 5_000;
+const SSE_RECONNECT_INTERVAL_MS = 3_000;
 
 /**
  * SSE는 변경 신호만 받고, 실제 데이터는 기존 HTTP API로 다시 조회한다.
@@ -17,6 +18,7 @@ export function useConsumerEvents(sessionId: string, active: boolean) {
 
     let eventSource: EventSource | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
 
     const invalidateOrders = () => {
@@ -41,21 +43,47 @@ export function useConsumerEvents(sessionId: string, active: boolean) {
       pollTimer = setInterval(invalidateSessionAndOrders, DISCONNECTED_POLL_INTERVAL_MS);
     };
 
-    try {
-      eventSource = createConsumerEventSource();
-      eventSource.addEventListener('ORDER_CREATED', invalidateOrders);
-      eventSource.addEventListener('STATUS_CHANGED', invalidateOrders);
-      eventSource.addEventListener('VISIT_CLOSED', invalidateSessionAndOrders);
-      eventSource.onopen = stopPolling;
-      eventSource.onerror = startPolling;
-    } catch {
-      // EventSource를 만들 수 없는 환경에서도 HTTP 폴링으로 조회 기능을 유지한다.
-      startPolling();
-    }
+    const scheduleReconnect = () => {
+      if (disposed || reconnectTimer !== null) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, SSE_RECONNECT_INTERVAL_MS);
+    };
+
+    const connect = () => {
+      if (disposed) return;
+
+      try {
+        const source = createConsumerEventSource();
+        eventSource = source;
+        source.addEventListener('ORDER_CREATED', invalidateOrders);
+        source.addEventListener('STATUS_CHANGED', invalidateOrders);
+        source.addEventListener('VISIT_CLOSED', invalidateSessionAndOrders);
+        source.onopen = () => {
+          if (disposed || eventSource !== source) return;
+          stopPolling();
+        };
+        source.onerror = () => {
+          if (disposed || eventSource !== source) return;
+          startPolling();
+          source.close();
+          eventSource = null;
+          scheduleReconnect();
+        };
+      } catch {
+        // EventSource를 만들 수 없는 동안에도 조회를 유지하고 명시적으로 재연결한다.
+        startPolling();
+        scheduleReconnect();
+      }
+    };
+
+    connect();
 
     return () => {
       disposed = true;
       stopPolling();
+      if (reconnectTimer !== null) clearTimeout(reconnectTimer);
       eventSource?.close();
     };
   }, [active, queryClient, sessionId]);
