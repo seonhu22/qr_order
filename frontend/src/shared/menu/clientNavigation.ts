@@ -71,6 +71,11 @@ export const CLIENT_MENUS_BY_SECTION: Record<ClientSection, SidebarNavDepth1[]> 
           items: [
             { key: 'MNU_INFO_MNG', label: '메뉴 관리', path: '/client/menu/info/management' },
             { key: 'MNU_INFO_OPT', label: '옵션 관리', path: '/client/menu/info/option' },
+            {
+              key: 'MNU_INFO_STAFF_CALL',
+              label: '직원호출 관리',
+              path: '/client/menu/info/staff-call',
+            },
           ],
         },
       ],
