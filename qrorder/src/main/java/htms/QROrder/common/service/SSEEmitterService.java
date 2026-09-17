@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -21,15 +22,31 @@ public class SSEEmitterService {
     private final Map<String, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter subscribe(String channelId) {
-        return subscribe(channelId, new SseEmitter(EMITTER_TIMEOUT_MILLIS));
+        return subscribe(channelId, new SseEmitter(EMITTER_TIMEOUT_MILLIS), () -> {});
     }
 
     SseEmitter subscribe(String channelId, SseEmitter emitter) {
+        return subscribe(channelId, emitter, () -> {});
+    }
+
+    public SseEmitter subscribe(String channelId, Runnable onDisconnect) {
+        return subscribe(channelId, new SseEmitter(EMITTER_TIMEOUT_MILLIS), onDisconnect);
+    }
+
+    SseEmitter subscribe(String channelId, SseEmitter emitter, Runnable onDisconnect) {
         emitters.computeIfAbsent(channelId, key -> new CopyOnWriteArrayList<>()).add(emitter);
 
-        emitter.onCompletion(() -> remove(channelId, emitter));
-        emitter.onTimeout(() -> remove(channelId, emitter));
-        emitter.onError(e -> remove(channelId, emitter));
+        AtomicBoolean cleanedUp = new AtomicBoolean();
+        Runnable cleanup = () -> {
+            if (cleanedUp.compareAndSet(false, true)) {
+                remove(channelId, emitter);
+                onDisconnect.run();
+            }
+        };
+
+        emitter.onCompletion(cleanup);
+        emitter.onTimeout(cleanup);
+        emitter.onError(e -> cleanup.run());
 
         try {
             emitter.send(SseEmitter.event()
@@ -38,7 +55,7 @@ public class SSEEmitterService {
                     .data(""));
         }
         catch (IOException | IllegalStateException e) {
-            remove(channelId, emitter);
+            cleanup.run();
         }
 
         return emitter;
