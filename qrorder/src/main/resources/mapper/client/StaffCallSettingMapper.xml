@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.StaffCallSettingMapper">
+    <select id="findAll" resultType="htms.QROrder.client.dto.StaffCallSettingItem">
+        select sys_id, call_cd, call_nm, single_yn, description
+        from consumer_staff_call_setting
+        where sys_plant_cd = #{sysPlantCd}
+        order by insert_datetime asc, sys_id asc
+    </select>
+
+    <select id="existsCommonCode" resultType="boolean">
+        select count(*) > 0
+        from sys_common_detail detail
+        join sys_common_master master on master.sys_id = detail.link_sys_id
+        where master.common_cd = 'STAFF_CALL_TYPE'
+          and master.delete_yn = 'N'
+          and master.use_yn = 'Y'
+          and detail.common_cd = #{callCd}
+          and detail.delete_yn = 'N'
+          and detail.use_yn = 'Y'
+    </select>
+
+    <select id="existsByCallCd" resultType="boolean">
+        select count(*) > 0
+        from consumer_staff_call_setting
+        where sys_plant_cd = #{sysPlantCd}
+          and call_cd = #{callCd}
+        <if test="excludeSysId != null and excludeSysId != ''">
+          and sys_id != #{excludeSysId}
+        </if>
+    </select>
+
+    <select id="belongsToPlant" resultType="boolean">
+        select count(*) > 0
+        from consumer_staff_call_setting
+        where sys_plant_cd = #{sysPlantCd} and sys_id = #{sysId}
+    </select>
+
+    <insert id="insert">
+        insert into consumer_staff_call_setting
+            (sys_id, call_cd, call_nm, single_yn, description, insert_datetime, sys_plant_cd)
+        values
+            (#{item.sysId}, #{item.callCd}, #{item.callNm}, #{item.singleYn},
+             #{item.description}, now(), #{sysPlantCd})
+    </insert>
+
+    <update id="update">
+        update consumer_staff_call_setting
+        set call_cd = #{item.callCd}, call_nm = #{item.callNm},
+            single_yn = #{item.singleYn}, description = #{item.description}
+        where sys_id = #{item.sysId} and sys_plant_cd = #{sysPlantCd}
+    </update>
+
+    <delete id="delete">
+        delete from consumer_staff_call_setting
+        where sys_id = #{sysId} and sys_plant_cd = #{sysPlantCd}
+    </delete>
+</mapper>

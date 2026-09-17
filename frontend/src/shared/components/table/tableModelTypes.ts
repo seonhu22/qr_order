@@ -54,6 +54,7 @@ export type SelectCellModel = {
   className?: string;
   isError?: boolean;
   searchable?: boolean;
+  disabled?: boolean;
   onChange: (value: string) => void;
 };
 

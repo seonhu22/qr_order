@@ -2,20 +2,24 @@
  * @fileoverview 직원호출 관리 페이지 상태 조합 훅
  *
  * @description
- * - 마스터/디테일 선택 구조가 아니라 매장당 하나뿐인 평평한 목록이라, 서버 조회·마스터 선택
- *   로직 없이 mock 배열 하나(rows)만 편집한다 — 배경은 ADR 참고.
+ * - 마스터/디테일 선택 구조가 아니라 매장당 하나뿐인 평평한 목록이며, 로그인 매장의 설정을
+ *   조회해 편집 가능한 draft로 관리한다.
  * - 조회는 클라이언트 필터일 뿐이지만, 편집 중(행추가·입력) 상태에서 필터를 바꾸면 그 행이
  *   화면에서 사라져 보일 수 있고 초기화는 편집 내용 자체를 되돌리므로, menu-option과 동일하게
  *   `useFilterDirtyCheck`로 조회/초기화 전에 확인을 받는다.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDetailTableSaveFlow } from '@/shared/hooks/useDetailTableSaveFlow';
 import { useFilterDirtyCheck } from '@/shared/hooks/useFilterDirtyCheck';
 import { useOrderedRowEditor } from '@/shared/hooks/useOrderedRowEditor';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
-import { STAFF_CALL_MANAGEMENT_MOCK } from '../mock/staffCallManagementMock';
-import { saveStaffCallItemsStub } from '../api/staffCallManagementApi';
+import {
+  buildStaffCallSettingRequest,
+  mapStaffCallSetting,
+  useSaveStaffCallSettingsMutation,
+  useStaffCallSettingsQuery,
+} from '../api/staffCallManagementApi';
 import type { StaffCallItemRow } from '../types';
 
 /** 상세 테이블이 "마스터 선택됨" 상태로 항상 보이게 하는 용도의 고정 값 — 실제로 선택할 대상이 없다. */
@@ -27,10 +31,19 @@ function cloneRows(rows: StaffCallItemRow[]) {
 
 export function useStaffCallManagementPage() {
   const orderedRowEditor = useOrderedRowEditor<StaffCallItemRow>();
-  const [baseRows, setBaseRows] = useState<StaffCallItemRow[]>(() =>
-    cloneRows(STAFF_CALL_MANAGEMENT_MOCK),
-  );
-  const [rows, setRows] = useState<StaffCallItemRow[]>(baseRows);
+  const settingsQuery = useStaffCallSettingsQuery();
+  const saveMutation = useSaveStaffCallSettingsMutation();
+  const [baseRows, setBaseRows] = useState<StaffCallItemRow[]>([]);
+  const [rows, setRows] = useState<StaffCallItemRow[]>([]);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- 서버 목록을 편집 가능한 draft 상태로 동기화한다. */
+  useEffect(() => {
+    if (!settingsQuery.data) return;
+    const nextRows = settingsQuery.data.map(mapStaffCallSetting);
+    setBaseRows(cloneRows(nextRows));
+    setRows(cloneRows(nextRows));
+  }, [settingsQuery.data]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const [draftKeyword, setDraftKeyword] = useState('');
   const [appliedKeyword, setAppliedKeyword] = useState('');
@@ -106,17 +119,20 @@ export function useStaffCallManagementPage() {
   const saveRows = async () => {
     if (!isDirty) return false;
 
-    await saveStaffCallItemsStub(rows);
-    setBaseRows(cloneRows(rows));
+    await saveMutation.mutateAsync(buildStaffCallSettingRequest(rows, baseRows));
+    await settingsQuery.refetch();
 
     return true;
   };
 
   const analyzeCallNames = () => {
     const nameCounts = new Map<string, number>();
+    const codeCounts = new Map<string, number>();
     rows.forEach((row) => {
       const trimmed = row.callNm.trim();
       if (trimmed) nameCounts.set(trimmed, (nameCounts.get(trimmed) ?? 0) + 1);
+      const callCd = row.callCd.trim();
+      if (callCd) codeCounts.set(callCd, (codeCounts.get(callCd) ?? 0) + 1);
     });
 
     let hasEmpty = false;
@@ -124,12 +140,14 @@ export function useStaffCallManagementPage() {
     const rowErrors = Object.fromEntries(
       rows.map((row) => {
         const trimmed = row.callNm.trim();
-        const isEmpty = !trimmed;
-        const isDuplicate = !isEmpty && (nameCounts.get(trimmed) ?? 0) > 1;
+        const callCd = row.callCd.trim();
+        const isEmpty = !trimmed || !callCd;
+        const isDuplicate = (!isEmpty && (nameCounts.get(trimmed) ?? 0) > 1)
+          || (!!callCd && (codeCounts.get(callCd) ?? 0) > 1);
         if (isEmpty) hasEmpty = true;
         if (isDuplicate) hasDuplicate = true;
 
-        return [row.id, { callNm: isEmpty || isDuplicate }];
+        return [row.id, { callCd: !callCd || isDuplicate, callNm: !trimmed || isDuplicate }];
       }),
     );
 
@@ -162,7 +180,8 @@ export function useStaffCallManagementPage() {
       emptyRowsText,
     },
     status: {
-      isSaving: false,
+      isLoading: settingsQuery.isLoading,
+      isSaving: saveMutation.isPending,
     },
     uiProps: {
       draftKeyword,

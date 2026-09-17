@@ -5,6 +5,7 @@ import { SINGLE_YN_OPTIONS, USE_YN_OPTIONS } from '../api/staffCallManagementApi
 import type { StaffCallItemRow } from '../types';
 
 const STAFF_CALL_COLUMNS: EditableDetailColumn[] = [
+  { key: 'callCd', label: '호출코드', type: 'text', required: true, readOnlyOnExisting: true },
   { key: 'callNm', label: '호출명', type: 'text', required: true },
   { key: 'description', label: '설명', type: 'text' },
   {
@@ -20,11 +21,13 @@ const STAFF_CALL_COLUMNS: EditableDetailColumn[] = [
     type: 'select',
     className: 'common-table__col--md',
     options: USE_YN_OPTIONS,
+    disabled: true,
   },
 ];
 
 type StaffCallManagementTableProps = {
   masterId: string;
+  isLoading: boolean;
   isSaving: boolean;
   rows: StaffCallItemRow[];
   emptyRowsText: string;
@@ -44,6 +47,7 @@ function mapToEditableRows(rows: StaffCallItemRow[]): EditableDetailRow[] {
     ordNo: row.ordNo,
     isNew: row.isNew,
     values: {
+      callCd: row.callCd,
       callNm: row.callNm,
       singleYn: row.singleYn,
       description: row.description,
@@ -58,6 +62,7 @@ function mapToEditableRows(rows: StaffCallItemRow[]): EditableDetailRow[] {
  */
 export function StaffCallManagementTable({
   masterId,
+  isLoading,
   isSaving,
   rows,
   emptyRowsText,
@@ -78,7 +83,7 @@ export function StaffCallManagementTable({
         ariaLabel: '직원호출 항목',
         tableAriaLabel: '직원호출 항목 테이블',
         guideText:
-          "※ 사용여부가 '사용'인 항목만 고객 오더 화면 직원호출 칩에 노출되며, 선택방식이 다건이면 해당 항목을 여러 번(수량) 호출할 수 있고, 단건이면 한 번만 호출할 수 있습니다.",
+          '※ 등록된 항목은 모두 고객 화면에 노출됩니다. 사용여부와 순서 변경은 준비 중이며, 항목은 최초 등록순으로 표시됩니다.',
         emptyRowsText,
       }}
       statusText={{
@@ -91,7 +96,7 @@ export function StaffCallManagementTable({
         rowErrors,
       }}
       status={{
-        isLoading: false,
+        isLoading,
         isSaving,
       }}
       getInputAriaLabel={(row, column) => {
@@ -103,6 +108,7 @@ export function StaffCallManagementTable({
         return `${name} ${column.label}`;
       }}
       actions={{
+        showMoveActions: false,
         onChangeValue,
         onClearRowError,
         onAddRow,

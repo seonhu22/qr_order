@@ -42,6 +42,8 @@ describe('useClientEvents', () => {
     vi.useFakeTimers();
     MockEventSource.instances = [];
     vi.stubGlobal('EventSource', MockEventSource);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.spyOn(Math, 'random').mockReturnValue(0);
     useClientStaffCallNotifyStore.setState({ unreadCount: 0, latest: null });
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   });
@@ -74,13 +76,13 @@ describe('useClientEvents', () => {
     expect(useClientStaffCallNotifyStore.getState()).toMatchObject({ unreadCount: 1, latest: event });
   });
 
-  it('오류 후 한 번만 재연결하고 unmount 시 타이머와 이전 stream을 정리한다', () => {
+  it('오류 후 한 번만 재연결하고 unmount 시 타이머와 이전 stream을 정리한다', async () => {
     const { unmount } = renderHook(() => useClientEvents(true), { wrapper });
     const first = MockEventSource.instances[0];
 
-    act(() => first.onerror?.(new Event('error')));
+    await act(async () => first.onerror?.(new Event('error')));
     expect(first.close).toHaveBeenCalledOnce();
-    act(() => vi.advanceTimersByTime(3_000));
+    await act(async () => vi.advanceTimersByTime(3_000));
     expect(MockEventSource.instances).toHaveLength(2);
 
     unmount();
@@ -132,6 +134,9 @@ describe('useClientEvents', () => {
     act(() => source.emit('STAFF_CALLED', JSON.stringify(event)));
 
     expect(useClientStaffCallNotifyStore.getState()).toMatchObject({ unreadCount: 1, latest: event });
-    expect(invalidateSpy).toHaveBeenCalledOnce();
+    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenLastCalledWith({
+      queryKey: queryKeys.staffCallNotifications.unread,
+    });
   });
 });

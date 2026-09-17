@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.StaffCallNotificationMapper">
+    <select id="findUnread" resultType="htms.QROrder.client.dto.StaffCallNotificationItem">
+        select call.sys_id,
+               call.call_cd,
+               coalesce(setting.call_nm, call.call_cd) as call_nm,
+               call.description,
+               call.insert_datetime
+        from consumer_staff_call call
+        left join consumer_staff_call_setting setting
+          on setting.sys_plant_cd = call.sys_plant_cd
+         and setting.call_cd = call.call_cd
+        where call.sys_plant_cd = #{sysPlantCd}
+          and call.read_yn = 'N'
+        order by call.insert_datetime asc, call.sys_id asc
+    </select>
+
+    <update id="markAllRead">
+        update consumer_staff_call
+        set read_yn = 'Y'
+        where sys_plant_cd = #{sysPlantCd}
+          and read_yn = 'N'
+    </update>
+</mapper>

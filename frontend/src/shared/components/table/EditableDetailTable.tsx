@@ -189,6 +189,7 @@ export function EditableDetailTable<
               options: column.options ?? [],
               placeholder: column.placeholder,
               isError: Boolean(rowErrors[row.id]?.[column.key]),
+              disabled: column.disabled,
               onChange: (nextValue: string) => onChangeValue(row.id, column.key, nextValue),
             },
           ];

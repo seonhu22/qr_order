@@ -17,6 +17,7 @@ type ClientStaffCallNotifyStore = {
   unreadCount: number;
   latest: ClientStaffCallEvent | null;
   receive: (event: ClientStaffCallEvent) => void;
+  syncUnreadCount: (count: number) => void;
   markRead: () => void;
   dismiss: () => void;
 };
@@ -28,6 +29,7 @@ export const useClientStaffCallNotifyStore = create<ClientStaffCallNotifyStore>(
     unreadCount: state.unreadCount + 1,
     latest: event,
   })),
+  syncUnreadCount: (count) => set({ unreadCount: count }),
   markRead: () => set({ unreadCount: 0 }),
   dismiss: () => set({ latest: null }),
 }));
