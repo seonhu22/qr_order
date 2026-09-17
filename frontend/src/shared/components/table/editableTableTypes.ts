@@ -34,6 +34,7 @@ export type EditableDetailColumn = {
   options?: SelectOption[];
   /** type: 'select'일 때 미선택 상태에 보일 placeholder. */
   placeholder?: string;
+  disabled?: boolean;
 };
 
 /**

@@ -3,7 +3,7 @@
  *
  * @description
  * - 실제 DB 컬럼(sys_id, call_cd, call_nm, single_yn, description, sys_plant_cd)에 맞춰
- *   필드명을 정했다 — 아직 API가 없어 mock이지만, 나중에 API가 붙을 때 타입을 그대로 재사용하기 위함.
+ *   필드명을 정했다.
  * - useYn(사용여부)과 ordNo(표시 순서)는 DB에 대응 컬럼이 없는 화면 전용(mock) 필드다.
  */
 
@@ -12,7 +12,7 @@ export type StaffCallSelectionType = '단건' | '다건';
 
 export type StaffCallItemRow = {
   id: string;
-  /** DB: call_cd. 아직 공통코드 연동 전이라 신규 행은 빈 문자열로 둔다. */
+  /** DB: call_cd. 신규 행에는 STAFF_CALL_TYPE에 등록된 코드를 입력한다. */
   callCd: string;
   /** DB: call_nm — 호출명 */
   callNm: string;

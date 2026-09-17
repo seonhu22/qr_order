@@ -31,6 +31,7 @@ export function StaffCallManagementPage() {
 
         <StaffCallManagementTable
           masterId={master.id}
+          isLoading={status.isLoading}
           isSaving={status.isSaving}
           rows={data.rows}
           emptyRowsText={data.emptyRowsText}

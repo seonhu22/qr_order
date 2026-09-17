@@ -90,6 +90,7 @@ const cellRenderers: CellRendererMap = {
       className={cell.className}
       isError={cell.isError}
       searchable={cell.searchable}
+      disabled={cell.disabled}
       onChange={cell.onChange}
     />
   ),

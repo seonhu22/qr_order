@@ -43,6 +43,7 @@ type TableCellSelectProps = {
   className?: string;
   isError?: boolean;
   searchable?: boolean;
+  disabled?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -154,12 +155,14 @@ export function TableCellSelect({
   className = 'common-table__select',
   isError = false,
   searchable = false,
+  disabled = false,
   onChange,
 }: TableCellSelectProps) {
   return (
     <SelectInput
       size="sm"
       searchable={searchable}
+      disabled={disabled}
       options={options}
       value={value}
       placeholder={placeholder}
