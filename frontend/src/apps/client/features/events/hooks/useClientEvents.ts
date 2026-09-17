@@ -27,7 +27,10 @@ export function useClientEvents(active: boolean) {
       }
       source.addEventListener('STAFF_CALLED', (event) => {
         if (disposed) return;
-        try { receive(JSON.parse((event as MessageEvent<string>).data) as ClientStaffCallEvent); }
+        try {
+          receive(JSON.parse((event as MessageEvent<string>).data) as ClientStaffCallEvent);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.staffCallNotifications.unread });
+        }
         catch { /* 잘못된 이벤트 하나는 다음 이벤트 수신을 막지 않는다. */ }
       });
       source.addEventListener('ORDER_STATUS_CHANGED', () => {

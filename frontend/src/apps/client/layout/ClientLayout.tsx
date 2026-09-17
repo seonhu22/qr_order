@@ -13,6 +13,10 @@ import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 import { useAuth } from '@/shared/auth/AuthContext';
 import { useClientEvents } from '@/apps/client/features/events/hooks/useClientEvents';
 import { useClientStaffCallNotifyStore } from '@/apps/client/stores/clientStaffCallNotifyStore';
+import {
+  useMarkAllStaffCallsReadMutation,
+  useUnreadStaffCallsQuery,
+} from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
 
 export function ClientLayout() {
   const { isAuthenticated } = useAuth();
@@ -20,7 +24,10 @@ export function ClientLayout() {
   const unreadStaffCalls = useClientStaffCallNotifyStore((state) => state.unreadCount);
   const latestStaffCall = useClientStaffCallNotifyStore((state) => state.latest);
   const markStaffCallsRead = useClientStaffCallNotifyStore((state) => state.markRead);
+  const syncUnreadStaffCalls = useClientStaffCallNotifyStore((state) => state.syncUnreadCount);
   const dismissStaffCall = useClientStaffCallNotifyStore((state) => state.dismiss);
+  const unreadStaffCallsQuery = useUnreadStaffCallsQuery(isAuthenticated);
+  const markAllStaffCallsRead = useMarkAllStaffCallsReadMutation();
   const location = useLocation();
   const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
     useGuardedNavigate();
@@ -35,6 +42,16 @@ export function ClientLayout() {
   const { headerSections, currentSection, currentMenuCd, breadcrumb } = useClientNavigationMenus();
 
   useMenuOpenAccessLog(currentMenuCd);
+
+  useEffect(() => {
+    if (unreadStaffCallsQuery.data) syncUnreadStaffCalls(unreadStaffCallsQuery.data.length);
+  }, [unreadStaffCallsQuery.data, syncUnreadStaffCalls]);
+
+  const handleStaffCallsRead = async () => {
+    if (unreadStaffCalls === 0 || markAllStaffCallsRead.isPending) return;
+    await markAllStaffCallsRead.mutateAsync();
+    markStaffCallsRead();
+  };
 
   useEffect(() => {
     const nextSection = currentSection;
@@ -80,7 +97,7 @@ export function ClientLayout() {
             onToggleSidebar={toggleSidebar}
             onHomeClick={handleHomeClick}
             unreadStaffCalls={unreadStaffCalls}
-            onStaffCallsRead={markStaffCallsRead}
+            onStaffCallsRead={() => { void handleStaffCallsRead(); }}
           />
         </header>
         <main className="client-layout__main">
