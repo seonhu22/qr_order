@@ -132,6 +132,9 @@ describe('useClientEvents', () => {
     act(() => source.emit('STAFF_CALLED', JSON.stringify(event)));
 
     expect(useClientStaffCallNotifyStore.getState()).toMatchObject({ unreadCount: 1, latest: event });
-    expect(invalidateSpy).toHaveBeenCalledOnce();
+    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenLastCalledWith({
+      queryKey: queryKeys.staffCallNotifications.unread,
+    });
   });
 });

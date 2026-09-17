@@ -17,4 +17,9 @@ describe('clientStaffCallNotifyStore', () => {
     useClientStaffCallNotifyStore.getState().markRead();
     expect(useClientStaffCallNotifyStore.getState().unreadCount).toBe(0);
   });
+
+  it('서버의 미확인 행 개수로 새로고침 후 배지를 복원한다', () => {
+    useClientStaffCallNotifyStore.getState().syncUnreadCount(3);
+    expect(useClientStaffCallNotifyStore.getState().unreadCount).toBe(3);
+  });
 });
