@@ -6,7 +6,7 @@
     <select id="getSettlementSummary" resultType="htms.QROrder.client.dto.SettlementResponse">
         SELECT
             COALESCE(SUM(CASE
-                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                WHEN og.order_status = '04' AND od.payment_yn = 'Y'
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)                                                              AS total_price,
@@ -17,7 +17,7 @@
             END), 0)                                                              AS cancel_price,
             0                                                                     AS discount_pice,
             COALESCE(SUM(CASE
-                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                WHEN og.order_status = '04' AND od.payment_yn = 'Y'
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)
@@ -48,7 +48,7 @@
         SELECT
             DATE(om.insert_datetime)                                                  AS group_date,
             COALESCE(SUM(CASE
-                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                WHEN og.order_status = '04' AND od.payment_yn = 'Y'
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)                                                                  AS day_total_price,
@@ -58,7 +58,7 @@
                 ELSE 0
             END), 0)                                                                  AS day_cancel_price,
             COALESCE(SUM(CASE
-                WHEN og.order_status != '99!' AND od.payment_yn = 'Y'
+                WHEN og.order_status = '04' AND od.payment_yn = 'Y'
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)
