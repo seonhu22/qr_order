@@ -16,6 +16,7 @@ import {
 } from '@/generated/order-manage-controller/order-manage-controller';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
+import { useClientSseConnectionStore } from '@/apps/client/stores/clientSseConnectionStore';
 import type { OrderBoardRow } from '../types';
 import type { GetStatusCancelResponsesParams } from '@/generated/types/getStatusCancelResponsesParams';
 import { mapStatusResponsesToOrderBoardRows } from './orderStatusBoardMapper';
@@ -64,11 +65,13 @@ export function toStatusRequest(
 }
 
 export function useOrderStatusBoardQuery() {
+  const degraded = useClientSseConnectionStore((state) => state.degraded);
   return useGetStatus({
     query: {
       queryKey: queryKeys.orderStatusBoard.lists,
       select: mapStatusResponsesToOrderBoardRows,
       ...queryPolicies.clientRealtimeStatus,
+      refetchInterval: degraded ? 30_000 : false,
     },
   });
 }
