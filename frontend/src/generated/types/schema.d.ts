@@ -876,6 +876,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/consumer/orders/staffcall/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["staffCall"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/board/qna/update": {
         parameters: {
             query?: never;
@@ -1404,6 +1420,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sse/client/subscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["subscribeClient"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search_combo/common": {
         parameters: {
             query?: never;
@@ -1844,6 +1876,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/consumer/orders/staffcall/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getConsumerStaffCall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/consumer/menu/{menuSysId}": {
         parameters: {
             query?: never;
@@ -1916,6 +1964,26 @@ export interface paths {
          * @description 호출 전에 GET /api/qr/{url}로 qrTableInfo 세션을 먼저 설정해야 합니다.
          */
         get: operations["getConsumerMenuMain"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/consumer/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consumer 방문 변경 이벤트 구독
+         * @description 서버 세션의 현재 방문 채널을 구독합니다. 이벤트 수신 후 HTTP API를 재조회해야 합니다.
+         */
+        get: operations["subscribeConsumerEvents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2305,9 +2373,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2536,6 +2604,14 @@ export interface components {
             /** @example 2026-08-27 10:30:00 */
             orderedAt: string;
         };
+        ConsumerStaffCallRequest: {
+            items?: components["schemas"]["Item"][];
+        };
+        Item: {
+            callCd?: string;
+            /** Format: int32 */
+            quantity?: number;
+        };
         ClientQnaRequest: {
             sysId?: string;
             qnaTitle?: string;
@@ -2708,9 +2784,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            xcoordinate?: number;
-            /** Format: int32 */
             ycoordinate?: number;
+            /** Format: int32 */
+            xcoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2771,8 +2847,7 @@ export interface components {
             tableInfo?: string;
             paymentType?: string;
             orderStatus?: string;
-            /** Format: int32 */
-            orderNum?: number;
+            orderNum?: string;
             /** Format: date-time */
             orderDatetime?: string;
             /** Format: int32 */
@@ -2973,6 +3048,13 @@ export interface components {
             orderedAt: string;
             updatedAt: string;
             items: components["schemas"]["ConsumerOrderDetailItem"][];
+        };
+        ConsumerStaffCallResponse: {
+            sysId?: string;
+            callCd?: string;
+            callNm?: string;
+            singleYn?: string;
+            description?: string;
         };
         ConsumerMenuDetailBody: {
             menuSysId: string;
@@ -4473,7 +4555,7 @@ export interface operations {
                     "*/*": components["schemas"]["CommonResponse"];
                 };
             };
-            /** @description 품절 또는 비활성 테이블 등 주문 상태 충돌 (TABLE_INACTIVE) */
+            /** @description 품절/비활성 테이블/중복 요청 상태 충돌 (TABLE_INACTIVE, IDEMPOTENCY_IN_PROGRESS, IDEMPOTENCY_KEY_EXPIRED, IDEMPOTENCY_PAYLOAD_MISMATCH) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -4493,6 +4575,30 @@ export interface operations {
             };
             /** @description 처리되지 않은 서버 오류 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    staffCall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsumerStaffCallRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5261,6 +5367,26 @@ export interface operations {
             };
         };
     };
+    subscribeClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                };
+            };
+        };
+    };
     getSearchCommonCombo: {
         parameters: {
             query: {
@@ -5900,6 +6026,26 @@ export interface operations {
             };
         };
     };
+    getConsumerStaffCall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConsumerStaffCallResponse"][];
+                };
+            };
+        };
+    };
     getConsumerMenuDetail: {
         parameters: {
             query?: never;
@@ -6085,6 +6231,44 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    subscribeConsumerEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SSE 연결 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                };
+            };
+            /** @description QR 또는 Consumer 방문 바인딩 없음 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                };
+            };
+            /** @description 결제완료 또는 만료된 방문 */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
                 };
             };
         };

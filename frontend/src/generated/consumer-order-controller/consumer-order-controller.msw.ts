@@ -19,9 +19,11 @@ import type {
 } from 'msw';
 
 import type {
+  CommonResponse,
   ConsumerOrderCreateEnvelope,
   ConsumerOrderDetailEnvelope,
-  ConsumerOrderListEnvelope
+  ConsumerOrderListEnvelope,
+  ConsumerStaffCallResponse
 } from '.././types';
 
 
@@ -29,7 +31,11 @@ export const getGetConsumerOrdersResponseMock = (overrideResponse: Partial< Cons
 
 export const getCreateConsumerOrderResponseMock = (overrideResponse: Partial< ConsumerOrderCreateEnvelope > = {}): ConsumerOrderCreateEnvelope => ({success: faker.datatype.boolean(), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {orderId: faker.string.alpha({length: {min: 10, max: 20}}), orderNo: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.helpers.arrayElement(['RECEIVED'] as const), totalAmount: faker.number.int({min: undefined, max: undefined}), orderedAt: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse})
 
+export const getStaffCallResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
 export const getGetConsumerOrderResponseMock = (overrideResponse: Partial< ConsumerOrderDetailEnvelope > = {}): ConsumerOrderDetailEnvelope => ({success: faker.datatype.boolean(), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {orderId: faker.string.alpha({length: {min: 10, max: 20}}), orderNo: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), requestNote: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), totalAmount: faker.number.int({min: undefined, max: undefined}), orderedAt: faker.string.alpha({length: {min: 10, max: 20}}), updatedAt: faker.string.alpha({length: {min: 10, max: 20}}), items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({orderItemId: faker.string.alpha({length: {min: 10, max: 20}}), menuSysId: faker.string.alpha({length: {min: 10, max: 20}}), menuName: faker.string.alpha({length: {min: 10, max: 20}}), quantity: faker.number.int({min: undefined, max: undefined}), unitAmount: faker.number.int({min: undefined, max: undefined}), lineAmount: faker.number.int({min: undefined, max: undefined}), options: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({optionSysId: faker.string.alpha({length: {min: 10, max: 20}}), optionName: faker.string.alpha({length: {min: 10, max: 20}}), quantity: faker.number.int({min: undefined, max: undefined}), unitAmount: faker.number.int({min: undefined, max: undefined}), lineAmount: faker.number.int({min: undefined, max: undefined})}))}))}, ...overrideResponse})
+
+export const getGetConsumerStaffCallResponseMock = (): ConsumerStaffCallResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), callCd: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), callNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), singleYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
 
 
 export const getGetConsumerOrdersMockHandler = (overrideResponse?: ConsumerOrderListEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerOrderListEnvelope> | ConsumerOrderListEnvelope), options?: RequestHandlerOptions) => {
@@ -56,6 +62,18 @@ export const getCreateConsumerOrderMockHandler = (overrideResponse?: ConsumerOrd
   }, options)
 }
 
+export const getStaffCallMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/api/client/consumer/orders/staffcall/new', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getStaffCallResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getGetConsumerOrderMockHandler = (overrideResponse?: ConsumerOrderDetailEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerOrderDetailEnvelope> | ConsumerOrderDetailEnvelope), options?: RequestHandlerOptions) => {
   return http.get('*/api/client/consumer/orders/:orderId', async (info) => {await delay(1000);
   
@@ -67,8 +85,22 @@ export const getGetConsumerOrderMockHandler = (overrideResponse?: ConsumerOrderD
       })
   }, options)
 }
+
+export const getGetConsumerStaffCallMockHandler = (overrideResponse?: ConsumerStaffCallResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConsumerStaffCallResponse[]> | ConsumerStaffCallResponse[]), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/consumer/orders/staffcall/search', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetConsumerStaffCallResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 export const getConsumerOrderControllerMock = () => [
   getGetConsumerOrdersMockHandler(),
   getCreateConsumerOrderMockHandler(),
-  getGetConsumerOrderMockHandler()
+  getStaffCallMockHandler(),
+  getGetConsumerOrderMockHandler(),
+  getGetConsumerStaffCallMockHandler()
 ]

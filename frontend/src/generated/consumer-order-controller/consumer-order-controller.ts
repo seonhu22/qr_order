@@ -29,7 +29,9 @@ import type {
   ConsumerOrderCreateEnvelope,
   ConsumerOrderCreateRequest,
   ConsumerOrderDetailEnvelope,
-  ConsumerOrderListEnvelope
+  ConsumerOrderListEnvelope,
+  ConsumerStaffCallRequest,
+  ConsumerStaffCallResponse
 } from '.././types';
 
 import { httpClient } from '../../shared/lib/httpClient';
@@ -197,6 +199,64 @@ export const useCreateConsumerOrder = <TError = CommonResponse,
 
       return useMutation(mutationOptions, queryClient);
     }
+    export const staffCall = (
+    consumerStaffCallRequest: ConsumerStaffCallRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<CommonResponse>(
+      {url: `/api/client/consumer/orders/staffcall/new`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: consumerStaffCallRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getStaffCallMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffCall>>, TError,{data: ConsumerStaffCallRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof staffCall>>, TError,{data: ConsumerStaffCallRequest}, TContext> => {
+
+const mutationKey = ['staffCall'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof staffCall>>, {data: ConsumerStaffCallRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  staffCall(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StaffCallMutationResult = NonNullable<Awaited<ReturnType<typeof staffCall>>>
+    export type StaffCallMutationBody = ConsumerStaffCallRequest
+    export type StaffCallMutationError = unknown
+
+    export const useStaffCall = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffCall>>, TError,{data: ConsumerStaffCallRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof staffCall>>,
+        TError,
+        {data: ConsumerStaffCallRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getStaffCallMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
     /**
  * 현재 QR 방문에 속한 주문 한 건의 메뉴와 옵션을 조회합니다.
  * @summary Consumer 공유 주문 상세 조회
@@ -279,6 +339,92 @@ export function useGetConsumerOrder<TData = Awaited<ReturnType<typeof getConsume
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetConsumerOrderQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const getConsumerStaffCall = (
+    
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<ConsumerStaffCallResponse[]>(
+      {url: `/api/client/consumer/orders/staffcall/search`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetConsumerStaffCallQueryKey = () => {
+    return [
+    `/api/client/consumer/orders/staffcall/search`
+    ] as const;
+    }
+
+    
+export const getGetConsumerStaffCallQueryOptions = <TData = Awaited<ReturnType<typeof getConsumerStaffCall>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConsumerStaffCallQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsumerStaffCall>>> = ({ signal }) => getConsumerStaffCall(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetConsumerStaffCallQueryResult = NonNullable<Awaited<ReturnType<typeof getConsumerStaffCall>>>
+export type GetConsumerStaffCallQueryError = unknown
+
+
+export function useGetConsumerStaffCall<TData = Awaited<ReturnType<typeof getConsumerStaffCall>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConsumerStaffCall>>,
+          TError,
+          Awaited<ReturnType<typeof getConsumerStaffCall>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConsumerStaffCall<TData = Awaited<ReturnType<typeof getConsumerStaffCall>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getConsumerStaffCall>>,
+          TError,
+          Awaited<ReturnType<typeof getConsumerStaffCall>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetConsumerStaffCall<TData = Awaited<ReturnType<typeof getConsumerStaffCall>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetConsumerStaffCall<TData = Awaited<ReturnType<typeof getConsumerStaffCall>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getConsumerStaffCall>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetConsumerStaffCallQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

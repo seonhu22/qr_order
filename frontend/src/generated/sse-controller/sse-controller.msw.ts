@@ -25,6 +25,8 @@ import type {
 
 export const getSubscribeResponseMock = (overrideResponse: Partial< SseEmitter > = {}): SseEmitter => ({timeout: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), ...overrideResponse})
 
+export const getSubscribeClientResponseMock = (overrideResponse: Partial< SseEmitter > = {}): SseEmitter => ({timeout: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), ...overrideResponse})
+
 
 export const getSubscribeMockHandler = (overrideResponse?: SseEmitter | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SseEmitter> | SseEmitter), options?: RequestHandlerOptions) => {
   return http.get('*/api/sse/subscribe/:channelId', async (info) => {await delay(1000);
@@ -37,6 +39,19 @@ export const getSubscribeMockHandler = (overrideResponse?: SseEmitter | ((info: 
       })
   }, options)
 }
+
+export const getSubscribeClientMockHandler = (overrideResponse?: SseEmitter | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SseEmitter> | SseEmitter), options?: RequestHandlerOptions) => {
+  return http.get('*/api/sse/client/subscribe', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSubscribeClientResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 export const getSseControllerMock = () => [
-  getSubscribeMockHandler()
+  getSubscribeMockHandler(),
+  getSubscribeClientMockHandler()
 ]
