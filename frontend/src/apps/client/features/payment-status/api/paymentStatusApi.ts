@@ -2,8 +2,8 @@
  * @fileoverview 결제 목록 조회 feature의 서버 연동 계층
  *
  * @description
- * 백엔드 결제상태(`orderStatus`) enum이 아직 공개되지 않아 PAID/UNPAID 값을 임시로 정해 사용한다
- * (식사중·취소 등은 다루지 않기로 결정 — 결제완료/미결제 2가지만 구분).
+ * 백엔드 order_master.order_status DB 값: '02' = 결제완료, '03' = 미결제.
+ * 프론트 도메인 타입(PAID/UNPAID)과 API 파라미터(02/03)는 이 파일에서 변환한다.
  * 알 수 없는 값은 'UNPAID'로 fallback 한다. 상세 조회 응답은 배열로 오지만 화면은 단일 폼이므로
  * 첫 번째 요소만 사용한다(배열인 이유는 백엔드 연동 시 확인 필요).
  */
@@ -19,7 +19,14 @@ import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { PaymentStatusCode, PaymentStatusDetail, PaymentStatusMasterRow, PaymentStatusSearchParams } from '../types';
 
 function toPaymentStatusCode(value?: string): PaymentStatusCode {
-  return value === 'PAID' ? value : 'UNPAID';
+  if (value === '02') return 'PAID';
+  return 'UNPAID';
+}
+
+function toApiPaymentStatusFilter(status: string): string {
+  if (status === 'PAID') return '02';
+  if (status === 'UNPAID') return '03';
+  return '';
 }
 
 export function mapToPaymentStatusMasterRow(item: PaymentInfoMasterResponse): PaymentStatusMasterRow {
@@ -54,7 +61,7 @@ export function mapToPaymentStatusDetail(
 
 export function usePaymentStatusMasterQuery(params: PaymentStatusSearchParams) {
   const queryParams = {
-    paymentStatus: params.paymentStatus,
+    paymentStatus: toApiPaymentStatusFilter(params.paymentStatus),
     startDate: params.startDate,
     endDate: params.endDate,
   };
