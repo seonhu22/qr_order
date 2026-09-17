@@ -8,7 +8,7 @@
 ## 화면 구성
 
 - 검색 카드(`SearchFilterCard`): 호출명으로 목록을 필터링한다. dirty guard는 아래 §조회/초기화 참고.
-- 편집 테이블(`StaffCallManagementTable`, `EditableDetailTable` 재사용): 호출명(필수)/설명/선택방식(단건·다건)/사용여부 4개 컬럼과 행추가·행삭제·순서 이동(위/아래)·저장 버튼.
+- 편집 테이블(`StaffCallManagementTable`, `EditableDetailTable` 재사용): 호출코드/호출명/설명/선택방식/사용여부 컬럼과 행추가·행삭제·저장 버튼.
 - 안내문구(`table.guideText`)는 카드 헤더 바로 아래 한 곳에만 둔다(사용여부 노출 조건 + 선택방식[단건/다건] 의미를 한 문장으로 합침). 테이블 아래쪽 `footnote`는 쓰지 않는다.
 - 검색 결과가 없을 때는 `조회 결과가 없습니다.`, 검색 전 상태에서 행이 모두 삭제되면 `등록된 직원호출 항목이 없습니다.`를 표시한다(`order-history`/`payment-status`의 `hasSearched ? ... : ...` 관례와 동일).
 
@@ -16,15 +16,16 @@
 
 이 화면은 마스터를 선택해 상세 목록을 보는 구조가 아니라, 매장당 하나뿐인 평평한 목록이다. `EditableDetailTable`은 원래 `selectedMaster`가 있어야 빈 상태를 벗어나는 컴포넌트라, 고정된 가짜 마스터 상수(`STAFF_CALL_MASTER = { id: 'staff-call' }`)를 항상 넘겨서 쓴다 — 화면에는 마스터 선택 UI가 없다.
 
-## 컬럼과 mock 경계
+## 컬럼과 저장 경계
 
 | 컬럼 | 필드 | 실제 DB 컬럼 |
 |---|---|---|
+| 호출코드 | `callCd` | O (`call_cd`) — 신규 등록 시 `STAFF_CALL_TYPE`의 사용 중인 상세 코드만 허용 |
 | 호출명 | `callNm` | O (`call_nm`) |
 | 설명 | `description` | O (`description`) |
 | 선택방식(단건/다건) | `singleYn`('Y'\|'N') | O (`single_yn`) — 값은 향후 공통코드 연동 예정, 지금은 고정 셀렉트 |
-| 사용여부 | `useYn`('Y'\|'N') | **X** — mock 전용, DB에 컬럼 추가되면 연결 |
-| 표시 순서 | `ordNo` | **X** — mock 전용, 배열 순서가 곧 순서. consumer 화면 칩 노출 순서와 대응 예정 |
+| 사용여부 | `useYn`('Y'\|'N') | **X** — UI만 보류 상태로 유지하며 저장하지 않음 |
+| 표시 순서 | `ordNo` | **X** — 순서 이동은 보류하며 최초 등록순으로 고정 |
 
 ## 조회 / 초기화
 
@@ -32,7 +33,9 @@ dirty일 때 조회·초기화는 `useFilterDirtyCheck` + `ConfirmModal`을 거�
 
 ## 저장
 
-백엔드 컨트롤러가 아직 없어(DB 테이블만 존재) `api/staffCallManagementApi.ts`의 `saveStaffCallItemsStub`은 항상 성공 처리한다. 저장 확인 모달·"변경된 내용이 없습니다" 안내는 공용 `useDetailTableSaveFlow`를 그대로 쓴다.
+조회는 `GET /api/client/staff-call/settings`, 저장은 `POST /api/client/staff-call/settings/save`를 사용한다. 서버는 Client 로그인 세션의 `sysPlantCd`를 적용하므로 프론트가 매장 코드를 선택하거나 전송하지 않는다. 저장 요청은 신규/수정/삭제 목록만 담고 `useYn`/`ordNo`는 제외한다.
+
+서버는 호출코드 공통코드 유효성, 같은 매장 내 코드 중복, 수정/삭제 대상의 매장 소유권을 검증한다. 조회는 `insert_datetime asc, sys_id asc`로 고정해 최초 등록 항목을 맨 위에 표시한다. 설정 행을 삭제해도 과거 실제 호출 기록은 삭제하지 않는다.
 
 `호출명`은 필수값이면서 다른 행과 중복되면 안 된다(trim 후 비교). 실패 사유에 따라 안내 문구가 다르다 — 빈값만: `빈값을 채워주세요.` / 중복: `중복된 호출명이 있습니다.` / 둘 다: 두 문구를 합쳐서 표시. `useDetailTableSaveFlow`의 `invalidValueMessage`가 문자열뿐 아니라 함수도 받도록 확장해 구현했다.
 
