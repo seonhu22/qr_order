@@ -30,7 +30,7 @@ export function OrderStatusManagementHeader({
             ? '동기화 실패 · 기존 주문 표시 중'
             : isRefreshing
               ? '동기화 중'
-              : '실시간 동기화(5초)'}
+              : '실시간 동기화(SSE)'}
         </span>
       </div>
       <Button
