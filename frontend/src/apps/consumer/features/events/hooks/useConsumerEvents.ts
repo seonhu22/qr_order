@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { createConsumerEventSource } from '../api/consumerEventSource';
+import { useConsumerParticipantStore } from '@/apps/consumer/stores/consumerParticipantStore';
 
 const DISCONNECTED_POLL_INTERVAL_MS = 5_000;
 const SSE_RECONNECT_INTERVAL_MS = 3_000;
@@ -12,6 +13,8 @@ const SSE_RECONNECT_INTERVAL_MS = 3_000;
  */
 export function useConsumerEvents(sessionId: string, active: boolean) {
   const queryClient = useQueryClient();
+  const setParticipantCount = useConsumerParticipantStore((state) => state.setCount);
+  const resetParticipantCount = useConsumerParticipantStore((state) => state.reset);
 
   useEffect(() => {
     if (!active || !sessionId) return undefined;
@@ -30,6 +33,12 @@ export function useConsumerEvents(sessionId: string, active: boolean) {
       if (disposed) return;
       void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.session });
       invalidateOrders();
+    };
+
+    const updateParticipantCount = (event: Event) => {
+      if (!(event instanceof MessageEvent)) return;
+      const count = Number(event.data);
+      if (Number.isInteger(count) && count >= 1) setParticipantCount(count);
     };
 
     const stopPolling = () => {
@@ -60,6 +69,7 @@ export function useConsumerEvents(sessionId: string, active: boolean) {
         source.addEventListener('ORDER_CREATED', invalidateOrders);
         source.addEventListener('STATUS_CHANGED', invalidateOrders);
         source.addEventListener('VISIT_CLOSED', invalidateSessionAndOrders);
+        source.addEventListener('PARTICIPANTS_CHANGED', updateParticipantCount);
         source.onopen = () => {
           if (disposed || eventSource !== source) return;
           stopPolling();
@@ -85,6 +95,7 @@ export function useConsumerEvents(sessionId: string, active: boolean) {
       stopPolling();
       if (reconnectTimer !== null) clearTimeout(reconnectTimer);
       eventSource?.close();
+      resetParticipantCount();
     };
-  }, [active, queryClient, sessionId]);
+  }, [active, queryClient, resetParticipantCount, sessionId, setParticipantCount]);
 }

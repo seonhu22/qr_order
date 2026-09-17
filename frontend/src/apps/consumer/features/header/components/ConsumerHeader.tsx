@@ -9,6 +9,7 @@ import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/Ca
 import { useConsumerMenuMainQuery } from '@/apps/consumer/features/order-shell/api/consumerMenuApi';
 import { useConsumerOrdersQuery } from '@/apps/consumer/features/order-shell/api/consumerOrderApi';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
+import { useConsumerParticipantStore } from '@/apps/consumer/stores/consumerParticipantStore';
 
 /**
  * ConsumerLayout이 마운트하는 상단 바 — 참고 저장소처럼 로고·매장정보·액션 버튼·검색·카테고리 탭을
@@ -18,6 +19,7 @@ import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
  */
 export function ConsumerHeader() {
   const { session } = useConsumerSession();
+  const participantCount = useConsumerParticipantStore((state) => state.count);
   const menuMain = useConsumerMenuMainQuery(session?.consumerSessionId ?? '');
   const orderList = useConsumerOrdersQuery(session?.consumerSessionId ?? '');
   const categories = [
@@ -93,10 +95,10 @@ export function ConsumerHeader() {
                 {menuMain.data?.tableNum ?? session?.tableNum}번 테이블
               </span>
             )}
-            {session?.tableQty != null && (
+            {session?.status === 'active' && (
               <span className="consumer-header__seat-count">
                 <ConsumerIcon id="ci-users" size={11} />
-                {session.tableQty}명 이용중
+                {participantCount}명 이용중
               </span>
             )}
           </div>
