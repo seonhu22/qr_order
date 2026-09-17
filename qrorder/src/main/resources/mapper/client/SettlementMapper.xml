@@ -26,7 +26,7 @@
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)                                                              AS net_price,
-            COUNT(DISTINCT CASE WHEN og.order_status != '99!' THEN og.sys_id END) AS order_count
+            COUNT(DISTINCT CASE WHEN og.order_status IN ('04', '05') THEN og.sys_id END) AS order_count
         FROM order_master om
         INNER JOIN order_group og ON og.link_sys_id = om.sys_id
         INNER JOIN order_detail od ON od.link_sys_id3 = og.sys_id
@@ -67,7 +67,7 @@
                     THEN smd.menu_price * od.qty + COALESCE(opt_sum.option_price, 0)
                 ELSE 0
             END), 0)                                                                  AS day_net_price,
-            COUNT(DISTINCT CASE WHEN og.order_status != '99!' THEN og.sys_id END)     AS day_order_count,
+            COUNT(DISTINCT CASE WHEN og.order_status IN ('04', '05') THEN og.sys_id END)     AS day_order_count,
             COUNT(DISTINCT CASE WHEN og.order_status = '99!' THEN og.sys_id END)      AS day_cancel_count
         FROM order_master om
         INNER JOIN order_group og ON og.link_sys_id = om.sys_id
