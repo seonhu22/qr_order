@@ -5,6 +5,7 @@
 > 주문 계약: [Consumer 주문 API 계약](./order-api.md)
 > 정책 근거: [Consumer MVP 정책 결정](./policy-decisions.md)
 > 핵심 수동 QA: [001/002/003 통합 시나리오](./manual-qa-001-003.md)
+> 참여 인원: [Consumer QR 참여 인원 규약](./participants.md)
 
 ## 제약
 
@@ -86,7 +87,7 @@
 
 1. 직원 호출 Consumer/직원 API와 UI
 2. [Consumer 전용 SSE](../../plans/2026-09-14-002-feat-consumer-sse-integration-plan.md) / 구현 완료, `dev:real` 수동 QA 필요
-3. 참여 인원
+3. [참여 인원](./participants.md) / 구현 완료, `dev:real` 수동 QA 필요
 4. 정책 확정 시 세션 나가기/주문 미리보기/취소 요청
 5. 필요가 확인된 경우 서버 장바구니
 6. 메뉴별 `requestNote` 입력/저장/직원 화면 표시 / TODO, 별도 플랜 미작성
@@ -98,7 +99,8 @@
 
 - 현재 emitter는 서버 메모리에 있으므로 단일 애플리케이션 인스턴스에서만 전달을 보장한다.
 - 다중 인스턴스 배포 전 Redis Pub/Sub 같은 외부 broker를 별도 설계한다.
-- 이벤트 payload는 빈 문자열이며 화면은 기존 세션/주문 API 응답만 사용한다.
+- 주문/상태/종료 이벤트 payload는 빈 문자열이며 화면은 기존 세션/주문 API 응답만 사용한다.
+- 참여 인원 이벤트 payload는 현재 방문의 고유 QR 브라우저 세션 수다.
 - 이벤트 전달 실패는 이미 커밋된 주문/상태 변경의 성공을 취소하지 않는다.
 
 ## Consumer SSE 검증 기록 / 2026-09-14

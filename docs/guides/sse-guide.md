@@ -54,6 +54,7 @@ GET /api/client/consumer/events
 | `ORDER_CREATED` | 주문 생성 |
 | `STATUS_CHANGED` | 주문 상태 변경 |
 | `VISIT_CLOSED` | 방문 세션 종료 |
+| `PARTICIPANTS_CHANGED` | 같은 방문의 고유 QR 브라우저 세션 수 변경 |
 
 ### 발행 지점
 
@@ -102,6 +103,7 @@ export function createConsumerEventSource() {
 | `ORDER_CREATED` | `invalidateOrders()` |
 | `STATUS_CHANGED` | `invalidateOrders()` |
 | `VISIT_CLOSED` | `invalidateSessionAndOrders()` |
+| `PARTICIPANTS_CHANGED` | 참여 인원 store 갱신 |
 
 ---
 
@@ -166,6 +168,8 @@ SSE가 성공적으로 재연결되면 폴링을 중단한다. 폴링은 임시 
 ## 07. 호출 지점
 
 `ConsumerOrderPage.tsx`에서 `useConsumerEvents()`를 마운트 시 한 번 호출한다. 훅 내부에서 연결/재연결/폴백/정리를 모두 관리하므로 페이지는 훅만 호출하면 된다.
+
+QR 참여 인원의 집계 기준, 중복 탭 처리와 QA는 [Consumer QR 참여 인원 규약](../specs/consumer-mvp/participants.md)을 따른다.
 
 ```tsx
 // ConsumerOrderPage.tsx

@@ -9,6 +9,8 @@ QR 인증 후 도착하는 화면이다. 메뉴 목록/검색/상세/주문 생�
 
 `ConsumerHeader`(`apps/consumer/features/header/components/ConsumerHeader.tsx`)는 `ConsumerLayout`이 마운트하는 고정 영역으로, 브랜드·매장정보·직원호출·주문내역·설정 버튼뿐 아니라 **검색창과 카테고리 탭도 여기서 렌더링한다**. 검색어·선택 카테고리 자체는 `apps/consumer/stores/consumerOrderFilterStore.ts`(zustand)에 있고, `useConsumerOrderPage`(order-shell)가 이 값을 읽어 실제 필터링을 수행한다.
 
+헤더의 `N명 이용중`은 좌석 수가 아니라 같은 방문에서 QR을 연 고유 브라우저 세션 수다. 같은 브라우저의 여러 탭은 한 명으로 계산하며, SSE 연결/해제로 실시간 갱신한다. 상세 계약과 QA는 [Consumer QR 참여 인원 규약](../../../docs/specs/consumer-mvp/participants.md)을 따른다.
+
 - 처음에는 검색·탭을 order-shell(페이지) 쪽에 두었으나, 참고 UI는 로고·매장정보·검색·탭이 한 헤더 블록이라 그 사이에 불필요한 border·padding 이중 레이어가 생겼다. 헤더로 옮기고 상태만 스토어로 공유하도록 고쳤다.
 - 카테고리와 매장명, 테이블 번호는 메인 API 응답을 사용한다. 헤더와 페이지가 같은 React Query 키를 사용해 요청은 중복되지 않는다.
 
