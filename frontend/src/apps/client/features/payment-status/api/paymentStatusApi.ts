@@ -18,8 +18,13 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { PaymentStatusCode, PaymentStatusDetail, PaymentStatusMasterRow, PaymentStatusSearchParams } from '../types';
 
-function toPaymentStatusCode(value?: string): PaymentStatusCode {
+function toMasterPaymentStatusCode(value?: string): PaymentStatusCode {
   if (value === '02') return 'PAID';
+  return 'UNPAID';
+}
+
+function toDetailPaymentStatusCode(value?: string): PaymentStatusCode {
+  if (value === '04') return 'PAID';
   return 'UNPAID';
 }
 
@@ -35,7 +40,7 @@ export function mapToPaymentStatusMasterRow(item: PaymentInfoMasterResponse): Pa
     orderNo: item.orderNum != null ? String(item.orderNum) : '',
     paymentType: item.paymentType ?? '',
     totalPrice: item.totalPrice ?? 0,
-    paymentStatus: toPaymentStatusCode(item.orderStatus),
+    paymentStatus: toMasterPaymentStatusCode(item.orderStatus),
   };
 }
 
@@ -51,7 +56,7 @@ export function mapToPaymentStatusDetail(
 
   return {
     orderNo: detail.orderNum != null ? String(detail.orderNum) : '',
-    paymentStatus: toPaymentStatusCode(detail.orderStatus),
+    paymentStatus: toDetailPaymentStatusCode(detail.orderStatus),
     paymentType,
     cancelReason: detail.cancelReason ?? '',
     items: detail.items ?? '',
