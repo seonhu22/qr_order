@@ -62,7 +62,7 @@ export function PaymentStatusMasterTable({
                     className={row.id === selectedId ? 'is-selected' : undefined}
                     {...getRowProps(row, `${row.orderNo} 결제 상세 보기`)}
                   >
-                    <td className="common-table__mono common-table__cell--truncate">{row.orderNo}</td>
+<td className="common-table__mono common-table__cell--truncate" title={row.orderNo}>{row.orderNo}</td>
                     <td className="common-table__cell--center">{formatPaymentType(row)}</td>
                     <td className="common-table__cell--center">
                       {row.totalPrice.toLocaleString('ko-KR')}원
