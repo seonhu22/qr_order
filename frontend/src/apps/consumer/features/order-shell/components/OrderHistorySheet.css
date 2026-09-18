@@ -63,3 +63,9 @@
   font-size: var(--typography-size-caption);
   color: var(--color-text-tertiary);
 }
+
+.order-history-group__request {
+  margin-top: var(--spacing-4);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}

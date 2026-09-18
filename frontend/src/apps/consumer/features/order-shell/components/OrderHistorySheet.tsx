@@ -75,6 +75,9 @@ export function OrderHistorySheet({ onClose }: OrderHistorySheetProps) {
                     </li>
                   ))}
                 </ul>
+                {order.requestNote && (
+                  <p className="order-history-group__request">요청사항: {order.requestNote}</p>
+                )}
               </li>
             ))}
           </ul>
