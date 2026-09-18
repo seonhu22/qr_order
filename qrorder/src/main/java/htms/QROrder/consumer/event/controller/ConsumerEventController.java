@@ -30,7 +30,7 @@ public class ConsumerEventController {
     @ApiResponse(responseCode = "410", description = "결제완료 또는 만료된 방문")
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(HttpSession session) {
-        return eventService.subscribe(qrTableInfo(session), consumerBinding(session));
+        return eventService.subscribe(qrTableInfo(session), consumerBinding(session), session.getId());
     }
 
     private QrConnectResponse qrTableInfo(HttpSession session) {

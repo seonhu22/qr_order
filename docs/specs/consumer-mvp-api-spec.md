@@ -1,7 +1,7 @@
 # Consumer MVP API 문서 허브
 
-> 상태: Consumer 세션/메뉴/주문/SSE 구현, `dev:real` 수동 QA 진행
-> 갱신일: 2026-09-14
+> 상태: Consumer 세션/메뉴/주문/SSE/QR 참여 인원 구현, `dev:real` 수동 QA 진행
+> 갱신일: 2026-09-17
 > 결제 방식: 현장 후결제
 
 ## 목표
@@ -17,6 +17,7 @@
 | 회의에서 무엇을 결정했는가 | [Consumer MVP 정책 결정](./consumer-mvp/policy-decisions.md) |
 | 현재 구현된 API 모델 확인 | [기존 Consumer API 계약](./consumer-mvp/existing-api.md) |
 | 세션 API 구현 | [Consumer 세션 API 계약](./consumer-mvp/session-api.md) |
+| QR 참여 인원 기준/QA | [Consumer QR 참여 인원 규약](./consumer-mvp/participants.md) |
 | 주문 생성/목록/상세 구현 | [Consumer 주문 API 계약](./consumer-mvp/order-api.md) |
 | 작업 순서와 QA 확인 | [구현 및 검증 계획](./consumer-mvp/implementation-plan.md) |
 | 현재 Consumer UI 확인 | [Consumer 주문 화면](../../frontend/docs/page/consumer-order.md) |
@@ -47,6 +48,7 @@
 - 주문 전 5분 무활동 만료, 주문 후 결제완료까지 유지한다.
 - 직원 호출은 UI 작업 시점으로 미룬다.
 - Consumer SSE는 동기 API를 데이터 원본으로 유지하는 변경 신호로 사용한다.
+- 참여 인원은 같은 방문에 SSE로 연결된 고유 HTTP 세션 수로 계산한다.
 
 ## API 목록
 
@@ -73,7 +75,6 @@
 - `GET /api/client/consumer/staff-call/types`
 - `GET /api/client/consumer/staff-calls`
 - `DELETE /api/client/consumer/staff-calls/{callId}`
-- `GET /api/client/consumer/session/participants`
 - 서버 장바구니 API 5개(경로 미정)
 
 ## 공통 보안/응답 원칙
@@ -91,8 +92,9 @@
 - `GET /api/client/consumer/events`는 `text/event-stream`을 반환한다.
 - 별도 channel ID는 받지 않고 QR 브라우저 세션의 사업장/방문 ID로 채널을 결정한다.
 - 활성 방문만 구독할 수 있으며 기존 Consumer 인증 인터셉터를 그대로 적용한다.
-- 이벤트는 `ORDER_CREATED`, `STATUS_CHANGED`, `VISIT_CLOSED` 세 종류다.
-- payload는 항상 빈 문자열이다. 수신한 프런트는 기존 주문/세션 HTTP API를 재조회한다.
+- 이벤트는 `ORDER_CREATED`, `STATUS_CHANGED`, `VISIT_CLOSED`, `PARTICIPANTS_CHANGED` 네 종류다.
+- 주문/상태/종료 이벤트 payload는 빈 문자열이며 기존 HTTP API를 재조회한다.
+- `PARTICIPANTS_CHANGED` payload만 현재 고유 QR 세션 수인 정수다. 자세한 계약은 [참여 인원 규약](./consumer-mvp/participants.md)을 따른다.
 - 업무 트랜잭션이 commit된 뒤 신호를 보내며, 신호 전송 실패는 업무 응답을 실패로 바꾸지 않는다.
 - 서버는 25초 heartbeat와 30분 emitter timeout을 사용하고, 브라우저에는 3초 재연결 간격을 안내한다.
 - 프런트는 연결 오류 동안만 5초 polling하며 재연결/화면 이탈/세션 종료 시 timer와 연결을 정리한다.

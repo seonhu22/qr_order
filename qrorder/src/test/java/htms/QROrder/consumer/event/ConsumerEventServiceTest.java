@@ -2,6 +2,7 @@ package htms.QROrder.consumer.event;
 
 import htms.QROrder.common.service.SSEEmitterService;
 import htms.QROrder.consumer.event.service.ConsumerEventService;
+import htms.QROrder.consumer.event.service.ConsumerParticipantRegistry;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionGoneException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderSessionRequiredException;
 import htms.QROrder.consumer.order.service.ConsumerOrderSessionGuard;
@@ -20,13 +21,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 class ConsumerEventServiceTest {
 
     private final SSEEmitterService emitterService = mock(SSEEmitterService.class);
     private final ConsumerVisitService visitService = mock(ConsumerVisitService.class);
     private final ConsumerEventService service = new ConsumerEventService(
-            emitterService, visitService, new ConsumerOrderSessionGuard());
+            emitterService, visitService, new ConsumerOrderSessionGuard(),
+            new ConsumerParticipantRegistry());
 
     @Test
     void subscribesToServerDerivedCurrentVisitChannel() {
@@ -35,11 +39,14 @@ class ConsumerEventServiceTest {
         ConsumerVisitRecord visit = activeVisit();
         SseEmitter emitter = new SseEmitter();
         when(visitService.findBoundVisit(qr, "VISIT-1")).thenReturn(visit);
-        when(emitterService.subscribe("consumer:PLANT-1:VISIT-1")).thenReturn(emitter);
+        when(emitterService.subscribe(eq("consumer:PLANT-1:VISIT-1"), any(Runnable.class)))
+                .thenReturn(emitter);
 
-        assertEquals(emitter, service.subscribe(qr, binding));
+        assertEquals(emitter, service.subscribe(qr, binding, "BROWSER-1"));
 
-        verify(emitterService).subscribe("consumer:PLANT-1:VISIT-1");
+        verify(emitterService).subscribe(eq("consumer:PLANT-1:VISIT-1"), any(Runnable.class));
+        verify(emitterService).send("consumer:PLANT-1:VISIT-1",
+                ConsumerEventService.PARTICIPANTS_CHANGED, 1);
     }
 
     @Test
@@ -48,7 +55,7 @@ class ConsumerEventServiceTest {
                 "VISIT-1", "PLANT-1", "TABLE-OTHER", LocalDateTime.now());
 
         assertThrows(ConsumerOrderSessionRequiredException.class,
-                () -> service.subscribe(qr(), otherTable));
+                () -> service.subscribe(qr(), otherTable, "BROWSER-1"));
 
         verifyNoInteractions(visitService, emitterService);
     }
@@ -60,7 +67,7 @@ class ConsumerEventServiceTest {
         when(visitService.findBoundVisit(qr(), "VISIT-1")).thenReturn(closed);
 
         assertThrows(ConsumerOrderSessionGoneException.class,
-                () -> service.subscribe(qr(), binding()));
+                () -> service.subscribe(qr(), binding(), "BROWSER-1"));
 
         verifyNoInteractions(emitterService);
     }

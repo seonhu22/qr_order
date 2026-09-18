@@ -17,17 +17,25 @@ public class ConsumerEventService {
     public static final String ORDER_CREATED = "ORDER_CREATED";
     public static final String STATUS_CHANGED = "STATUS_CHANGED";
     public static final String VISIT_CLOSED = "VISIT_CLOSED";
+    public static final String PARTICIPANTS_CHANGED = "PARTICIPANTS_CHANGED";
 
     private final SSEEmitterService emitterService;
     private final ConsumerVisitService visitService;
     private final ConsumerOrderSessionGuard sessionGuard;
+    private final ConsumerParticipantRegistry participantRegistry;
 
-    public SseEmitter subscribe(QrConnectResponse qrTableInfo, ConsumerSessionBinding binding) {
+    public SseEmitter subscribe(QrConnectResponse qrTableInfo, ConsumerSessionBinding binding,
+                                String browserSessionId) {
         sessionGuard.requireMatchingBinding(qrTableInfo, binding);
         ConsumerVisitRecord visit = visitService.findBoundVisit(
                 qrTableInfo, binding.getConsumerSessionId());
         sessionGuard.requireActiveVisit(visit);
-        return emitterService.subscribe(channel(qrTableInfo.getSysPlantCd(), binding.getConsumerSessionId()));
+        String channelId = channel(qrTableInfo.getSysPlantCd(), binding.getConsumerSessionId());
+        int participantCount = participantRegistry.join(channelId, browserSessionId);
+        SseEmitter emitter = emitterService.subscribe(channelId,
+                () -> participantDisconnected(channelId, browserSessionId));
+        emitterService.send(channelId, PARTICIPANTS_CHANGED, participantCount);
+        return emitter;
     }
 
     public void publish(String sysPlantCd, String consumerSessionId, String eventName) {
@@ -36,5 +44,10 @@ public class ConsumerEventService {
 
     private String channel(String sysPlantCd, String consumerSessionId) {
         return "consumer:" + sysPlantCd + ":" + consumerSessionId;
+    }
+
+    private void participantDisconnected(String channelId, String browserSessionId) {
+        int participantCount = participantRegistry.leave(channelId, browserSessionId);
+        emitterService.send(channelId, PARTICIPANTS_CHANGED, participantCount);
     }
 }

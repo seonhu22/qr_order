@@ -40,7 +40,7 @@ class ConsumerEventControllerTest {
 
     @Test
     void subscribesWithoutAcceptingAnExternalChannelId() throws Exception {
-        when(eventService.subscribe(any(), any())).thenReturn(new SseEmitter());
+        when(eventService.subscribe(any(), any(), any())).thenReturn(new SseEmitter());
 
         mockMvc.perform(get("/api/client/consumer/events").session(activeSession()))
                 .andExpect(status().isOk())
@@ -57,7 +57,7 @@ class ConsumerEventControllerTest {
 
     @Test
     void mapsClosedVisitToGone() throws Exception {
-        when(eventService.subscribe(any(), any()))
+        when(eventService.subscribe(any(), any(), any()))
                 .thenThrow(new ConsumerOrderSessionGoneException("종료되었거나 만료된 방문입니다."));
 
         mockMvc.perform(get("/api/client/consumer/events").session(activeSession()))

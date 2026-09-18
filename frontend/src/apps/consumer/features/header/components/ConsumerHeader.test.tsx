@@ -5,9 +5,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useConsumerOrderFilterStore } from '@/apps/consumer/stores/consumerOrderFilterStore';
 import { ConsumerHeader } from './ConsumerHeader';
+import { useConsumerParticipantStore } from '@/apps/consumer/stores/consumerParticipantStore';
 
 beforeEach(() => {
   useConsumerOrderFilterStore.setState({ searchQuery: '', selectedCategory: '전체' });
+  useConsumerParticipantStore.setState({ count: 1 });
 });
 
 describe('ConsumerHeader', () => {
