@@ -48,6 +48,7 @@ export function useConsumerOrderPage() {
   const setSearchQuery = useConsumerOrderFilterStore((state) => state.setSearchQuery);
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const [cart, setCart] = useState<OrderShellCartLine[]>([]);
+  const [requestNote, setRequestNote] = useState('');
   const [orderPhase, setOrderPhase] = useState<OrderPhase>('idle');
   const [duplicateTime, setDuplicateTime] = useState('');
   const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
@@ -147,13 +148,16 @@ export function useConsumerOrderPage() {
   function startOrderProcessing() {
     setOrderPhase('processing');
     orderTimerRef.current = setTimeout(() => {
+      const trimmedRequestNote = requestNote.trim();
       addOrder({
         orderId: `order-${Date.now()}`,
         orderedAt: new Date(),
         items: cart,
         total: totalCartPrice,
+        requestNote: trimmedRequestNote || undefined,
       });
       setCart([]);
+      setRequestNote('');
       setOrderPhase('complete');
     }, ORDER_PROCESSING_DELAY_MS);
   }
@@ -178,9 +182,13 @@ export function useConsumerOrderPage() {
     startOrderProcessing();
   }
 
-  /** 주문 확인 모달의 "취소" — 장바구니 시트로 돌아간다. */
+  /** 주문 확인 모달의 "취소" — 장바구니 시트로 돌아간다. 입력한 요청사항은 그대로 유지한다. */
   function cancelPlaceOrder() {
     setOrderConfirmOpen(false);
+  }
+
+  function changeRequestNote(value: string) {
+    setRequestNote(value);
   }
 
   /**
@@ -323,6 +331,8 @@ export function useConsumerOrderPage() {
     orderPhase,
     duplicateTime,
     orderConfirmOpen,
+    requestNote,
+    changeRequestNote,
     placeOrder,
     confirmPlaceOrder,
     cancelPlaceOrder,

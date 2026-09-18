@@ -91,4 +91,6 @@ export type OrderShellOrderRecord = {
   orderedAt: Date;
   items: OrderShellCartLine[];
   total: number;
+  /** 주문 전체에 대한 요청사항(선택) — 메뉴별이 아니라 주문 단위로 하나만 받는다. */
+  requestNote?: string;
 };
