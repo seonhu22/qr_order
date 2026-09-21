@@ -5,15 +5,16 @@
  * - 조리시작/서빙완료/이전 버튼은 generated API 성공과 서버 재조회 뒤 상태를 반영한다.
  * - 취소 버튼은 `useOrderCancelModalFlow`(취소사유 입력 → 취소 확인 → 완료 안내)를 거쳐 처리한다.
  * - 결제처리 버튼은 `useOrderPaymentModalFlow`(결제완료/미결제 선택 → 미결제는 사유 입력 → 완료 안내)를 거쳐 처리한다.
- * - 취소사유 버튼은 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다(닫기 버튼만 있음).
- * - 취소 컬럼의 휴지통(삭제) 버튼은 곧바로 지우지 않고 `DeleteConfirmModal` 확인을 한 번 거친다(`dismissConfirm`).
- *   확인하면 페이지 메모리의 ID 필터에서만 숨기며 서버와 query cache는 변경하지 않는다.
+ * - 취소된 주문은 보드 컬럼이 아니라 헤더 "취소내역" 버튼으로 여는 모달(`cancelHistory`)에서 본다.
+ *   그 목록의 "취소사유" 버튼이 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다(닫기 버튼만 있음).
  * - 수정 버튼은 `useOrderEditModalFlow`(같은 테이블 주문 전체를 draft로 모아 메뉴 추가/줄 취소 후 "확인"에서 한 번에 반영)를 거쳐 처리한다.
  * - 카드 데이터는 React Query의 서버 상태에서 직접 파생하며 writable 로컬 복사본을 만들지 않는다.
  * - 상태 변경 시 카드 위치는 그대로 두고(시간순 정렬 유지), 방금 변경된 카드만 잠깐 배경을 강조한다.
  *   주문 수정처럼 한 번에 여러 행(기존 주문 수정 + 메뉴 추가로 생긴 새 주문)이 바뀔 수 있어 `lastMovedIds`는 배열이다.
  * - 주문 수정/메뉴 추가/옵션 추가 중 하나라도 dirty면 `usePreventLeave`로 새로고침/탭 닫기를 경고한다.
  *   모달 내부 닫기(닫기 버튼/ESC/배경 클릭) 경고는 `useOrderEditModalFlow`가 각 단계별로 따로 처리한다.
+ * - 직원호출 컬럼은 주문 데이터와 무관한 별도 mock(`useStaffCallBoard`)이다. "완료"는 서버 처리 없이
+ *   화면에서만 카드를 지운다.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,9 +28,10 @@ import { ORDER_BOARD_PREV_STATUS } from '../constants';
 import { useOrderCancelModalFlow } from './useOrderCancelModalFlow';
 import { useOrderPaymentModalFlow } from './useOrderPaymentModalFlow';
 import { useOrderEditModalFlow } from './useOrderEditModalFlow';
-import { useDismissedOrderIds } from './useDismissedOrderIds';
+import { useStaffCallBoard } from './useStaffCallBoard';
 import {
   filterVisibleOrderBoardRows,
+  getCancelledOrderBoardRows,
   getEditableOrdersForTable,
   getPayableOrdersForTable,
   groupOrderBoardRowsByStatus,
@@ -44,16 +46,16 @@ export function useOrderStatusBoardPage() {
   const query = useOrderStatusBoardQuery();
   const mutations = useOrderStatusBoardMutations();
   const rows = query.data ?? EMPTY_ROWS;
-  const { dismiss: dismissOrder, isDismissed } = useDismissedOrderIds();
   const [pendingOrderIds, setPendingOrderIds] = useState<Set<string>>(() => new Set());
   const [mutationErrors, setMutationErrors] = useState<Map<string, string>>(() => new Map());
 
   const columns = useMemo(
-    () => groupOrderBoardRowsByStatus(
-      filterVisibleOrderBoardRows(rows).filter((row) => !isDismissed(row.id)),
-    ),
-    [isDismissed, rows],
+    () => groupOrderBoardRowsByStatus(filterVisibleOrderBoardRows(rows)),
+    [rows],
   );
+
+  const cancelledRows = useMemo(() => getCancelledOrderBoardRows(rows), [rows]);
+  const [isCancelHistoryOpen, setIsCancelHistoryOpen] = useState(false);
 
   const [lastMovedIds, setLastMovedIds] = useState<string[]>([]);
   const moveHighlightTimeoutRef = useRef<number | undefined>(undefined);
@@ -124,17 +126,6 @@ export function useOrderStatusBoardPage() {
     return Promise.resolve();
   };
 
-  /** 취소 컬럼 카드 삭제 확인 대상. 휴지통 버튼 클릭 시 바로 지우지 않고 확인 모달을 먼저 띄운다. */
-  const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
-  const closeDismissConfirm = () => setDismissTargetId(null);
-
-  /** query cache와 서버 데이터는 건드리지 않고 현재 페이지 메모리에서만 숨긴다. */
-  const confirmDismiss = () => {
-    if (!dismissTargetId) return;
-    dismissOrder(dismissTargetId);
-    setDismissTargetId(null);
-  };
-
   const executeCancel = (id: string, reason: string, description: string) =>
     runStatusMutation(id, 'CANCEL', { reason, description });
 
@@ -181,6 +172,8 @@ export function useOrderStatusBoardPage() {
       }
     : null;
 
+  const staffCallBoard = useStaffCallBoard();
+
   const handleRefresh = () => {
     if (!query.isFetching) void query.refetch();
   };
@@ -191,7 +184,13 @@ export function useOrderStatusBoardPage() {
   const isSyncError = query.isRefetchError && hasData;
 
   return {
-    data: { columns, lastMovedIds, pendingOrderIds, mutationErrors },
+    data: {
+      columns,
+      lastMovedIds,
+      pendingOrderIds,
+      mutationErrors,
+      staffCall: { rows: staffCallBoard.rows, onComplete: staffCallBoard.complete },
+    },
     status: {
       isLoading: query.isLoading,
       isInitialError,
@@ -205,12 +204,14 @@ export function useOrderStatusBoardPage() {
       row: cancelReasonSnapshot,
       isLoading: cancelReasonQuery.isLoading,
       isError: cancelReasonQuery.isError,
+      open: openCancelReasonView,
       close: closeCancelReasonView,
     },
-    dismissConfirm: {
-      targetId: dismissTargetId,
-      confirm: confirmDismiss,
-      close: closeDismissConfirm,
+    cancelHistory: {
+      isOpen: isCancelHistoryOpen,
+      rows: cancelledRows,
+      open: () => setIsCancelHistoryOpen(true),
+      close: () => setIsCancelHistoryOpen(false),
     },
     actions: {
       handleRefresh,
@@ -221,8 +222,6 @@ export function useOrderStatusBoardPage() {
         onMoveBack: handleMoveBack,
         onCancel: cancelModal.openCancelModal,
         onEdit: handleOpenEditModal,
-        onShowCancelReason: openCancelReasonView,
-        onDismiss: setDismissTargetId,
       },
     },
   };

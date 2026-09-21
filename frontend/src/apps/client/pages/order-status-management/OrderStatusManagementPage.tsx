@@ -17,14 +17,13 @@ import {
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
 import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
-import { DeleteConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
+import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
-import { SelectInput, TextareaInput, TextInput } from '@/shared/components/input';
+import { SelectInput, TextareaInput } from '@/shared/components/input';
 import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
   calculateOrderTotal,
-  formatOrderBoardDateTime,
   formatOrderBoardPrice,
   formatOrderBoardTime,
   formatOrderCancelReasonDisplay,
@@ -35,7 +34,7 @@ import {
 const GROUPED_MENU_CATALOG = groupMenuCatalogByCategory(MENU_CATALOG_MOCK);
 
 export function OrderStatusManagementPage() {
-  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, dismissConfirm } =
+  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, cancelHistory } =
     useOrderStatusBoardPage();
   const groupedMenuCatalog = GROUPED_MENU_CATALOG;
   const pendingOptionPickerMenu = MENU_CATALOG_MOCK.find(
@@ -72,6 +71,7 @@ export function OrderStatusManagementPage() {
     <>
       <section className="order-status-management-page" aria-label="주문 상태 관리">
         <OrderStatusManagementHeader
+          onOpenCancelHistory={cancelHistory.open}
           onRefresh={actions.handleRefresh}
           syncStatus={status.isInitialError || status.isSyncError ? 'error' : status.isRefreshing ? 'refreshing' : 'synced'}
         />
@@ -92,6 +92,7 @@ export function OrderStatusManagementPage() {
             lastMovedIds={data.lastMovedIds}
             pendingOrderIds={data.pendingOrderIds}
             mutationErrors={data.mutationErrors}
+            staffCall={data.staffCall}
           />
         )}
       </section>
@@ -172,16 +173,6 @@ export function OrderStatusManagementPage() {
         onClose={cancelReasonView.close}
       >
         <div className="order-cancel-modal__form">
-          <TextInput label="주문번호" readOnly value={cancelReasonView.row?.orderNo ?? ''} />
-          <TextInput
-            label="취소일시"
-            readOnly
-            value={
-              cancelReasonView.row
-                ? formatOrderBoardDateTime(cancelReasonView.row.cancelledAt ?? cancelReasonView.row.orderDatetime)
-                : ''
-            }
-          />
           <TextareaInput
             label="취소사유"
             readOnly
@@ -199,15 +190,81 @@ export function OrderStatusManagementPage() {
         </div>
       </WrapperModal>
 
-      {/* ── 취소 컬럼 카드 삭제 확인(화면에서만 삭제) ── */}
-      <DeleteConfirmModal
-        open={dismissConfirm.targetId !== null}
-        description={'이 카드를 화면에서 삭제합니다.\n실제 주문 데이터는 삭제되지 않습니다.'}
-        helperText="정말 삭제하시겠습니까?"
-        primaryAction={{ label: '확인', onClick: dismissConfirm.confirm }}
-        secondaryAction={{ onClick: dismissConfirm.close }}
-        onClose={dismissConfirm.close}
-      />
+      {/* ── 취소내역 ── */}
+      <WrapperModal
+        size="md"
+        open={cancelHistory.isOpen}
+        title="취소내역"
+        primaryAction={{ label: '닫기', onClick: cancelHistory.close }}
+        onClose={cancelHistory.close}
+      >
+        {cancelHistory.rows.length === 0 ? (
+          <p className="order-cancel-modal__notice-desc">취소된 주문이 없습니다.</p>
+        ) : (
+          <div className="order-payment-receipt__order-list">
+            {cancelHistory.rows.map((order) => (
+              <div key={order.id} className="order-payment-receipt__order">
+                <div className="order-payment-receipt__order-row">
+                  <span className="order-payment-receipt__order-no order-cancel-history__order-no">
+                    #{order.orderNo}
+                  </span>
+                  <span className="order-payment-receipt__time">
+                    <Icon id="i-clock" size={13} />
+                    취소시간 {formatOrderBoardTime(order.cancelledAt ?? order.orderDatetime)}
+                  </span>
+                </div>
+
+                <ul className="order-payment-receipt__menu-list">
+                  {order.menuItems.map((menu) => (
+                    <li key={menu.id} className="order-payment-receipt__menu-group">
+                      <div className="order-payment-receipt__line">
+                        <span className="order-payment-receipt__line-name">
+                          {menu.name} X {menu.quantity}
+                        </span>
+                        <span className="order-payment-receipt__line-qty">{menu.quantity}</span>
+                        <span className="order-payment-receipt__line-price">
+                          {formatOrderBoardPrice(menu.unitPrice)}
+                        </span>
+                        <span className="order-payment-receipt__line-amount">
+                          {formatOrderBoardPrice(menu.unitPrice * menu.quantity)}
+                        </span>
+                      </div>
+                      {menu.options.length > 0 && (
+                        <div className="order-payment-receipt__option-list">
+                          {menu.options.map((option) => (
+                            <div
+                              key={option.id}
+                              className="order-payment-receipt__line order-payment-receipt__line--option"
+                            >
+                              <span className="order-payment-receipt__line-name">
+                                ↳ {option.name} X {option.quantity}
+                              </span>
+                              <span className="order-payment-receipt__line-qty">{option.quantity}</span>
+                              <span className="order-payment-receipt__line-price">
+                                {formatOrderBoardPrice(option.unitPrice)}
+                              </span>
+                              <span className="order-payment-receipt__line-amount">
+                                {formatOrderBoardPrice(option.unitPrice * option.quantity)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="order-cancel-history__row-footer">
+                  <p className="order-payment-receipt__subtotal">{formatOrderBoardPrice(calculateOrderTotal(order))}</p>
+                  <Button variant="outline" size="sm" onClick={() => cancelReasonView.open(order)}>
+                    취소사유
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </WrapperModal>
 
       {/* ── 결제 처리 1단계: 결제완료/미결제/닫기 선택 ── */}
       <WrapperModal

@@ -222,6 +222,21 @@
   color: var(--color-text-primary);
 }
 
+/* 취소내역 모달 — 주문별 소계와 "취소사유" 버튼을 양끝에 배치하고, 위(항목 목록)·아래(다음 주문)와 간격을 둔다. */
+.order-cancel-history__row-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+/* 취소내역 모달 — 목록을 훑을 때 주문번호가 바로 눈에 띄도록 강조색을 준다(결제완료 영수증은 원래 색 유지). */
+.order-cancel-history__order-no {
+  color: var(--color-brand-default);
+}
+
 .order-payment-receipt__summary {
   display: flex;
   flex-direction: column;

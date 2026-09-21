@@ -51,6 +51,27 @@ export type OrderBoardColumnData = {
   rows: OrderBoardRow[];
 };
 
+/**
+ * 직원호출 항목 한 건. 이름은 직원호출 관리(`staffCallManagementMock.ts`)의 호출명과 같은 값이다.
+ * `qty`는 다건(수량형) 항목일 때만 있다 — 단건 항목은 수량 개념이 없어 그냥 이름만 보여준다.
+ */
+export type StaffCallBoardItem = {
+  name: string;
+  qty?: number;
+};
+
+/**
+ * 직원호출 보드 카드 한 건. 주문(`OrderBoardRow`)과 필드 성격이 달라(주문번호/메뉴/가격이 없음)
+ * 별도 타입으로 둔다 — 실시간 호출 데이터를 낼 API/스토어가 아직 없어 전부 mock이다.
+ */
+export type StaffCallBoardRow = {
+  id: string;
+  tableNum: string;
+  /** ISO 형식("YYYY-MM-DDTHH:mm:ss") 호출 요청 시각 */
+  calledAt: string;
+  items: StaffCallBoardItem[];
+};
+
 export type OrderBoardCardActions = {
   onStartCooking: (id: string) => void | Promise<void>;
   onServe: (id: string) => void | Promise<void>;
@@ -58,9 +79,6 @@ export type OrderBoardCardActions = {
   onMoveBack: (id: string) => void | Promise<void>;
   onCancel: (row: OrderBoardRow) => void;
   onEdit: (row: OrderBoardRow) => void;
-  onShowCancelReason: (row: OrderBoardRow) => void;
-  /** 취소 컬럼에서 카드를 화면에서만 지운다(실제 데이터는 삭제하지 않음). */
-  onDismiss: (id: string) => void;
 };
 
 /** "주문 수정" 모달의 "메뉴 추가" > "옵션 추가"에서 고를 수 있는 옵션 카탈로그 항목 */
