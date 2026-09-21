@@ -1249,3 +1249,28 @@ Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상�
 - Consumer 쪽 `STAFF_CALL_ITEMS`(mock/staffCallItems.ts)와 이 화면의 데이터를 실제로 연결하는 것은 아직 범위 밖이다 — 둘 다 백엔드 API가 없어 각자 mock으로 존재한다.
 
 ---
+
+## ADR-036 — 주문 상태 보드의 취소 컬럼을 모달로 옮기고 직원호출 컬럼을 추가한다
+
+**날짜**: 2026-09-21
+**상태**: 채택
+
+### 배경
+
+주문 상태 보드(접수/조리중/서빙완료/취소 4컬럼)에서 취소 컬럼은 카드가 계속 쌓이기만 하고 별다른 조작이 없어 공간만 차지했다. 한편 직원호출은 지금까지 이 보드에 전혀 반영되지 않았는데, 매장 입장에서는 주문 현황과 함께 실시간으로 확인해야 할 대상이다.
+
+### 결정
+
+- **취소 컬럼 → "취소내역" 모달**: 헤더에 버튼을 추가해 취소된 주문 전체를 모달 목록으로 보여준다. 취소 처리 자체(사유 입력/확인 흐름)는 그대로 두고 노출 방식만 바꿨다. `ORDER_BOARD_COLUMNS`에서 `CANCELLED`를 빼되, 상태 라벨 조회는 `ORDER_BOARD_STATUS_LABELS`로 분리해 다른 곳(배지 등)의 "취소" 표기는 그대로 유지했다.
+- **직원호출 컬럼 신설**: 취소 컬럼이 있던 자리에 배치. `OrderBoardRow`(주문 전용 필드)와 성격이 완전히 달라 `OrderStatusColumn`/`OrderStatusCard`에 끼워 넣지 않고 `StaffCallBoardColumn`/`StaffCallBoardCard`/`useStaffCallBoard`로 따로 만들었다. client 쪽에 실시간 호출 데이터를 낼 API가 없어(consumer 직원호출은 그 소비자 화면에만 토스트를 띄울 뿐 서버에 테이블 정보를 남기지 않는다) `staffCallBoardMock.ts`로 mock 처리했다. "완료" 버튼은 `useDismissedOrderIds`를 재사용해 화면에서만 카드를 지운다.
+- **색상은 두 톤만**: 강조 요소(숫자 배지, "완료" 버튼)는 진한 브랜드색, 은은한 요소(패널 배경, 카드 보더, "직원호출" 라벨)는 연한 브랜드색 — 요소마다 색을 따로 정하다 서로 안 어울리는 문제를 겪은 뒤 이렇게 정리했다.
+
+상세 규약은 [`page/order-status-management.md`](./page/order-status-management.md#직원호출-컬럼) 참고.
+
+### 결과
+
+- 실제 브라우저에서 취소내역 모달, 직원호출 컬럼 표시/완료 처리까지 확인했다.
+- `useStaffCallBoard`와 `getCancelledOrderBoardRows`(utils.ts)는 아직 테스트가 없다 — 이 기능 폴더의 다른 hooks/utils는 전부 테스트가 있어 유일한 공백이다.
+- 직원호출 실시간 데이터를 실제로 연결하는 것은 범위 밖이다 — consumer 쪽에도 관련 API/스토어가 없어 양쪽 다 mock으로 존재한다(ADR-035와 같은 한계).
+
+---

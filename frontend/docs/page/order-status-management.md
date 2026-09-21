@@ -3,13 +3,12 @@
 > 경로: `/client/order/status/management`
 > 화면: 매장 > 주문 > 주문 현황 > 주문 상태 관리
 
-칸반형 보드 화면이다. 접수/조리중/서빙완료/취소 4개 컬럼으로 주문을 분류해 보여주고, 각 컬럼은 독립적으로 스크롤된다.
+칸반형 보드 화면이다. 접수/조리중/서빙완료 3개 컬럼으로 주문을 분류해 보여주고, 각 컬럼은 독립적으로 스크롤된다. 맨 오른쪽 4번째 컬럼은 주문이 아니라 [직원호출](#직원호출-컬럼)이다. 취소된 주문은 보드 컬럼이 아니라 헤더 "취소내역" 버튼으로 여는 모달에서 본다(아래 [취소내역](#취소내역-모달) 참고). 이 두 변경의 배경은 [`decisions.md` ADR-036](../decisions.md#adr-036--주문-상태-보드의-취소-컬럼을-모달로-옮기고-직원호출-컬럼을-추가한다) 참고.
 
 ## 표기 규칙
 
 - **결제완료 제외**: 조회 응답의 결제상태가 `PAID`(완료)인 주문은 어떤 컬럼에도 표시하지 않는다. 현재 결제완료 저장 API는 연동 전이므로 모달 조작만으로 카드를 제거하지 않는다.
-- **취소는 당일만 표시**: 취소(`CANCELLED`) 컬럼은 취소 처리 시각(`cancelledAt`)이 오늘 날짜인 주문만 보여준다. 어제 이전에 취소된 주문은 보드에서 제외된다.
-- 컬럼 헤더의 숫자는 위 두 규칙을 적용하고 남은(=화면에 실제로 보이는) 카드 수다.
+- 컬럼 헤더의 숫자는 위 규칙을 적용하고 남은(=화면에 실제로 보이는) 카드 수다.
 - 최초 조회 카드는 각 컬럼 안에서 주문 접수 시각(`orderDatetime`) 오름차순으로 정렬한다.
 - 상태를 변경해 다른 컬럼으로 이동한 카드는 대상 컬럼 맨 아래에 배치한다. 이동 카드끼리는 상태 변경 시각(`statusChangedAt`) 오름차순으로 정렬한다. 현재 Mock API가 이 시각을 기록하며, 실제 API 전환 시 같은 의미의 응답 필드가 필요하다.
 
@@ -26,8 +25,8 @@
 | 서빙완료 | 결제처리 | 결제 처리 모달 흐름을 연다 (아래 "결제 처리" 참고) |
 | 서빙완료 | 이전 | `orderStatus`를 `COOKING`으로 되돌림 |
 | 서빙완료 | 수정/취소 | 접수 컬럼과 동일 |
-| 취소 | 취소사유 | 저장된 취소사유/상세사유를 읽기 전용으로 보여주는 모달을 연다 (아래 "취소사유 보기" 참고) |
-| 취소 | 삭제(휴지통 아이콘) | 주문 id를 브라우저 메모리의 숨김 목록에 추가해 현재 화면에서만 감춘다. 서버 데이터는 삭제하지 않는다 |
+
+헤더의 "취소내역" 버튼은 컬럼이 아니라 모달로 취소된 주문을 보여준다 (아래 [취소내역](#취소내역-모달) 참고).
 
 상태 변경 버튼(조리시작/서빙완료/이전)은 모달 없이 API를 호출한다. 성공 응답을 받은 뒤 목록 쿼리를 무효화하고 다시 조회한 결과로 화면을 갱신한다. 낙관적 업데이트는 사용하지 않는다.
 
@@ -43,26 +42,33 @@
 
 선택한 사유와 상세입력은 취소 API 요청의 `cancelReason`/`cancelDescription`으로 전달한다. 처리 중에는 같은 주문의 중복 동작을 막는다.
 
+## 취소내역 모달
+
+헤더 "취소내역" 버튼(`OrderStatusManagementHeader.tsx`, "새로고침" 왼쪽)을 누르면 `WrapperModal`이 취소된 주문 전체를 리스트로 보여준다(`useOrderStatusBoardPage.ts`의 `cancelHistory`, `getCancelledOrderBoardRows` — `utils.ts`). 예전에는 보드에 "취소" 컬럼이 있었지만, 카드 형태로 계속 쌓이는 대신 필요할 때만 열어보는 모달로 옮겼다. 목록 레이아웃은 결제완료 영수증(`.order-payment-receipt__*`)과 같은 클래스를 그대로 재사용한다(주문번호, 취소시간, 메뉴/옵션 목록, 소계) — 취소시간은 `row.cancelledAt`(없으면 `orderDatetime`)을 쓴다. 테이블 번호와 상태 배지는 넣지 않았다 — 이미 취소내역 목록이라 상태 구분이 필요 없고, 주문번호만으로 충분하다.
+
+각 행 오른쪽 아래 "취소사유" 버튼이 아래 읽기 전용 모달을 그 위에 겹쳐 연다.
+
 ## 취소사유 보기 (읽기 전용 모달)
 
-취소(`CANCELLED`) 컬럼 카드의 "취소사유" 버튼을 누르면 `WrapperModal`이 열린다. 입력 없이 보기만 하는 모달이라 버튼은 "닫기" 1개뿐이다(`primaryAction`만 전달하고 `secondaryAction`은 전달하지 않음).
+취소내역 목록의 "취소사유" 버튼을 누르면 `WrapperModal`이 열린다. 입력 없이 보기만 하는 모달이라 버튼은 "닫기" 1개뿐이다(`primaryAction`만 전달하고 `secondaryAction`은 전달하지 않음).
 
-- 주문번호·취소일시는 `TextInput`, 취소사유는 길어질 수 있어 `TextareaInput`(3행)에 각각 `readOnly`만 주고 그대로 렌더한다. 별도 "상세사유" 필드는 두지 않고, `formatOrderCancelReasonDisplay`가 코드값을 한글 라벨로 바꾼 뒤 "기타"일 때만 상세사유를 괄호로 붙여 취소사유 한 줄에 함께 보여준다(예: "기타 (배송 지연)").
-- "취소일시"는 카드의 "취소시간 HH:MM"(`OrderStatusCard.tsx`)과 달리 날짜까지 보여준다 — `formatOrderBoardDateTime`(`utils.ts`)이 `row.cancelledAt`(없으면 `orderDatetime`)을 "YYYY-MM-DD HH:MM"으로 바꾼다. 날짜+시간을 함께 보여줄 때는 이 코드베이스의 "시작일시"/"종료일시" 컨벤션을 따라 "~일시"로 라벨을 짓는다(시간만 보여주는 카드 쪽은 "주문시간"/"취소시간"으로 유지).
+- 취소사유만 보여준다(주문번호·취소일시는 취소내역 목록에 이미 있어 여기서는 뺐다) — `TextareaInput`(3행, `readOnly`). `formatOrderCancelReasonDisplay`가 코드값을 한글 라벨로 바꾼 뒤 "기타"일 때만 상세사유를 괄호로 붙여 한 줄에 함께 보여준다(예: "기타 (배송 지연)").
 - 모달을 열 때 선택한 카드와 취소사유 응답을 깊은 복사한 스냅샷으로 보관한다. Polling 결과가 갱신돼도 열려 있는 모달의 내용은 자동으로 바뀌지 않는다.
 - 취소사유는 Orval 생성 GET 함수를 필요할 때만 호출한다. 현재 생성 타입이 중첩된 `header.sysId`를 충분히 표현하지 못해 feature-local wrapper에서 호환 처리하며, OpenAPI 수정과 regenerate 후 제거한다.
 
-### 취소 컬럼 카드 삭제(화면에서만)
-
-"취소사유" 버튼 오른쪽에 정사각형 휴지통 아이콘 버튼(`.order-status-card__dismiss`, `variant="icon"` + `i-trash`)을 둔다. 누르면 바로 지우지 않고 `DeleteConfirmModal`을 먼저 띄운다 — 백엔드 데이터를 진짜로 지우는 게 아니라서 다른 화면의 "삭제하면 복구할 수 없습니다." 문구([`docs/components/Modal.md` #16](../components/Modal.md))를 그대로 쓰지 않고, `description`에 `\n`으로 줄바꿈한 두 줄("이 카드를 화면에서 삭제합니다." / "실제 주문 데이터는 삭제되지 않습니다.")과 `helperText`("정말 삭제하시겠습니까?")로 화면에서만 지워진다는 점을 명시했다(`\n` 줄바꿈은 [`docs/components/Modal.md` #17](../components/Modal.md) 패턴).
-
-"확인"을 누르면 주문 id를 `dismissedOrderIds: Set<string>`에 추가한다. 조회 데이터와 React Query 캐시는 수정하지 않고 렌더링할 때 해당 id만 제외하므로 Polling과 수동 새로고침 후에도 같은 브라우저 화면에서는 계속 숨겨진다. `localStorage`를 사용하지 않으므로 페이지 새로고침·재진입 시 숨김 목록은 초기화된다.
-
-확인 대상은 `dismissConfirm.targetId`(`useOrderStatusBoardPage.ts`) 하나만 들고 있는다 — 취소사유 보기(`cancelReasonView`)와 같은 단순 open/close 패턴이다.
-
-이 버튼은 카드 액션 영역의 "4개가 한 줄에 맞는 1/4 폭 고정" 규칙(`.order-status-card__actions .btn`, 위 "상태별 버튼 그룹" 참고)을 따르지 않고 `.order-status-card__actions .order-status-card__dismiss`로 같은 명시도를 맞춰 덮어쓴다. 높이를 고정값으로 박아두지 않고, `.order-status-card__actions`의 기본 `align-items: stretch`로 옆의 "취소사유" 버튼(패딩 기반 auto-height)과 세로 크기를 자동으로 맞춘 뒤 `aspect-ratio: 1 / 1`로 가로를 그 높이에 맞춰 정사각형을 만든다 — 옆 버튼의 패딩/폰트 토큰이 바뀌어도 두 버튼의 세로 크기가 항상 같게 유지된다.
-
 관련 백엔드 API와 필드 대응 관계는 아래 "Mock → 실제 API 전환 가이드"에 모아뒀다.
+
+## 직원호출 컬럼
+
+보드 맨 오른쪽 4번째 컬럼. 주문(`OrderBoardRow`)과 필드 성격이 완전히 달라(주문번호/메뉴/가격 없음) `OrderStatusColumn`/`OrderStatusCard`에 억지로 끼워 넣지 않고 `StaffCallBoardColumn`/`StaffCallBoardCard`(같은 폴더)로 따로 만들었다. 카드 상단은 주문 카드와 같은 자리에 테이블 번호(주문번호 자리)와 호출시간(주문시간 자리)을 보여주고, 본문에 호출 항목을 공용 `Badge`(`tone="neutral"`, [`/dev/badge`](../components.md) 참고)로 나열한다 — 다건(수량형) 항목은 "물 X 2"처럼 수량을 붙이고, 단건 항목은 이름만 보여준다(`StaffCallBoardItem.qty`). 처음엔 임의로 만든 회색 태그였는데, 메뉴 옵션의 "필수"/"선택" 라벨과 같은 공용 컴포넌트로 바꿨다. 총 가격이 없어 항목 목록과 "완료" 버튼 사이에 구분선을 두지 않는다. "완료" 버튼은 공용 `.order-status-card__actions` 1/4 폭 규칙 대신 `.staff-call-board-card__footer`로 전체 폭을 쓴다 — 버튼이 하나뿐이라 다른 카드처럼 우측 1/4 폭으로 두면 너무 작아 보여서, 1/4 폭 규칙 대신 카드 전체 폭을 쓰기로 되돌렸다. 색은 딱 두 톤만 쓴다 — 강조 요소(숫자 배지, "완료" 버튼)는 진한 `--color-brand-default`, 은은한 요소(패널 배경, 카드 보더, "직원호출" 라벨)는 연한 `--color-brand-subtle` 계열(패널 보더는 반투명 `--color-border-brand`, Consumer 헤더와 같은 조합). 배지·보더 색을 하나씩 따로 맞추다 보니 서로 안 어울리는 문제가 있어 이 두 톤으로 정리했다.
+
+컬럼 제목에 종 아이콘을 넣고 숫자 배지와 같은 브랜드 색을 입혀보기도 했지만, 제목은 다른 3개 컬럼과 똑같이 두는 게 낫다는 피드백으로 원래대로(`order-status-column__title` 그대로, 아이콘 없음) 되돌렸다. 카드 왼쪽 띠도 같은 이유로 뺐다. 지금은 패널 배경(`--color-brand-subtle` + `--color-border-brand`)과 숫자 배지(`--color-brand-default`)만 다른 3개와 다르고, 제목·카드·항목 태그(`Badge`)는 전부 동일하다.
+
+컬럼 헤더 숫자 배지(`.order-status-column__count`)는 패널 배경과 같은 `--color-brand-subtle`을 쓰면 배경이 안 보이는 문제가 있었다 — 진한 `--color-brand-default` 배경 + `--color-brand-text`(흰색) 글자로 바꿔 패널 위에서도 항상 또렷하게 보이게 했다.
+
+직원호출 실시간 데이터를 낼 API/스토어가 client 쪽에 아직 없다(consumer의 직원호출은 그 소비자 화면에만 토스트를 띄울 뿐 테이블 정보를 서버에 남기지 않는다) — `useStaffCallBoard`가 `staffCallBoardMock.ts`를 그대로 보여준다. 항목명은 직원호출 관리(`staffCallManagementMock.ts`)의 호출명을 재사용했다.
+
+"완료" 버튼은 다른 액션처럼 API를 호출하지 않고, 취소 카드 삭제와 같았던 방식으로 `useDismissedOrderIds`를 재사용해 화면에서만 카드를 지운다 — 실제 완료 처리(API 연동)가 정해지면 교체 대상이다.
 
 ## 결제 처리 (모달 흐름)
 
@@ -145,11 +151,11 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 상단부터 순서대로: 주문번호 + 시간(우측 정렬) → 테이블번호 → 주문리스트(메뉴명 + 수량, 옵션은 `↳`로 들여쓰기해 메뉴 하위에 표시) → 구분선 → 총 가격 → 상태별 버튼 그룹.
 
-시간 영역(`.order-status-card__time`, 시계 아이콘 + 텍스트)은 컬럼에 따라 기준 시각과 라벨이 다르다 — 접수/조리중/서빙완료는 "주문시간 HH:MM"(`row.orderDatetime`), 취소는 "취소시간 HH:MM"(`row.cancelledAt`, 없으면 `orderDatetime`으로 대체)을 보여준다(`OrderStatusCard.tsx`).
+시간 영역(`.order-status-card__time`, 시계 아이콘 + 텍스트)은 "주문시간 HH:MM"(`row.orderDatetime`)을 보여준다(`OrderStatusCard.tsx`). 취소된 주문은 이 카드가 아니라 [취소내역 모달](#취소내역-모달)에 따로 뜬다.
 
 ### 상태별 버튼 그룹 — 개수와 무관하게 같은 크기, 한 줄 고정
 
-컬럼마다 버튼 개수가 다르다(접수/취소=1~3개, 조리중/서빙완료=4개). "버튼 크기가 다 다르면 별로"라는 피드백에 따라 `.order-status-card__actions .btn`은 아래 규칙으로 항상 같은 크기를 유지한다.
+컬럼마다 버튼 개수가 다르다(접수=3개, 조리중/서빙완료=4개). "버튼 크기가 다 다르면 별로"라는 피드백에 따라 `.order-status-card__actions .btn`은 아래 규칙으로 항상 같은 크기를 유지한다.
 
 - `flex-wrap: nowrap` — 버튼이 몇 개든 한 줄에 다 들어간다(줄바꿈 없음).
 - `width: calc((100% - 3 * var(--spacing-1)) / 4)` — 4개가 한 줄에 정확히 맞는 폭을 계산해서 고정폭으로 쓴다. `%`는 형제 개수가 아니라 부모(컨테이너) 폭 기준이라, 1개/3개짜리 줄도 똑같은 폭을 쓰고 남는 공간은 그냥 비워둔다(늘어나서 커지지 않는다).
@@ -162,25 +168,10 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 뷰포트가 아니라 `client-layout__main`(사이드바 옆 콘텐츠 영역, `ClientLayout.css`) 컨테이너 폭 기준이다 — `@container client-main (max-width: 1200px)`(`OrderStatusBoard.css`, `OrderStatusCard.css`). 사이드바가 열려 있으면 줄어드는 실제 콘텐츠 폭을 그대로 따라가므로, 사이드바 열림/닫힘과 무관하게 항상 같은 기준으로 동작한다. 배경은 [`docs/decisions.md` ADR-016](./decisions.md#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-layout-기준) 참고.
 
-- 4개 컬럼 사이 간격(`.order-status-board`)을 `--spacing-8` → `--spacing-4`로 줄여 카드 공간을 더 확보한다.
+- 컬럼 사이 간격(`.order-status-board`)을 `--spacing-8` → `--spacing-4`로 줄여 카드 공간을 더 확보한다.
 - 카드 패딩(`.order-status-card`)을 `--spacing-10` → `--spacing-6`으로 줄인다.
 - 버튼 그룹(`.order-status-card__actions`)이 `flex-wrap: wrap`으로 바뀌어, 4등분 고정폭 대신 2개씩 줄바꿈한다(`width: calc((100% - var(--spacing-1)) / 2)`). `white-space: normal`로 줄바꿈을 허용해, 좁은 폭에서도 버튼 글자가 `...`로 잘리지 않는다.
 - 주문번호+주문시간 줄(`.order-status-card__top-row`)도 `flex-wrap: wrap`으로 바꾸고 `.order-status-card__time`에 `flex-basis: 100%`를 줘서, 폭이 좁아지면 주문시간이 다음 줄로 내려간다.
-
-### 휴지통(삭제) 버튼 — 정사각형 고정 크기
-
-`.order-status-card__dismiss`는 `Button`의 `variant="icon"`이라 `btn--icon-square` 클래스가 함께 붙는데, `Button.css`의 `.btn--sm.btn--icon-square { width: var(--height-component-sm) }`와 카드 쪽 오버라이드가 클래스 2개로 명시도가 같아 CSS 주입 순서에 따라 폭이 고정 토큰으로 깨질 수 있었다 — 셀렉터에 `.btn`을 더해(`.order-status-card__actions .btn.order-status-card__dismiss`, 클래스 3개) 항상 카드 쪽 규칙이 이기게 했다.
-
-또한 `aspect-ratio: 1/1` + `width: auto`를 flex의 `align-items: stretch`에 맡기는 방식은 신뢰할 수 없었다 — 아이콘 콘텐츠 자체가 작아 브라우저가 정사각형의 가로폭을 "늘어난 세로 높이"가 아니라 아이콘의 작은 hypothetical 크기로 먼저 계산해버려, 세로만 길게 늘어난 얇은 막대가 됐다. 그래서 옆 "취소사유"(`outline`, `sm`) 버튼의 자동 높이 공식을 그대로 `calc()`로 계산해 `width`/`height`에 고정값으로 박아 넣는다.
-
-```css
-width: calc(
-  var(--spacing-6) * 2 + var(--typography-size-ui) * var(--typography-leading-ui) +
-    var(--border-1) * 2
-);
-```
-
-패딩(`--spacing-6`) 2번 + 줄높이(`font-size × line-height`) + 테두리(`--border-1`) 2번 — `outline` 버튼 1개가 실제로 차지하는 세로 크기를 그대로 재현한 값이다. stretch/aspect-ratio에 의존하지 않으므로 어떤 화면 폭에서도 항상 정확한 정사각형이 나온다.
 
 ## React Query Polling
 
@@ -211,7 +202,7 @@ SSE는 보류하고 React Query Polling을 사용한다. 주문 목록 쿼리의
 
 - **서버 상태**: 주문 목록과 상태 변경 결과는 React Query가 관리한다.
 - **모달 스냅샷**: 열린 모달의 주문·취소사유는 깊은 복사본으로 고정한다. Polling이 실행돼도 사용자가 읽거나 입력 중인 모달을 자동 변경하지 않는다.
-- **화면 숨김 상태**: 취소 카드 id는 컴포넌트 메모리의 `Set`으로 관리한다. 서버·캐시·`localStorage`에는 저장하지 않는다.
+- **화면 숨김 상태**: 직원호출 카드를 "완료" 처리하면 `useDismissedOrderIds`가 id를 컴포넌트 메모리의 `Set`으로 관리한다. mock 데이터 자체는 바뀌지 않고 화면 렌더링에서만 제외하므로, 페이지를 새로고침/재진입하면 다시 나타난다.
 
 ## 데이터 소스와 Mock/Real 경계
 
@@ -239,6 +230,7 @@ SSE는 보류하고 React Query Polling을 사용한다. 주문 목록 쿼리의
 - 조리시작·서빙완료·이전을 양방향으로 실행해 이동 카드가 대상 컬럼 맨 아래에 추가되는지 확인한다.
 - 상태 변경 실패 시 카드가 기존 컬럼에 남고 다시 시도할 수 있는지 확인한다.
 - 모달을 연 상태에서 Polling되어도 모달 내용과 입력값이 바뀌지 않는지 확인한다.
-- 취소 카드를 숨긴 뒤 Polling·수동 새로고침에는 계속 숨고, 브라우저 새로고침에는 다시 나타나는지 확인한다.
+- "취소내역" 버튼으로 취소된 주문이 모두 보이는지, "취소사유" 버튼이 읽기 전용 모달을 겹쳐 여는지 확인한다.
+- 직원호출 컬럼에서 테이블 번호·호출시간·수량 표기("물 X 2")가 맞는지, "완료" 클릭 시 해당 카드만 화면에서 사라지는지 확인한다.
 - Network 탭에서 조회가 카드 수만큼 반복되는 N+1이 아니라 Polling 주기당 주문 목록 요청 1건인지 확인한다.
 - 백엔드 계약 반영 후 `dev:real`에서 같은 시나리오를 다시 검증한다.
