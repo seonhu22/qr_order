@@ -1,4 +1,9 @@
-import { ORDER_BOARD_COLUMNS, ORDER_CANCEL_REASON_OPTIONS, ORDER_CANCEL_REASON_OTHER_VALUE } from './constants';
+import {
+  ORDER_BOARD_COLUMNS,
+  ORDER_BOARD_STATUS_LABELS,
+  ORDER_CANCEL_REASON_OPTIONS,
+  ORDER_CANCEL_REASON_OTHER_VALUE,
+} from './constants';
 import type {
   MenuCatalogItem,
   OrderBoardColumnData,
@@ -34,9 +39,9 @@ export function formatOrderBoardPrice(value: number): string {
   return `${value.toLocaleString('ko-KR')} 원`;
 }
 
-/** 칸반 컬럼 헤더와 같은 한글 라벨("접수"/"조리중"/"서빙완료"/"취소")을 돌려준다. */
+/** 한글 상태 라벨("접수"/"조리중"/"서빙완료"/"취소")을 돌려준다. 보드 컬럼 여부와 무관하게 CANCELLED도 포함한다. */
 export function getOrderBoardStatusLabel(status: OrderBoardStatus): string {
-  return ORDER_BOARD_COLUMNS.find((column) => column.status === status)?.label ?? status;
+  return ORDER_BOARD_STATUS_LABELS[status] ?? status;
 }
 
 /**
@@ -45,6 +50,13 @@ export function getOrderBoardStatusLabel(status: OrderBoardStatus): string {
  */
 export function filterVisibleOrderBoardRows(rows: OrderBoardRow[]): OrderBoardRow[] {
   return rows.filter((row) => row.paymentStatus !== 'PAID');
+}
+
+/** "취소내역" 모달에 보여줄 취소 주문 목록 — 최근 취소부터 보이도록 내림차순 정렬한다. */
+export function getCancelledOrderBoardRows(rows: OrderBoardRow[]): OrderBoardRow[] {
+  return filterVisibleOrderBoardRows(rows)
+    .filter((row) => row.orderStatus === 'CANCELLED')
+    .sort((a, b) => (b.cancelledAt ?? b.orderDatetime).localeCompare(a.cancelledAt ?? a.orderDatetime));
 }
 
 /**

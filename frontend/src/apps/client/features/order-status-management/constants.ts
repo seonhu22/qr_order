@@ -1,12 +1,20 @@
 import type { SelectOption } from '@/shared/components/input';
 import type { OrderBoardStatus } from './types';
 
+/** 실시간 보드에 컬럼으로 렌더링되는 상태만 담는다. 취소는 "취소내역" 모달로 옮겨서 여기 없다. */
 export const ORDER_BOARD_COLUMNS: { status: OrderBoardStatus; label: string }[] = [
   { status: 'RECEIVED', label: '접수' },
   { status: 'COOKING', label: '조리중' },
   { status: 'SERVED', label: '서빙완료' },
-  { status: 'CANCELLED', label: '취소' },
 ];
+
+/** 보드 컬럼 여부와 무관한 상태 라벨 전체 목록 — 배지·모달 등에서 CANCELLED 라벨도 필요해 `ORDER_BOARD_COLUMNS`와 분리했다. */
+export const ORDER_BOARD_STATUS_LABELS: Record<OrderBoardStatus, string> = {
+  RECEIVED: '접수',
+  COOKING: '조리중',
+  SERVED: '서빙완료',
+  CANCELLED: '취소',
+};
 
 /**
  * 칸반 컬럼 숫자 라벨(`OrderStatusColumn.css`의 `.order-status-column__count`)과 같은 색상 매핑.

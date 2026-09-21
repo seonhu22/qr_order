@@ -2,11 +2,13 @@ import './OrderStatusManagementHeader.css';
 import { Button } from '@/shared/components/button';
 
 type OrderStatusManagementHeaderProps = {
+  onOpenCancelHistory: () => void;
   onRefresh: () => void;
   syncStatus: 'synced' | 'refreshing' | 'error';
 };
 
 export function OrderStatusManagementHeader({
+  onOpenCancelHistory,
   onRefresh,
   syncStatus,
 }: OrderStatusManagementHeaderProps) {
@@ -33,15 +35,25 @@ export function OrderStatusManagementHeader({
               : '실시간 동기화(5초)'}
         </span>
       </div>
-      <Button
-        variant="outline"
-        size="md"
-        className="order-status-header__reset"
-        loading={isRefreshing}
-        onClick={onRefresh}
-      >
-        새로고침
-      </Button>
+      <div className="order-status-header__right">
+        <Button
+          variant="outline"
+          size="md"
+          className="order-status-header__reset"
+          onClick={onOpenCancelHistory}
+        >
+          취소내역
+        </Button>
+        <Button
+          variant="outline"
+          size="md"
+          className="order-status-header__reset"
+          loading={isRefreshing}
+          onClick={onRefresh}
+        >
+          새로고침
+        </Button>
+      </div>
     </header>
   );
 }
