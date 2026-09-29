@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "plan_ref": "./plan-v1.json",
+  "reviewer": {
+    "model": "claude-opus-4-7",
+    "agent": "general-purpose"
+  },
+  "score": 8,
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "MED",
+      "location": "decisions[D1]",
+      "problem": "FK 순서 제약이 본질적 근거인데 명시 안됨",
+      "suggestion": "FK CASCADE 제약 문구 근거에 포함"
+    },
+    {
+      "id": "F2",
+      "severity": "LOW",
+      "location": "phases[P3-Frontend].steps",
+      "problem": "regenerate openapi 여부 미결정",
+      "suggestion": "generated 파일 재생성 필요 시 npm run generate 단계 추가, 아니면 생략 명시"
+    }
+  ],
+  "verdict": "PASS",
+  "notes": "Tier B 폴백. Codex 대비 검사 깊이 얕으나 스코프 방어 강함. 이후 세션에서 Codex 로 전환 권장"
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Plan",
+  "type": "object",
+  "required": ["version", "requirement_ref", "scope", "decisions", "phases", "risks", "success_criteria"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "requirement_ref": { "type": "string", "description": "requirement.md 상대경로" },
+    "scope": {
+      "type": "object",
+      "required": ["files_estimated", "domains"],
+      "properties": {
+        "files_estimated": { "type": "integer" },
+        "domains": { "type": "array", "items": { "enum": ["backend", "frontend", "sql", "docs", "infra"] } },
+        "out_of_scope": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "choice", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "choice": { "type": "string" },
+          "reason": { "type": "string" },
+          "alternatives_considered": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "steps", "verify"],
+        "properties": {
+          "name": { "type": "string" },
+          "steps": { "type": "array", "items": { "type": "string" } },
+          "verify": { "type": "string", "description": "성공 판정 방법 (커맨드 or 관찰)" },
+          "depends_on": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "mitigation": { "type": "string" }
+        }
+      }
+    },
+    "success_criteria": { "type": "array", "items": { "type": "string" } }
+  }
+}

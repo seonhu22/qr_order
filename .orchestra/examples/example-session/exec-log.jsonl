@@ -1,0 +1,10 @@
+{"ts":"2026-09-29T19:24:12Z","agent":"cavecrew-builder","phase":"P1-SQL","action":"commit","commit":"e4297a13","files":["docs/sql/2026-09-18-consumer-staff-call-master-migration.sql"],"result":"ok"}
+{"ts":"2026-09-29T19:24:40Z","agent":"maestro","phase":"P1-SQL","action":"pr-create","pr":"https://github.com/seonhu22/qr_order/pull/130","result":"ok"}
+{"ts":"2026-09-29T19:26:11Z","agent":"cavecrew-builder","phase":"P2-Backend","action":"commit","commit":"baf8a05f","files":["ConsumerStaffCallMapper.java","ConsumerStaffCall.xml"],"result":"ok"}
+{"ts":"2026-09-29T19:27:03Z","agent":"cavecrew-builder","phase":"P2-Backend","action":"commit","commit":"123aa623","files":["ConsumerStaffCallService.java"],"result":"ok"}
+{"ts":"2026-09-29T19:27:55Z","agent":"cavecrew-builder","phase":"P2-Backend","action":"commit","commit":"ef7c74c7","files":["StaffCallNotificationItem.java","StaffCallNotificationMapper.xml"],"result":"ok"}
+{"ts":"2026-09-29T19:29:12Z","agent":"tester","phase":"P2-Backend","action":"gradle-test","cmd":"./gradlew test --tests ConsumerStaffCallServiceTest","result":"BUILD SUCCESSFUL","duration_ms":50000}
+{"ts":"2026-09-29T19:29:44Z","agent":"cavecrew-builder","phase":"P2-Backend","action":"commit","commit":"d1bafee5","files":["ConsumerStaffCallServiceTest.java"],"result":"ok"}
+{"ts":"2026-09-29T19:30:20Z","agent":"maestro","phase":"P2-Backend","action":"pr-create","pr":"https://github.com/seonhu22/qr_order/pull/131","result":"ok"}
+{"ts":"2026-09-29T19:33:51Z","agent":"tester","phase":"P3-Frontend","action":"vitest","cmd":"npx vitest run staffCallNotificationApi.test.ts","result":"1 passed","duration_ms":4610}
+{"ts":"2026-09-29T19:34:40Z","agent":"maestro","phase":"P3-Frontend","action":"pr-create","pr":"https://github.com/seonhu22/qr_order/pull/132","result":"ok"}

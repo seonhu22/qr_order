@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "requirement_ref": "./requirement.md",
+  "scope": {
+    "files_estimated": 8,
+    "domains": ["sql", "backend", "frontend"],
+    "out_of_scope": ["E2E 테스트 자동화", "관리자 UI 그룹핑 렌더링 (디자인 미제공)"]
+  },
+  "decisions": [
+    {
+      "id": "D1",
+      "choice": "마스터/자식 두 INSERT 를 별도 매퍼 메서드로 분리",
+      "reason": "MyBatis foreach + selectKey 조합은 실패 시 원인 추적이 어려움. 두 단계 명시가 리뷰/디버깅에 유리",
+      "alternatives_considered": ["단일 stored procedure", "batch insert with foreach"]
+    },
+    {
+      "id": "D2",
+      "choice": "브랜치 3개 분리 (sql / backend / frontend)",
+      "reason": "레이어별 배포 순서 강제 + 사용자 학습을 위한 커밋 세분화 요구 반영",
+      "alternatives_considered": ["단일 브랜치 통합 PR"]
+    },
+    {
+      "id": "D3",
+      "choice": "API 요청 계약(callStaff items[]) 유지",
+      "reason": "프론트 재작업 회피, 배포 순서 제약 최소화. 내부 저장 구조만 변경",
+      "alternatives_considered": ["masterSysId 를 요청에 포함하도록 계약 변경"]
+    }
+  ],
+  "phases": [
+    {
+      "name": "P1-SQL",
+      "steps": [
+        "worktree feat/staff-call-master-sql 생성",
+        "SQL 파일 이관 및 커밋",
+        "PR #dev 생성"
+      ],
+      "verify": "gh pr view 로 PR URL 반환",
+      "depends_on": []
+    },
+    {
+      "name": "P2-Backend",
+      "steps": [
+        "worktree feat/staff-call-master-backend",
+        "매퍼 분리 커밋",
+        "서비스 재구성 커밋",
+        "알림 매퍼 재작성 커밋",
+        "테스트 갱신 커밋",
+        "gradlew test 통과 확인",
+        "PR 생성"
+      ],
+      "verify": "./gradlew test --tests ConsumerStaffCallServiceTest → BUILD SUCCESSFUL",
+      "depends_on": ["P1-SQL"]
+    },
+    {
+      "name": "P3-Frontend",
+      "steps": [
+        "worktree feat/staff-call-master-frontend",
+        "StaffCallNotification 타입 확장",
+        "회귀 테스트 추가",
+        "vitest 통과 확인",
+        "PR 생성"
+      ],
+      "verify": "npx vitest run staffCallNotificationApi.test.ts → 1 passed",
+      "depends_on": ["P2-Backend"]
+    }
+  ],
+  "risks": [
+    {
+      "risk": "기존 consumer_staff_call 데이터가 신규 구조로 정확히 backfill 불가",
+      "mitigation": "legacy 테이블에 원본 보존 후 신규 clean start. 운영 쿼리는 legacy 미조회"
+    },
+    {
+      "risk": "SQL 미적용 상태에서 백엔드 배포 시 런타임 즉시 실패",
+      "mitigation": "PR 본문에 선행 조건 명시. 배포 순서 SQL → Backend → Frontend"
+    }
+  ],
+  "success_criteria": [
+    "PR 3건 dev 대상 생성 완료",
+    "백엔드 단위 테스트 통과",
+    "프론트 회귀 테스트 통과",
+    "커밋 메시지에 Claude 꼬리표 없음",
+    "PR 본문 한국어 보고서 형식"
+  ]
+}

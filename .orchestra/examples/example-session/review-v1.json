@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "plan_ref": "./plan-v1.json",
+  "reviewer": {
+    "model": "codex-gpt-5",
+    "agent": "codex:rescue"
+  },
+  "score": 8,
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "MED",
+      "location": "decisions[D1]",
+      "problem": "매퍼 분리 근거가 '디버깅 편의'로만 서술됨. FK 순서 제약이 더 본질적 이유",
+      "suggestion": "FK 제약 위반 위험을 근거에 포함"
+    },
+    {
+      "id": "F2",
+      "severity": "MED",
+      "location": "phases[P2-Backend].steps",
+      "problem": "SSE 이벤트에 masterSysId 추가 여부가 단계 목록에 명시되지 않음",
+      "suggestion": "서비스 재구성 단계에 SSE payload 확장 항목 추가"
+    },
+    {
+      "id": "F3",
+      "severity": "LOW",
+      "location": "risks",
+      "problem": "legacy 테이블 조회 정책이 위험 항목이 아닌 결정에 서술되어야 함",
+      "suggestion": "decisions 에 D4 로 이관"
+    }
+  ],
+  "verdict": "REWRITE",
+  "notes": "구조는 견고. MED 2건은 실행 중 혼선 위험이 있으므로 재작성 권고. 3라운드 내 종료 예상"
+}

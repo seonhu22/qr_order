@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Postmortem",
+  "type": "object",
+  "required": ["session_id", "started_at", "ended_at", "requirement_summary", "routing", "agents_used", "plan_rounds", "outcome"],
+  "properties": {
+    "session_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "requirement_summary": { "type": "string" },
+    "routing": { "enum": ["inline", "hybrid", "full"] },
+    "agents_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent", "model", "invocations"],
+        "properties": {
+          "agent": { "type": "string" },
+          "model": { "type": "string" },
+          "invocations": { "type": "integer" },
+          "claude_tokens_estimated": { "type": "integer" },
+          "external_tokens_estimated": {
+            "type": "object",
+            "description": "Codex/기타 외부 모델 토큰 (있을 때만)",
+            "properties": {
+              "provider": { "type": "string" },
+              "tokens": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "plan_rounds": {
+      "type": "integer",
+      "description": "플랜 검수 반복 횟수"
+    },
+    "final_verdict": { "enum": ["PASS", "ESCALATED", "ABORTED"] },
+    "outcome": {
+      "type": "object",
+      "required": ["prs", "tests_passed"],
+      "properties": {
+        "prs": { "type": "array", "items": { "type": "string" } },
+        "tests_passed": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "lessons": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "다음 세션에 반영할 학습 사항"
+    }
+  }
+}

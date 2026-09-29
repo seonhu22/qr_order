@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Review",
+  "type": "object",
+  "required": ["version", "plan_ref", "reviewer", "score", "findings", "verdict"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "plan_ref": { "type": "string", "description": "plan-v*.json 상대경로" },
+    "reviewer": {
+      "type": "object",
+      "required": ["model", "agent"],
+      "properties": {
+        "model": { "type": "string", "description": "예: codex-gpt-5, sonnet-4.6" },
+        "agent": { "type": "string", "description": "예: codex:rescue, cavecrew-reviewer" }
+      }
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "종합 점수 (10점 만점)"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "location", "problem", "suggestion"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "enum": ["HIGH", "MED", "LOW"] },
+          "location": { "type": "string", "description": "plan 내부 참조 (decision.id, phase.name 등)" },
+          "problem": { "type": "string" },
+          "suggestion": { "type": "string" },
+          "prev_round_id": { "type": "string", "description": "이전 라운드 지적 반복인 경우 그 id" }
+        }
+      }
+    },
+    "verdict": {
+      "enum": ["PASS", "REWRITE", "ESCALATE"],
+      "description": "PASS=플랜 확정, REWRITE=Planner 재작성, ESCALATE=마에스트로/사용자 판단 필요"
+    },
+    "notes": { "type": "string" }
+  }
+}
