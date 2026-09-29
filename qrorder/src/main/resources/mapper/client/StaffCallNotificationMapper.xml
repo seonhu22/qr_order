@@ -2,14 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.client.repository.StaffCallNotificationMapper">
-    <select id="findUnread" resultType="htms.QROrder.client.dto.StaffCallNotificationItem">
+    <resultMap id="staffCallNotificationGroupMap"
+               type="htms.QROrder.client.dto.StaffCallNotificationGroup">
+        <id property="masterSysId" column="master_sys_id"/>
+        <result property="tableSysId" column="table_sys_id"/>
+        <result property="tableNum" column="table_num"/>
+        <result property="insertDatetime" column="insert_datetime"/>
+        <collection property="items" ofType="htms.QROrder.client.dto.StaffCallNotificationItem">
+            <id property="sysId" column="item_sys_id"/>
+            <result property="callCd" column="call_cd"/>
+            <result property="callNm" column="call_nm"/>
+            <result property="description" column="description"/>
+            <result property="quantity" column="quantity"/>
+        </collection>
+    </resultMap>
+
+    <select id="findUnread" resultMap="staffCallNotificationGroupMap" resultOrdered="true">
         select master.sys_id as master_sys_id,
-               item.sys_id,
+               master.table_sys_id,
+               master.table_num,
+               master.insert_datetime,
+               item.sys_id as item_sys_id,
                item.call_cd,
                coalesce(setting.call_nm, item.call_cd) as call_nm,
                item.description,
-               item.quantity,
-               master.insert_datetime
+               item.quantity
         from consumer_staff_call_master master
         join consumer_staff_call item
           on item.link_sys_id = master.sys_id
