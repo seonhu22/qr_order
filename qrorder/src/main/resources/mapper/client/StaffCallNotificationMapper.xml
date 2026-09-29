@@ -3,22 +3,26 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.client.repository.StaffCallNotificationMapper">
     <select id="findUnread" resultType="htms.QROrder.client.dto.StaffCallNotificationItem">
-        select call.sys_id,
-               call.call_cd,
-               coalesce(setting.call_nm, call.call_cd) as call_nm,
-               call.description,
-               call.insert_datetime
-        from consumer_staff_call call
+        select master.sys_id as master_sys_id,
+               item.sys_id,
+               item.call_cd,
+               coalesce(setting.call_nm, item.call_cd) as call_nm,
+               item.description,
+               item.quantity,
+               master.insert_datetime
+        from consumer_staff_call_master master
+        join consumer_staff_call item
+          on item.link_sys_id = master.sys_id
         left join consumer_staff_call_setting setting
-          on setting.sys_plant_cd = call.sys_plant_cd
-         and setting.call_cd = call.call_cd
-        where call.sys_plant_cd = #{sysPlantCd}
-          and call.read_yn = 'N'
-        order by call.insert_datetime asc, call.sys_id asc
+          on setting.sys_plant_cd = master.sys_plant_cd
+         and setting.call_cd = item.call_cd
+        where master.sys_plant_cd = #{sysPlantCd}
+          and master.read_yn = 'N'
+        order by master.insert_datetime asc, master.sys_id asc, item.sys_id asc
     </select>
 
     <update id="markAllRead">
-        update consumer_staff_call
+        update consumer_staff_call_master
         set read_yn = 'Y'
         where sys_plant_cd = #{sysPlantCd}
           and read_yn = 'N'
