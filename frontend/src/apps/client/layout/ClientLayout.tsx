@@ -14,6 +14,7 @@ import { useAuth } from '@/shared/auth/AuthContext';
 import { useClientEvents } from '@/apps/client/features/events/hooks/useClientEvents';
 import { useClientStaffCallNotifyStore } from '@/apps/client/stores/clientStaffCallNotifyStore';
 import {
+  getUnreadStaffCallCount,
   useMarkAllStaffCallsReadMutation,
   useUnreadStaffCallsQuery,
 } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
@@ -44,7 +45,9 @@ export function ClientLayout() {
   useMenuOpenAccessLog(currentMenuCd);
 
   useEffect(() => {
-    if (unreadStaffCallsQuery.data) syncUnreadStaffCalls(unreadStaffCallsQuery.data.length);
+    if (unreadStaffCallsQuery.data) {
+      syncUnreadStaffCalls(getUnreadStaffCallCount(unreadStaffCallsQuery.data));
+    }
   }, [unreadStaffCallsQuery.data, syncUnreadStaffCalls]);
 
   const handleStaffCallsRead = async () => {
