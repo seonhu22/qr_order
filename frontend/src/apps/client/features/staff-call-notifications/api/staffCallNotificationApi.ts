@@ -4,10 +4,12 @@ import { queryPolicies } from '@/shared/api/queryPolicies';
 import { httpClient } from '@/shared/lib/httpClient';
 
 export type StaffCallNotification = {
+  masterSysId: string;
   sysId: string;
   callCd: string;
   callNm: string;
   description?: string | null;
+  quantity: number;
   insertDatetime: string;
 };
 
