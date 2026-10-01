@@ -67,10 +67,14 @@ public class ConsumerStaffCallService {
             validatedItems.add(new ValidatedCallItem(callCd, quantity, setting.getCallNm()));
         }
 
+        String masterSysId = UlidCreator.getMonotonicUlid().toString();
+        consumerStaffCallMapper.insertStaffCallMaster(
+                masterSysId, qr.getSysPlantCd(), qr.getSysId(), qr.getTableNum(),
+                binding.getConsumerSessionId());
         List<Map<String, Object>> eventItems = validatedItems.stream().map(item -> {
-            consumerStaffCallMapper.saveConsumerStaffCall(
-                    UlidCreator.getMonotonicUlid().toString(), item.callCd(),
-                    "수량: " + item.quantity(), qr.getSysPlantCd());
+            consumerStaffCallMapper.insertStaffCallItem(
+                    UlidCreator.getMonotonicUlid().toString(), masterSysId,
+                    item.callCd(), null, item.quantity());
             Map<String, Object> value = new LinkedHashMap<>();
             value.put("callCd", item.callCd());
             value.put("callName", item.callName());
@@ -79,6 +83,7 @@ public class ConsumerStaffCallService {
         }).toList();
         LocalDateTime calledAt = LocalDateTime.now();
         Map<String, Object> event = Map.of(
+                "masterSysId", masterSysId,
                 "tableSysId", qr.getSysId(), "tableName", qr.getTableName(),
                 "items", eventItems, "calledAt", calledAt);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

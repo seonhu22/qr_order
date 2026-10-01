@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -54,7 +55,10 @@ class ConsumerStaffCallServiceTest {
 
         service.saveConsumerStaffCall(request(item("WATER", 2), item("PLATE", 1)), qr(), binding());
 
-        verify(mapper, times(2)).saveConsumerStaffCall(anyString(), anyString(), anyString(), eq("PLANT-1"));
+        verify(mapper, times(1)).insertStaffCallMaster(
+                anyString(), eq("PLANT-1"), eq("TABLE-1"), eq(3), eq("VISIT-1"));
+        verify(mapper, times(1)).insertStaffCallItem(anyString(), anyString(), eq("WATER"), any(), eq(2));
+        verify(mapper, times(1)).insertStaffCallItem(anyString(), anyString(), eq("PLATE"), any(), eq(1));
         verifyNoInteractions(emitterService);
 
         for (TransactionSynchronization synchronization
@@ -71,7 +75,8 @@ class ConsumerStaffCallServiceTest {
         assertThrows(ValidationException.class,
                 () -> service.saveConsumerStaffCall(request(item("WATER", 1), item("OTHER", 1)), qr(), binding()));
 
-        verify(mapper, never()).saveConsumerStaffCall(anyString(), anyString(), anyString(), anyString());
+        verify(mapper, never()).insertStaffCallMaster(anyString(), anyString(), anyString(), any(), anyString());
+        verify(mapper, never()).insertStaffCallItem(anyString(), anyString(), anyString(), any(), anyInt());
         verifyNoInteractions(emitterService);
     }
 
@@ -82,7 +87,8 @@ class ConsumerStaffCallServiceTest {
         assertThrows(ValidationException.class,
                 () -> service.saveConsumerStaffCall(request(item("WATER", 1), item("WATER", 2)), qr(), binding()));
 
-        verify(mapper, never()).saveConsumerStaffCall(anyString(), anyString(), anyString(), anyString());
+        verify(mapper, never()).insertStaffCallMaster(anyString(), anyString(), anyString(), any(), anyString());
+        verify(mapper, never()).insertStaffCallItem(anyString(), anyString(), anyString(), any(), anyInt());
     }
 
     @Test
@@ -91,7 +97,8 @@ class ConsumerStaffCallServiceTest {
 
         assertThrows(ValidationException.class,
                 () -> service.saveConsumerStaffCall(request(item("WATER", 100)), qr(), binding()));
-        verify(mapper, never()).saveConsumerStaffCall(anyString(), anyString(), anyString(), anyString());
+        verify(mapper, never()).insertStaffCallMaster(anyString(), anyString(), anyString(), any(), anyString());
+        verify(mapper, never()).insertStaffCallItem(anyString(), anyString(), anyString(), any(), anyInt());
     }
 
     @Test
@@ -141,6 +148,7 @@ class ConsumerStaffCallServiceTest {
         QrConnectResponse qr = new QrConnectResponse();
         qr.setSysId("TABLE-1");
         qr.setTableName("3번");
+        qr.setTableNum(3);
         qr.setSysPlantCd("PLANT-1");
         return qr;
     }
