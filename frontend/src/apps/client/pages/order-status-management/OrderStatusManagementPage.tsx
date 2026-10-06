@@ -10,6 +10,7 @@ import { useEffect, useRef } from 'react';
 import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
+import { ReceiptZigzagEdge } from '@/apps/client/features/order-status-management/components/ReceiptZigzagEdge';
 import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-management/hooks/useOrderStatusBoardPage';
 import {
   ORDER_BOARD_STATUS_BADGE_CLASS,
@@ -24,14 +25,18 @@ import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
 import {
   calculateOrderTotal,
+  formatOrderBoardDateTime,
   formatOrderBoardPrice,
   formatOrderBoardTime,
   formatOrderCancelReasonDisplay,
   getOrderBoardStatusLabel,
   groupMenuCatalogByCategory,
+  nowOrderBoardDatetime,
 } from '@/apps/client/features/order-status-management/utils';
 
 const GROUPED_MENU_CATALOG = groupMenuCatalogByCategory(MENU_CATALOG_MOCK);
+/** 영수증 섹션 구분선 — CSS 테두리 대신 참고 디자인처럼 실제 "*" 문자를 늘어놓는다. */
+const RECEIPT_STARS = '* '.repeat(24).trim();
 
 export function OrderStatusManagementPage() {
   const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, cancelHistory } =
@@ -303,92 +308,103 @@ export function OrderStatusManagementPage() {
         secondaryAction={{ label: '닫기', onClick: paymentModal.closeReceipt }}
         onClose={paymentModal.closeReceipt}
       >
-        <div className="order-payment-receipt">
-          <p className="order-payment-receipt__table">{paymentModal.tableOrders[0]?.tableNum}번 테이블</p>
-          <p className="order-cancel-modal__notice-desc">결제 API 연동 후 처리할 수 있습니다.</p>
+        <div className="order-payment-receipt-stage">
+          <div className="order-payment-receipt-wrap">
+            <ReceiptZigzagEdge />
+            <div className="order-payment-receipt">
+              <div className="receipt-header">
+                <p className="receipt-header__store">{data.storeInfo.storeName || '상호명 미등록'}</p>
+                <p className="receipt-header__table-badge">
+                  <Icon id="i-seat" size={14} />
+                  {paymentModal.tableOrders[0]?.tableNum}번 테이블
+                </p>
+                <p className="receipt-header__date">{formatOrderBoardDateTime(nowOrderBoardDatetime())}</p>
+              </div>
 
-          <div className="order-payment-receipt__order-list">
-            {paymentModal.tableOrders.map((order) => (
-              <div key={order.id} className="order-payment-receipt__order">
-                <div className="order-payment-receipt__order-row">
-                  <span className="order-payment-receipt__order-no">
-                    #{order.orderNo}
-                    <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
-                      {getOrderBoardStatusLabel(order.orderStatus)}
-                    </span>
-                  </span>
-                  <span className="order-payment-receipt__time">
-                    <Icon id="i-clock" size={13} />
-                    {formatOrderBoardTime(order.orderDatetime)}
-                  </span>
-                </div>
+              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
 
-                <ul className="order-payment-receipt__menu-list">
-                  {order.menuItems.map((menu) => (
-                    <li key={menu.id} className="order-payment-receipt__menu-group">
-                      <div className="order-payment-receipt__line">
-                        <span className="order-payment-receipt__line-name">
-                          {menu.name} X {menu.quantity}
+              <div className="order-payment-receipt__order-list">
+                {paymentModal.tableOrders.map((order) => (
+                  <div key={order.id} className="order-payment-receipt__order">
+                    <div className="order-payment-receipt__order-row">
+                      <span className="order-payment-receipt__order-no">
+                        #{order.orderNo}
+                        <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
+                          {getOrderBoardStatusLabel(order.orderStatus)}
                         </span>
-                        <span className="order-payment-receipt__line-qty">{menu.quantity}</span>
-                        <span className="order-payment-receipt__line-price">
-                          {formatOrderBoardPrice(menu.unitPrice)}
-                        </span>
-                        <span className="order-payment-receipt__line-amount">
-                          {formatOrderBoardPrice(menu.unitPrice * menu.quantity)}
-                        </span>
-                      </div>
-                      {menu.options.length > 0 && (
-                        <div className="order-payment-receipt__option-list">
+                      </span>
+                      <span className="order-payment-receipt__time">
+                        <Icon id="i-clock" size={13} />
+                        {formatOrderBoardTime(order.orderDatetime)}
+                      </span>
+                    </div>
+
+                    <ul className="receipt-item-list">
+                      {order.menuItems.map((menu) => (
+                        <li key={menu.id} className="receipt-item">
+                          <div className="receipt-item__row">
+                            <span className="receipt-item__name">{menu.name}</span>
+                            <span className="receipt-item__amount">
+                              {formatOrderBoardPrice(menu.unitPrice * menu.quantity)}
+                            </span>
+                          </div>
+                          {menu.quantity > 1 && (
+                            <p className="receipt-item__qty">
+                              {menu.quantity}개 × {formatOrderBoardPrice(menu.unitPrice)}
+                            </p>
+                          )}
                           {menu.options.map((option) => (
-                            <div
-                              key={option.id}
-                              className="order-payment-receipt__line order-payment-receipt__line--option"
-                            >
-                              <span className="order-payment-receipt__line-name">
-                                ↳ {option.name} X {option.quantity}
-                              </span>
-                              <span className="order-payment-receipt__line-qty">{option.quantity}</span>
-                              <span className="order-payment-receipt__line-price">
-                                {formatOrderBoardPrice(option.unitPrice)}
-                              </span>
-                              <span className="order-payment-receipt__line-amount">
-                                {formatOrderBoardPrice(option.unitPrice * option.quantity)}
-                              </span>
+                            <div key={option.id} className="receipt-item receipt-item--option">
+                              <div className="receipt-item__row">
+                                <span className="receipt-item__name">↳ {option.name}</span>
+                                <span className="receipt-item__amount">
+                                  {formatOrderBoardPrice(option.unitPrice * option.quantity)}
+                                </span>
+                              </div>
+                              {option.quantity > 1 && (
+                                <p className="receipt-item__qty">
+                                  {option.quantity}개 × {formatOrderBoardPrice(option.unitPrice)}
+                                </p>
+                              )}
                             </div>
                           ))}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                        </li>
+                      ))}
+                    </ul>
 
-                <p className="order-payment-receipt__subtotal">
-                  {formatOrderBoardPrice(calculateOrderTotal(order))}
-                </p>
+                    <div className="receipt-item-list__subtotal">
+                      <span>합계</span>
+                      <span>{formatOrderBoardPrice(calculateOrderTotal(order))}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="order-payment-receipt__summary">
-            <div className="order-payment-receipt__summary-row">
-              <span>총 주문 건</span>
-              <span>{paymentModal.tableOrders.length}</span>
+              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
+
+              <div className="order-payment-receipt__summary">
+                <div className="order-payment-receipt__summary-row">
+                  <span>총 주문 건</span>
+                  <span>{paymentModal.tableOrders.length}</span>
+                </div>
+                <div className="order-payment-receipt__summary-row">
+                  <span>총 주문 메뉴</span>
+                  <span>{paymentModal.tableOrders.reduce((sum, order) => sum + order.menuItems.length, 0)}</span>
+                </div>
+                <div className="order-payment-receipt__summary-row order-payment-receipt__summary-row--total">
+                  <span>총합</span>
+                  <span className="receipt-summary__total-amount">
+                    {formatOrderBoardPrice(
+                      paymentModal.tableOrders.reduce((sum, order) => sum + calculateOrderTotal(order), 0),
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="order-payment-receipt__summary-row">
-              <span>총 주문 메뉴</span>
-              <span>{paymentModal.tableOrders.reduce((sum, order) => sum + order.menuItems.length, 0)}</span>
-            </div>
-            <div className="order-payment-receipt__summary-row order-payment-receipt__summary-row--total">
-              <span>총합</span>
-              <span>
-                {formatOrderBoardPrice(
-                  paymentModal.tableOrders.reduce((sum, order) => sum + calculateOrderTotal(order), 0),
-                )}
-              </span>
-            </div>
+            <ReceiptZigzagEdge flip />
           </div>
         </div>
+        <p className="order-payment-receipt__notice">결제 API 연동 후 처리할 수 있습니다.</p>
       </WrapperModal>
 
       {/* ── 결제 처리 2-A단계 완료 안내 ── */}

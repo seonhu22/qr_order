@@ -81,22 +81,92 @@
   border-top: var(--border-1) solid var(--color-border-divider);
 }
 
-/* ── 결제완료 영수증 — 같은 테이블의 결제 대상 주문을 모두 합쳐 보여준다 */
+/* ── 결제완료 영수증 — 참고 디자인(파일로 전달받은 receipt.html)의 틀을 따른다:
+   은은한 무대 배경 위에 종이가 그림자로 떠 있고, 위아래는 실측 폭 기반 SVG 톱니(ReceiptZigzagEdge)로 찢어진 모양을 낸다.
+   base-modal__body의 좌우 패딩(--spacing-modal-x)은 이 모달에서만 상쇄해 더 넓게 쓴다. */
+.order-payment-receipt-stage {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 calc(-1 * var(--spacing-modal-x));
+  padding: var(--spacing-10) var(--spacing-9);
+  background-color: var(--slate-20);
+  border-radius: var(--radius-card);
+}
+
+/* 톱니 SVG가 종이 실루엣을 따라가도록 box-shadow 대신 drop-shadow 필터를 쓴다(참고 디자인과 동일한 방식) */
+.order-payment-receipt-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  filter: drop-shadow(0 1.125rem 1.875rem rgba(0, 0, 0, 0.22));
+}
+
 .order-payment-receipt {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: var(--spacing-4);
+  gap: var(--spacing-5);
+  padding: var(--spacing-9) var(--spacing-8);
+  background-color: var(--color-bg-surface);
 }
 
-.order-payment-receipt__table {
+/* 결제완료 영수증 전용 안내문구 — 총합과 붙지 않도록 위쪽에 여백을 둔다 */
+.order-payment-receipt__notice {
+  margin: var(--spacing-5) 0 0;
+  text-align: center;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* 영수증 헤더 — 상호명(굵게) → 테두리 있는 테이블 배지 → 날짜 순서로, 참고 디자인의 "SHOP NAME / TABLE / 날짜" 구성을 따른다 */
+.receipt-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-align: center;
+}
+
+.receipt-header__store {
   margin: 0;
-  padding-bottom: var(--spacing-4);
-  border-bottom: var(--border-1) solid var(--color-border-default);
   font-size: var(--typography-size-h3);
   font-weight: var(--typography-weight-strong);
+  letter-spacing: var(--tracking-wider);
   color: var(--color-text-primary);
+}
+
+.receipt-header__table-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin: 0;
+  font-size: var(--typography-size-ui);
+  font-weight: var(--typography-weight-strong);
+  letter-spacing: var(--tracking-wider);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-header__date {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "* * * *" 구분선 — 참고 디자인처럼 테두리 대신 실제 별표 문자를 늘어놓는다 */
+.receipt-stars {
+  margin: 0;
+  text-align: center;
+  font-size: var(--typography-size-caption);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-tertiary);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* 주문 내역만 스크롤되게 하고, 위 테이블명/아래 총 주문건 요약은 항상 보이게 고정한다.
@@ -118,12 +188,80 @@
   flex-direction: column;
   gap: var(--spacing-3);
   padding-top: var(--spacing-4);
-  border-top: var(--border-1) solid var(--color-border-default);
+  border-top: var(--border-1) dashed var(--color-border-default);
 }
 
 .order-payment-receipt__order:first-child {
   padding-top: 0;
   border-top: none;
+}
+
+/* 결제완료 영수증 전용 품목 줄 — 취소내역 모달의 4열 그리드(order-payment-receipt__line) 대신
+   "이름 + 금액" / "수량 × 단가" 2줄 구성을 쓴다. 이 화면만 쓰는 예외 레이아웃이라 새 클래스로 분리했다. */
+.receipt-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.receipt-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.receipt-item__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.receipt-item__name {
+  font-size: var(--typography-size-ui);
+  color: var(--color-text-primary);
+}
+
+.receipt-item__amount {
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-item__qty {
+  margin: 0;
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.receipt-item--option {
+  padding-left: var(--spacing-4);
+}
+
+.receipt-item--option .receipt-item__name,
+.receipt-item--option .receipt-item__amount {
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-body);
+  color: var(--color-text-tertiary);
+}
+
+.receipt-item-list__subtotal {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-1);
+  font-size: var(--typography-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+.receipt-item-list__subtotal span:last-child {
+  font-weight: var(--typography-weight-ui);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .order-payment-receipt__order-row {
@@ -242,7 +380,7 @@
   flex-direction: column;
   gap: var(--spacing-2);
   padding-top: var(--spacing-4);
-  border-top: 0.125rem solid var(--color-text-primary);
+  border-top: var(--border-1) solid var(--color-border-default);
 }
 
 .order-payment-receipt__summary-row {
@@ -250,12 +388,18 @@
   align-items: center;
   justify-content: space-between;
   font-size: var(--typography-size-ui);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
 }
 
 .order-payment-receipt__summary-row--total {
-  font-size: var(--typography-size-h3);
+  font-size: var(--typography-size-h4);
   font-weight: var(--typography-weight-strong);
+  color: var(--color-text-primary);
+}
+
+/* 총합 금액만 브랜드 색으로 강조해 영수증에서 가장 먼저 눈에 띄게 한다 */
+.receipt-summary__total-amount {
+  color: var(--color-brand-default);
 }
 
 /* ── 주문 수정 — 같은 테이블의 진행 중인 주문을 모두 모아 메뉴 추가/줄 취소를 draft로 처리한다 */

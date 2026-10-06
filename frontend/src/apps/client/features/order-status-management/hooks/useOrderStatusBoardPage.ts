@@ -19,6 +19,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
+import { useGetStoreInfo } from '@/generated/store-manage-controller/store-manage-controller';
+import { mapStoreInfoResponseToForm } from '@/apps/client/features/store-info/api/storeInfoRequestMapper';
 import {
   useOrderCancelReasonQuery,
   useOrderStatusBoardMutations,
@@ -174,6 +176,10 @@ export function useOrderStatusBoardPage() {
 
   const staffCallBoard = useStaffCallBoard();
 
+  // 결제완료 영수증 헤더(상호명/주소/연락처)에 쓴다 — 매장정보 화면과 같은 매퍼로 표시 형식을 맞춘다.
+  const storeInfoQuery = useGetStoreInfo();
+  const storeInfo = mapStoreInfoResponseToForm(storeInfoQuery.data?.[0]);
+
   const handleRefresh = () => {
     if (!query.isFetching) void query.refetch();
   };
@@ -190,6 +196,7 @@ export function useOrderStatusBoardPage() {
       pendingOrderIds,
       mutationErrors,
       staffCall: { rows: staffCallBoard.rows, onComplete: staffCallBoard.complete },
+      storeInfo,
     },
     status: {
       isLoading: query.isLoading,
