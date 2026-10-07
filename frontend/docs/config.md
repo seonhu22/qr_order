@@ -103,6 +103,9 @@
 | `setup.js` | 테스트 시작 전 공통 초기화 |
 | `server.js` | Node 테스트 환경에서 MSW 서버 설정 |
 | `handlers.js` | 테스트용 API 응답 정의 |
+| `test-result/` | `npm run test:log`가 만드는 로컬 테스트 결과 디렉터리 |
+
+→ 실행 명령과 로그 파일 확인 방법은 [테스트 문서](./testing.md)에서 필요한 항목만 선택해 본다.
 
 ---
 

@@ -5,13 +5,23 @@ import { httpClient } from '@/shared/lib/httpClient';
 
 export type StaffCallNotification = {
   masterSysId: string;
+  tableSysId: string;
+  tableNum: number;
+  insertDatetime: string;
+  items: StaffCallNotificationItem[];
+};
+
+export type StaffCallNotificationItem = {
   sysId: string;
   callCd: string;
   callNm: string;
   description?: string | null;
   quantity: number;
-  insertDatetime: string;
 };
+
+export function getUnreadStaffCallCount(notifications: StaffCallNotification[]) {
+  return notifications.length;
+}
 
 function getUnreadStaffCalls() {
   return httpClient<StaffCallNotification[]>({

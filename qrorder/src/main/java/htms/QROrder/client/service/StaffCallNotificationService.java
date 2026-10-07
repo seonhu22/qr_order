@@ -1,6 +1,6 @@
 package htms.QROrder.client.service;
 
-import htms.QROrder.client.dto.StaffCallNotificationItem;
+import htms.QROrder.client.dto.StaffCallNotificationGroup;
 import htms.QROrder.client.repository.StaffCallNotificationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class StaffCallNotificationService {
     private final StaffCallNotificationMapper mapper;
 
     @Transactional(readOnly = true)
-    public List<StaffCallNotificationItem> findUnread(String sysPlantCd) {
+    public List<StaffCallNotificationGroup> findUnread(String sysPlantCd) {
         return mapper.findUnread(sysPlantCd);
     }
 

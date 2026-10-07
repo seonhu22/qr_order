@@ -1,7 +1,7 @@
 package htms.QROrder.client.controller;
 
 import htms.QROrder.auth.domain.Login;
-import htms.QROrder.client.dto.StaffCallNotificationItem;
+import htms.QROrder.client.dto.StaffCallNotificationGroup;
 import htms.QROrder.client.service.StaffCallNotificationService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,7 +21,7 @@ public class StaffCallNotificationController {
     private final StaffCallNotificationService service;
 
     @GetMapping("/unread")
-    public List<StaffCallNotificationItem> findUnread(HttpSession session) {
+    public List<StaffCallNotificationGroup> findUnread(HttpSession session) {
         Login loginUser = (Login) session.getAttribute("loginUser");
         return service.findUnread(loginUser.getSysPlantCd());
     }

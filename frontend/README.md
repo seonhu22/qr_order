@@ -138,6 +138,7 @@ npm run build
 | `npm run lint` | ESLint 검사 |
 | `npm run typecheck` | TypeScript 타입 검사 |
 | `npm test` | Vitest 1회 실행 |
+| [`npm run test:log`](./docs/testing/test-result-log.md) | Vitest 결과를 터미널과 로컬 로그 파일에 함께 기록 |
 | `npm run test:watch` | 테스트 감시 모드 |
 | `npm run test:coverage` | 커버리지 보고서 생성 (`coverage/` 디렉터리) |
 | `npm run build` | 프로덕션 빌드 |
@@ -219,6 +220,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 1. `src/test/setup.js`가 정상 로드되는지 확인
 2. MSW 핸들러가 현재 API 경로와 일치하는지 확인
 3. 테스트가 실제 화면 기준으로 작성되었는지 확인
+4. 터미널 출력이 잘리면 [`test:log` 사용법](./docs/testing/test-result-log.md)에 따라 전체 결과를 파일로 저장
 
 ---
 
@@ -238,6 +240,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 | [`docs/admin-navigation.md`](./docs/admin-navigation.md) | `sys_menu` 기반 header/sidebar/breadcrumb/access-log 규칙 |
 | [`docs/menu-access-log.md`](./docs/menu-access-log.md) | 관리자 메뉴 접근 로그 정책, 신규 메뉴 추가 시 체크리스트 |
 | [`docs/troubleshooting.md`](./docs/troubleshooting.md) | 자주 나온 오류 메시지 해석과 우선 확인 포인트 |
+| [`docs/testing.md`](./docs/testing.md) | 테스트 실행과 결과 확인 문서의 입구 |
 | [`docs/decisions.md`](./docs/decisions.md) | 기술 의사결정 기록 (ADR) |
 
 공용 컴포넌트 사용 패턴(테이블·카드·첨부파일·입력)은 [`docs/components.md`](./docs/components.md)를 부모 문서로 보고, 컴포넌트별 상세 문서는 그 문서의 `상세 문서` 섹션에서 찾는다.

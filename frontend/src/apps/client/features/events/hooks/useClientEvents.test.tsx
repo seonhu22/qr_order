@@ -11,6 +11,7 @@ class MockEventSource {
   readonly listeners = new Map<string, Set<EventListener>>();
   readonly url: string;
   readonly withCredentials: boolean;
+  onopen: ((event: Event) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
   close = vi.fn();
 
@@ -90,6 +91,22 @@ describe('useClientEvents', () => {
     expect(vi.getTimerCount()).toBe(0);
     act(() => first.emit('STAFF_CALLED', '{}'));
     expect(useClientStaffCallNotifyStore.getState().unreadCount).toBe(0);
+  });
+
+  it('재연결 성공 시 연결 중 놓친 직원호출을 다시 조회한다', async () => {
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    renderHook(() => useClientEvents(true), { wrapper });
+    const first = MockEventSource.instances[0];
+
+    await act(async () => first.onerror?.(new Event('error')));
+    await act(async () => vi.advanceTimersByTime(3_000));
+    const reconnected = MockEventSource.instances[1];
+
+    await act(async () => reconnected.onopen?.(new Event('open')));
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.staffCallNotifications.unread,
+    });
   });
 
   it('로그아웃 상태에서는 구독하지 않고 잘못된 JSON 이벤트를 무시한다', () => {

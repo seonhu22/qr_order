@@ -57,6 +57,7 @@ export function useClientEvents(active: boolean) {
       source.onopen = () => {
         failureCount = 0;
         setDegraded(false);
+        void queryClient.invalidateQueries({ queryKey: queryKeys.staffCallNotifications.unread });
       };
       source.addEventListener('STAFF_CALLED', (event) => {
         if (disposed) return;
