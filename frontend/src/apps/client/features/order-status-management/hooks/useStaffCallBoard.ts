@@ -1,16 +1,20 @@
-import { useMemo } from 'react';
-import { useUnreadStaffCallsQuery } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
-import { useDismissedOrderIds } from './useDismissedOrderIds';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  useMarkStaffCallReadMutation,
+  useUnreadStaffCallsQuery,
+} from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
 import type { StaffCallBoardRow } from '../types';
 
 /**
  * 미확인 직원호출 API 응답을 주문현황 카드 모델로 변환한다.
- * "완료"는 개별 읽음 API가 없어 현재 화면에서만 숨긴다. 전체 DB 읽음 처리는 헤더 알림의
- * 기존 read-all 동작이 담당하며, 개별 처리 계약이 생기면 이 hook의 complete만 교체한다.
+ * 카드 완료는 개별 읽음 API 성공 뒤 공유 미확인 query cache를 갱신한다.
  */
 export function useStaffCallBoard() {
   const unreadQuery = useUnreadStaffCallsQuery(true);
-  const { dismiss, isDismissed } = useDismissedOrderIds();
+  const markReadMutation = useMarkStaffCallReadMutation();
+  const pendingIdsRef = useRef(new Set<string>());
+  const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
+  const [errors, setErrors] = useState<Map<string, string>>(() => new Map());
 
   const visibleRows = useMemo(
     () =>
@@ -24,14 +28,43 @@ export function useStaffCallBoard() {
             qty: item.quantity > 1 ? item.quantity : undefined,
           })),
         }))
-        .filter((row) => !isDismissed(row.id))
         .sort((a, b) => a.calledAt.localeCompare(b.calledAt)),
-    [unreadQuery.data, isDismissed],
+    [unreadQuery.data],
   );
+
+  const complete = useCallback(async (id: string) => {
+    if (pendingIdsRef.current.has(id)) return;
+
+    pendingIdsRef.current.add(id);
+    setPendingIds((current) => new Set(current).add(id));
+    setErrors((current) => {
+      const next = new Map(current);
+      next.delete(id);
+      return next;
+    });
+
+    try {
+      await markReadMutation.mutateAsync(id);
+    } catch (error) {
+      setErrors((current) => new Map(current).set(
+        id,
+        error instanceof Error ? error.message : '직원호출을 완료하지 못했습니다.',
+      ));
+    } finally {
+      pendingIdsRef.current.delete(id);
+      setPendingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
+  }, [markReadMutation]);
 
   return {
     rows: visibleRows,
-    complete: dismiss,
+    complete,
+    pendingIds,
+    errors,
     isLoading: unreadQuery.isLoading,
     isError: unreadQuery.isError,
     refetch: unreadQuery.refetch,

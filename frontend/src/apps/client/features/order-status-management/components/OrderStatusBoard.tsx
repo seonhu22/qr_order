@@ -11,7 +11,9 @@ type OrderStatusBoardProps = {
   mutationErrors: Map<string, string>;
   staffCall: {
     rows: StaffCallBoardRow[];
-    onComplete: (id: string) => void;
+    onComplete: (id: string) => Promise<void>;
+    pendingIds: Set<string>;
+    errors: Map<string, string>;
   };
 };
 
@@ -28,7 +30,12 @@ export function OrderStatusBoard({
       {columns.map((column) => (
         <OrderStatusColumn key={column.status} column={column} actions={actions} lastMovedIds={lastMovedIds} pendingOrderIds={pendingOrderIds} mutationErrors={mutationErrors} />
       ))}
-      <StaffCallBoardColumn rows={staffCall.rows} onComplete={staffCall.onComplete} />
+      <StaffCallBoardColumn
+        rows={staffCall.rows}
+        onComplete={staffCall.onComplete}
+        pendingIds={staffCall.pendingIds}
+        errors={staffCall.errors}
+      />
     </div>
   );
 }

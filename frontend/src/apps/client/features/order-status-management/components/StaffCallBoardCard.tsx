@@ -7,14 +7,16 @@ import type { StaffCallBoardRow } from '../types';
 
 type StaffCallBoardCardProps = {
   row: StaffCallBoardRow;
-  onComplete: (id: string) => void;
+  onComplete: (id: string) => void | Promise<void>;
+  isPending?: boolean;
+  error?: string;
 };
 
 /**
  * 직원호출 카드 — 주문 카드(`OrderStatusCard`)와 상단 시간 영역·전체 여백은 같은 클래스를 재사용하고,
  * 주문번호 자리에 테이블 번호, 시간 자리에 호출시간이 들어간다는 점만 다르다.
  */
-export function StaffCallBoardCard({ row, onComplete }: StaffCallBoardCardProps) {
+export function StaffCallBoardCard({ row, onComplete, isPending = false, error }: StaffCallBoardCardProps) {
   return (
     <article className="order-status-card">
       <div className="order-status-card__top-row">
@@ -42,7 +44,8 @@ export function StaffCallBoardCard({ row, onComplete }: StaffCallBoardCardProps)
       </div>
 
       <div className="staff-call-board-card__footer">
-        <Button variant="primary" size="sm" onClick={() => onComplete(row.id)}>
+        {error && <p className="staff-call-board-card__error" role="alert">{error}</p>}
+        <Button variant="primary" size="sm" loading={isPending} onClick={() => onComplete(row.id)}>
           완료
         </Button>
       </div>

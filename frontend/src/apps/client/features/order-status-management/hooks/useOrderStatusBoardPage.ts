@@ -14,7 +14,7 @@
  * - 주문 수정/메뉴 추가/옵션 추가 중 하나라도 dirty면 `usePreventLeave`로 새로고침/탭 닫기를 경고한다.
  *   모달 내부 닫기(닫기 버튼/ESC/배경 클릭) 경고는 `useOrderEditModalFlow`가 각 단계별로 따로 처리한다.
  * - 직원호출 컬럼은 주문 데이터와 무관한 실제 미확인 호출 API를 `useStaffCallBoard`에서 보드 모델로
- *   변환한다. 개별 읽음 API가 없어 "완료"는 현재 화면에서만 카드를 지운다.
+ *   변환한다. "완료"는 개별 읽음 API 성공 후 공유 미확인 cache에서 제거한다.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -201,7 +201,12 @@ export function useOrderStatusBoardPage() {
       lastMovedIds,
       pendingOrderIds,
       mutationErrors,
-      staffCall: { rows: staffCallBoard.rows, onComplete: staffCallBoard.complete },
+      staffCall: {
+        rows: staffCallBoard.rows,
+        onComplete: staffCallBoard.complete,
+        pendingIds: staffCallBoard.pendingIds,
+        errors: staffCallBoard.errors,
+      },
       storeInfo,
     },
     status: {

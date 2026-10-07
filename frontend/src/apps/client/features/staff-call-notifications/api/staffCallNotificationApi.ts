@@ -37,6 +37,13 @@ function markAllStaffCallsRead() {
   });
 }
 
+function markStaffCallRead(masterSysId: string) {
+  return httpClient({
+    url: `/api/client/staff-call/notifications/${encodeURIComponent(masterSysId)}/read`,
+    method: 'POST',
+  });
+}
+
 export function useUnreadStaffCallsQuery(active: boolean) {
   return useQuery({
     queryKey: queryKeys.staffCallNotifications.unread,
@@ -51,5 +58,20 @@ export function useMarkAllStaffCallsReadMutation() {
   return useMutation({
     mutationFn: markAllStaffCallsRead,
     onSuccess: () => queryClient.setQueryData(queryKeys.staffCallNotifications.unread, []),
+  });
+}
+
+export function useMarkStaffCallReadMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: markStaffCallRead,
+    onSuccess: (_response, masterSysId) => {
+      queryClient.setQueryData<StaffCallNotification[]>(
+        queryKeys.staffCallNotifications.unread,
+        (current = []) => current.filter((notification) => notification.masterSysId !== masterSysId),
+      );
+      void queryClient.invalidateQueries({ queryKey: queryKeys.staffCallNotifications.unread });
+    },
   });
 }
