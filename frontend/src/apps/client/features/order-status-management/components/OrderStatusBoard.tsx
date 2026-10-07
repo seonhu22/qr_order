@@ -14,6 +14,9 @@ type OrderStatusBoardProps = {
     onComplete: (id: string) => Promise<void>;
     pendingIds: Set<string>;
     errors: Map<string, string>;
+    isLoading: boolean;
+    isError: boolean;
+    onRetry: () => void;
   };
 };
 
@@ -35,6 +38,9 @@ export function OrderStatusBoard({
         onComplete={staffCall.onComplete}
         pendingIds={staffCall.pendingIds}
         errors={staffCall.errors}
+        isLoading={staffCall.isLoading}
+        isError={staffCall.isError}
+        onRetry={staffCall.onRetry}
       />
     </div>
   );
