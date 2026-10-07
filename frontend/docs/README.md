@@ -17,6 +17,7 @@
 | [공용 컴포넌트](./components.md) | shared component 작성 규칙과 상세 컴포넌트 문서의 부모 문서 |
 | [API 코드 생성](./api-codegen.md) | OpenAPI 코드 생성, MSW 핸들러, mock 파일 기준 |
 | [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 권한 필드 기준, 비밀번호 정책 |
+| [테스트](./testing.md) | 테스트 실행, 실패 결과 보관, 관련 설정 문서의 부모 문서 |
 | [주요 설정 파일](./config.md) | Vite, TypeScript, ESLint, Prettier, 진입점 파일 요약 |
 | [의사결정 기록](./decisions.md) | 주요 설계 결정과 ADR |
 
@@ -39,5 +40,6 @@
 | Query/API wrapper 작업 | [운영 원칙](./operations.md), [API 코드 생성](./api-codegen.md) |
 | 공용 컴포넌트 작업 | [공용 컴포넌트](./components.md) |
 | 인증·권한·401/403 처리 | [인증 구조](./auth.md), [아키텍처](./architecture.md) |
+| 테스트 실행/실패 로그 저장 | [테스트](./testing.md) |
 | 라우팅·폴더 위치 판단 | [아키텍처](./architecture.md) |
 | 설정 파일 확인 | [주요 설정 파일](./config.md) |
