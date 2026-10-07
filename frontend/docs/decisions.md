@@ -1288,7 +1288,7 @@ Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상�
 ### 결정
 
 - **취소 컬럼 → "취소내역" 모달**: 헤더에 버튼을 추가해 취소된 주문 전체를 모달 목록으로 보여준다. 취소 처리 자체(사유 입력/확인 흐름)는 그대로 두고 노출 방식만 바꿨다. `ORDER_BOARD_COLUMNS`에서 `CANCELLED`를 빼되, 상태 라벨 조회는 `ORDER_BOARD_STATUS_LABELS`로 분리해 다른 곳(배지 등)의 "취소" 표기는 그대로 유지했다.
-- **직원호출 컬럼 신설**: 취소 컬럼이 있던 자리에 배치. `OrderBoardRow`(주문 전용 필드)와 성격이 완전히 달라 `OrderStatusColumn`/`OrderStatusCard`에 끼워 넣지 않고 `StaffCallBoardColumn`/`StaffCallBoardCard`/`useStaffCallBoard`로 따로 만들었다. `useStaffCallBoard`는 미확인 직원호출 마스터 API를 보드 표시 형식으로 변환하며, 호출 마스터 1건을 카드 1개로 표시하고 그 하위 항목을 배지로 보여준다. SSE가 같은 조회 캐시를 갱신하므로 새 호출도 반영된다. 개별 읽음 API는 아직 없어 "완료" 버튼은 `useDismissedOrderIds`를 재사용해 현재 화면에서만 카드를 지운다.
+- **직원호출 컬럼 신설**: 취소 컬럼이 있던 자리에 배치. `OrderBoardRow`(주문 전용 필드)와 성격이 완전히 달라 `OrderStatusColumn`/`OrderStatusCard`에 끼워 넣지 않고 `StaffCallBoardColumn`/`StaffCallBoardCard`/`useStaffCallBoard`로 따로 만들었다. `useStaffCallBoard`는 미확인 직원호출 마스터 API를 보드 표시 형식으로 변환하며, 호출 마스터 1건을 카드 1개로 표시하고 그 하위 항목을 배지로 보여준다. SSE가 같은 조회 캐시를 갱신하므로 새 호출도 반영된다. "완료"는 개별 읽음 API 성공 뒤 해당 마스터를 공용 unread cache에서 제거한다.
 - **색상은 두 톤만**: 강조 요소(숫자 배지, "완료" 버튼)는 진한 브랜드색, 은은한 요소(패널 배경, 카드 보더, "직원호출" 라벨)는 연한 브랜드색 — 요소마다 색을 따로 정하다 서로 안 어울리는 문제를 겪은 뒤 이렇게 정리했다.
 
 상세 규약은 [`page/order-status-management.md`](./page/order-status-management.md#직원호출-컬럼) 참고.
@@ -1297,6 +1297,6 @@ Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상�
 
 - 실제 브라우저에서 취소내역 모달, 직원호출 컬럼 표시/완료 처리까지 확인했다.
 - `useStaffCallBoard`와 `getCancelledOrderBoardRows`(utils.ts)는 아직 테스트가 없다 — 이 기능 폴더의 다른 hooks/utils는 전부 테스트가 있어 유일한 공백이다.
-- 직원호출 조회와 실시간 갱신은 실제 API에 연결했다. 다만 개별 "완료"를 서버의 읽음 상태로 저장하는 계약은 후속 과제다.
+- 직원호출 조회/실시간 갱신/개별 완료는 실제 API에 연결했다. 개별 완료와 헤더의 전체 읽음은 같은 마스터 `read_yn`을 변경하지만 범위가 다르다.
 
 ---
