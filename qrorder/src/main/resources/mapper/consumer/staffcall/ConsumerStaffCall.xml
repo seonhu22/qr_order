@@ -15,21 +15,39 @@
         order by setting.insert_datetime asc, setting.sys_id asc
     </select>
 
-    <insert id="saveConsumerStaffCall">
-        insert into consumer_staff_call (
+    <insert id="insertStaffCallMaster">
+        insert into consumer_staff_call_master (
             sys_id,
-            call_cd,
-            description,
+            sys_plant_cd,
+            table_sys_id,
+            table_num,
+            consumer_session_id,
             read_yn,
-            insert_datetime,
-            sys_plant_cd
+            insert_datetime
         ) values (
             #{sysId},
+            #{sysPlantCd},
+            #{tableSysId},
+            #{tableNum},
+            #{consumerSessionId},
+            'N',
+            now()
+        )
+    </insert>
+
+    <insert id="insertStaffCallItem">
+        insert into consumer_staff_call (
+            sys_id,
+            link_sys_id,
+            call_cd,
+            description,
+            quantity
+        ) values (
+            #{sysId},
+            #{linkSysId},
             #{callCd},
             #{description},
-            'N',
-            now(),
-            #{sysPlantCd}
+            #{quantity}
         )
     </insert>
 

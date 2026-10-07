@@ -9,9 +9,18 @@ import java.util.List;
 @Mapper
 public interface ConsumerStaffCallMapper {
     List<ConsumerStaffCallResponse> getConsumerStaffCall(String sysPlantCd);
-    void saveConsumerStaffCall(
+
+    void insertStaffCallMaster(
             @Param("sysId") String sysId,
+            @Param("sysPlantCd") String sysPlantCd,
+            @Param("tableSysId") String tableSysId,
+            @Param("tableNum") Integer tableNum,
+            @Param("consumerSessionId") String consumerSessionId);
+
+    void insertStaffCallItem(
+            @Param("sysId") String sysId,
+            @Param("linkSysId") String linkSysId,
             @Param("callCd") String callCd,
             @Param("description") String description,
-            @Param("sysPlantCd") String sysPlantCd);
+            @Param("quantity") int quantity);
 }
