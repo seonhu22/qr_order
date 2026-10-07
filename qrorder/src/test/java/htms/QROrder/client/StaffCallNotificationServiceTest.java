@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +34,27 @@ class StaffCallNotificationServiceTest {
         assertEquals("TABLE-1", result.get(0).getTableSysId());
         assertEquals(3, result.get(0).getTableNum());
         assertEquals(2, result.get(0).getItems().size());
+    }
+
+    @Test
+    void marksOneNotificationReadForCurrentStore() {
+        service.markRead("MASTER-1", "PLANT-1");
+
+        verify(mapper).markRead("MASTER-1", "PLANT-1");
+    }
+
+    @Test
+    void treatsAlreadyReadMissingOrOtherStoreNotificationAsSuccess() {
+        when(mapper.markRead("MASTER-1", "PLANT-1")).thenReturn(0);
+
+        assertDoesNotThrow(() -> service.markRead("MASTER-1", "PLANT-1"));
+    }
+
+    @Test
+    void keepsStoreWideReadAllBehavior() {
+        service.markAllRead("PLANT-1");
+
+        verify(mapper).markAllRead("PLANT-1");
     }
 
     private StaffCallNotificationItem item(String sysId, String callCd, int quantity) {

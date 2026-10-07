@@ -44,4 +44,12 @@
         where sys_plant_cd = #{sysPlantCd}
           and read_yn = 'N'
     </update>
+
+    <update id="markRead">
+        update consumer_staff_call_master
+        set read_yn = 'Y'
+        where sys_id = #{masterSysId}
+          and sys_plant_cd = #{sysPlantCd}
+          and read_yn = 'N'
+    </update>
 </mapper>
