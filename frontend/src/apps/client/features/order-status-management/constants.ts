@@ -3,12 +3,15 @@ import type { RadioOption } from '@/shared/components/radio';
 import { ORDER_STATUS_BADGE_CLASS, ORDER_STATUS_LABEL } from '@/shared/order-status/statusMeta';
 import type { OrderBoardStatus } from './types';
 
+/** 실시간 보드에 컬럼으로 렌더링되는 상태만 담는다. 취소는 "취소내역" 모달로 옮겨서 여기 없다. */
 export const ORDER_BOARD_COLUMNS: { status: OrderBoardStatus; label: string }[] = [
   { status: 'RECEIVED', label: ORDER_STATUS_LABEL.RECEIVED },
   { status: 'COOKING', label: ORDER_STATUS_LABEL.COOKING },
   { status: 'SERVED', label: ORDER_STATUS_LABEL.SERVED },
-  { status: 'CANCELLED', label: ORDER_STATUS_LABEL.CANCELLED },
 ];
+
+/** 보드 컬럼에서 빠진 취소 상태도 모달과 배지에서 표시할 수 있도록 전체 라벨을 유지한다. */
+export const ORDER_BOARD_STATUS_LABELS: Record<OrderBoardStatus, string> = ORDER_STATUS_LABEL;
 
 /**
  * 칸반 컬럼 숫자 라벨(`OrderStatusColumn.css`의 `.order-status-column__count`)과 같은 색상 매핑.

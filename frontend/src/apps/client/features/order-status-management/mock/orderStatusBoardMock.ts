@@ -184,7 +184,7 @@ export const ORDER_STATUS_BOARD_MOCK: OrderBoardRow[] = [
       { id: 'order-021-menu-2', name: '콜라', quantity: 1, unitPrice: 2900, options: [] },
     ],
   },
-  // order-004/order-021과 같은 5번 테이블 — 3건 묶음 케이스를 확인하는 mock
+  // order-004/order-021과 같은 5번 테이블 — 3건 묶음 + 품목이 많아 결제완료 영수증 리스트가 스크롤되는 케이스를 확인하는 mock
   {
     id: 'order-022',
     orderNo: '0022',
@@ -192,7 +192,19 @@ export const ORDER_STATUS_BOARD_MOCK: OrderBoardRow[] = [
     orderStatus: 'SERVED',
     paymentStatus: 'PENDING',
     orderDatetime: todayAt(16, 25),
-    menuItems: [{ id: 'order-022-menu-1', name: '월남쌈', quantity: 1, unitPrice: 9500, options: [] }],
+    menuItems: [
+      { id: 'order-022-menu-1', name: '월남쌈', quantity: 1, unitPrice: 9500, options: [] },
+      {
+        id: 'order-022-menu-2',
+        name: '분짜',
+        quantity: 2,
+        unitPrice: 12900,
+        options: [{ id: 'order-022-opt-1', name: '땅콩 추가', quantity: 1, unitPrice: 500 }],
+      },
+      { id: 'order-022-menu-3', name: '쌀국수반미세트', quantity: 1, unitPrice: 15900, options: [] },
+      { id: 'order-022-menu-4', name: '베트남 커피', quantity: 2, unitPrice: 6000, options: [] },
+      { id: 'order-022-menu-5', name: '콜라', quantity: 3, unitPrice: 2900, options: [] },
+    ],
   },
   // order-003과 같은 2번 테이블 — 2건 묶음 케이스를 확인하는 mock
   {

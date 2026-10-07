@@ -1,0 +1,43 @@
+/* 카드 보더를 컬럼 패널 보더(--color-border-brand)와 같은 색으로 맞춘다. */
+.order-status-column--staffcall .order-status-card {
+  border-color: var(--color-border-brand);
+}
+
+.staff-call-board-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.staff-call-board-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  width: fit-content;
+  padding: 0.1875rem var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand-active);
+  font-size: var(--typography-size-caption);
+  font-weight: var(--typography-weight-strong);
+}
+
+/* 항목 태그는 공용 Badge(tone="neutral")를 쓴다 — 레이아웃(줄바꿈 가능한 가로 배치)만 여기서 담당한다. */
+.staff-call-board-card__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* 주문 카드 액션 버튼(.order-status-card__actions .btn)과 같은 세로 크기를 쓴다 — 폭만 100%로 다르다.
+   display: flex로 둬야 버튼(.btn)이 flex item으로 blockify되어(inline-flex → flex) 주문 카드 버튼과
+   같은 렌더링 경로를 타고, 실제 렌더 높이도 정확히 같아진다(block 컨테이너 안에 두면 2px 차이가 났다). */
+.staff-call-board-card__footer {
+  display: flex;
+}
+
+.staff-call-board-card__footer .btn {
+  width: 100%;
+  height: auto;
+  padding: var(--spacing-6) var(--spacing-1);
+}

@@ -13,7 +13,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 17.5rem;
+  /* SoldoutModal(17.5rem)과 달리 요청사항 입력창이 있어 더 넓게 잡는다 */
+  max-width: 20rem;
   padding: var(--spacing-10);
   border-radius: var(--radius-2xl);
   background-color: var(--color-bg-surface);
@@ -50,6 +51,10 @@
   font-size: var(--typography-size-ui);
   font-weight: var(--typography-weight-heading);
   color: var(--color-brand-default);
+}
+
+.order-confirm-modal__request {
+  margin-bottom: var(--spacing-6);
 }
 
 .order-confirm-modal__actions {

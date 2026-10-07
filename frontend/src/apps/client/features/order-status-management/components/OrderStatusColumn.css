@@ -49,9 +49,12 @@
   color: var(--color-status-success-text);
 }
 
-.order-status-column--cancelled .order-status-column__count {
-  background-color: var(--color-status-error-bg);
-  color: var(--color-status-error-text);
+/* "완료" 버튼과 같은 진한 브랜드 색 — 배지 색상 실험을 여러 번 따로 하다 보니 서로 안 어울려서,
+   이 컬럼의 "강조" 요소(배지+완료 버튼)는 진한 색으로, "은은한" 요소(패널·카드 보더·직원호출 라벨)는
+   연한 색으로 딱 두 톤만 쓰기로 정리했다. */
+.order-status-column--staffcall .order-status-column__count {
+  background-color: var(--color-brand-default);
+  color: var(--color-brand-text);
 }
 
 .order-status-column__panel {
@@ -66,10 +69,12 @@
   overflow: hidden;
 }
 
-.order-status-column--cancelled .order-status-column__panel {
-  border-color: var(--color-status-error-border-subtle);
-  background-color: var(--color-status-error-bg-subtle);
+/* 연한 브랜드 배경 + 반투명 브랜드 보더 조합 — 진한 단색 보더 대신 이 조합을 쓰면 튀지 않으면서 은은하게 구분된다. */
+.order-status-column--staffcall .order-status-column__panel {
+  border-color: var(--color-border-brand);
+  background-color: var(--color-brand-subtle);
 }
+
 
 .order-status-column__list {
   display: flex;

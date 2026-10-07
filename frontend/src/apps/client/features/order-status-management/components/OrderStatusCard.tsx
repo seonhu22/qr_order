@@ -29,9 +29,7 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
         </span>
         <span className="order-status-card__time">
           <Icon id="i-clock" size={13} />
-          {row.orderStatus === 'CANCELLED'
-            ? `취소시간 ${formatOrderBoardTime(row.cancelledAt ?? row.orderDatetime)}`
-            : `주문시간 ${formatOrderBoardTime(row.orderDatetime)}`}
+          주문시간 {formatOrderBoardTime(row.orderDatetime)}
         </span>
       </div>
 
@@ -108,21 +106,6 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
             <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>
               취소
             </Button>
-          </>
-        )}
-        {row.orderStatus === 'CANCELLED' && (
-          <>
-            <Button variant="outline" size="sm" onClick={() => actions.onShowCancelReason(row)}>
-              취소사유
-            </Button>
-            <Button
-              variant="icon"
-              size="sm"
-              className="order-status-card__dismiss"
-              aria-label="삭제"
-              iconOnly={<Icon id="i-trash" size={13} />}
-              onClick={() => actions.onDismiss(row.id)}
-            />
           </>
         )}
       </div>

@@ -11,6 +11,7 @@ import '@/shared/order-status/orderStatusBadge.css';
 import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
+import { ReceiptZigzagEdge } from '@/apps/client/features/order-status-management/components/ReceiptZigzagEdge';
 import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-management/hooks/useOrderStatusBoardPage';
 import {
   ORDER_BOARD_STATUS_BADGE_CLASS,
@@ -19,9 +20,9 @@ import {
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
 import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
-import { DeleteConfirmModal, SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
+import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
-import { SelectInput, TextareaInput, TextInput } from '@/shared/components/input';
+import { SelectInput, TextareaInput } from '@/shared/components/input';
 import { RadioGroup } from '@/shared/components/radio';
 import { FeedbackState } from '@/shared/components/feedback';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -33,12 +34,15 @@ import {
   formatOrderCancelReasonDisplay,
   getOrderBoardStatusLabel,
   groupMenuCatalogByCategory,
+  nowOrderBoardDatetime,
 } from '@/apps/client/features/order-status-management/utils';
 
 const GROUPED_MENU_CATALOG = groupMenuCatalogByCategory(MENU_CATALOG_MOCK);
+/** 영수증 섹션 구분선 — CSS 테두리 대신 참고 디자인처럼 실제 "*" 문자를 늘어놓는다. */
+const RECEIPT_STARS = '* '.repeat(24).trim();
 
 export function OrderStatusManagementPage() {
-  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, dismissConfirm } =
+  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, cancelHistory } =
     useOrderStatusBoardPage();
   const groupedMenuCatalog = GROUPED_MENU_CATALOG;
   const pendingOptionPickerMenu = MENU_CATALOG_MOCK.find(
@@ -75,6 +79,7 @@ export function OrderStatusManagementPage() {
     <>
       <section className="order-status-management-page" aria-label="주문 상태 관리">
         <OrderStatusManagementHeader
+          onOpenCancelHistory={cancelHistory.open}
           onRefresh={actions.handleRefresh}
           syncStatus={status.isInitialError || status.isSyncError ? 'error' : status.isRefreshing ? 'refreshing' : 'synced'}
         />
@@ -95,6 +100,7 @@ export function OrderStatusManagementPage() {
             lastMovedIds={data.lastMovedIds}
             pendingOrderIds={data.pendingOrderIds}
             mutationErrors={data.mutationErrors}
+            staffCall={data.staffCall}
           />
         )}
       </section>
@@ -175,16 +181,6 @@ export function OrderStatusManagementPage() {
         onClose={cancelReasonView.close}
       >
         <div className="order-cancel-modal__form">
-          <TextInput label="주문번호" readOnly value={cancelReasonView.row?.orderNo ?? ''} />
-          <TextInput
-            label="취소일시"
-            readOnly
-            value={
-              cancelReasonView.row
-                ? formatOrderBoardDateTime(cancelReasonView.row.cancelledAt ?? cancelReasonView.row.orderDatetime)
-                : ''
-            }
-          />
           <TextareaInput
             label="취소사유"
             readOnly
@@ -202,78 +198,27 @@ export function OrderStatusManagementPage() {
         </div>
       </WrapperModal>
 
-      {/* ── 취소 컬럼 카드 삭제 확인(화면에서만 삭제) ── */}
-      <DeleteConfirmModal
-        open={dismissConfirm.targetId !== null}
-        description={'이 카드를 화면에서 삭제합니다.\n실제 주문 데이터는 삭제되지 않습니다.'}
-        helperText="정말 삭제하시겠습니까?"
-        primaryAction={{ label: '확인', onClick: dismissConfirm.confirm }}
-        secondaryAction={{ onClick: dismissConfirm.close }}
-        onClose={dismissConfirm.close}
-      />
-
-      {/* ── 결제 처리 1단계: 결제완료/미결제/닫기 선택 ── */}
-      <WrapperModal
-        size="sm"
-        open={paymentModal.isChoiceOpen}
-        title="결제 처리"
-        onClose={paymentModal.closeChoice}
-      >
-        <div className="order-cancel-modal__form">
-          <div className="order-cancel-modal__notice">
-            <p className="order-cancel-modal__notice-title">결제 상태를 선택해주세요.</p>
-            <p className="order-cancel-modal__notice-desc">
-              결제 상태를 선택하시면 이전 단계로 되돌릴 수 없습니다.
-            </p>
-          </div>
-        </div>
-        <div className="order-payment-modal__actions">
-          <Button variant="primary" size="md" onClick={paymentModal.choosePaid}>
-            결제완료
-          </Button>
-          <Button variant="neutral" size="md" onClick={paymentModal.chooseUnpaid}>
-            미결제
-          </Button>
-          <Button variant="outline" size="md" onClick={paymentModal.closeChoice}>
-            닫기
-          </Button>
-        </div>
-      </WrapperModal>
-
-      {/* ── 결제 처리 2-A단계: 결제완료 영수증 확인 ── */}
+      {/* ── 취소내역 ── */}
       <WrapperModal
         size="md"
-        open={paymentModal.isReceiptOpen}
-        title="결제 완료 처리"
-        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmReceipt }}
-        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeReceipt }}
-        onClose={paymentModal.closeReceipt}
+        open={cancelHistory.isOpen}
+        title="취소내역"
+        primaryAction={{ label: '닫기', onClick: cancelHistory.close }}
+        onClose={cancelHistory.close}
       >
-        <div className="order-payment-receipt">
-          <p className="order-payment-receipt__table">{paymentModal.tableOrders[0]?.tableNum}번 테이블</p>
-          <RadioGroup
-            name="order-payment-type"
-            label="결제수단"
-            direction="row"
-            options={ORDER_PAYMENT_TYPE_OPTIONS}
-            value={paymentModal.paymentType}
-            errorText={paymentModal.paymentTypeError ? '결제수단을 선택해주세요.' : undefined}
-            onChange={paymentModal.changePaymentType}
-          />
-
+        {cancelHistory.rows.length === 0 ? (
+          <p className="order-cancel-modal__notice-desc">취소된 주문이 없습니다.</p>
+        ) : (
           <div className="order-payment-receipt__order-list">
-            {paymentModal.tableOrders.map((order) => (
+            {cancelHistory.rows.map((order) => (
               <div key={order.id} className="order-payment-receipt__order">
                 <div className="order-payment-receipt__order-row">
-                  <span className="order-payment-receipt__order-no">
+                  <span className="order-payment-receipt__order-no order-cancel-history__order-no">
                     #{order.orderNo}
-                    <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
-                      {getOrderBoardStatusLabel(order.orderStatus)}
-                    </span>
                   </span>
                   <span className="order-payment-receipt__time">
                     <Icon id="i-clock" size={13} />
-                    {formatOrderBoardTime(order.orderDatetime)}
+                    취소시간 {formatOrderBoardTime(order.cancelledAt ?? order.orderDatetime)}
                   </span>
                 </div>
 
@@ -317,34 +262,168 @@ export function OrderStatusManagementPage() {
                   ))}
                 </ul>
 
-                <p className="order-payment-receipt__subtotal">
-                  {formatOrderBoardPrice(calculateOrderTotal(order))}
-                </p>
+                <div className="order-cancel-history__row-footer">
+                  <p className="order-payment-receipt__subtotal">{formatOrderBoardPrice(calculateOrderTotal(order))}</p>
+                  <Button variant="outline" size="sm" onClick={() => cancelReasonView.open(order)}>
+                    취소사유
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
+        )}
+      </WrapperModal>
 
-          <div className="order-payment-receipt__summary">
-            <div className="order-payment-receipt__summary-row">
-              <span>총 주문 건</span>
-              <span>{paymentModal.tableOrders.length}</span>
-            </div>
-            <div className="order-payment-receipt__summary-row">
-              <span>총 주문 메뉴</span>
-              <span>{paymentModal.tableOrders.reduce((sum, order) => sum + order.menuItems.length, 0)}</span>
-            </div>
-            <div className="order-payment-receipt__summary-row order-payment-receipt__summary-row--total">
-              <span>총합</span>
-              <span>
-                {formatOrderBoardPrice(
-                  paymentModal.tableOrders.reduce((sum, order) => sum + calculateOrderTotal(order), 0),
-                )}
-              </span>
-            </div>
+      {/* ── 결제 처리 1단계: 결제완료/미결제/닫기 선택 ── */}
+      <WrapperModal
+        size="sm"
+        open={paymentModal.isChoiceOpen}
+        title="결제 처리"
+        onClose={paymentModal.closeChoice}
+      >
+        <div className="order-cancel-modal__form">
+          <div className="order-cancel-modal__notice">
+            <p className="order-cancel-modal__notice-title">결제 상태를 선택해주세요.</p>
+            <p className="order-cancel-modal__notice-desc">
+              결제 상태를 선택하시면 이전 단계로 되돌릴 수 없습니다.
+            </p>
           </div>
-          {paymentModal.submitError && (
-            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
-          )}
+        </div>
+        <div className="order-payment-modal__actions">
+          <Button variant="primary" size="md" onClick={paymentModal.choosePaid}>
+            결제완료
+          </Button>
+          <Button variant="neutral" size="md" onClick={paymentModal.chooseUnpaid}>
+            미결제
+          </Button>
+          <Button variant="outline" size="md" onClick={paymentModal.closeChoice}>
+            닫기
+          </Button>
+        </div>
+      </WrapperModal>
+
+      {/* ── 결제 처리 2-A단계: 결제완료 영수증 확인 ── */}
+      <WrapperModal
+        size="md"
+        open={paymentModal.isReceiptOpen}
+        title="결제 완료 처리"
+        primaryAction={{
+          label: '확인',
+          loading: paymentModal.isPending,
+          onClick: paymentModal.confirmReceipt,
+        }}
+        secondaryAction={{
+          label: '닫기',
+          disabled: paymentModal.isPending,
+          onClick: paymentModal.closeReceipt,
+        }}
+        onClose={paymentModal.closeReceipt}
+      >
+        <div className="order-payment-receipt-stage">
+          <div className="order-payment-receipt-wrap">
+            <ReceiptZigzagEdge />
+            <div className="order-payment-receipt">
+              <div className="receipt-header">
+                <p className="receipt-header__store">{data.storeInfo.storeName || '상호명 미등록'}</p>
+                <p className="receipt-header__table-badge">
+                  <Icon id="i-seat" size={14} />
+                  {paymentModal.tableOrders[0]?.tableNum}번 테이블
+                </p>
+                <p className="receipt-header__date">{formatOrderBoardDateTime(nowOrderBoardDatetime())}</p>
+              </div>
+
+              <RadioGroup
+                name="order-payment-type"
+                label="결제수단"
+                direction="row"
+                options={ORDER_PAYMENT_TYPE_OPTIONS}
+                value={paymentModal.paymentType}
+                errorText={paymentModal.paymentTypeError ? '결제수단을 선택해주세요.' : undefined}
+                onChange={paymentModal.changePaymentType}
+              />
+
+              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
+
+              <div className="order-payment-receipt__order-list">
+                {paymentModal.tableOrders.map((order) => (
+                  <div key={order.id} className="order-payment-receipt__order">
+                    <div className="order-payment-receipt__order-row">
+                      <span className="order-payment-receipt__order-no">
+                        #{order.orderNo}
+                        <span className={`order-status-badge ${ORDER_BOARD_STATUS_BADGE_CLASS[order.orderStatus]}`}>
+                          {getOrderBoardStatusLabel(order.orderStatus)}
+                        </span>
+                      </span>
+                      <span className="order-payment-receipt__time">
+                        <Icon id="i-clock" size={13} />
+                        {formatOrderBoardTime(order.orderDatetime)}
+                      </span>
+                    </div>
+
+                    <ul className="receipt-item-list">
+                      {order.menuItems.map((menu) => (
+                        <li key={menu.id} className="receipt-item">
+                          <div className="receipt-item__row">
+                            <span className="receipt-item__name">{menu.name}</span>
+                            <span className="receipt-item__amount">
+                              {formatOrderBoardPrice(menu.unitPrice * menu.quantity)}
+                            </span>
+                          </div>
+                          {menu.quantity > 1 && (
+                            <p className="receipt-item__qty">
+                              {menu.quantity}개 × {formatOrderBoardPrice(menu.unitPrice)}
+                            </p>
+                          )}
+                          {menu.options.map((option) => (
+                            <div key={option.id} className="receipt-item receipt-item--option">
+                              <div className="receipt-item__row">
+                                <span className="receipt-item__name">↳ {option.name}</span>
+                                <span className="receipt-item__amount">
+                                  {formatOrderBoardPrice(option.unitPrice * option.quantity)}
+                                </span>
+                              </div>
+                              {option.quantity > 1 && (
+                                <p className="receipt-item__qty">
+                                  {option.quantity}개 × {formatOrderBoardPrice(option.unitPrice)}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="receipt-item-list__subtotal">
+                      <span>합계</span>
+                      <span>{formatOrderBoardPrice(calculateOrderTotal(order))}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
+
+              <div className="order-payment-receipt__summary">
+                <div className="order-payment-receipt__summary-row">
+                  <span>총 주문 건</span>
+                  <span>{paymentModal.tableOrders.length}</span>
+                </div>
+                <div className="order-payment-receipt__summary-row">
+                  <span>총 주문 메뉴</span>
+                  <span>{paymentModal.tableOrders.reduce((sum, order) => sum + order.menuItems.length, 0)}</span>
+                </div>
+                <div className="order-payment-receipt__summary-row order-payment-receipt__summary-row--total">
+                  <span>총합</span>
+                  <span className="receipt-summary__total-amount">
+                    {formatOrderBoardPrice(
+                      paymentModal.tableOrders.reduce((sum, order) => sum + calculateOrderTotal(order), 0),
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ReceiptZigzagEdge flip />
+          </div>
         </div>
       </WrapperModal>
 
@@ -361,15 +440,23 @@ export function OrderStatusManagementPage() {
         size="md"
         open={paymentModal.isUnpaidEditorOpen}
         title="미결제 처리"
-        primaryAction={{ label: '확인', loading: paymentModal.isPending, onClick: paymentModal.confirmUnpaid }}
-        secondaryAction={{ label: '닫기', disabled: paymentModal.isPending, onClick: paymentModal.closeUnpaidEditor }}
+        primaryAction={{
+          label: '확인',
+          loading: paymentModal.isPending,
+          onClick: paymentModal.confirmUnpaid,
+        }}
+        secondaryAction={{
+          label: '닫기',
+          disabled: paymentModal.isPending,
+          onClick: paymentModal.closeUnpaidEditor,
+        }}
         onClose={paymentModal.closeUnpaidEditor}
       >
         <div className="order-cancel-modal__form">
           <div className="order-cancel-modal__notice">
             <p className="order-cancel-modal__notice-title">미결제사유를 선택해 주세요.</p>
             <p className="order-cancel-modal__notice-desc">
-              현재 방문의 모든 주문을 미결제로 처리하며 이전 단계로 되돌릴 수 없습니다.
+              미결제로 처리하면 이전 단계로 되돌릴 수 없습니다.
               <br />
               미결제 사유를 정확히 선택한 후 진행해 주세요.
             </p>
@@ -393,9 +480,6 @@ export function OrderStatusManagementPage() {
               errorText={paymentModal.errors.description ? '상세 사유를 입력해주세요.' : undefined}
               onChange={(event) => paymentModal.changeDescription(event.target.value)}
             />
-          )}
-          {paymentModal.submitError && (
-            <p className="order-cancel-modal__notice-desc" role="alert">{paymentModal.submitError}</p>
           )}
         </div>
       </WrapperModal>

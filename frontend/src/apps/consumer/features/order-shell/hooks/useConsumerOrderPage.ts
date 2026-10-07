@@ -71,6 +71,7 @@ export function useConsumerOrderPage() {
   const queryClient = useQueryClient();
   const createOrder = useConsumerOrderCreateMutation();
   const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
+  const [requestNote, setRequestNote] = useState('');
 
   const { session } = useConsumerSession();
   const sessionId = session?.consumerSessionId ?? '';
@@ -180,6 +181,7 @@ export function useConsumerOrderPage() {
         onSuccess: (created) => {
           closeSheet();
           clearCart();
+          setRequestNote('');
           setCompletedOrderNo(created.orderNo);
           setOrderPhase('complete');
           void queryClient.invalidateQueries({ queryKey: queryKeys.consumer.orders(sessionId) });
@@ -244,6 +246,10 @@ export function useConsumerOrderPage() {
   /** 주문 확인 모달의 "취소" — 장바구니 시트로 돌아간다. */
   function cancelPlaceOrder() {
     setOrderConfirmOpen(false);
+  }
+
+  function changeRequestNote(value: string) {
+    setRequestNote(value);
   }
 
   /**
@@ -400,6 +406,8 @@ export function useConsumerOrderPage() {
     duplicateTime,
     completedOrderNo,
     orderConfirmOpen,
+    requestNote,
+    changeRequestNote,
     placeOrder,
     confirmPlaceOrder,
     cancelPlaceOrder,
