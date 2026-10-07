@@ -16,7 +16,8 @@
 | 상황 | 명령 |
 |---|---|
 | 전체 테스트를 한 번 실행 | `npm test` |
-| 전체 결과를 파일에도 저장 | `npm run test:log` |
+| 간결한 전체 결과를 파일에도 저장 | `npm run test:log` |
+| 개별 테스트 이름까지 파일에 저장 | `npm run test:log:verbose` |
 | 수정 중인 테스트를 반복 실행 | `npm run test:watch` |
 | 커버리지 확인 | `npm run test:coverage` |
 

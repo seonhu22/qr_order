@@ -138,7 +138,8 @@ npm run build
 | `npm run lint` | ESLint 검사 |
 | `npm run typecheck` | TypeScript 타입 검사 |
 | `npm test` | Vitest 1회 실행 |
-| [`npm run test:log`](./docs/testing/test-result-log.md) | Vitest 결과를 터미널과 로컬 로그 파일에 함께 기록 |
+| [`npm run test:log`](./docs/testing/test-result-log.md) | 간결한 Vitest 결과를 터미널과 시간별 로그 파일에 기록 |
+| [`npm run test:log:verbose`](./docs/testing/test-result-log.md#상세-로그-실행) | 개별 테스트 이름을 포함한 상세 로그 기록 |
 | `npm run test:watch` | 테스트 감시 모드 |
 | `npm run test:coverage` | 커버리지 보고서 생성 (`coverage/` 디렉터리) |
 | `npm run build` | 프로덕션 빌드 |
