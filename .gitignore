@@ -85,8 +85,10 @@ AGENTS.md
 /docs/solutions/drafts/
 /docs/**/*.local.md
 
-### 백엔드 테스트파일 ###
+###테스트파일 ###
 qrorder/src/test/
+### 프론트 테스트 로그 파일
+frontend/src/test/test-result
 
 ### 프론트 bypass를 위한 로컬 환경설정 파일 ###
 frontend/.env.local

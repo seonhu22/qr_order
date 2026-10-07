@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:log": "node scripts/run-tests-with-log.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "vite build",
