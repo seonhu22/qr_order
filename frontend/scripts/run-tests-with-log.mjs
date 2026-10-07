@@ -1,19 +1,21 @@
-import { mkdirSync, createWriteStream } from 'node:fs';
+import { createWriteStream } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { createTestLogFile } from './utils/test-log-file.mjs';
 
 const frontendRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const resultDirectory = resolve(frontendRoot, 'src/test/test-result');
-const resultFile = resolve(resultDirectory, 'test-result.log');
+const resultFile = createTestLogFile(frontendRoot);
 const vitestEntry = resolve(frontendRoot, 'node_modules/vitest/vitest.mjs');
+const vitestArguments = process.argv.slice(2);
 
-mkdirSync(resultDirectory, { recursive: true });
+process.stdout.write(`테스트 로그: ${resultFile}\n`);
 
 const logStream = createWriteStream(resultFile, { flags: 'w' });
 const vitest = spawn(
   process.execPath,
-  [vitestEntry, 'run', '--reporter=verbose', ...process.argv.slice(2)],
+  [vitestEntry, 'run', ...vitestArguments],
   {
     cwd: frontendRoot,
     env: process.env,
@@ -31,20 +33,26 @@ const copyOutput = (output, terminal) => {
 copyOutput(vitest.stdout, process.stdout);
 copyOutput(vitest.stderr, process.stderr);
 
-vitest.on('error', (error) => {
+let finished = false;
+
+const finish = (message, exitCode) => {
+  if (finished) return;
+  finished = true;
+  logStream.end(message, () => {
+    process.exitCode = exitCode;
+  });
+};
+
+vitest.once('error', (error) => {
   const message = `테스트 실행에 실패했습니다: ${error.message}\n`;
   process.stderr.write(message);
-  logStream.end(message, () => {
-    process.exitCode = 1;
-  });
+  finish(message, 1);
 });
 
-vitest.on('close', (code, signal) => {
+vitest.once('close', (code, signal) => {
   const result = signal
     ? `\n테스트가 ${signal} 신호로 종료되었습니다.\n`
     : `\n테스트 종료 코드: ${code ?? 1}\n`;
 
-  logStream.end(result, () => {
-    process.exitCode = signal ? 1 : (code ?? 1);
-  });
+  finish(result, signal ? 1 : (code ?? 1));
 });
