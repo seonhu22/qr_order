@@ -147,6 +147,9 @@ public class ConsumerOrderValidator {
             if (option == null || group == null) {
                 throw new ConsumerOrderNotFoundException("주문할 수 없는 옵션입니다.");
             }
+            if ("Y".equals(option.getSoldOutYn())) {
+                throw new ConsumerOrderConflictException("품절된 옵션이 포함되어 있습니다.");
+            }
             if (option.getMenuOptionPrice() == null || option.getMenuOptionPrice() < 0) {
                 throw new IllegalStateException("메뉴 옵션 가격 정보가 올바르지 않습니다.");
             }

@@ -3,8 +3,10 @@ package htms.QROrder.client;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.controller.OrderManageController;
 import htms.QROrder.client.dto.StatusRequest;
+import htms.QROrder.client.dto.OrderRevisionRequest;
 import htms.QROrder.client.service.OrderHistoryService;
 import htms.QROrder.client.service.OrderRevisionCatalogService;
+import htms.QROrder.client.service.OrderRevisionService;
 import htms.QROrder.client.service.StatusService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
@@ -22,13 +24,14 @@ class OrderManageControllerTest {
         StatusService statusService = mock(StatusService.class);
         OrderHistoryService orderHistoryService = mock(OrderHistoryService.class);
         OrderRevisionCatalogService orderRevisionCatalogService = mock(OrderRevisionCatalogService.class);
+        OrderRevisionService orderRevisionService = mock(OrderRevisionService.class);
         HttpSession session = mock(HttpSession.class);
         Login login = new Login();
         login.setUserId("USER-1");
         login.setSysPlantCd("PLANT-1");
         when(session.getAttribute("loginUser")).thenReturn(login);
         OrderManageController controller = new OrderManageController(
-                statusService, orderHistoryService, orderRevisionCatalogService);
+                statusService, orderHistoryService, orderRevisionCatalogService, orderRevisionService);
         StatusRequest request = new StatusRequest();
 
         controller.cancelOrder(request, session);
@@ -39,11 +42,14 @@ class OrderManageControllerTest {
         controller.changeOrder(List.of("DETAIL-1"), session);
         controller.getStatusCancelResponses("GROUP-1", session);
         controller.getOrderRevisionCatalog(session);
+        OrderRevisionRequest revisionRequest = new OrderRevisionRequest();
+        controller.reviseOrder(revisionRequest, session);
 
         verify(statusService).cancelOrder(request, "USER-1", "PLANT-1");
         verify(statusService).goToCooking(request, "USER-1", "PLANT-1");
         verify(statusService).backToReceiveOrder(request, "USER-1", "PLANT-1");
         verify(statusService).goToServingComplete(request, "USER-1", "PLANT-1");
+        verify(orderRevisionService).revise("PLANT-1", "USER-1", revisionRequest);
         verify(statusService).backToCooking(request, "USER-1", "PLANT-1");
         verify(statusService).changeOrder(List.of("DETAIL-1"), "USER-1", "PLANT-1");
         verify(statusService).getStatusCancelResponses("GROUP-1", "PLANT-1");

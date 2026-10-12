@@ -5,8 +5,13 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.service.OrderHistoryService;
 import htms.QROrder.client.service.OrderRevisionCatalogService;
+import htms.QROrder.client.service.OrderRevisionService;
 import htms.QROrder.client.service.StatusService;
 import htms.QROrder.common.dto.CommonResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +31,7 @@ public class OrderManageController {
     private final StatusService statusService;
     private final OrderHistoryService orderHistoryService;
     private final OrderRevisionCatalogService orderRevisionCatalogService;
+    private final OrderRevisionService orderRevisionService;
 
     @GetMapping("/order-revision/catalog")
     public ResponseEntity<CommonResponse> getOrderRevisionCatalog(HttpSession session) {
@@ -35,6 +41,33 @@ public class OrderManageController {
                 .success(true)
                 .message("주문 수정 카탈로그 조회 완료.")
                 .data(orderRevisionCatalogService.getCatalog(loginUser.getSysPlantCd()))
+                .build());
+    }
+
+    @Operation(
+            operationId = "reviseClientOrder",
+            summary = "Client 주문 수정 저장",
+            description = "접수/조리 중 주문의 메뉴 제거 이력을 남기고 추가 메뉴를 신규 주문 한 건으로 생성합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "최초 처리 또는 동일 요청 replay 성공",
+            content = @Content(schema = @Schema(implementation = OrderRevisionEnvelope.class)))
+    @ApiResponse(responseCode = "400", description = "요청 형식 또는 메뉴/옵션 규칙 위반",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "404", description = "로그인 매장에서 수정 대상을 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "409", description = "상태/비활성 테이블/멱등성 payload 충돌",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @PostMapping("/status/revise_order")
+    public ResponseEntity<CommonResponse> reviseOrder(@RequestBody OrderRevisionRequest request,
+                                                       HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        OrderRevisionResponse response = orderRevisionService.revise(
+                loginUser.getSysPlantCd(), loginUser.getUserId(), request);
+
+        return ResponseEntity.ok(CommonResponse.builder()
+                .success(true)
+                .message("주문 수정 완료.")
+                .data(response)
                 .build());
     }
 

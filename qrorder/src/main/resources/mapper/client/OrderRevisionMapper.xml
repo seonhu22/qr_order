@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.OrderRevisionMapper">
+
+    <select id="findRevision" resultType="htms.QROrder.client.repository.OrderRevisionRows$Revision">
+        SELECT sys_id AS revision_id, request_fingerprint, processing_status,
+               response_json::text AS response_json
+        FROM client_order_revision
+        WHERE sys_plant_cd = #{sysPlantCd}
+          AND client_request_id = #{clientRequestId}
+    </select>
+
+    <select id="findTargets" resultType="htms.QROrder.client.repository.OrderRevisionRows$Target">
+        SELECT og.sys_id AS order_group_id, om.sys_id AS order_master_id,
+               om.link_sys_id AS table_sys_id, og.order_status, om.order_status AS master_status
+        FROM order_group og
+        INNER JOIN order_master om ON om.sys_id = og.link_sys_id AND om.sys_plant_cd = og.sys_plant_cd
+        WHERE og.sys_plant_cd = #{sysPlantCd}
+          AND og.sys_id IN
+        <foreach collection="orderGroupIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <insert id="reserveRevision">
+        INSERT INTO client_order_revision (
+            sys_id, sys_plant_cd, client_request_id, order_master_id, table_sys_id,
+            request_fingerprint, processing_status, insert_user_id, insert_datetime
+        ) VALUES (
+            #{revisionId}, #{sysPlantCd}, #{clientRequestId}, #{orderMasterId}, #{tableSysId},
+            #{fingerprint}, 'PROCESSING', #{userId}, NOW()
+        )
+        ON CONFLICT (sys_plant_cd, client_request_id) DO NOTHING
+    </insert>
+
+    <select id="lockTable" resultType="string">
+        SELECT use_yn FROM table_info
+        WHERE sys_id = #{tableSysId} AND sys_plant_cd = #{sysPlantCd} AND delete_yn = 'N'
+        FOR UPDATE
+    </select>
+
+    <select id="lockOrderMaster" resultType="string">
+        SELECT order_status FROM order_master
+        WHERE sys_id = #{orderMasterId} AND link_sys_id = #{tableSysId}
+          AND sys_plant_cd = #{sysPlantCd}
+        FOR UPDATE
+    </select>
+
+    <select id="lockOrderGroups" resultType="htms.QROrder.client.repository.OrderRevisionRows$Target">
+        SELECT og.sys_id AS order_group_id, om.sys_id AS order_master_id,
+               om.link_sys_id AS table_sys_id, og.order_status, om.order_status AS master_status
+        FROM order_group og
+        INNER JOIN order_master om ON om.sys_id = og.link_sys_id AND om.sys_plant_cd = og.sys_plant_cd
+        WHERE og.sys_plant_cd = #{sysPlantCd}
+          AND og.sys_id IN
+        <foreach collection="orderGroupIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY og.sys_id
+        FOR UPDATE OF og
+    </select>
+
+    <select id="lockOrderDetails" resultType="string">
+        SELECT od.sys_id
+        FROM order_detail od
+        INNER JOIN order_group og ON og.sys_id = od.link_sys_id3 AND og.sys_plant_cd = od.sys_plant_cd
+        WHERE od.sys_plant_cd = #{sysPlantCd}
+          AND og.link_sys_id = #{orderMasterId}
+          AND og.sys_id IN
+        <foreach collection="orderGroupIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND od.sys_id IN
+        <foreach collection="detailIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND NOT EXISTS (
+              SELECT 1 FROM client_order_revision_removed_detail removed
+              WHERE removed.order_detail_sys_id = od.sys_id
+          )
+        ORDER BY od.sys_id
+        FOR UPDATE OF od
+    </select>
+
+    <insert id="insertRemovedDetails">
+        INSERT INTO client_order_revision_removed_detail
+            (revision_sys_id, order_detail_sys_id, removed_datetime)
+        VALUES
+        <foreach collection="detailIds" item="id" separator=",">
+            (#{revisionId}, #{id}, #{removedAt})
+        </foreach>
+    </insert>
+
+    <select id="findEmptyOrderGroups" resultType="string">
+        SELECT og.sys_id
+        FROM order_group og
+        WHERE og.sys_plant_cd = #{sysPlantCd}
+          AND og.sys_id IN
+        <foreach collection="orderGroupIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND NOT EXISTS (
+              SELECT 1 FROM order_detail od
+              WHERE od.link_sys_id3 = og.sys_id
+                AND od.sys_plant_cd = og.sys_plant_cd
+                AND NOT EXISTS (
+                    SELECT 1 FROM client_order_revision_removed_detail removed
+                    WHERE removed.order_detail_sys_id = od.sys_id
+                )
+          )
+        ORDER BY og.sys_id
+    </select>
+
+    <update id="cancelEmptyOrderGroups">
+        UPDATE order_group SET
+            order_status = '99!', cancel_type = 'ORDER_REVISION', cancel_yn = 'Y',
+            cancel_reason = '주문 수정으로 모든 메뉴 제거', cancel_description = '',
+            cancel_datetime = #{cancelledAt}, modify_user_id = #{userId}, modify_datetime = #{cancelledAt}
+        WHERE sys_plant_cd = #{sysPlantCd}
+          AND order_status IN ('01', '02')
+          AND sys_id IN
+        <foreach collection="orderGroupIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <select id="lockOrderNumberScope" resultType="int">
+        SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext(#{sysPlantCd}))) locked_scope
+    </select>
+
+    <select id="findNextOrderNumber" resultType="int">
+        SELECT COALESCE(MAX(order_num), 0) + 1 FROM order_group WHERE sys_plant_cd = #{sysPlantCd}
+    </select>
+
+    <insert id="insertOrderGroup">
+        INSERT INTO order_group (sys_id, cancel_yn, cancel_reason, insert_user_id,
+                                 insert_datetime, sys_plant_cd, link_sys_id, order_num, order_status)
+        VALUES (#{orderId}, 'N', '', #{userId}, #{orderedAt}, #{sysPlantCd},
+                #{orderMasterId}, #{orderNumber}, '01')
+    </insert>
+
+    <insert id="insertOrderDetail">
+        INSERT INTO order_detail (sys_id, link_sys_id, option_yn, insert_user_id,
+                                  insert_datetime, sys_plant_cd, link_sys_id2, link_sys_id3, qty, payment_yn)
+        VALUES (#{orderItemId}, #{orderMasterId},
+                <choose><when test="hasOptions">'Y'</when><otherwise>'N'</otherwise></choose>,
+                #{userId}, #{orderedAt}, #{sysPlantCd}, #{menuSysId}, #{orderId}, #{quantity}, 'Y')
+    </insert>
+
+    <insert id="insertOrderDetailOption">
+        INSERT INTO order_detail_option (sys_id, link_sys_id, insert_user_id, insert_datetime,
+                                         sys_plant_cd, link_sys_id2, qty)
+        VALUES (#{orderOptionId}, #{orderItemId}, #{userId}, #{orderedAt},
+                #{sysPlantCd}, #{optionSysId}, #{quantity})
+    </insert>
+
+    <update id="completeRevision">
+        UPDATE client_order_revision SET processing_status = 'COMPLETED',
+            response_json = CAST(#{responseJson} AS jsonb), complete_datetime = #{completedAt}
+        WHERE sys_id = #{revisionId} AND processing_status = 'PROCESSING'
+    </update>
+</mapper>

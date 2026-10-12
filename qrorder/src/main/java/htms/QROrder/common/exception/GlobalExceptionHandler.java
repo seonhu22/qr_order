@@ -3,6 +3,7 @@ package htms.QROrder.common.exception;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.exception.EmailValidException;
 import htms.QROrder.auth.exception.LoginFailException;
+import htms.QROrder.client.exception.OrderRevisionException;
 import htms.QROrder.common.dto.CommonResponse;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderIdempotencyException;
@@ -93,6 +94,16 @@ public class GlobalExceptionHandler {
                         .success(false)
                         .message(e.getMessage())
                         .error("TABLE_INACTIVE")
+                        .build());
+    }
+
+    @ExceptionHandler(OrderRevisionException.class)
+    public ResponseEntity<CommonResponse> handleOrderRevision(OrderRevisionException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(CommonResponse.<Void>builder()
+                        .success(false)
+                        .message(e.getMessage())
+                        .error(e.getErrorCode())
                         .build());
     }
 

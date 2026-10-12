@@ -75,6 +75,17 @@ class ConsumerOrderValidatorTest {
     }
 
     @Test
+    void rejectsSoldOutOptionAsConflict() {
+        ConsumerMenuOptionItem soldOut = new ConsumerMenuOptionItem(
+                "OPTION-1", "옵션", 500, null, 1, "N", "Y");
+        givenMenu(menu("Y", "N", List.of(group("GROUP-1", "01", "N", soldOut))));
+
+        assertThrows(ConsumerOrderConflictException.class,
+                () -> validator.validate("PLANT-1",
+                        request(1, List.of(optionRequest("OPTION-1", 1)))));
+    }
+
+    @Test
     void hidesMenuOutsideCurrentStoreAsNotFound() {
         when(consumerMenuService.getDetail("PLANT-1", "MENU-1")).thenReturn(null);
 

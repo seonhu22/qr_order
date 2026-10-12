@@ -59,7 +59,8 @@ class ApiExceptionHandlerPrecedenceTest {
         OrderManageController controller = new OrderManageController(
                 statusService,
                 mock(OrderHistoryService.class),
-                mock(OrderRevisionCatalogService.class));
+                mock(OrderRevisionCatalogService.class),
+                mock(htms.QROrder.client.service.OrderRevisionService.class));
         org.mockito.Mockito.doThrow(new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "모든 주문의 서빙이 완료된 후 결제할 수 있습니다."))
