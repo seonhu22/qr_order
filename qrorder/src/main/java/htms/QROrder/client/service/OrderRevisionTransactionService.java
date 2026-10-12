@@ -14,6 +14,8 @@ import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
 import htms.QROrder.consumer.order.exception.ConsumerOrderConflictException;
 import htms.QROrder.consumer.order.exception.ConsumerOrderNotFoundException;
 import htms.QROrder.consumer.order.service.ConsumerOrderValidator;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,8 @@ public class OrderRevisionTransactionService {
     private final OrderRevisionMapper mapper;
     private final ConsumerOrderValidator orderValidator;
     private final ObjectMapper objectMapper;
+    private final ConsumerEventPublisher consumerEventPublisher;
+    private final ClientEventPublisher clientEventPublisher;
 
     @Transactional
     public OrderRevisionResponse revise(String sysPlantCd, String userId,
@@ -124,6 +128,9 @@ public class OrderRevisionTransactionService {
         if (mapper.completeRevision(revisionId, writeResponse(response), now) != 1) {
             throw new IllegalStateException("주문 수정 멱등성 응답을 완료하지 못했습니다.");
         }
+        consumerEventPublisher.publishAfterCommit(
+                sysPlantCd, scope.orderMasterId(), ConsumerEventService.STATUS_CHANGED);
+        clientEventPublisher.publishAfterCommit(sysPlantCd, ClientEventPublisher.ORDER_STATUS_CHANGED);
         return response;
     }
 

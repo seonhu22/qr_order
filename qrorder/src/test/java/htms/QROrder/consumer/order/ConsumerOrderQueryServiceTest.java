@@ -87,6 +87,39 @@ class ConsumerOrderQueryServiceTest {
     }
 
     @Test
+    void fullyRemovedOrderReturnsNotFoundInsteadOfMissingItemsError() {
+        QrConnectResponse qr = qrTableInfo();
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        // Mapper header query requires at least one non-removed detail, so an all-removed order is absent.
+        when(consumerOrderMapper.findOrderDetailHeader("VISIT-1", "PLANT-1", "ORDER-REMOVED"))
+                .thenReturn(null);
+
+        assertThrows(ConsumerOrderNotFoundException.class,
+                () -> service.getOrder(qr, binding(), "ORDER-REMOVED"));
+
+        verify(consumerOrderMapper, never())
+                .findOrderItems("VISIT-1", "PLANT-1", "ORDER-REMOVED");
+        verify(consumerOrderMapper, never())
+                .findOrderOptions("VISIT-1", "PLANT-1", "ORDER-REMOVED");
+    }
+
+    @Test
+    void removalBetweenHeaderAndItemsQueryStillReturnsNotFound() {
+        QrConnectResponse qr = qrTableInfo();
+        when(consumerVisitService.lockBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(consumerOrderMapper.findOrderDetailHeader("VISIT-1", "PLANT-1", "ORDER-RACE"))
+                .thenReturn(header("ORDER-RACE", 1001, "01"));
+        when(consumerOrderMapper.findOrderItems("VISIT-1", "PLANT-1", "ORDER-RACE"))
+                .thenReturn(List.of());
+
+        assertThrows(ConsumerOrderNotFoundException.class,
+                () -> service.getOrder(qr, binding(), "ORDER-RACE"));
+
+        verify(consumerOrderMapper, never())
+                .findOrderOptions("VISIT-1", "PLANT-1", "ORDER-RACE");
+    }
+
+    @Test
     void rejectsBindingFromDifferentTableBeforeQuery() {
         ConsumerSessionBinding otherTable = new ConsumerSessionBinding(
                 "VISIT-1", "PLANT-1", "TABLE-OTHER", LocalDateTime.now());

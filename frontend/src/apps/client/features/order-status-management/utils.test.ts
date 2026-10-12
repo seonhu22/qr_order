@@ -65,6 +65,12 @@ describe('formatOrderCancelReasonDisplay', () => {
       cancelType: 'CUSTOMER_REQUEST',
     })).toBe('고객 요청');
   });
+
+  it('주문 수정으로 자동 취소된 주문의 사유를 표시한다', () => {
+    expect(formatOrderCancelReasonDisplay({
+      cancelType: 'ORDER_REVISION',
+    })).toBe('주문 수정');
+  });
 });
 
 describe('calculateOrderTotal', () => {

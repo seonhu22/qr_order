@@ -7,6 +7,9 @@ import htms.QROrder.client.exception.OrderRevisionException;
 import htms.QROrder.client.repository.OrderRevisionMapper;
 import htms.QROrder.client.repository.OrderRevisionRows;
 import htms.QROrder.client.service.OrderRevisionTransactionService;
+import htms.QROrder.client.service.ClientEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
+import htms.QROrder.consumer.event.service.ConsumerEventService;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateItemRequest;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
 import htms.QROrder.consumer.order.service.ConsumerOrderValidator;
@@ -24,12 +27,17 @@ class OrderRevisionTransactionServiceTest {
     private OrderRevisionMapper mapper;
     private ConsumerOrderValidator validator;
     private OrderRevisionTransactionService service;
+    private ConsumerEventPublisher consumerEventPublisher;
+    private ClientEventPublisher clientEventPublisher;
 
     @BeforeEach
     void setUp() {
         mapper = mock(OrderRevisionMapper.class);
         validator = mock(ConsumerOrderValidator.class);
-        service = new OrderRevisionTransactionService(mapper, validator, new ObjectMapper());
+        consumerEventPublisher = mock(ConsumerEventPublisher.class);
+        clientEventPublisher = mock(ClientEventPublisher.class);
+        service = new OrderRevisionTransactionService(
+                mapper, validator, new ObjectMapper(), consumerEventPublisher, clientEventPublisher);
     }
 
     @Test
@@ -155,6 +163,10 @@ class OrderRevisionTransactionServiceTest {
 
         assertEquals(List.of("D1"), response.getRemovedDetailIds());
         verify(mapper).completeRevision(anyString(), anyString(), any());
+        verify(consumerEventPublisher).publishAfterCommit(
+                "P1", "OM1", ConsumerEventService.STATUS_CHANGED);
+        verify(clientEventPublisher).publishAfterCommit(
+                "P1", ClientEventPublisher.ORDER_STATUS_CHANGED);
     }
 
     @Test
@@ -168,6 +180,7 @@ class OrderRevisionTransactionServiceTest {
         OrderRevisionResponse response = service.revise("P1", "U1", request(List.of("D1"), List.of()), "FP");
         assertEquals("R1", response.getRevisionId());
         verify(mapper, never()).reserveRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verifyNoInteractions(consumerEventPublisher, clientEventPublisher);
     }
 
     @Test
@@ -215,6 +228,7 @@ class OrderRevisionTransactionServiceTest {
         when(mapper.insertRemovedDetails(anyString(), anyList(), any())).thenReturn(0);
         assertThrows(IllegalStateException.class, () -> service.revise("P1", "U1", request, "FP"));
         verify(mapper, never()).completeRevision(anyString(), anyString(), any());
+        verifyNoInteractions(consumerEventPublisher, clientEventPublisher);
     }
 
     @Test
@@ -246,6 +260,7 @@ class OrderRevisionTransactionServiceTest {
         when(mapper.findEmptyOrderGroups("P1", List.of("G1"))).thenReturn(List.of());
         when(mapper.completeRevision(anyString(), anyString(), any())).thenReturn(0);
         assertThrows(IllegalStateException.class, () -> service.revise("P1", "U1", request, "FP"));
+        verifyNoInteractions(consumerEventPublisher, clientEventPublisher);
     }
 
     @Test

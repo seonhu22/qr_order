@@ -38,6 +38,12 @@ export const ORDER_CANCEL_REASON_OPTIONS: SelectOption[] = [
   { value: ORDER_CANCEL_REASON_OTHER_VALUE, label: '기타' },
 ];
 
+/** 자동 취소 코드를 포함한 조회용 라벨. 자동 코드는 사용자 선택지에 노출하지 않는다. */
+export const ORDER_CANCEL_REASON_LABELS: Record<string, string> = {
+  ...Object.fromEntries(ORDER_CANCEL_REASON_OPTIONS.map(({ value, label }) => [value, label])),
+  ORDER_REVISION: '주문 수정',
+};
+
 /** "기타" 선택 시에만 "상세입력" textarea가 추가로 표시된다. */
 export const ORDER_UNPAID_REASON_OTHER_VALUE = 'OTHER';
 

@@ -16,6 +16,10 @@
                     from order_detail od2
                     where od2.link_sys_id = om.sys_id
                     and od2.payment_yn = 'N'
+                    and not exists (
+                        select 1 from client_order_revision_removed_detail removed
+                        where removed.order_detail_sys_id = od2.sys_id
+                    )
                 ) then 'N'
                 else 'Y'
             end as payment_status ,
@@ -41,6 +45,10 @@
             and om.order_status = #{orderStatus}
         </if>
         and om.sys_plant_cd = #{sysPlantCd}
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         and om.insert_datetime::date between #{startDate}::date and #{endDate}::date
         group by om.sys_id, om.link_sys_id, ti.table_num, og.order_num, om.order_status, om.insert_datetime
     </select>
@@ -64,6 +72,10 @@
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         group by od.link_sys_id
     </select>
 
@@ -83,6 +95,10 @@
         <foreach collection="list" item="id" open="(" separator="," close=")" >
             #{id}
         </foreach>
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
     </select>
 
     <select id="getOrderDetailTotalPrice" resultType="htms.QROrder.client.dto.OrderTotalPriceItem">
@@ -90,6 +106,8 @@
             odo.link_sys_id ,
             sum(smod.menu_option_price * odo.qty) as total_price
         from order_detail_option odo
+        inner join order_detail od
+            on od.sys_id = odo.link_sys_id
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
@@ -97,6 +115,10 @@
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         group by odo.link_sys_id
     </select>
 
@@ -105,6 +127,8 @@
             odo.link_sys_id as master_sys_id,
             concat(smod.menu_option_name, smod.menu_option_price) as menu_option
         from order_detail_option odo
+        inner join order_detail od
+            on od.sys_id = odo.link_sys_id
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
@@ -112,5 +136,9 @@
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
     </select>
 </mapper>

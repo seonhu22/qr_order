@@ -1,5 +1,7 @@
 package htms.QROrder.consumer.event;
 
+import htms.QROrder.client.service.ClientEventPublisher;
+import htms.QROrder.common.service.SSEEmitterService;
 import htms.QROrder.consumer.event.service.ConsumerEventPublisher;
 import htms.QROrder.consumer.event.service.ConsumerEventService;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +13,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class ConsumerEventPublisherTest {
 
@@ -62,5 +66,37 @@ class ConsumerEventPublisherTest {
         }
 
         verify(eventService).publish("PLANT-1", "VISIT-1", ConsumerEventService.ORDER_CREATED);
+    }
+
+    @Test
+    void clientEventPublishesOnceOnlyAfterCommitAndIgnoresDeliveryFailure() {
+        SSEEmitterService emitter = mock(SSEEmitterService.class);
+        ClientEventPublisher clientPublisher = new ClientEventPublisher(emitter);
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        doThrow(new RuntimeException("stream unavailable")).when(emitter)
+                .send("client:PLANT-1", ClientEventPublisher.ORDER_STATUS_CHANGED, "");
+
+        clientPublisher.publishAfterCommit("PLANT-1", ClientEventPublisher.ORDER_STATUS_CHANGED);
+
+        verifyNoInteractions(emitter);
+        TransactionSynchronizationManager.getSynchronizations()
+                .forEach(TransactionSynchronization::afterCommit);
+        verify(emitter, times(1))
+                .send("client:PLANT-1", ClientEventPublisher.ORDER_STATUS_CHANGED, "");
+    }
+
+    @Test
+    void clientEventDoesNotPublishOnRollback() {
+        SSEEmitterService emitter = mock(SSEEmitterService.class);
+        ClientEventPublisher clientPublisher = new ClientEventPublisher(emitter);
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+
+        clientPublisher.publishAfterCommit("PLANT-1", ClientEventPublisher.ORDER_STATUS_CHANGED);
+        TransactionSynchronizationManager.getSynchronizations().forEach(synchronization ->
+                synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+
+        verifyNoInteractions(emitter);
     }
 }

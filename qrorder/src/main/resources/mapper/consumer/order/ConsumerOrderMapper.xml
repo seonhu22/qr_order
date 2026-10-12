@@ -134,6 +134,10 @@
             GROUP BY odo.link_sys_id
         ) option_total ON option_total.order_item_id = od.sys_id
         WHERE <include refid="currentConsumerOrderPredicate"/>
+          AND NOT EXISTS (
+              SELECT 1 FROM client_order_revision_removed_detail removed
+              WHERE removed.order_detail_sys_id = od.sys_id
+          )
         GROUP BY og.sys_id, og.order_num, og.order_status,
                  og.insert_datetime, og.modify_datetime
         ORDER BY og.insert_datetime DESC, og.sys_id DESC
@@ -161,6 +165,17 @@
         <include refid="currentConsumerOrderScope"/>
         WHERE <include refid="currentConsumerOrderPredicate"/>
           AND og.sys_id = #{orderId}
+          AND EXISTS (
+              SELECT 1
+              FROM order_detail live_od
+              WHERE live_od.link_sys_id3 = og.sys_id
+                AND live_od.link_sys_id = og.link_sys_id
+                AND live_od.sys_plant_cd = og.sys_plant_cd
+                AND NOT EXISTS (
+                    SELECT 1 FROM client_order_revision_removed_detail removed
+                    WHERE removed.order_detail_sys_id = live_od.sys_id
+                )
+          )
     </select>
 
     <select id="findOrderItems"
@@ -182,6 +197,10 @@
             AND smd.sys_plant_cd = od.sys_plant_cd
         WHERE <include refid="currentConsumerOrderPredicate"/>
           AND og.sys_id = #{orderId}
+          AND NOT EXISTS (
+              SELECT 1 FROM client_order_revision_removed_detail removed
+              WHERE removed.order_detail_sys_id = od.sys_id
+          )
         ORDER BY od.insert_datetime ASC, od.sys_id ASC
     </select>
 
@@ -207,6 +226,10 @@
             AND smod.sys_plant_cd = odo.sys_plant_cd
         WHERE <include refid="currentConsumerOrderPredicate"/>
           AND og.sys_id = #{orderId}
+          AND NOT EXISTS (
+              SELECT 1 FROM client_order_revision_removed_detail removed
+              WHERE removed.order_detail_sys_id = od.sys_id
+          )
         ORDER BY odo.insert_datetime ASC, odo.sys_id ASC
     </select>
 

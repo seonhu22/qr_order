@@ -42,6 +42,10 @@
         where 1=1
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status NOT IN ('04', '05')
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         union all
         select
             od.link_sys_id3 as link_sys_id ,
@@ -57,13 +61,17 @@
             on og.sys_id = od.link_sys_id3
         left join order_master om
             on om.sys_id = og.link_sys_id
-        left join order_detail_option odo
+        inner join order_detail_option odo
             on odo.link_sys_id = od.sys_id
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status NOT IN ('04', '05')
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
     </select>
 
     <select id="getStatusFooterItems" resultType="htms.QROrder.client.dto.StatusItem$Footer">
@@ -93,6 +101,10 @@
         where 1=1
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status NOT IN ('04', '05')
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         group by od.link_sys_id3
     </select>
 
@@ -289,6 +301,10 @@
         and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status != '99!'
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
         union all
         select
             od.link_sys_id3 as link_sys_id ,
@@ -310,6 +326,10 @@
         and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status != '99!'
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
     </select>
 
     <select id="getPaymentCompleteFooterItems" resultType="htms.QROrder.client.dto.PaymentCompleteResponse$Footer">
@@ -338,6 +358,10 @@
         and og.link_sys_id = #{header.sysId}
         and od.sys_plant_cd = #{sysPlantCd}
         and og.order_status != '99!'
+        and not exists (
+            select 1 from client_order_revision_removed_detail removed
+            where removed.order_detail_sys_id = od.sys_id
+        )
     </select>
 
     <select id="lockChangeableOrderDetailIds" resultType="string">

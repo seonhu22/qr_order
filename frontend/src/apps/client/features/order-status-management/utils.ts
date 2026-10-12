@@ -1,7 +1,7 @@
 import {
   ORDER_BOARD_COLUMNS,
   ORDER_BOARD_STATUS_LABELS,
-  ORDER_CANCEL_REASON_OPTIONS,
+  ORDER_CANCEL_REASON_LABELS,
   ORDER_CANCEL_REASON_OTHER_VALUE,
 } from './constants';
 import type {
@@ -69,7 +69,7 @@ export function formatOrderCancelReasonDisplay(
   const { cancelType, cancelReason, cancelDescription } = row;
   if (!cancelType) return '-';
 
-  const label = ORDER_CANCEL_REASON_OPTIONS.find((option) => option.value === cancelType)?.label ?? cancelType;
+  const label = ORDER_CANCEL_REASON_LABELS[cancelType] ?? cancelType;
   const description = cancelReason?.trim() || cancelDescription?.trim();
 
   if (cancelType === ORDER_CANCEL_REASON_OTHER_VALUE && description) {

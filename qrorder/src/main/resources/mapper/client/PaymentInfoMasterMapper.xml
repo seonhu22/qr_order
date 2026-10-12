@@ -39,6 +39,10 @@
                     on smod.sys_id = odo.link_sys_id2
                 group by odo.link_sys_id
             ) opt_sum on opt_sum.link_sys_id = od.sys_id
+            where not exists (
+                select 1 from client_order_revision_removed_detail removed
+                where removed.order_detail_sys_id = od.sys_id
+            )
             group by og.link_sys_id
         ) price_sum on price_sum.order_master_sys_id = om.sys_id
         where 1=1

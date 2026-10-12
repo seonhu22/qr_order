@@ -62,7 +62,7 @@ public class ConsumerOrderQueryService {
         List<ConsumerOrderItemRow> itemRows = consumerOrderMapper.findOrderItems(
                 binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd(), normalizedOrderId);
         if (itemRows.isEmpty()) {
-            throw new IllegalStateException("주문 상세 항목이 없습니다.");
+            throw new ConsumerOrderNotFoundException("주문을 찾을 수 없습니다.");
         }
         List<ConsumerOrderOptionRow> optionRows = consumerOrderMapper.findOrderOptions(
                 binding.getConsumerSessionId(), qrTableInfo.getSysPlantCd(), normalizedOrderId);
