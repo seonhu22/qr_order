@@ -124,6 +124,8 @@ legacy `change_order`는 그대로 두고 Client 전용 카탈로그/주문 수�
 
 **Tests:** 01/02 성공/03 이상 거절, inactive remove-only 성공/add와 mixed rollback, 부분 제거 이력/payment 불변, 전부 제거 정확한 자동취소 값/서버 시각, 추가 전부 신규 그룹 한 건, 옵션 전 규칙/가격, 타 매장/master, 결제 경쟁, 중간 실패 rollback.
 
+**Manual gate:** 실제 PostgreSQL에 U1 migration을 적용한 환경에서 중간 insert/완료 응답 실패를 강제로 발생시켜 revision/제거 이력/신규 주문이 모두 rollback되는지 확인하기 전에는 통합 완료로 판정하지 않는다.
+
 ### U5. 조회/합계 / SSE 정합성
 
 **Goal:** 제거 상세을 모든 소비 경로에서 제외하고 양쪽 앱을 갱신한다.
