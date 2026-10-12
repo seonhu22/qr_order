@@ -18,6 +18,7 @@
 - [12. 사이드바 컴포넌트 (Sidebar)](#12-사이드바-컴포넌트-sidebar)
 - [13. 브레드크럼 컴포넌트 (PageNavigation)](#13-브레드크럼-컴포넌트-pagenavigation)
 - [14. 첨부파일 컴포넌트 (FileAttachment)](#14-첨부파일-컴포넌트-fileattachment)
+- [15. 커스텀 인터랙티브 요소 키보드 접근성](#15-커스텀-인터랙티브-요소-키보드-접근성)
 
 ---
 
@@ -514,3 +515,18 @@ Props·사용 예시·variant 확장 방법은 `index.ts` JSDoc을 참고한다.
 - [파일 정책](./file-attachment-policy.md)
 - [첨부파일 API 계약](./file-attachment-api.md)
 - [첨부파일 QA](./file-attachment-qa.md)
+
+---
+
+## 15. 커스텀 인터랙티브 요소 키보드 접근성
+
+> 추가일: 2026-10-12. 테이블 배치 관리 화면 작업에서 정착한 패턴([`docs/page/table-layout-management.md`](./page/table-layout-management.md) "키보드 접근성" 참고).
+
+`<button>`/`<input>`이 아니라 `<li>`/`<div>`에 `onClick`만 달면 키보드로 도달·조작할 수 없다. 새로 만들 때 같이 둘 것:
+
+- `tabIndex={disabled ? -1 : 0}` + `role="button"` + `aria-label` + `aria-disabled={disabled}`
+- `onKeyDown`에서 Enter/Space 처리
+- 포커스 스타일은 새로 정의하지 않고 `Button.css`의 `--focus-ring-brand`를 재사용한다. 요소가 원형이면 링도 둥글게 나오므로, 각진 링이 필요하면 `::before`/`::after`에 `border-radius: var(--radius-sm)`로 따로 그린다.
+- `@dnd-kit` 같은 부모가 자체 키보드 리스너를 가진 안에 중첩된 경우, `stopPropagation()`을 **키 종류 판별 전에 무조건** 호출한다 — 안 그러면 처리 안 한 키가 부모로 새어나간다. 실제 사례: [`docs/page/table-layout-management.md` "키보드 접근성"](./page/table-layout-management.md#키보드-접근성).
+
+세그먼트 버튼처럼 "여럿 중 하나만 선택"하는 그룹은 WAI-ARIA Radio Group 패턴(`role="radiogroup"`/`role="radio"` + roving tabindex: 선택된 것만 `tabIndex=0`, 방향키로 전환)을 쓴다. 예시: `LayoutSizeToggle.tsx`.
