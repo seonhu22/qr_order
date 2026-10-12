@@ -1,6 +1,6 @@
 import './TableLayoutPage.css';
 import { useState } from 'react';
-import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
@@ -51,7 +51,12 @@ export function TableLayoutPage() {
 
   const customFacilityModal = useCustomFacilityModal({ onConfirm: handlePlaceCustomFacility });
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  // KeyboardSensor: Tab으로 포커스 → Space/Enter로 잡기 → 방향키 25px씩 이동(캔버스 자동 스크롤 포함) →
+  // Space/Enter/Tab으로 놓기, Esc로 취소. dnd-kit 기본 제공 접근성 패턴을 그대로 쓴다.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor),
+  );
 
   return (
     <section className="table-layout-page" aria-label="테이블 배치 관리">
