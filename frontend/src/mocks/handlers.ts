@@ -46,6 +46,7 @@ import { getFileControllerMock } from '../generated/file-controller/file-control
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
 import { getMainControllerMock } from '../generated/main-controller/main-controller.msw';
 import { getPopupControllerMock } from '../generated/popup-controller/popup-controller.msw';
+import { getSubscribeClientMockHandler } from '../generated/sse-controller/sse-controller.msw';
 import { ADMIN_USER_MOCK_ROWS } from '../apps/admin/features/admin-user/mock/adminUserMock';
 import { MESSAGE_MOCK_ROWS } from '../apps/admin/features/message/mock/messageMock';
 import { PAYMENT_MOCK_ROWS } from '../apps/admin/features/payment-manage/mock/paymentManageMock';
@@ -285,6 +286,18 @@ const storeTableSaveOverrideHandler = http.post(
 const qrCodeOverrideHandler = http.get('*/api/client/store_manage/qr_code/search', () => {
   return HttpResponse.json(QR_CODE_MOCK_ROWS);
 });
+
+// staff-call-notifications는 아직 백엔드 계약(OpenAPI)이 없어 httpClient를 직접 호출한다 — qr-code와 같은 이유로
+// generated mock이 없다. 핸들러가 없으면 Vite 프록시를 타고 실제 백엔드로 요청이 넘어가 401(세션 만료)을 받는다.
+const staffCallNotificationsUnreadOverrideHandler = http.get(
+  '*/api/client/staff-call/notifications/unread',
+  () => HttpResponse.json([]),
+);
+
+const staffCallNotificationsReadAllOverrideHandler = http.post(
+  '*/api/client/staff-call/notifications/read-all',
+  () => HttpResponse.json({ success: true }),
+);
 
 const qrConnectOverrideHandler = http.get('*/api/qr/:url', ({ params }) => {
   const url = String(params.url ?? '');
@@ -1389,6 +1402,9 @@ export const handlers = [
   ...getLogControllerMock(),
   ...getMainControllerMock(),
   ...getPopupControllerMock(),
+  getSubscribeClientMockHandler(),
+  staffCallNotificationsUnreadOverrideHandler,
+  staffCallNotificationsReadAllOverrideHandler,
   getResetPwdMockHandler(),
   getDelClientUserMockHandler(),
   getNewClientUserMockHandler(),
