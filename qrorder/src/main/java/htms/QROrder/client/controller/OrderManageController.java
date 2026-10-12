@@ -4,6 +4,7 @@ package htms.QROrder.client.controller;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.*;
 import htms.QROrder.client.service.OrderHistoryService;
+import htms.QROrder.client.service.OrderRevisionCatalogService;
 import htms.QROrder.client.service.StatusService;
 import htms.QROrder.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +25,18 @@ public class OrderManageController {
 
     private final StatusService statusService;
     private final OrderHistoryService orderHistoryService;
+    private final OrderRevisionCatalogService orderRevisionCatalogService;
+
+    @GetMapping("/order-revision/catalog")
+    public ResponseEntity<CommonResponse> getOrderRevisionCatalog(HttpSession session) {
+        Login loginUser = (Login) session.getAttribute("loginUser");
+
+        return ResponseEntity.ok(CommonResponse.builder()
+                .success(true)
+                .message("주문 수정 카탈로그 조회 완료.")
+                .data(orderRevisionCatalogService.getCatalog(loginUser.getSysPlantCd()))
+                .build());
+    }
 
     // 주문 이력 조회
     @GetMapping("/history/search")

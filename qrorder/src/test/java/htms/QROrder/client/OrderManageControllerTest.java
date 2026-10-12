@@ -4,6 +4,7 @@ import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.controller.OrderManageController;
 import htms.QROrder.client.dto.StatusRequest;
 import htms.QROrder.client.service.OrderHistoryService;
+import htms.QROrder.client.service.OrderRevisionCatalogService;
 import htms.QROrder.client.service.StatusService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
@@ -20,12 +21,14 @@ class OrderManageControllerTest {
     void forwardsLoginPlantToEveryOrderMutationAndScopedLookup() {
         StatusService statusService = mock(StatusService.class);
         OrderHistoryService orderHistoryService = mock(OrderHistoryService.class);
+        OrderRevisionCatalogService orderRevisionCatalogService = mock(OrderRevisionCatalogService.class);
         HttpSession session = mock(HttpSession.class);
         Login login = new Login();
         login.setUserId("USER-1");
         login.setSysPlantCd("PLANT-1");
         when(session.getAttribute("loginUser")).thenReturn(login);
-        OrderManageController controller = new OrderManageController(statusService, orderHistoryService);
+        OrderManageController controller = new OrderManageController(
+                statusService, orderHistoryService, orderRevisionCatalogService);
         StatusRequest request = new StatusRequest();
 
         controller.cancelOrder(request, session);
@@ -35,6 +38,7 @@ class OrderManageControllerTest {
         controller.backToCooking(request, session);
         controller.changeOrder(List.of("DETAIL-1"), session);
         controller.getStatusCancelResponses("GROUP-1", session);
+        controller.getOrderRevisionCatalog(session);
 
         verify(statusService).cancelOrder(request, "USER-1", "PLANT-1");
         verify(statusService).goToCooking(request, "USER-1", "PLANT-1");
@@ -43,5 +47,6 @@ class OrderManageControllerTest {
         verify(statusService).backToCooking(request, "USER-1", "PLANT-1");
         verify(statusService).changeOrder(List.of("DETAIL-1"), "USER-1", "PLANT-1");
         verify(statusService).getStatusCancelResponses("GROUP-1", "PLANT-1");
+        verify(orderRevisionCatalogService).getCatalog("PLANT-1");
     }
 }

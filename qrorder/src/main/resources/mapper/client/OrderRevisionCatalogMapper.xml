@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.client.repository.OrderRevisionCatalogMapper">
+
+    <sql id="availableMenuPredicate">
+        smd.sys_plant_cd = #{sysPlantCd}
+        and smd.use_yn = 'Y'
+        and smd.delete_yn = 'N'
+        and smd.sold_out_yn = 'N'
+        and smm.use_yn = 'Y'
+        and smm.delete_yn = 'N'
+        and (
+          smd.option_use_yn &lt;&gt; 'Y'
+          or not exists (
+            select 1
+            from store_menu_option_group required_group
+            where required_group.link_sys_id = smd.sys_id
+              and required_group.sys_plant_cd = smd.sys_plant_cd
+              and required_group.use_yn = 'Y'
+              and required_group.delete_yn = 'N'
+              and required_group.required_yn = 'Y'
+              and not exists (
+                  select 1
+                  from store_menu_option_detail available_option
+                  where available_option.link_sys_id = required_group.sys_id
+                    and available_option.sys_plant_cd = required_group.sys_plant_cd
+                    and available_option.use_yn = 'Y'
+                    and available_option.delete_yn = 'N'
+                    and available_option.sold_out_yn = 'N'
+              )
+          )
+        )
+    </sql>
+
+    <select id="findAvailableMenus"
+            resultType="htms.QROrder.client.dto.OrderRevisionCatalogMenuRow">
+        select
+            smm.sys_id as category_sys_id,
+            smm.category_name,
+            smd.sys_id as menu_sys_id,
+            smd.menu_name,
+            smd.menu_price,
+            smd.menu_description,
+            smd.option_use_yn,
+            smd.sold_out_yn
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+        where <include refid="availableMenuPredicate"/>
+        order by smm.ord_no asc, smd.ord_no asc, smd.sys_id asc
+    </select>
+
+    <select id="findAvailableOptions"
+            resultType="htms.QROrder.client.dto.OrderRevisionCatalogOptionRow">
+        select
+            smd.sys_id as menu_sys_id,
+            smog.sys_id as option_group_sys_id,
+            smog.group_name,
+            smog.required_yn,
+            smog.input_type as selection_type,
+            smod.sys_id as menu_option_sys_id,
+            smod.menu_option_name,
+            smod.menu_option_price,
+            smod.menu_description as menu_option_description,
+            smod.maximum_num,
+            smod.default_yn,
+            smod.sold_out_yn
+        from store_menu_detail smd
+        inner join store_menu_master smm
+            on smm.sys_id = smd.link_sys_id
+            and smm.sys_plant_cd = smd.sys_plant_cd
+        inner join store_menu_option_group smog
+            on smog.link_sys_id = smd.sys_id
+            and smog.sys_plant_cd = smd.sys_plant_cd
+            and smog.use_yn = 'Y'
+            and smog.delete_yn = 'N'
+        inner join store_menu_option_detail smod
+            on smod.link_sys_id = smog.sys_id
+            and smod.sys_plant_cd = smog.sys_plant_cd
+            and smod.use_yn = 'Y'
+            and smod.delete_yn = 'N'
+            and smod.sold_out_yn = 'N'
+        where <include refid="availableMenuPredicate"/>
+          and smd.option_use_yn = 'Y'
+        order by smm.ord_no asc, smd.ord_no asc, smog.ord_no asc, smod.ord_no asc, smod.sys_id asc
+    </select>
+</mapper>

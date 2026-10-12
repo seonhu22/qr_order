@@ -6,6 +6,7 @@ import htms.QROrder.audit.service.ErrorService;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.controller.OrderManageController;
 import htms.QROrder.client.service.OrderHistoryService;
+import htms.QROrder.client.service.OrderRevisionCatalogService;
 import htms.QROrder.client.service.StatusService;
 import htms.QROrder.consumer.order.controller.ConsumerOrderController;
 import htms.QROrder.consumer.order.exception.ConsumerOrderIdempotencyException;
@@ -56,7 +57,9 @@ class ApiExceptionHandlerPrecedenceTest {
     void preservesPaymentConflictWithAuditAdvicePresent() throws Exception {
         StatusService statusService = mock(StatusService.class);
         OrderManageController controller = new OrderManageController(
-                statusService, mock(OrderHistoryService.class));
+                statusService,
+                mock(OrderHistoryService.class),
+                mock(OrderRevisionCatalogService.class));
         org.mockito.Mockito.doThrow(new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "모든 주문의 서빙이 완료된 후 결제할 수 있습니다."))
