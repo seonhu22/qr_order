@@ -32,6 +32,13 @@
   box-shadow: none;
 }
 
+/* 위 규칙과 Button.css의 .btn--segment:focus-visible이 우선순위가 같아서, 로딩 순서상 여기(선택 상태)가
+   이겨 포커스 링을 지워버렸다 — 화살표로 이동하면 항상 선택된 버튼에 포커스가 가므로(roving tabindex)
+   매번 포커스가 안 보였다. 선택 상태에서도 포커스 링은 살아있도록 더 구체적인 선택자로 되살린다. */
+.layout-size-toggle__group .btn--segment.btn--selected:focus-visible {
+  box-shadow: var(--focus-ring-brand);
+}
+
 .layout-size-toggle__indicator {
   position: absolute;
   top: var(--spacing-1);
