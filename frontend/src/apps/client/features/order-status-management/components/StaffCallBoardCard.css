@@ -34,6 +34,14 @@
    같은 렌더링 경로를 타고, 실제 렌더 높이도 정확히 같아진다(block 컨테이너 안에 두면 2px 차이가 났다). */
 .staff-call-board-card__footer {
   display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.staff-call-board-card__error {
+  margin: 0;
+  color: var(--color-status-error-text);
+  font-size: var(--typography-size-caption);
 }
 
 .staff-call-board-card__footer .btn {

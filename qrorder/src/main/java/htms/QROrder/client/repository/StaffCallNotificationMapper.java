@@ -10,4 +10,6 @@ import java.util.List;
 public interface StaffCallNotificationMapper {
     List<StaffCallNotificationGroup> findUnread(@Param("sysPlantCd") String sysPlantCd);
     int markAllRead(@Param("sysPlantCd") String sysPlantCd);
+    int markRead(@Param("masterSysId") String masterSysId,
+                 @Param("sysPlantCd") String sysPlantCd);
 }

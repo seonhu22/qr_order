@@ -61,6 +61,7 @@ Client 사이드바에 새 메뉴를 추가하려면 `shared/menu/clientNavigati
 4. EventStream의 `STAFF_CALLED` Data에서 `tableName`, `items[].callName`, `quantity`를 확인한다.
 5. Client 헤더 배지가 1 증가하고 테이블명/호출 항목 토스트가 보이는지 확인한다.
 6. 벨 버튼을 누른 뒤 `aria-label`이 `미확인 직원호출 0건`으로 바뀌고 배지가 사라지는지 확인한다.
-7. DB의 `consumer_staff_call`에 선택 항목별 행과 `read_yn = 'N'`이 저장됐는지 확인한다.
+7. DB의 `consumer_staff_call_master`에 호출 묶음과 `read_yn = 'N'`, `consumer_staff_call`에 선택 항목별 행이 저장됐는지 확인한다.
+8. 주문현황 카드의 "완료"를 누른 뒤 해당 마스터의 `read_yn = 'Y'`와 새로고침 후 카드 미노출을 확인한다. 상세 계약은 [주문 상태 관리/직원호출 컬럼](./order-status-management.md#직원호출-컬럼)을 따른다.
 
 EventStream과 `aria-label`은 정상인데 배지만 보이지 않으면 SSE 문제가 아니라 헤더 배지 CSS를 확인한다.

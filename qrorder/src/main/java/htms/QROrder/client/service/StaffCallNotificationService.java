@@ -22,4 +22,9 @@ public class StaffCallNotificationService {
     public void markAllRead(String sysPlantCd) {
         mapper.markAllRead(sysPlantCd);
     }
+
+    @Transactional
+    public void markRead(String masterSysId, String sysPlantCd) {
+        mapper.markRead(masterSysId, sysPlantCd);
+    }
 }
