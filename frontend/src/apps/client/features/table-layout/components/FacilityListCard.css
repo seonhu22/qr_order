@@ -28,6 +28,13 @@
   user-select: none;
 }
 
+/* li[role="button"]는 전역 reset.css의 button/input focus-visible 대상에 안 들어가 있어 직접 추가한다.
+   색상은 버튼(Button.css)과 동일하게 outline 대신 box-shadow 링을 쓴다. */
+.facility-list-card__item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
 /* 전체보기(보기 전용) 중에는 캔버스에 배치할 수 없으므로 클릭 자체를 막고 흐리게 표시한다. */
 .facility-list-card__item--disabled {
   opacity: 0.4;

@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import './FacilityListCard.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { TableCard } from '@/shared/components/table';
@@ -20,8 +21,23 @@ function FacilityCatalogItem({ kind, label, icon, disabled, onPlaceFacility }: F
     .filter(Boolean)
     .join(' ');
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLLIElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onPlaceFacility(kind);
+    }
+  };
+
   return (
-    <li className={className} onClick={() => onPlaceFacility(kind)}>
+    <li
+      className={className}
+      tabIndex={disabled ? -1 : 0}
+      role="button"
+      aria-label={label}
+      aria-disabled={disabled}
+      onClick={() => onPlaceFacility(kind)}
+      onKeyDown={handleKeyDown}
+    >
       <span className="facility-list-card__icon">
         <Icon id={icon} size={18} />
       </span>
