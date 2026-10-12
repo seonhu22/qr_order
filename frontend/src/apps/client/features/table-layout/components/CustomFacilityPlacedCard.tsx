@@ -38,6 +38,7 @@ export function CustomFacilityPlacedCard({ label, size, viewOnly, onRemove }: Cu
           className="custom-facility-placed-card__remove"
           aria-label={`${label} 삭제`}
           onClick={onRemove}
+          onKeyDown={(event) => event.stopPropagation()}
         >
           ×
         </button>

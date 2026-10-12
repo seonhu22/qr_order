@@ -26,6 +26,7 @@ export function FacilityPlacedCard({ label, icon, size, onRemove }: FacilityPlac
           className="facility-placed-card__remove"
           aria-label={`${label} 삭제`}
           onClick={onRemove}
+          onKeyDown={(event) => event.stopPropagation()}
         >
           ×
         </button>
