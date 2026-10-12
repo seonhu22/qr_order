@@ -9,9 +9,12 @@
  */
 
 import { useState } from 'react';
-import { ORDER_UNPAID_REASON_OTHER_VALUE } from '../constants';
+import { ORDER_PAYMENT_TYPE_OPTIONS, ORDER_UNPAID_REASON_OTHER_VALUE } from '../constants';
 import type { OrderBoardRow } from '../types';
 import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
+
+/** 결제수단은 필수값이라 가장 많이 쓰는 "카드"를 기본 선택값으로 둔다. */
+const DEFAULT_PAYMENT_TYPE = ORDER_PAYMENT_TYPE_OPTIONS[0].value;
 
 type UnpaidEditorErrors = {
   reason: boolean;
@@ -31,7 +34,7 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   const [tableOrders, setTableOrders] = useState<OrderBoardRow[]>([]);
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
-  const [paymentType, setPaymentType] = useState('');
+  const [paymentType, setPaymentType] = useState(DEFAULT_PAYMENT_TYPE);
   const [paymentTypeError, setPaymentTypeError] = useState(false);
   const [errors, setErrors] = useState<UnpaidEditorErrors>(INITIAL_ERRORS);
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);
@@ -47,7 +50,7 @@ export function useOrderPaymentModalFlow({ onConfirmPaid, onConfirmUnpaid }: Use
   const resetForm = () => {
     setReason('');
     setDescription('');
-    setPaymentType('');
+    setPaymentType(DEFAULT_PAYMENT_TYPE);
     setPaymentTypeError(false);
     setErrors(INITIAL_ERRORS);
   };

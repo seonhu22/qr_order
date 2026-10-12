@@ -332,10 +332,14 @@ export function OrderStatusManagementPage() {
                 <p className="receipt-header__date">{formatOrderBoardDateTime(nowOrderBoardDatetime())}</p>
               </div>
 
+              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
+
               <RadioGroup
+                className="receipt-payment-type"
                 name="order-payment-type"
                 label="결제수단"
                 direction="row"
+                size="sm"
                 options={ORDER_PAYMENT_TYPE_OPTIONS}
                 value={paymentModal.paymentType}
                 errorText={paymentModal.paymentTypeError ? '결제수단을 선택해주세요.' : undefined}
@@ -400,8 +404,6 @@ export function OrderStatusManagementPage() {
                   </div>
                 ))}
               </div>
-
-              <p className="receipt-stars" aria-hidden="true">{RECEIPT_STARS}</p>
 
               <div className="order-payment-receipt__summary">
                 <div className="order-payment-receipt__summary-row">
