@@ -36,6 +36,7 @@ npm install
 ## CI 검사 항목
 
 - GitHub Actions는 Pull Request와 `main` 또는 `master` 브랜치 push 시 아래 검사를 실행합니다.
+- 공유 Codex 하네스 검사: 저장소 지침/아키텍처/결정/검증 계약/내부 링크와 프로젝트 설정 경계를 확인합니다.
 - `Gitleaks` 시크릿 스캔
 - `frontend` 빌드: Node.js 24 기준 `npm ci && npm run build`
   - `ubuntu-latest`, `macos-latest`, `windows-latest`에서 모두 실행합니다.
