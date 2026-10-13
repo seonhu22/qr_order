@@ -74,7 +74,8 @@ uploads/
 .claude/
 CLAUDE.md
 /docs/agent-reports/
-AGENTS.md
+
+# AGENTS.md files are shared repository instructions and must stay tracked.
 
 ### 프로젝트 문서 ###
 # docs/plans/와 docs/solutions/는 팀 공유 문서이므로 Git에서 추적한다.
