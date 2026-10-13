@@ -19,7 +19,6 @@ import {
   ORDER_PAYMENT_TYPE_OPTIONS,
   ORDER_UNPAID_REASON_OPTIONS,
 } from '@/apps/client/features/order-status-management/constants';
-import { MENU_CATALOG_MOCK } from '@/apps/client/features/order-status-management/mock/menuCatalogMock';
 import { SimpleDefaultModal, WrapperModal } from '@/shared/components/modal';
 import { Button } from '@/shared/components/button';
 import { SelectInput, TextareaInput } from '@/shared/components/input';
@@ -37,15 +36,14 @@ import {
   nowOrderBoardDatetime,
 } from '@/apps/client/features/order-status-management/utils';
 
-const GROUPED_MENU_CATALOG = groupMenuCatalogByCategory(MENU_CATALOG_MOCK);
 /** 영수증 섹션 구분선 — CSS 테두리 대신 참고 디자인처럼 실제 "*" 문자를 늘어놓는다. */
 const RECEIPT_STARS = '* '.repeat(24).trim();
 
 export function OrderStatusManagementPage() {
-  const { data, status, actions, cancelModal, paymentModal, editModal, cancelReasonView, cancelHistory } =
+  const { data, status, actions, cancelModal, paymentModal, editModal, orderRevisionCatalog, cancelReasonView, cancelHistory } =
     useOrderStatusBoardPage();
-  const groupedMenuCatalog = GROUPED_MENU_CATALOG;
-  const pendingOptionPickerMenu = MENU_CATALOG_MOCK.find(
+  const groupedMenuCatalog = groupMenuCatalogByCategory(orderRevisionCatalog.items);
+  const pendingOptionPickerMenu = orderRevisionCatalog.items.find(
     (menu) => menu.id === editModal.optionPicker.catalogMenuId,
   );
 
@@ -497,7 +495,7 @@ export function OrderStatusManagementPage() {
         size="md"
         open={editModal.isEditorOpen}
         title="주문 수정"
-        primaryAction={{ label: '확인', onClick: editModal.requestConfirm }}
+        primaryAction={{ label: '확인', onClick: editModal.requestConfirm, disabled: editModal.isPending || !editModal.isEditorDirty }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeEditor }}
         onClose={editModal.closeEditor}
       >
@@ -509,6 +507,7 @@ export function OrderStatusManagementPage() {
               size="sm"
               leftIcon={<Icon id="i-plus" size={13} />}
               onClick={editModal.openMenuPicker}
+              disabled={editModal.isPending}
             >
               메뉴 추가
             </Button>
@@ -566,6 +565,7 @@ export function OrderStatusManagementPage() {
                             aria-label="취소"
                             iconOnly={<Icon id="i-close" size={13} />}
                             onClick={() => editModal.cancelMenuLine(order.id, menu.id)}
+                            disabled={editModal.isPending}
                           />
                         </div>
                         {menu.options.length > 0 && (
@@ -635,14 +635,14 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={editModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: '확인', disabled: true }}
+        primaryAction={{ label: editModal.isPending ? '저장 중' : '확인', onClick: editModal.confirmSave, disabled: editModal.isPending }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeConfirm }}
         onClose={editModal.closeConfirm}
       >
         <div className="order-cancel-modal__notice">
           <p className="order-cancel-modal__notice-title">주문수정 하시겠습니까?</p>
           <p className="order-cancel-modal__notice-desc">수정하시면 이전 단계로 되돌릴 수 없습니다.</p>
-          <p className="order-cancel-modal__notice-desc">주문 수정 API 연동 후 저장할 수 있습니다.</p>
+          {editModal.saveError && <p className="order-cancel-modal__notice-desc">{editModal.saveError}</p>}
         </div>
       </WrapperModal>
 
@@ -665,7 +665,15 @@ export function OrderStatusManagementPage() {
       >
         <div className="order-menu-picker">
           <div className="order-menu-picker__catalog">
-            {groupedMenuCatalog.map((group) => (
+            {orderRevisionCatalog.isLoading ? (
+              <FeedbackState variant="loading" title="메뉴를 불러오는 중입니다." />
+            ) : orderRevisionCatalog.isError ? (
+              <FeedbackState variant="error" title="메뉴를 불러오지 못했습니다.">
+                <Button variant="outline" size="sm" onClick={orderRevisionCatalog.retry}>다시 시도</Button>
+              </FeedbackState>
+            ) : groupedMenuCatalog.length === 0 ? (
+              <FeedbackState variant="empty" title="추가할 수 있는 메뉴가 없습니다." />
+            ) : groupedMenuCatalog.map((group) => (
               <div key={group.category} className="order-menu-picker__category">
                 <div className="order-menu-picker__category-header">
                   <p className="order-menu-picker__category-title">{group.category}</p>
@@ -687,8 +695,9 @@ export function OrderStatusManagementPage() {
                       variant="tinted"
                       size="sm"
                       onClick={() => editModal.clickAddCatalogMenu(item.id)}
+                      disabled={item.soldOut}
                     >
-                      추가
+                      {item.soldOut ? '품절' : '추가'}
                     </Button>
                   </div>
                 ))}
@@ -764,7 +773,7 @@ export function OrderStatusManagementPage() {
         size="md"
         open={editModal.isOptionPickerOpen}
         title="옵션 추가"
-        primaryAction={{ label: '확인', onClick: editModal.confirmOptionPicker }}
+        primaryAction={{ label: '확인', onClick: editModal.confirmOptionPicker, disabled: !editModal.canConfirmOptions }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeOptionPicker }}
         onClose={editModal.closeOptionPicker}
       >
@@ -795,6 +804,7 @@ export function OrderStatusManagementPage() {
                               ? 'order-option-picker__radio order-option-picker__radio--selected'
                               : 'order-option-picker__radio'
                           }
+                          disabled={option.soldOut}
                           onClick={() =>
                             editModal.selectOptionPickerSingle(group.options.map((o) => o.id), option.id)
                           }
@@ -815,11 +825,22 @@ export function OrderStatusManagementPage() {
                           {formatOrderBoardPrice(option.unitPrice)}
                         </p>
                       </div>
-                      {optionQuantity === 0 ? (
+                      {option.soldOut ? (
+                        <Button variant="tinted" size="sm" disabled>품절</Button>
+                      ) : group.selectionType === 'checkbox' ? (
                         <Button
                           variant="tinted"
                           size="sm"
-                          onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, 1)}
+                          aria-pressed={optionQuantity === 1}
+                          onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity === 1 ? 0 : 1, 1)}
+                        >
+                          {optionQuantity === 1 ? '선택됨' : '추가'}
+                        </Button>
+                      ) : optionQuantity === 0 ? (
+                        <Button
+                          variant="tinted"
+                          size="sm"
+                          onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, 1, option.maximumNum)}
                         >
                           추가
                         </Button>
@@ -830,7 +851,7 @@ export function OrderStatusManagementPage() {
                             size="sm"
                             className="order-option-picker__stepper-btn"
                             aria-label="수량 감소"
-                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity - 1)}
+                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity - 1, option.maximumNum)}
                           >
                             <Icon id="i-minus" size={11} />
                           </Button>
@@ -840,7 +861,8 @@ export function OrderStatusManagementPage() {
                             size="sm"
                             className="order-option-picker__stepper-btn"
                             aria-label="수량 증가"
-                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity + 1)}
+                            onClick={() => editModal.changeOptionPickerOptionQuantity(option.id, optionQuantity + 1, option.maximumNum)}
+                            disabled={optionQuantity >= option.maximumNum}
                           >
                             <Icon id="i-plus" size={11} />
                           </Button>

@@ -55,8 +55,11 @@ function mapMenuItems(body: OrderStatusCompatibleBody[] = []): OrderBoardMenuIte
     const menuOptions = options.filter((option) => option.parentDetailSysId === menu.detailSysId);
     const quantity = menu.qty ?? 0;
 
+    const menuId = menu.detailSysId ?? `menu-${index}`;
     return {
-      id: menu.detailSysId ?? `menu-${index}`,
+      id: menuId,
+      draftId: menuId,
+      sourceSysId: menu.detailSysId,
       name: menu.itemName ?? '',
       quantity,
       // price는 해당 MENU 행의 수량이 반영된 금액이므로 편집 화면에서 쓸 단가로 역산한다.
@@ -64,6 +67,8 @@ function mapMenuItems(body: OrderStatusCompatibleBody[] = []): OrderBoardMenuIte
       options: menuOptions
       .map((option, optionIndex) => ({
         id: option.detailSysId ?? `${menu.detailSysId ?? index}-option-${optionIndex}`,
+        draftId: option.detailSysId ?? `${menu.detailSysId ?? index}-option-${optionIndex}`,
+        sourceSysId: option.detailSysId,
         name: option.itemName ?? '',
         quantity: option.qty ?? 0,
         unitPrice: (option.qty ?? 0) > 0 ? (option.price ?? 0) / (option.qty ?? 1) : 0,
@@ -86,6 +91,8 @@ export function mapStatusResponsesToOrderBoardRows(
       const orderNum = header.orderNum ?? item.orderNum;
       return [{
         id: header.sysId,
+        draftId: header.sysId,
+        sourceSysId: header.sysId,
         orderNo: orderNum === undefined ? '' : String(orderNum).padStart(4, '0'),
         tableNum: String(header.tableNum ?? header.tableInfo ?? ''),
         orderStatus,

@@ -22,10 +22,9 @@
  *   진행할 때는 항상 `forceClose*`를 직접 불러 경고 없이 닫는다.
  */
 
-import { useState } from 'react';
-import { MENU_CATALOG_MOCK } from '../mock/menuCatalogMock';
+import { useRef, useState } from 'react';
 import { nowOrderBoardDatetime } from '../utils';
-import type { OrderBoardMenuItem, OrderBoardRow } from '../types';
+import type { MenuCatalogItem, OrderBoardMenuItem, OrderBoardRow } from '../types';
 import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
 
 type OptionPickerState = {
@@ -39,7 +38,12 @@ type OptionPickerState = {
 };
 
 type UseOrderEditModalFlowParams = {
-  onConfirmEdit: (originalOrderIds: string[], finalizedOrders: OrderBoardRow[]) => void;
+  catalog: MenuCatalogItem[];
+  onConfirmEdit: (
+    clientRequestId: string,
+    originalOrders: OrderBoardRow[],
+    finalizedOrders: OrderBoardRow[],
+  ) => Promise<void>;
 };
 
 const EMPTY_OPTION_PICKER: OptionPickerState = {
@@ -58,9 +62,14 @@ function createDraftOrderNo(): string {
   return Math.floor(1000 + Math.random() * 9000).toString().padStart(4, '0');
 }
 
-export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowParams) {
+export function useOrderEditModalFlow({ catalog, onConfirmEdit }: UseOrderEditModalFlowParams) {
+  const savingRef = useRef(false);
   const [tableNum, setTableNum] = useState('');
   const [originalOrderIds, setOriginalOrderIds] = useState<string[]>([]);
+  const [originalOrders, setOriginalOrders] = useState<OrderBoardRow[]>([]);
+  const [clientRequestId, setClientRequestId] = useState('');
+  const [isPending, setIsPending] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [draftOrders, setDraftOrders] = useState<OrderBoardRow[]>([]);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isMenuPickerOpen, setIsMenuPickerOpen] = useState(false);
@@ -82,10 +91,21 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   /** 미리보기에 무엇이라도 모여 있으면 닫을 때 잃을 변경이 있는 상태다. */
   const isMenuPickerDirty = isMenuPickerOpen && addedItems.length > 0;
   const isOptionPickerDirty = isOptionPickerOpen && JSON.stringify(optionPicker) !== initialOptionPickerSnapshot;
+  const optionPickerMenu = catalog.find((item) => item.id === optionPicker.catalogMenuId);
+  const canConfirmOptions = Boolean(optionPickerMenu) && optionPickerMenu!.optionCategories.every((group) => {
+    if (!group.required) return true;
+    if (group.selectionType === 'single') {
+      return group.options.some((option) => optionPicker.selectedOptionIds.includes(option.id));
+    }
+    return group.options.some((option) => (optionPicker.optionQuantities[option.id] ?? 0) > 0);
+  });
 
   const resetAll = () => {
     setTableNum('');
     setOriginalOrderIds([]);
+    setOriginalOrders([]);
+    setClientRequestId('');
+    setSaveError('');
     setDraftOrders([]);
     setAddedItems([]);
     setOptionPicker(EMPTY_OPTION_PICKER);
@@ -97,6 +117,9 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     const clonedOrders = initialOrders.map(cloneOrderBoardRow);
     setTableNum(initialOrders[0]?.tableNum ?? '');
     setOriginalOrderIds(initialOrders.map((order) => order.id));
+    setOriginalOrders(clonedOrders);
+    setClientRequestId(crypto.randomUUID());
+    setSaveError('');
     setDraftOrders(clonedOrders);
     setInitialDraftOrdersSnapshot(JSON.stringify(clonedOrders));
     setIsEditorOpen(true);
@@ -104,6 +127,7 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
 
   /** 경고 없이 바로 닫는다 — "확인"으로 정상 진행할 때만 직접 호출한다. */
   const forceCloseEditor = () => {
+    if (isPending) return;
     setIsEditorOpen(false);
     setIsMenuPickerOpen(false);
     setIsOptionPickerOpen(false);
@@ -116,6 +140,7 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
 
   /** 닫기 버튼/ESC/배경 클릭 — dirty면 경고 모달을 먼저 띄운다. */
   const closeEditor = () => {
+    if (isPending) return;
     if (isEditorDirty) {
       setIsEditorDirtyWarningOpen(true);
       return;
@@ -126,6 +151,9 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   const closeEditorDirtyWarning = () => setIsEditorDirtyWarningOpen(false);
 
   const cancelMenuLine = (orderId: string, menuId: string) => {
+    if (isPending) return;
+    setClientRequestId(crypto.randomUUID());
+    setSaveError('');
     setDraftOrders((prev) =>
       prev.map((order) =>
         order.id === orderId
@@ -140,6 +168,7 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   };
 
   const openMenuPicker = () => {
+    if (isPending) return;
     setAddedItems([]);
     setOptionPicker(EMPTY_OPTION_PICKER);
     setIsMenuPickerOpen(true);
@@ -168,8 +197,8 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
 
   /** 옵션이 없는 메뉴는 즉시 추가한다. 이미 추가된(옵션 없는) 같은 메뉴면 수량만 +1 한다. */
   const addSimpleCatalogMenu = (catalogMenuId: string) => {
-    const catalogMenu = MENU_CATALOG_MOCK.find((menu) => menu.id === catalogMenuId);
-    if (!catalogMenu) return;
+    const catalogMenu = catalog.find((menu) => menu.id === catalogMenuId);
+    if (!catalogMenu || catalogMenu.soldOut) return;
 
     setAddedItems((prev) => {
       const existingIndex = prev.findIndex(
@@ -180,10 +209,13 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
           index === existingIndex ? { ...item, quantity: item.quantity + 1 } : item,
         );
       }
+      const draftId = crypto.randomUUID();
       return [
         ...prev,
         {
-          id: `${catalogMenu.id}-${Date.now()}`,
+          id: draftId,
+          draftId,
+          sourceSysId: catalogMenu.sourceSysId,
           name: catalogMenu.name,
           quantity: 1,
           unitPrice: catalogMenu.unitPrice,
@@ -195,8 +227,8 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
 
   /** 옵션이 있는 메뉴는 옵션 추가 모달을 한 단계 더 연다. single 카테고리는 필수 선택이라 첫 옵션을 기본 선택해둔다. */
   const clickAddCatalogMenu = (catalogMenuId: string) => {
-    const catalogMenu = MENU_CATALOG_MOCK.find((menu) => menu.id === catalogMenuId);
-    if (!catalogMenu) return;
+    const catalogMenu = catalog.find((menu) => menu.id === catalogMenuId);
+    if (!catalogMenu || catalogMenu.soldOut) return;
 
     if (catalogMenu.optionCategories.length === 0) {
       addSimpleCatalogMenu(catalogMenuId);
@@ -205,14 +237,23 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
 
     const defaultSelectedOptionIds = catalogMenu.optionCategories
       .filter((group) => group.selectionType === 'single')
-      .map((group) => group.options[0]?.id)
+      .map((group) => {
+        const available = group.options.filter((option) => !option.soldOut);
+        return available.find((option) => option.defaultSelected)?.id ?? (group.required ? available[0]?.id : undefined);
+      })
       .filter((id): id is string => Boolean(id));
 
     const nextOptionPicker: OptionPickerState = {
       catalogMenuId,
       quantity: 1,
       selectedOptionIds: defaultSelectedOptionIds,
-      optionQuantities: {},
+      optionQuantities: Object.fromEntries(
+        catalogMenu.optionCategories.flatMap((group) =>
+          group.options
+            .filter((option) => option.defaultSelected && !option.soldOut && group.selectionType !== 'single')
+            .map((option) => [option.id, 1]),
+        ),
+      ),
     };
     setOptionPicker(nextOptionPicker);
     setInitialOptionPickerSnapshot(JSON.stringify(nextOptionPicker));
@@ -245,21 +286,25 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   const selectOptionPickerSingle = (categoryOptionIds: string[], optionId: string) => {
     setOptionPicker((prev) => ({
       ...prev,
-      selectedOptionIds: [...prev.selectedOptionIds.filter((id) => !categoryOptionIds.includes(id)), optionId],
+      selectedOptionIds: [
+        ...prev.selectedOptionIds.filter((id) => !categoryOptionIds.includes(id)),
+        ...(prev.selectedOptionIds.includes(optionId) ? [] : [optionId]),
+      ],
     }));
   };
 
   /** multi 카테고리는 옵션별로 수량을 따로 선택한다(0 미만으로는 내려가지 않음). */
-  const changeOptionPickerOptionQuantity = (optionId: string, quantity: number) => {
+  const changeOptionPickerOptionQuantity = (optionId: string, quantity: number, maximumNum = 1) => {
     setOptionPicker((prev) => ({
       ...prev,
-      optionQuantities: { ...prev.optionQuantities, [optionId]: Math.max(0, quantity) },
+      optionQuantities: { ...prev.optionQuantities, [optionId]: Math.min(maximumNum, Math.max(0, quantity)) },
     }));
   };
 
   /** 옵션을 고른 메뉴는 (같은 메뉴라도) 항상 새 줄로 추가한다 — 옵션 조합이 다를 수 있어 합치지 않는다. */
   const confirmOptionPicker = () => {
-    const catalogMenu = MENU_CATALOG_MOCK.find((menu) => menu.id === optionPicker.catalogMenuId);
+    if (!canConfirmOptions) return;
+    const catalogMenu = catalog.find((menu) => menu.id === optionPicker.catalogMenuId);
     if (!catalogMenu) return;
 
     const catalogOptions = catalogMenu.optionCategories.flatMap((group) => group.options);
@@ -268,17 +313,25 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
         optionPicker.selectedOptionIds.includes(option.id) || (optionPicker.optionQuantities[option.id] ?? 0) > 0,
     );
 
+    const menuDraftId = crypto.randomUUID();
     const menuItem: OrderBoardMenuItem = {
-      id: `${catalogMenu.id}-${Date.now()}`,
+      id: menuDraftId,
+      draftId: menuDraftId,
+      sourceSysId: catalogMenu.sourceSysId,
       name: catalogMenu.name,
       quantity: optionPicker.quantity,
       unitPrice: catalogMenu.unitPrice,
-      options: selectedOptions.map((option) => ({
-        id: `${option.id}-${Date.now()}`,
-        name: option.name,
-        quantity: optionPicker.optionQuantities[option.id] ?? 1,
-        unitPrice: option.unitPrice,
-      })),
+      options: selectedOptions.map((option) => {
+        const draftId = crypto.randomUUID();
+        return {
+          id: draftId,
+          draftId,
+          sourceSysId: option.sourceSysId,
+          name: option.name,
+          quantity: optionPicker.optionQuantities[option.id] ?? 1,
+          unitPrice: option.unitPrice,
+        };
+      }),
     };
 
     setAddedItems((prev) => [...prev, menuItem]);
@@ -292,8 +345,10 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
   /** "추가된 항목"을 합친 새 주문 1건을 draft에 추가하고 메뉴 추가 모달을 닫는다. */
   const confirmMenuPicker = () => {
     if (addedItems.length > 0) {
+      const draftId = createDraftOrderId();
       const newOrder: OrderBoardRow = {
-        id: createDraftOrderId(),
+        id: draftId,
+        draftId,
         orderNo: createDraftOrderNo(),
         tableNum,
         orderStatus: 'RECEIVED',
@@ -302,29 +357,44 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
         menuItems: addedItems,
       };
       setDraftOrders((prev) => [...prev, newOrder]);
+      setClientRequestId(crypto.randomUUID());
+      setSaveError('');
     }
     forceCloseMenuPicker();
   };
 
   const requestConfirm = () => {
+    if (isPending || !isEditorDirty) return;
     setIsConfirmOpen(true);
   };
 
   const closeConfirm = () => {
+    if (isPending) return;
     setIsConfirmOpen(false);
   };
 
-  const confirmSave = () => {
+  const confirmSave = async () => {
+    if (savingRef.current) return;
     const finalizedOrders = draftOrders.map((order) =>
       order.menuItems.length === 0
         ? { ...order, orderStatus: 'CANCELLED' as const, cancelledAt: nowOrderBoardDatetime() }
         : order,
     );
-    onConfirmEdit(originalOrderIds, finalizedOrders);
-    setIsConfirmOpen(false);
-    setIsEditorOpen(false);
-    resetAll();
-    setIsNoticeOpen(true);
+    savingRef.current = true;
+    setIsPending(true);
+    setSaveError('');
+    try {
+      await onConfirmEdit(clientRequestId, originalOrders, finalizedOrders);
+      setIsConfirmOpen(false);
+      setIsEditorOpen(false);
+      resetAll();
+      setIsNoticeOpen(true);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : '주문 수정 저장에 실패했습니다.');
+    } finally {
+      savingRef.current = false;
+      setIsPending(false);
+    }
   };
 
   const closeNotice = () => {
@@ -344,6 +414,10 @@ export function useOrderEditModalFlow({ onConfirmEdit }: UseOrderEditModalFlowPa
     isNoticeOpen,
     addedItems,
     optionPicker,
+    clientRequestId,
+    isPending,
+    saveError,
+    canConfirmOptions,
     /** 페이지 차원의 새로고침/탭 닫기 경고(`usePreventLeave`)에 합쳐 쓰는 3단계 dirty 상태. */
     isEditorDirty,
     isMenuPickerDirty,

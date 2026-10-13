@@ -90,13 +90,15 @@ export function getPayableOrdersForTable(rows: OrderBoardRow[], tableNum: string
 
 /**
  * 주문 수정 모달에서 같은 테이블의 수정 대상 주문들을 찾는다.
- * 결제완료(`PAID`)·취소(`CANCELLED`)된 주문은 더 이상 수정할 수 없어 제외하고,
- * 접수/조리중/서빙완료처럼 아직 진행 중인 주문은 상태와 무관하게 전부 포함한다.
+ * 확정된 계약에 따라 접수(`RECEIVED`)와 조리중(`COOKING`)만 수정할 수 있다.
+ * 서빙완료/취소/결제완료 주문은 같은 테이블에 있어도 수정 요청에 포함하지 않는다.
  */
 export function getEditableOrdersForTable(rows: OrderBoardRow[], tableNum: string): OrderBoardRow[] {
   return rows
-    .filter(
-      (row) => row.tableNum === tableNum && row.orderStatus !== 'CANCELLED' && row.paymentStatus !== 'PAID',
+    .filter((row) =>
+      row.tableNum === tableNum &&
+      row.paymentStatus !== 'PAID' &&
+      (row.orderStatus === 'RECEIVED' || row.orderStatus === 'COOKING'),
     )
     .sort((a, b) => a.orderDatetime.localeCompare(b.orderDatetime));
 }

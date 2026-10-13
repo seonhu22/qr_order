@@ -27,6 +27,7 @@ const paymentStatusMasterListsKey = ['client', 'paymentStatus', 'masters'] as co
 const settlementListsKey = ['client', 'settlement', 'list'] as const;
 const clientInquiryListsKey = ['client', 'inquiry', 'list'] as const;
 const orderStatusBoardListsKey = ['client', 'orderStatusBoard', 'list'] as const;
+const orderRevisionCatalogKey = ['client', 'orderRevision', 'catalog'] as const;
 const tableLayoutListsKey = ['client', 'tableLayout', 'list'] as const;
 const staffCallSettingListsKey = ['client', 'staffCallSetting', 'list'] as const;
 const unreadStaffCallsKey = ['client', 'staffCallNotifications', 'unread'] as const;
@@ -158,6 +159,9 @@ export const queryKeys = {
   },
   orderStatusBoard: {
     lists: orderStatusBoardListsKey,
+  },
+  orderRevision: {
+    catalog: orderRevisionCatalogKey,
   },
   tableLayout: {
     lists: tableLayoutListsKey,

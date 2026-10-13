@@ -123,4 +123,41 @@ describe('useOrderStatusBoardPage sync state', () => {
       expect(receivedRows.at(-1)?.id).toBe('order-010');
     });
   });
+
+  it('주문 수정 draft를 실제 저장 계약으로 보내고 성공 후 완료 안내를 연다', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post('*/api/client/order_manage/status/revise_order', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({
+          success: true,
+          message: '수정되었습니다.',
+          data: {
+            revisionId: 'revision-1',
+            removedDetailIds: [],
+            cancelledOrderGroupIds: [],
+            addedTotalAmount: 0,
+          },
+        });
+      }),
+    );
+    const { result } = renderHook(() => useOrderStatusBoardPage(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.data.columns.some((column) => column.rows.length > 0)).toBe(true));
+    const editable = result.current.data.columns
+      .flatMap((column) => column.rows)
+      .find((row) => row.orderStatus === 'RECEIVED')!;
+
+    act(() => result.current.actions.cardActions.onEdit(editable));
+    const firstOrder = result.current.editModal.draftOrders[0]!;
+    act(() => result.current.editModal.cancelMenuLine(firstOrder.id, firstOrder.menuItems[0]!.id));
+    act(() => result.current.editModal.requestConfirm());
+    await act(async () => result.current.editModal.confirmSave());
+
+    expect(requestBody).toMatchObject({
+      orderGroupIds: expect.arrayContaining([firstOrder.id]),
+      removeDetailIds: expect.arrayContaining([firstOrder.menuItems[0]!.id]),
+    });
+    expect((requestBody as { clientRequestId: string }).clientRequestId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(result.current.editModal.isNoticeOpen).toBe(true);
+  });
 });

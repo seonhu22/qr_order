@@ -41,6 +41,11 @@ import {
 } from '../utils';
 import type { OrderBoardRow } from '../types';
 import { cloneOrderBoardRow } from '../utils/orderBoardSnapshot';
+import {
+  buildOrderRevisionRequest,
+  useOrderRevisionCatalogQuery,
+  useOrderRevisionMutation,
+} from '../api/orderRevisionApi';
 
 const MOVED_HIGHLIGHT_DURATION_MS = 1200;
 const EMPTY_ROWS: OrderBoardRow[] = [];
@@ -151,10 +156,22 @@ export function useOrderStatusBoardPage() {
   const handleOpenPaymentModal = (row: OrderBoardRow) =>
     paymentModal.openPaymentModal(row, getPayableOrdersForTable(rows, row.tableNum));
 
-  // TODO(order-edit-api): 주문 수정 API 계약 연결 전에는 query data를 로컬에서 성공 처리하지 않는다.
-  const executeEditCommit = (_originalOrderIds: string[], _finalizedOrders: OrderBoardRow[]) => undefined;
+  const orderRevisionCatalog = useOrderRevisionCatalogQuery();
+  const orderRevisionMutation = useOrderRevisionMutation();
+  const executeEditCommit = async (
+    clientRequestId: string,
+    originalOrders: OrderBoardRow[],
+    finalizedOrders: OrderBoardRow[],
+  ) => {
+    await orderRevisionMutation.save(
+      buildOrderRevisionRequest(clientRequestId, originalOrders, finalizedOrders),
+    );
+  };
 
-  const editModal = useOrderEditModalFlow({ onConfirmEdit: executeEditCommit });
+  const editModal = useOrderEditModalFlow({
+    catalog: orderRevisionCatalog.data ?? [],
+    onConfirmEdit: executeEditCommit,
+  });
   usePreventLeave(editModal.isEditorDirty || editModal.isMenuPickerDirty || editModal.isOptionPickerDirty);
 
   const handleOpenEditModal = (row: OrderBoardRow) =>
@@ -221,6 +238,13 @@ export function useOrderStatusBoardPage() {
     cancelModal,
     paymentModal,
     editModal,
+    orderRevisionCatalog: {
+      items: orderRevisionCatalog.data ?? [],
+      isLoading: orderRevisionCatalog.isLoading,
+      isError: orderRevisionCatalog.isError,
+      isFetching: orderRevisionCatalog.isFetching,
+      retry: () => { void orderRevisionCatalog.refetch(); },
+    },
     cancelReasonView: {
       row: cancelReasonSnapshot,
       isLoading: cancelReasonQuery.isLoading,

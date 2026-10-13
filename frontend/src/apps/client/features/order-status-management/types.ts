@@ -3,6 +3,9 @@ export type OrderBoardPaymentStatus = 'PENDING' | 'PAID' | 'UNPAID' | 'REFUNDED'
 
 export type OrderBoardOptionItem = {
   id: string;
+  draftId?: string;
+  /** 서버 옵션 식별자. 새 draft의 화면 식별자와 분리해 저장 요청에 사용한다. */
+  sourceSysId?: string;
   name: string;
   quantity: number;
   /** 옵션 1개당 가격 */
@@ -11,6 +14,9 @@ export type OrderBoardOptionItem = {
 
 export type OrderBoardMenuItem = {
   id: string;
+  draftId?: string;
+  /** 서버 메뉴/기존 주문상세 식별자. 새 draft의 화면 식별자와 분리한다. */
+  sourceSysId?: string;
   name: string;
   quantity: number;
   /** 메뉴 1개당 가격(옵션 가격 제외) */
@@ -20,6 +26,8 @@ export type OrderBoardMenuItem = {
 
 export type OrderBoardRow = {
   id: string;
+  draftId?: string;
+  sourceSysId?: string;
   orderNo: string;
   tableNum: string;
   orderStatus: OrderBoardStatus;
@@ -83,12 +91,16 @@ export type OrderBoardCardActions = {
 /** "주문 수정" 모달의 "메뉴 추가" > "옵션 추가"에서 고를 수 있는 옵션 카탈로그 항목 */
 export type MenuCatalogOption = {
   id: string;
+  sourceSysId: string;
   name: string;
   /** 옵션 1개당 가격 */
   unitPrice: number;
+  maximumNum: number;
+  defaultSelected: boolean;
+  soldOut: boolean;
 };
 
-export type MenuCatalogOptionSelectionType = 'single' | 'multi';
+export type MenuCatalogOptionSelectionType = 'single' | 'checkbox' | 'stepper';
 
 /**
  * 옵션을 묶어서 보여줄 카테고리(예: "맵기 조절", "고기추가").
@@ -97,17 +109,21 @@ export type MenuCatalogOptionSelectionType = 'single' | 'multi';
  */
 export type MenuCatalogOptionCategory = {
   category: string;
+  sourceSysId: string;
   selectionType: MenuCatalogOptionSelectionType;
+  required: boolean;
   options: MenuCatalogOption[];
 };
 
 /** "주문 수정" 모달의 "메뉴 추가"에서 고를 수 있는 메뉴 카탈로그 항목 */
 export type MenuCatalogItem = {
   id: string;
+  sourceSysId: string;
   name: string;
   /** 메뉴 1개당 가격(옵션 가격 제외) */
   unitPrice: number;
   /** 메뉴 목록을 묶어서 보여줄 분류명(예: "메인 메뉴", "음료수") */
   category: string;
+  soldOut: boolean;
   optionCategories: MenuCatalogOptionCategory[];
 };

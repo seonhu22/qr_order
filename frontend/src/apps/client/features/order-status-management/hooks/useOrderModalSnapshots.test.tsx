@@ -108,7 +108,7 @@ describe('order modal open-time snapshots', () => {
 
   it('수정 모달은 Polling 원본과 분리된 draft를 유지한다', () => {
     const row = createRow();
-    const { result } = renderHook(() => useOrderEditModalFlow({ onConfirmEdit: vi.fn() }));
+    const { result } = renderHook(() => useOrderEditModalFlow({ catalog: [], onConfirmEdit: vi.fn() }));
     act(() => result.current.openEditModal([row]));
 
     row.menuItems[0].name = 'Polling 변경 메뉴';

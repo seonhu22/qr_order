@@ -1345,10 +1345,64 @@ const settingsHandlers = [
 
 // auth 관련 핸들러(login / logout / me)는 test/handlers.js의 커스텀 로직을 유지한다.
 // MSW는 첫 번째 매칭 핸들러를 사용하므로 authHandlers를 앞에 배치한다.
+const orderRevisionCatalogOverrideHandler = http.get(
+  '*/api/client/order_manage/order-revision/catalog',
+  () => HttpResponse.json({
+    success: true,
+    message: '조회되었습니다.',
+    data: {
+      categories: [{
+        categorySysId: 'category-main',
+        categoryName: '메인 메뉴',
+        menus: [{
+          menuSysId: 'menu-pho',
+          menuName: '쌀국수',
+          menuPrice: 11900,
+          optionUseYn: 'Y',
+          soldOutYn: 'N',
+          optionGroups: [
+            {
+              optionGroupSysId: 'group-size', groupName: '사이즈', requiredYn: 'N', selectionType: '01',
+              options: [
+                { menuOptionSysId: 'option-normal', menuOptionName: '보통', menuOptionPrice: 0, maximumNum: 0, defaultYn: 'Y', soldOutYn: 'N' },
+                { menuOptionSysId: 'option-large', menuOptionName: '곱빼기', menuOptionPrice: 2000, maximumNum: 0, defaultYn: 'N', soldOutYn: 'N' },
+              ],
+            },
+            {
+              optionGroupSysId: 'group-extra', groupName: '추가 옵션', requiredYn: 'N', selectionType: '03',
+              options: [
+                { menuOptionSysId: 'option-coriander', menuOptionName: '고수 추가', menuOptionPrice: 1000, maximumNum: 3, defaultYn: 'N', soldOutYn: 'N' },
+              ],
+            },
+          ],
+        }],
+      }],
+    },
+  }),
+);
+
+const orderRevisionSaveOverrideHandler = http.post(
+  '*/api/client/order_manage/status/revise_order',
+  () => HttpResponse.json({
+    success: true,
+    message: '수정되었습니다.',
+    data: {
+      revisionId: crypto.randomUUID(),
+      removedDetailIds: [],
+      cancelledOrderGroupIds: [],
+      createdOrderId: crypto.randomUUID(),
+      createdOrderNo: '9901',
+      addedTotalAmount: 11900,
+    },
+  }),
+);
+
 export const handlers = [
   ...consumerApiHandlers,
   ...consumerMenuHandlers,
   ...authHandlers,
+  orderRevisionCatalogOverrideHandler,
+  orderRevisionSaveOverrideHandler,
   ...orderStatusHandlers,
   signupBusinessVerificationOverrideHandler,
   paymentOverrideHandler,
