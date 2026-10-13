@@ -115,4 +115,5 @@ npm run dev:real
 
 - [frontend/README.md](./frontend/README.md): 프론트엔드 실행·개발 가이드
 - [frontend/docs/README.md](./frontend/docs/README.md): 프론트엔드 문서 지도
+- [docs/api-integration/README.md](./docs/api-integration/README.md): API 계약/적용/QA 문서 지도
 - [qrorder/](./qrorder/): 백엔드 프로젝트
