@@ -100,9 +100,6 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
             <Button variant="outline" size="sm" loading={isPending} onClick={() => actions.onMoveBack(row.id)}>
               이전
             </Button>
-            <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onEdit(row)}>
-              수정
-            </Button>
             <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>
               취소
             </Button>
