@@ -21,11 +21,15 @@ import type {
 import type {
   CommonResponse,
   OrderHistoryResponse,
+  OrderRevisionCatalogEnvelope,
+  OrderRevisionEnvelope,
   PaymentCompleteResponse,
   StatusCancelResponse,
   StatusResponse
 } from '.././types';
 
+
+export const getReviseClientOrderResponseMock = (overrideResponse: Partial< OrderRevisionEnvelope > = {}): OrderRevisionEnvelope => ({success: faker.datatype.boolean(), message: faker.string.alpha({length: {min: 10, max: 20}}), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {revisionId: faker.string.alpha({length: {min: 10, max: 20}}), removedDetailIds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), cancelledOrderGroupIds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), createdOrderId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), createdOrderNo: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), addedTotalAmount: faker.number.int({min: undefined, max: undefined})}, ...overrideResponse})
 
 export const getPaymentCompleteResponseMock = (overrideResponse: Partial< CommonResponse > = {}): CommonResponse => ({success: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
@@ -51,8 +55,22 @@ export const getGetPaymentCompleteResponseMock = (overrideResponse: Partial< Pay
 
 export const getGetChangeOrderResponseMock = (overrideResponse: Partial< PaymentCompleteResponse > = {}): PaymentCompleteResponse => ({header: faker.helpers.arrayElement([{sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableInfo: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderDatetime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined])}, undefined]), body: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), rowType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), detailSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), parentDetailSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), itemName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), qty: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), price: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), paymentYn: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), footer: faker.helpers.arrayElement([{sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), totalPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])}, undefined]), ...overrideResponse})
 
+export const getGetOrderRevisionCatalogResponseMock = (overrideResponse: Partial< OrderRevisionCatalogEnvelope > = {}): OrderRevisionCatalogEnvelope => ({success: faker.datatype.boolean(), message: faker.string.alpha({length: {min: 10, max: 20}}), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), data: {categories: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({categorySysId: faker.string.alpha({length: {min: 10, max: 20}}), categoryName: faker.string.alpha({length: {min: 10, max: 20}}), menus: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({menuSysId: faker.string.alpha({length: {min: 10, max: 20}}), menuName: faker.string.alpha({length: {min: 10, max: 20}}), menuPrice: faker.number.int({min: undefined, max: undefined}), menuDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), optionUseYn: faker.helpers.arrayElement(['Y','N'] as const), soldOutYn: faker.helpers.arrayElement(['Y','N'] as const), optionGroups: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({optionGroupSysId: faker.string.alpha({length: {min: 10, max: 20}}), groupName: faker.string.alpha({length: {min: 10, max: 20}}), requiredYn: faker.helpers.arrayElement(['Y','N'] as const), selectionType: faker.helpers.arrayElement(['01','02','03'] as const), options: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({menuOptionSysId: faker.string.alpha({length: {min: 10, max: 20}}), menuOptionName: faker.string.alpha({length: {min: 10, max: 20}}), menuOptionPrice: faker.number.int({min: undefined, max: undefined}), menuOptionDescription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), maximumNum: faker.number.int({min: undefined, max: undefined}), defaultYn: faker.helpers.arrayElement(['Y','N'] as const), soldOutYn: faker.helpers.arrayElement(['Y','N'] as const)}))}))}))}))}, ...overrideResponse})
+
 export const getGetOrderHistoryResponseMock = (overrideResponse: Partial< OrderHistoryResponse > = {}): OrderHistoryResponse => ({orderMasterHistory: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tableNum: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderNo: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), paymentStatus: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderStatus: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderStatusNm: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), totalPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), orderStartDatetime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined])})), undefined]), orderDetailHistory: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({sysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), masterSysId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), menuPrice: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), menuOption: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), orderDatetime: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), ...overrideResponse})
 
+
+export const getReviseClientOrderMockHandler = (overrideResponse?: OrderRevisionEnvelope | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<OrderRevisionEnvelope> | OrderRevisionEnvelope), options?: RequestHandlerOptions) => {
+  return http.post('*/api/client/order_manage/status/revise_order', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getReviseClientOrderResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 
 export const getPaymentCompleteMockHandler = (overrideResponse?: CommonResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CommonResponse> | CommonResponse), options?: RequestHandlerOptions) => {
   return http.post('*/api/client/order_manage/status/payment_complete', async (info) => {await delay(1000);
@@ -198,6 +216,18 @@ export const getGetChangeOrderMockHandler = (overrideResponse?: PaymentCompleteR
   }, options)
 }
 
+export const getGetOrderRevisionCatalogMockHandler = (overrideResponse?: OrderRevisionCatalogEnvelope | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrderRevisionCatalogEnvelope> | OrderRevisionCatalogEnvelope), options?: RequestHandlerOptions) => {
+  return http.get('*/api/client/order_manage/order-revision/catalog', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetOrderRevisionCatalogResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getGetOrderHistoryMockHandler = (overrideResponse?: OrderHistoryResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrderHistoryResponse> | OrderHistoryResponse), options?: RequestHandlerOptions) => {
   return http.get('*/api/client/order_manage/history/search', async (info) => {await delay(1000);
   
@@ -210,6 +240,7 @@ export const getGetOrderHistoryMockHandler = (overrideResponse?: OrderHistoryRes
   }, options)
 }
 export const getOrderManageControllerMock = () => [
+  getReviseClientOrderMockHandler(),
   getPaymentCompleteMockHandler(),
   getNotPaymentCompleteMockHandler(),
   getGoToServingCompleteMockHandler(),
@@ -222,5 +253,6 @@ export const getOrderManageControllerMock = () => [
   getGetStatusCancelResponsesMockHandler(),
   getGetPaymentCompleteMockHandler(),
   getGetChangeOrderMockHandler(),
+  getGetOrderRevisionCatalogMockHandler(),
   getGetOrderHistoryMockHandler()
 ]

@@ -31,6 +31,9 @@ import type {
   GetPaymentCompleteParams,
   GetStatusCancelResponsesParams,
   OrderHistoryResponse,
+  OrderRevisionCatalogEnvelope,
+  OrderRevisionEnvelope,
+  OrderRevisionRequest,
   PaymentCompleteRequest,
   PaymentCompleteResponse,
   PaymentNotCompleteRequest,
@@ -46,7 +49,72 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export const paymentComplete = (
+/**
+ * 접수/조리 중 주문의 메뉴 제거 이력을 남기고 추가 메뉴를 신규 주문 한 건으로 생성합니다.
+ * @summary Client 주문 수정 저장
+ */
+export const reviseClientOrder = (
+    orderRevisionRequest: OrderRevisionRequest,
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<OrderRevisionEnvelope>(
+      {url: `/api/client/order_manage/status/revise_order`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: orderRevisionRequest, signal
+    },
+      options);
+    }
+  
+
+
+export const getReviseClientOrderMutationOptions = <TError = CommonResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviseClientOrder>>, TError,{data: OrderRevisionRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviseClientOrder>>, TError,{data: OrderRevisionRequest}, TContext> => {
+
+const mutationKey = ['reviseClientOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviseClientOrder>>, {data: OrderRevisionRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reviseClientOrder(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviseClientOrderMutationResult = NonNullable<Awaited<ReturnType<typeof reviseClientOrder>>>
+    export type ReviseClientOrderMutationBody = OrderRevisionRequest
+    export type ReviseClientOrderMutationError = CommonResponse
+
+    /**
+ * @summary Client 주문 수정 저장
+ */
+export const useReviseClientOrder = <TError = CommonResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviseClientOrder>>, TError,{data: OrderRevisionRequest}, TContext>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviseClientOrder>>,
+        TError,
+        {data: OrderRevisionRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getReviseClientOrderMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    export const paymentComplete = (
     paymentCompleteRequest: PaymentCompleteRequest,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {
@@ -846,6 +914,99 @@ export function useGetChangeOrder<TData = Awaited<ReturnType<typeof getChangeOrd
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetChangeOrderQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 로그인 매장에서 현재 주문 가능한 메뉴와 옵션 규칙을 반환합니다.
+ * @summary Client 주문 수정 카탈로그 조회
+ */
+export const getOrderRevisionCatalog = (
+    
+ options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
+) => {
+      
+      
+      return httpClient<OrderRevisionCatalogEnvelope>(
+      {url: `/api/client/order_manage/order-revision/catalog`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetOrderRevisionCatalogQueryKey = () => {
+    return [
+    `/api/client/order_manage/order-revision/catalog`
+    ] as const;
+    }
+
+    
+export const getGetOrderRevisionCatalogQueryOptions = <TData = Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError = CommonResponse>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderRevisionCatalogQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderRevisionCatalog>>> = ({ signal }) => getOrderRevisionCatalog(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrderRevisionCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderRevisionCatalog>>>
+export type GetOrderRevisionCatalogQueryError = CommonResponse
+
+
+export function useGetOrderRevisionCatalog<TData = Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError = CommonResponse>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRevisionCatalog>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRevisionCatalog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderRevisionCatalog<TData = Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRevisionCatalog>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRevisionCatalog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrderRevisionCatalog<TData = Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Client 주문 수정 카탈로그 조회
+ */
+
+export function useGetOrderRevisionCatalog<TData = Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError = CommonResponse>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrderRevisionCatalog>>, TError, TData>>, request?: SecondParameter<typeof httpClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrderRevisionCatalogQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -548,6 +548,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/staff-call/settings/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/staff-call/notifications/{masterSysId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/staff-call/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markAllRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/status/revise_order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Client 주문 수정 저장
+         * @description 접수/조리 중 주문의 메뉴 제거 이력을 남기고 추가 메뉴를 신규 주문 한 건으로 생성합니다.
+         */
+        post: operations["reviseClientOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/order_manage/status/payment_complete": {
         parameters: {
             query?: never;
@@ -1612,6 +1680,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/staff-call/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["findAll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/staff-call/notifications/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["findUnread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/payment_manage/settlement/search": {
         parameters: {
             query?: never;
@@ -1716,6 +1816,26 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getChangeOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/order_manage/order-revision/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Client 주문 수정 카탈로그 조회
+         * @description 로그인 매장에서 현재 주문 가능한 메뉴와 옵션 규칙을 반환합니다.
+         */
+        get: operations["getOrderRevisionCatalog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2373,9 +2493,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         TableGuiRequest: {
             newItems?: components["schemas"]["TableGuiItem"][];
@@ -2417,6 +2537,54 @@ export interface components {
             newItems?: components["schemas"]["QRCodeItem"][];
             updateItems?: components["schemas"]["QRCodeItem"][];
             delItems?: components["schemas"]["QRCodeItem"][];
+        };
+        StaffCallSettingItem: {
+            sysId?: string;
+            callCd?: string;
+            callNm?: string;
+            singleYn?: string;
+            description?: string;
+        };
+        StaffCallSettingRequest: {
+            newItems?: components["schemas"]["StaffCallSettingItem"][];
+            updateItems?: components["schemas"]["StaffCallSettingItem"][];
+            delItems?: components["schemas"]["StaffCallSettingItem"][];
+        };
+        ConsumerOrderCreateItemRequest: {
+            menuSysId: string;
+            /** Format: int32 */
+            quantity: number;
+            /** @description 옵션이 없으면 생략하거나 빈 배열 사용 */
+            options?: components["schemas"]["ConsumerOrderCreateOptionRequest"][];
+        };
+        ConsumerOrderCreateOptionRequest: {
+            optionSysId: string;
+            /** Format: int32 */
+            quantity: number;
+        };
+        OrderRevisionRequest: {
+            clientRequestId: string;
+            /** @description 같은 방문에서 수정할 원본 주문 그룹 ID */
+            orderGroupIds: string[];
+            /** @description 제거할 기존 메뉴 상세 ID */
+            removeDetailIds: string[];
+            /** @description 신규 RECEIVED 주문으로 추가할 메뉴 */
+            addedItems: components["schemas"]["ConsumerOrderCreateItemRequest"][];
+        };
+        OrderRevisionEnvelope: {
+            success: boolean;
+            message: string;
+            error?: string;
+            data: components["schemas"]["OrderRevisionResponse"];
+        };
+        OrderRevisionResponse: {
+            revisionId: string;
+            removedDetailIds: string[];
+            cancelledOrderGroupIds: string[];
+            createdOrderId?: string;
+            createdOrderNo?: string;
+            /** Format: int32 */
+            addedTotalAmount: number;
         };
         Body: {
             linkSysId?: string;
@@ -2569,18 +2737,6 @@ export interface components {
             newItems?: components["schemas"]["MenuDetailItem"][];
             updateItems?: components["schemas"]["MenuDetailItem"][];
             delItems?: components["schemas"]["MenuDetailItem"][];
-        };
-        ConsumerOrderCreateItemRequest: {
-            menuSysId: string;
-            /** Format: int32 */
-            quantity: number;
-            /** @description 옵션이 없으면 생략하거나 빈 배열 사용 */
-            options?: components["schemas"]["ConsumerOrderCreateOptionRequest"][];
-        };
-        ConsumerOrderCreateOptionRequest: {
-            optionSysId: string;
-            /** Format: int32 */
-            quantity: number;
         };
         ConsumerOrderCreateRequest: {
             clientRequestId: string;
@@ -2784,9 +2940,9 @@ export interface components {
             tableType?: string;
             objectType?: string;
             /** Format: int32 */
-            ycoordinate?: number;
-            /** Format: int32 */
             xcoordinate?: number;
+            /** Format: int32 */
+            ycoordinate?: number;
         };
         StoreInfoResponse: {
             sysId?: string;
@@ -2808,6 +2964,23 @@ export interface components {
             description?: string;
             url?: string;
             useYn?: string;
+        };
+        StaffCallNotificationGroup: {
+            masterSysId?: string;
+            tableSysId?: string;
+            /** Format: int32 */
+            tableNum?: number;
+            /** Format: date-time */
+            insertDatetime?: string;
+            items?: components["schemas"]["StaffCallNotificationItem"][];
+        };
+        StaffCallNotificationItem: {
+            sysId?: string;
+            callCd?: string;
+            callNm?: string;
+            description?: string;
+            /** Format: int32 */
+            quantity?: number;
         };
         SettlementRequest: {
             /** Format: date */
@@ -2884,6 +3057,60 @@ export interface components {
             header?: components["schemas"]["PaymentCompleteHeader"];
             body?: components["schemas"]["Body"][];
             footer?: components["schemas"]["Footer"];
+        };
+        OrderRevisionCatalogCategory: {
+            categorySysId: string;
+            categoryName: string;
+            menus: components["schemas"]["OrderRevisionCatalogMenu"][];
+        };
+        OrderRevisionCatalogEnvelope: {
+            success: boolean;
+            message: string;
+            error?: string;
+            data: components["schemas"]["OrderRevisionCatalogResponse"];
+        };
+        OrderRevisionCatalogMenu: {
+            menuSysId: string;
+            menuName: string;
+            /** Format: int32 */
+            menuPrice: number;
+            menuDescription?: string;
+            /** @enum {string} */
+            optionUseYn: "Y" | "N";
+            /** @enum {string} */
+            soldOutYn: "Y" | "N";
+            optionGroups: components["schemas"]["OrderRevisionCatalogOptionGroup"][];
+        };
+        OrderRevisionCatalogOption: {
+            menuOptionSysId: string;
+            menuOptionName: string;
+            /** Format: int32 */
+            menuOptionPrice: number;
+            menuOptionDescription?: string;
+            /**
+             * Format: int32
+             * @description 수량 선택(03)은 1 이상의 최대 수량, 01/02는 0
+             */
+            maximumNum: number;
+            /** @enum {string} */
+            defaultYn: "Y" | "N";
+            /** @enum {string} */
+            soldOutYn: "Y" | "N";
+        };
+        OrderRevisionCatalogOptionGroup: {
+            optionGroupSysId: string;
+            groupName: string;
+            /** @enum {string} */
+            requiredYn: "Y" | "N";
+            /**
+             * @description 01: 단일 선택, 02: 복수 선택, 03: 수량 선택
+             * @enum {string}
+             */
+            selectionType: "01" | "02" | "03";
+            options: components["schemas"]["OrderRevisionCatalogOption"][];
+        };
+        OrderRevisionCatalogResponse: {
+            categories: components["schemas"]["OrderRevisionCatalogCategory"][];
         };
         OrderDetailHistoryItem: {
             sysId?: string;
@@ -3992,6 +4219,123 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffCallSettingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                masterSysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    reviseClientOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderRevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description 최초 처리 또는 동일 요청 replay 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OrderRevisionEnvelope"];
+                };
+            };
+            /** @description 요청 형식 또는 메뉴/옵션 규칙 위반 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+            /** @description 로그인 매장에서 수정 대상을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+            /** @description 상태/비활성 테이블/멱등성 payload 충돌 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5619,6 +5963,46 @@ export interface operations {
             };
         };
     };
+    findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StaffCallSettingItem"][];
+                };
+            };
+        };
+    };
+    findUnread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StaffCallNotificationGroup"][];
+                };
+            };
+        };
+    };
     getSettlement: {
         parameters: {
             query: {
@@ -5769,6 +6153,44 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PaymentCompleteResponse"];
+                };
+            };
+        };
+    };
+    getOrderRevisionCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 주문 수정 카탈로그 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OrderRevisionCatalogEnvelope"];
+                };
+            };
+            /** @description Client 로그인 세션이 없음 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+            /** @description 카탈로그 조회 중 서버 오류 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
                 };
             };
         };
