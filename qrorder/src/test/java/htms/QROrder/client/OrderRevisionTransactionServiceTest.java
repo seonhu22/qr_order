@@ -1,6 +1,6 @@
 package htms.QROrder.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import htms.QROrder.client.dto.OrderRevisionRequest;
 import htms.QROrder.client.dto.OrderRevisionResponse;
 import htms.QROrder.client.exception.OrderRevisionException;

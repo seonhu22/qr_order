@@ -15,6 +15,7 @@ public class OrderRevisionCatalogResponse {
 
     @Data
     @AllArgsConstructor
+    @Schema(name = "OrderRevisionCatalogCategory")
     public static class Category {
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         private String categorySysId;
@@ -26,6 +27,7 @@ public class OrderRevisionCatalogResponse {
 
     @Data
     @AllArgsConstructor
+    @Schema(name = "OrderRevisionCatalogMenu")
     public static class Menu {
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         private String menuSysId;
@@ -45,6 +47,7 @@ public class OrderRevisionCatalogResponse {
 
     @Data
     @AllArgsConstructor
+    @Schema(name = "OrderRevisionCatalogOptionGroup")
     public static class OptionGroup {
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         private String optionGroupSysId;
@@ -64,6 +67,7 @@ public class OrderRevisionCatalogResponse {
 
     @Data
     @AllArgsConstructor
+    @Schema(name = "OrderRevisionCatalogOption")
     public static class Option {
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         private String menuOptionSysId;

@@ -33,6 +33,17 @@ public class OrderManageController {
     private final OrderRevisionCatalogService orderRevisionCatalogService;
     private final OrderRevisionService orderRevisionService;
 
+    @Operation(
+            operationId = "getOrderRevisionCatalog",
+            summary = "Client 주문 수정 카탈로그 조회",
+            description = "로그인 매장에서 현재 주문 가능한 메뉴와 옵션 규칙을 반환합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "주문 수정 카탈로그 조회 성공",
+            content = @Content(schema = @Schema(implementation = OrderRevisionCatalogEnvelope.class)))
+    @ApiResponse(responseCode = "401", description = "Client 로그인 세션이 없음",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "500", description = "카탈로그 조회 중 서버 오류",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     @GetMapping("/order-revision/catalog")
     public ResponseEntity<CommonResponse> getOrderRevisionCatalog(HttpSession session) {
         Login loginUser = (Login) session.getAttribute("loginUser");

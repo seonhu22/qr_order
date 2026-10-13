@@ -1,7 +1,7 @@
 package htms.QROrder.client.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.client.dto.OrderRevisionRequest;
 import htms.QROrder.client.dto.OrderRevisionResponse;
@@ -230,7 +230,7 @@ public class OrderRevisionTransactionService {
         }
         try {
             return objectMapper.readValue(revision.getResponseJson(), OrderRevisionResponse.class);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException("저장된 주문 수정 응답을 읽을 수 없습니다.", exception);
         }
     }
@@ -238,7 +238,7 @@ public class OrderRevisionTransactionService {
     private String writeResponse(OrderRevisionResponse response) {
         try {
             return objectMapper.writeValueAsString(response);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException("주문 수정 응답을 저장할 수 없습니다.", exception);
         }
     }
