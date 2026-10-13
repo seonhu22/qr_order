@@ -68,6 +68,10 @@ public class OrderManageController {
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     @ApiResponse(responseCode = "409", description = "상태/비활성 테이블/멱등성 payload 충돌",
             content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Client 로그인 세션이 없음",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
+    @ApiResponse(responseCode = "500", description = "주문 수정 중 서버 오류",
+            content = @Content(schema = @Schema(implementation = CommonResponse.class)))
     @PostMapping("/status/revise_order")
     public ResponseEntity<CommonResponse> reviseOrder(@RequestBody OrderRevisionRequest request,
                                                        HttpSession session) {

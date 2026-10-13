@@ -4325,6 +4325,15 @@ export interface operations {
                     "*/*": components["schemas"]["CommonResponse"];
                 };
             };
+            /** @description Client 로그인 세션이 없음 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
             /** @description 로그인 매장에서 수정 대상을 찾을 수 없음 */
             404: {
                 headers: {
@@ -4336,6 +4345,15 @@ export interface operations {
             };
             /** @description 상태/비활성 테이블/멱등성 payload 충돌 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+            /** @description 주문 수정 중 서버 오류 */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
