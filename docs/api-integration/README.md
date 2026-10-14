@@ -7,6 +7,7 @@
 | 목적 | 문서 |
 | --- | --- |
 | 확정 계약과 구현 순서 | [주문 수정 저장 구현 계획](../plans/2026-10-12-001-feat-client-order-revision-plan.md) |
+| dev:real 통합 QA 순서와 진행 현황 | [주문 수정 통합 QA](../qa/2026-10-14-order-revision-integration-qa.md) |
 | 조회/금액 정합성 검증 방법 | [PostgreSQL QA 안내](../sql/2026-10-13-order-revision-read-model-qa.md) |
 | 롤백 전용 검증 SQL | [PostgreSQL QA SQL](../sql/2026-10-13-order-revision-read-model-qa.sql) |
 
