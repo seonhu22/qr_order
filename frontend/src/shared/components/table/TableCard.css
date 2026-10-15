@@ -187,12 +187,12 @@
   text-align: center;
 }
 
-/* 행 인터랙션 */
-.common-table tbody tr {
+/* 행 인터랙션 — 클릭 가능한 행만(SelectableTableRow onSelect/useClickableRow가 role="button" 부여) */
+.common-table tbody tr[role="button"] {
   cursor: pointer;
 }
 
-.common-table tbody tr:hover {
+.common-table tbody tr[role="button"]:hover {
   background-color: var(--color-bg-hover);
 }
 
