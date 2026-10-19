@@ -18,6 +18,7 @@
 | [API 코드 생성](./api-codegen.md) | OpenAPI 코드 생성, MSW 핸들러, mock 파일 기준 |
 | [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 권한 필드 기준, 비밀번호 정책 |
 | [테스트](./testing.md) | 테스트 실행, 실패 결과 보관, 관련 설정 문서의 부모 문서 |
+| [TODO](./todo.md) | 확인됐지만 보류한 프론트엔드 오류와 완료 조건 |
 | [주요 설정 파일](./config.md) | Vite, TypeScript, ESLint, Prettier, 진입점 파일 요약 |
 | [의사결정 기록](./decisions.md) | 주요 설계 결정과 ADR |
 
