@@ -49,7 +49,7 @@ import type { WrapperModalProps } from '../base/modalType';
 const FOCUSABLE_SELECTOR = [
   'input:not([disabled]):not([readonly])',
   'select:not([disabled])',
-  'textarea:not([disabled])',
+  'textarea:not([disabled]):not([readonly])',
   'button:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
