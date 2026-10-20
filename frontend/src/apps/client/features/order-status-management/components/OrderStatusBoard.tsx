@@ -26,7 +26,14 @@ export function OrderStatusBoard({
   return (
     <div className="order-status-board">
       {columns.map((column) => (
-        <OrderStatusColumn key={column.status} column={column} actions={actions} lastMovedIds={lastMovedIds} pendingOrderIds={pendingOrderIds} mutationErrors={mutationErrors} />
+        <OrderStatusColumn
+          key={column.status}
+          column={column}
+          actions={actions}
+          lastMovedIds={lastMovedIds}
+          pendingOrderIds={pendingOrderIds}
+          mutationErrors={mutationErrors}
+        />
       ))}
       <StaffCallBoardColumn rows={staffCall.rows} onComplete={staffCall.onComplete} />
     </div>

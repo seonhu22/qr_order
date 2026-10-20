@@ -1,5 +1,6 @@
 import './OrderStatusColumn.css';
 import { StaffCallBoardCard } from './StaffCallBoardCard';
+import { useExitAnimatedRows } from '../hooks/useExitAnimatedRows';
 import type { StaffCallBoardRow } from '../types';
 
 type StaffCallBoardColumnProps = {
@@ -12,6 +13,8 @@ type StaffCallBoardColumnProps = {
  * (`OrderBoardRow`가 아니라 `StaffCallBoardRow`) 별도 컴포넌트로 둔다.
  */
 export function StaffCallBoardColumn({ rows, onComplete }: StaffCallBoardColumnProps) {
+  const { renderedRows, handleExited } = useExitAnimatedRows(rows);
+
   return (
     <section className="order-status-column order-status-column--staffcall" aria-label="직원호출 컬럼">
       <div className="order-status-column__panel">
@@ -21,11 +24,17 @@ export function StaffCallBoardColumn({ rows, onComplete }: StaffCallBoardColumnP
         </header>
 
         <div className="order-status-column__list">
-          {rows.length === 0 ? (
+          {renderedRows.length === 0 ? (
             <p className="order-status-column__empty">직원호출이 없습니다.</p>
           ) : (
-            rows.map((row) => (
-              <StaffCallBoardCard key={row.id} row={row} onComplete={onComplete} />
+            renderedRows.map(({ row, isLeaving }) => (
+              <StaffCallBoardCard
+                key={row.id}
+                row={row}
+                onComplete={onComplete}
+                isLeaving={isLeaving}
+                onExited={() => handleExited(row.id)}
+              />
             ))
           )}
         </div>

@@ -1,5 +1,6 @@
 import './OrderStatusColumn.css';
 import { OrderStatusCard } from './OrderStatusCard';
+import { useExitAnimatedRows } from '../hooks/useExitAnimatedRows';
 import type { OrderBoardCardActions, OrderBoardColumnData } from '../types';
 
 type OrderStatusColumnProps = {
@@ -11,6 +12,8 @@ type OrderStatusColumnProps = {
 };
 
 export function OrderStatusColumn({ column, actions, lastMovedIds, pendingOrderIds, mutationErrors }: OrderStatusColumnProps) {
+  const { renderedRows, handleExited } = useExitAnimatedRows(column.rows);
+
   return (
     <section
       className={`order-status-column order-status-column--${column.status.toLowerCase()}`}
@@ -23,10 +26,10 @@ export function OrderStatusColumn({ column, actions, lastMovedIds, pendingOrderI
         </header>
 
         <div className="order-status-column__list">
-          {column.rows.length === 0 ? (
+          {renderedRows.length === 0 ? (
             <p className="order-status-column__empty">주문이 없습니다.</p>
           ) : (
-            column.rows.map((row) => (
+            renderedRows.map(({ row, isLeaving }) => (
               <OrderStatusCard
                 key={row.id}
                 row={row}
@@ -34,6 +37,8 @@ export function OrderStatusColumn({ column, actions, lastMovedIds, pendingOrderI
                 isMoved={lastMovedIds.includes(row.id)}
                 isPending={pendingOrderIds.has(row.id)}
                 mutationError={mutationErrors.get(row.id)}
+                isLeaving={isLeaving}
+                onExited={() => handleExited(row.id)}
               />
             ))
           )}
