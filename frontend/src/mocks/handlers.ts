@@ -64,6 +64,7 @@ import {
 import { STORE_INFO_MOCK_ROWS } from '../apps/client/features/store-info/mock/storeInfoMock';
 import { STORE_TABLE_MOCK_ROWS } from '../apps/client/features/store-table/mock/storeTableMock';
 import { QR_CODE_MOCK_ROWS } from '../apps/client/features/qr-code/mock/qrCodeMock';
+import { STAFF_CALL_NOTIFICATIONS_MOCK } from '../apps/client/features/staff-call-notifications/mock/staffCallNotificationsMock';
 import { TABLE_GUI_MOCK_ROWS } from '../apps/client/features/table-layout/mock/tableLayoutMock';
 import type { TableGuiObjectType } from '../apps/client/features/table-layout/api/tableLayoutApi';
 import type { TableGuiRequest } from '../generated/types/tableGuiRequest';
@@ -291,7 +292,7 @@ const qrCodeOverrideHandler = http.get('*/api/client/store_manage/qr_code/search
 // generated mock이 없다. 핸들러가 없으면 Vite 프록시를 타고 실제 백엔드로 요청이 넘어가 401(세션 만료)을 받는다.
 const staffCallNotificationsUnreadOverrideHandler = http.get(
   '*/api/client/staff-call/notifications/unread',
-  () => HttpResponse.json([]),
+  () => HttpResponse.json(STAFF_CALL_NOTIFICATIONS_MOCK),
 );
 
 const staffCallNotificationsReadAllOverrideHandler = http.post(
