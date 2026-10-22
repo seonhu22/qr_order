@@ -392,6 +392,7 @@ export function useMenuOptionManagementPage() {
       groupId: selectedGroupRow.id,
       ordNo: selectedDetailRows.length + 1,
       isNew: true,
+      soldOutYn: 'N',
       values: createBlankMenuOptionDetailValues(),
     };
 

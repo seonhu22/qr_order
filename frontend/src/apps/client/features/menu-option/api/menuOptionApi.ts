@@ -199,6 +199,7 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
     groupId: item.linkSysId ?? '',
     ordNo: item.ordNo ?? 0,
     fileUlid: item.fileUlid,
+    soldOutYn: item.soldOutYn === 'Y' ? 'Y' : 'N',
     values: {
       menuOptionName: item.menuOptionName ?? '',
       menuOptionPrice: item.menuOptionPrice != null ? String(item.menuOptionPrice) : '',
@@ -224,6 +225,7 @@ export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOpti
     maximumNum,
     menuDescription: row.values.menuDescription,
     defaultYn: row.values.defaultYn ? 'Y' : 'N',
+    soldOutYn: row.soldOutYn,
     useYn: row.values.useYn,
     fileUlid: row.fileUlid,
     ordNo: row.ordNo,
@@ -260,6 +262,7 @@ function isSameMenuOptionDetailRow(a: MenuOptionDetailRow, b: MenuOptionDetailRo
     a.values.maximumNum === b.values.maximumNum &&
     a.values.menuDescription === b.values.menuDescription &&
     a.values.defaultYn === b.values.defaultYn &&
+    a.soldOutYn === b.soldOutYn &&
     a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
   );
@@ -451,6 +454,7 @@ function appendMenuOptionDetailItem(
   if (item.maximumNum != null) formData.append(`${prefix}.maximumNum`, String(item.maximumNum));
   if (item.menuDescription != null) formData.append(`${prefix}.menuDescription`, item.menuDescription);
   if (item.defaultYn) formData.append(`${prefix}.defaultYn`, item.defaultYn);
+  if (item.soldOutYn) formData.append(`${prefix}.soldOutYn`, item.soldOutYn);
   if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
   if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));

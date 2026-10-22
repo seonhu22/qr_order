@@ -72,6 +72,7 @@ describe('buildMenuOptionDetailFormData', () => {
           maximumNum: 0,
           menuDescription: '',
           defaultYn: 'Y',
+          soldOutYn: 'N',
           useYn: 'Y',
           ordNo: 1,
         },
@@ -85,6 +86,7 @@ describe('buildMenuOptionDetailFormData', () => {
           maximumNum: 2,
           menuDescription: '고소한 치즈',
           defaultYn: 'N',
+          soldOutYn: 'Y',
           useYn: 'N',
           fileUlid: 'file-1',
           ordNo: 2,
@@ -99,6 +101,7 @@ describe('buildMenuOptionDetailFormData', () => {
     expect(formData.get('newItems[0].maximumNum')).toBe('0');
     expect(formData.get('newItems[0].menuDescription')).toBe('');
     expect(formData.get('newItems[0].defaultYn')).toBe('Y');
+    expect(formData.get('newItems[0].soldOutYn')).toBe('N');
     expect(formData.get('newItems[0].useYn')).toBe('Y');
     expect(formData.get('newItems[0].ordNo')).toBe('1');
 
@@ -106,6 +109,7 @@ describe('buildMenuOptionDetailFormData', () => {
     expect(formData.get('updateItems[0].fileUlid')).toBe('file-1');
     expect(formData.get('updateItems[0].maximumNum')).toBe('2');
     expect(formData.get('updateItems[0].defaultYn')).toBe('N');
+    expect(formData.get('updateItems[0].soldOutYn')).toBe('Y');
     expect(formData.get('delItems[0].sysId')).toBe('detail-2');
     expect(formData.has('menuOptionDetailRequest')).toBe(false);
     expect(formData.has('fileRequest')).toBe(false);
@@ -171,6 +175,7 @@ describe('hasMenuOptionDetailRowChanges', () => {
             groupId: 'group-1',
             ordNo: 1,
             isNew: true,
+            soldOutYn: 'N',
             values: {
               menuOptionName: '',
               menuOptionPrice: '',
@@ -217,6 +222,7 @@ describe('mapToMenuOptionDetailPayload', () => {
         id: 'new-row',
         groupId: 'group-1',
         ordNo: 1,
+        soldOutYn: 'N',
         values: {
           menuOptionName: '패티 추가',
           menuOptionPrice: '5555',
@@ -235,6 +241,7 @@ describe('mapToMenuOptionDetailPayload', () => {
         id: 'new-row',
         groupId: 'group-1',
         ordNo: 1,
+        soldOutYn: 'N',
         values: {
           menuOptionName: '패티 추가',
           menuOptionPrice: '5555',
@@ -253,6 +260,7 @@ describe('mapToMenuOptionDetailPayload', () => {
         id: 'new-row',
         groupId: 'group-1',
         ordNo: 1,
+        soldOutYn: 'N',
         values: {
           menuOptionName: '패티 추가',
           menuOptionPrice: '',
@@ -276,6 +284,7 @@ describe('mapToMenuOptionDetailRow', () => {
       maximumNum: 0,
       menuDescription: '',
       defaultYn: 'Y',
+      soldOutYn: 'Y',
       useYn: 'Y',
       fileUlid: 'file-1',
       ordNo: 1,
@@ -284,6 +293,8 @@ describe('mapToMenuOptionDetailRow', () => {
     expect(row.values.menuOptionPrice).toBe('5555');
     expect(row.values.maximumNum).toBe('0');
     expect(row.values.defaultYn).toBe(true);
+    expect(row.soldOutYn).toBe('Y');
+    expect(mapToMenuOptionDetailPayload(row).soldOutYn).toBe('Y');
   });
 
   it('detects defaultYn changes', () => {
@@ -295,6 +306,7 @@ describe('mapToMenuOptionDetailRow', () => {
       maximumNum: '0',
       menuDescription: '',
       defaultYn: 'N',
+      soldOutYn: 'Y',
       useYn: 'Y',
       ordNo: 1,
     } as never);
@@ -308,5 +320,6 @@ describe('mapToMenuOptionDetailRow', () => {
     });
 
     expect(formData.get('updateItems[0].defaultYn')).toBe('Y');
+    expect(formData.get('updateItems[0].soldOutYn')).toBe('Y');
   });
 });
