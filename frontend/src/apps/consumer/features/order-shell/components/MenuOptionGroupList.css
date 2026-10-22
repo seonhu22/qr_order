@@ -54,7 +54,7 @@
 /* 선택된 항목은 테두리로 표시한다 — 시트 안에서 배경색 대비가 약해 테두리가 더 잘 읽힌다. */
 .menu-option-choice--selected {
   border-color: var(--orange-40);
-  background-color: var(--color-bg-selected);
+  background-color: var(--color-bg-default);
 }
 
 .menu-option-choice--disabled {
@@ -133,6 +133,10 @@
   font-size: var(--typography-size-caption);
   color: var(--color-text-tertiary);
   white-space: nowrap;
+}
+
+.menu-option-choice__price--base {
+  color: var(--color-text-tertiary);
 }
 
 .menu-option-choice--quantity {

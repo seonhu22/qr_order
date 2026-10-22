@@ -19,7 +19,7 @@ type MenuOptionGroupListProps = {
 };
 
 function formatOptionPrice(price: number) {
-  if (price === 0) return '';
+  if (price === 0) return '기본';
   return `${price > 0 ? '+' : '-'}${Math.abs(price).toLocaleString()}원`;
 }
 
@@ -152,9 +152,13 @@ export function MenuOptionGroupList({
                     </div>
                   )}
 
-                  {priceLabel && (
-                    <span className="menu-option-choice__price">{priceLabel}</span>
-                  )}
+                  <span
+                    className={`menu-option-choice__price${
+                      choice.price === 0 ? ' menu-option-choice__price--base' : ''
+                    }`}
+                  >
+                    {priceLabel}
+                  </span>
                 </li>
               );
             })}

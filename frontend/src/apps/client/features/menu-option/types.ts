@@ -42,6 +42,7 @@ export type MenuOptionDetailRow = {
   ordNo: number;
   isNew?: boolean;
   fileUlid?: string;
+  soldOutYn: 'Y' | 'N';
   values: {
     menuOptionName: string;
     menuOptionPrice: string;

@@ -24,6 +24,7 @@ import {
   createEmptyMenuOptionGroupSchema,
   getMenuOptionDetailColumns,
   hasMenuOptionDetailChanges,
+  hasMenuOptionDetailRowChanges,
   hasMenuOptionGroupChanges,
   mapToMenuOptionDetailRow,
   mapToMenuOptionGroupRow,
@@ -201,7 +202,7 @@ export function useMenuOptionManagementPage() {
     [selectedGroupSchema.rows, baseGroupSchema.rows],
   );
   const isDetailDirty = useMemo(
-    () => hasMenuOptionDetailChanges(buildMenuOptionDetailRequest(selectedDetailRows, baseDetailRows)),
+    () => hasMenuOptionDetailRowChanges(selectedDetailRows, baseDetailRows),
     [selectedDetailRows, baseDetailRows],
   );
 
@@ -391,6 +392,7 @@ export function useMenuOptionManagementPage() {
       groupId: selectedGroupRow.id,
       ordNo: selectedDetailRows.length + 1,
       isNew: true,
+      soldOutYn: 'N',
       values: createBlankMenuOptionDetailValues(),
     };
 

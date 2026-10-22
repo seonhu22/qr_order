@@ -126,6 +126,10 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
 
     const dialog = sheet();
     expect(within(dialog).getByRole('radio', { name: /백미/ })).toBeChecked();
+    expect(within(dialog).getByText('기본')).toBeInTheDocument();
+    expect(within(dialog).getByText('필수')).toBeInTheDocument();
+    expect(within(dialog).getByText('복수선택')).toBeInTheDocument();
+    expect(within(dialog).getByText('선택')).toBeInTheDocument();
 
     await userEvent.click(within(dialog).getByRole('radio', { name: /잡곡밥/ }));
     expect(within(dialog).getByRole('button', { name: /장바구니에 담기/ })).toHaveTextContent(

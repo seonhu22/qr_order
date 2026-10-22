@@ -100,9 +100,9 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 ## 주문 수정 (모달 흐름)
 
-> 현재 테이블별 주문 편집·메뉴/옵션 추가 draft UI까지만 유지한다. 최종 저장은 백엔드 계약 연동 전까지 비활성화되어 있으며 보드 데이터를 변경하지 않는다.
+> 실제 메뉴 카탈로그와 주문 수정 저장 API에 연결되어 있다. 화면 draft는 저장 성공 뒤 서버 목록을 다시 조회해 확정한다.
 
-`useOrderEditModalFlow` (위치: `features/order-status-management/hooks/useOrderEditModalFlow.ts`)가 처리한다. 결제 처리와 마찬가지로 **테이블 단위**로 묶어서 보여주지만, 결제와 달리 상태 제한이 없다 — `getEditableOrdersForTable(rows, tableNum)`(`utils.ts`)이 같은 테이블에서 취소·결제완료되지 않은 주문(접수/조리중/서빙완료 전부)을 모은다.
+`useOrderEditModalFlow` (위치: `features/order-status-management/hooks/useOrderEditModalFlow.ts`)가 처리한다. 결제 처리와 마찬가지로 **테이블 단위**로 묶되, 접수/조리중 주문만 수정 대상으로 모은다. 서빙완료/취소/결제완료 주문은 수정하지 않는다.
 
 1. **주문 수정** — `WrapperModal`(size="md", Figma 480px). 상단에 "{테이블}번 테이블" + "+ 메뉴 추가" 버튼, 그 아래 결제 영수증과 같은 4열(메뉴명+수량/수량/단가/금액) 줄에 **취소 버튼 칸이 추가된 5열** 레이아웃이다(`.order-edit-modal__line`). 줄마다 "취소" 텍스트 버튼을 두니 반복돼서 눈에 피로하다는 피드백으로, `variant="icon"` + `i-close` 아이콘만 있는 X 버튼(`aria-label="취소"`)으로 바꿨다 — "메뉴 추가" 모달의 "추가된 항목" 미리보기 줄도 같은 클래스(`.order-edit-modal__line-cancel`)를 재사용해 동일하게 X 버튼이다. 클릭하면 그 줄(과 옵션)을 draft/미리보기에서 제거한다. 옵션 줄은 카드(`OrderStatusCard`)의 옵션 스타일과 통일해, 좌측 라인 + 옅은 배경 박스(`.order-edit-modal__option-list`)로 메인 메뉴와 구분해 보여준다. 결제완료 영수증의 옵션 줄(`.order-payment-receipt__option-list`)도 같은 스타일로 맞췄다.
    - 이 X 버튼은 그리드 5번째 컬럼 폭(`1.875rem`, 30px)에 맞춘 `size="sm"` 아이콘 버튼이라, 그 폭을 그대로 키우면 그리드 레이아웃이 깨진다. 시각적 크기는 30px 그대로 두고, `::before` 가짜 요소로 보이지 않는 히트 영역만 44px(터치 권장 최소 크기)로 넓혔다 — 테이블 배치 관리의 리사이즈 핸들 터치 영역 확장([`docs/page/table-layout-management.md`](./table-layout-management.md))과 같은 기법이다.
@@ -111,7 +111,7 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 "메뉴 추가"로 새로 생긴 주문(원래 수정 대상이 아니었던 주문)은 `editModal.originalOrderIds`에 없는 주문 id로 판별해서 `.order-edit-modal__order--new`(브랜드색 좌측 라인 + 옅은 브랜드 배경)와 주문번호 옆 "새 주문" 배지(`.order-edit-modal__new-badge`)로 구분해 보여준다. 이 새 주문 블록은 자체 박스 스타일을 이미 갖고 있어, 그 안의 옵션 줄에는 박스(좌측 라인+배경) 없이 들여쓰기만 하는 `.order-edit-modal__option-list--plain` 모디파이어를 추가로 붙인다 — 그대로 두면 옵션 박스가 새 주문 박스 안에 중첩되어 보이기 때문이다. 기존 주문(`draftOrders` 중 `originalOrderIds`에 있는 주문)의 옵션은 원래 박스 스타일(`.order-edit-modal__option-list`)을 그대로 쓴다.
    - **모든 변경은 draft다.** 모달을 열 때 대상 주문들을 깊은 복사해 `draftOrders`로 들고 있다가, "확인"을 누르면 2단계(수정 확인)로 넘어간다. "닫기"는 draft를 그대로 버린다(되돌릴 필요 없이 단순 폐기).
    - 주문 목록 아래에 `draftOrders` 전체를 합산한 "총 합계"(`.order-edit-modal__total`)를 결제 영수증 요약(`.order-payment-receipt__summary-row--total`)과 같은 스타일(상단 굵은 테두리 + 큰 글씨)로 보여준다. 결제 영수증과 동일하게 `.order-edit-modal`/`.order-edit-modal__order-list`가 `flex: 1 1 auto; min-height: 0`으로 `.base-modal__content`의 flex 체인([`docs/components/Modal.md` #23](../components/Modal.md))을 이어받아, 위 헤더("{테이블}번 테이블" + "메뉴 추가")와 이 "총 합계"는 고정되고 주문 목록만 모달의 남는 공간 안에서 스크롤된다.
-2. **메뉴 추가** — 위에서 또 한 단계 쌓이는 `WrapperModal`(size="md", Figma 480px). 위쪽은 `MENU_CATALOG_MOCK`을 카테고리별로 묶어 보여주는 스크롤 목록(`groupMenuCatalogByCategory`, 각 줄에 이미지 박스 자리 + 메뉴명/가격 + "추가" 버튼=`tinted`), 아래쪽은 옅은 회색 박스(`.order-menu-picker__added`)로 지금까지 추가한 항목을 결제 영수증과 같은 4열+취소버튼 줄로 보여준다. 카테고리 제목 옆에는 그 카테고리에 속한 메뉴 개수를 알약형 라벨(`.order-menu-picker__category-count`)로 표시한다. 메뉴에 옵션이 있으면(`item.optionCategories.length > 0`) 메뉴명 옆에 "옵션" 라벨(`.order-menu-picker__catalog-option-count`)을 표시해, 옵션 추가 모달이 한 번 더 뜨는 메뉴를 미리 구분할 수 있게 한다. 개수가 아니라 유무만 표시한다. 이 라벨의 위아래 패딩이 있는 알약 모양(`padding: var(--spacing-1) var(--spacing-2)`, `font-weight: body`)을 기준으로 "새 주문" 배지(`.order-edit-modal__new-badge`)의 모양도 맞췄다 — 색은 각자(옵션=브랜드 옅은 배경, 새 주문=브랜드 진한 배경) 그대로 유지한다. 이 미리보기는 이미 `.order-menu-picker__added` 박스(테두리+배경)로 감싸져 있으므로, 옵션 줄은 `.order-edit-modal__option-list`(좌측 라인+배경 박스) 대신 박스 없는 `.order-menu-picker__added-option-list`(들여쓰기만)를 쓴다 — 그대로 두면 옵션 박스가 미리보기 박스 안에 중첩되어 보이기 때문이다.
+2. **메뉴 추가** — 위에서 또 한 단계 쌓이는 `WrapperModal`(size="md", Figma 480px). 위쪽은 `GET /api/client/order_manage/order-revision/catalog` 응답을 카테고리별로 묶어 보여주는 스크롤 목록(`groupMenuCatalogByCategory`, 각 줄에 이미지 박스 자리 + 메뉴명/가격 + "추가" 버튼=`tinted`), 아래쪽은 옅은 회색 박스(`.order-menu-picker__added`)로 지금까지 추가한 항목을 결제 영수증과 같은 4열+취소버튼 줄로 보여준다. 카테고리 제목 옆에는 그 카테고리에 속한 메뉴 개수를 알약형 라벨(`.order-menu-picker__category-count`)로 표시한다. 메뉴에 옵션이 있으면(`item.optionCategories.length > 0`) 메뉴명 옆에 "옵션" 라벨(`.order-menu-picker__catalog-option-count`)을 표시해, 옵션 추가 모달이 한 번 더 뜨는 메뉴를 미리 구분할 수 있게 한다. 개수가 아니라 유무만 표시한다. 이 라벨의 위아래 패딩이 있는 알약 모양(`padding: var(--spacing-1) var(--spacing-2)`, `font-weight: body`)을 기준으로 "새 주문" 배지(`.order-edit-modal__new-badge`)의 모양도 맞췄다 — 색은 각자(옵션=브랜드 옅은 배경, 새 주문=브랜드 진한 배경) 그대로 유지한다. 이 미리보기는 이미 `.order-menu-picker__added` 박스(테두리+배경)로 감싸져 있으므로, 옵션 줄은 `.order-edit-modal__option-list`(좌측 라인+배경 박스) 대신 박스 없는 `.order-menu-picker__added-option-list`(들여쓰기만)를 쓴다 — 그대로 두면 옵션 박스가 미리보기 박스 안에 중첩되어 보이기 때문이다.
    - 메뉴의 "추가"를 누르면: **옵션이 없는 메뉴**는 즉시 아래 미리보기에 들어간다(이미 옵션 없이 추가된 같은 메뉴면 수량만 +1). **옵션이 있는 메뉴**는 3단계(옵션 추가) 모달이 한 번 더 뜬다.
    - 미리보기(`.order-menu-picker__added`)에 새 줄이 추가되면 그 줄이 보이게 스크롤한다(`OrderStatusManagementPage.tsx`의 `addedItemsRef`). [`docs/components/TableCard.md`](../components/TableCard.md) "행추가 후 자동 스크롤 규칙"의 `lastElementChild` 변형을 그대로 따른다 — `selectedRowId` 같은 선택 상태 없이 항상 배열 맨 뒤에 붙는 목록이라 `scrollIntoView({ block: 'nearest' })`를 컨테이너의 `lastElementChild`에 직접 건다. 직전 길이와 비교해 **늘었을 때만** 스크롤하므로 "취소"로 줄이 줄어들 때는 스크롤 위치를 건드리지 않는다. 1단계 주문 목록(`.order-edit-modal__order-list`)도 "메뉴 추가" 확정으로 새 주문이 맨 뒤에 붙을 때 같은 방식(`draftOrdersListRef`)으로 스크롤한다.
    - 미리보기 줄의 "취소"는 그 줄을 미리보기에서 제거한다(아직 draft에 반영되지 않은 상태라 별도 확인 없이 즉시 삭제).
@@ -121,8 +121,8 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
    - **`multi`**(예: "추가옵션") — 옵션별로 수량을 따로 선택한다. 처음엔 카탈로그처럼 "추가" 버튼(`tinted`)만 있고, 누르면 +/- 스테퍼(`.order-option-picker__stepper`)로 바뀌어 수량을 조절한다(`editModal.changeOptionPickerOptionQuantity`). 0개로 내려가면 다시 "추가" 버튼으로 돌아간다(미선택).
    - 맨 아래 "주문 수량" 박스(`.order-option-picker__quantity-box`)는 고른 메뉴 자체의 수량(`editModal.optionPicker.quantity`)을 +/- 스테퍼(`variant="primary"`, 카테고리 옵션의 `tinted` 스테퍼와 색으로 구분)로 조절한다 — "동일한 옵션으로 메뉴가 추가됩니다" 안내문처럼, 옵션별 수량과는 별개로 **이 옵션 조합을 가진 메뉴를 몇 개 추가할지**를 정하는 값이다.
    - "확인"을 누르면 (옵션 조합이 매번 달라질 수 있어) **항상 새 줄로** 메뉴 추가의 미리보기에 들어간다(옵션 없는 메뉴처럼 합치지 않음). 미리보기에 들어가는 옵션 목록은 single 카테고리에서 선택된 옵션(수량 1) + multi 카테고리에서 수량이 1개 이상인 옵션을 합친 것이다. "닫기"는 아무것도 추가하지 않고 메뉴 목록으로 돌아간다.
-4. **수정 확인** — 취소 확인과 동일한 패턴의 확인 모달을 연다. 현재 "확인"은 API 계약 연동 전 안내만 표시하며 실제 보드 데이터에는 반영하지 않는다. "닫기"는 이 단계만 닫고 1단계 draft를 유지한다.
-5. **연동 대기 안내** — 최종 저장 대신 API 연동 전임을 알리고 보드 데이터와 draft를 확정하지 않는다.
+4. **수정 확인** — 취소 확인과 동일한 패턴의 확인 모달을 연다. "확인"은 `clientRequestId`, 제거 상세 ID, 추가 메뉴/옵션을 주문 수정 API에 전송한다. "닫기"는 이 단계만 닫고 1단계 draft를 유지한다.
+5. **저장 완료** — 서버 저장과 주문현황 재조회가 성공한 뒤 모달/draft/`clientRequestId`를 초기화하고 완료 안내를 연다. 실패하면 draft와 같은 `clientRequestId`를 유지해 안전하게 재시도한다.
 
 ### 이탈방지 (주문 수정 / 메뉴 추가 / 옵션 추가)
 
@@ -138,9 +138,7 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 세 단계 중 하나라도 dirty면 `useOrderStatusBoardPage.ts`가 `usePreventLeave(editModal.isEditorDirty || editModal.isMenuPickerDirty || editModal.isOptionPickerDirty)`를 호출해 브라우저 새로고침/탭·창 닫기도 함께 경고한다. [`docs/operations/dirty-guard.md`](../operations/dirty-guard.md)의 "페이지 안의 추가/수정 모달이 별도 dirty를 갖는다면 페이지 `isDirty`와 OR로 합친다" 규칙을 그대로 따른 것이며, 이 화면이 그 규칙의 worked example이다(모달이 1개가 아니라 3단계라 OR 항이 3개로 늘어났을 뿐 같은 패턴).
 
-메뉴 카탈로그(`MENU_CATALOG_MOCK`)는 이 페이지 전용으로 새로 만들었다 — `menu-management`/`menu-option` feature의 mock은 다른 테마(제육볶음/아메리카노 등)라 이 페이지의 주문 보드 mock(쌀국수/분짜 등)과 섞으면 어색해서 분리했다. 실제 메뉴 카탈로그 API가 나오면 이 mock 파일을 교체한다.
-
-새로 추가된 주문의 `id`/`orderNo`는 `useOrderEditModalFlow.ts`의 `createDraftOrderId`/`createDraftOrderNo`로 임시 생성한다(타임스탬프/난수 기반) — 실제 연동 시 백엔드가 발급하는 값으로 교체해야 한다.
+메뉴 카탈로그는 로그인 매장의 주문 가능한 메뉴/옵션과 현재 가격을 서버에서 조회한다. 새 메뉴의 draft ID/주문번호는 화면 구분용 임시값이며, 저장 요청에는 카탈로그의 서버 식별자를 사용하고 저장 뒤에는 서버가 발급한 주문을 다시 조회한다.
 
 ### Button 공용 컴포넌트에 변형 2개 추가
 
@@ -224,7 +222,7 @@ SSE는 보류하고 React Query Polling을 사용한다. 주문 목록 쿼리의
 - 취소사유 조회의 생성 타입은 중첩 `header.sysId`를 충분히 표현하지 못해 wrapper에서 요청 형태를 맞춘다.
 - 임시 처리는 실제 백엔드 응답과 OpenAPI가 반영되고 Orval을 regenerate한 뒤 제거한다.
 
-결제완료/미결제는 서버 API와 연결되어 있다. 주문수정은 화면과 draft 흐름만 유지하며 최종 저장 API 연동 전에는 서버 요청이나 로컬 성공 처리를 하지 않는다. 주문 경과 타이머도 이번 범위에서 보류한다.
+결제완료/미결제와 주문수정은 서버 API에 연결되어 있다. 주문 경과 타이머는 이번 범위에서 보류한다. 주문 수정 통합 검증은 [주문 수정 통합 QA](../../../docs/qa/2026-10-14-order-revision-integration-qa.md)를 따른다.
 
 ## QA 체크리스트
 

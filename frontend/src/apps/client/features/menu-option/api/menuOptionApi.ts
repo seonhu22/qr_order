@@ -199,6 +199,7 @@ export function mapToMenuOptionDetailRow(item: MenuOptionDetailResponse): MenuOp
     groupId: item.linkSysId ?? '',
     ordNo: item.ordNo ?? 0,
     fileUlid: item.fileUlid,
+    soldOutYn: item.soldOutYn === 'Y' ? 'Y' : 'N',
     values: {
       menuOptionName: item.menuOptionName ?? '',
       menuOptionPrice: item.menuOptionPrice != null ? String(item.menuOptionPrice) : '',
@@ -224,6 +225,7 @@ export function mapToMenuOptionDetailPayload(row: MenuOptionDetailRow): MenuOpti
     maximumNum,
     menuDescription: row.values.menuDescription,
     defaultYn: row.values.defaultYn ? 'Y' : 'N',
+    soldOutYn: row.soldOutYn,
     useYn: row.values.useYn,
     fileUlid: row.fileUlid,
     ordNo: row.ordNo,
@@ -260,8 +262,34 @@ function isSameMenuOptionDetailRow(a: MenuOptionDetailRow, b: MenuOptionDetailRo
     a.values.maximumNum === b.values.maximumNum &&
     a.values.menuDescription === b.values.menuDescription &&
     a.values.defaultYn === b.values.defaultYn &&
+    a.soldOutYn === b.soldOutYn &&
     a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
+  );
+}
+
+/**
+ * 편집 중인 원시 행만 비교해 변경 여부를 판단한다.
+ * 빈 신규 행도 정상 draft이므로 저장 payload 변환이나 숫자 검증을 수행하지 않는다.
+ */
+export function hasMenuOptionDetailRowChanges(
+  currentRows: MenuOptionDetailRow[],
+  originalRows: MenuOptionDetailRow[],
+) {
+  const originalBySysId = new Map(
+    originalRows.filter((row) => row.sysId).map((row) => [row.sysId as string, row]),
+  );
+  const currentSysIds = new Set(
+    currentRows.filter((row) => row.sysId).map((row) => row.sysId as string),
+  );
+
+  return (
+    currentRows.some((row) => {
+      if (row.isNew) return true;
+      if (!row.sysId) return false;
+      const originalRow = originalBySysId.get(row.sysId);
+      return originalRow ? !isSameMenuOptionDetailRow(row, originalRow) : false;
+    }) || originalRows.some((row) => Boolean(row.sysId) && !currentSysIds.has(row.sysId as string))
   );
 }
 
@@ -426,6 +454,7 @@ function appendMenuOptionDetailItem(
   if (item.maximumNum != null) formData.append(`${prefix}.maximumNum`, String(item.maximumNum));
   if (item.menuDescription != null) formData.append(`${prefix}.menuDescription`, item.menuDescription);
   if (item.defaultYn) formData.append(`${prefix}.defaultYn`, item.defaultYn);
+  if (item.soldOutYn) formData.append(`${prefix}.soldOutYn`, item.soldOutYn);
   if (item.useYn) formData.append(`${prefix}.useYn`, item.useYn);
   if (item.fileUlid) formData.append(`${prefix}.fileUlid`, item.fileUlid);
   if (item.ordNo != null) formData.append(`${prefix}.ordNo`, String(item.ordNo));

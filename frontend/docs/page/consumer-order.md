@@ -109,6 +109,7 @@ type ConsumerSheetState =
 
 - 체크 표시(원/박스) 자체는 `/dev/radio`·`/dev/checkbox`의 `RadioInput`/`CheckboxInput`을 그대로 가져다 쓴다. 다만 그 컴포넌트의 `label`/`description`은 쓰지 않는다 — 이름·가격 표기는 이 화면 전용 카드형 레이아웃(`menu-option-choice`)이 따로 맡기 때문이다. 대신 컨트롤에 `id={groupId-choiceId}`를 직접 주고, 이름 텍스트를 그 `id`를 가리키는 별도 `<label htmlFor>`로 감싸 접근성 이름(스크린리더·`getByRole(..., { name })`)이 정상적으로 연결되게 한다. `CheckboxInput`은 이때 처음으로 `id` prop을 지원하도록 확장했다(`RadioInput`은 이미 있었다).
 - 그룹 헤더(이름 옆)엔 `Badge`(`shared/components/badge`, `/dev/badge`)로 `필수`/`선택`(단일)과 `복수선택`+`필수`/`선택`(복수)을 오른쪽 끝에 붙인다 — 참고 저장소의 배지 순서·톤을 그대로 따랐다.
+- 추가 금액이 `0원`인 항목은 빈칸이나 `+0원` 대신 `기본`으로 표시한다. 선택 행은 흰 배경을 유지하고 주황색 테두리로 구분해 가격 의미와 선택 상태를 각각 읽을 수 있게 한다.
 - 옵션 행(`menu-option-choice`)은 항목별 수량 스텝퍼가 나타나도 행 높이가 변하지 않도록 `min-height`를 고정해둔다.
 - 품절 항목은 "품절" 같은 별도 표시 없이 `isChoiceDisabled`로 선택만 막는다 — 이름은 그대로 보여주고, `menu-option-choice--disabled`로 흐리게 표시한다.
 - 옵션 행 라벨(`menu-option-choice__text`)은 부모가 `align-items: center`라 기본값으로는 자기 텍스트 높이만큼만 탭에 반응한다 — `align-self: stretch`로 행 전체 높이만큼 탭 영역을 늘려뒀다(형제 요소인 원/체크박스·가격은 영향 없음).
