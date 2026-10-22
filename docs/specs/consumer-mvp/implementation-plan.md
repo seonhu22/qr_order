@@ -92,6 +92,7 @@
 5. 필요가 확인된 경우 서버 장바구니
 6. 메뉴별 `requestNote` 입력/저장/직원 화면 표시 / TODO, 별도 플랜 미작성
 7. 운영 전 DB/Redis 기반 영속 멱등성 저장소 / 현재 단일 서버 구현은 [멱등성 플랜](../../plans/2026-09-14-003-feat-consumer-ttl-idempotency-plan.md) 참조
+8. Consumer/Client 실시간 계약 전체 점검 / 각 업무의 DB commit → SSE 이벤트·채널 → 프런트 캐시 무효화 → HTTP 재조회 → 화면 반영을 계약표와 자동 테스트 및 `dev:real` QA로 검증
 
 결제 완료/미결제 처리 보강은 [방문 결제 플랜](../../plans/2026-09-14-001-fix-client-visit-payment-flow-plan.md)을 따른다.
 
