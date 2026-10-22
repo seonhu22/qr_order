@@ -224,6 +224,7 @@ export function useMenuManagementPage() {
       masterId: selectedCategory.id,
       ordNo: selectedDetailSchema.rows.length + 1,
       isNew: true,
+      soldOutYn: 'N',
       values: createBlankMenuDetailValues(),
     };
 
