@@ -3,6 +3,7 @@ import {
   buildMenuOptionGroupChanges,
   buildMenuOptionDetailFormData,
   getMenuOptionMasterList,
+  hasMenuOptionDetailRowChanges,
   mapToMenuOptionGroupPayload,
   mapToMenuOptionGroupRow,
   mapToMenuOptionDetailRow,
@@ -157,6 +158,55 @@ describe('normalizeOptionSelectionType', () => {
   it('maps only the unambiguous legacy quantity value', () => {
     expect(normalizeOptionSelectionType('수량 설정')).toBe('03');
     expect(normalizeOptionSelectionType('주문 옵션')).toBe('');
+  });
+});
+
+describe('hasMenuOptionDetailRowChanges', () => {
+  it('detects a blank new draft row without converting it to a save payload', () => {
+    expect(
+      hasMenuOptionDetailRowChanges(
+        [
+          {
+            id: 'new-row',
+            groupId: 'group-1',
+            ordNo: 1,
+            isNew: true,
+            values: {
+              menuOptionName: '',
+              menuOptionPrice: '',
+              maximumNum: '',
+              menuDescription: '',
+              useYn: 'Y',
+              defaultYn: false,
+            },
+          },
+        ],
+        [],
+      ),
+    ).toBe(true);
+  });
+
+  it('detects existing row updates and deletions without reporting unchanged rows', () => {
+    const original = mapToMenuOptionDetailRow({
+      sysId: 'detail-1',
+      linkSysId: 'group-1',
+      menuOptionName: '다리',
+      menuOptionPrice: 0,
+      maximumNum: 0,
+      menuDescription: '',
+      defaultYn: 'Y',
+      useYn: 'Y',
+      ordNo: 1,
+    });
+
+    expect(hasMenuOptionDetailRowChanges([original], [original])).toBe(false);
+    expect(
+      hasMenuOptionDetailRowChanges(
+        [{ ...original, values: { ...original.values, menuOptionName: '몸통' } }],
+        [original],
+      ),
+    ).toBe(true);
+    expect(hasMenuOptionDetailRowChanges([], [original])).toBe(true);
   });
 });
 
