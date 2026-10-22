@@ -4,7 +4,7 @@
 
 - 발견일: 2026-10-22
 - 발견 단계: 주문 수정 QA-8 선행 데이터 생성
-- 상태: 원인 확정, 코드 수정 전
+- 상태: 코드 수정 및 자동 검증 완료, `dev:real` 수동 QA 대기
 - 영향 API: `POST /api/client/menu_manage/option/detail/save`
 
 ## 관찰된 오류
@@ -112,4 +112,15 @@ OpenAPI 생성 파일이 바뀌면 생성 파일만 확인하지 않는다. 해�
 - 주문 수정 카탈로그의 `optionGroups[].options`에 저장 항목 표시
 
 위 조건을 확인한 뒤 주문 수정 QA-8을 재개한다.
+
+## 자동 검증 결과
+
+- 실패 테스트 확인: `soldOutYn`을 입력 fixture에 넣어도 FormData 조회 결과가 `null`이어서 수정 전 실패함
+- 수정 후 메뉴 옵션 API 테스트: 14개 통과
+- 전체 프론트 테스트: 136개 파일, 589개 테스트 통과
+- `npm run typecheck`: 통과
+- `npm run lint`: 통과
+- `npm run build`: 통과(기존 대용량 chunk 경고만 존재)
+
+자동 검증은 프론트가 신규 `N`과 기존 `Y`를 보존해 FormData에 싣는다는 증거다. 실제 Spring 바인딩, MyBatis INSERT와 DB 저장 성공은 위 재개 조건의 수동 QA로 별도 확인한다.
 
