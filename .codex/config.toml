@@ -1,0 +1,6 @@
+# Shared project defaults. Codex loads this layer only for trusted projects.
+# Models, service tiers, permissions, approvals, and network policy remain user/organization decisions.
+project_doc_max_bytes = 32768
+
+[agents]
+enabled = true

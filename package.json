@@ -2,7 +2,8 @@
   "name": "qr-order-tooling",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "harness:check": "node scripts/validate-codex-harness.mjs"
   },
   "devDependencies": {
     "husky": "^9.1.7"

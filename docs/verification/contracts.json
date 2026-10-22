@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "contracts": [
+    {
+      "id": "frontend-change",
+      "applies_when": { "paths": ["frontend/**"] },
+      "required_context": ["frontend/AGENTS.md"],
+      "invariants": [
+        "Generated API files are not hand-edited.",
+        "Mock success is not reported as real API integration success."
+      ],
+      "checks": [
+        { "command": "npm test -- --run <related-test-files>", "cwd": "frontend", "when": "behavior changed" },
+        { "command": "npm run typecheck", "cwd": "frontend", "when": "TypeScript changed" },
+        { "command": "npm run lint", "cwd": "frontend", "when": "source changed" },
+        { "command": "npm run build", "cwd": "frontend", "when": "routing/build/integration changed" }
+      ],
+      "required_evidence": ["changed_files", "test_results"],
+      "pass_condition": "All applicable checks pass; skipped checks have a risk-based reason."
+    },
+    {
+      "id": "backend-change",
+      "applies_when": { "paths": ["qrorder/src/main/**", "qrorder/src/test/**"] },
+      "required_context": ["qrorder/AGENTS.md"],
+      "invariants": [
+        "Backend code changes have explicit user authorization.",
+        "Controller/DTO/service/mapper contracts remain synchronized."
+      ],
+      "checks": [
+        { "command": ".\\gradlew.bat test --tests <fully-qualified-test>", "cwd": "qrorder", "when": "focused verification" },
+        { "command": ".\\gradlew.bat test", "cwd": "qrorder", "when": "backend regression is required" }
+      ],
+      "required_evidence": ["changed_files", "test_results"],
+      "pass_condition": "Authorized behavior is covered and applicable backend tests pass."
+    },
+    {
+      "id": "api-contract-change",
+      "applies_when": { "paths": ["qrorder/src/main/**/*Controller.java", "qrorder/src/main/**/*Dto.java", "frontend/openapi.json", "frontend/src/generated/**"] },
+      "required_context": ["docs/architecture/README.md"],
+      "invariants": [
+        "Runtime JSON, OpenAPI schemas, generated types, and feature mapping describe the same contract."
+      ],
+      "checks": [
+        { "command": "npm run generate", "cwd": "frontend", "when": "OpenAPI changed" },
+        { "command": "npm run typecheck", "cwd": "frontend", "when": "generated types changed" }
+      ],
+      "required_evidence": ["contract_diff", "test_results"],
+      "pass_condition": "Real server OpenAPI generation and generated diff are reviewed."
+    },
+    {
+      "id": "database-change",
+      "applies_when": { "paths": ["qrorder/src/main/resources/db/migration/**", "qrorder/src/main/resources/mapper/**"] },
+      "required_context": ["qrorder/AGENTS.md", "docs/decisions/README.md"],
+      "invariants": [
+        "Schema changes require explicit authorization and a recoverable rollout.",
+        "Related transactions use a deterministic lock order.",
+        "Affected read models use one consistent inclusion/exclusion rule."
+      ],
+      "checks": [
+        { "command": "Run migration preflight/dry-run in local or QA PostgreSQL", "cwd": "DBeaver/PostgreSQL", "when": "schema changed", "manual": true },
+        { "command": "Run rollback and read-model QA", "cwd": "DBeaver/PostgreSQL", "when": "schema/query semantics changed", "manual": true },
+        { "command": "Run two-session concurrency scenario", "cwd": "PostgreSQL/application", "when": "locks/idempotency/payment changed", "manual": true }
+      ],
+      "required_evidence": ["database_evidence", "concurrency_evidence", "test_results"],
+      "pass_condition": "Automated checks pass and every applicable manual DB gate is recorded."
+    },
+    {
+      "id": "harness-change",
+      "applies_when": { "paths": ["AGENTS.md", "*/AGENTS.md", ".codex/**", "docs/architecture/**", "docs/decisions/**", "docs/verification/**", "docs/harness/**"] },
+      "required_context": ["docs/harness/README.md"],
+      "invariants": [
+        "Repository instructions remain a short router with scoped/on-demand detail.",
+        "Repository configuration does not choose user permissions, approval policy, service tier, or credentials."
+      ],
+      "checks": [
+        { "command": "npm run harness:check", "cwd": ".", "when": "harness files changed" }
+      ],
+      "required_evidence": ["changed_files", "test_results"],
+      "pass_condition": "Harness validation passes from a clean clone-compatible file set."
+    }
+  ]
+}
