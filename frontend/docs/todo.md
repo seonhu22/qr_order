@@ -2,6 +2,26 @@
 
 확인된 후속 작업만 기록한다. 계약이나 해결 방식이 확정되지 않은 내용은 구현 결정으로 간주하지 않는다.
 
+## 성능 최적화 TODO
+
+### 초기 JavaScript 번들 분할
+
+- 상태: 보류
+- 발견일: 2026-10-22
+- 근거: `npm run build`는 성공했지만 minification 후 500kB를 넘는 chunk 경고가 발생했다.
+- 권장 조사: 번들 분석으로 큰 의존성과 앱별 초기 진입 코드를 확인한 뒤 Client/Admin/Consumer 라우트 단위 `dynamic import`를 우선 검토한다.
+- 주의: `build.chunkSizeWarningLimit`만 높여 경고를 숨기지 않는다.
+- 완료 조건: 초기 다운로드와 실행 비용이 실제 측정에서 감소하고 typecheck, lint, test, build가 통과한다.
+
+### 메뉴 이미지 전송 최적화
+
+- 상태: 보류
+- 발견일: 2026-10-22
+- 현재 근거: `ConsumerMenuImage.tsx`의 `<img>`는 단일 `src`와 오류 fallback만 사용하며 `srcSet`, `sizes`, `loading`, `decoding`을 지정하지 않는다.
+- 권장 조사: 화면별 실제 표시 크기와 원본 이미지 용량을 측정하고, 서버/CDN이 복수 크기 이미지를 제공할 수 있는지 먼저 확인한다.
+- 구현 후보: 목록 이미지는 `loading="lazy"`와 `decoding="async"`, 첫 화면 핵심 이미지는 우선순위를 별도 적용하고, 복수 크기 URL 계약이 생기면 `srcSet`과 `sizes`를 추가한다.
+- 완료 조건: 깨진 이미지 fallback과 캐시 갱신을 유지하면서 전송량 및 LCP가 개선되고 모바일/고해상도 화면에서 화질 회귀가 없다.
+
 ## 옵션 항목 행 추가 시 빈 화면
 
 - 상태: 코드 수정 완료/수동 QA 대기
