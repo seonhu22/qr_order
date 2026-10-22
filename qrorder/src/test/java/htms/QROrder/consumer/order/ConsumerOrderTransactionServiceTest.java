@@ -1,6 +1,7 @@
 package htms.QROrder.consumer.order;
 
 import htms.QROrder.common.exception.ValidationException;
+import htms.QROrder.client.service.ClientEventPublisher;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
@@ -37,8 +38,10 @@ class ConsumerOrderTransactionServiceTest {
     private final ConsumerOrderValidator validator = mock(ConsumerOrderValidator.class);
     private final ConsumerOrderMapper mapper = mock(ConsumerOrderMapper.class);
     private final ConsumerEventPublisher eventPublisher = mock(ConsumerEventPublisher.class);
+    private final ClientEventPublisher clientEventPublisher = mock(ClientEventPublisher.class);
     private final ConsumerOrderTransactionService service = new ConsumerOrderTransactionService(
-            visitService, validator, mapper, new ConsumerOrderSessionGuard(), eventPublisher);
+            visitService, validator, mapper, new ConsumerOrderSessionGuard(), eventPublisher,
+            clientEventPublisher);
 
     @Test
     void locksAndWritesTheCompleteValidatedOrder() {
@@ -67,6 +70,8 @@ class ConsumerOrderTransactionServiceTest {
         verify(visitService).touchBoundVisit(qr, "VISIT-1");
         verify(eventPublisher).publishAfterCommit(
                 "PLANT-1", "VISIT-1", ConsumerEventService.ORDER_CREATED);
+        verify(clientEventPublisher).publishAfterCommit(
+                "PLANT-1", ClientEventPublisher.ORDER_STATUS_CHANGED);
     }
 
     @Test
@@ -79,6 +84,7 @@ class ConsumerOrderTransactionServiceTest {
 
         verifyNoInteractions(validator, mapper);
         verifyNoInteractions(eventPublisher);
+        verifyNoInteractions(clientEventPublisher);
     }
 
     @Test
@@ -94,6 +100,7 @@ class ConsumerOrderTransactionServiceTest {
 
         verifyNoInteractions(validator, mapper);
         verifyNoInteractions(eventPublisher);
+        verifyNoInteractions(clientEventPublisher);
     }
 
     @Test

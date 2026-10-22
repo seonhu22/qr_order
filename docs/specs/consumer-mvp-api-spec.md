@@ -20,6 +20,8 @@
 | QR 참여 인원 기준/QA | [Consumer QR 참여 인원 규약](./consumer-mvp/participants.md) |
 | 주문 생성/목록/상세 구현 | [Consumer 주문 API 계약](./consumer-mvp/order-api.md) |
 | 작업 순서와 QA 확인 | [구현 및 검증 계획](./consumer-mvp/implementation-plan.md) |
+| 실시간 이벤트 전체 연결 | [실시간 기능 계약표](./realtime-contract-matrix.md) |
+| 병합 전 최소 회귀 QA | [실시간 회귀 체크리스트](../qa/pre-merge-realtime-regression-checklist.md) |
 | 현재 Consumer UI 확인 | [Consumer 주문 화면](../../frontend/docs/page/consumer-order.md) |
 | QR 진입 UI 확인 | [Consumer QR 진입](../../frontend/docs/page/consumer-qr-entry.md) |
 

@@ -1,6 +1,7 @@
 package htms.QROrder.consumer.order.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import htms.QROrder.client.service.ClientEventPublisher;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateRequest;
 import htms.QROrder.consumer.order.dto.ConsumerOrderCreateResponse;
 import htms.QROrder.consumer.order.dto.ValidatedConsumerOrder;
@@ -30,6 +31,7 @@ public class ConsumerOrderTransactionService {
     private final ConsumerOrderMapper consumerOrderMapper;
     private final ConsumerOrderSessionGuard consumerOrderSessionGuard;
     private final ConsumerEventPublisher consumerEventPublisher;
+    private final ClientEventPublisher clientEventPublisher;
 
     @Transactional
     public ConsumerOrderCreateResponse createOrder(
@@ -90,6 +92,8 @@ public class ConsumerOrderTransactionService {
                 qrTableInfo.getSysPlantCd(),
                 binding.getConsumerSessionId(),
                 ConsumerEventService.ORDER_CREATED);
+        clientEventPublisher.publishAfterCommit(
+                qrTableInfo.getSysPlantCd(), ClientEventPublisher.ORDER_STATUS_CHANGED);
         log.info("Consumer order created. clientRequestId={}, orderId={}, consumerSessionId={}",
                 validatedOrder.clientRequestId(), orderId, binding.getConsumerSessionId());
 

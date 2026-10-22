@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 
 class ConsumerEventServiceTest {
 
@@ -47,6 +48,24 @@ class ConsumerEventServiceTest {
         verify(emitterService).subscribe(eq("consumer:PLANT-1:VISIT-1"), any(Runnable.class));
         verify(emitterService).send("consumer:PLANT-1:VISIT-1",
                 ConsumerEventService.PARTICIPANTS_CHANGED, 1);
+    }
+
+    @Test
+    void publishesUniqueParticipantCountsAcrossBrowserSessions() {
+        QrConnectResponse qr = qr();
+        ConsumerSessionBinding binding = binding();
+        when(visitService.findBoundVisit(qr, "VISIT-1")).thenReturn(activeVisit());
+        when(emitterService.subscribe(eq("consumer:PLANT-1:VISIT-1"), any(Runnable.class)))
+                .thenReturn(new SseEmitter());
+
+        service.subscribe(qr, binding, "BROWSER-1");
+        service.subscribe(qr, binding, "BROWSER-1");
+        service.subscribe(qr, binding, "BROWSER-2");
+
+        verify(emitterService, times(2)).send(
+                "consumer:PLANT-1:VISIT-1", ConsumerEventService.PARTICIPANTS_CHANGED, 1);
+        verify(emitterService).send(
+                "consumer:PLANT-1:VISIT-1", ConsumerEventService.PARTICIPANTS_CHANGED, 2);
     }
 
     @Test
