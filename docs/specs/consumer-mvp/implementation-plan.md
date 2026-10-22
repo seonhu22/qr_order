@@ -94,7 +94,7 @@
 7. 운영 전 DB/Redis 기반 영속 멱등성 저장소 / 현재 단일 서버 구현은 [멱등성 플랜](../../plans/2026-09-14-003-feat-consumer-ttl-idempotency-plan.md) 참조
 8. Consumer/Client 실시간 계약 전체 점검 / 각 업무의 DB commit → SSE 이벤트·채널 → 프런트 캐시 무효화 → HTTP 재조회 → 화면 반영을 계약표와 자동 테스트 및 `dev:real` QA로 검증
 9. 참여 인원 QA 확인 완료 / 같은 세션의 여러 탭은 1명, 일반 창과 시크릿 창은 서로 다른 세션이므로 2명으로 정상 반영됨
-10. 메뉴 관리 행 저장의 `sold_out_yn` 계약 누락 수정 / `store_menu_detail.sold_out_yn NOT NULL`인데 신규 행 INSERT 컬럼과 요청 값이 누락돼 저장 시 `500` 발생. DB 제약 → mapper → DTO → 프런트 요청 직렬화 전체 경계를 실패 테스트로 고정한 뒤 수정
+10. 메뉴 관리 행 저장의 `sold_out_yn` 계약 누락 수정 — 구현과 자동 검증 완료, `dev:real` 수동 QA 대기. 근거와 확인 절차: [메뉴 저장 `sold_out_yn` 계약 누락 보고서](../../qa/2026-10-22-menu-detail-sold-out-contract-gap-report.md)
 
 결제 완료/미결제 처리 보강은 [방문 결제 플랜](../../plans/2026-09-14-001-fix-client-visit-payment-flow-plan.md)을 따른다.
 
