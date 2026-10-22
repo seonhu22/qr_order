@@ -99,6 +99,13 @@
 - 해결: 실제 사용자처럼 보이는 라벨 텍스트(예: `.menu-option-choice__text`)를 클릭하거나, Playwright의 체크박스/라디오 전용 `.check()`(hit-testing을 우회)를 쓴다. `.click({ force: true })`도 되지만 실제 클릭 가능 여부 검증을 건너뛰므로 지양한다.
 - 참고: `RadioInput`/`CheckboxInput`을 감싸는 새 화면을 Playwright로 자동화할 때 항상 해당되는 문제다.
 
+### 옵션 상세의 빈 행을 추가하면 API 요청 없이 페이지가 빈 화면이 됨
+
+- 증상: `/client/menu/info/option`에서 상세 `행 추가`를 누르면 화면이 사라지고 콘솔에 `옵션 가격을(를) 숫자로 입력해주세요.`가 표시된다. Network 탭에는 실패 요청도 없다.
+- 원인: 렌더링 중 dirty 판정이 저장 DTO 변환을 호출해, 정상적인 빈 draft 가격을 저장 필수값으로 즉시 검증했다.
+- 해결: 렌더링에서는 원시 행을 비교하는 순수 dirty 판정을 사용하고, 숫자 검증과 DTO 변환은 실제 저장 시점에만 실행한다.
+- 상세: [렌더링 중 저장 검증으로 발생한 Client 옵션 상세 빈 화면](../../docs/solutions/runtime-errors/client-menu-option-render-dirty-validation-blank-screen-2026-10-22.md)
+
 ### 모달/시트가 열릴 때만 애니메이션되고 닫힐 때는 즉시 사라짐
 
 - 증상: `open` prop으로 여닫는 오버레이 컴포넌트(`ConsumerBottomSheet` 등)에 진입 애니메이션(`@keyframes ...`)만 걸어두면, `open`이 `false`가 되는 순간 컴포넌트가 바로 `return null`돼서 나갈 때는 애니메이션 없이 뚝 사라진다.

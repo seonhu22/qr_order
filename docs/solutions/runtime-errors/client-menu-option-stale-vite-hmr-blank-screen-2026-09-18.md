@@ -90,3 +90,4 @@ expect(await screen.findByDisplayValue('사이드 추가')).toBeInTheDocument();
 ## Related Issues
 
 - [옵션 메뉴 캐시 무효화 누락](../integration-issues/option-menu-cache-not-invalidated-after-menu-crud-2026-07-28.md): 같은 옵션 관리 영역이지만 React Query 캐시 갱신 누락을 다룬 별도 문제
+- [렌더링 중 저장 검증으로 발생한 Client 옵션 상세 빈 화면](./client-menu-option-render-dirty-validation-blank-screen-2026-10-22.md): 같은 화면과 증상이지만 렌더링에서 저장 검증을 호출한 제품 코드 오류
