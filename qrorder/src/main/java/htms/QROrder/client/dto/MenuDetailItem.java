@@ -10,6 +10,7 @@ public class MenuDetailItem {
     private Integer menuPrice;
     private String menuDescription;
     private String optionUseYn;
+    private String soldOutYn;
     private String linkSysId2;
     private String useYn;
     private String fileUlid;
