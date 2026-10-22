@@ -106,6 +106,13 @@
 - 해결: 렌더링에서는 원시 행을 비교하는 순수 dirty 판정을 사용하고, 숫자 검증과 DTO 변환은 실제 저장 시점에만 실행한다.
 - 상세: [렌더링 중 저장 검증으로 발생한 Client 옵션 상세 빈 화면](../../docs/solutions/runtime-errors/client-menu-option-render-dirty-validation-blank-screen-2026-10-22.md)
 
+### 옵션 상세 저장이 `sold_out_yn NOT NULL` 오류로 실패함
+
+- 증상: 상세 옵션 저장 API가 `500`을 반환하고 PostgreSQL 오류에 `sold_out_yn`의 null 제약조건 위반이 표시된다.
+- 원인: 생성 타입에는 `soldOutYn`이 있지만 수동 요청 mapper와 FormData serializer가 값을 보내지 않았다.
+- 해결: 신규 행은 `N`, 기존 행은 조회값을 보존해 payload와 FormData에 포함한다.
+- 상세: [메뉴 옵션 soldOutYn의 계층 간 FormData 계약 누락](../../docs/solutions/integration-issues/menu-option-sold-out-formdata-contract-gap-2026-10-22.md)
+
 ### 모달/시트가 열릴 때만 애니메이션되고 닫힐 때는 즉시 사라짐
 
 - 증상: `open` prop으로 여닫는 오버레이 컴포넌트(`ConsumerBottomSheet` 등)에 진입 애니메이션(`@keyframes ...`)만 걸어두면, `open`이 `false`가 되는 순간 컴포넌트가 바로 `return null`돼서 나갈 때는 애니메이션 없이 뚝 사라진다.
