@@ -24,6 +24,7 @@ import {
   createEmptyMenuOptionGroupSchema,
   getMenuOptionDetailColumns,
   hasMenuOptionDetailChanges,
+  hasMenuOptionDetailRowChanges,
   hasMenuOptionGroupChanges,
   mapToMenuOptionDetailRow,
   mapToMenuOptionGroupRow,
@@ -201,7 +202,7 @@ export function useMenuOptionManagementPage() {
     [selectedGroupSchema.rows, baseGroupSchema.rows],
   );
   const isDetailDirty = useMemo(
-    () => hasMenuOptionDetailChanges(buildMenuOptionDetailRequest(selectedDetailRows, baseDetailRows)),
+    () => hasMenuOptionDetailRowChanges(selectedDetailRows, baseDetailRows),
     [selectedDetailRows, baseDetailRows],
   );
 

@@ -265,6 +265,31 @@ function isSameMenuOptionDetailRow(a: MenuOptionDetailRow, b: MenuOptionDetailRo
   );
 }
 
+/**
+ * 편집 중인 원시 행만 비교해 변경 여부를 판단한다.
+ * 빈 신규 행도 정상 draft이므로 저장 payload 변환이나 숫자 검증을 수행하지 않는다.
+ */
+export function hasMenuOptionDetailRowChanges(
+  currentRows: MenuOptionDetailRow[],
+  originalRows: MenuOptionDetailRow[],
+) {
+  const originalBySysId = new Map(
+    originalRows.filter((row) => row.sysId).map((row) => [row.sysId as string, row]),
+  );
+  const currentSysIds = new Set(
+    currentRows.filter((row) => row.sysId).map((row) => row.sysId as string),
+  );
+
+  return (
+    currentRows.some((row) => {
+      if (row.isNew) return true;
+      if (!row.sysId) return false;
+      const originalRow = originalBySysId.get(row.sysId);
+      return originalRow ? !isSameMenuOptionDetailRow(row, originalRow) : false;
+    }) || originalRows.some((row) => Boolean(row.sysId) && !currentSysIds.has(row.sysId as string))
+  );
+}
+
 export type MenuOptionGroupChanges = {
   newRows: MenuOptionGroupRow[];
   updateRows: MenuOptionGroupRow[];
