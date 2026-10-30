@@ -11,24 +11,33 @@ import { useGuardedNavigate } from '@/shared/hooks/useGuardedNavigate';
 import { useMenuOpenAccessLog } from '@/shared/hooks/useMenuOpenAccessLog';
 import { ConfirmModal } from '@/shared/components/modal/template/ConfirmModal';
 import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserStaffRole } from '@/shared/auth/authUserDisplay';
 import { useClientEvents } from '@/apps/client/features/events/hooks/useClientEvents';
 import { useClientStaffCallNotifyStore } from '@/apps/client/stores/clientStaffCallNotifyStore';
 import {
   getUnreadStaffCallCount,
-  useMarkAllStaffCallsReadMutation,
   useUnreadStaffCallsQuery,
 } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
+// TODO: 실데이터 연동 시 useManagerNotificationCenterMock -> 실제 폴링 훅으로 교체
+import { useManagerNotificationCenterMock } from '@/apps/client/features/notification-center/hooks/useManagerNotificationCenterMock';
+import type { ClientNotificationItem } from '@/apps/client/features/notification-center/types';
 
 export function ClientLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const staffRole = getAuthUserStaffRole(user);
   useClientEvents(isAuthenticated);
-  const unreadStaffCalls = useClientStaffCallNotifyStore((state) => state.unreadCount);
+  const isManager = staffRole === '01';
   const latestStaffCall = useClientStaffCallNotifyStore((state) => state.latest);
-  const markStaffCallsRead = useClientStaffCallNotifyStore((state) => state.markRead);
   const syncUnreadStaffCalls = useClientStaffCallNotifyStore((state) => state.syncUnreadCount);
   const dismissStaffCall = useClientStaffCallNotifyStore((state) => state.dismiss);
   const unreadStaffCallsQuery = useUnreadStaffCallsQuery(isAuthenticated);
-  const markAllStaffCallsRead = useMarkAllStaffCallsReadMutation();
+  const dismissedCallIds = useClientStaffCallNotifyStore((state) => state.dismissedCallIds);
+  const {
+    items: notificationItems,
+    unseenCount: unseenNotificationCount,
+    markItemSeen,
+    markAllSeen,
+  } = useManagerNotificationCenterMock();
   const location = useLocation();
   const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
     useGuardedNavigate();
@@ -50,11 +59,28 @@ export function ClientLayout() {
     }
   }, [unreadStaffCallsQuery.data, syncUnreadStaffCalls]);
 
-  const handleStaffCallsRead = async () => {
-    if (unreadStaffCalls === 0 || markAllStaffCallsRead.isPending) return;
-    await markAllStaffCallsRead.mutateAsync();
-    markStaffCallsRead();
+  const staffCallNotificationItems: ClientNotificationItem[] = (unreadStaffCallsQuery.data ?? [])
+    .filter((call) => !dismissedCallIds.has(call.masterSysId))
+    .map((call) => ({
+      kind: 'staffCall',
+      sysId: call.masterSysId,
+      title: `${call.tableNum}번 테이블 직원호출`,
+      body: call.items
+        .map((item) => `${item.callNm}${item.quantity > 1 ? ` ${item.quantity}개` : ''}`)
+        .join(', '),
+      timestamp: call.insertDatetime,
+      seen: false,
+      targetPath: '/client/order/status/management',
+    }));
+
+  const handleNotificationItemClick = (item: ClientNotificationItem) => {
+    if (isManager) markItemSeen(item.sysId);
+    guardedNavigate(item.targetPath);
   };
+
+  const headerNotificationItems = isManager ? notificationItems : staffCallNotificationItems;
+  const headerUnseenCount = isManager ? unseenNotificationCount : staffCallNotificationItems.length;
+  const headerMarkAllRead = isManager ? markAllSeen : undefined;
 
   useEffect(() => {
     const nextSection = currentSection;
@@ -99,8 +125,10 @@ export function ClientLayout() {
             onSectionChange={handleSectionChange}
             onToggleSidebar={toggleSidebar}
             onHomeClick={handleHomeClick}
-            unreadStaffCalls={unreadStaffCalls}
-            onStaffCallsRead={() => { void handleStaffCallsRead(); }}
+            notificationItems={headerNotificationItems}
+            unseenNotificationCount={headerUnseenCount}
+            onNotificationItemClick={handleNotificationItemClick}
+            onMarkAllNotificationsRead={headerMarkAllRead}
           />
         </header>
         <main className="client-layout__main">
