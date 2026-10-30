@@ -1300,3 +1300,30 @@ Consumer 쪽 직원호출 칩 목록(ADR-031/033)은 지금 프론트 mock 상�
 - 직원호출 조회와 실시간 갱신은 실제 API에 연결했다. 다만 개별 "완료"를 서버의 읽음 상태로 저장하는 계약은 후속 과제다.
 
 ---
+
+## ADR-037 — 헤더 알림(01 관리자/02 스태프 역할 분기)의 직원호출 처리: mock 전용 공유 dismiss로 선행 구현
+
+**날짜**: 2026-10-29
+**상태**: 임시 (백엔드 개별 읽음 API 추가 후 수정 예정)
+
+### 배경
+
+헤더 알림 벨을 01 관리자(공지·문의답변, mock)와 02 스태프(직원호출)로 역할 분기하면서, 02 스태프 알림도 01과 동일한 드롭다운 UI(`ClientNotificationBell`)로 통일했다. 직원호출 "완료"는 ADR-036에서 이미 "개별 읽음 API가 없어 `useDismissedOrderIds`로 화면에서만 숨긴다"는 임시 처리로 남아 있었는데, 헤더 알림 드롭다운이 추가되며 같은 한계가 한 곳 더 늘었다 — 벨/드롭다운 항목 클릭이 서버 전체읽음(`POST /api/client/staff-call/notifications/read-all`) API를 호출하면 같은 매장의 다른 테이블 호출까지 전부 읽음 처리되는 부작용이 있다.
+
+### 결정
+
+- 벨 클릭은 목록을 여는 것 외에 아무 동작도 하지 않는다. 드롭다운 항목 클릭은 주문 상태 관리 페이지로 이동만 하고 API를 호출하지 않는다. "모두 읽음" 버튼은 이번 범위에서 노출하지 않는다 — `ClientNotificationBell`의 `onMarkAllRead`를 옵셔널로 두고 전달하지 않으면 버튼이 사라지도록 했다.
+- 실제 "완료" 처리는 주문 상태 보드의 기존 완료 버튼에서만 일어나며, ADR-036과 동일하게 로컬 전용이다. 다만 이번에 그 범위를 `clientStaffCallNotifyStore`(zustand, 헤더와 보드가 공유)로 넓혀, 보드에서 완료 처리한 호출이 헤더 배지 숫자·드롭다운 목록에서도 같이 사라지도록 했다. 새로고침하면 다시 나타나는 것은 ADR-036과 동일한 한계다.
+- **알려진 한계**: 보드 쪽 숨김(`useDismissedOrderIds`)은 보드 페이지 컴포넌트 로컬 state라 새로고침뿐 아니라 그 페이지를 벗어났다가 다시 들어오기만 해도 리셋된다. 반면 헤더가 보는 `clientStaffCallNotifyStore.dismissedCallIds`는 세션 동안 유지된다. 그래서 "완료" 처리한 호출을 두고 보드를 떠났다 돌아오면, 헤더 배지/드롭다운에는 안 보이는데 보드에는 다시 나타나는 불일치가 생길 수 있다. 근본 원인은 동일(개별 읽음 API 부재)하므로 별도 수정 없이 후속 과제에서 같이 해소한다.
+- 백엔드 호출 없이, `qrorder/` 수정 없이 진행했다 — 명시적 요청 없이는 백엔드를 건드리지 않는다는 작업 원칙을 따랐다.
+
+### 후속 과제 (백엔드 개별 읽음 API 추가 시)
+
+`StaffCallNotificationMapper.xml`의 `markAllRead`를 보면 개별 처리는 WHERE절에 `and master.sys_id = #{masterSysId}` 한 줄만 추가하면 된다.
+
+- [ ] `StaffCallNotificationMapper`/`Service`/`Controller`에 개별 읽음 엔드포인트(예: `POST /api/client/staff-call/notifications/{masterSysId}/read`) 추가
+- [ ] 프론트 `staffCallNotificationApi.ts`에 해당 훅 추가
+- [ ] 주문 상태 보드의 "완료" 버튼과 헤더 알림 드롭다운 항목 클릭이 로컬 dismiss 대신 이 API를 호출하도록 교체
+- [ ] `clientStaffCallNotifyStore`의 공유 dismiss 상태(로컬 전용)를 제거하고 서버 응답 기준으로 전환
+
+---
