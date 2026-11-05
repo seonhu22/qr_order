@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useOrderEditModalFlow } from './useOrderEditModalFlow';
 import type { OrderBoardRow } from '../types';
 import type { MenuCatalogItem } from '../types';
@@ -35,6 +35,10 @@ const optionCatalog: MenuCatalogItem[] = [{
 }];
 
 describe('useOrderEditModalFlow save lifecycle', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('keeps the request id and draft after failure, then resets only after success', async () => {
     const save = vi.fn().mockRejectedValueOnce(new Error('실패')).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useOrderEditModalFlow({ catalog: [], onConfirmEdit: save }));
@@ -56,6 +60,25 @@ describe('useOrderEditModalFlow save lifecycle', () => {
     expect(save.mock.calls[1]?.[0]).toBe(changedRequestId);
     expect(result.current.isNoticeOpen).toBe(true);
     expect(result.current.isEditorOpen).toBe(false);
+  });
+
+  it('오프라인이면 저장 요청 없이 draft와 clientRequestId를 유지한다', async () => {
+    vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
+    const save = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useOrderEditModalFlow({ catalog: [], onConfirmEdit: save }));
+
+    act(() => result.current.openEditModal([order]));
+    act(() => result.current.cancelMenuLine('order-1', 'detail-1'));
+    const requestId = result.current.clientRequestId;
+    act(() => result.current.requestConfirm());
+    await act(async () => { await result.current.confirmSave(); });
+
+    expect(save).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe('네트워크 연결을 확인한 후 다시 시도해주세요.');
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.isEditorOpen).toBe(true);
+    expect(result.current.isConfirmOpen).toBe(true);
+    expect(result.current.clientRequestId).toBe(requestId);
   });
 
   it('applies optional single, checkbox quantity 1, and stepper maximum rules', () => {
