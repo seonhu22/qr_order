@@ -375,6 +375,10 @@ export function useOrderEditModalFlow({ catalog, onConfirmEdit }: UseOrderEditMo
 
   const confirmSave = async () => {
     if (savingRef.current) return;
+    if (!window.navigator.onLine) {
+      setSaveError('네트워크 연결을 확인한 후 다시 시도해주세요.');
+      return;
+    }
     const finalizedOrders = draftOrders.map((order) =>
       order.menuItems.length === 0
         ? { ...order, orderStatus: 'CANCELLED' as const, cancelledAt: nowOrderBoardDatetime() }

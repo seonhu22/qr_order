@@ -4,7 +4,7 @@
 
 - 발견일: 2026-10-22
 - 발견 단계: 주문 수정 QA-8 선행 데이터 생성
-- 상태: 코드 수정 및 자동 검증 완료, `dev:real` 수동 QA 대기
+- 상태: 완료 (`dev:real` 수동 QA 통과, 2026-11-05)
 - 영향 API: `POST /api/client/menu_manage/option/detail/save`
 
 ## 관찰된 오류

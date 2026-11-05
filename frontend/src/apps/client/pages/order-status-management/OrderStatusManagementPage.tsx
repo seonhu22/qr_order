@@ -638,7 +638,11 @@ export function OrderStatusManagementPage() {
         size="sm"
         open={editModal.isConfirmOpen}
         title="알림"
-        primaryAction={{ label: editModal.isPending ? '저장 중' : '확인', onClick: editModal.confirmSave, disabled: editModal.isPending }}
+        primaryAction={{
+          label: editModal.isPending ? '저장 중' : '확인',
+          loading: editModal.isPending,
+          onClick: editModal.confirmSave,
+        }}
         secondaryAction={{ label: '닫기', onClick: editModal.closeConfirm }}
         onClose={editModal.closeConfirm}
       >
