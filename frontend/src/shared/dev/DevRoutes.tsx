@@ -12,7 +12,7 @@
  * @module dev/DevRoutes
  */
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
 import DevLayout from './DevLayout';
 import InputGuide from './InputGuide';
 import ModalGuide from './ModalGuide';
@@ -30,7 +30,7 @@ import ErrorPageGuide from './ErrorPageGuide';
 import FileAttachmentGuide from './FileAttachmentGuide';
 // import FeedbackGuide from './FeedbackGuide';
 
-export const devRoutes = [
+const devRoutes = [
   {
     path: '/dev',
     element: <DevLayout />,
@@ -56,3 +56,8 @@ export const devRoutes = [
     ],
   },
 ];
+
+/** 운영 번들에서는 제외하고 개발 모드에서만 동적으로 불러오는 가이드 route 루트다. */
+export function DevRoutesRoot() {
+  return useRoutes(devRoutes);
+}

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router-dom';
@@ -46,7 +47,9 @@ function renderRoutes(initialPath: string, authState: Partial<AuthTestState> = {
         }}
       >
         <MemoryRouter initialEntries={[initialPath]}>
-          <AppRoutes />
+          <Suspense fallback={<div>route loading</div>}>
+            <AppRoutes />
+          </Suspense>
           <LocationProbe />
         </MemoryRouter>
       </AuthContext.Provider>
@@ -93,6 +96,19 @@ describe('AppRoutes auth redirect', () => {
     await waitFor(() => {
       expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/login');
     });
+  });
+
+  it('loads an authenticated client page through the lazy route boundary', async () => {
+    server.use(
+      http.get('/api/system/settings/menu/search', () => HttpResponse.json([])),
+      http.get('/api/client/staff-call/notifications/unread', () => HttpResponse.json([])),
+    );
+    renderRoutes('/client/main', {
+      isAuthenticated: true,
+      user: { userId: 'STAFF', roleCd: '02', initPwdRequired: false },
+    });
+
+    expect(await screen.findByRole('heading', { name: '클라이언트 메인' })).toBeInTheDocument();
   });
 
   it('keeps the client signup step mounted while auth state is loading', () => {

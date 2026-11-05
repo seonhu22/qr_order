@@ -10,9 +10,13 @@ import { AppLoadingScreen } from '@/shared/components/loading';
 import { adminRoutes } from '@/apps/admin/routes/AdminRoutes';
 import { clientRoutes } from '@/apps/client/routes/ClientRoutes';
 import { consumerRoutes } from '@/apps/consumer/routes/ConsumerRoutes';
-import { devRoutes } from '@/shared/dev/DevRoutes';
+import { lazyNamed } from '@/shared/routes/lazyNamed';
 import { isInitialPasswordChangeRequired } from '@/shared/auth/initPassword';
 import { isLoginPath, resolveLoginPath } from '@/shared/auth/authRedirect';
+
+const DevRoutesRoot = import.meta.env.DEV
+  ? lazyNamed(() => import('@/shared/dev/DevRoutes'), 'DevRoutesRoot')
+  : null;
 
 /**
  * 인증이 필요한 관리자 라우트를 보호한다.
@@ -156,7 +160,7 @@ function AppRoutes() {
     ...consumerRoutes,
 
     /* ── 개발 전용 가이드 (인증 불필요) ── */
-    ...devRoutes,
+    ...(DevRoutesRoot ? [{ path: '/dev/*', element: <DevRoutesRoot /> }] : []),
 
     {
       path: '*',
