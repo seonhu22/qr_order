@@ -1,7 +1,17 @@
-import { describe, expect, it } from 'vitest';
-import { buildOrderRevisionRequest, mapOrderRevisionCatalog } from './orderRevisionApi';
+import { createElement, type PropsWithChildren } from 'react';
+import { renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, expect, it, vi } from 'vitest';
+import { buildOrderRevisionRequest, mapOrderRevisionCatalog, useOrderRevisionMutation } from './orderRevisionApi';
 import type { OrderBoardRow } from '../types';
 import { getEditableOrdersForTable } from '../utils';
+
+const { useReviseClientOrderMock } = vi.hoisted(() => ({ useReviseClientOrderMock: vi.fn() }));
+
+vi.mock('@/generated/order-manage-controller/order-manage-controller', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useReviseClientOrder: useReviseClientOrderMock,
+}));
 
 const original: OrderBoardRow = {
   id: 'order-2', orderNo: '0002', tableNum: '3', orderStatus: 'RECEIVED', paymentStatus: 'PENDING',
@@ -13,6 +23,19 @@ const original: OrderBoardRow = {
 };
 
 describe('orderRevisionApi mapper', () => {
+  it('오프라인 요청을 자동 대기시키지 않는 mutation 정책을 사용한다', () => {
+    useReviseClientOrderMock.mockReturnValue({ mutateAsync: vi.fn(), isPending: false });
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: PropsWithChildren) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    renderHook(() => useOrderRevisionMutation(), { wrapper });
+
+    expect(useReviseClientOrderMock).toHaveBeenCalledWith({
+      mutation: { networkMode: 'always' },
+    });
+  });
+
   it('maps catalog rules without parsing source sysIds from draft ids', () => {
     const result = mapOrderRevisionCatalog({
       success: true, message: 'ok', data: { categories: [{

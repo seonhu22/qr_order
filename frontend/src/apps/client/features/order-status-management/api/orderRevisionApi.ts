@@ -96,7 +96,9 @@ export function useOrderRevisionCatalogQuery() {
 
 export function useOrderRevisionMutation() {
   const queryClient = useQueryClient();
-  const mutation = useReviseClientOrder();
+  const mutation = useReviseClientOrder({
+    mutation: { networkMode: 'always' },
+  });
 
   const save = async (request: OrderRevisionRequest) => {
     const response = await mutation.mutateAsync({ data: request });
