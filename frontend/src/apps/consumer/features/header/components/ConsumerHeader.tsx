@@ -8,6 +8,7 @@ import { useConsumerStaffCallStore } from '@/apps/consumer/stores/consumerStaffC
 import { CategoryTabs } from '@/apps/consumer/features/order-shell/components/CategoryTabs';
 import { useConsumerMenuMainQuery } from '@/apps/consumer/features/order-shell/api/consumerMenuApi';
 import { useConsumerOrdersQuery } from '@/apps/consumer/features/order-shell/api/consumerOrderApi';
+import { normalizeConsumerOrderStatus } from '@/apps/consumer/features/order-shell/orderStatusMeta';
 import '@/apps/consumer/features/header/styles/ConsumerHeader.css';
 import { useConsumerParticipantStore } from '@/apps/consumer/stores/consumerParticipantStore';
 
@@ -33,7 +34,11 @@ export function ConsumerHeader() {
   const selectedCategory = useConsumerOrderFilterStore((state) => state.selectedCategory);
   const setSelectedCategory = useConsumerOrderFilterStore((state) => state.setSelectedCategory);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const totalOrderedQty = orderList.data?.reduce((sum, order) => sum + order.itemCount, 0) ?? 0;
+  const activeOrderCount =
+    orderList.data?.filter((order) => {
+      const status = normalizeConsumerOrderStatus(order.status);
+      return status === 'RECEIVED' || status === 'COOKING' || status === 'SERVED';
+    }).length ?? 0;
   const requestOrderFailure = useConsumerOrderQaStore((state) => state.requestOrderFailure);
   const requestSessionExpiry = useConsumerOrderQaStore((state) => state.requestSessionExpiry);
   const requestNetworkError = useConsumerOrderQaStore((state) => state.requestNetworkError);
@@ -126,9 +131,9 @@ export function ConsumerHeader() {
           >
             <ConsumerIcon id="ci-receipt" size={12} />
             주문내역
-            {totalOrderedQty > 0 && (
+            {activeOrderCount > 0 && (
               <span className="consumer-header__order-history-badge">
-                {totalOrderedQty > 9 ? '9+' : totalOrderedQty}
+                {activeOrderCount > 9 ? '9+' : activeOrderCount}
               </span>
             )}
           </button>
