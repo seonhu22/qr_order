@@ -24,6 +24,8 @@ export type MenuDetailRow = {
   isNew?: boolean;
   /** 첨부파일 그룹 ID. 첨부파일 API에는 `linkSysId`로 전달한다. */
   fileUlid?: string;
+  /** 화면에서 직접 수정하지 않아도 기존 DB 값을 보존한다. */
+  soldOutYn: 'Y' | 'N';
   values: Record<string, string>;
 };
 

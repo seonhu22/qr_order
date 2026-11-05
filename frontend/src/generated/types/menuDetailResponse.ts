@@ -13,6 +13,7 @@ export interface MenuDetailResponse {
   menuPrice?: number;
   menuDescription?: string;
   optionUseYn?: string;
+  soldOutYn?: string;
   linkSysId2?: string;
   useYn?: string;
   fileUlid?: string;

@@ -40,6 +40,7 @@ describe('menuManagementApi', () => {
         masterId: 'category-1',
         ordNo: 1,
         isNew: true,
+        soldOutYn: 'N',
         values: {
           menuName: '치즈버거',
           menuPrice: '7000',
@@ -55,8 +56,26 @@ describe('menuManagementApi', () => {
     const menuRequestPart = formData.get('menuDetailRequest');
 
     expect(menuRequestPart).toBeInstanceOf(Blob);
-    expect(JSON.parse(await readBlobText(menuRequestPart as Blob))).toEqual(request);
+    const serializedRequest = JSON.parse(await readBlobText(menuRequestPart as Blob));
+    expect(serializedRequest).toEqual(request);
+    expect(serializedRequest.newItems[0].soldOutYn).toBe('N');
     expect(formData.has('newItems[0].menuName')).toBe(false);
+  });
+
+  it('preserves an existing menu sold-out value in the update payload', () => {
+    const original = {
+      id: 'menu-detail-1', sysId: 'menu-detail-1', masterId: 'category-1', ordNo: 1,
+      soldOutYn: 'Y' as const,
+      values: {
+        menuName: '품절 메뉴', menuPrice: '7000', menuDescription: '',
+        optionUseYn: 'N', useYn: 'Y',
+      },
+    };
+    const current = { ...original, values: { ...original.values, menuPrice: '8000' } };
+
+    const request = buildMenuDetailRequest([current], [original]);
+
+    expect((request.updateItems?.[0] as Record<string, unknown>).soldOutYn).toBe('Y');
   });
 
   it('separates the menu request JSON part from attachment fields', async () => {

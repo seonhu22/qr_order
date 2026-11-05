@@ -6,6 +6,7 @@ import htms.QROrder.client.dto.*;
 import htms.QROrder.client.repository.MenuDetailMapper;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.exception.DuplicateException;
+import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.common.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -77,6 +79,10 @@ public class MenuDetailService {
                                     String menuCd) {
 
         newItems.forEach(item -> {
+            if (item.getSoldOutYn() == null || item.getSoldOutYn().isBlank()) {
+                item.setSoldOutYn("N");
+            }
+            requireYn(item.getSoldOutYn(), "품절 여부");
             String ULID = UlidCreator.getMonotonicUlid().toString();
             String fileULID = UlidCreator.getMonotonicUlid().toString();
             item.setSysId(ULID);
@@ -93,6 +99,17 @@ public class MenuDetailService {
                                 String menuCd) {
 
         List<MenuDetailItem> oldData = getOldData(updateItems);
+        Map<String, MenuDetailItem> oldBySysId = oldData.stream()
+                .collect(Collectors.toMap(MenuDetailItem::getSysId, item -> item));
+        updateItems.forEach(item -> {
+            if (item.getSoldOutYn() == null || item.getSoldOutYn().isBlank()) {
+                MenuDetailItem oldItem = oldBySysId.get(item.getSysId());
+                if (oldItem != null) {
+                    item.setSoldOutYn(oldItem.getSoldOutYn());
+                }
+            }
+            requireYn(item.getSoldOutYn(), "품절 여부");
+        });
 
         // auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "store_menu_detail", userId, sysPlantCd);
         menuDetailMapper.updateMenuDetail(updateItems, userId, sysPlantCd, menuCd);
@@ -120,5 +137,11 @@ public class MenuDetailService {
     private List<MenuDetailItem> getOldData(List<MenuDetailItem> qrCodeItem) {
 
         return menuDetailMapper.getOldData(qrCodeItem);
+    }
+
+    private void requireYn(String value, String fieldName) {
+        if (!"Y".equals(value) && !"N".equals(value)) {
+            throw new ValidationException(fieldName + " 값이 올바르지 않습니다.");
+        }
     }
 }

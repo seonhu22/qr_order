@@ -93,6 +93,7 @@ export function mapToMenuDetailRow(menuDetail: MenuDetailResponse): MenuDetailRo
     masterId: menuDetail.linkSysId ?? '',
     ordNo: menuDetail.ordNo ?? 0,
     fileUlid: menuDetail.fileUlid,
+    soldOutYn: menuDetail.soldOutYn === 'Y' ? 'Y' : 'N',
     values: {
       menuName: menuDetail.menuName ?? '',
       menuPrice: menuDetail.menuPrice != null ? String(menuDetail.menuPrice) : '',
@@ -111,6 +112,7 @@ export function mapToMenuDetailPayload(row: MenuDetailRow): MenuDetailItem {
     menuPrice: Number(row.values.menuPrice) || 0,
     menuDescription: row.values.menuDescription ?? '',
     optionUseYn: row.values.optionUseYn ?? 'N',
+    soldOutYn: row.soldOutYn,
     useYn: row.values.useYn ?? 'Y',
     fileUlid: row.fileUlid,
     ordNo: row.ordNo,
@@ -124,6 +126,7 @@ function isSameMenuDetailRow(a: MenuDetailRow, b: MenuDetailRow) {
     a.values.menuPrice === b.values.menuPrice &&
     a.values.menuDescription === b.values.menuDescription &&
     a.values.optionUseYn === b.values.optionUseYn &&
+    a.soldOutYn === b.soldOutYn &&
     a.values.useYn === b.values.useYn &&
     a.ordNo === b.ordNo
   );
