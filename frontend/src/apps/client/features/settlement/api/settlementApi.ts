@@ -7,12 +7,12 @@
  * (백엔드 부호 컨벤션 미확인 — `decisions.md` ADR-013 참고).
  */
 
-import { useGetSettlement } from '@/generated/payment-manage-controller/payment-manage-controller';
+import { useQuery } from '@tanstack/react-query';
 import type { DailySale } from '@/generated/types/dailySale';
-import type { GetSettlementParams } from '@/generated/types/getSettlementParams';
 import type { SettlementResponse } from '@/generated/types/settlementResponse';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
+import { httpClient } from '@/shared/lib/httpClient';
 import type { SettlementRow, SettlementSearchParams, SettlementSummary } from '../types';
 
 /** 테이블 날짜 컬럼은 항상 "YYYY-MM-DD HH:MM" 형식으로 표시한다. groupDate에 시간이 없으면 00:00을 붙인다. */
@@ -47,18 +47,19 @@ export function mapToSettlementRow(item: DailySale, index: number): SettlementRo
 }
 
 export function useSettlementQuery(params: SettlementSearchParams) {
-  const queryParams: GetSettlementParams = {
-    settlementRequest: {
-      searchStartDate: params.startDate,
-      searchEndDate: params.endDate,
-    },
-  };
-
-  return useGetSettlement(queryParams, {
-    query: {
-      queryKey: queryKeys.settlement.detail(params),
-      enabled: Boolean(params.startDate && params.endDate),
-      ...queryPolicies.searchResult,
-    },
+  return useQuery({
+    queryKey: queryKeys.settlement.detail(params),
+    queryFn: ({ signal }) =>
+      httpClient<SettlementResponse>({
+        url: '/api/client/payment_manage/settlement/search',
+        method: 'GET',
+        params: {
+          searchStartDate: params.startDate,
+          searchEndDate: params.endDate,
+        },
+        signal,
+      }),
+    enabled: Boolean(params.startDate && params.endDate),
+    ...queryPolicies.searchResult,
   });
 }
