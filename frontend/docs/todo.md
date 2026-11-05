@@ -98,7 +98,7 @@
 
 ## 주문 수정 오프라인에서 저장 버튼이 무응답처럼 표시됨
 
-- 상태: 보류
+- 상태: 코드 수정 완료/`dev:real` 수동 QA 대기
 - 발견일: 2026-10-21
 - 화면: `/client/order/status/management`
 - 영향: 주문 수정 저장 중 네트워크가 Offline이면 오류 안내 없이 확인 버튼이 흰색 비활성 상태로 멈춘다.
@@ -121,6 +121,14 @@ React Query의 기본 mutation 정책이 오프라인 요청을 실패시키지 
 - draft와 동일한 `clientRequestId`를 유지하고 처리 중 상태를 해제한다.
 - 연결 복구 후 사용자가 직접 다시 저장하게 한다.
 - Online 복구만으로 보류된 수정이 자동 저장되지 않게 한다.
+
+### 수정 결과
+
+- 저장 시 이미 오프라인이면 mutation을 호출하지 않고 연결 오류를 즉시 표시한다.
+- 주문 수정 mutation은 `networkMode: 'always'`를 사용해 React Query의 오프라인 paused 대기열과 자동 재개를 막는다.
+- 정상 통신 중에는 확인 버튼에 로딩 스피너를 표시한다.
+- 실패 시 draft와 동일한 `clientRequestId`를 유지하며, 성공한 뒤에만 초기화하는 기존 흐름을 유지한다.
+- 자동 검증: 주문 수정 훅/API 2개 파일/8개 테스트, typecheck, lint, build 통과
 
 ### 완료 조건
 
