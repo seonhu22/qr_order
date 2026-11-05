@@ -138,6 +138,7 @@ export function useOrderPaymentMutations() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.orderStatusBoard.lists }),
       queryClient.invalidateQueries({ queryKey: queryKeys.paymentStatus.masterLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.settlement.lists }),
     ]);
   };
 

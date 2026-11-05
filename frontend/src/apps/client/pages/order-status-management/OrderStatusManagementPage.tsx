@@ -12,6 +12,7 @@ import './OrderStatusManagementPage.css';
 import { OrderStatusBoard } from '@/apps/client/features/order-status-management/components/OrderStatusBoard';
 import { OrderStatusManagementHeader } from '@/apps/client/features/order-status-management/components/OrderStatusManagementHeader';
 import { ReceiptZigzagEdge } from '@/apps/client/features/order-status-management/components/ReceiptZigzagEdge';
+import { PaymentSubmitError } from '@/apps/client/features/order-status-management/components/PaymentSubmitError';
 import { useOrderStatusBoardPage } from '@/apps/client/features/order-status-management/hooks/useOrderStatusBoardPage';
 import {
   ORDER_BOARD_STATUS_BADGE_CLASS,
@@ -419,6 +420,7 @@ export function OrderStatusManagementPage() {
                   </span>
                 </div>
               </div>
+              <PaymentSubmitError message={paymentModal.submitError} />
             </div>
             <ReceiptZigzagEdge flip />
           </div>
@@ -459,6 +461,7 @@ export function OrderStatusManagementPage() {
               미결제 사유를 정확히 선택한 후 진행해 주세요.
             </p>
           </div>
+          <PaymentSubmitError message={paymentModal.submitError} />
           <SelectInput
             label="미결제사유"
             required

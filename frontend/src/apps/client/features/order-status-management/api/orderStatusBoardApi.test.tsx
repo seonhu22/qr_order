@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { server } from '@/test/server';
+import { queryKeys } from '@/shared/api/queryKeys';
 import { orderStatusHandlers, resetOrderStatusMockStore } from '../mock/orderStatusHandlers';
 import {
   useOrderPaymentMutations,
@@ -153,7 +154,12 @@ describe('orderStatusBoardApi', () => {
         return HttpResponse.json({ success: true });
       }),
     );
-    const { wrapper } = createHarness();
+    const { queryClient, wrapper } = createHarness();
+    const settlementKey = queryKeys.settlement.detail({
+      startDate: '2026-11-01',
+      endDate: '2026-11-05',
+    });
+    queryClient.setQueryData(settlementKey, { totalPrice: 0, dailySales: [] });
     const { result } = renderHook(() => useOrderPaymentMutations(), { wrapper });
 
     await act(async () => {
@@ -165,6 +171,7 @@ describe('orderStatusBoardApi', () => {
       header: { sysId: 'master-001' },
       footer: { totalPrice: 42700 },
     });
+    expect(queryClient.getQueryState(settlementKey)?.isInvalidated).toBe(true);
   });
 
   it('미결제 처리에는 조회한 주문 마스터와 사유를 전송한다', async () => {
