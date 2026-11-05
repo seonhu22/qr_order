@@ -18,7 +18,7 @@ DB migration: 적용 완료
 | 6 | 멱등성 replay/payload 충돌 | 통과 | 사용자 수동 QA/기대값 일치 |
 | 7 | 네트워크 실패 후 재시도 | 부분 통과 | 저장 안전성 통과/오프라인 UX 후속 수정 |
 | 8 | 조회/결제/정산 금액 정합성 | 통과 | 사용자 `dev:real` 수동 QA/결제 목록과 정산 반영 확인 |
-| 9 | PostgreSQL 롤백 검증 | 대기 | DBeaver 실행 필요 |
+| 9 | PostgreSQL 롤백 검증 | 통과 | 사용자 DBeaver 수동 QA/옵션 포함 fixture와 ROLLBACK 확인 |
 | 10 | 동시 요청 | 대기 | 브라우저 세션 2개 필요 |
 | 11 | 기존 기능 회귀 | 대기 | 핵심 경로 재확인 필요 |
 
@@ -133,6 +133,8 @@ DB migration: 적용 완료
 [롤백 전용 SQL](../sql/2026-10-13-order-revision-read-model-qa.sql)을 DBeaver에서 실행한다.
 
 통과 기준: 문서의 기대 결과가 모두 일치하고 마지막 `ROLLBACK` 뒤 QA 데이터가 남지 않는다.
+
+실행 결과 (2026-11-05): 부분 제거 `visible/removed=1/1`, 전체 제거 Consumer header `false`, 옵션 `visible/removed-parent=1/4`, 살아 있는 메뉴 `1건/28,000원`, 주문 수정 취소 `count/amount=1/0`을 확인했다. 마지막 `ROLLBACK` 실행 후 QA revision과 제거 이력 건수가 모두 `0`이므로 QA-9를 통과했다.
 
 ## QA-10 동시 요청
 
