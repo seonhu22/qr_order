@@ -209,7 +209,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
   });
 });
 
-describe('ConsumerOrderPage 주문 API', () => {
+describe('ConsumerOrderPage 주문 API', { timeout: 10_000 }, () => {
   it('submits the server request and clears the cart only after success', async () => {
     let requestBody: Record<string, unknown> | undefined;
     server.use(

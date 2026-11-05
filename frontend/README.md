@@ -200,6 +200,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 - 상태 처리, 401 리다이렉트, 403/404/500 에러 페이지 기준은 [`docs/components/StatusHandling.md`](./docs/components/StatusHandling.md)를 따른다.
 - 검색폼(필터카드)을 새로 만들 때는 `/dev/filter` 가이드와 [`docs/operations/page-patterns.md`](./docs/operations/page-patterns.md)의 날짜range·기간 프리셋·`SelectInput` 규약을 먼저 확인한다.
 - 개발 전용 가이드 라우트는 인증 없이 등록되어 있으므로, 운영 화면 코드와 섞이지 않도록 주의한다.
+- 직원호출 "완료"는 개별 읽음 API가 없어 아직 mock(로컬 전용) 처리다. 배경과 후속 과제는 [`docs/decisions.md`의 ADR-037](./docs/decisions.md#adr-037--헤더-알림01-관리자02-스태프-역할-분기의-직원호출-처리-mock-전용-공유-dismiss로-선행-구현) 참고.
 
 ---
 

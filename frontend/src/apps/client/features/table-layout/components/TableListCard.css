@@ -34,6 +34,12 @@
   cursor: not-allowed;
 }
 
+/* 포커스 색상을 내부시설 목록(FacilityListCard)·버튼과 동일하게 맞춘다 */
+.table-list-card__button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
 .table-list-card__main {
   display: flex;
   align-items: center;

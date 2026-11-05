@@ -9,6 +9,7 @@
  * @module input/TextareaBase
  */
 
+import type { FocusEvent } from 'react';
 import './Input.css';
 import type { TextareaBaseProps } from './types';
 
@@ -25,8 +26,19 @@ export function TextareaBase({
   controlState = '',
   resize = 'none',
   className,
+  readOnly,
+  onFocus,
   ...textareaProps
 }: TextareaBaseProps) {
+  // 읽기 전용 상태는 복사용 — 포커스 시 전체 선택해 바로 Ctrl+C 할 수 있게 한다
+  // (input은 이 동작을 지원하는데 textarea만 빠져 있던 것을 맞춘다).
+  const handleFocus = (event: FocusEvent<HTMLTextAreaElement>) => {
+    if (readOnly) {
+      event.target.select();
+    }
+    onFocus?.(event);
+  };
+
   return (
     <div
       className={`textarea-control${className ? ` ${className}` : ''}`}
@@ -35,6 +47,8 @@ export function TextareaBase({
     >
       <textarea
         {...textareaProps}
+        readOnly={readOnly}
+        onFocus={handleFocus}
         className="textarea-control__textarea"
       />
     </div>

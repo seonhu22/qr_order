@@ -1,5 +1,7 @@
 import '@/apps/client/features/header/styles/ClientHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
+import { ClientNotificationBell } from '@/apps/client/features/notification-center/components/ClientNotificationBell';
+import type { ClientNotificationItem } from '@/apps/client/features/notification-center/types';
 import type { ClientSection } from '@/shared/menu/clientNavigation';
 
 type ClientHeaderProps = {
@@ -9,8 +11,10 @@ type ClientHeaderProps = {
   onSectionChange: (section: ClientSection) => void;
   onToggleSidebar: () => void;
   onHomeClick: () => void;
-  unreadStaffCalls: number;
-  onStaffCallsRead: () => void;
+  notificationItems: ClientNotificationItem[];
+  unseenNotificationCount: number;
+  onNotificationItemClick: (item: ClientNotificationItem) => void;
+  onMarkAllNotificationsRead?: () => void;
 };
 
 export function ClientHeader({
@@ -20,8 +24,10 @@ export function ClientHeader({
   onSectionChange,
   onToggleSidebar,
   onHomeClick,
-  unreadStaffCalls,
-  onStaffCallsRead,
+  notificationItems,
+  unseenNotificationCount,
+  onNotificationItemClick,
+  onMarkAllNotificationsRead,
 }: ClientHeaderProps) {
   return (
     <div className="client-header">
@@ -61,15 +67,12 @@ export function ClientHeader({
           </button>
         ))}
       </nav>
-      <button type="button" className="client-header__staff-call" onClick={onStaffCallsRead}
-        aria-label={`미확인 직원호출 ${unreadStaffCalls}건`}>
-        <Icon id="i-bell" size={18} />
-        {unreadStaffCalls > 0 && (
-          <span className="client-header__staff-call-badge">
-            {unreadStaffCalls > 99 ? '99+' : unreadStaffCalls}
-          </span>
-        )}
-      </button>
+      <ClientNotificationBell
+        items={notificationItems}
+        unseenCount={unseenNotificationCount}
+        onItemClick={onNotificationItemClick}
+        onMarkAllRead={onMarkAllNotificationsRead}
+      />
     </div>
   );
 }

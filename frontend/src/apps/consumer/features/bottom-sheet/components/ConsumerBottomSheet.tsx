@@ -21,7 +21,7 @@ const SWIPE_DOWN_CLOSE_THRESHOLD = 70;
 const FOCUSABLE_SELECTOR = [
   'input:not([disabled]):not([readonly])',
   'select:not([disabled])',
-  'textarea:not([disabled])',
+  'textarea:not([disabled]):not([readonly])',
   'button:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');

@@ -283,12 +283,18 @@
   align-items: center;
   justify-content: center;
   border: none;
+  border-radius: var(--radius-sm);
   background: transparent;
   padding: 0;
   cursor: pointer;
   color: var(--color-text-tertiary);
   transition: color var(--transition-ui);
   pointer-events: auto; /* 부모 슬롯의 pointer-events: none 을 override */
+}
+
+.input-pw-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
 }
 
 .input-pw-toggle:hover {

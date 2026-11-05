@@ -44,3 +44,13 @@ export function getAuthUserDisplayName(user: AuthUserLike, fallback = '사용자
 export function getAuthUserRoleLabel(user: AuthUserLike, fallback = '사용자') {
   return getStringField(user, ['role', 'userRole', 'sysPlantCd']) ?? fallback;
 }
+
+/**
+ * Client 앱 내 관리자('01')/스태프('02') 구분. `/api/auth/me`의 staffRole 필드 기준.
+ * @param user - 사용자 객체
+ * @returns '01' | '02' | undefined (staffRole이 없거나 다른 값이면 undefined)
+ */
+export function getAuthUserStaffRole(user: AuthUserLike): '01' | '02' | undefined {
+  const value = getStringField(user, ['staffRole']);
+  return value === '01' || value === '02' ? value : undefined;
+}

@@ -51,6 +51,20 @@
   color: var(--color-text-secondary);
 }
 
+/* 버튼 자체가 원형(--radius-full)이라 outline/box-shadow를 바로 쓰면 포커스 링도 둥글게 나온다.
+   네모 링을 보장하려고 버튼과 별개로 각진(--radius-sm) ::after를 띄운다. */
+.custom-facility-placed-card__remove:focus-visible {
+  outline: none;
+}
+
+.custom-facility-placed-card__remove:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: -0.1875rem;
+  border: 0.125rem solid var(--color-brand-default);
+  border-radius: var(--radius-sm);
+}
+
 /* 작게 */
 .custom-facility-placed-card--small {
   min-height: 3.5rem;

@@ -32,6 +32,18 @@
   touch-action: none;
 }
 
+/* 포커스 색상을 버튼(Button.css)과 동일하게 맞춘다 — outline 대신 box-shadow 링 */
+.table-layout-canvas__item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-brand);
+}
+
+/* 스페이스/엔터로 "잡은"(드래그 중) 상태는 옅은 포커스 링 대신 진한 브랜드색으로 또렷하게 보여준다.
+   isDragging은 키보드 드래그(KeyboardSensor)·마우스 드래그 양쪽에서 동일하게 true가 된다. */
+.table-layout-canvas__item--dragging:focus-visible {
+  box-shadow: 0 0 0 0.1875rem var(--color-brand-default);
+}
+
 .table-layout-canvas__item--resizable {
   display: flex;
 }
@@ -69,6 +81,31 @@
   height: var(--spacing-2);
   border-right: var(--border-2) solid var(--color-border-default);
   border-bottom: var(--border-2) solid var(--color-border-default);
+}
+
+/* 포커스 시 모서리 화살표도 링과 같은 브랜드색으로 바꿔서 리사이즈 아이콘임을 더 또렷하게 보여준다 */
+.table-layout-canvas__resize-handle:focus-visible::after {
+  border-right-color: var(--color-brand-default);
+  border-bottom-color: var(--color-brand-default);
+}
+
+/* 이동은 포커스 → Space/Enter로 "잡기"를 거친 뒤에야 실제로 움직이지만, 리사이즈는 포커스된 상태에서
+   방향키를 누르면 바로 크기가 바뀐다. 중간 단계가 없어서 처음부터 진한 색으로 표시한다.
+   히트 영역(44px)은 터치 타겟 확보를 위해 그대로 두고, 시각적 링만 모서리 쪽 작은 ::before로 따로 그려서
+   라벨 텍스트를 덮는 범위를 넓히지 않는다. */
+.table-layout-canvas__resize-handle:focus-visible {
+  outline: none;
+}
+
+.table-layout-canvas__resize-handle:focus-visible::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 0.1875rem var(--color-brand-default);
 }
 
 .table-layout-canvas__item--table-example {

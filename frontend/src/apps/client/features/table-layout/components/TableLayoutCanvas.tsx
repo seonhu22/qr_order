@@ -1,5 +1,5 @@
 import './TableLayoutCanvas.css';
-import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { useRef, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Button } from '@/shared/components/button';
 import { Icon } from '@/shared/assets/icons/Icon';
@@ -20,6 +20,16 @@ type ResizeHandleProps = {
   width: number;
   height: number;
   onResize: (width: number, height: number) => void;
+};
+
+/** 방향키 1회에 조절되는 크기(px) — 72~280(너비)/40~160(높이) 범위에서 충분히 촘촘하면서도 빠르게 끝까지 갈 수 있는 값. */
+const RESIZE_KEY_STEP = 8;
+
+const RESIZE_KEY_DELTAS: Record<string, [number, number]> = {
+  ArrowRight: [RESIZE_KEY_STEP, 0],
+  ArrowLeft: [-RESIZE_KEY_STEP, 0],
+  ArrowDown: [0, RESIZE_KEY_STEP],
+  ArrowUp: [0, -RESIZE_KEY_STEP],
 };
 
 function ResizeHandle({ width, height, onResize }: ResizeHandleProps) {
@@ -43,12 +53,27 @@ function ResizeHandle({ width, height, onResize }: ResizeHandleProps) {
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    // 부모 배치 아이템(.table-layout-canvas__item)도 KeyboardSensor로 Enter/Space(잡기)·방향키를
+    // 전부 듣고 있어서, 방향키가 아닌 키(Enter/Space 등)를 여기서 걸러내기 전에 먼저 멈추지 않으면
+    // 리사이즈 핸들에 포커스가 있는 채로 Enter/Space를 눌러도 부모의 "잡기"(이동)로 새 버블링된다.
+    event.stopPropagation();
+    const delta = RESIZE_KEY_DELTAS[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    onResize(clampSize(width + delta[0], 'width'), clampSize(height + delta[1], 'height'));
+  };
+
   return (
     <div
       className="table-layout-canvas__resize-handle"
+      role="button"
+      tabIndex={0}
+      aria-label="크기 조절, 방향키로 조절"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onKeyDown={handleKeyDown}
     />
   );
 }
@@ -88,7 +113,7 @@ function PlacedItemView({ item, layoutSize, disabled, onRemove, onResizeFacility
   return (
     <div
       ref={setNodeRef}
-      className={`table-layout-canvas__item${isFacility ? ' table-layout-canvas__item--resizable' : ''}`}
+      className={`table-layout-canvas__item${isFacility ? ' table-layout-canvas__item--resizable' : ''}${isDragging ? ' table-layout-canvas__item--dragging' : ''}`}
       style={style}
       {...attributes}
       {...listeners}

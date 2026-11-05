@@ -25,6 +25,7 @@ export function TablePlacedCard({ index, name, seatCount, size, onRemove }: Tabl
           className="table-placed-card__remove"
           aria-label={`${name} 삭제`}
           onClick={onRemove}
+          onKeyDown={(event) => event.stopPropagation()}
         >
           ×
         </button>

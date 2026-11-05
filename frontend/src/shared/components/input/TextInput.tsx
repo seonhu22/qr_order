@@ -135,7 +135,6 @@ export function TextInput({
     rightSlot = (
       <button
         type="button"
-        tabIndex={-1}
         className="input-pw-toggle"
         onClick={() => setShowPw((prev) => !prev)}
         aria-label={showPw ? '비밀번호 숨기기' : '비밀번호 표시'}

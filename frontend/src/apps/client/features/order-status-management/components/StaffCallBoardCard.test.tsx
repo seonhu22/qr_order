@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { StaffCallBoardCard } from './StaffCallBoardCard';
 
+vi.mock('../hooks/useFadeOutExit', () => ({
+  useFadeOutExit: () => ({ current: null }),
+}));
+
 const row = {
   id: 'MASTER-1',
   tableNum: '3',
@@ -23,5 +27,15 @@ describe('StaffCallBoardCard', () => {
   it('완료 실패 메시지를 카드 안에 표시한다', () => {
     render(<StaffCallBoardCard row={row} onComplete={vi.fn()} error="완료 처리 실패" />);
     expect(screen.getByRole('alert')).toHaveTextContent('완료 처리 실패');
+  });
+
+  it('API 성공으로 목록에서 제거되는 동안 퇴장 상태를 표시한다', () => {
+    const { container } = render(
+      <StaffCallBoardCard row={row} onComplete={vi.fn()} isLeaving />,
+    );
+
+    const card = container.querySelector('article');
+    expect(card).toHaveClass('order-status-card--leaving');
+    expect(card).toHaveAttribute('aria-hidden', 'true');
   });
 });

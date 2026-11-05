@@ -2,11 +2,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
+  margin-bottom: var(--spacing-6);
   padding: var(--spacing-10);
   border: var(--border-1) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-surface);
   box-shadow: var(--shadow-card);
+}
+
+.order-status-card:last-child {
+  margin-bottom: 0;
 }
 
 /* 상태 변경 버튼 클릭으로 이동한 카드를 잠깐 강조해 어떤 카드가 움직였는지 알려준다 */
@@ -21,6 +26,12 @@
 
 .order-status-card--moved {
   animation: order-status-card-flash 1.2s ease-out;
+}
+
+/* 보드에서 빠지는 카드 — 애니메이션 자체는 useFadeOutExit이 Web Animations API로 처리한다.
+   페이드아웃이 끝나면 즉시 행이 치워지고, 그 다음 재배치는 애니메이션 없이 바로 일어난다. */
+.order-status-card--leaving {
+  pointer-events: none;
 }
 
 .order-status-card__top-row {

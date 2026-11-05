@@ -2,6 +2,8 @@ import './OrderStatusCard.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { Button } from '@/shared/components/button';
 import { calculateOrderTotal, formatOrderBoardPrice, formatOrderBoardTime } from '../utils';
+import { useFadeOutExit } from '../hooks/useFadeOutExit';
+import { useDelayedPending } from '../hooks/useDelayedPending';
 import type { OrderBoardCardActions, OrderBoardRow } from '../types';
 
 type OrderStatusCardProps = {
@@ -10,19 +12,30 @@ type OrderStatusCardProps = {
   isMoved: boolean;
   isPending: boolean;
   mutationError?: string;
+  isLeaving?: boolean;
+  onExited?: () => void;
 };
 
-export function OrderStatusCard({ row, actions, isMoved, isPending, mutationError }: OrderStatusCardProps) {
+export function OrderStatusCard({ row, actions, isMoved, isPending, mutationError, isLeaving, onExited }: OrderStatusCardProps) {
+  const fadeRef = useFadeOutExit(isLeaving, onExited);
+  const showLoading = useDelayedPending(isPending);
+
   const cardClassName = [
     'order-status-card',
     `order-status-card--${row.orderStatus.toLowerCase()}`,
     isMoved ? 'order-status-card--moved' : '',
+    isLeaving ? 'order-status-card--leaving' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <article className={cardClassName} aria-busy={isPending || undefined}>
+    <article
+      ref={fadeRef}
+      className={cardClassName}
+      aria-busy={isPending || undefined}
+      aria-hidden={isLeaving || undefined}
+    >
       <div className="order-status-card__top-row">
         <span className="order-status-card__order-no">
           #{row.orderNo} <span className="order-status-card__field-label">(주문번호)</span>
@@ -65,7 +78,7 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
       <div className="order-status-card__actions">
         {row.orderStatus === 'RECEIVED' && (
           <>
-            <Button variant="primary" size="sm" loading={isPending} onClick={() => actions.onStartCooking(row.id)}>
+            <Button variant="primary" size="sm" loading={showLoading} disabled={isPending} onClick={() => actions.onStartCooking(row.id)}>
               조리시작
             </Button>
             <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onEdit(row)}>
@@ -78,7 +91,7 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
         )}
         {row.orderStatus === 'COOKING' && (
           <>
-            <Button variant="primary" size="sm" loading={isPending} onClick={() => actions.onServe(row.id)}>
+            <Button variant="primary" size="sm" loading={showLoading} disabled={isPending} onClick={() => actions.onServe(row.id)}>
               서빙완료
             </Button>
             <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onMoveBack(row.id)}>
@@ -97,7 +110,7 @@ export function OrderStatusCard({ row, actions, isMoved, isPending, mutationErro
             <Button variant="primary" size="sm" disabled={isPending} onClick={() => actions.onPay(row)}>
               결제처리
             </Button>
-            <Button variant="outline" size="sm" loading={isPending} onClick={() => actions.onMoveBack(row.id)}>
+            <Button variant="outline" size="sm" loading={showLoading} disabled={isPending} onClick={() => actions.onMoveBack(row.id)}>
               이전
             </Button>
             <Button variant="outline" size="sm" disabled={isPending} onClick={() => actions.onCancel(row)}>

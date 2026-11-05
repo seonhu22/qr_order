@@ -164,6 +164,14 @@ mock에는 `getPayableOrdersForTable` 동작을 1건/2건/3건 묶음 모두 확
 
 > 추가일: 2026-06-30
 
+### 카드 퇴장(제거) 애니메이션
+
+컬럼에서 카드가 빠질 때(결제/취소/완료 또는 다른 컬럼으로 이동) `useFadeOutExit`(`hooks/useFadeOutExit.ts`)이 페이드아웃(400ms) 후 실제로 행을 치운다. 높이/마진까지 접어 형제 카드를 밀어올리는 방식(FLIP)도 시도했으나 카드가 많을 때 레이아웃 재계산 비용이 커서 더 단순한 페이드아웃만 남겼다 — 재배치는 애니메이션 없이 즉시 일어난다.
+
+`OrderStatusCard`/`StaffCallBoardCard`는 `React.memo`로 감싸고, 이미 사라지는 중(`isLeaving`)이면 다른 prop이 바뀌어도 더 리렌더하지 않는다 — 뮤테이션 성공 직후 로딩 스피너가 사라지는 리렌더가 페이드 도중에 끼어들어 깜빡이는 걸 막는다. `useFadeOutExit`이 정리용으로 `getAnimations().forEach(cancel)`을 호출할 때 `CSSAnimation`(예: `--moved` 강조)은 걸러내고 건드리지 않는다.
+
+버튼 로딩 스피너는 `useDelayedPending`(지연 300ms + 최소 표시 300ms)을 거친다 — 응답이 빨리 오면 스피너가 한 번도 안 뜨고 지나간다.
+
 ### 태블릿 반응형 (1200px 이하)
 
 뷰포트가 아니라 `client-layout__main`(사이드바 옆 콘텐츠 영역, `ClientLayout.css`) 컨테이너 폭 기준이다 — `@container client-main (max-width: 1200px)`(`OrderStatusBoard.css`, `OrderStatusCard.css`). 사이드바가 열려 있으면 줄어드는 실제 콘텐츠 폭을 그대로 따라가므로, 사이드바 열림/닫힘과 무관하게 항상 같은 기준으로 동작한다. 배경은 [`docs/decisions.md` ADR-016](./decisions.md#adr-016--태블릿-반응형-기준-뷰포트-대신-메인-컨테이너client-layout-기준) 참고.

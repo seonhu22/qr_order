@@ -54,7 +54,7 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
     if (e.target !== e.currentTarget) {
       return;
     }
-    if (e.key === 'Enter' && !isDisabled) {
+    if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
       e.preventDefault();
       onSelect(node.id);
     }
@@ -69,6 +69,7 @@ export function TreeItem<T>({ node, depth, isLastSibling, lines }: TreeItemProps
     <>
       <tr
         className={rowClass}
+        role="button"
         onClick={handleRowClick}
         onKeyDown={handleKeyDown}
         aria-selected={isSelected}

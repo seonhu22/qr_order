@@ -2,6 +2,7 @@ import './OrderStatusColumn.css';
 import { Button } from '@/shared/components/button';
 import { FeedbackState } from '@/shared/components/feedback';
 import { StaffCallBoardCard } from './StaffCallBoardCard';
+import { useExitAnimatedRows } from '../hooks/useExitAnimatedRows';
 import type { StaffCallBoardRow } from '../types';
 
 type StaffCallBoardColumnProps = {
@@ -27,6 +28,7 @@ export function StaffCallBoardColumn({
   isError,
   onRetry,
 }: StaffCallBoardColumnProps) {
+  const { renderedRows, handleExited } = useExitAnimatedRows(rows);
   return (
     <section className="order-status-column order-status-column--staffcall" aria-label="직원호출 컬럼">
       <div className="order-status-column__panel">
@@ -46,16 +48,18 @@ export function StaffCallBoardColumn({
             >
               <Button variant="outline" size="sm" onClick={onRetry}>다시 시도</Button>
             </FeedbackState>
-          ) : rows.length === 0 ? (
+          ) : renderedRows.length === 0 ? (
             <p className="order-status-column__empty">직원호출이 없습니다.</p>
           ) : (
-            rows.map((row) => (
+            renderedRows.map(({ row, isLeaving }) => (
               <StaffCallBoardCard
                 key={row.id}
                 row={row}
                 onComplete={onComplete}
                 isPending={pendingIds.has(row.id)}
                 error={errors.get(row.id)}
+                isLeaving={isLeaving}
+                onExited={() => handleExited(row.id)}
               />
             ))
           )}

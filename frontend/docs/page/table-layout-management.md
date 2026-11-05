@@ -60,6 +60,32 @@ dnd-kit은 드래그가 끝나면 라이브 드래그용 `transform`(`useDraggab
 >
 > 이 z-index가 캔버스 전체 기준으로 비교되면, 서로 다른 두 배치 아이템(`.table-layout-canvas__item`)이 캔버스 위에서 겹칠 때 한쪽의 삭제 버튼(z-index: 2)이 다른 아이템의 카드 전체보다 위로 떠 보이는 문제가 있었다. `.table-layout-canvas__item`에 `isolation: isolate`를 줘서 z-index 비교가 그 아이템 내부로만 한정되게 했다 — 아이템 간 쌓임 순서는 기존처럼 DOM 순서(드래그 중인 아이템만 `zIndex: 10`)를 그대로 따른다.
 
+## 키보드 접근성
+
+> 추가일: 2026-10-12
+
+마우스 없이 키보드만으로 배치·리사이즈까지 가능하도록 `@dnd-kit/core`의 `KeyboardSensor`를 추가했다(`TableLayoutPage.tsx`, 기존 `PointerSensor`와 함께 등록). 동작은 dnd-kit 기본 키보드 드래그 패턴 그대로다.
+
+1. Tab으로 배치 아이템에 포커스
+2. Space/Enter로 "잡기"(드래그 시작)
+3. 방향키로 25px씩 이동 — 캔버스 자동 스크롤도 같이 따라간다(`autoScrollEnabled`, 포인터 드래그와 같은 로직을 그대로 재사용)
+4. Space/Enter/Tab으로 "놓기", Esc로 취소(원위치 복귀)
+
+사이드바(`FacilityListCard`/`TableListCard`)와 배치 크기 세그먼트 버튼의 공용 패턴은 [`docs/components.md` §15](../components.md#15-커스텀-인터랙티브-요소-키보드-접근성) 참고. 아래는 이 화면에서만 나온 이슈다.
+
+### 자식 요소의 키 입력이 부모의 "잡기"로 새는 문제
+
+배치 아이템(`.table-layout-canvas__item`)에 dnd-kit 키보드 리스너가 달려있어서, 그 안의 삭제(×) 버튼이나 리사이즈 핸들에 포커스가 있는 상태로 아무 키나 누르면 처리하지 않은 키 입력이 그대로 부모로 버블링돼 "잡기"로 오인된다. 두 요소 모두 실제로 이 문제를 겪었다.
+
+- **삭제 버튼**(`TablePlacedCard`/`FacilityPlacedCard`/`CustomFacilityPlacedCard`): `onKeyDown={(e) => e.stopPropagation()}`로 모든 키 입력을 무조건 막는다(버튼 자체는 네이티브 Enter/Space 클릭 동작을 그대로 쓰므로 추가 처리가 필요 없다).
+- **리사이즈 핸들**(`ResizeHandle`, `TableLayoutCanvas.tsx`): 방향키만 크기를 바꾸면 되는데, 처음엔 `if (!delta) return` 뒤에 `stopPropagation()`을 호출해서 Enter/Space가 그대로 새어나가 부모가 "잡기" 상태(`--dragging`)로 바뀌는 회귀가 있었다. **`stopPropagation()`은 키 종류를 판별하기 전에 무조건 먼저** 호출해야 한다.
+
+### 리사이즈 핸들 — 히트 영역과 포커스 링 분리
+
+히트 영역(`.table-layout-canvas__resize-handle`, 44px, 터치 타겟)은 그대로 두고, 시각적 포커스 링만 `::before`(20px, 모서리 쪽)로 작게 따로 그린다 — small 사이즈 카드에서는 44px 히트 영역이 라벨 텍스트와 겹치는데, 포커스 링까지 44px로 같이 뜨면 텍스트를 가려서다.
+
+이동은 포커스(흐린 링, `--focus-ring-brand`) → 잡기(진한 `--color-brand-default`) 2단계지만, 리사이즈는 중간 "잡기" 단계 없이 포커스된 채로 방향키를 누르면 바로 반영되므로 포커스 즉시 진한 색으로 보여준다. 모서리 화살표(`::after`)도 포커스 시 같은 색으로 바뀐다.
+
 ## 좌표 모델
 
 배치 아이템(`PlacedItem` = `PlacedTableItem | PlacedFacilityItem | PlacedCustomFacilityItem`, `types.ts` — 뒤 둘을 합쳐 `PlacedNonTableItem`으로도 부른다)은 캔버스 컨테이너 기준 절대 px(`x`, `y`, `width`, `height`)로 저장한다. 백엔드 `table_gui`가 `x_coordinate`/`y_coordinate`/`height`/`width`를 정수 px로 그대로 저장하는 컬럼이라, 비율(%) 변환 없이 1:1로 맞춘 것이다.

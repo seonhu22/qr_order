@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ConsumerIcon } from '@/apps/consumer/shared/icons/ConsumerIcon';
 import { useConsumerStaffCallStore } from '@/apps/consumer/stores/consumerStaffCallStore';
 import './StaffCallToast.css';
@@ -18,32 +18,57 @@ export function StaffCallToast() {
 
   const [shouldRender, setShouldRender] = useState(called);
   const [isClosing, setIsClosing] = useState(false);
-  const [prevCalled, setPrevCalled] = useState(called);
 
-  if (called !== prevCalled) {
-    setPrevCalled(called);
+  const toastRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
-    if (called) {
-      setShouldRender(true);
-      setIsClosing(false);
-    } else if (shouldRender) {
+  // 토스트는 뜰 때 포커스를 뺏지 않는(수동적 알림) 대신, 뜬 시점의 포커스를 기록해 둔다 —
+  // 사용자가 직접 닫기 버튼에 Tab으로 들어온 채 자동 소멸되면 그 기록으로 포커스를 되돌리기 위함
+  // (ConsumerBottomSheet와 같은 복원 기법, 다만 토스트는 애초에 포커스를 가둬두지 않아 조건부로만 복원한다).
+  useEffect(() => {
+    if (shouldRender) {
+      previouslyFocusedRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
+  }, [shouldRender]);
+
+  const closeToast = useCallback(() => {
+    if (toastRef.current?.contains(document.activeElement)) {
+      const previouslyFocused = previouslyFocusedRef.current;
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    }
+    setShouldRender(false);
+  }, []);
+
+  useEffect(() => {
+    const syncTimer = window.setTimeout(() => {
+      if (called) {
+        setShouldRender(true);
+        setIsClosing(false);
+        return;
+      }
+      if (!shouldRender) return;
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReducedMotion) {
-        setShouldRender(false);
+        closeToast();
       } else {
         setIsClosing(true);
       }
-    }
-  }
+    }, 0);
+
+    return () => window.clearTimeout(syncTimer);
+  }, [called, closeToast, shouldRender]);
 
   if (!shouldRender) return null;
 
   return (
     <div
+      ref={toastRef}
       className={`staff-call-toast${isClosing ? ' staff-call-toast--closing' : ''}`}
       role="status"
       onAnimationEnd={() => {
-        if (isClosing) setShouldRender(false);
+        if (isClosing) closeToast();
       }}
     >
       <div className="staff-call-toast__icon">
