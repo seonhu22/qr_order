@@ -32,7 +32,8 @@ import FileAttachmentGuide from './FileAttachmentGuide';
 
 const devRoutes = [
   {
-    path: '/dev',
+    // AppRoutes의 `/dev/*` 아래에서 실행되므로 여기서는 부모 기준 상대 경로를 사용한다.
+    path: '/',
     element: <DevLayout />,
     children: [
       /* /dev 진입 시 첫 가이드로 리다이렉트 */

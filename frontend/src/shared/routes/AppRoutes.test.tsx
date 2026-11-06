@@ -111,6 +111,14 @@ describe('AppRoutes auth redirect', () => {
     expect(await screen.findByRole('heading', { name: '클라이언트 메인' })).toBeInTheDocument();
   });
 
+  it('renders a development guide through the lazy dev route boundary', async () => {
+    renderRoutes('/dev/modal');
+
+    expect(
+      await screen.findByRole('heading', { name: 'WrapperModal Guide' }, { timeout: 5_000 }),
+    ).toBeInTheDocument();
+  });
+
   it('keeps the client signup step mounted while auth state is loading', () => {
     const { rerenderWithAuth } = renderRoutes('/client/login');
 

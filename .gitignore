@@ -98,3 +98,6 @@ frontend/.env.local
 
 ### 오케스트레이션 예시 파일 공유 ###
 .orchestra/sessions
+
+### 로컬 브라우저 QA 실행 기록 ###
+.gstack/
