@@ -5,12 +5,14 @@ type ConsumerMenuImageProps = {
   imageUrl?: string;
   imageClassName: string;
   fallbackIconSize: number;
+  loading?: 'eager' | 'lazy';
 };
 
 export function ConsumerMenuImage({
   imageUrl,
   imageClassName,
   fallbackIconSize,
+  loading = 'lazy',
 }: ConsumerMenuImageProps) {
   const [failedUrl, setFailedUrl] = useState<string>();
   const canShowImage = imageUrl && imageUrl !== failedUrl;
@@ -30,6 +32,8 @@ export function ConsumerMenuImage({
       src={imageUrl}
       alt=""
       className={imageClassName}
+      loading={loading}
+      decoding="async"
       onError={() => setFailedUrl(imageUrl)}
     />
   );

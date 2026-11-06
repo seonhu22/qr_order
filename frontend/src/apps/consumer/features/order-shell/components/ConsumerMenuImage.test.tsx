@@ -23,11 +23,26 @@ describe('ConsumerMenuImage', () => {
 
     const image = container.querySelector('img');
     expect(image).toHaveAttribute('src', '/api/client/consumer/menu/m1/image');
+    expect(image).toHaveAttribute('loading', 'lazy');
+    expect(image).toHaveAttribute('decoding', 'async');
 
     fireEvent.error(image!);
 
     expect(container.querySelector('img')).not.toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
+  });
+
+  it('즉시 보여야 하는 이미지는 eager 로딩을 선택할 수 있다', () => {
+    const { container } = render(
+      <ConsumerMenuImage
+        imageUrl="/api/client/consumer/menu/m1/image"
+        imageClassName="menu-image"
+        fallbackIconSize={20}
+        loading="eager"
+      />,
+    );
+
+    expect(container.querySelector('img')).toHaveAttribute('loading', 'eager');
   });
 
   it('이미지 URL이 바뀌면 새 URL을 다시 로드한다', () => {

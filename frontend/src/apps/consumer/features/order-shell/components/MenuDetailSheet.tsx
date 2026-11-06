@@ -53,6 +53,7 @@ export function MenuDetailSheet({
           imageUrl={item.imageUrl}
           imageClassName="menu-detail-sheet__image"
           fallbackIconSize={32}
+          loading="eager"
         />
       </div>
 
