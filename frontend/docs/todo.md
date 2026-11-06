@@ -29,12 +29,15 @@
 
 ### 초기 JavaScript 번들 분할
 
-- 상태: 보류
+- 상태: 완료 (자동 검증/브라우저 QA 통과, 2026-11-06)
 - 발견일: 2026-10-22
 - 근거: `npm run build`는 성공했지만 minification 후 500kB를 넘는 chunk 경고가 발생했다.
-- 권장 조사: 번들 분석으로 큰 의존성과 앱별 초기 진입 코드를 확인한 뒤 Client/Admin/Consumer 라우트 단위 `dynamic import`를 우선 검토한다.
-- 주의: `build.chunkSizeWarningLimit`만 높여 경고를 숨기지 않는다.
-- 완료 조건: 초기 다운로드와 실행 비용이 실제 측정에서 감소하고 typecheck, lint, test, build가 통과한다.
+- 수정: Client/Admin 페이지를 라우트 단위로 지연 로드하고 개발 가이드는 운영 번들에서 제외했다. 청크 로드 실패 시 복구 화면도 추가했다.
+- 측정: 초기 JavaScript 청크가 `1,072.54kB`에서 `423.90kB`로 감소했고 500kB 경고가 사라졌다.
+- 자동 검증: typecheck, lint, build와 전체 142개 파일/612개 테스트 통과
+- 브라우저 QA: `/dev/modal`, `/dev/table` 직접 진입 렌더링 확인. QA 중 발견한 중첩 경로 빈 화면은 상대 경로와 회귀 테스트로 수정했다.
+- 커밋: `e97c243e` (번들 분할), `60d83fd6` (개발 라우트 복구)
+- 상세 기록: [중첩 개발 라우트 직접 진입 시 빈 화면](../../docs/solutions/ui-bugs/nested-dev-route-empty-root-2026-11-06.md)
 
 ### 메뉴 이미지 전송 최적화
 
