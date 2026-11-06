@@ -4,9 +4,11 @@
 
 ## 메뉴 이미지 전송 최적화
 
-- 상태: 보류
+- 상태: 1단계 완료/이미지 크기 계약 대기 (2026-11-06)
 - 발견일: 2026-10-22
-- 현재 근거: `ConsumerMenuImage.tsx`의 `<img>`는 단일 `src`와 오류 fallback만 사용하며 `srcSet`, `sizes`, `loading`, `decoding`을 지정하지 않는다.
-- 권장 조사: 화면별 실제 표시 크기와 원본 이미지 용량을 측정하고, 서버/CDN이 복수 크기 이미지를 제공할 수 있는지 먼저 확인한다.
-- 구현 후보: 목록 이미지는 `loading="lazy"`와 `decoding="async"`, 첫 화면 핵심 이미지는 우선순위를 별도 적용하고, 복수 크기 URL 계약이 생기면 `srcSet`과 `sizes`를 추가한다.
-- 완료 조건: 깨진 이미지 fallback과 캐시 갱신을 유지하면서 전송량 및 LCP가 개선되고 모바일/고해상도 화면에서 화질 회귀가 없다.
+- 1단계 결과: 목록 이미지는 `loading="lazy"`/`decoding="async"`, 상세 시트 이미지는 `loading="eager"`/`decoding="async"`를 사용한다.
+- 유지 계약: 기존 단일 `src`, `?v=fileSysId` 캐시 갱신, 오류 fallback, 온라인 복귀 재시도를 유지한다.
+- 자동 검증: 이미지 컴포넌트 5개 테스트와 typecheck, lint, 전체 142개 파일/613개 테스트, build 통과
+- 브라우저 확인: mock Consumer 화면/fallback은 정상이다. 작은 목록은 브라우저의 lazy-load 사전 거리 안에 들어 이미지 요청이 모두 시작돼 전송량 감소는 확인하지 못했다.
+- 남은 결정: 서버/CDN이 썸네일/상세용 복수 크기 이미지 URL과 포맷 협상을 제공할지 확정한다.
+- 다음 완료 조건: 독립된 서버 계약으로 `srcSet`/`sizes`를 연결하고 실제 이미지 응답이 있는 `dev:real`에서 전송량/LCP/화질을 비교한다.
