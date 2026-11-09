@@ -46,14 +46,19 @@ export function useGuardedNavigate() {
   const clearPendingLeaveAction = usePreventLeaveStore((s) => s.clearPendingLeaveAction);
 
   // 메뉴/홈 이동: dirty가 아니면 즉시 이동 + onNavigate 실행, dirty면 확인 모달 대기
-  const guardedNavigate = (to: To, options?: NavigateOptions, onNavigate?: () => void) => {
+  const guardedNavigate = (
+    to: To,
+    options?: NavigateOptions,
+    onNavigate?: () => void,
+    onCancel?: () => void,
+  ) => {
     if (!isDirty) {
       navigate(to, options);
       onNavigate?.();
       return;
     }
 
-    setPendingLeaveAction({ type: 'navigate', to, options, onNavigate });
+    setPendingLeaveAction({ type: 'navigate', to, options, onNavigate, onCancel });
   };
 
   // 로그아웃 등 navigate가 아닌 액션: dirty가 아니면 즉시 실행, dirty면 확인 모달 대기
@@ -87,6 +92,9 @@ export function useGuardedNavigate() {
 
   // 확인 모달에서 "취소" 클릭 시: 경로/dirty 상태를 그대로 두고 보류 액션만 제거
   const cancelPendingLeaveAction = () => {
+    if (pendingLeaveAction?.type === 'navigate') {
+      pendingLeaveAction.onCancel?.();
+    }
     clearPendingLeaveAction();
   };
 

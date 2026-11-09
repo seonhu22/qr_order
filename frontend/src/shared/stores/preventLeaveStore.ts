@@ -13,7 +13,13 @@ import type { NavigateOptions, To } from 'react-router-dom';
 import { create } from 'zustand';
 
 export type PendingLeaveAction =
-  | { type: 'navigate'; to: To; options?: NavigateOptions; onNavigate?: () => void }
+  | {
+      type: 'navigate';
+      to: To;
+      options?: NavigateOptions;
+      onNavigate?: () => void;
+      onCancel?: () => void;
+    }
   | {
       type: 'custom';
       title?: string;

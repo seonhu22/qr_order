@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import '@/apps/client/features/header/styles/ClientHeader.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { ClientNotificationBell } from '@/apps/client/features/notification-center/components/ClientNotificationBell';
@@ -15,6 +16,7 @@ type ClientHeaderProps = {
   unseenNotificationCount: number;
   onNotificationItemClick: (item: ClientNotificationItem) => void;
   onMarkAllNotificationsRead?: () => void;
+  notificationTriggerRef?: RefObject<HTMLButtonElement | null>;
 };
 
 export function ClientHeader({
@@ -28,6 +30,7 @@ export function ClientHeader({
   unseenNotificationCount,
   onNotificationItemClick,
   onMarkAllNotificationsRead,
+  notificationTriggerRef,
 }: ClientHeaderProps) {
   return (
     <div className="client-header">
@@ -72,6 +75,7 @@ export function ClientHeader({
         unseenCount={unseenNotificationCount}
         onItemClick={onNotificationItemClick}
         onMarkAllRead={onMarkAllNotificationsRead}
+        triggerRef={notificationTriggerRef}
       />
     </div>
   );

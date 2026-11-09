@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import '@/apps/client/layout/ClientLayout.css';
 import { ClientHeader } from '@/apps/client/features/header/components/ClientHeader';
@@ -38,6 +38,7 @@ export function ClientLayout() {
     markAllSeen,
   } = useManagerNotificationCenterMock();
   const location = useLocation();
+  const notificationTriggerRef = useRef<HTMLButtonElement>(null);
   const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
     useGuardedNavigate();
   const isCustomLeaveAction = pendingLeaveAction?.type === 'custom';
@@ -72,8 +73,14 @@ export function ClientLayout() {
     }));
 
   const handleNotificationItemClick = (item: ClientNotificationItem) => {
-    if (isManager) markItemSeen(item.sysId);
-    guardedNavigate(item.targetPath);
+    guardedNavigate(
+      item.targetPath,
+      undefined,
+      () => {
+        if (isManager) markItemSeen(item.sysId);
+      },
+      () => notificationTriggerRef.current?.focus(),
+    );
   };
 
   const headerNotificationItems = isManager ? notificationItems : staffCallNotificationItems;
@@ -126,6 +133,7 @@ export function ClientLayout() {
             notificationItems={headerNotificationItems}
             unseenNotificationCount={headerUnseenCount}
             onNotificationItemClick={handleNotificationItemClick}
+            notificationTriggerRef={notificationTriggerRef}
             onMarkAllNotificationsRead={headerMarkAllRead}
           />
         </header>

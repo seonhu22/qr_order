@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import '@/apps/client/features/notification-center/styles/ClientNotificationBell.css';
 import { Icon } from '@/shared/assets/icons/Icon';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
@@ -9,6 +9,7 @@ type ClientNotificationBellProps = {
   unseenCount: number;
   onItemClick: (item: ClientNotificationItem) => void;
   onMarkAllRead?: () => void;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 };
 
 const KIND_ICON: Record<ClientNotificationItem['kind'], string> = {
@@ -22,22 +23,39 @@ export function ClientNotificationBell({
   unseenCount,
   onItemClick,
   onMarkAllRead,
+  triggerRef: externalTriggerRef,
 }: ClientNotificationBellProps) {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const internalTriggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = externalTriggerRef ?? internalTriggerRef;
+  const panelContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+
+    panelContentRef.current?.focus();
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
 
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [open]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, triggerRef]);
 
   const handleItemClick = (item: ClientNotificationItem) => {
     setOpen(false);
@@ -48,12 +66,13 @@ export function ClientNotificationBell({
     <div className="client-notification-bell" ref={panelRef}>
       <button
         type="button"
+        ref={triggerRef}
         className="client-notification-bell__trigger"
         onClick={() => setOpen((current) => !current)}
         aria-label={unseenCount > 0 ? `읽지 않은 알림 ${unseenCount}건` : '알림'}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls="client-notification-bell-panel"
+        aria-controls={panelId}
       >
         <Icon id="i-bell" size={18} />
         {unseenCount > 0 && (
@@ -65,9 +84,11 @@ export function ClientNotificationBell({
 
       {open && (
         <div
-          id="client-notification-bell-panel"
+          id={panelId}
+          ref={panelContentRef}
           role="dialog"
           aria-label="알림"
+          tabIndex={-1}
           className="client-notification-bell__panel"
         >
           <div className="client-notification-bell__panel-header">
