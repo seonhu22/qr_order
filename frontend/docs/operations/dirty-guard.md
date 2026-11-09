@@ -32,15 +32,21 @@ usePreventLeave(isDirty);
 ```ts
 const { guardedNavigate } = useGuardedNavigate();
 
-guardedNavigate('/admin/main', undefined, () => {
-  setActiveSection(null);
-  closeSidebar();
-});
+guardedNavigate(
+  '/admin/main',
+  undefined,
+  () => {
+    setActiveSection(null);
+    closeSidebar();
+  },
+  () => triggerRef.current?.focus(),
+);
 ```
 
 - `isDirty === false`: 즉시 이동하고 `onNavigate` 콜백 실행
 - `isDirty === true`: 이동을 보류하고 `ConfirmModal` 표시
 - `onNavigate` 부수효과는 사용자가 이동을 확인한 뒤에만 실행한다.
+- 4번째 인자 `onCancel`은 사용자가 `ConfirmModal`에서 취소했을 때만 실행한다. 이동을 유발한 UI(드롭다운 항목 등)가 클릭 시점에 이미 닫혀 DOM에서 사라지는 경우, 취소 후 포커스를 돌려줄 대상을 여기서 지정한다 — worked example: [`ClientLayout.tsx`의 알림 클릭 처리](../../src/apps/client/layout/ClientLayout.tsx).
 
 ## 로그아웃 등 커스텀 액션
 
