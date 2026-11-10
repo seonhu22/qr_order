@@ -10,6 +10,7 @@
 | 터미널에서 잘린 실패 결과 저장 | [테스트 결과 로그 저장](./testing/test-result-log.md) |
 | Vitest, Testing Library, MSW 선택 이유 | [라이브러리/테스트 도구 구성](./libraries.md#1-테스트-도구-구성) |
 | 테스트 환경 파일 역할 | [주요 설정 파일/`src/test/*`](./config.md#9-srctest) |
+| 실제 Chromium에서 핵심 화면 흐름 검사 | [브라우저 자동 테스트](./testing/browser-e2e.md) |
 
 ## 명령 선택
 
@@ -20,5 +21,7 @@
 | 개별 테스트 이름까지 파일에 저장 | `npm run test:log:verbose` |
 | 수정 중인 테스트를 반복 실행 | `npm run test:watch` |
 | 커버리지 확인 | `npm run test:coverage` |
+| 모의 API 기반 브라우저 회귀 | `npm run test:e2e` |
+| 브라우저 테스트 실패 결과 열기 | `npm run test:e2e:report` |
 
 명령의 세부 옵션과 출력 위치는 위 표의 상세 문서에서 확인한다.
