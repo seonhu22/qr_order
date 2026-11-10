@@ -32,6 +32,8 @@
 
 ## 남은 수동 QA
 
+상태: 사용자 결정에 따라 일괄 실행 대기(2026-11-10). 실행 대기 목록은 [TODO의 일괄 수동 QA](../../frontend/docs/todo.md#일괄-수동-qa-대기-목록)에서 관리하고 결과는 이 문서에 기록한다.
+
 1. 최신 백엔드를 실행하고 Client 두 창에서 같은 매장 주문현황을 연다.
 2. A창에서 접수 → 조리 → 서빙 및 되돌리기를 실행한다.
 3. search 응답 header.statusChangedAt과 DB modify_datetime을 비교한다.
