@@ -42,6 +42,10 @@ npm install
   - `ubuntu-latest`, `macos-latest`, `windows-latest`에서 모두 실행합니다.
   - Vite, Rolldown, esbuild, lightningcss처럼 OS별 네이티브 패키지를 사용하는 의존성 충돌을 미리 확인하기 위함입니다.
 - `frontend` 타입 검사: Node.js 24 기준 `npm run typecheck`
+- `frontend` 품질 검사: `npm run lint`와 전체 `npm test -- --maxWorkers=2`. 기존 직원호출 일부 테스트 전용 job을 대체한다.
+- `frontend` 브라우저 회귀: Chromium 설치 후 `npm run test:e2e:typecheck && npm run test:e2e`. 모의 API 기반 4개 흐름이며 실제 DB 저장 검증은 포함하지 않는다.
+  - 실패 시 HTML 보고서/스크린샷/trace를 `browser-failure-evidence` artifact로 7일 보관한다.
+  - 실행 방법과 검증 범위는 [브라우저 자동 테스트](./frontend/docs/testing/browser-e2e.md)를 따른다.
 - `frontend` 코드 생성 결과 확인: 커밋된 `openapi.json` 기준으로 generated 파일 drift 검사
 - `qrorder` 백엔드 검증: `./gradlew test`
 
