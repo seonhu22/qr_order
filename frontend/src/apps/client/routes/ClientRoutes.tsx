@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router-dom';
 import { ClientLayout } from '@/apps/client/layout/ClientLayout';
 import LoginPage from '@/apps/client/pages/login/LoginPage';
 import { lazyNamed } from '@/shared/routes/lazyNamed';
+import { ClientMenuAccessGuard } from './ClientMenuAccessGuard';
 
 const MainPage = lazyNamed(() => import('@/apps/client/pages/main/MainPage'), 'MainPage');
 const StoreInfoPage = lazyNamed(() => import('@/apps/client/pages/store-info/StoreInfoPage'), 'StoreInfoPage');
@@ -58,12 +59,11 @@ export const clientRoutes: RouteObject[] = [
         element: <TableLayoutPage />,
       },
       {
-        path: 'menu/info/management',
-        element: <MenuManagementPage />,
-      },
-      {
-        path: 'menu/info/option',
-        element: <MenuOptionManagementPage />,
+        element: <ClientMenuAccessGuard />,
+        children: [
+          { path: 'menu/info/management', element: <MenuManagementPage /> },
+          { path: 'menu/info/option', element: <MenuOptionManagementPage /> },
+        ],
       },
       {
         path: 'menu/info/staff-call',
