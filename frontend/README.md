@@ -287,7 +287,7 @@ Spring Boot Swagger → openapi.json → src/generated/ (API 함수·훅·MSW �
 
 - 같은 내용을 두 파일에 나눠 쓰지 않는다.
 - 다른 파일 내용이 필요하면 링크로 참조한다.
-  - 예: `→ [상태 관리 정책](./operations/state-policy.md) 참고`
+  - 예: `→ [상태 관리 정책](./docs/operations/state-policy.md) 참고`
 - 중복이 발견되면 한쪽을 삭제하고 링크로 대체한다.
 
 ### 추가 시기
