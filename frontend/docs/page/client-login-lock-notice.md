@@ -35,3 +35,5 @@ npx playwright test e2e/client-login-lock.spec.ts
 ```
 
 전체 실행과 결과 요약은 [검증 명령](../testing/verification.md)을 따른다. 테스트 fixture의 실패 횟수는 승인된 기대 계약이며 실제 DB 카운터의 통과 증거가 아니다.
+
+커밋별 학습 순서/실패 재현/검증 결과: [제한 안내 보고서](../../../docs/qa/2026-11-11-client-login-lock-notice.md).
