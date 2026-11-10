@@ -20,7 +20,7 @@ import { Icon } from '@/shared/assets/icons/Icon';
 
 export function InquiryManagementPage() {
   const { data, status, actions, uiProps } = useInquiryListPage();
-  const { modalProps, selectedRow, attachFiles } = uiProps;
+  const { modalProps, selectedRow, attachFiles, answerFiles, answerFilesError } = uiProps;
 
   return (
     <>
@@ -150,6 +150,10 @@ export function InquiryManagementPage() {
             <TextInput label="등록일자" value={selectedRow.registeredAt} readOnly />
             <TextareaInput label="내용" value={selectedRow.content} rows={5} readOnly />
             <TextareaInput label="답변 내용" value={selectedRow.answerContent} rows={5} readOnly />
+            <InputWrapper label="답변 첨부파일" inputId="inquiry-answer-files">
+              {answerFilesError && <p role="alert">답변 첨부파일을 불러오지 못했습니다.</p>}
+              <FileDownloadList files={answerFiles} showHeader onDownload={actions.downloadFile} />
+            </InputWrapper>
             <FileDownloadList
               files={attachFiles}
               showHeader

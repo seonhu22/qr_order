@@ -60,6 +60,11 @@ export function useInquiryListPage() {
     () => (attachFileQuery.data ?? []).map(mapFileResponseToServerFile),
     [attachFileQuery.data],
   );
+  const answerFileQuery = useInquiryAttachFileQuery(selectedRow?.sysId);
+  const answerFiles = useMemo(
+    () => (answerFileQuery.data ?? []).map(mapFileResponseToServerFile),
+    [answerFileQuery.data],
+  );
 
   const handleDownloadFile = (file: Parameters<typeof downloadInquiryFile>[0]) => {
     downloadInquiryFile(file).catch(() => {});
@@ -104,6 +109,8 @@ export function useInquiryListPage() {
       draftAnswerStatus,
       selectedRow,
       attachFiles,
+      answerFiles,
+      answerFilesError: answerFileQuery.isError,
       modalProps,
     },
     actions: {
