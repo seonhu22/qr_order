@@ -49,8 +49,9 @@ function createQueryClient() {
 }
 
 function renderLayout(initialPath = '/client/main', userOverrides: Record<string, unknown> = {}) {
-  return render(
-    <QueryClientProvider client={createQueryClient()}>
+  const queryClient = createQueryClient();
+  const view = render(
+    <QueryClientProvider client={queryClient}>
       <AuthContext.Provider
         value={{
           isAuthenticated: true,
@@ -71,6 +72,7 @@ function renderLayout(initialPath = '/client/main', userOverrides: Record<string
       </AuthContext.Provider>
     </QueryClientProvider>,
   );
+  return { ...view, queryClient };
 }
 
 describe('ClientLayout', () => {
@@ -195,9 +197,14 @@ describe('ClientLayout 헤더 알림 역할 분기', () => {
       http.get('*/api/client/board/qna/search', () => HttpResponse.json([])),
     );
     const user = userEvent.setup();
-    renderLayout('/client/main', { staffRole: '01' });
+    const { queryClient } = renderLayout('/client/main', { staffRole: '01' });
 
-    await user.click(await screen.findByRole('button', { name: /읽지 않은 알림 1건/ }));
+    await waitFor(() => {
+      expect(queryClient.getQueryData(['manager-notifications', 'PC002', 'ADMIN'])).toHaveLength(1);
+    });
+
+    const header = within(screen.getByRole('navigation', { name: '상단 메뉴' }).closest('header')!);
+    await user.click(await header.findByRole('button', { name: /읽지 않은 알림 1건/ }));
 
     expect(screen.getByText('실제 시스템 공지')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '모두 읽음' })).toBeInTheDocument();
