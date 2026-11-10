@@ -7,6 +7,36 @@ import {
 } from './inquiryManageApi';
 
 describe('inquiryManageApi', () => {
+  it('sends new answer attachments with flat Qna and indexed FileRequest fields', async () => {
+    const file = new File(['answer'], 'answer.txt', { type: 'text/plain' });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    await updateInquiryAnswer(buildInquiryAnswerUpdateRequest({ sysId: 'qna-1' }, '답변', {
+      newFiles: [file], deletedFiles: [],
+    }));
+    const options = fetchMock.mock.calls[0][1] as RequestInit;
+    const body = options.body as FormData;
+    expect(body.get('sysId')).toBe('qna-1');
+    expect(body.get('answerYn')).toBe('Y');
+    expect(body.get('answerDescription')).toBe('답변');
+    expect(body.get('newItems[0].file')).toBe(file);
+    expect(body.get('newItems[0].linkSysId')).toBe('qna-1');
+    expect(body.get('newItems[0].convertFileNm')).toMatch(/^[0-9a-f-]{36}$/);
+    expect(body.get('newItems[0].filePath')).toMatch(/^\/\d{4}\/\d{2}$/);
+    expect(body.get('newItems[0].ordNo')).toBe('1');
+    expect([...body.keys()]).toHaveLength(8);
+  });
+
+  it('rejects unsupported persisted file deletion before sending any request', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(updateInquiryAnswer({ sysId: 'qna-1', fileChangeState: {
+      newFiles: [], deletedFiles: [{ sysId: 'file-1' } as never],
+    } })).rejects.toThrow('기존 답변 첨부파일 삭제');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('displays persisted modification time and leaves unmodified inquiries empty', () => {
     const response = { sysId: 'qna-modified', modifyDatetime: '2026-11-10T10:11:12.123456' };
     expect(mapToInquiryManageRow(response, 0).updatedAt).toBe('2026-11-10 10:11:12');

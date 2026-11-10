@@ -7,10 +7,11 @@ import { queryPolicies } from '@/shared/api/queryPolicies';
 import { httpClient } from '@/shared/lib/httpClient';
 import type { QnaRequest } from '@/generated/types/qnaRequest';
 import type { QnaResponse } from '@/generated/types/qnaResponse';
-import type { ServerFile } from '@/shared/components/file-attachment';
+import type { FileChangeState, ServerFile } from '@/shared/components/file-attachment';
 import { formatDateTimeForDisplay } from '@/shared/utils/dateTimeDisplay';
 import {
   downloadAllServerFiles,
+  buildAttachFileSaveFormData,
   downloadServerFile,
   mapFileResponseToServerFile,
 } from '@/shared/utils/attachFile';
@@ -51,23 +52,36 @@ export function useInquiryManageQuery(searchKeyword = '') {
  * 현재 inquiry update API는 일반 수정 CRUD가 아니라 답변 등록/수정 용도다.
  * 백엔드가 실제로 사용하는 필드만 우선 조립한다.
  *
- * 답변 첨부파일은 FileRequest의 indexed field 계약을 확인한 뒤 같은 FormData에 추가한다.
+ * 답변 파일은 문의 sysId로 연결하고 원문 첨부 fileUlid와 분리한다.
  */
 export function buildInquiryAnswerUpdateRequest(
   row: Pick<InquiryManageRow, 'sysId'>,
   answerDescription: string,
-): QnaRequest {
+  fileChangeState?: FileChangeState,
+): InquiryAnswerRequest {
   return {
     sysId: row.sysId,
     answerYn: 'Y',
     answerDescription,
+    ...(fileChangeState ? { fileChangeState } : {}),
   };
 }
 
-export function buildInquiryAnswerFormData(request: QnaRequest): FormData {
-  const formData = new FormData();
+export type InquiryAnswerRequest = QnaRequest & { fileChangeState?: FileChangeState };
 
-  Object.entries(request).forEach(([key, value]) => {
+export function buildInquiryAnswerFormData(request: InquiryAnswerRequest): FormData {
+  const { fileChangeState, ...answerFields } = request;
+  if (fileChangeState?.deletedFiles.length) {
+    throw new Error('기존 답변 첨부파일 삭제는 아직 지원하지 않습니다.');
+  }
+  if (fileChangeState?.newFiles.length && !request.sysId?.trim()) {
+    throw new Error('문의 식별자가 없어 답변 첨부파일을 저장할 수 없습니다.');
+  }
+  const formData = fileChangeState
+    ? buildAttachFileSaveFormData(request.sysId ?? '', fileChangeState)
+    : new FormData();
+
+  Object.entries(answerFields).forEach(([key, value]) => {
     if (value !== undefined) {
       formData.append(key, value);
     }
@@ -76,7 +90,7 @@ export function buildInquiryAnswerFormData(request: QnaRequest): FormData {
   return formData;
 }
 
-export function updateInquiryAnswer(request: QnaRequest, signal?: AbortSignal) {
+export async function updateInquiryAnswer(request: InquiryAnswerRequest, signal?: AbortSignal) {
   return httpClient<CommonResponse>({
     url: '/api/system/settings/board/qna/update',
     method: 'POST',
@@ -87,7 +101,7 @@ export function updateInquiryAnswer(request: QnaRequest, signal?: AbortSignal) {
 
 export function useInquiryAnswerMutation() {
   return useMutation({
-    mutationFn: (request: QnaRequest) => updateInquiryAnswer(request),
+    mutationFn: (request: InquiryAnswerRequest) => updateInquiryAnswer(request),
   });
 }
 
