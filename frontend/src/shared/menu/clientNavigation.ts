@@ -262,12 +262,16 @@ export function createClientNavigationData(
   staffRole?: string,
 ): ClientNavigationData {
   const navigation = createUnfilteredClientNavigationData(items, pathname);
-  const menusBySection = Object.fromEntries(Object.entries(navigation.menusBySection).map(([section, menus]) => [
-    section,
-    menus.map((menu) => ({ ...menu, groups: menu.groups.map((group) => ({
-      ...group, items: group.items.filter((item) => canAccessClientMenuPath(item.path, staffRole)),
-    })).filter((group) => group.items.length > 0) })).filter((menu) => menu.groups.length > 0),
-  ]));
+  const menusBySection: Record<string, SidebarNavDepth1[]> = {};
+  for (const [section, menus] of Object.entries(navigation.menusBySection)) {
+    menusBySection[section] = menus.map((menu) => {
+      const groups = menu.groups.map((group) => ({
+        ...group,
+        items: group.items.filter((item) => canAccessClientMenuPath(item.path, staffRole)),
+      })).filter((group) => group.items.length > 0);
+      return { ...menu, groups };
+    }).filter((menu) => menu.groups.length > 0);
+  }
   const currentSection = navigation.currentSection && menusBySection[navigation.currentSection]?.length
     ? navigation.currentSection : null;
   const allowed = canAccessClientMenuPath(pathname, staffRole);
