@@ -14,7 +14,11 @@ const payment: PaymentCompleteResponse = {
 };
 
 // Browser regression only: fixtures follow generated DTOs and backend LoginResponse.
-export async function installClientApi(context: BrowserContext, authenticated = false) {
+export async function installClientApi(
+  context: BrowserContext,
+  authenticated = false,
+  options: { rejectSse?: boolean } = {},
+) {
   const unexpectedRequests: string[] = [];
   const statusRequests: { path: string; body: StatusRequest }[] = [];
   const paymentRequests: unknown[] = [];
@@ -22,6 +26,8 @@ export async function installClientApi(context: BrowserContext, authenticated = 
   let loggedIn = authenticated;
   let statusFlag = '01';
   let paid = false;
+  let sseAttempts = 0;
+  let statusReads = 0;
 
   await context.route((url) => url.pathname.startsWith('/api/'), async (route) => {
     const request = route.request();
@@ -40,8 +46,11 @@ export async function installClientApi(context: BrowserContext, authenticated = 
     } else if (method === 'GET' && path === '/api/client/store_manage/store_info/search') {
       await route.fulfill({ json: [{ sysId: 'store-e2e', storeName: '브라우저 테스트 매장' }] });
     } else if (method === 'GET' && path === '/api/sse/client/subscribe') {
-      await route.fulfill({ contentType: 'text/event-stream', body: 'event: connect\ndata: connected\n\n' });
+      sseAttempts += 1;
+      if (options.rejectSse) await route.abort('failed');
+      else await route.fulfill({ contentType: 'text/event-stream', body: 'event: connect\ndata: connected\n\n' });
     } else if (method === 'GET' && path === '/api/client/order_manage/status/search') {
+      statusReads += 1;
       const response: StatusResponse[] = paid ? [] : [{ statusFlag, statusList: [{
         orderNum: 9001,
         header: { sysId: orderId, tableNum: 5, orderDatetime: '2026-11-10T12:00:00', orderStatus: statusFlag },
@@ -68,5 +77,10 @@ export async function installClientApi(context: BrowserContext, authenticated = 
       await route.fulfill({ status: 501, json: { success: false, message: 'Unconfigured browser fixture' } });
     }
   });
-  return { unexpectedRequests, statusRequests, paymentRequests, loginRequests, orderId, payment };
+  return {
+    unexpectedRequests, statusRequests, paymentRequests, loginRequests, orderId, payment,
+    get sseAttempts() { return sseAttempts; },
+    get statusReads() { return statusReads; },
+    setOrderStatus(nextStatus: string) { statusFlag = nextStatus; },
+  };
 }
