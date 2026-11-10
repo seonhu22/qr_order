@@ -14,6 +14,18 @@ type CreateAdminUserTableModelParams = {
   onResetPassword: (userId: string) => void;
 };
 
+function getRowPlantOptions(row: AdminUserRow, options: SelectOption[]): SelectOption[] {
+  if (row.isNew || !row.plantCd || options.some((option) => option.value === row.plantCd)) {
+    return options;
+  }
+  // Display only this existing row's stored value; never advertise it to new rows.
+  return [...options, {
+    value: row.plantCd,
+    label: row.plantName || row.plantCd,
+    disabled: true,
+  }];
+}
+
 /**
  * 관리자 사용자 테이블의 컬럼 정보를 생성합니다.
  * @returns 테이블 컬럼 배열
@@ -84,7 +96,7 @@ export function createAdminUserTableRows({
         type: 'select',
         value: row.plantCd,
         searchable: true,
-        options: plantOptions,
+        options: getRowPlantOptions(row, plantOptions),
         placeholder: '사업장을 선택하세요',
         className: 'common-table__select',
         isError: rowErrors[row.id]?.plantCd,

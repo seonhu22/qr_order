@@ -64,6 +64,20 @@ const createProps = () => ({
 });
 
 describe('AdminUserTable', () => {
+  it('preserves the stored plant label without offering it to new rows when combo is empty', () => {
+    const props = createProps();
+    render(<AdminUserTable {...props} plantOptions={[]} />);
+    const existingPlant = screen.getByRole('combobox', { name: '본사' });
+    fireEvent.click(existingPlant);
+    const storedOption = screen.getByRole('option', { name: '본사' });
+    expect(storedOption).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(storedOption);
+    expect(props.onChangeRowPlant).not.toHaveBeenCalled();
+    fireEvent.click(existingPlant);
+    fireEvent.click(screen.getByRole('combobox', { name: '사업장을 선택하세요' }));
+    expect(screen.queryByRole('option', { name: '본사' })).not.toBeInTheDocument();
+  });
+
   it('renders error feedback when query fails', () => {
     const props = createProps();
 
