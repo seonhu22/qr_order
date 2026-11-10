@@ -7,6 +7,12 @@ import {
 } from './inquiryManageApi';
 
 describe('inquiryManageApi', () => {
+  it('displays persisted modification time and leaves unmodified inquiries empty', () => {
+    const response = { sysId: 'qna-modified', modifyDatetime: '2026-11-10T10:11:12.123456' };
+    expect(mapToInquiryManageRow(response, 0).updatedAt).toBe('2026-11-10 10:11:12');
+    expect(mapToInquiryManageRow({ sysId: 'qna-new' }, 0).updatedAt).toBe('-');
+    expect(mapToInquiryManageRow({ sysId: 'qna-null', modifyDatetime: null }, 0).updatedAt).toBe('-');
+  });
   afterEach(() => {
     vi.unstubAllGlobals();
   });
