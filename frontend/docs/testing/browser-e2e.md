@@ -17,6 +17,7 @@ Playwright가 실제 Chromium을 열어 버튼을 누르고 입력하며 화면�
 | 주문 수정 | 오프라인 확인 시 POST 없음/초안 유지 → 온라인 재시도 409 안내/초안 유지 |
 | 문의 답변 파일 | 첫 저장 실패 → 답변/파일 유지 → multipart 재시도 필드/파일 내용 검증 |
 | Client 메뉴 권한 | 관리자 조회/스태프 직접 URL 차단/API 무요청/대소문자와 인코딩 우회 방지 |
+| Client 제한 안내 | 서버 횟수 1~4 인라인/5회 모달 하나/비밀번호 초기화. 실제 서버 카운트 검증 제외 |
 
 ## 실행
 
@@ -62,5 +63,7 @@ npm run test:e2e:typecheck
 확장 시나리오: [관리자 알림](../../e2e/manager-notifications.spec.ts), [SSE polling](../../e2e/client-realtime.spec.ts), [주문 수정](../../e2e/order-revision.spec.ts), [문의 파일](../../e2e/inquiry-attachments.spec.ts). 전체 검사/로그 요약은 [검증 실행](./verification.md)을 따른다.
 
 권한 회귀: [Client 메뉴 관리](../../e2e/client-menu-permissions.spec.ts). 실제 API 서버 인가 테스트를 대체하지 않는다.
+
+인증 응답 회귀: [Client 제한 안내](../../e2e/client-login-lock.spec.ts).
 
 공식 근거: [Web server](https://playwright.dev/docs/test-webserver), [API mocking](https://playwright.dev/docs/mock), [Configuration](https://playwright.dev/docs/test-configuration).

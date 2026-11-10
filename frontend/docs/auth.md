@@ -5,7 +5,7 @@
 ## 목차
 
 - [1. 기본 흐름](#1-기본-흐름)
-- [2. auth/me와 auth/profile 쿼리 키 분리](#2-authme와-authprofile-쿼리-키-분리)
+- [2. 현재 인증 캐시 기준](#2-현재-인증-캐시-기준)
 - [3. 사용자 이름 필드 우선순위](#3-사용자-이름-필드-우선순위)
 - [4. auth/me 권한 필드 사용 기준](#4-authme-권한-필드-사용-기준)
 - [5. 초기 비밀번호 강제 변경 흐름](#5-초기-비밀번호-강제-변경-흐름)
@@ -19,7 +19,7 @@
 
 ```text
 login mutation 성공
-→ auth/me 캐시 갱신 + auth/profile 캐시 갱신
+→ auth/me 캐시 갱신과 세션 사용자 재조회
 → AuthProvider가 Query 캐시를 읽어 인증 상태 계산
 → 보호 라우트가 /admin/* 접근 허용
 ```
@@ -33,18 +33,13 @@ login mutation 성공
 
 ---
 
-## 2. auth/me와 auth/profile 쿼리 키 분리
+## 2. 현재 인증 캐시 기준
 
-로그인 성공 후 `invalidateQueries`가 `/api/auth/me`를 재조회하면, 백엔드가 user 정보 없이 `{ success: true }`만 반환하는 경우 user 데이터가 사라지는 문제가 있다.
+현재 서버 `/api/auth/me`는 `data`에 사용자/매장/역할/초기 비밀번호 변경 여부를 반환한다. `useCurrentUser`와 `AuthProvider`는 `queryKeys.auth.me`를 기준으로 한다.
 
-이를 방지하기 위해 로그인 응답의 user 데이터를 `auth/profile`에 별도 보존한다.
+`/login`은 `success`만 응답할 수 있으므로 로그인 직후 `/auth/me`를 재조회한다. `resolveAuthUser`의 호환 값은 이 전환 구간을 위한 것이며 `staffRole`을 추정하지 않는다.
 
-| 쿼리 키                  | 역할                                              |
-| ------------------------ | ------------------------------------------------- |
-| `queryKeys.auth.me`      | `/api/auth/me` 응답 — 인증 상태 확인용            |
-| `queryKeys.auth.profile` | 로그인 응답의 user 데이터 — user 이름·역할 표시용 |
-
-`AuthProvider`는 `auth/me`에서 user 데이터가 없으면 `auth/profile`로 보완한다. 로그아웃 시 두 캐시를 모두 비운다.
+과거 문서의 `auth/profile` 보완 경로는 현재 `AuthProvider` 구현에 없다. 로그아웃은 인증 캐시를 비로그인으로 바꾸고 나머지 Query 캐시를 정리한다.
 
 ---
 
@@ -109,6 +104,8 @@ login mutation 성공
 ---
 
 ## 6. password_fail_cnt 계정 잠금 흐름
+
+Client의 제한 안내는 [Client 로그인 제한 안내](./page/client-login-lock-notice.md)를 따른다. 아래는 기존 Admin 잠금 화면 설명이며 실제 서버 다섯 번째 차단 정합성은 아직 수정/검증 대상이다.
 
 > 추가일: 2026-05-07
 
