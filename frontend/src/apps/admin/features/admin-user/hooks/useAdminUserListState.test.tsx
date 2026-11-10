@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { useAdminUserListState } from './useAdminUserListState';
 import type { AdminUserRow } from '../types';
 import type { SelectOption } from '@/shared/components/input';
+import { buildAdminUserRequest } from '../api/adminUserApi';
 
 const baseRows: AdminUserRow[] = [
   {
@@ -26,6 +27,31 @@ const baseRows: AdminUserRow[] = [
     isNew: false,
   },
 ];
+
+describe('plant choices do not invent write targets', () => {
+  it('rejects a new row plant absent from the current API choices', () => {
+    const { result } = renderHook(() => useAdminUserListState({ baseRows, plantOptions: [] }));
+    act(() => result.current.addRow());
+    const id = result.current.rows.find((row) => row.isNew)!.id;
+    act(() => {
+      result.current.changeRowField(id, 'userId', 'new-user');
+      result.current.changeRowField(id, 'userName', '신규 사용자');
+      result.current.changeRowPlant(id, 'NOT_IN_API');
+    });
+    expect(result.current.hasRequiredFieldErrors()).toBe(true);
+    act(() => result.current.applyRequiredFieldErrors());
+    expect(result.current.rowErrors[id]).toEqual({ userId: false, userName: false, plantCd: true });
+  });
+
+  it('preserves an existing stored plant in the update payload when choices are empty', () => {
+    const { result } = renderHook(() => useAdminUserListState({ baseRows, plantOptions: [] }));
+    act(() => result.current.changeRowField('row-1', 'userName', '수정한 이름'));
+    expect(result.current.hasRequiredFieldErrors()).toBe(false);
+    expect(buildAdminUserRequest(result.current.rows, baseRows).updateItems).toEqual([
+      { sysId: 'sys-1', userId: 'admin01', userNm: '수정한 이름', plantCd: 'PLANT-001' },
+    ]);
+  });
+});
 
 const multiRowBase: AdminUserRow[] = [
   {

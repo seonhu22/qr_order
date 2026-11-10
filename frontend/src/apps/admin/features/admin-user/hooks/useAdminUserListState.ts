@@ -170,7 +170,8 @@ export function useAdminUserListState({
       acc[row.id] = {
         userId: !row.userId.trim(),
         userName: !row.userName.trim(),
-        plantCd: !row.plantCd.trim(),
+        plantCd: !row.plantCd.trim()
+          || !plantOptions.some((option) => option.value === row.plantCd && !option.disabled),
       };
       return acc;
     }, {});
