@@ -14,7 +14,6 @@ import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type { SelectOption } from '@/shared/components/input';
 import type { AdminUserRow } from '../types';
-import { ADMIN_USER_PLANT_FALLBACK_OPTIONS } from '../constants';
 
 /**
  * 서버 관리자 DTO를 화면 목록 모델로 변환한다.
@@ -56,12 +55,10 @@ export function mapToPlantSelectOption(combo: Combo): SelectOption {
   };
 }
 
-export function getPlantSelectOptionsWithFallback(combos: Combo[] | undefined): SelectOption[] {
-  const options = (combos ?? [])
+export function getPlantSelectOptions(combos: Combo[] | undefined): SelectOption[] {
+  return (combos ?? [])
     .map(mapToPlantSelectOption)
     .filter((option) => option.value && option.label);
-
-  return options.length ? options : ADMIN_USER_PLANT_FALLBACK_OPTIONS;
 }
 
 function isSameAdminUserRow(a: AdminUserRow, b: AdminUserRow) {

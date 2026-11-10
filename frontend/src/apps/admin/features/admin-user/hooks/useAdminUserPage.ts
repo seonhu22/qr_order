@@ -21,7 +21,7 @@ import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
 import {
   buildAdminUserRequest,
-  getPlantSelectOptionsWithFallback,
+  getPlantSelectOptions,
   hasAdminUserChanges,
   mapToAdminUserModel,
   useAdminUserQuery,
@@ -82,7 +82,7 @@ export function useAdminUserPage(): AdminUserPageViewModel {
    * 사업장 combo API 응답을 searchable select가 바로 사용할 수 있는 옵션으로 변환한다.
    */
   const plantOptions = useMemo(
-    () => getPlantSelectOptionsWithFallback(plantComboQuery.data),
+    () => getPlantSelectOptions(plantComboQuery.data),
     [plantComboQuery.data],
   );
 

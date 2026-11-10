@@ -1,19 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { buildAdminUserRequest, getPlantSelectOptionsWithFallback } from './adminUserApi';
+import { buildAdminUserRequest, getPlantSelectOptions } from './adminUserApi';
 
-describe('getPlantSelectOptionsWithFallback', () => {
-  it('returns fallback options when combo data is empty', () => {
-    expect(getPlantSelectOptionsWithFallback([])).toEqual([
-      { value: 'ADMIN', label: '관리자' },
-      { value: 'PLANT-001', label: '강남점' },
-      { value: 'PLANT-002', label: '판교점' },
-      { value: 'PLANT-003', label: '성수점' },
-    ]);
+describe('getPlantSelectOptions', () => {
+  it('does not invent plants when combo data is empty or invalid', () => {
+    expect(getPlantSelectOptions([])).toEqual([]);
+    expect(getPlantSelectOptions(undefined)).toEqual([]);
+    expect(getPlantSelectOptions([{ code: '', name: '이름만 있음' }, { code: 'ONLY_CODE', name: '' }])).toEqual([]);
   });
 
   it('returns mapped combo options when API data exists', () => {
     expect(
-      getPlantSelectOptionsWithFallback([
+      getPlantSelectOptions([
         { code: 'A001', name: '본점' },
         { code: 'A002', name: '서브점' },
       ]),
