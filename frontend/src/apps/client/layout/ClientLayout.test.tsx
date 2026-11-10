@@ -12,6 +12,8 @@ import { useGetMenu } from '@/generated/settings-controller/settings-controller'
 import { useClientLayoutStore } from '@/apps/client/stores/clientLayoutStore';
 import { useUnreadStaffCallsQuery } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
 import { ClientLayout } from './ClientLayout';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/server';
 
 const openAccessLogMock = vi.fn();
 const closeAccessLogMock = vi.fn();
@@ -184,14 +186,33 @@ describe('ClientLayout 헤더 알림 역할 분기', () => {
     useClientLayoutStore.setState({ isSidebarOpen: false, activeSection: null });
   });
 
-  it('01 관리자는 공지/문의 mock 알림과 모두 읽음 버튼을 본다', async () => {
+  it('01 관리자는 실제 공지/문의 알림과 모두 읽음 버튼을 본다', async () => {
+    localStorage.clear();
+    server.use(
+      http.get('*/api/client/board/notice/search', () => HttpResponse.json([
+        { sysId: 'notice-real', noticeTitle: '실제 시스템 공지', openDate: '2026-11-10' },
+      ])),
+      http.get('*/api/client/board/qna/search', () => HttpResponse.json([])),
+    );
     const user = userEvent.setup();
     renderLayout('/client/main', { staffRole: '01' });
 
-    await user.click(screen.getByRole('button', { name: /읽지 않은 알림 \d+건/ }));
+    await user.click(await screen.findByRole('button', { name: /읽지 않은 알림 1건/ }));
 
-    expect(screen.getByText('시스템 점검 공지')).toBeInTheDocument();
+    expect(screen.getByText('실제 시스템 공지')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '모두 읽음' })).toBeInTheDocument();
+  });
+
+  it('관리자 알림 조회 실패를 빈 알림으로 안내하지 않는다', async () => {
+    server.use(
+      http.get('*/api/client/board/notice/search', () => HttpResponse.json({}, { status: 500 })),
+      http.get('*/api/client/board/qna/search', () => HttpResponse.json([])),
+    );
+    const user = userEvent.setup();
+    renderLayout('/client/main', { staffRole: '01' });
+    await user.click(screen.getByRole('button', { name: /^알림$/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('알림을 불러오지 못했습니다.');
+    expect(screen.queryByText('알림이 없습니다.')).not.toBeInTheDocument();
   });
 
   it('02 스태프는 직원호출 알림을 보고 모두 읽음 버튼은 없다', async () => {

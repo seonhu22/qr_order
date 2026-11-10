@@ -18,8 +18,7 @@ import {
   getUnreadStaffCallCount,
   useUnreadStaffCallsQuery,
 } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
-// TODO: 실데이터 연동 시 useManagerNotificationCenterMock -> 실제 폴링 훅으로 교체
-import { useManagerNotificationCenterMock } from '@/apps/client/features/notification-center/hooks/useManagerNotificationCenterMock';
+import { useManagerNotificationCenter } from '@/apps/client/features/notification-center/hooks/useManagerNotificationCenter';
 import type { ClientNotificationItem } from '@/apps/client/features/notification-center/types';
 
 export function ClientLayout() {
@@ -36,7 +35,12 @@ export function ClientLayout() {
     unseenCount: unseenNotificationCount,
     markItemSeen,
     markAllSeen,
-  } = useManagerNotificationCenterMock();
+    isError: managerNotificationError,
+  } = useManagerNotificationCenter({
+    enabled: isAuthenticated && isManager,
+    userId: typeof user?.userId === 'string' ? user.userId : '',
+    sysPlantCd: typeof user?.sysPlantCd === 'string' ? user.sysPlantCd : '',
+  });
   const location = useLocation();
   const { guardedNavigate, pendingLeaveAction, confirmPendingLeaveAction, cancelPendingLeaveAction } =
     useGuardedNavigate();
@@ -72,7 +76,7 @@ export function ClientLayout() {
     }));
 
   const handleNotificationItemClick = (item: ClientNotificationItem) => {
-    if (isManager) markItemSeen(item.sysId);
+    if (isManager) markItemSeen(item);
     guardedNavigate(item.targetPath);
   };
 
@@ -127,6 +131,7 @@ export function ClientLayout() {
             unseenNotificationCount={headerUnseenCount}
             onNotificationItemClick={handleNotificationItemClick}
             onMarkAllNotificationsRead={headerMarkAllRead}
+            notificationError={isManager ? managerNotificationError : unreadStaffCallsQuery.isError}
           />
         </header>
         <main className="client-layout__main">

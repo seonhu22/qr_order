@@ -15,6 +15,7 @@ type ClientHeaderProps = {
   unseenNotificationCount: number;
   onNotificationItemClick: (item: ClientNotificationItem) => void;
   onMarkAllNotificationsRead?: () => void;
+  notificationError?: boolean;
 };
 
 export function ClientHeader({
@@ -28,6 +29,7 @@ export function ClientHeader({
   unseenNotificationCount,
   onNotificationItemClick,
   onMarkAllNotificationsRead,
+  notificationError,
 }: ClientHeaderProps) {
   return (
     <div className="client-header">
@@ -72,6 +74,7 @@ export function ClientHeader({
         unseenCount={unseenNotificationCount}
         onItemClick={onNotificationItemClick}
         onMarkAllRead={onMarkAllNotificationsRead}
+        isError={notificationError}
       />
     </div>
   );

@@ -9,6 +9,7 @@ type ClientNotificationBellProps = {
   unseenCount: number;
   onItemClick: (item: ClientNotificationItem) => void;
   onMarkAllRead?: () => void;
+  isError?: boolean;
 };
 
 const KIND_ICON: Record<ClientNotificationItem['kind'], string> = {
@@ -22,6 +23,7 @@ export function ClientNotificationBell({
   unseenCount,
   onItemClick,
   onMarkAllRead,
+  isError = false,
 }: ClientNotificationBellProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -87,12 +89,13 @@ export function ClientNotificationBell({
           </div>
 
           <div className="client-notification-bell__list">
-            {items.length === 0 && (
+            {isError && <p role="alert" className="client-notification-bell__empty">알림을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.</p>}
+            {items.length === 0 && !isError && (
               <p className="client-notification-bell__empty">알림이 없습니다.</p>
             )}
             {items.map((item) => (
               <button
-                key={item.sysId}
+                key={JSON.stringify([item.kind, item.sysId])}
                 type="button"
                 className={`client-notification-bell__item${item.seen ? '' : ' client-notification-bell__item--unseen'}`}
                 onClick={() => handleItemClick(item)}
