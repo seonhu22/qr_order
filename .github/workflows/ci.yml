@@ -100,9 +100,10 @@ jobs:
         run: npm run typecheck
         working-directory: frontend
 
-  frontend-staff-call-contract-test:
-    name: Frontend Staff Call Contract Test
+  frontend-quality:
+    name: Frontend Lint and Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -119,9 +120,56 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Run frontend tests
-        run: npm test -- --run src/apps/client/features/staff-call-notifications/api/staffCallNotificationApi.test.ts src/apps/client/features/events/hooks/useClientEvents.test.tsx
+      - name: Lint frontend
+        run: npm run lint
         working-directory: frontend
+
+      - name: Run all frontend tests
+        run: npm test -- --maxWorkers=2
+        working-directory: frontend
+
+  frontend-browser:
+    name: Frontend Browser Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Typecheck browser tests
+        run: npm run test:e2e:typecheck
+        working-directory: frontend
+
+      - name: Run browser regression
+        run: npm run test:e2e
+        working-directory: frontend
+
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-evidence
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/e2e/
+          if-no-files-found: ignore
+          retention-days: 7
 
   frontend-codegen-drift:
     name: Frontend Codegen Drift Check
