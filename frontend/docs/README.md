@@ -31,6 +31,7 @@
 | [라이브러리](./libraries.md) | 주요 라이브러리와 테스트 도구 선택 근거 |
 | [관리자 네비게이션](./admin-navigation.md) | 어드민 메뉴·내비게이션 구조 |
 | [메뉴 접근 로그](./menu-access-log.md) | menuCd 결정과 접근 로그 호출 기준 |
+| [Client 관리자 알림](./page/manager-notifications.md) | 실제 공지/답변 조회, 브라우저별 읽음 상태와 검증 범위 |
 | [파일 첨부 정책](./file-attachment-policy.md) | 첨부파일 역할 분리와 화면별 정책 |
 | [트러블슈팅](./troubleshooting.md) | 자주 발생하는 문제와 해결 방법 |
 
