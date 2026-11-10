@@ -171,6 +171,7 @@ export * from './qRCodeRequest';
 export * from './qRCodeResponse';
 export * from './qnaRequest';
 export * from './qnaResponse';
+export * from './qnaResponseModifyDatetime';
 export * from './ruleDetail';
 export * from './ruleDetailRequest';
 export * from './ruleMaster';

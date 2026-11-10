@@ -5,6 +5,7 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { QnaResponseModifyDatetime } from './qnaResponseModifyDatetime';
 
 export interface QnaResponse {
   sysId?: string;
@@ -12,6 +13,8 @@ export interface QnaResponse {
   writeUsername?: string;
   qnaDescription?: string;
   writeDatetime?: string;
+  /** 문의 수정 또는 답변 저장 시 기록된 최종 수정 시각. 미수정 시 null */
+  modifyDatetime?: QnaResponseModifyDatetime;
   fileUlid?: string;
   answerYn?: string;
   answerUserName?: string;

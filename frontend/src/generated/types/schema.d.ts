@@ -2881,6 +2881,11 @@ export interface components {
             qnaDescription?: string;
             /** Format: date-time */
             writeDatetime?: string;
+            /**
+             * Format: date-time
+             * @description 문의 수정 또는 답변 저장 시 기록된 최종 수정 시각. 미수정 시 null
+             */
+            modifyDatetime?: string | null;
             fileUlid?: string;
             answerYn?: string;
             answerUserName?: string;
