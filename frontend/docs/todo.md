@@ -28,6 +28,16 @@
 - 자동 검증 완료: 관련 9개 테스트, typecheck/lint 통과.
 - 상세: [우회 제거 조건과 검증 범위](./qa-bypass-business-verification.md#제거-조건).
 
+### QNA-01a / 문의 수정일 — QA 대기
+
+- 준비: 최신 백엔드/프론트, 테스트 문의, 해당 문의의 Client 작성자와 Admin 답변 계정.
+- [ ] 서버 OpenAPI의 `QnaResponse.modifyDatetime`이 date-time/null 계약과 일치한다.
+- [ ] 신규 문의의 DB 수정일이 null일 때 화면에는 `-`가 표시된다.
+- [ ] Client 문의 수정 후 Admin 재조회에서 응답/화면/DB 수정일이 일치한다.
+- [ ] Admin 답변 저장 후 재조회에서 답변과 최종 수정일이 반영된다.
+- 범위: 수정일 조회/표시만 구현. 답변 첨부파일은 별도 후속 작업이다.
+- 상세와 결과 기록: [문의 수정일 QA](../../docs/qa/2026-11-10-inquiry-modified-time.md).
+
 후속 작업도 구현/자동 검증 후 이 섹션에 추가하고, 수동 통과 시 결과 문서에 날짜와 관찰 근거를 남긴 뒤 [완료 기록](./completed.md)으로 이동한다.
 
 ## 메뉴 이미지 전송 최적화
