@@ -20,64 +20,9 @@ import {
 } from '@/shared/auth/initPassword';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { HttpError } from '@/shared/lib/httpClient';
+import { getPasswordFailCount, isLockedLoginMessage } from '@/shared/auth/loginFailure';
 
 type Step = 'login' | 'changePassword' | 'locked';
-
-function getPasswordFailCount(payload: unknown): number | undefined {
-  if (!payload || typeof payload !== 'object' || !('data' in payload)) {
-    return undefined;
-  }
-
-  const data = (payload as { data?: unknown }).data;
-
-  if (typeof data === 'number') {
-    return data;
-  }
-
-  if (typeof data === 'string') {
-    const failCount = Number(data);
-
-    return Number.isFinite(failCount) ? failCount : undefined;
-  }
-
-  if (!data || typeof data !== 'object' || !('password_fail_cnt' in data)) {
-    if (data && typeof data === 'object' && 'passwordFailCnt' in data) {
-      const failCount = (data as { passwordFailCnt?: unknown }).passwordFailCnt;
-
-      if (typeof failCount === 'number') {
-        return failCount;
-      }
-
-      if (typeof failCount === 'string') {
-        const parsedFailCount = Number(failCount);
-
-        return Number.isFinite(parsedFailCount) ? parsedFailCount : undefined;
-      }
-    }
-
-    return undefined;
-  }
-
-  const failCount = (data as { password_fail_cnt?: unknown }).password_fail_cnt;
-
-  if (typeof failCount === 'number') {
-    return failCount;
-  }
-
-  if (typeof failCount === 'string') {
-    const parsedFailCount = Number(failCount);
-
-    return Number.isFinite(parsedFailCount) ? parsedFailCount : undefined;
-  }
-
-  return undefined;
-}
-
-function isLockedLoginMessage(message: unknown): boolean {
-  return (
-    typeof message === 'string' && message.includes('비밀번호 5회') && message.includes('사용 중지')
-  );
-}
 
 export default function LoginPage() {
   const navigate = useNavigate();
