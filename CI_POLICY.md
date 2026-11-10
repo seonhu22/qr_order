@@ -1,6 +1,6 @@
 # CI 규칙 정리
 
-> 요약하자면 깃을 올렸을 때 규칙 검사를 자동화하는 기능을 추가했습니다. 설치 외 주의사항은 없습니다.
+> 저장소의 자동 검사와 증거 보관 규칙이다. 로컬 통과/원격 CI 통과/실제 서버 QA는 서로 구분한다.
 
 ### 할 일
 
@@ -35,7 +35,7 @@ npm install
 
 ## CI 검사 항목
 
-- GitHub Actions는 Pull Request와 `main` 또는 `master` 브랜치 push 시 아래 검사를 실행합니다.
+- GitHub Actions는 Pull Request와 `main`/`master`/`dev` 브랜치 push 시 아래 검사를 실행합니다.
 - 공유 Codex 하네스 검사: 저장소 지침/아키텍처/결정/검증 계약/내부 링크와 프로젝트 설정 경계를 확인합니다.
 - `Gitleaks` 시크릿 스캔
 - `frontend` 빌드: Node.js 24 기준 `npm ci && npm run build`
@@ -43,11 +43,13 @@ npm install
   - Vite, Rolldown, esbuild, lightningcss처럼 OS별 네이티브 패키지를 사용하는 의존성 충돌을 미리 확인하기 위함입니다.
 - `frontend` 타입 검사: Node.js 24 기준 `npm run typecheck`
 - `frontend` 품질 검사: `npm run lint`와 전체 `npm test -- --maxWorkers=2`. 기존 직원호출 일부 테스트 전용 job을 대체한다.
-- `frontend` 브라우저 회귀: Chromium 설치 후 `npm run test:e2e:typecheck && npm run test:e2e`. 모의 API 기반 4개 흐름이며 실제 DB 저장 검증은 포함하지 않는다.
+- `frontend` 브라우저 회귀: Chromium 설치 후 `npm run test:e2e:typecheck && npm run test:e2e`. 모의 API 기반 핵심 흐름이며 실제 DB 저장 검증은 포함하지 않는다.
   - 실패 시 HTML 보고서/스크린샷/trace를 `browser-failure-evidence` artifact로 7일 보관한다.
   - 실행 방법과 검증 범위는 [브라우저 자동 테스트](./frontend/docs/testing/browser-e2e.md)를 따른다.
 - `frontend` 코드 생성 결과 확인: 커밋된 `openapi.json` 기준으로 generated 파일 drift 검사
 - `qrorder` 백엔드 검증: `./gradlew test`
+- `Verification Summary`: 전체 job 결과와 실행 링크를 요약한다. 실패/취소/건너뜀/결과 누락은 성공으로 처리하지 않는다.
+- 단위 테스트 JSON/원본 로그는 `frontend-unit-evidence` artifact로 7일 보관한다. [로컬/CI 결과 확인](./frontend/docs/testing/verification.md).
 
 ## CI 및 운영 시크릿
 

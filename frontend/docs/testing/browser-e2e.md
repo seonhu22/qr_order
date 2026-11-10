@@ -12,6 +12,10 @@ Playwright가 실제 Chromium을 열어 버튼을 누르고 입력하며 화면�
 | Client 주문처리 | 접수 → 조리 → 서빙 → 영수증 → 카드결제 요청과 화면 갱신 |
 | Consumer 주문 | 메뉴 → 장바구니 → 주문 성공 → 장바구니/요청 ID 초기화 |
 | Consumer 재시도 | 첫 요청 실패 → 장바구니 유지 → 같은 요청 ID/내용으로 재시도 |
+| 관리자 알림 | 모두 읽음 → 다른 탭 동기화 → 새로고침 후 읽음 복원 |
+| SSE fallback | 실제 EventSource 요청 차단 → 반복 연결 실패 → polling GET으로 외부 상태 변경 반영 |
+| 주문 수정 | 오프라인 확인 시 POST 없음/초안 유지 → 온라인 재시도 409 안내/초안 유지 |
+| 문의 답변 파일 | 첫 저장 실패 → 답변/파일 유지 → multipart 재시도 필드/파일 내용 검증 |
 
 ## 실행
 
@@ -28,6 +32,7 @@ npm run test:e2e
 - 실행 모드는 `dev:real`이지만 테스트가 모든 `/api/` 요청을 가로채므로 백엔드 연결은 하지 않는다. Service Worker는 차단한다.
 - fixture에 없는 API는 501로 응답하고 테스트를 실패시킨다. 실제 서버로 우회하지 않는다.
 - 테스트별 새 브라우저 context를 사용해 쿠키/localStorage를 격리한다.
+- SSE 테스트는 브라우저 시간을 앞당겨 백오프/polling을 검증한다. HTTP 응답 후 React Query 알림이 실행되도록 시간을 재개한 뒤 화면을 확인한다.
 - 등록 경로는 `/api/`로 시작하는 요청만 포함한다. `**/api/**` 패턴은 Vite의 `/src/shared/api/...`까지 차단하므로 사용하지 않는다.
 
 ## 결과 보기
@@ -52,5 +57,7 @@ npm run test:e2e:typecheck
 - 이후 전용 QA 환경에서 실제 서버용 설정/데이터 준비 및 정리를 별도 추가한다.
 
 설정: [Playwright config](../../playwright.config.ts), 시나리오: [Client](../../e2e/client-operations.spec.ts), [Consumer](../../e2e/consumer-order.spec.ts).
+
+확장 시나리오: [관리자 알림](../../e2e/manager-notifications.spec.ts), [SSE polling](../../e2e/client-realtime.spec.ts), [주문 수정](../../e2e/order-revision.spec.ts), [문의 파일](../../e2e/inquiry-attachments.spec.ts). 전체 검사/로그 요약은 [검증 실행](./verification.md)을 따른다.
 
 공식 근거: [Web server](https://playwright.dev/docs/test-webserver), [API mocking](https://playwright.dev/docs/mock), [Configuration](https://playwright.dev/docs/test-configuration).

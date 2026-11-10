@@ -63,6 +63,8 @@
 
 ## 4. 권장 개발 사이클
 
+전체 검증을 한 번에 실행하고 실패 요약만 확인하려면 [검증 실행 안내](./docs/testing/verification.md)에 따라 `npm run verify`를 사용한다. 아래 개별 명령은 작업 중 필요한 검사만 실행할 때 사용한다.
+
 ```powershell
 # 기능 구현 또는 수정
 npm run lint
@@ -83,7 +85,7 @@ npm run test:watch
 
 ### 필수 설치 도구
 
-- `Node.js` 20 이상
+- `Node.js` 24 (`package.json` engines 기준)
 - `npm`
 - `Java 17` 이상 (백엔드 실행용)
 
@@ -137,6 +139,7 @@ npm run build
 | `npm run dev:real` | MSW 비활성화 개발 서버 (실제 백엔드 연동) |
 | `npm run lint` | ESLint 검사 |
 | `npm run typecheck` | TypeScript 타입 검사 |
+| [`npm run verify`](./docs/testing/verification.md) | 프론트 전체 검사와 시간별 실패 요약 저장 |
 | `npm test` | Vitest 1회 실행 |
 | [`npm run test:log`](./docs/testing/test-result-log.md) | 간결한 Vitest 결과를 터미널과 시간별 로그 파일에 기록 |
 | [`npm run test:log:verbose`](./docs/testing/test-result-log.md#상세-로그-실행) | 개별 테스트 이름을 포함한 상세 로그 기록 |

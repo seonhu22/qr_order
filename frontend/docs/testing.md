@@ -6,6 +6,7 @@
 
 | 목적 | 문서 |
 |---|---|
+| 전체 검증 실행/실패 요약/CI 증거 확인 | [검증 실행과 실패 요약](./testing/verification.md) |
 | 전체 테스트 실행 | [`frontend/README.md`의 권장 개발 사이클](../README.md#4-권장-개발-사이클) |
 | 터미널에서 잘린 실패 결과 저장 | [테스트 결과 로그 저장](./testing/test-result-log.md) |
 | Vitest, Testing Library, MSW 선택 이유 | [라이브러리/테스트 도구 구성](./libraries.md#1-테스트-도구-구성) |
@@ -16,6 +17,7 @@
 
 | 상황 | 명령 |
 |---|---|
+| 프론트 전체 검증과 실패 요약 저장 | `npm run verify` |
 | 전체 테스트를 한 번 실행 | `npm test` |
 | 간결한 전체 결과를 파일에도 저장 | `npm run test:log` |
 | 개별 테스트 이름까지 파일에 저장 | `npm run test:log:verbose` |
