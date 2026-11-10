@@ -2,6 +2,15 @@ import { expect, test } from '@playwright/test';
 import { installClientApi } from './fixtures/clientApi';
 import { installManagerNotificationApi } from './fixtures/managerNotificationApi';
 
+test('URL 대소문자와 인코딩으로 메뉴 가드를 우회할 수 없다', async ({ context, page }) => {
+  const api = await installClientApi(context, true);
+  for (const path of ['/CLIENT/MENU/INFO/OPTION', '/client/%6denu/info/option']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/client\/main$/);
+  }
+  expect(api.unexpectedRequests).toEqual([]);
+});
+
 for (const [path, label] of [
   ['/client/menu/info/management', '메뉴 관리'],
   ['/client/menu/info/option', '옵션 관리'],
