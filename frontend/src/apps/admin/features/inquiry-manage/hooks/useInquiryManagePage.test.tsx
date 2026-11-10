@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useInquiryManagePage } from './useInquiryManagePage';
+import type { FileChangeState } from '@/shared/components/file-attachment';
+import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
 
 const useInquiryManageQueryMock = vi.fn();
 const useInquiryAnswerMutationMock = vi.fn();
@@ -18,18 +20,28 @@ vi.mock('@tanstack/react-query', async () => {
   };
 });
 
-vi.mock('../api/inquiryManageApi', () => ({
+vi.mock('../api/inquiryManageApi', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../api/inquiryManageApi')>(),
   useInquiryManageQuery: (...args: unknown[]) => useInquiryManageQueryMock(...args),
   useInquiryAnswerMutation: (...args: unknown[]) => useInquiryAnswerMutationMock(...args),
   mapToInquiryManageRow: (...args: unknown[]) => mapToInquiryManageRowMock(...args),
-  buildInquiryAnswerUpdateRequest: (row: { sysId?: string }, answerDescription: string) => ({
-    sysId: row.sysId,
-    answerYn: 'Y',
-    answerDescription,
-  }),
 }));
 
 describe('useInquiryManagePage', () => {
+  it('forwards files and refreshes answer files only after save succeeds', async () => {
+    const { result } = renderHook(() => useInquiryManagePage());
+    const files: FileChangeState = { newFiles: [new File(['answer'], 'answer.txt')], deletedFiles: [] };
+    await result.current.actions.saveAnswer(result.current.data.rows[0], ' 답변 ', files);
+    expect(mutateAsyncMock).toHaveBeenCalledWith({ sysId: 'qna-1', answerYn: 'Y', answerDescription: '답변', fileChangeState: files });
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: getGetAttachFileQueryKey({ linkSysId: 'qna-1' }) });
+  });
+
+  it('preserves caches when answer save fails', async () => {
+    mutateAsyncMock.mockRejectedValueOnce(new Error('저장 실패'));
+    const { result } = renderHook(() => useInquiryManagePage());
+    await expect(result.current.actions.saveAnswer(result.current.data.rows[0], '답변')).rejects.toThrow('저장 실패');
+    expect(invalidateQueriesMock).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
     useInquiryManageQueryMock.mockReset();
     useInquiryAnswerMutationMock.mockReset();

@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
+import { getGetAttachFileQueryKey } from '@/generated/file-controller/file-controller';
+import type { FileChangeState } from '@/shared/components/file-attachment';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import {
   buildInquiryAnswerUpdateRequest,
@@ -20,17 +22,18 @@ export function useInquiryManagePage() {
 
   const rows = useMemo(() => (query.data ?? []).map(mapToInquiryManageRow), [query.data]);
 
-  const saveAnswer = async (row: InquiryManageRow, answerDescription: string) => {
+  const saveAnswer = async (row: InquiryManageRow, answerDescription: string, fileChangeState?: FileChangeState) => {
     if (!row.sysId) {
       throw new Error(
         '문의사항 조회 응답에 sysId가 없어 답변을 저장할 수 없습니다. 백엔드 응답 계약 확인이 필요합니다.',
       );
     }
 
-    const request = buildInquiryAnswerUpdateRequest(row, answerDescription.trim());
+    const request = buildInquiryAnswerUpdateRequest(row, answerDescription.trim(), fileChangeState);
 
     await updateMutation.mutateAsync(request);
     await queryClient.invalidateQueries({ queryKey: queryKeys.qna.lists });
+    await queryClient.invalidateQueries({ queryKey: getGetAttachFileQueryKey({ linkSysId: row.sysId }) });
   };
 
   return {
