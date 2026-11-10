@@ -29,6 +29,18 @@ describe('shouldBypassBusinessVerificationError', () => {
     expect(shouldBypassBusinessVerificationError({ response: { status: 400 } })).toBe(false);
   });
 
+  it('requires explicit lowercase true instead of an unset or differently cased flag', () => {
+    for (const flag of [undefined, '', 'TRUE', '1']) {
+      vi.stubEnv('VITE_BYPASS_BUSINESS_VERIFICATION', flag);
+      expect(shouldBypassBusinessVerificationError({ status: 400 })).toBe(false);
+    }
+  });
+
+  it('does not bypass permission errors or network errors without an HTTP status', () => {
+    expect(shouldBypassBusinessVerificationError({ status: 403 })).toBe(false);
+    expect(shouldBypassBusinessVerificationError(new Error('Network Error'))).toBe(false);
+  });
+
   it('returns false for status 401 (auth failure, not data invalid)', () => {
     expect(shouldBypassBusinessVerificationError({ response: { status: 401 } })).toBe(false);
   });

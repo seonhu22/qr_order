@@ -1,11 +1,12 @@
-// TODO(QA-bypass): 백엔드 사업자 인증 테스트 데이터 확보 시 본 파일 + useClientSignupFlow.ts 분기 제거.
+// TODO(QA-bypass): 테스트 데이터 또는 NTS mock 확보 후 우회 OFF 가입 QA 통과 시 제거.
+// 제거 범위와 검증 기준: frontend/docs/qa-bypass-business-verification.md
 // 사유: 유효 사업자 데이터 부재로 QA가 회원가입 흐름 끝까지 검증 불가. 로컬 dev 전용 우회.
 
 /**
  * QA용 사업자 인증 우회 판정.
  *
  * 3조건 AND:
- * - import.meta.env.DEV === true (production 빌드에서는 false → tree-shake)
+ * - import.meta.env.DEV === true (production 환경에서는 false)
  * - VITE_BYPASS_BUSINESS_VERIFICATION === 'true' (로컬 .env.local에서만 설정)
  * - error의 HTTP status === 400 (BusinessRegiException 매핑)
  *
