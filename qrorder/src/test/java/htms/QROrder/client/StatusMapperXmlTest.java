@@ -7,6 +7,7 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -167,6 +168,23 @@ class StatusMapperXmlTest {
             assertEquals("yyyy-MM-dd HH:mm:ss", field.getAnnotation(JsonFormat.class).pattern());
             assertEquals("date-time", field.getAnnotation(io.swagger.v3.oas.annotations.media.Schema.class).format());
         }
+    }
+
+    @Test
+    void exposesPersistedStatusChangeTimeWithoutReplacingMissingTimeWithNow() throws Exception {
+        assertTrue(sql("getStatusHeaderItems", Map.of("sysPlantCd", "PLANT-1"))
+                .contains("og.modify_datetime as status_changed_at"));
+        var field = StatusItem.Header.class.getDeclaredField("statusChangedAt");
+        assertEquals(LocalDateTime.class, field.getType());
+        assertEquals("yyyy-MM-dd HH:mm:ss.SSSSSS", field.getAnnotation(JsonFormat.class).pattern());
+        var header = new StatusItem.Header();
+        header.setStatusChangedAt(LocalDateTime.of(2026, 11, 10, 14, 30, 0, 123456000));
+        var json = JsonMapper.builder().build().valueToTree(header);
+        assertEquals("2026-11-10 14:30:00.123456", json.get("statusChangedAt").asText());
+        var schema = io.swagger.v3.core.converter.ModelConverters.getInstance()
+                .read(StatusItem.Header.class).get("StatusHeader");
+        var changedAtSchema = (io.swagger.v3.oas.models.media.Schema<?>) schema.getProperties().get("statusChangedAt");
+        assertEquals("date-time", changedAtSchema.getFormat());
     }
 
     private String sql(String statementId, Object parameter) {

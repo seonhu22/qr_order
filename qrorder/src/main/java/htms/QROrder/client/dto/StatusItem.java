@@ -26,6 +26,10 @@ public class StatusItem {
         @Schema(type = "string", format = "date-time", example = "2026-09-08 14:30:00")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime orderDatetime;
+        @Schema(type = "string", format = "date-time", description = "서버에서 기록한 마지막 상태 변경 시각. 미변경 주문은 null",
+                example = "2026-11-10 14:30:00.123456")
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+        private LocalDateTime statusChangedAt;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime orderTime;
         private String orderStatus;
