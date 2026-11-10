@@ -65,7 +65,7 @@ user.userNm → user.userName → user.userId → '관리자' (fallback)
 | 필드 | 출처 | 용도 |
 |---|---|---|
 | `role` | 로그인 시 백엔드 세션에 저장된 전역 권한 | 인증/인가, 라우트·기능 접근 판단 |
-| `staffRole` | `sys_user.user_role` | client 앱 내부 업무 권한 표시 |
+| `staffRole` | `sys_user.user_role` | Client 앱 내부 업무 권한 판정/표시 |
 | `userRole` | 유저 관리 목록/저장 API의 업무 권한 필드 | client 유저 목록·편집 화면 |
 
 client 앱 표시 정책:
@@ -74,6 +74,8 @@ client 앱 표시 정책:
 - client 유저 관리 목록의 권한 배지는 `userRole`을 기준으로 한다.
 - `01`은 `관리자`, `02`는 `스태프`, 그 외 값은 `스태프`로 표시한다.
 - `role`은 표시용 fallback으로 사용하지 않는다. `role: "STAFF"`와 `staffRole: "01"`이 함께 내려올 수 있기 때문이다.
+
+메뉴/옵션 관리의 관리자 전용 메뉴와 직접 URL 가드는 [Client 메뉴 관리 권한](./page/client-menu-permissions.md)을 따른다. 서버 인가는 별도 검증 대상이다.
 
 데이터 필드를 삭제·무시·대체하기 전에는 출처, 사용처, 영향 범위를 먼저 확인한다. 중복처럼 보이는 필드라도 세션 권한과 업무 권한처럼 역할이 다를 수 있다.
 
