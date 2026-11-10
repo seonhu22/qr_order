@@ -38,6 +38,12 @@ export function InquiryManagePage() {
 
   const attachFileQuery = useInquiryAttachFileQuery(selectedRow?.fileUlid);
   const attachFiles = (attachFileQuery.data ?? []).map(mapFileResponseToServerFile);
+  // 서버는 원문 파일을 fileUlid, 답변 파일을 문의 sysId에 연결한다.
+  const answerFileQuery = useInquiryAttachFileQuery(selectedRow?.sysId);
+  const answerFiles = (answerFileQuery.data ?? []).map(mapFileResponseToServerFile);
+  const remainingAnswerFiles = Math.max(0, INQUIRY_ANSWER_FILE_POLICY.maxFiles - answerFiles.length);
+  const remainingAnswerSizeMB = Math.max(0, INQUIRY_ANSWER_FILE_POLICY.maxTotalSizeMB
+    - answerFiles.reduce((sum, file) => sum + (Number(file.fileSize) || 0), 0));
 
   const handleDownloadFile = (file: Parameters<typeof downloadInquiryFile>[0]) => {
     downloadInquiryFile(file).catch(() => {});
@@ -58,6 +64,7 @@ export function InquiryManagePage() {
 
   /* 닫기 — 변경사항 있으면 경고 */
   const handleClose = () => {
+    if (status.isSaving) return;
     if (isDirty) {
       setDirtyWarning(true);
     } else {
@@ -90,7 +97,7 @@ export function InquiryManagePage() {
     }
 
     try {
-      await actions.saveAnswer(selectedRow, answerContent);
+      await actions.saveAnswer(selectedRow, answerContent, answerFileChangeState);
       closeEditor();
       setNoticeModal({ open: true, title: '안내', description: '답변이 저장되었습니다.' });
     } catch (error) {
@@ -140,8 +147,9 @@ export function InquiryManagePage() {
           label: status.isSaving ? '저장 중...' : '확인',
           onClick: handleConfirm,
           disabled: status.isSaving || !canSaveAnswer,
+          loading: status.isSaving,
         }}
-        secondaryAction={{ label: '닫기', onClick: handleClose }}
+      secondaryAction={{ label: '닫기', onClick: handleClose, disabled: status.isSaving }}
         onClose={handleClose}
       >
         {selectedRow && (
@@ -173,17 +181,18 @@ export function InquiryManagePage() {
               onDownload={handleDownloadFile}
               onDownloadAll={handleDownloadAllFiles}
             />
-            {/* 답변 첨부파일 — 선택·검증까지만 동작. TODO는 inquiryManageApi.ts의
-                buildInquiryAnswerUpdateRequest 주석 참고 */}
             <InputWrapper label="답변 첨부파일" inputId="inquiry-answer-file">
+              {answerFileQuery.isError && <p role="alert">답변 첨부파일을 불러오지 못했습니다. 다시 열어주세요.</p>}
+              <FileDownloadList files={answerFiles} showHeader onDownload={handleDownloadFile} />
               <FileInputGroup
+                key={selectedRow.sysId}
                 variant="button"
                 files={[]}
-                disabled={!canSaveAnswer}
+                disabled={!canSaveAnswer || status.isSaving || answerFileQuery.isPending || answerFileQuery.isError}
                 onChange={setAnswerFileChangeState}
-                maxFiles={INQUIRY_ANSWER_FILE_POLICY.maxFiles}
+                maxFiles={remainingAnswerFiles}
                 maxFileSizeMB={INQUIRY_ANSWER_FILE_POLICY.maxFileSizeMB}
-                maxTotalSizeMB={INQUIRY_ANSWER_FILE_POLICY.maxTotalSizeMB}
+                maxTotalSizeMB={remainingAnswerSizeMB}
                 allowedExtensions={INQUIRY_ANSWER_FILE_POLICY.allowedExtensions}
               />
             </InputWrapper>
