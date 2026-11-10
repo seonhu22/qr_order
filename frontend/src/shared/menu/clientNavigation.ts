@@ -2,6 +2,7 @@
 import type { SidebarNavDepth1 } from '@/shared/components/sidebar/types';
 import { createAdminNavigationData } from '@/shared/menu/adminNavigation';
 import type { MenuCatalogItem } from '@/shared/menu/menuCatalog';
+import { canAccessClientMenuPath } from './clientMenuAccess';
 
 export type ClientSection = string;
 
@@ -224,7 +225,7 @@ function createFallbackClientNavigationData(pathname: string): ClientNavigationD
   };
 }
 
-export function createClientNavigationData(
+function createUnfilteredClientNavigationData(
   items: readonly MenuCatalogItem[],
   pathname: string,
 ): ClientNavigationData {
@@ -252,5 +253,31 @@ export function createClientNavigationData(
           depth3: navigation.breadcrumb.current,
         }
       : null,
+  };
+}
+
+export function createClientNavigationData(
+  items: readonly MenuCatalogItem[],
+  pathname: string,
+  staffRole?: string,
+): ClientNavigationData {
+  const navigation = createUnfilteredClientNavigationData(items, pathname);
+  const menusBySection = Object.fromEntries(Object.entries(navigation.menusBySection).map(([section, menus]) => [
+    section,
+    menus.map((menu) => ({ ...menu, groups: menu.groups.map((group) => ({
+      ...group, items: group.items.filter((item) => canAccessClientMenuPath(item.path, staffRole)),
+    })).filter((group) => group.items.length > 0) })).filter((menu) => menu.groups.length > 0),
+  ]));
+  const currentSection = navigation.currentSection && menusBySection[navigation.currentSection]?.length
+    ? navigation.currentSection : null;
+  const allowed = canAccessClientMenuPath(pathname, staffRole);
+  return {
+    ...navigation,
+    menusBySection,
+    headerSections: navigation.headerSections.filter(({ key }) => menusBySection[key]?.length),
+    currentSection,
+    currentMenus: currentSection ? menusBySection[currentSection] : [],
+    currentMenuCd: allowed ? navigation.currentMenuCd : undefined,
+    breadcrumb: allowed ? navigation.breadcrumb : null,
   };
 }
