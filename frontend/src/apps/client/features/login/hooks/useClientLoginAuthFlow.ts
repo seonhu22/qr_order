@@ -12,6 +12,8 @@ import {
 } from '@/shared/auth/initPassword';
 import type { useResultModalFlow } from '@/shared/hooks/useResultModalFlow';
 import { validatePasswordPair } from '@/shared/lib/validators/validatePasswordPair';
+import { HttpError } from '@/shared/lib/httpClient';
+import { getPasswordFailCount, isLockedLoginMessage } from '@/shared/auth/loginFailure';
 import type { Step } from '../types';
 
 const SAVED_ID_KEY = 'client_saved_userId';
@@ -34,6 +36,23 @@ export function useClientLoginAuthFlow({ modal, goToStep }: UseClientLoginAuthFl
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [changePasswordError, setChangePasswordError] = useState('');
+
+  const handleLoginFailure = (payload: unknown, message: string) => {
+    const count = getPasswordFailCount(payload);
+    const lockedMessage = isLockedLoginMessage(message);
+    if ((typeof count === 'number' && count >= 5) || lockedMessage) {
+      setUserPassword('');
+      setLoginError('');
+      modal.showError({
+        title: '로그인 제한 안내',
+        description: lockedMessage
+          ? message
+          : '비밀번호 오류 횟수가 5회 이상입니다. 계정 상태를 확인해주세요.',
+      });
+      return;
+    }
+    setLoginError(message);
+  };
 
   const refetchCurrentUser = async () => {
     const meData = await getCurrentUser();
@@ -77,11 +96,12 @@ export function useClientLoginAuthFlow({ modal, goToStep }: UseClientLoginAuthFl
             navigate('/client/main');
           }
         } else {
-          setLoginError(data.message ?? '로그인에 실패했습니다.');
+          handleLoginFailure(data, data.message ?? '로그인에 실패했습니다.');
         }
       },
       onError: (error) => {
-        setLoginError(
+        handleLoginFailure(
+          error instanceof HttpError ? error.payload : undefined,
           error instanceof Error
             ? error.message
             : '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
