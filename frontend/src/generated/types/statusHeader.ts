@@ -12,6 +12,8 @@ export interface StatusHeader {
   orderNum?: number;
   tableNum?: number;
   orderDatetime?: string;
+  /** 서버에서 기록한 마지막 상태 변경 시각. 미변경 주문은 null */
+  statusChangedAt?: string;
   orderTime?: LocalTime;
   orderStatus?: string;
   cancelDatetime?: string;

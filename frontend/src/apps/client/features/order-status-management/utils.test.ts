@@ -25,6 +25,14 @@ function row(
 }
 
 describe('groupOrderBoardRowsByStatus', () => {
+  it('같은 상태 변경 시각이면 서버 응답 순서와 무관하게 ID순으로 수렴한다', () => {
+    const first = row('a', '2026-11-10T10:00:00', '2026-11-10T11:00:00.123456');
+    const second = row('b', '2026-11-10T10:00:00', '2026-11-10T11:00:00.123456');
+    const ids = (rows: OrderBoardRow[]) => groupOrderBoardRowsByStatus(rows)
+      .find((column) => column.status === 'COOKING')?.rows.map((item) => item.id);
+    expect(ids([second, first])).toEqual(['a', 'b']);
+    expect(ids([first, second])).toEqual(['a', 'b']);
+  });
   it('기존 카드는 주문 시각순으로 두고 새로 이동한 카드는 섹션 맨 아래에 둔다', () => {
     const columns = groupOrderBoardRowsByStatus([
       row('newly-moved', '2026-08-05T10:00:00', '2026-08-05T12:00:00.000Z'),

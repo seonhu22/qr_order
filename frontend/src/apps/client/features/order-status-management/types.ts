@@ -36,7 +36,7 @@ export type OrderBoardRow = {
   totalPrice?: number;
   /** ISO 형식("YYYY-MM-DDTHH:mm:ss") 주문 접수 시각 */
   orderDatetime: string;
-  /** 상태 섹션에 마지막으로 진입한 시각. Mock에서는 이동한 카드를 섹션 맨 아래에 정렬할 때 사용한다. */
+  /** 서버가 기록한 마지막 상태 변경 시각. 이동한 카드를 섹션 맨 아래에 정렬한다. */
   statusChangedAt?: string;
   /** 취소 처리 시각. CANCELLED 상태의 취소사유 모달에서 표시한다. */
   cancelledAt?: string;

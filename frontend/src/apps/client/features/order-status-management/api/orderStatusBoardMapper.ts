@@ -21,7 +21,6 @@ export type OrderStatusCompatibleHeader = Omit<
   tableInfo?: string;
   paymentStatus?: OrderBoardPaymentStatus;
   cancelledAt?: string;
-  statusChangedAt?: string;
 };
 
 export type OrderStatusCompatibleBody = Body;
@@ -99,8 +98,9 @@ export function mapStatusResponsesToOrderBoardRows(
         paymentStatus: header.paymentStatus ?? 'PENDING',
         totalPrice: item.footer?.totalPrice ?? 0,
         orderDatetime: normalizeDatetime(header.orderDatetime),
-        // TODO(order-status-contract): 백엔드가 상태 변경 시각을 응답하면 실제 필드로 교체한다.
-        statusChangedAt: header.statusChangedAt,
+        statusChangedAt: header.statusChangedAt
+          ? normalizeDatetime(header.statusChangedAt)
+          : undefined,
         cancelledAt: header.cancelledAt ?? (
           header.cancelDatetime ? normalizeDatetime(header.cancelDatetime) : undefined
         ),

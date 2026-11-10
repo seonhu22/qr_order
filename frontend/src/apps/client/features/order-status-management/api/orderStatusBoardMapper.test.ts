@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { mapStatusResponsesToOrderBoardRows } from './orderStatusBoardMapper';
 
 describe('mapStatusResponsesToOrderBoardRows', () => {
+  it('상태 변경 시각의 공백을 정규화하고 미변경 주문의 시각은 생성하지 않는다', () => {
+    const rows = mapStatusResponsesToOrderBoardRows([{
+      statusFlag: '02',
+      statusList: [
+        { header: { sysId: 'changed', statusChangedAt: '2026-11-10 14:30:00.123456' } },
+        { header: { sysId: 'unchanged' } },
+      ],
+    }]);
+    expect(rows[0].statusChangedAt).toBe('2026-11-10T14:30:00.123456');
+    expect(rows[1].statusChangedAt).toBeUndefined();
+  });
   it('서버 계산 금액을 총액과 화면 편집용 단가로 변환한다', () => {
     const result = mapStatusResponsesToOrderBoardRows([
       {

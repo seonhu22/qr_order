@@ -2631,6 +2631,12 @@ export interface components {
              * @example 2026-09-08 14:30:00
              */
             orderDatetime?: string;
+            /**
+             * Format: date-time
+             * @description 서버에서 기록한 마지막 상태 변경 시각. 미변경 주문은 null
+             * @example 2026-11-10 14:30:00.123456
+             */
+            statusChangedAt?: string;
             orderTime?: components["schemas"]["LocalTime"];
             orderStatus?: string;
             /**
