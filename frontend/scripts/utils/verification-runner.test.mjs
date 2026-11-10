@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
@@ -63,5 +63,21 @@ test('CI summary does not accept missing job evidence as success', async () => {
       logFile: join(directory, 'ci.log'), env: { ...process.env, CHECK_RESULTS: '{}', GITHUB_STEP_SUMMARY: '', CI_RUN_URL: '' },
     });
     assert.equal(result.code, 1);
+  } finally { rmSync(directory, { recursive: true }); }
+});
+
+test('CI unit summary lists failed test names and preserves failure', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'qr-unit-summary-'));
+  try {
+    const reportFile = join(directory, 'report.json');
+    writeFileSync(reportFile, JSON.stringify({ success: false, numPassedTests: 1, numFailedTests: 1, numPendingTests: 0,
+      testResults: [{ name: 'retry.test.ts', status: 'failed', assertionResults: [{ status: 'failed', fullName: 'preserves request ID' }] }],
+    }));
+    const summaryFile = join(directory, 'summary.md');
+    const result = await runLoggedCheck(process.execPath, [fileURLToPath(new URL('../write-vitest-summary.mjs', import.meta.url)), reportFile], {
+      logFile: join(directory, 'unit.log'), env: { ...process.env, GITHUB_STEP_SUMMARY: summaryFile },
+    });
+    assert.equal(result.code, 1);
+    assert.match(readFileSync(summaryFile, 'utf8'), /retry.test.ts: preserves request ID/);
   } finally { rmSync(directory, { recursive: true }); }
 });

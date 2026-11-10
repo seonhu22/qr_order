@@ -135,6 +135,11 @@ jobs:
           npm test -- --maxWorkers=2 --reporter=default --reporter=json --outputFile=test-results/unit/vitest.json 2>&1 | tee test-results/unit/vitest.log
         working-directory: frontend
 
+      - name: Summarize failed test names
+        if: always()
+        run: node scripts/write-vitest-summary.mjs test-results/unit/vitest.json
+        working-directory: frontend
+
       - name: Upload unit test evidence
         if: always()
         uses: actions/upload-artifact@v4
