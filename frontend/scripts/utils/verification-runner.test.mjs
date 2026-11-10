@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 import { runLoggedCheck, renderVerificationSummary, extractFailedTests } from './verification-runner.mjs';
 
 test('captures both streams and preserves a failing exit code', async () => {
