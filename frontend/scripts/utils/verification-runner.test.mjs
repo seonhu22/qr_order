@@ -55,3 +55,13 @@ test('CI summary persists failures and rejects skipped checks', async () => {
     assert.match(readFileSync(summaryFile, 'utf8'), /browser \/ skipped/);
   } finally { rmSync(directory, { recursive: true }); }
 });
+
+test('CI summary does not accept missing job evidence as success', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'qr-ci-empty-'));
+  try {
+    const result = await runLoggedCheck(process.execPath, [fileURLToPath(new URL('../write-ci-summary.mjs', import.meta.url))], {
+      logFile: join(directory, 'ci.log'), env: { ...process.env, CHECK_RESULTS: '{}', GITHUB_STEP_SUMMARY: '', CI_RUN_URL: '' },
+    });
+    assert.equal(result.code, 1);
+  } finally { rmSync(directory, { recursive: true }); }
+});

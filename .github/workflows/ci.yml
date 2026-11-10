@@ -129,6 +129,7 @@ jobs:
         working-directory: frontend
 
       - name: Run all frontend tests
+        shell: bash
         run: |
           mkdir -p test-results/unit
           npm test -- --maxWorkers=2 --reporter=default --reporter=json --outputFile=test-results/unit/vitest.json 2>&1 | tee test-results/unit/vitest.log

@@ -11,4 +11,4 @@ const summary = [
 ].join('\n');
 process.stdout.write(summary);
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-process.exitCode = Object.values(checks).some((job) => job.result !== 'success') ? 1 : 0;
+process.exitCode = Object.keys(checks).length === 0 || Object.values(checks).some((job) => job.result !== 'success') ? 1 : 0;
