@@ -124,9 +124,24 @@ jobs:
         run: npm run lint
         working-directory: frontend
 
-      - name: Run all frontend tests
-        run: npm test -- --maxWorkers=2
+      - name: Test verification scripts
+        run: npm run test:scripts
         working-directory: frontend
+
+      - name: Run all frontend tests
+        run: |
+          mkdir -p test-results/unit
+          npm test -- --maxWorkers=2 --reporter=default --reporter=json --outputFile=test-results/unit/vitest.json 2>&1 | tee test-results/unit/vitest.log
+        working-directory: frontend
+
+      - name: Upload unit test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-unit-evidence
+          path: frontend/test-results/unit/
+          if-no-files-found: ignore
+          retention-days: 7
 
   frontend-browser:
     name: Frontend Browser Regression
@@ -226,3 +241,19 @@ jobs:
       - name: Run backend tests
         run: ./gradlew test
         working-directory: qrorder
+
+  verification-summary:
+    name: Verification Summary
+    if: always()
+    needs: [codex-harness, secret-scan, frontend-build, frontend-typecheck, frontend-quality, frontend-browser, frontend-codegen-drift, backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Summarize checks and evidence
+        run: node frontend/scripts/write-ci-summary.mjs
+        env:
+          CHECK_RESULTS: ${{ toJSON(needs) }}
+          CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

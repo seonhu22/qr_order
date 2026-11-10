@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { runLoggedCheck, renderVerificationSummary, extractFailedTests } from './verification-runner.mjs';
 
 test('captures both streams and preserves a failing exit code', async () => {
@@ -39,4 +40,18 @@ test('summary lists failed assertions and collection failures without dumping fu
   ] });
   assert.deepEqual(failures, ['a.test.ts: retry preserves ID', 'b.test.ts']);
   assert.match(renderVerificationSummary([], failures), /## Failed tests/);
+});
+
+test('CI summary persists failures and rejects skipped checks', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'qr-ci-summary-'));
+  try {
+    const summaryFile = join(directory, 'summary.md');
+    const result = await runLoggedCheck(process.execPath, [fileURLToPath(new URL('../write-ci-summary.mjs', import.meta.url))], {
+      logFile: join(directory, 'ci.log'),
+      env: { ...process.env, CHECK_RESULTS: JSON.stringify({ unit: { result: 'failure' }, browser: { result: 'skipped' } }), GITHUB_STEP_SUMMARY: summaryFile, CI_RUN_URL: 'https://example.com/run/1' },
+    });
+    assert.equal(result.code, 1);
+    assert.match(readFileSync(summaryFile, 'utf8'), /unit \/ failure/);
+    assert.match(readFileSync(summaryFile, 'utf8'), /browser \/ skipped/);
+  } finally { rmSync(directory, { recursive: true }); }
 });
