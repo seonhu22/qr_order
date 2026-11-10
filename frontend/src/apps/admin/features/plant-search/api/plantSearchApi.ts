@@ -25,19 +25,15 @@ export function mapToPlantSearchModel(plant: Plant): PlantSearchRow {
     plantCode: plant.plantCd,
     plantName: plant.plantNm,
     storeName: plant.storeNm ?? '-',
-    // DB: emp_nm — generated Plant 타입 누락, 백엔드 openapi 반영 후 (plant as Plant & { empNm?: string }).empNm 으로 교체
-    ownerName: '-',
+    ownerName: plant.empNm ?? '-',
     email: plant.emailUrl,
-    // DB 미존재 — 추후 백엔드 컬럼 확정 시 교체
+    // 조회 API에 담당자 계약이 없어 대표자명으로 대체하지 않는다.
     managerName: '-',
     postalCode: plant.zipCode ?? '-',
     address: plant.address ?? '-',
     phoneNumber: plant.phoneNumber ?? '-',
-    // DB 미존재 — 추후 백엔드 컬럼 확정 시 교체
-    // 개발 확인용: plantCd 첫 글자 코드가 짝수인 행에 임시 URL 부여
-    clientUrl: plant.plantCd.charCodeAt(0) % 2 === 0
-      ? `http://localhost:9090/${plant.plantCd}`
-      : '-',
+    // 조회 API에 접속 URL 계약이 없어 임의의 링크를 생성하지 않는다.
+    clientUrl: '-',
   };
 }
 

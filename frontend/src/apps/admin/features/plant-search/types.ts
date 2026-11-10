@@ -12,14 +12,14 @@ export type PlantSearchRow = {
   plantCode: string;
   plantName: string;
   storeName: string;
-  /** DB: emp_nm — generated Plant 타입 누락, 백엔드 openapi 반영 후 정식 매핑 필요 */
+  /** Plant.empNm / plant.emp_nm 대표자명 */
   ownerName: string;
   email: string;
-  /** DB 미존재 — 추후 백엔드 컬럼 확정 시 교체 */
+  /** 조회 API에 담당자 계약이 없어 '-' 표시 */
   managerName: string;
   postalCode: string;
   address: string;
   phoneNumber: string;
-  /** DB 미존재 — 추후 백엔드 컬럼 확정 시 교체 */
+  /** 조회 API에 접속 URL 계약이 없어 '-' 표시 */
   clientUrl: string;
 };
