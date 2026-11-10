@@ -14,6 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:log": "node scripts/run-tests-with-log.mjs",
+    "test:scripts": "node --test scripts/utils/*.test.mjs",
+    "verify": "node scripts/run-verification.mjs",
     "test:log:verbose": "node scripts/run-tests-with-log.mjs --reporter=verbose",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
