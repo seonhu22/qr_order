@@ -17,7 +17,7 @@
 - 직원호출 읽음 API를 다른 도메인 알림에 재사용하지 않는다.
 - 사용자 후속 결정(2026-11-10): 실제 공지/답변 조회와 계정/매장별 브라우저 로컬 읽음을 먼저 연결했다. 서버 저장과 기기 간 동기화만 후속으로 남긴다.
 - 현재 정책: [관리자 알림](../../frontend/docs/page/manager-notifications.md).
-- 근거: [현재 mock 훅](../../frontend/src/apps/client/features/notification-center/hooks/useManagerNotificationCenterMock.ts), [BoardController](../../qrorder/src/main/java/htms/QROrder/client/controller/BoardController.java).
+- 근거: [현재 실제 조회 훅](../../frontend/src/apps/client/features/notification-center/hooks/useManagerNotificationCenter.ts), [BoardController](../../qrorder/src/main/java/htms/QROrder/client/controller/BoardController.java).
 
 ## 사업장 가입/조회 연결
 
