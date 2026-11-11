@@ -99,6 +99,7 @@ login mutation 성공
 - `LoginPage`는 인증 상태의 `initPwdRequired`를 감지해, 리다이렉트로 돌아왔을 때도 변경 폼을 표시한다.
 - 비밀번호 변경 완료 API: `POST /api/auth/init-pwd-active` — `InitPwdRequest { password, chkPassword }` + `InitPwdParams { userId }`
 - 관리자 목록의 "비밀번호 초기화" 버튼은 `POST /api/auth/init-pwd`를 호출한다. 이 API는 사용자를 초기 비밀번호 변경 필요 상태로 만드는 reset 용도다.
+- 지원 초기화는 시스템 관리자 전용이다. Client 초기화는 별도 `reset_pwd/{sysId}`로 같은 매장 스태프만 허용하며 Client 관리자 대상은 수동 이메일 요청을 안내한다. [현재 정책/근거](../../docs/qa/2026-11-11-store-staff-password-reset.md).
 - 현재 백엔드 세션의 `loginUser.initYn`이 즉시 갱신되지 않는 문제가 있어, `init-pwd-active` 성공 후에는 기존 세션을 로그아웃 처리하고 새 비밀번호로 다시 로그인하도록 안내한다.
 
 ---
