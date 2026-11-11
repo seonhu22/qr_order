@@ -17,6 +17,7 @@
         where 1=1
         and su.user_id = #{userId}
         and su.delete_yn = 'N'
+        for update
     </select>
 
     <update id="initPwd">

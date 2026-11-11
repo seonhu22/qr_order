@@ -26,6 +26,7 @@ public class LoginService {
     private final PasswordEncoder passwordEncoder;
     private final LogService logService;
 
+    @Transactional(noRollbackFor = LoginFailException.class)
     public void loginCheck(LoginRequest loginRequest, HttpServletRequest httpServletRequest, HttpSession session) {
 
         Login dbLoginData = loginMapper.findByUserId(loginRequest.getUserId());
