@@ -7,6 +7,34 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StaffPasswordResetContractTest {
+    @Test void httpRequestUsesSessionStoreThroughRealService() throws Exception {
+        var mapper = org.mockito.Mockito.mock(htms.QROrder.client.repository.ClientUserMapper.class);
+        var encoder = org.mockito.Mockito.mock(org.springframework.security.crypto.password.PasswordEncoder.class);
+        var service = new htms.QROrder.client.service.ClientUserService(
+                org.mockito.Mockito.mock(htms.QROrder.audit.service.AuditService.class), mapper, encoder);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "defaultPassword", "TEST");
+        org.mockito.Mockito.when(encoder.encode("TEST")).thenReturn("HASH");
+        org.mockito.Mockito.when(mapper.resetPwd("STAFF", "HASH", "STORE", "MANAGER")).thenReturn(1);
+        var controller = new htms.QROrder.client.controller.StoreManageController(service,
+                org.mockito.Mockito.mock(htms.QROrder.client.service.StoreInfoService.class),
+                org.mockito.Mockito.mock(htms.QROrder.client.service.TableInfoService.class),
+                org.mockito.Mockito.mock(htms.QROrder.client.service.QRCodeService.class),
+                org.mockito.Mockito.mock(htms.QROrder.client.service.TableGuiService.class));
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor())
+                .setControllerAdvice(new htms.QROrder.common.exception.GlobalExceptionHandler()).build();
+        var actor = new htms.QROrder.auth.domain.Login();
+        actor.setUserRole("01"); actor.setSysPlantCd("STORE"); actor.setUserId("MANAGER");
+        String path = "/api/client/store_manage/user_manage/reset_pwd/STAFF";
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path)
+                        .param("sysPlantCd", "FORGED").sessionAttr("loginUser", actor))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+        org.mockito.Mockito.verify(mapper).resetPwd("STAFF", "HASH", "STORE", "MANAGER");
+        actor.setUserRole("02");
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path).sessionAttr("loginUser", actor))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+        org.mockito.Mockito.verifyNoMoreInteractions(mapper);
+    }
     @Test void managerPassesOwnStoreAndRejectsUnmatchedTarget() {
         var mapper = org.mockito.Mockito.mock(htms.QROrder.client.repository.ClientUserMapper.class);
         var encoder = org.mockito.Mockito.mock(org.springframework.security.crypto.password.PasswordEncoder.class);
