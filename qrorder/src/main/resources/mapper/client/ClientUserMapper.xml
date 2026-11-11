@@ -80,9 +80,15 @@
     <update id="resetPwd">
         update sys_user set
             user_password = #{tempPwd},
-            init_yn = 'N'
+            init_yn = 'Y',
+            password_fail_cnt = 0,
+            modify_user_id = #{userId},
+            modify_datetime = now()
         where 1=1
         and sys_id = #{sysId}
+        and plant_cd = #{sysPlantCd}
+        and user_role = '02'
+        and delete_yn = 'N'
     </update>
 
     <select id="duplicateChk" resultType="boolean">

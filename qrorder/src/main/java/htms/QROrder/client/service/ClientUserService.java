@@ -2,6 +2,7 @@ package htms.QROrder.client.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.dto.ClientUserItem;
 import htms.QROrder.client.dto.ClientUserRequest;
 import htms.QROrder.client.dto.ClientUserResponse;
@@ -73,10 +74,18 @@ public class ClientUserService {
         clientUserMapper.delClientUser(delItems, userId, sysPlantCd, menuCd);
     }
 
-    public void resetPwd(String sysId) {
-
+    public void resetPwd(String sysId, Login actor) {
+        if (actor == null || !"01".equals(actor.getUserRole())
+                || actor.getSysPlantCd() == null || actor.getSysPlantCd().isBlank()
+                || "ADMIN".equals(actor.getSysPlantCd())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "매장 관리자만 스태프의 비밀번호를 초기화할 수 있습니다.");
+        }
         String tempPwd = passwordEncoder.encode(defaultPassword);
-        clientUserMapper.resetPwd(sysId, tempPwd);
+        if (clientUserMapper.resetPwd(sysId, tempPwd, actor.getSysPlantCd(), actor.getUserId()) != 1) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "같은 매장의 스태프만 초기화할 수 있습니다. 매장 관리자 초기화는 관리자에게 이메일로 요청해주세요.");
+        }
     }
 
     private boolean duplicateChk(ClientUserRequest clientUserRequest) {

@@ -86,9 +86,9 @@ public class StoreManageController {
     }
 
     @PostMapping("/user_manage/reset_pwd/{sysId}")
-    public ResponseEntity<CommonResponse> resetPwd(@PathVariable String sysId) {
+    public ResponseEntity<CommonResponse> resetPwd(@PathVariable String sysId, HttpSession session) {
 
-        clientUserService.resetPwd(sysId);
+        clientUserService.resetPwd(sysId, (Login) session.getAttribute("loginUser"));
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
