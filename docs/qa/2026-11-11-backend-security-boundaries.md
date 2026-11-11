@@ -29,11 +29,10 @@
 - [로그인 임계값](../../qrorder/src/test/java/htms/QROrder/auth/LoginLockServiceTest.java), [트랜잭션 설정](../../qrorder/src/test/java/htms/QROrder/auth/LoginTransactionContractTest.java), [결제 상세](../../qrorder/src/test/java/htms/QROrder/client/PaymentDetailStoreScopeTest.java).
 - 읽기전용 독립 검토에서 아래 기존 버튼 호환성 영향을 확인했다. PostgreSQL 동작을 mock 테스트 통과로 대체하지 않았다.
 
-## 정책 확인 대기 / 기존 버튼 영향
+## 후속 정책 적용 / 기존 버튼 영향
 
-- 현재 초기화 두 경로 모두 본인만 허용한다. 기존 Admin/Client 사용자 관리의 타인 초기화 버튼은 403이 된다.
-- 관리자 예외 허용 범위를 사용자에게 질문했다. 답변 전에는 임의의 관리자 우회를 추가하지 않는다.
-- 이 항목은 최종 통합 완료가 아니다. 답변에 따라 서버 인가와 버튼 동작을 함께 마무리해야 한다.
+- 이 보고서의 최초 구현은 두 초기화 경로를 본인으로 제한했다. 사용자 후속 결정에 따라 지원 초기화/동일 매장 스태프 초기화/본인 변경으로 경계를 분리했다. [최신 정책과 검증](./2026-11-11-store-staff-password-reset.md).
+- 이전의 Client 초기화 경로 설명도 정정한다. Client는 별도 `reset_pwd/{sysId}`를 사용하며 Admin만 `init-pwd`를 사용한다. 후속 구현에서 각각의 경로를 보호했다.
 - 결제 상세는 타 매장/없는 번호에 기존 목록 형식인 `200 []`를 반환하며 상세를 노출하지 않는다. 403/404 응답으로 바꿨다고 보고하지 않는다.
 
 ## 계약 영향 경계
