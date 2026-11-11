@@ -17,6 +17,9 @@ class PasswordOwnerBoundaryTest {
     }
 
     private MockHttpServletResponse request(String path, String target, boolean loggedIn) throws Exception {
+        return request(path, target, loggedIn, "STAFF");
+    }
+    private MockHttpServletResponse request(String path, String target, boolean loggedIn, String role) throws Exception {
         var request = new MockHttpServletRequest("POST", path);
         if (target != null) request.setParameter("userId", target);
         if (loggedIn) {
@@ -24,6 +27,7 @@ class PasswordOwnerBoundaryTest {
             login.setUserId("OWNER");
             var session = new MockHttpSession();
             session.setAttribute("loginUser", login);
+            session.setAttribute("role", role);
             request.setSession(session);
         }
         ServletRequestPathUtils.parseAndCache(request);
@@ -43,11 +47,16 @@ class PasswordOwnerBoundaryTest {
         }
     }
     @Test void allowsOwnerAndRejectsMissingOrAnonymousTarget() throws Exception {
-        for (String path : List.of("/api/auth/init-pwd", "/api/auth/init-pwd-active")) {
+        for (String path : List.of("/api/auth/init-pwd-active")) {
             assertEquals(200, request(path, "OWNER", true).getStatus());
             assertEquals(403, request(path, null, true).getStatus());
             assertEquals(401, request(path, "OWNER", false).getStatus());
         }
+    }
+    @Test void supportResetRequiresSystemAdminButActiveChangeRemainsOwnerOnly() throws Exception {
+        assertEquals(200, request("/api/auth/init-pwd", "STORE-MANAGER", true, "SUPER_ADMIN").getStatus());
+        assertEquals(403, request("/api/auth/init-pwd", "OWNER", true).getStatus());
+        assertEquals(403, request("/api/auth/init-pwd-active", "OTHER", true, "SUPER_ADMIN").getStatus());
     }
     @Test void doesNotRestrictPublicPasswordRecovery() throws Exception {
         assertEquals(200, request("/api/auth/pwd_change", "OTHER", false).getStatus());

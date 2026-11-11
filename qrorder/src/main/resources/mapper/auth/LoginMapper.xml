@@ -23,6 +23,7 @@
     <update id="initPwd">
         update sys_user set
             init_yn = 'Y',
+            password_fail_cnt = 0,
             user_password = #{initPwdRequest.password}
         where 1=1
         and user_id = #{userId}

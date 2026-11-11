@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/client/menu_manage/**");
         registry.addInterceptor(new PasswordOwnerInterceptor())
                 .order(2)
-                .addPathPatterns("/api/auth/init-pwd", "/api/auth/init-pwd-active");
+                .addPathPatterns("/api/auth/init-pwd-active");
         registry.addInterceptor(new LoginCheckInterceptor())
                 .order(1)
                 .addPathPatterns("/api/**")
@@ -48,7 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(new RoleCheckInterceptor())
                 .order(2)
-                .addPathPatterns("/api/system/**")
+                .addPathPatterns("/api/system/**", "/api/auth/init-pwd")
                 .excludePathPatterns("/api/system/settings/menu/search");
     }
 }
