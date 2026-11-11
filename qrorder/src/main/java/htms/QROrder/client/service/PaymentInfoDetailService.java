@@ -17,8 +17,12 @@ public class PaymentInfoDetailService {
 
     private final PaymentInfoDetailMapper paymentInfoDetailMapper;
 
-    public List<PaymentInfoDetailResponse> getPaymentInfoDetail(String masterSysId) {
+    public List<PaymentInfoDetailResponse> getPaymentInfoDetail(String masterSysId, String sysPlantCd) {
 
-        return paymentInfoDetailMapper.getPaymentInfoDetail(masterSysId);
+        if (sysPlantCd == null || sysPlantCd.isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "매장 정보를 확인할 수 없습니다.");
+        }
+        return paymentInfoDetailMapper.getPaymentInfoDetail(masterSysId, sysPlantCd);
     }
 }

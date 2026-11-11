@@ -35,9 +35,10 @@ public class PaymentManageController {
     }
 
     @GetMapping("/history/detail/search/{masterSysId}")
-    public List<PaymentInfoDetailResponse> getPaymentInfoDetail(@PathVariable String masterSysId) {
+    public List<PaymentInfoDetailResponse> getPaymentInfoDetail(@PathVariable String masterSysId, HttpSession session) {
 
-        return paymentInfoDetailService.getPaymentInfoDetail(masterSysId);
+        Login login = (Login) session.getAttribute("loginUser");
+        return paymentInfoDetailService.getPaymentInfoDetail(masterSysId, login.getSysPlantCd());
     }
 
     // 정산 조회

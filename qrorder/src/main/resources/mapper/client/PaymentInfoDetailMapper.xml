@@ -40,11 +40,14 @@
                 )
             ) as items
         from order_group og
+        inner join order_master om
+            on om.sys_id = og.link_sys_id
         inner join order_detail od
             on od.link_sys_id3 = og.sys_id
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         where og.link_sys_id = #{masterSysId}
+        and om.sys_plant_cd = #{sysPlantCd}
         and not exists (
             select 1 from client_order_revision_removed_detail removed
             where removed.order_detail_sys_id = od.sys_id
