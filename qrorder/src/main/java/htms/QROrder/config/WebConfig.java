@@ -4,6 +4,7 @@ import htms.QROrder.auth.Interceptor.ConsumerAuthInterceptor;
 import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.auth.Interceptor.RoleCheckInterceptor;
 import htms.QROrder.auth.Interceptor.PasswordOwnerInterceptor;
+import htms.QROrder.auth.Interceptor.ClientMenuRoleInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
 
@@ -21,6 +22,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new ClientMenuRoleInterceptor())
+                .order(2)
+                .addPathPatterns("/api/client/menu_manage/**");
         registry.addInterceptor(new PasswordOwnerInterceptor())
                 .order(2)
                 .addPathPatterns("/api/auth/init-pwd", "/api/auth/init-pwd-active");
