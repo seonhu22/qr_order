@@ -11,6 +11,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/api/queryKeys';
 import { useFilterKeywordState } from '@/shared/hooks/useFilterKeywordState';
 import { usePreventLeave } from '@/shared/hooks/usePreventLeave';
+import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserStaffRole } from '@/shared/auth/authUserDisplay';
 import {
   getClientUserAuthorityOptionsWithFallback,
   mapToClientUserModel,
@@ -24,11 +26,13 @@ import type {
   ClientUserNoticeState,
   ClientUserPageViewModel,
   ClientUserPasswordResetTarget,
+  ClientUser,
 } from '../types';
 import { useClientUserModalFlow } from './useClientUserModalFlow';
 import type { ClientUserEditorRow } from './useClientUserModalFlow';
 
 export function useClientUserPage(): ClientUserPageViewModel {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
@@ -110,14 +114,36 @@ export function useClientUserPage(): ClientUserPageViewModel {
     }
   };
 
+  const canResetStaff = (target: ClientUser | undefined) =>
+    getAuthUserStaffRole(user) === '01' &&
+    typeof user?.sysPlantCd === 'string' &&
+    user.sysPlantCd.trim() !== '' &&
+    target?.authorityCode === '02' &&
+    target.plantCd === user.sysPlantCd;
+
   const requestResetPassword = (userId: string) => {
+    setPasswordResetTarget(null);
     const target = rows.find((row) => row.userId === userId);
     if (!target?.sysId) return;
+    if (target.authorityCode === '01') {
+      setNoticeState({ title: '안내', description: '매장 관리자 비밀번호 초기화는 관리자에게 이메일로 요청해주세요.' });
+      return;
+    }
+    if (!canResetStaff(target)) {
+      setNoticeState({ title: '안내', description: '매장 관리자는 같은 매장의 스태프만 초기화할 수 있습니다.' });
+      return;
+    }
     setPasswordResetTarget({ sysId: target.sysId, userId });
   };
 
   const confirmResetPassword = async () => {
     if (!passwordResetTarget) return;
+    const target = rows.find((row) => row.sysId === passwordResetTarget.sysId);
+    if (!canResetStaff(target)) {
+      setPasswordResetTarget(null);
+      setNoticeState({ title: '안내', description: '계정이나 권한이 변경되었습니다. 다시 확인해주세요.' });
+      return;
+    }
     try {
       await resetPasswordMutation.mutateAsync(passwordResetTarget.sysId);
       setPasswordResetTarget(null);

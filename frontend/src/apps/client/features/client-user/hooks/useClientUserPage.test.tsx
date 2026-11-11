@@ -22,6 +22,9 @@ import {
   useSaveClientUserMutation,
 } from '../api/clientUserApi';
 import type { ClientUser } from '../types';
+import { useAuth } from '@/shared/auth/AuthContext';
+
+vi.mock('@/shared/auth/AuthContext', () => ({ useAuth: vi.fn() }));
 
 vi.mock('../api/clientUserApi', () => ({
   mapToClientUserModel: (item: ClientUser) => item,
@@ -34,8 +37,8 @@ vi.mock('../api/clientUserApi', () => ({
 }));
 
 const MOCK_ROWS: ClientUser[] = [
-  { id: 'admin001', sysId: 'admin001', userId: 'admin001', userName: '홍길동', authorityCode: 'ADMIN', authorityLabel: '관리자' },
-  { id: 'staff001', sysId: 'staff001', userId: 'staff001', userName: '이철수', authorityCode: 'STAFF', authorityLabel: '스태프' },
+  { id: 'admin001', sysId: 'admin001', userId: 'admin001', userName: '홍길동', authorityCode: '01', authorityLabel: '관리자', plantCd: 'STORE' },
+  { id: 'staff001', sysId: 'staff001', userId: 'staff001', userName: '이철수', authorityCode: '02', authorityLabel: '스태프', plantCd: 'STORE' },
 ];
 
 function createWrapper() {
@@ -50,6 +53,7 @@ function createWrapper() {
 
 describe('useClientUserPage', () => {
   beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '01', sysPlantCd: 'STORE' } } as never);
     vi.mocked(useClientUserQuery).mockReturnValue({
       data: MOCK_ROWS,
       isLoading: false,
@@ -203,16 +207,16 @@ describe('useClientUserPage', () => {
     const { result } = renderHook(() => useClientUserPage(), { wrapper });
 
     act(() => {
-      result.current.actions.handleResetPassword('admin001');
+      result.current.actions.handleResetPassword('staff001');
     });
 
-    expect(result.current.uiProps.passwordResetTarget).toEqual({ sysId: 'admin001', userId: 'admin001' });
+    expect(result.current.uiProps.passwordResetTarget).toEqual({ sysId: 'staff001', userId: 'staff001' });
 
     await act(async () => {
       await result.current.actions.confirmResetPassword();
     });
 
-    expect(mutateAsync).toHaveBeenCalledWith('admin001');
+    expect(mutateAsync).toHaveBeenCalledWith('staff001');
     expect(result.current.uiProps.passwordResetTarget).toBeNull();
     expect(result.current.uiProps.noticeState).toEqual({
       title: '알림',
@@ -231,7 +235,7 @@ describe('useClientUserPage', () => {
     const { result } = renderHook(() => useClientUserPage(), { wrapper });
 
     act(() => {
-      result.current.actions.handleResetPassword('admin001');
+      result.current.actions.handleResetPassword('staff001');
     });
 
     await act(async () => {
@@ -240,6 +244,34 @@ describe('useClientUserPage', () => {
 
     expect(result.current.uiProps.passwordResetTarget).toBeNull();
     expect(result.current.uiProps.noticeState).toEqual({ title: '오류', description: '초기화 실패' });
+  });
+
+  it('guides manager resets to manual email without opening a reset confirmation', () => {
+    const { result } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleResetPassword('admin001'));
+    expect(result.current.uiProps.passwordResetTarget).toBeNull();
+    expect(result.current.uiProps.noticeState?.description).toContain('이메일');
+    expect(vi.mocked(useResetClientUserPasswordMutation)().mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('blocks staff and permission loss before confirmation', async () => {
+    const { result, rerender } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleResetPassword('staff001'));
+    expect(result.current.uiProps.passwordResetTarget).not.toBeNull();
+    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '02', sysPlantCd: 'STORE' } } as never);
+    rerender();
+    await act(async () => result.current.actions.confirmResetPassword());
+    expect(vi.mocked(useResetClientUserPasswordMutation)().mutateAsync).not.toHaveBeenCalled();
+    expect(result.current.uiProps.passwordResetTarget).toBeNull();
+    act(() => result.current.actions.handleResetPassword('staff001'));
+    expect(result.current.uiProps.passwordResetTarget).toBeNull();
+  });
+
+  it('does not reset a staff member in another store', () => {
+    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '01', sysPlantCd: 'OTHER' } } as never);
+    const { result } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleResetPassword('staff001'));
+    expect(result.current.uiProps.passwordResetTarget).toBeNull();
   });
 
   it('opens the create/edit modal with the expected mode', () => {
@@ -268,7 +300,8 @@ describe('useClientUserPage', () => {
       sysId: 'staff001',
       userId: 'staff001',
       userName: '이철수',
-      authorityCode: 'STAFF',
+      authorityCode: '02',
+      plantCd: 'STORE',
     });
   });
 
