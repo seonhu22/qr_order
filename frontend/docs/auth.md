@@ -105,7 +105,7 @@ login mutation 성공
 
 ## 6. password_fail_cnt 계정 잠금 흐름
 
-Client의 제한 안내는 [Client 로그인 제한 안내](./page/client-login-lock-notice.md)를 따른다. 아래는 기존 Admin 잠금 화면 설명이며 실제 서버 다섯 번째 차단 정합성은 아직 수정/검증 대상이다.
+Client의 제한 안내는 [Client 로그인 제한 안내](./page/client-login-lock-notice.md)를 따른다. 서버도 증가 후 횟수/5 이상 차단을 구현했으며 실제 DB/동시성은 QA 대기다. [서버 검증과 초기화 정책 확인 사항](../../docs/qa/2026-11-11-backend-security-boundaries.md).
 
 > 추가일: 2026-05-07
 
