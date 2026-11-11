@@ -52,4 +52,20 @@ class PasswordOwnerBoundaryTest {
     @Test void doesNotRestrictPublicPasswordRecovery() throws Exception {
         assertEquals(200, request("/api/auth/pwd_change", "OTHER", false).getStatus());
     }
+
+    @Test void rejectedTargetNeverInvokesPasswordService() throws Exception {
+        var service = org.mockito.Mockito.mock(htms.QROrder.auth.service.LoginService.class);
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
+                .standaloneSetup(new htms.QROrder.auth.controller.LoginController(service))
+                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor(),
+                        new htms.QROrder.auth.Interceptor.PasswordOwnerInterceptor()).build();
+        var login = new Login(); login.setUserId("OWNER");
+        for (String path : List.of("/api/auth/init-pwd", "/api/auth/init-pwd-active")) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path)
+                    .param("userId", "OTHER").sessionAttr("loginUser", login)
+                    .contentType("application/json").content("{\"password\":\"test-password\",\"chkPassword\":\"test-password\"}"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+        }
+        org.mockito.Mockito.verifyNoInteractions(service);
+    }
 }
