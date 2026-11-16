@@ -118,4 +118,5 @@ npm run dev:real
 - [docs/architecture/README.md](./docs/architecture/README.md): 애플리케이션 구조와 계약 흐름 지도
 - [docs/harness/README.md](./docs/harness/README.md): 공유 Codex 하네스 구성과 검증 방법
 - [docs/plans/2026-11-10-project-closeout-backlog.md](./docs/plans/2026-11-10-project-closeout-backlog.md): 마감 전 보안·권한·기능·품질 TODO와 근거
+- [사용자 관리 권한 보완 플랜](./docs/plans/2026-11-16-001-fix-client-user-authorization-plan.md): 같은 매장 스태프 관리와 시스템 관리자 전용 승격 설계
 - [qrorder/](./qrorder/): 백엔드 프로젝트
