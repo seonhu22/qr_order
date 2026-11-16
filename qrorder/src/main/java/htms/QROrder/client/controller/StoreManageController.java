@@ -58,7 +58,7 @@ public class StoreManageController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        clientUserService.updateClientUser(clientUserRequest,  loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        clientUserService.updateClientUser(clientUserRequest, loginUser, menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

@@ -12,10 +12,11 @@ import java.util.List;
 public interface ClientUserMapper {
     List<ClientUserResponse> getClientUser(String searchKeyword, String sysPlantCd);
     void newClientUser(ClientUserRequest newItems, String userId, String sysPlantCd, String menuCd, String tempPwd);
-    void updateClientUser(ClientUserRequest updateItems, String userId, String sysPlantCd, String menuCd);
+    int updateClientUser(@Param("updateItems") ClientUserRequest updateItems, @Param("userId") String userId,
+                         @Param("sysPlantCd") String sysPlantCd, @Param("menuCd") String menuCd);
+    List<ClientUserResponse> lockStaffUsers(@Param("ids") List<String> ids, @Param("sysPlantCd") String sysPlantCd);
     void delClientUser(List<ClientUserItem> delItems, String userId, String sysPlantCd, String menuCd);
     int resetPwd(@Param("sysId") String sysId, @Param("tempPwd") String tempPwd,
                  @Param("sysPlantCd") String sysPlantCd, @Param("userId") String userId);
-    ClientUserResponse getOldData(String sysId);
     boolean duplicateChk(ClientUserRequest clientUserRequest);
 }

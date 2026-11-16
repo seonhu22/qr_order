@@ -60,15 +60,21 @@ public class ClientUserService {
         clientUserMapper.newClientUser(newItems, actor.getUserId(), actor.getSysPlantCd(), menuCd, tempPwd);
     }
 
-    public void updateClientUser(ClientUserRequest updateItems,
-                                    String userId,
-                                    String sysPlantCd,
-                                    String menuCd) {
-
-        ClientUserResponse oldData = clientUserMapper.getOldData(updateItems.getSysId());
-
-        // auditService.insertUpdateAuditTrailData(oldData, updateItems, updateItems.getSysId(), menuCd, "sys_user", userId, sysPlantCd);
-        clientUserMapper.updateClientUser(updateItems, userId, sysPlantCd, menuCd);
+    public void updateClientUser(ClientUserRequest updateItems, Login actor, String menuCd) {
+        requireManager(actor);
+        if (updateItems == null || updateItems.getSysId() == null || updateItems.getSysId().isBlank()
+                || updateItems.getUserNm() == null || updateItems.getUserNm().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "대상 아이디와 이름을 확인해주세요.");
+        }
+        validateScopeFields(updateItems, actor);
+        List<ClientUserResponse> targets = clientUserMapper.lockStaffUsers(List.of(updateItems.getSysId()), actor.getSysPlantCd());
+        if (targets.size() != 1 || (updateItems.getUserId() != null
+                && !updateItems.getUserId().equals(targets.get(0).getUserId()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "같은 매장의 스태프 정보만 수정할 수 있습니다.");
+        }
+        if (clientUserMapper.updateClientUser(updateItems, actor.getUserId(), actor.getSysPlantCd(), menuCd) != 1) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "수정 가능한 대상이 아닙니다.");
+        }
     }
 
     public void delClientUser(List<ClientUserItem> delItems,

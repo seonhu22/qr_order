@@ -58,11 +58,13 @@
     <update id="updateClientUser">
         update sys_user set
             user_nm = #{updateItems.userNm},
-            user_role = #{updateItems.userRole},
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
         and sys_id = #{updateItems.sysId}
+        and plant_cd = #{sysPlantCd}
+        and user_role = '02'
+        and delete_yn = 'N'
     </update>
 
     <delete id="delClientUser">
@@ -100,17 +102,13 @@
         and delete_yn = 'N'
     </select>
 
-    <select id="getOldData" resultType="htms.QROrder.client.dto.ClientUserResponse">
-        select
-            su.sys_id,
-            su.user_id ,
-            su.user_nm ,
-            su.plant_cd ,
-            sp.plant_nm
-        from sys_user su
-        left join sys_plant sp
-            on sp.plant_cd = su.plant_cd
-        where 1=1
-        and su.sys_id = #{sysId}
+    <select id="lockStaffUsers" resultType="htms.QROrder.client.dto.ClientUserResponse">
+        select sys_id, user_id, user_nm, plant_cd, user_role
+        from sys_user
+        where plant_cd = #{sysPlantCd} and user_role = '02' and delete_yn = 'N'
+        and sys_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        order by sys_id
+        for update
     </select>
 </mapper>
