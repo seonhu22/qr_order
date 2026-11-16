@@ -19,6 +19,7 @@
     "test:log:verbose": "node scripts/run-tests-with-log.mjs --reporter=verbose",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:qa:real": "node scripts/run-real-qa.mjs",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "test:e2e:typecheck": "tsc --noEmit -p tsconfig.e2e.json",
