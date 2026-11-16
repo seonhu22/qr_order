@@ -39,10 +39,6 @@ export const clientRoutes: RouteObject[] = [
         element: <MainPage />,
       },
       {
-        path: 'store/user/management',
-        element: <ClientUserPage />,
-      },
-      {
         path: 'store/info/base',
         element: <StoreInfoPage />,
       },
@@ -61,6 +57,7 @@ export const clientRoutes: RouteObject[] = [
       {
         element: <ClientMenuAccessGuard />,
         children: [
+          { path: 'store/user/management', element: <ClientUserPage /> },
           { path: 'menu/info/management', element: <MenuManagementPage /> },
           { path: 'menu/info/option', element: <MenuOptionManagementPage /> },
         ],

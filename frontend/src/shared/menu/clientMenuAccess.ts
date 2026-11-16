@@ -1,6 +1,6 @@
 import { normalizeMenuPath } from './menuCatalog';
 
-const MANAGER_MENU_PATHS = ['/client/menu/info/management', '/client/menu/info/option'];
+const MANAGER_MENU_PATHS = ['/client/menu/info/management', '/client/menu/info/option', '/client/store/user/management'];
 
 export function canManageClientMenus(staffRole?: string) {
   return staffRole === '01';
