@@ -41,8 +41,9 @@ export function ClientUserTable({
   onResetPassword,
   onEdit,
 }: ClientUserTableProps) {
-  const allChecked = rows.length > 0 && rows.every((row) => selectedRowIds.has(row.id));
-  const hasSelection = selectedRowIds.size > 0;
+  const staffRows = rows.filter((row) => row.authorityCode === '02');
+  const allChecked = staffRows.length > 0 && staffRows.every((row) => selectedRowIds.has(row.id));
+  const hasSelection = staffRows.some((row) => selectedRowIds.has(row.id));
 
   const columns = createClientUserTableColumns();
   const headerOverrides = createClientUserHeaderOverrides({ allChecked, onToggleAll });

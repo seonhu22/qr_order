@@ -82,14 +82,14 @@ describe('ClientUserTable', () => {
 
     expect(screen.getByRole('button', { name: '삭제' })).toBeDisabled();
 
-    rerender(<ClientUserTable {...props} selectedRowIds={new Set(['admin001'])} />);
+    rerender(<ClientUserTable {...props} selectedRowIds={new Set(['staff001'])} />);
 
     expect(screen.getByRole('button', { name: '삭제' })).not.toBeDisabled();
   });
 
   it('calls onCreate / onDelete when the header action buttons are clicked', () => {
     const props = createProps();
-    render(<ClientUserTable {...props} selectedRowIds={new Set(['admin001'])} />);
+    render(<ClientUserTable {...props} selectedRowIds={new Set(['staff001'])} />);
 
     fireEvent.click(screen.getByRole('button', { name: '신규' }));
     expect(props.onCreate).toHaveBeenCalledTimes(1);
@@ -103,13 +103,15 @@ describe('ClientUserTable', () => {
     const { container } = render(<ClientUserTable {...props} />);
 
     const checkboxes = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
-    expect(checkboxes).toHaveLength(3);
+    expect(checkboxes).toHaveLength(2);
+    expect(screen.queryByRole('checkbox', { name: 'admin001 선택' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'admin001 수정' })).not.toBeInTheDocument();
 
     fireEvent.click(checkboxes[0]);
     expect(props.onToggleAll).toHaveBeenCalledWith(true);
 
     fireEvent.click(checkboxes[1]);
-    expect(props.onToggleRow).toHaveBeenCalledWith('admin001', true);
+    expect(props.onToggleRow).toHaveBeenCalledWith('staff001', true);
   });
 
   it('calls onResetPassword and onEdit from row action buttons', () => {

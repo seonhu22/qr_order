@@ -54,7 +54,7 @@ export function createClientUserTableRows({
   return rows.map((row) => ({
     id: row.id,
     cells: {
-      check: {
+      check: row.authorityCode !== '02' ? { type: 'text', value: '-' } : {
         type: 'checkbox',
         checked: selectedRowIds.has(row.id),
         ariaLabel: `${row.userId} 선택`,
@@ -77,7 +77,7 @@ export function createClientUserTableRows({
         type: 'passwordResetButton',
         onClick: () => onResetPassword(row.userId),
       },
-      edit: {
+      edit: row.authorityCode !== '02' ? { type: 'text', value: '-' } : {
         type: 'editButton',
         ariaLabel: `${row.userId} 수정`,
         onClick: () => onEdit(row.id),
