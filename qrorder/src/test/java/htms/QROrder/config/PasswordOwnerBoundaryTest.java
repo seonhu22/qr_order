@@ -21,10 +21,10 @@ class PasswordOwnerBoundaryTest {
     }
     private MockHttpServletResponse request(String path, String target, boolean loggedIn, String role) throws Exception {
         var request = new MockHttpServletRequest("POST", path);
+        var dbUser = htms.QROrder.auth.StaffTestSupport.login("OWNER", "SUPER_ADMIN".equals(role) ? "ADMIN" : "STORE", "01");
         if (target != null) request.setParameter("userId", target);
         if (loggedIn) {
-            var login = new Login();
-            login.setUserId("OWNER");
+            var login = dbUser;
             var session = new MockHttpSession();
             session.setAttribute("loginUser", login);
             session.setAttribute("role", role);
@@ -32,7 +32,7 @@ class PasswordOwnerBoundaryTest {
         }
         ServletRequestPathUtils.parseAndCache(request);
         var registry = new Registry();
-        new WebConfig().addInterceptors(registry);
+        new WebConfig(htms.QROrder.auth.StaffTestSupport.mapperFor(dbUser)).addInterceptors(registry);
         var response = new MockHttpServletResponse();
         for (Object entry : registry.entries()) {
             var mapped = (MappedInterceptor) entry;
@@ -64,11 +64,11 @@ class PasswordOwnerBoundaryTest {
 
     @Test void rejectedTargetNeverInvokesPasswordService() throws Exception {
         var service = org.mockito.Mockito.mock(htms.QROrder.auth.service.LoginService.class);
+        var login = htms.QROrder.auth.StaffTestSupport.login("OWNER", "STORE", "01");
         var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
                 .standaloneSetup(new htms.QROrder.auth.controller.LoginController(service))
-                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor(),
+                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor(htms.QROrder.auth.StaffTestSupport.mapperFor(login)),
                         new htms.QROrder.auth.Interceptor.PasswordOwnerInterceptor()).build();
-        var login = new Login(); login.setUserId("OWNER");
         for (String path : List.of("/api/auth/init-pwd", "/api/auth/init-pwd-active")) {
             mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path)
                     .param("userId", "OTHER").sessionAttr("loginUser", login)

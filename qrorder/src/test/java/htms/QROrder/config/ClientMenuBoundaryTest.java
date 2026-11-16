@@ -17,13 +17,14 @@ class ClientMenuBoundaryTest {
         var request = new MockHttpServletRequest("POST", path);
         var session = new MockHttpSession();
         var login = new Login();
+        login.setSysId("USER"); login.setUserId("USER"); login.setSysPlantCd("STORE"); login.setInitYn("N");
         login.setUserRole(role);
         session.setAttribute("loginUser", login);
         session.setAttribute("role", "SUPER_ADMIN"); // Global role is not a store manager role.
         request.setSession(session);
         ServletRequestPathUtils.parseAndCache(request);
         var registry = new Registry();
-        new WebConfig().addInterceptors(registry);
+        new WebConfig(htms.QROrder.auth.StaffTestSupport.mapperFor(login)).addInterceptors(registry);
         var response = new MockHttpServletResponse();
         for (Object entry : registry.entries()) {
             var mapped = (MappedInterceptor) entry;

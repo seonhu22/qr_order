@@ -21,7 +21,8 @@ class SessionAuthenticationInterceptorTest {
     private static final String STAFF_MESSAGE = "세션이 만료되었습니다. 다시 로그인해주세요.";
     private static final String CONSUMER_MESSAGE = "QR 세션이 만료되었습니다. QR코드를 다시 스캔해주세요.";
 
-    private final LoginCheckInterceptor staffBoundary = new LoginCheckInterceptor();
+    private static Login staffUser() { return htms.QROrder.auth.StaffTestSupport.login("STAFF", "PC002", "02"); }
+    private final LoginCheckInterceptor staffBoundary = new LoginCheckInterceptor(htms.QROrder.auth.StaffTestSupport.mapperFor(staffUser()));
     private final ConsumerAuthInterceptor consumerBoundary = new ConsumerAuthInterceptor();
 
     private static QrConnectResponse validQrTableInfo() {
@@ -45,7 +46,7 @@ class SessionAuthenticationInterceptorTest {
     @Test
     void staffBoundaryAllowsLoginSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginUser", new Login());
+        session.setAttribute("loginUser", staffUser());
 
         assertTrue(staffBoundary.preHandle(requestWith(session), new MockHttpServletResponse(), new Object()));
     }
@@ -72,7 +73,7 @@ class SessionAuthenticationInterceptorTest {
     @Test
     void staffBoundaryAllowsDualSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginUser", new Login());
+        session.setAttribute("loginUser", staffUser());
         session.setAttribute("qrTableInfo", validQrTableInfo());
 
         assertTrue(staffBoundary.preHandle(requestWith(session), new MockHttpServletResponse(), new Object()));

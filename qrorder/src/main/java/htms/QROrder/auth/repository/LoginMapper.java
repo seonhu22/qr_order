@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface LoginMapper {
+    Login findForAuthorization(@Param("sysId") String sysId);
     Login findByUserId(String userId);
     void initPwd(InitPwdRequest initPwdRequest, String userId);
     void initPwdAndActive(InitPwdRequest initPwdRequest, String userId);

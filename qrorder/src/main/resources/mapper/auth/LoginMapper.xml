@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.auth.repository.LoginMapper">
+    <select id="findForAuthorization" resultType="Login">
+        select sys_id, user_id, user_nm, password_fail_cnt, init_yn, email_valid_yn,
+               plant_cd as sys_plant_cd, user_role
+        from sys_user
+        where sys_id = #{sysId} and delete_yn = 'N'
+    </select>
     <select id="findByUserId" resultType="Login">
         select
             su.sys_id,

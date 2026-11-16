@@ -5,11 +5,15 @@ import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.auth.Interceptor.RoleCheckInterceptor;
 import htms.QROrder.auth.Interceptor.PasswordOwnerInterceptor;
 import htms.QROrder.auth.Interceptor.ClientMenuRoleInterceptor;
+import htms.QROrder.auth.repository.LoginMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
+    private final LoginMapper loginMapper;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -28,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new PasswordOwnerInterceptor())
                 .order(2)
                 .addPathPatterns("/api/auth/init-pwd-active");
-        registry.addInterceptor(new LoginCheckInterceptor())
+        registry.addInterceptor(new LoginCheckInterceptor(loginMapper))
                 .order(1)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/login",

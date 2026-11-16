@@ -20,11 +20,10 @@ class StaffPasswordResetContractTest {
                 org.mockito.Mockito.mock(htms.QROrder.client.service.TableInfoService.class),
                 org.mockito.Mockito.mock(htms.QROrder.client.service.QRCodeService.class),
                 org.mockito.Mockito.mock(htms.QROrder.client.service.TableGuiService.class));
+        var actor = htms.QROrder.auth.StaffTestSupport.login("MANAGER", "STORE", "01");
         var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(controller)
-                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor())
+                .addInterceptors(new htms.QROrder.auth.Interceptor.LoginCheckInterceptor(htms.QROrder.auth.StaffTestSupport.mapperFor(actor)))
                 .setControllerAdvice(new htms.QROrder.common.exception.GlobalExceptionHandler()).build();
-        var actor = new htms.QROrder.auth.domain.Login();
-        actor.setUserRole("01"); actor.setSysPlantCd("STORE"); actor.setUserId("MANAGER");
         String path = "/api/client/store_manage/user_manage/reset_pwd/STAFF";
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path)
                         .param("sysPlantCd", "FORGED").sessionAttr("loginUser", actor))

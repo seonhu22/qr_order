@@ -32,7 +32,7 @@ class WebConfigAuthenticationTest {
 
     private static List<Object> registeredInterceptors() {
         ExposedRegistry registry = new ExposedRegistry();
-        new WebConfig().addInterceptors(registry);
+        new WebConfig(org.mockito.Mockito.mock(htms.QROrder.auth.repository.LoginMapper.class)).addInterceptors(registry);
         return registry.registered();
     }
 

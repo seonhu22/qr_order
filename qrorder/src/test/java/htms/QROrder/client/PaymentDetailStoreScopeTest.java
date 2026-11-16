@@ -20,10 +20,10 @@ class PaymentDetailStoreScopeTest {
     @Test void controllerAndServiceUseSessionStoreNotCallerQuery() throws Exception {
         var mapper = mock(PaymentInfoDetailMapper.class);
         when(mapper.getPaymentInfoDetail("MASTER", "OWNER-STORE")).thenReturn(List.of());
+        var login = htms.QROrder.auth.StaffTestSupport.login("OWNER", "OWNER-STORE", "01");
         var mvc = MockMvcBuilders.standaloneSetup(new PaymentManageController(
                 mock(PaymentInfoMasterService.class), new PaymentInfoDetailService(mapper), mock(SettlementService.class)))
-                .addInterceptors(new LoginCheckInterceptor()).build();
-        var login = new Login(); login.setSysPlantCd("OWNER-STORE");
+                .addInterceptors(new LoginCheckInterceptor(htms.QROrder.auth.StaffTestSupport.mapperFor(login))).build();
         mvc.perform(get("/api/client/payment_manage/history/detail/search/MASTER")
                 .param("sysPlantCd", "FOREIGN-STORE").sessionAttr("loginUser", login))
                 .andExpect(status().isOk()).andExpect(content().json("[]"));
