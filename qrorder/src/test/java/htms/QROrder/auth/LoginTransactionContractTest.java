@@ -16,8 +16,17 @@ class LoginTransactionContractTest {
                 HttpServletRequest.class, HttpSession.class).getAnnotation(Transactional.class);
         assertNotNull(transaction);
         assertTrue(Arrays.asList(transaction.noRollbackFor()).contains(LoginFailException.class));
-        String xml = new String(getClass().getResourceAsStream("/mapper/auth/LoginMapper.xml").readAllBytes());
-        String select = xml.substring(xml.indexOf("<select id=\"findByUserId\""), xml.indexOf("</select>"));
+        var configuration = new org.apache.ibatis.session.Configuration();
+        configuration.getTypeAliasRegistry().registerAlias("Login", htms.QROrder.auth.domain.Login.class);
+        String resource = "mapper/auth/LoginMapper.xml";
+        try (var input = getClass().getClassLoader().getResourceAsStream(resource)) {
+            new org.apache.ibatis.builder.xml.XMLMapperBuilder(input, configuration, resource, configuration.getSqlFragments()).parse();
+        }
+        String select = configuration.getMappedStatement("htms.QROrder.auth.repository.LoginMapper.findByUserId")
+                .getBoundSql(java.util.Map.of("userId", "QA")).getSql();
         assertTrue(select.toLowerCase().contains("for update"));
+        String authority = configuration.getMappedStatement("htms.QROrder.auth.repository.LoginMapper.findForAuthorization")
+                .getBoundSql(java.util.Map.of("sysId", "QA")).getSql();
+        assertFalse(authority.toLowerCase().contains("for update"));
     }
 }
