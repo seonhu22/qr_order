@@ -5,6 +5,7 @@
 사용자 결정: `staffRole=01` 관리자만 메뉴/옵션 관리를 사용한다. 직원호출 설정/주문/결제 등 다른 Client 업무 권한은 유지한다.
 
 - 제한 경로: `/client/menu/info/management`, `/client/menu/info/option`.
+- 후속 사용자 관리도 `/client/store/user/management`를 같은 보호 그룹에 포함한다. 사용자 관리는 같은 매장 스태프만 변경하며 승격은 시스템 관리자에게 분리한다. [검증 보고서](../../../docs/qa/2026-11-16-client-user-authorization.md).
 - 판정 필드: `/api/auth/me`의 `staffRole`. 전역 `role=ADMIN`이나 목록용 `userRole`로 대체하지 않는다.
 - 역할 누락/잘못된 값은 메뉴 관리를 허용하지 않는다.
 - 차단 시 기존 Client 메인으로 이동한다. 신규 권한 오류 화면은 추가하지 않았다.
