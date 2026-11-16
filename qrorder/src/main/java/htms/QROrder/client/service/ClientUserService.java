@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
@@ -30,17 +32,21 @@ public class ClientUserService {
     @Value("${auth.default-password}")
     private String defaultPassword;
 
-    public List<ClientUserResponse> getClientUser(String searchKeyword,
-                                                    String sysPlantCd) {
-
-        return clientUserMapper.getClientUser(searchKeyword, sysPlantCd);
+    public List<ClientUserResponse> getClientUser(String searchKeyword, Login actor) {
+        requireManager(actor);
+        return clientUserMapper.getClientUser(searchKeyword, actor.getSysPlantCd());
     }
 
-    public void newClientUser(ClientUserRequest newItems,
-                                String userId,
-                                String sysPlantCd,
-                                String menuCd) {
-
+    public void newClientUser(ClientUserRequest newItems, Login actor, String menuCd) {
+        requireManager(actor);
+        if (newItems == null || newItems.getUserId() == null || newItems.getUserId().isBlank()
+                || newItems.getUserNm() == null || newItems.getUserNm().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디와 이름을 입력해주세요.");
+        }
+        validateScopeFields(newItems, actor);
+        newItems.setPlantCd(actor.getSysPlantCd());
+        newItems.setUserRole("02");
+        newItems.setUserId(newItems.getUserId().trim());
         if(duplicateChk(newItems)) {
             throw new DuplicateException("중복된 데이터가 존재합니다.\n" + newItems.getUserId());
         }
@@ -51,7 +57,7 @@ public class ClientUserService {
         newItems.setSysId(ULID);
 
         // auditService.insertNewAuditTrailData(newItems, ULID, menuCd, "sys_user", userId, sysPlantCd);
-        clientUserMapper.newClientUser(newItems, userId, sysPlantCd, menuCd, tempPwd);
+        clientUserMapper.newClientUser(newItems, actor.getUserId(), actor.getSysPlantCd(), menuCd, tempPwd);
     }
 
     public void updateClientUser(ClientUserRequest updateItems,
@@ -91,5 +97,19 @@ public class ClientUserService {
     private boolean duplicateChk(ClientUserRequest clientUserRequest) {
 
         return clientUserMapper.duplicateChk(clientUserRequest);
+    }
+
+    private void requireManager(Login actor) {
+        if (actor == null || !"01".equals(actor.getUserRole()) || actor.getSysPlantCd() == null
+                || actor.getSysPlantCd().isBlank() || "ADMIN".equals(actor.getSysPlantCd())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "매장 관리자만 이용할 수 있습니다.");
+        }
+    }
+
+    private void validateScopeFields(ClientUserRequest item, Login actor) {
+        if ((item.getPlantCd() != null && !item.getPlantCd().isEmpty() && !actor.getSysPlantCd().equals(item.getPlantCd()))
+                || (item.getUserRole() != null && !item.getUserRole().isEmpty() && !"02".equals(item.getUserRole()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "같은 매장의 스태프만 관리할 수 있습니다.");
+        }
     }
 }

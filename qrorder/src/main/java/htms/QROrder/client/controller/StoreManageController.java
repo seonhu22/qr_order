@@ -31,7 +31,7 @@ public class StoreManageController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
 
-        return clientUserService.getClientUser(searchKeyword, loginUser.getSysPlantCd());
+        return clientUserService.getClientUser(searchKeyword, loginUser);
     }
 
     @PostMapping("/user_manage/new")
@@ -41,7 +41,7 @@ public class StoreManageController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        clientUserService.newClientUser(clientUserRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        clientUserService.newClientUser(clientUserRequest, loginUser, menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

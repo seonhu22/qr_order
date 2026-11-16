@@ -28,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new ClientMenuRoleInterceptor())
                 .order(2)
-                .addPathPatterns("/api/client/menu_manage/**");
+                .addPathPatterns("/api/client/menu_manage/**", "/api/client/store_manage/user_manage/**");
         registry.addInterceptor(new PasswordOwnerInterceptor())
                 .order(2)
                 .addPathPatterns("/api/auth/init-pwd-active");
