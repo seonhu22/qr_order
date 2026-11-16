@@ -4,7 +4,7 @@
 
 Playwright가 실제 Chromium을 열어 버튼을 누르고 입력하며 화면과 전송 요청을 확인한다. 기존 Vitest/jsdom 테스트보다 브라우저 동작에 가까운 회귀 검증이다.
 
-현재 API 응답은 테스트 fixture가 제공한다. 실제 Spring 서버/DB 저장까지 검증하는 E2E는 아니며, `dev:real` 수동 QA를 대체하지 않는다.
+이 문서의 기본 명령에서는 API 응답을 테스트 fixture가 제공한다. 실제 Spring 서버/DB 저장을 검증하지 않는다. 별도 [실제 서버 자동 QA](./real-server-qa.md)는 전용 매장/실제 계정으로 실행하며 결과를 구분한다.
 
 | 시나리오 | 확인 내용 |
 |---|---|
@@ -56,7 +56,7 @@ npm run test:e2e:typecheck
 - 실제 DB 초기화/전용 계정이 준비되지 않은 상태에서도 브라우저 회귀를 반복할 수 있다.
 - generated DTO와 기존 백엔드 계약에서 fixture를 구성해 앱 내부 mock의 성공 응답만 복사하지 않았다.
 - 파일명/권한/서버 정책을 테스트 통과 목적으로 바꾸지 않는다. 커스텀 라디오 등은 사용자가 누르는 label을 클릭하고 선택 상태를 확인한다.
-- 이후 전용 QA 환경에서 실제 서버용 설정/데이터 준비 및 정리를 별도 추가한다.
+- 실제 계정 실행 준비와 제한은 [실제 서버 자동 QA](./real-server-qa.md)를 따른다.
 
 설정: [Playwright config](../../playwright.config.ts), 시나리오: [Client](../../e2e/client-operations.spec.ts), [Consumer](../../e2e/consumer-order.spec.ts).
 
