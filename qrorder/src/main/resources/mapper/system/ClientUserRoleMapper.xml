@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="htms.QROrder.system.repository.ClientUserRoleMapper">
+    <select id="lockForPromotion" resultType="htms.QROrder.client.dto.ClientUserResponse">
+        select sys_id, user_id, plant_cd, user_role
+        from sys_user
+        where sys_id = #{sysId} and delete_yn = 'N'
+        order by sys_id
+        for update
+    </select>
+    <update id="promote">
+        update sys_user
+        set user_role = '01', modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and plant_cd = #{plantCd}
+        and plant_cd != 'ADMIN' and user_role = '02' and delete_yn = 'N'
+    </update>
+</mapper>
