@@ -30,7 +30,7 @@ const EMPTY_ROW: ClientUserEditorRow = {
   id: '',
   userId: '',
   userName: '',
-  authorityCode: '',
+  authorityCode: '02',
 };
 
 const INITIAL_ERRORS: ClientUserEditorErrors = {
@@ -81,6 +81,7 @@ export function useClientUserModalFlow({ onSaveRow, onNotice }: UseClientUserMod
   };
 
   const openEditModal = (row: ClientUser) => {
+    if (row.authorityCode !== '02') return;
     const editorRow = toEditorRow(row);
     setEditingRow(editorRow);
     setOriginalRow(editorRow);
@@ -107,6 +108,7 @@ export function useClientUserModalFlow({ onSaveRow, onNotice }: UseClientUserMod
   };
 
   const changeEditingField = (key: keyof Omit<ClientUserEditorRow, 'id' | 'sysId'>, value: string) => {
+    if (key === 'authorityCode' || key === 'plantCd' || (key === 'userId' && !isCreateMode)) return;
     setEditorErrors((prev) => ({ ...prev, [key]: false }));
     setEditingRow((prev) => (prev ? { ...prev, [key]: value } : prev));
   };

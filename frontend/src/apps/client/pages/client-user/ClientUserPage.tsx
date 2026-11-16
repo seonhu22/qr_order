@@ -80,6 +80,7 @@ export function ClientUserPage() {
           />
           <SelectInput
             label="권한"
+            disabled
             required
             size="md"
             options={data.authorityOptions}

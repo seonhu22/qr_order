@@ -20,7 +20,7 @@ const sampleUser: ClientUser = {
   sysId: 'sys-1',
   userId: 'staff001',
   userName: '이철수',
-  authorityCode: 'STAFF',
+  authorityCode: '02',
   authorityLabel: '스태프',
 };
 
@@ -31,6 +31,17 @@ const createParams = (overrides?: Partial<Parameters<typeof useClientUserModalFl
 });
 
 describe('useClientUserModalFlow', () => {
+  it('keeps role fixed and does not open administrator accounts', () => {
+    const { result } = renderHook(() => useClientUserModalFlow(createParams()));
+    act(() => result.current.openCreateModal());
+    act(() => result.current.changeEditingField('authorityCode', '01'));
+    act(() => result.current.changeEditingField('plantCd', 'ADMIN'));
+    expect(result.current.editingRow?.authorityCode).toBe('02');
+    expect(result.current.editingRow?.plantCd).toBeUndefined();
+    act(() => result.current.forceCloseEditorModal());
+    act(() => result.current.openEditModal({ ...sampleUser, authorityCode: '01' }));
+    expect(result.current.isEditorOpen).toBe(false);
+  });
   it('opens the create modal with an empty, writable row', () => {
     const params = createParams();
     const { result } = renderHook(() => useClientUserModalFlow(params));
@@ -42,7 +53,7 @@ describe('useClientUserModalFlow', () => {
     expect(result.current.isEditorOpen).toBe(true);
     expect(result.current.isCreateMode).toBe(true);
     expect(result.current.isUserIdReadonly).toBe(false);
-    expect(result.current.editingRow).toEqual({ id: '', userId: '', userName: '', authorityCode: '' });
+    expect(result.current.editingRow).toEqual({ id: '', userId: '', userName: '', authorityCode: '02' });
     expect(result.current.isDirty).toBe(false);
   });
 
@@ -62,7 +73,7 @@ describe('useClientUserModalFlow', () => {
       sysId: 'sys-1',
       userId: 'staff001',
       userName: '이철수',
-      authorityCode: 'STAFF',
+      authorityCode: '02',
     });
     expect(result.current.isDirty).toBe(false);
   });
@@ -79,7 +90,7 @@ describe('useClientUserModalFlow', () => {
       result.current.requestSave();
     });
 
-    expect(result.current.editorErrors).toEqual({ userId: true, userName: true, authorityCode: true });
+    expect(result.current.editorErrors).toEqual({ userId: true, userName: true, authorityCode: false });
     expect(result.current.isSaveConfirmOpen).toBe(false);
 
     act(() => {
@@ -149,7 +160,7 @@ describe('useClientUserModalFlow', () => {
     });
 
     expect(params.onSaveRow).toHaveBeenCalledWith(
-      { id: 'row-1', sysId: 'sys-1', userId: 'staff001', userName: '이철수수정', authorityCode: 'STAFF' },
+      { id: 'row-1', sysId: 'sys-1', userId: 'staff001', userName: '이철수수정', authorityCode: '02' },
       false,
     );
     expect(result.current.isSaveConfirmOpen).toBe(false);
