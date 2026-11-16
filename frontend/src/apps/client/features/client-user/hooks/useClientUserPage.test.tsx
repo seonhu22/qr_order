@@ -52,8 +52,68 @@ function createWrapper() {
 }
 
 describe('useClientUserPage', () => {
+  it('creates staff with a fixed role and still saves a same-store name edit', async () => {
+    const { result } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleCreate());
+    act(() => {
+      result.current.actions.changeEditingField('userId', 'NEW-STAFF');
+      result.current.actions.changeEditingField('userName', '신규 직원');
+    });
+    act(() => result.current.actions.requestSave());
+    await act(async () => result.current.actions.confirmSave());
+    expect(vi.mocked(useSaveClientUserMutation)().mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'NEW-STAFF', userName: '신규 직원', authorityCode: '02' }), true,
+    );
+    act(() => result.current.actions.handleEdit('staff001'));
+    act(() => result.current.actions.changeEditingField('userName', '수정 직원'));
+    act(() => result.current.actions.requestSave());
+    await act(async () => result.current.actions.confirmEdit());
+    expect(vi.mocked(useSaveClientUserMutation)().mutateAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sysId: 'staff001', userId: 'staff001', userName: '수정 직원', authorityCode: '02' }), false,
+    );
+    expect(result.current.uiProps.noticeState?.description).toBe('저장되었습니다.');
+  });
+
+  it('does not load cached users or create an editor for staff', () => {
+    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '02', sysPlantCd: 'STORE' } } as never);
+    const { result } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    expect(useClientUserQuery).toHaveBeenLastCalledWith('', false, undefined);
+    expect(result.current.data.rows).toEqual([]);
+    act(() => result.current.actions.handleCreate());
+    expect(result.current.uiProps.editor.open).toBe(false);
+  });
+  it('rechecks account identity when an editor confirmation was already opened', async () => {
+    vi.mocked(useAuth).mockReturnValue({ user: { userId: 'OWNER-A', staffRole: '01', sysPlantCd: 'STORE' } } as never);
+    const { result, rerender } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleEdit('staff001'));
+    act(() => result.current.actions.changeEditingField('userName', '수정 이름'));
+    act(() => result.current.actions.requestSave());
+    vi.mocked(useAuth).mockReturnValue({ user: { userId: 'OWNER-B', staffRole: '01', sysPlantCd: 'STORE' } } as never);
+    rerender();
+    await act(async () => result.current.actions.confirmEdit());
+    expect(vi.mocked(useSaveClientUserMutation)().mutateAsync).not.toHaveBeenCalled();
+    expect(result.current.uiProps.editor.open).toBe(true);
+    expect(result.current.uiProps.noticeState?.title).toBe('오류');
+  });
+  it('does not open an editor or select a manager account', () => {
+    const { result } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleEdit('admin001'));
+    expect(result.current.uiProps.editor.open).toBe(false);
+    act(() => result.current.actions.handleToggleRow('admin001', true));
+    expect(result.current.uiProps.selectedRowIds.size).toBe(0);
+  });
+
+  it('rechecks current permission before deleting selected staff', async () => {
+    const { result, rerender } = renderHook(() => useClientUserPage(), { wrapper: createWrapper().wrapper });
+    act(() => result.current.actions.handleToggleRow('staff001', true));
+    act(() => result.current.actions.handleDelete());
+    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '02', sysPlantCd: 'STORE' } } as never);
+    rerender();
+    await act(async () => result.current.actions.confirmDelete());
+    expect(vi.mocked(useDeleteClientUsersMutation)().mutateAsync).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
-    vi.mocked(useAuth).mockReturnValue({ user: { staffRole: '01', sysPlantCd: 'STORE' } } as never);
+    vi.mocked(useAuth).mockReturnValue({ user: { userId: 'OWNER', staffRole: '01', sysPlantCd: 'STORE' } } as never);
     vi.mocked(useClientUserQuery).mockReturnValue({
       data: MOCK_ROWS,
       isLoading: false,
@@ -111,17 +171,17 @@ describe('useClientUserPage', () => {
     const { result } = renderHook(() => useClientUserPage(), { wrapper });
 
     act(() => {
-      result.current.actions.handleToggleRow('admin001', true);
+      result.current.actions.handleToggleRow('staff001', true);
     });
 
-    expect(result.current.uiProps.selectedRowIds.has('admin001')).toBe(true);
+    expect(result.current.uiProps.selectedRowIds.has('staff001')).toBe(true);
     expect(result.current.uiProps.selectedDeleteCount).toBe(1);
 
     act(() => {
       result.current.actions.handleToggleAll(true);
     });
 
-    expect(result.current.uiProps.selectedRowIds.size).toBe(2);
+    expect(result.current.uiProps.selectedRowIds.size).toBe(1);
 
     act(() => {
       result.current.actions.handleToggleAll(false);
@@ -154,7 +214,7 @@ describe('useClientUserPage', () => {
     const { result } = renderHook(() => useClientUserPage(), { wrapper });
 
     act(() => {
-      result.current.actions.handleToggleRow('admin001', true);
+      result.current.actions.handleToggleRow('staff001', true);
     });
 
     act(() => {
@@ -167,7 +227,7 @@ describe('useClientUserPage', () => {
       await result.current.actions.confirmDelete();
     });
 
-    expect(mutateAsync).toHaveBeenCalledWith([MOCK_ROWS[0]]);
+    expect(mutateAsync).toHaveBeenCalledWith([MOCK_ROWS[1]]);
     expect(invalidateSpy).toHaveBeenCalled();
     expect(result.current.uiProps.isDeleteConfirmOpen).toBe(false);
     expect(result.current.uiProps.selectedRowIds.size).toBe(0);
@@ -184,7 +244,7 @@ describe('useClientUserPage', () => {
     const { result } = renderHook(() => useClientUserPage(), { wrapper });
 
     act(() => {
-      result.current.actions.handleToggleRow('admin001', true);
+      result.current.actions.handleToggleRow('staff001', true);
     });
 
     act(() => {

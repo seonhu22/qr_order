@@ -73,18 +73,24 @@ export function mapToClientUserModel(
 /**
  * 유저 권한(USER_ROLE) 공통코드 combo 조회 wrapper hook
  */
-export function useClientUserAuthorityComboQuery() {
-  return useGetCommonCombo({ code: CLIENT_USER_AUTHORITY_COMBO_CODE });
+export function useClientUserAuthorityComboQuery(enabled = true) {
+  return useGetCommonCombo({ code: CLIENT_USER_AUTHORITY_COMBO_CODE }, { query: { enabled } });
 }
 
 /**
  * 매장 유저 목록 조회 wrapper hook
  */
-export function useClientUserQuery(searchKeyword = '') {
+export function useClientUserQuery(
+  searchKeyword = '',
+  enabled = true,
+  scope?: { userId: string; sysPlantCd: string },
+) {
+  const hasScope = Boolean(scope?.userId.trim() && scope?.sysPlantCd.trim());
   return useGetClientUser(searchKeyword ? { searchKeyword } : undefined, {
     query: {
-      queryKey: queryKeys.clientUser.list(searchKeyword),
+      queryKey: [...queryKeys.clientUser.list(searchKeyword), scope?.userId ?? null, scope?.sysPlantCd ?? null],
       ...queryPolicies.clientCrudList,
+      enabled: enabled && hasScope,
     },
   });
 }
@@ -108,14 +114,11 @@ export function useDeleteClientUsersMutation() {
   };
 }
 
-function mapToClientUserRequest(row: ClientUserEditorRow): ClientUserRequest {
-  return {
-    sysId: row.sysId,
-    userId: row.userId,
-    userNm: row.userName,
-    userRole: row.authorityCode,
-    plantCd: row.plantCd,
-  };
+function mapToClientUserRequest(row: ClientUserEditorRow, isCreateMode: boolean): ClientUserRequest {
+  if (row.authorityCode !== '02') throw new Error('스태프만 등록하거나 수정할 수 있습니다.');
+  return isCreateMode
+    ? { userId: row.userId, userNm: row.userName, userRole: '02' }
+    : { sysId: row.sysId, userNm: row.userName };
 }
 
 export function useSaveClientUserMutation() {
@@ -124,7 +127,7 @@ export function useSaveClientUserMutation() {
 
   return {
     mutateAsync: async (row: ClientUserEditorRow, isCreateMode: boolean) => {
-      const data = mapToClientUserRequest(row);
+      const data = mapToClientUserRequest(row, isCreateMode);
       return isCreateMode ? createMutation.mutateAsync({ data }) : updateMutation.mutateAsync({ data });
     },
     isPending: createMutation.isPending || updateMutation.isPending,

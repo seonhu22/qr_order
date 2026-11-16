@@ -29,10 +29,16 @@ import type {
   ClientUser,
 } from '../types';
 import { useClientUserModalFlow } from './useClientUserModalFlow';
+import { getClientUserAuthorityLabel } from '../constants';
 import type { ClientUserEditorRow } from './useClientUserModalFlow';
 
 export function useClientUserPage(): ClientUserPageViewModel {
   const { user } = useAuth();
+  const userId = typeof user?.userId === 'string' ? user.userId : '';
+  const sysPlantCd = typeof user?.sysPlantCd === 'string' ? user.sysPlantCd : '';
+  const hasScope = userId.trim() !== '' && sysPlantCd.trim() !== '';
+  const isManager = getAuthUserStaffRole(user) === '01' && hasScope && sysPlantCd !== 'ADMIN';
+  const actorKey = JSON.stringify([user?.userId, user?.sysPlantCd]);
   const queryClient = useQueryClient();
   const { draftKeyword, appliedKeyword, setDraftKeyword, applyDraftKeyword, resetKeywords } =
     useFilterKeywordState('');
@@ -43,9 +49,13 @@ export function useClientUserPage(): ClientUserPageViewModel {
     null,
   );
   const [noticeState, setNoticeState] = useState<ClientUserNoticeState>(null);
+  const [deleteActor, setDeleteActor] = useState<string | null>(null);
+  const [editorActor, setEditorActor] = useState<string | null>(null);
+  const [passwordResetActor, setPasswordResetActor] = useState<string | null>(null);
 
-  const userQuery = useClientUserQuery(appliedKeyword.trim());
-  const authorityComboQuery = useClientUserAuthorityComboQuery();
+  const userQuery = useClientUserQuery(appliedKeyword.trim(), isManager,
+    hasScope ? { userId, sysPlantCd } : undefined);
+  const authorityComboQuery = useClientUserAuthorityComboQuery(isManager);
   const deleteMutation = useDeleteClientUsersMutation();
   const resetPasswordMutation = useResetClientUserPasswordMutation();
   const saveMutation = useSaveClientUserMutation();
@@ -56,9 +66,16 @@ export function useClientUserPage(): ClientUserPageViewModel {
   );
 
   const rows = useMemo(
-    () => (userQuery.data ?? []).map((item) => mapToClientUserModel(item, authorityOptions)),
-    [userQuery.data, authorityOptions],
+    () => (isManager ? userQuery.data ?? [] : [])
+      .filter((item) => item.plantCd === sysPlantCd)
+      .map((item) => mapToClientUserModel(item, authorityOptions)),
+    [userQuery.data, authorityOptions, isManager, sysPlantCd],
   );
+
+  const canManageStaff = (target: ClientUser | undefined) =>
+    isManager && Boolean(target?.sysId) && target?.authorityCode === '02' && target.plantCd === user?.sysPlantCd;
+
+  const showPermissionNotice = () => setNoticeState({ title: '안내', description: '같은 매장의 스태프만 관리할 수 있습니다.' });
 
   const handleSearch = () => {
     applyDraftKeyword();
@@ -71,6 +88,7 @@ export function useClientUserPage(): ClientUserPageViewModel {
   };
 
   const toggleRow = (rowId: string, checked: boolean) => {
+    if (checked && !canManageStaff(rows.find((row) => row.id === rowId))) return;
     setSelectedRowIds((prev) => {
       const next = new Set(prev);
       if (checked) next.add(rowId);
@@ -80,19 +98,29 @@ export function useClientUserPage(): ClientUserPageViewModel {
   };
 
   const toggleAll = (checked: boolean) => {
-    setSelectedRowIds(checked ? new Set(rows.map((row) => row.id)) : new Set());
+    setSelectedRowIds(checked ? new Set(rows.filter(canManageStaff).map((row) => row.id)) : new Set());
   };
 
   const requestDelete = () => {
+    if (!isManager) { showPermissionNotice(); return; }
     if (selectedRowIds.size === 0) {
       setNoticeState({ title: '안내', description: '항목을 먼저 선택해주세요.' });
       return;
     }
+    if ([...selectedRowIds].some((id) => !canManageStaff(rows.find((row) => row.id === id)))) {
+      showPermissionNotice(); return;
+    }
+    setDeleteActor(actorKey);
     setIsDeleteConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
     const targets = rows.filter((row) => selectedRowIds.has(row.id));
+    if (!isDeleteConfirmOpen || deleteActor !== actorKey || targets.length === 0 ||
+      targets.length !== selectedRowIds.size || !targets.every(canManageStaff)) {
+      setIsDeleteConfirmOpen(false);
+      showPermissionNotice(); return;
+    }
     setIsConfirmingDelete(true);
     try {
       await deleteMutation.mutateAsync(targets);
@@ -114,13 +142,6 @@ export function useClientUserPage(): ClientUserPageViewModel {
     }
   };
 
-  const canResetStaff = (target: ClientUser | undefined) =>
-    getAuthUserStaffRole(user) === '01' &&
-    typeof user?.sysPlantCd === 'string' &&
-    user.sysPlantCd.trim() !== '' &&
-    target?.authorityCode === '02' &&
-    target.plantCd === user.sysPlantCd;
-
   const requestResetPassword = (userId: string) => {
     setPasswordResetTarget(null);
     const target = rows.find((row) => row.userId === userId);
@@ -129,17 +150,18 @@ export function useClientUserPage(): ClientUserPageViewModel {
       setNoticeState({ title: '안내', description: '매장 관리자 비밀번호 초기화는 관리자에게 이메일로 요청해주세요.' });
       return;
     }
-    if (!canResetStaff(target)) {
+    if (!canManageStaff(target)) {
       setNoticeState({ title: '안내', description: '매장 관리자는 같은 매장의 스태프만 초기화할 수 있습니다.' });
       return;
     }
+    setPasswordResetActor(actorKey);
     setPasswordResetTarget({ sysId: target.sysId, userId });
   };
 
   const confirmResetPassword = async () => {
     if (!passwordResetTarget) return;
     const target = rows.find((row) => row.sysId === passwordResetTarget.sysId);
-    if (!canResetStaff(target)) {
+    if (passwordResetActor !== actorKey || !canManageStaff(target)) {
       setPasswordResetTarget(null);
       setNoticeState({ title: '안내', description: '계정이나 권한이 변경되었습니다. 다시 확인해주세요.' });
       return;
@@ -162,6 +184,12 @@ export function useClientUserPage(): ClientUserPageViewModel {
   };
 
   const handleSaveRow = async (row: ClientUserEditorRow, isCreateMode: boolean) => {
+    const original = rows.find((item) => item.sysId === row.sysId);
+    if (!isManager || editorActor !== actorKey || row.authorityCode !== '02' ||
+      (row.plantCd !== undefined && row.plantCd !== user?.sysPlantCd) ||
+      (!isCreateMode && (!canManageStaff(original) || row.userId !== original?.userId))) {
+      throw new Error('계정이나 대상 권한이 변경되었습니다. 다시 확인해주세요.');
+    }
     await saveMutation.mutateAsync(row, isCreateMode);
     await queryClient.invalidateQueries({ queryKey: queryKeys.clientUser.lists });
   };
@@ -172,12 +200,22 @@ export function useClientUserPage(): ClientUserPageViewModel {
 
   const handleEdit = (rowId: string) => {
     const target = rows.find((row) => row.id === rowId);
-    if (!target) return;
+    if (!canManageStaff(target) || !target) { showPermissionNotice(); return; }
+    setEditorActor(actorKey);
     modalFlow.openEditModal(target);
   };
 
+  const handleCreate = () => {
+    if (!isManager) { showPermissionNotice(); return; }
+    setEditorActor(actorKey);
+    modalFlow.openCreateModal();
+  };
+
+  const staffAuthorityOptions = authorityOptions.filter((option) => option.value === '02');
+
   return {
-    data: { rows, authorityOptions },
+    data: { rows, authorityOptions: staffAuthorityOptions.length ? staffAuthorityOptions :
+      [{ value: '02', label: getClientUserAuthorityLabel('02') }] },
     status: {
       isLoading: userQuery.isLoading,
       isFetching: userQuery.isFetching,
@@ -216,7 +254,7 @@ export function useClientUserPage(): ClientUserPageViewModel {
       handleReset,
       handleToggleRow: toggleRow,
       handleToggleAll: toggleAll,
-      handleCreate: modalFlow.openCreateModal,
+      handleCreate,
       handleEdit,
       handleDelete: requestDelete,
       confirmDelete,
