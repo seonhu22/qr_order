@@ -8,6 +8,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClientUserMapperScopeTest {
+    @Test void deleteQueryAlsoScopesStoreAndStaff() throws Exception {
+        var item = new htms.QROrder.client.dto.ClientUserItem(); item.setSysId("STAFF");
+        var bound = configuration().getMappedStatement("htms.QROrder.client.repository.ClientUserMapper.delClientUser")
+                .getBoundSql(Map.of("sysPlantCd", "STORE", "ids", List.of("STAFF"), "delItems", List.of(item)));
+        String sql = bound.getSql().replaceAll("\\s+", " ").toLowerCase();
+        assertTrue(sql.contains("plant_cd = ?"));
+        assertTrue(sql.contains("user_role = '02'"));
+        assertTrue(sql.contains("delete_yn = 'n'"));
+    }
     private Configuration configuration() throws Exception {
         var config = new Configuration(); String path = "mapper/client/ClientUserMapper.xml";
         try (var input = getClass().getClassLoader().getResourceAsStream(path)) {

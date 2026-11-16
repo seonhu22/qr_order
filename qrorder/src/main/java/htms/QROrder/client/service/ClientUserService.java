@@ -77,22 +77,24 @@ public class ClientUserService {
         }
     }
 
-    public void delClientUser(List<ClientUserItem> delItems,
-                                String userId,
-                                String sysPlantCd,
-                                String menuCd) {
-
-        // auditService.insertDeleteAuditTrailData(delItems, menuCd, "sys_user", userId, sysPlantCd);
-        clientUserMapper.delClientUser(delItems, userId, sysPlantCd, menuCd);
+    public void delClientUser(List<ClientUserItem> delItems, Login actor, String menuCd) {
+        requireManager(actor);
+        if (delItems == null || delItems.isEmpty() || delItems.stream().anyMatch(item -> item == null
+                || item.getSysId() == null || item.getSysId().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제할 사용자를 확인해주세요.");
+        }
+        List<String> ids = delItems.stream().map(ClientUserItem::getSysId).distinct().sorted().toList();
+        List<ClientUserResponse> targets = clientUserMapper.lockStaffUsers(ids, actor.getSysPlantCd());
+        if (targets.size() != ids.size()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "같은 매장의 스태프만 삭제할 수 있습니다.");
+        }
+        if (clientUserMapper.delClientUser(ids, actor.getUserId(), actor.getSysPlantCd()) != ids.size()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "대상이 변경되어 삭제하지 못했습니다.");
+        }
     }
 
     public void resetPwd(String sysId, Login actor) {
-        if (actor == null || !"01".equals(actor.getUserRole())
-                || actor.getSysPlantCd() == null || actor.getSysPlantCd().isBlank()
-                || "ADMIN".equals(actor.getSysPlantCd())) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.FORBIDDEN, "매장 관리자만 스태프의 비밀번호를 초기화할 수 있습니다.");
-        }
+        requireManager(actor);
         String tempPwd = passwordEncoder.encode(defaultPassword);
         if (clientUserMapper.resetPwd(sysId, tempPwd, actor.getSysPlantCd(), actor.getUserId()) != 1) {
             throw new org.springframework.web.server.ResponseStatusException(

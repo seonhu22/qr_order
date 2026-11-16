@@ -15,7 +15,7 @@ public interface ClientUserMapper {
     int updateClientUser(@Param("updateItems") ClientUserRequest updateItems, @Param("userId") String userId,
                          @Param("sysPlantCd") String sysPlantCd, @Param("menuCd") String menuCd);
     List<ClientUserResponse> lockStaffUsers(@Param("ids") List<String> ids, @Param("sysPlantCd") String sysPlantCd);
-    void delClientUser(List<ClientUserItem> delItems, String userId, String sysPlantCd, String menuCd);
+    int delClientUser(@Param("ids") List<String> ids, @Param("userId") String userId, @Param("sysPlantCd") String sysPlantCd);
     int resetPwd(@Param("sysId") String sysId, @Param("tempPwd") String tempPwd,
                  @Param("sysPlantCd") String sysPlantCd, @Param("userId") String userId);
     boolean duplicateChk(ClientUserRequest clientUserRequest);

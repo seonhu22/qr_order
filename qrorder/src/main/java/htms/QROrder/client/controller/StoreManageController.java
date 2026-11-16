@@ -75,7 +75,7 @@ public class StoreManageController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        clientUserService.delClientUser(clientUserListRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        clientUserService.delClientUser(clientUserListRequest, loginUser, menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
