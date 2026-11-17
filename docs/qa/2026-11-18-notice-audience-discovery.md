@@ -3,6 +3,8 @@
 기준일: 2026-11-18 / 브랜치 `feat/notice-audience-notifications` / 기준 코드 `1118f910`.
 사용자 요구: 관리자/스태프/모두 대상의 공지 알림 연동. 수동 QA는 다음 일정에 모아서 진행한다.
 
+후속 승인: 대상 컬럼 추가 SQL 준비는 허용하고 실제 DB 적용은 사용자가 직접 수행한다. 구현 기준은 [승인 범위와 작업 계획](../plans/2026-11-18-001-notice-audience.md)을 따른다. 아래는 승인 전 조사 이력이다.
+
 ## 코드에서 확인한 사실
 
 1. [Admin 공지 화면](../../frontend/src/apps/admin/pages/notice-manage/NoticeManagePage.tsx)의 수신 대상 옵션은 현재 전체/선택이다. 관리자/스태프/모두의 세 가지 계약과 다르다.
