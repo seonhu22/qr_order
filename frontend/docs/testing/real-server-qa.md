@@ -41,6 +41,7 @@ npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local
 - 테이블을 다른 사람이 동시에 사용하지 않아야 한다. 공유 서버에서 완전한 배타 사용을 보장하는 기능은 없다.
 - 생성 주문은 `AUTO-QA` 메뉴명으로 구분하고, 실행 기록에는 실행 ID와 생성 orderId를 남긴다.
 - 실패 후 남은 주문은 기록의 orderId로 확인한다. 자동 취소/삭제/DB 초기화는 하지 않는다.
+- 생성 후 실패했다면 [기존 주문 재개 조건](../../../docs/qa/2026-11-17-real-qa-order-number-resume.md)을 따른다. 재개는 실행 프로세스 환경변수 `QA_RESUME_ORDER_ID`로 지정하며 새 주문을 만들지 않는다.
 
 ## 안전장치와 선택 이유
 
