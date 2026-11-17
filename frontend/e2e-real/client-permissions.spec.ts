@@ -50,7 +50,7 @@ test('실제 계정의 매장/역할과 사용자 관리 권한을 검증한다'
       evidence.push({ account: account.label, identity: '매장/역할 일치', listStatus: list.status(), ui: '통과' });
       if (account.label === 'manager-a' && config.orderFlow) {
         const consumer = await browser.newContext({ baseURL: config.baseURL, serviceWorkers: 'block' });
-        await runOrderPayment(consumer, context, account.store, config.orderFlow, testInfo);
+        await runOrderPayment(consumer, context, account.store, config.orderFlow, testInfo, process.env.QA_RESUME_ORDER_ID);
       }
     } finally {
       await context.close();

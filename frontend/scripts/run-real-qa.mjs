@@ -16,9 +16,14 @@ if (!file || (args.length && (option !== 0 || args.length !== 2))) {
 try {
   const envFile = resolve(cwd, file);
   const config = readQaConfig(envFile);
+  if (process.env.QA_RESUME_ORDER_ID && (!config.orderFlow || !/^[0-9A-HJKMNP-TV-Z]{26}$/.test(process.env.QA_RESUME_ORDER_ID))) {
+    throw new Error('기존 주문 재개에는 주문/결제 설정과 올바른 QA_RESUME_ORDER_ID가 필요합니다.');
+  }
   console.log(`실제 서버 QA: 계정 ${config.accounts.length}개 / workers=1 / retries=0 / 로그인 계정당 최대 1회`);
   console.log(config.orderFlow
-    ? '쓰기 실행 안내: AUTO-QA 메뉴 1개 주문/조리/서빙/카드 결제 각 1회. 데이터가 남습니다. DB 초기화는 없습니다.'
+    ? process.env.QA_RESUME_ORDER_ID
+      ? '쓰기 실행 안내: 지정한 기존 접수 주문의 조리/서빙/카드 결제 각 1회. 신규 주문과 DB 초기화는 없습니다.'
+      : '쓰기 실행 안내: AUTO-QA 메뉴 1개 주문/조리/서빙/카드 결제 각 1회. 데이터가 남습니다. DB 초기화는 없습니다.'
     : '이번 실행은 로그인과 조회/권한 차단 검증입니다. 주문/결제/DB 초기화는 실행하지 않습니다.');
   console.log('로그인 실패나 5xx/15초 초과 시 즉시 중단합니다. 자동 로그인 재시도는 없습니다.');
   const preflight = await globalThis.fetch(`${config.baseURL}/api/auth/me`, { signal: globalThis.AbortSignal.timeout(5000), redirect: 'error' });
