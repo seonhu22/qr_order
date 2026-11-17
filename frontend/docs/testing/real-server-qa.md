@@ -61,13 +61,10 @@ npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local
 
 - 환경변수와 계정 안전장치: [Node 테스트](../../scripts/utils/real-qa-env.test.mjs).
 - 정상 주문/결제와 기존 주문/다른 주문 결제 차단: [실행기 브라우저 회귀](../../e2e/real-qa-harness.spec.ts).
-- 자동 결과: `npm run test:scripts` 12개 통과 / `npx playwright test e2e/real-qa-harness.spec.ts` Chromium 3개 통과 / E2E typecheck와 lint 통과.
-- 첫 차단 회귀는 응답 대기 타임아웃으로 실패했다. 차단 신호를 즉시 전달하도록 수정한 후 3개를 다시 통과했다.
-- 실제 실행: `npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local`.
-- 2026-11-17 관찰: 백엔드 연결 거부로 사전 검사 HTTP 502. 로그인/주문/결제 전 중단했다.
-- 이후 연결/로그인은 복구됐으나 스태프 목록 권한에서 중단했다. 최신 [dev 병합과 재실행 결과](../../../docs/qa/2026-11-17-dev-worktree-integration.md)를 기준으로 확인한다.
-- 따라서 실제 DB 저장과 실서비스 SSE 동기화 통과를 주장하지 않는다.
-- 실제 실행 성공 후 실행 날짜/단계/orderId와 관찰 결과를 기록한다.
+- 최신 실제 결과: 2026-11-18 기본 계정 3개와 기존 주문 재개/조리/서빙/카드 결제/Consumer CLOSED 통과. [실행 기록과 범위](../../../docs/qa/2026-11-17-real-qa-order-number-resume.md)를 기준으로 한다.
+- 기존 생성 POST 201과 재시작 후 같은 주문 조회는 확인했지만, 생성부터 결제까지 단일 실행에서 수행한 결과는 아니다.
+- 원장 직접 SQL 대조/정산/미결제/취소/실제 SSE 복구는 이번 통과에 포함하지 않는다.
+- 도입 중 연결/권한/QR 대기/주문번호 실패 이력은 [dev 통합](../../../docs/qa/2026-11-17-dev-worktree-integration.md)과 각 상세 QA 기록에서 확인한다.
 - 주문 단계의 [QR 대기 수정과 설정 불일치](../../../docs/qa/2026-11-17-real-qa-qr-session-wait.md): 인증/세션 대기와 매장/테이블 설정을 각각 확인한다.
 
 구현: [실행 스크립트](../../scripts/run-real-qa.mjs), [실제 서버 설정](../../playwright.real.config.ts), [권한 시나리오](../../e2e-real/client-permissions.spec.ts), [주문/결제 흐름](../../e2e-real/order-payment.ts).
