@@ -36,6 +36,13 @@ public class LoginService {
             throw new LoginFailException("해당 계정은 존재하지 않습니다.");
         }
 
+        // plant_cd is the authorization scope. Never infer it from the creator/audit store.
+        // A legacy missing binding must not reach the NOT NULL login-log insert or session.
+        if (dbLoginData.getSysPlantCd() == null || dbLoginData.getSysPlantCd().isBlank()) {
+            log.warn("Login rejected: missing store binding for sysId={}", dbLoginData.getSysId());
+            throw new LoginFailException("계정의 매장 연결 정보가 누락되었습니다. 매장 관리자에게 문의해주세요.");
+        }
+
         if (dbLoginData.getPasswordFailCnt() >= 5) {
             String errMsg = "해당 계정은 비밀번호 5회 이상 오류로 사용 중지된 상태입니다.";
             logService.loginLog(uuid, httpServletRequest, "F", errMsg, dbLoginData);
