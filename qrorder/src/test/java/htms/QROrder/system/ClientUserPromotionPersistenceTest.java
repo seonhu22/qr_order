@@ -4,6 +4,11 @@ import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.auth.LocalPostgresTestSupport;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.auth.repository.LoginMapper;
+import htms.QROrder.auth.dto.LoginRequest;
+import htms.QROrder.auth.service.LoginService;
+import htms.QROrder.auth.controller.LoginController;
+import htms.QROrder.log.repository.LogMapper;
+import htms.QROrder.log.service.LogService;
 import htms.QROrder.client.dto.ClientUserItem;
 import htms.QROrder.client.dto.ClientUserRequest;
 import htms.QROrder.client.repository.ClientUserMapper;
@@ -23,6 +28,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -45,6 +52,7 @@ class ClientUserPromotionPersistenceTest {
     private ClientUserService users;
     private ClientUserRoleService roles;
     private LoginMapper logins;
+    private LoginController loginController;
     private final Login manager = actor("MANAGER", "STORE-A", "01");
     private final Login system = actor("SYSTEM", "ADMIN", "01");
 
@@ -62,13 +70,20 @@ class ClientUserPromotionPersistenceTest {
                     create table qa_auth.sys_user (
                       sys_id varchar(36) primary key, user_id varchar(50) not null unique,
                       user_nm varchar(50) not null, user_password varchar(200) not null,
-                      plant_cd varchar(50) not null references qa_auth.sys_plant,
+                      plant_cd varchar(50) references qa_auth.sys_plant,
                       sys_plant_cd varchar(50) not null references qa_auth.sys_plant,
                       user_role varchar(2) not null check (user_role in ('01','02')),
                       init_yn varchar(1) not null default 'N', delete_yn varchar(1) not null default 'N',
                       password_fail_cnt integer not null default 0, email_valid_yn varchar(1) not null default 'Y',
                       insert_user_id varchar(50) not null, insert_datetime timestamp not null default now(),
                       modify_user_id varchar(50), modify_datetime timestamp);
+                    create table qa_auth.sys_login_log_master (
+                      sys_id varchar(36) primary key, user_id varchar(50) not null,
+                      ip_address varchar(100), login_datetime timestamp not null,
+                      logout_datetime timestamp, login_result varchar(1) not null,
+                      fail_reason text, sys_plant_cd varchar(50) not null);
+                    create view public.sys_user as select * from qa_auth.sys_user;
+                    create view public.sys_plant as select * from qa_auth.sys_plant;
                     """);
             Configuration configuration = new Configuration();
             configuration.setMapUnderscoreToCamelCase(true);
@@ -79,7 +94,8 @@ class ClientUserPromotionPersistenceTest {
             factory.setTransactionFactory(new SpringManagedTransactionFactory());
             factory.setMapperLocations(new ClassPathResource("mapper/client/ClientUserMapper.xml"),
                     new ClassPathResource("mapper/system/ClientUserRoleMapper.xml"),
-                    new ClassPathResource("mapper/auth/LoginMapper.xml"));
+                    new ClassPathResource("mapper/auth/LoginMapper.xml"),
+                    new ClassPathResource("mapper/log/Log.xml"));
             var sql = new SqlSessionTemplate(factory.getObject());
             transactions = new DataSourceTransactionManager(source);
             var userService = new ClientUserService(mock(AuditService.class), sql.getMapper(ClientUserMapper.class),
@@ -88,6 +104,9 @@ class ClientUserPromotionPersistenceTest {
             users = transactional(userService);
             roles = transactional(new ClientUserRoleService(sql.getMapper(ClientUserRoleMapper.class)));
             logins = sql.getMapper(LoginMapper.class);
+            var loginService = new LoginService(logins, new BCryptPasswordEncoder(4),
+                    transactional(new LogService(sql.getMapper(LogMapper.class))));
+            loginController = new LoginController(transactional(loginService));
         } catch (Exception failure) {
             database.close();
             throw failure;
@@ -99,7 +118,7 @@ class ClientUserPromotionPersistenceTest {
     }
 
     @BeforeEach void resetFixture() {
-        jdbc.execute("truncate table qa_auth.sys_user, qa_auth.sys_plant cascade");
+        jdbc.execute("truncate table qa_auth.sys_login_log_master, qa_auth.sys_user, qa_auth.sys_plant cascade");
         jdbc.update("insert into qa_auth.sys_plant(plant_cd, plant_nm) values ('STORE-A','A'),('STORE-B','B'),('ADMIN','System')");
         insert("MANAGER", "STORE-A", "01");
         insert("SYSTEM", "ADMIN", "01");
@@ -127,6 +146,106 @@ class ClientUserPromotionPersistenceTest {
         assertEquals("수정 이름", jdbc.queryForObject("select user_nm from sys_user where sys_id=?", String.class, request.getSysId()));
         assertEquals("02", logins.findForAuthorization(request.getSysId()).getUserRole());
         assertEquals("STORE-A", logins.findForAuthorization(request.getSysId()).getSysPlantCd());
+    }
+
+    @Test void newStaffCanLoginAndWriteStoreScopedSuccessLog() {
+        var request = registerLoginStaff();
+        var session = new MockHttpSession();
+        var response = login(request.getUserId(), "test-only-password", session);
+        assertEquals(200, response.getStatusCode().value());
+        var loggedIn = (Login) session.getAttribute("loginUser");
+        assertEquals("STORE-A", loggedIn.getSysPlantCd());
+        assertEquals("02", loggedIn.getUserRole());
+        assertEquals("Y", loggedIn.getInitYn());
+        assertEquals("STAFF", session.getAttribute("role"));
+        assertEquals("STORE-A", jdbc.queryForObject("select sys_plant_cd from sys_login_log_master", String.class));
+        assertEquals("P", jdbc.queryForObject("select login_result from sys_login_log_master", String.class));
+    }
+
+    @Test void wrongStaffPasswordReturns401AndCommitsFailureLogAndCounter() {
+        var request = registerLoginStaff();
+        var session = new MockHttpSession();
+        var response = login(request.getUserId(), "wrong-case-password", session);
+        assertEquals(401, response.getStatusCode().value());
+        assertNull(session.getAttribute("loginUser"));
+        assertEquals(1, jdbc.queryForObject("select password_fail_cnt from sys_user where sys_id=?", Integer.class, request.getSysId()));
+        assertEquals("STORE-A", jdbc.queryForObject("select sys_plant_cd from sys_login_log_master", String.class));
+        assertEquals("F", jdbc.queryForObject("select login_result from sys_login_log_master", String.class));
+    }
+
+    @Test void legacyMissingStoreReturns401WithoutNullAuditInsertOrAuthentication() {
+        var request = registerLoginStaff();
+        jdbc.update("update sys_user set plant_cd=null where sys_id=?", request.getSysId());
+        var session = new MockHttpSession();
+        var response = login(request.getUserId(), "test-only-password", session);
+        assertEquals(401, response.getStatusCode().value());
+        assertTrue(response.getBody().getMessage().contains("매장"));
+        assertNull(session.getAttribute("loginUser"));
+        assertEquals(0, jdbc.queryForObject("select count(*) from sys_login_log_master", Integer.class));
+        assertEquals(0, jdbc.queryForObject("select password_fail_cnt from sys_user where sys_id=?", Integer.class, request.getSysId()));
+    }
+
+    @Test void repairingConfirmedCanonicalStoreRestoresListAndLoginWithoutPasswordChange() {
+        var request = registerLoginStaff();
+        String hash = jdbc.queryForObject("select user_password from sys_user where sys_id=?", String.class, request.getSysId());
+        jdbc.update("update sys_user set plant_cd=null where sys_id=?", request.getSysId());
+        assertTrue(users.getClientUser(null, manager).stream().noneMatch(row -> request.getSysId().equals(row.getSysId())));
+        assertEquals(1, jdbc.update("""
+                update sys_user set plant_cd=? where sys_id=? and user_id=?
+                and user_role='02' and delete_yn='N' and sys_plant_cd=?
+                and nullif(btrim(plant_cd),'') is null
+                """, "STORE-A", request.getSysId(), request.getUserId(), "STORE-A"));
+        assertTrue(users.getClientUser(null, manager).stream().anyMatch(row -> request.getSysId().equals(row.getSysId())));
+        assertEquals(hash, jdbc.queryForObject("select user_password from sys_user where sys_id=?", String.class, request.getSysId()));
+        assertEquals(200, login(request.getUserId(), "test-only-password", new MockHttpSession()).getStatusCode().value());
+    }
+
+    private ClientUserRequest registerLoginStaff() {
+        var request = new ClientUserRequest(); request.setUserId("login-staff"); request.setUserNm("AUTO-QA staff");
+        users.newClientUser(request, manager, "TEST");
+        return request;
+    }
+
+    @Test void exactRepairScriptDryRunRollsBackAndApplyRestoresBothStaffLogins() throws Exception {
+        var first = registerRepairStaff("autoTester21");
+        var second = registerRepairStaff("autoTester22");
+        String script = repairScript(first, second, "STORE-A");
+        jdbc.execute(script);
+        assertEquals(2, jdbc.queryForObject("select count(*) from sys_user where plant_cd is null", Integer.class));
+        jdbc.execute(script.stripTrailing().replaceAll("ROLLBACK;$", "COMMIT;"));
+        assertEquals(0, jdbc.queryForObject("select count(*) from sys_user where plant_cd is null", Integer.class));
+        for (var staff : List.of(first, second)) {
+            assertEquals("02", jdbc.queryForObject("select user_role from sys_user where sys_id=?", String.class, staff.getSysId()));
+            assertEquals("MANAGER", jdbc.queryForObject("select modify_user_id from sys_user where sys_id=?", String.class, staff.getSysId()));
+            assertEquals(200, login(staff.getUserId(), "test-only-password", new MockHttpSession()).getStatusCode().value());
+        }
+    }
+
+    @Test void exactRepairScriptRejectsUnexpectedStoreWithoutChangingRows() throws Exception {
+        var first = registerRepairStaff("autoTester21");
+        var second = registerRepairStaff("autoTester22");
+        assertThrows(org.springframework.dao.DataAccessException.class,
+                () -> jdbc.execute(repairScript(first, second, "STORE-B")));
+        assertEquals(2, jdbc.queryForObject("select count(*) from sys_user where plant_cd is null", Integer.class));
+    }
+
+    private ClientUserRequest registerRepairStaff(String id) {
+        var request = new ClientUserRequest(); request.setUserId(id); request.setUserNm("AUTO-QA repair");
+        users.newClientUser(request, manager, "TEST");
+        jdbc.update("update sys_user set plant_cd=null where sys_id=?", request.getSysId());
+        return request;
+    }
+
+    private String repairScript(ClientUserRequest first, ClientUserRequest second, String store) throws Exception {
+        return java.nio.file.Files.readString(java.nio.file.Path.of("..", "docs", "qa", "scripts", "2026-11-17-staff-store-binding-repair.sql"))
+                .replace("__EXPECTED_STORE__", store).replace("__ACTOR_ID__", "MANAGER")
+                .replace("__STAFF_21_SYS_ID__", first.getSysId()).replace("__STAFF_22_SYS_ID__", second.getSysId());
+    }
+
+    private org.springframework.http.ResponseEntity<htms.QROrder.common.dto.CommonResponse> login(
+            String userId, String password, MockHttpSession session) {
+        var request = new LoginRequest(); request.setUserId(userId); request.setUserPassword(password);
+        return loginController.login(request, new MockHttpServletRequest(), session);
     }
 
     @Test void rejectsCrossStoreBatchWithoutDeletingValidStaff() {
