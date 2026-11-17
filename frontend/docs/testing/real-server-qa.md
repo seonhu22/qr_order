@@ -35,6 +35,7 @@ npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local
 
 - A매장에 옵션 없는 판매 가능 메뉴를 준비하고 이름에 `AUTO-QA`를 포함한다.
 - 테스트에만 사용할 빈 테이블과 해당 QR 주소/테이블 sysId/테이블 번호를 준비한다.
+- QR은 A매장 관리자 계정의 매장에 속해야 한다. 테이블 sysId는 Consumer 세션 응답의 `data.tableSysId`이며 QR URL 식별자와 다르다.
 - 예시 파일의 `QA_QR_URL`, `QA_TABLE_SYS_ID`, `QA_TABLE_NUM`, `QA_MENU_NAME`을 입력한다.
 - `QA_ENABLE_ORDER_PAYMENT=1`로 설정하면 다음 실행에서 주문과 카드 결제를 각 1회 수행한다.
 - 테이블을 다른 사람이 동시에 사용하지 않아야 한다. 공유 서버에서 완전한 배타 사용을 보장하는 기능은 없다.
@@ -66,5 +67,6 @@ npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local
 - 이후 연결/로그인은 복구됐으나 스태프 목록 권한에서 중단했다. 최신 [dev 병합과 재실행 결과](../../../docs/qa/2026-11-17-dev-worktree-integration.md)를 기준으로 확인한다.
 - 따라서 실제 DB 저장과 실서비스 SSE 동기화 통과를 주장하지 않는다.
 - 실제 실행 성공 후 실행 날짜/단계/orderId와 관찰 결과를 기록한다.
+- 주문 단계의 [QR 대기 수정과 설정 불일치](../../../docs/qa/2026-11-17-real-qa-qr-session-wait.md): 인증/세션 대기와 매장/테이블 설정을 각각 확인한다.
 
 구현: [실행 스크립트](../../scripts/run-real-qa.mjs), [실제 서버 설정](../../playwright.real.config.ts), [권한 시나리오](../../e2e-real/client-permissions.spec.ts), [주문/결제 흐름](../../e2e-real/order-payment.ts).
