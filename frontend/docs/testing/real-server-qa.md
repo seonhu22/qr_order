@@ -63,6 +63,7 @@ npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local
 - 첫 차단 회귀는 응답 대기 타임아웃으로 실패했다. 차단 신호를 즉시 전달하도록 수정한 후 3개를 다시 통과했다.
 - 실제 실행: `npm run test:qa:real -- --env-file ../../../frontend/.env.qa.local`.
 - 2026-11-17 관찰: 백엔드 연결 거부로 사전 검사 HTTP 502. 로그인/주문/결제 전 중단했다.
+- 이후 연결/로그인은 복구됐으나 스태프 목록 권한에서 중단했다. 최신 [dev 병합과 재실행 결과](../../../docs/qa/2026-11-17-dev-worktree-integration.md)를 기준으로 확인한다.
 - 따라서 실제 DB 저장과 실서비스 SSE 동기화 통과를 주장하지 않는다.
 - 실제 실행 성공 후 실행 날짜/단계/orderId와 관찰 결과를 기록한다.
 
