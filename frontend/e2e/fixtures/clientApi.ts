@@ -7,7 +7,7 @@ const user = {
   userId: 'browser-staff', userName: '브라우저 직원', sysPlantCd: 'E2E',
   role: 'STAFF', staffRole: '02', initPwdRequired: false,
 };
-const payment: PaymentCompleteResponse = {
+const paymentFixture: PaymentCompleteResponse = {
   header: { sysId: '01M6N2PJFPAD1V4171J4MVXP42', tableInfo: '5(테스트)', orderDatetime: '2026-11-10T12:00:00' },
   body: [{ detailSysId: detailId, linkSysId: orderId, rowType: 'MENU', itemName: '테스트 된장찌개', qty: 2, price: 16000, paymentYn: 'Y' }],
   footer: { sysId: '01M6N2PJFPAD1V4171J4MVXP42', totalPrice: 16000 },
@@ -17,8 +17,9 @@ const payment: PaymentCompleteResponse = {
 export async function installClientApi(
   context: BrowserContext,
   authenticated = false,
-  options: { rejectSse?: boolean } = {},
+  options: { rejectSse?: boolean; orderNum?: number } = {},
 ) {
+  const payment = structuredClone(paymentFixture);
   const unexpectedRequests: string[] = [];
   const statusRequests: { path: string; body: StatusRequest }[] = [];
   const paymentRequests: unknown[] = [];
@@ -52,7 +53,7 @@ export async function installClientApi(
     } else if (method === 'GET' && path === '/api/client/order_manage/status/search') {
       statusReads += 1;
       const response: StatusResponse[] = paid ? [] : [{ statusFlag, statusList: [{
-        orderNum: 9001,
+        orderNum: options.orderNum ?? 9001,
         header: { sysId: orderId, tableNum: 5, orderDatetime: '2026-11-10T12:00:00', orderStatus: statusFlag },
         body: payment.body,
         footer: { sysId: orderId, totalPrice: 16000 },

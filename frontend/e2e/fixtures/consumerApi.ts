@@ -51,7 +51,7 @@ const detail: ConsumerMenuDetailEnvelope = {
 export const consumerMenuName = menu.menuName;
 export const consumerMenuId = menu.menuSysId;
 
-export async function installConsumerApi(context: BrowserContext, failFirstOrder = false) {
+export async function installConsumerApi(context: BrowserContext, failFirstOrder = false, orderNo = '9001') {
   const unexpectedRequests: string[] = [];
   const orderRequests: ConsumerOrderCreateRequest[] = [];
   let ordered = false;
@@ -70,7 +70,7 @@ export async function installConsumerApi(context: BrowserContext, failFirstOrder
       await route.fulfill({ json: detail });
     } else if (method === 'GET' && path === '/api/client/consumer/orders') {
       await route.fulfill({ json: { success: true, data: { orders: ordered ? [{
-        orderId: '01M6N2PY8X87E9C3MVSA20MKVX', orderNo: '9001', status: 'RECEIVED',
+        orderId: '01M6N2PY8X87E9C3MVSA20MKVX', orderNo, status: 'RECEIVED',
         totalAmount: 8_000, itemCount: 1, orderedAt: '2026-11-10 12:01:00',
       }] : [] } } });
     } else if (method === 'POST' && path === '/api/client/consumer/orders') {
@@ -81,7 +81,7 @@ export async function installConsumerApi(context: BrowserContext, failFirstOrder
       }
       ordered = true;
       await route.fulfill({ status: 201, json: { success: true, data: {
-        orderId: '01M6N2PY8X87E9C3MVSA20MKVX', orderNo: '9001', status: 'RECEIVED',
+        orderId: '01M6N2PY8X87E9C3MVSA20MKVX', orderNo, status: 'RECEIVED',
         totalAmount: 8_000, orderedAt: '2026-11-10 12:01:00',
       } } });
     } else if (method === 'GET' && path === '/api/client/consumer/events') {
