@@ -29,14 +29,26 @@ export async function runOrderPayment(consumer: BrowserContext, manager: Browser
     const client = await manager.newPage();
     await client.goto('/client/order/status/management');
     // QR/session connection is a GET with side effects: validate immediately afterward.
-    await page.goto(flow.qrPath);
+    const [qr] = await Promise.all([
+      page.waitForResponse((response) => new URL(response.url()).pathname.startsWith('/api/qr/') && response.request().method() === 'GET', { timeout: 15_000 }),
+      page.goto(flow.qrPath),
+    ]);
+    if (qr.status() !== 200 || (await qr.json()).success !== true) throw new Error('QR 인증 실패. 주문을 중단합니다.');
+    await page.waitForURL((url) => url.pathname === '/consumer/order', { timeout: 15_000 })
+      .catch(() => { throw new Error('QR 인증 후 주문 화면 전환 실패'); });
+    steps.push('QR 인증 200');
     const sessionResponse = await readJson(page, '/api/client/consumer/session');
     if (sessionResponse.status !== 200) throw new Error('Consumer 세션 생성 실패');
     const session = sessionResponse.data.data;
-    if (session?.sysPlantCd !== store || session?.tableSysId !== flow.tableSysId ||
-        session?.tableNum !== flow.tableNum || session?.status !== 'ACTIVE' || session?.orderingAllowed !== true) {
-      throw new Error('QR의 실제 매장/테이블/주문 허용 상태 불일치. 주문을 중단합니다.');
-    }
+    const scopeChecks = {
+      QA_STORE_A_CODE: session?.sysPlantCd === store,
+      QA_TABLE_SYS_ID: session?.tableSysId === flow.tableSysId,
+      QA_TABLE_NUM: session?.tableNum === flow.tableNum,
+      ACTIVE: session?.status === 'ACTIVE',
+      orderingAllowed: session?.orderingAllowed === true,
+    };
+    const mismatches = Object.entries(scopeChecks).filter(([, matches]) => !matches).map(([key]) => key);
+    if (mismatches.length) throw new Error(`QR의 실제 매장/테이블/주문 허용 상태 불일치: ${mismatches.join('/')}. 주문을 중단합니다.`);
     const current = await readJson(client, '/api/client/order_manage/status/search');
     if (current.status !== 200) throw new Error('테이블 기존 주문 확인 실패');
     const groups: StatusResponse[] = current.data;
