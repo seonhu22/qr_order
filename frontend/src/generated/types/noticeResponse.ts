@@ -5,6 +5,7 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { NoticeResponseTarget } from './noticeResponseTarget';
 
 export interface NoticeResponse {
   sysId?: string;
@@ -18,4 +19,5 @@ export interface NoticeResponse {
   insertDatetime?: string;
   modifyDatetime?: string;
   modifyUserId?: string;
+  target?: NoticeResponseTarget;
 }

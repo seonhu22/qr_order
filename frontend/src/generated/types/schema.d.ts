@@ -2440,6 +2440,11 @@ export interface components {
             useYn?: string;
             fileUuid?: string;
             sysPlantCd?: string;
+            /**
+             * @description 수신 대상. 신규 생략은 all, 수정 생략은 기존 대상 유지
+             * @enum {string}
+             */
+            target?: "all" | "manager" | "staff";
         };
         AdminUser: {
             sysId?: string;
@@ -2922,6 +2927,8 @@ export interface components {
             insertDatetime?: string;
             modifyDatetime?: string;
             modifyUserId?: string;
+            /** @enum {string} */
+            target?: "all" | "manager" | "staff";
         };
         AdminUserResponse: {
             sysId?: string;

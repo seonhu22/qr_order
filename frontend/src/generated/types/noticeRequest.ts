@@ -5,6 +5,7 @@
  * QROrder Management System API 문서
  * OpenAPI spec version: v1.0
  */
+import type { NoticeRequestTarget } from './noticeRequestTarget';
 
 export interface NoticeRequest {
   sysId?: string;
@@ -15,4 +16,6 @@ export interface NoticeRequest {
   useYn?: string;
   fileUuid?: string;
   sysPlantCd?: string;
+  /** 수신 대상. 신규 생략은 all, 수정 생략은 기존 대상 유지 */
+  target?: NoticeRequestTarget;
 }
