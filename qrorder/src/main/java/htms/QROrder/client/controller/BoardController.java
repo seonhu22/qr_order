@@ -26,9 +26,9 @@ public class BoardController {
 
     // 공지사항 조회
     @GetMapping("/notice/search")
-    public List<ClientNoticeResponse> getNotice(@RequestParam(required = false) String searchKeyword) {
+    public List<ClientNoticeResponse> getNotice(@RequestParam(required = false) String searchKeyword, HttpSession session) {
 
-        return noticeService.getNotice(searchKeyword);
+        return noticeService.getNotice(searchKeyword, (Login) session.getAttribute("loginUser"));
     }
 
     // 문의사항 관리

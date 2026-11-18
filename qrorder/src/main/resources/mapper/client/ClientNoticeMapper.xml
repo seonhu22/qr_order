@@ -21,6 +21,7 @@
         </if>
         and bn.delete_yn = 'N'
         and bn.use_yn = 'Y'
+        and bn.target in ('all', #{target})
         <![CDATA[ and bn.start_date <= now() ]]>
     </select>
 

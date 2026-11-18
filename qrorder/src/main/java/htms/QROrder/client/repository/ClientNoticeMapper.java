@@ -7,5 +7,5 @@ import java.util.List;
 
 @Mapper
 public interface ClientNoticeMapper {
-    List<ClientNoticeResponse> getNotice(String searchKeyword);
+    List<ClientNoticeResponse> getNotice(String searchKeyword, String target);
 }
