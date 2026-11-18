@@ -22,7 +22,8 @@ const NOTICE_TYPE_OPTIONS = [
 
 const TARGET_OPTIONS = [
   { value: 'all', label: '전체' },
-  { value: 'select', label: '선택' },
+  { value: 'manager', label: '관리자' },
+  { value: 'staff', label: '스태프' },
 ];
 
 export function NoticeManagePage() {

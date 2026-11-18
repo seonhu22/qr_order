@@ -33,12 +33,14 @@ function renderPage() {
 describe('NoticeManagePage', () => {
   beforeEach(() => {
     server.use(
+      http.get('*/api/system/settings/menu/search', () => HttpResponse.json([])),
       http.get('/api/system/settings/board/notice/search', () =>
         HttpResponse.json([
           {
             noticeTitle: '점검 공지',
             noticeDescription: '시스템 점검 안내',
             startDate: '2026-04-29',
+            target: 'staff',
           },
         ]),
       ),
@@ -86,6 +88,7 @@ describe('NoticeManagePage', () => {
             noticeTitle: '점검 공지',
             noticeDescription: '시스템 점검 안내',
             startDate: '2026-04-29',
+            target: 'staff',
           },
         ]),
       ),
@@ -111,6 +114,7 @@ describe('NoticeManagePage', () => {
 
     expect(await screen.findByText('저장되었습니다.')).toBeInTheDocument();
     expect((receivedFormData as FormData | null)?.get('noticeTitle')).toBe('점검 공지 수정');
+    expect((receivedFormData as FormData | null)?.get('target')).toBe('staff');
     expect((receivedFormData as FormData | null)?.has('sysId')).toBe(false);
   });
 });

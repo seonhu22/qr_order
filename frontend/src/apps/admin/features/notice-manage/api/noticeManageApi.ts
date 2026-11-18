@@ -15,7 +15,8 @@ import type { NoticeManageRow } from '../types';
 
 export { mapFileResponseToServerFile };
 
-type NoticeResponseWithMeta = NoticeResponse & {
+type NoticeResponseWithMeta = Omit<NoticeResponse, 'target'> & {
+  target?: string;
   sysId?: string;
   insertUserId?: string;
   insertUserNm?: string;
@@ -32,7 +33,7 @@ export function mapToNoticeManageRow(res: NoticeResponseWithMeta, index: number)
     fileUlid: res.fileUlid,
     useYn: res.useYn ?? 'Y',
     noticeType: 'notice',
-    target: 'all',
+    target: res.target ?? 'all',
     title: res.noticeTitle ?? '',
     content: res.noticeDescription ?? '',
     registrant: res.insertUserNm ?? '',
@@ -52,6 +53,7 @@ export function useNoticeManageQuery(searchKeyword?: string) {
 }
 
 export type SaveNoticeFormDataPayload = {
+  target?: string;
   sysId?: string;
   fileUlid?: string;
   useYn?: string;
@@ -74,6 +76,12 @@ function getDefaultFilePath(date = new Date()): string {
 }
 
 function appendNoticeFields(formData: FormData, payload: SaveNoticeFormDataPayload) {
+  if (payload.target !== undefined) {
+    if (!['all', 'manager', 'staff'].includes(payload.target)) throw new Error('공지 수신 대상을 확인해주세요.');
+    formData.append('target', payload.target);
+  } else if (!payload.sysId) {
+    formData.append('target', 'all');
+  }
   if (payload.sysId) {
     formData.append('sysId', payload.sysId);
   }

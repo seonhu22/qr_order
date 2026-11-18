@@ -2,6 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { buildNoticeFormData, mapToNoticeManageRow } from './noticeManageApi';
 
 describe('noticeManageApi', () => {
+  it.each(['all', 'manager', 'staff'])('preserves %s target through response and multipart update', (target) => {
+    const row = mapToNoticeManageRow({ sysId: 'n1', target }, 0);
+    expect(row.target).toBe(target);
+    const body = buildNoticeFormData({ sysId: row.sysId, title: '제목', content: '본문', target: row.target });
+    expect(body.get('target')).toBe(target);
+  });
+
+  it('defaults only new missing targets and omits missing update target', () => {
+    expect(buildNoticeFormData({ title: '제목', content: '본문' }).get('target')).toBe('all');
+    expect(buildNoticeFormData({ sysId: 'n1', title: '제목', content: '본문' }).has('target')).toBe(false);
+  });
+
+  it.each(['unknown', ''])('does not coerce invalid server audience %s into all', (target) => {
+    const row = mapToNoticeManageRow({ sysId: 'n1', target }, 0);
+    expect(row.target).toBe(target);
+    expect(() => buildNoticeFormData({ sysId: row.sysId, title: '제목', content: '본문', target: row.target })).toThrow('수신 대상');
+  });
   it('maps notice response metadata into page row when backend provides extra fields', () => {
     expect(
       mapToNoticeManageRow(

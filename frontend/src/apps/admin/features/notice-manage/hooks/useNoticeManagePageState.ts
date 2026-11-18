@@ -67,6 +67,7 @@ export function useNoticeManagePageState() {
       useYn: editorRow.useYn,
       title: editorRow.title,
       content: editorRow.content,
+      target: editorRow.target,
       fileChangeState: modalFlow.fileChangeState,
     };
 

@@ -45,7 +45,7 @@ function toEditorRow(row: NoticeManageRow): NoticeEditorRow {
     fileUlid: row.fileUlid,
     useYn: row.useYn,
     noticeType: row.noticeType || 'notice',
-    target: row.target || 'all',
+    target: row.target ?? 'all',
     title: row.title,
     content: row.content,
   };
