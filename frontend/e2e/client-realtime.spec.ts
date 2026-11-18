@@ -12,13 +12,19 @@ test('SSE 반복 연결 실패 후 주문현황 polling으로 외부 상태 변�
   // Production reconnect delays include random jitter (up to 2s). Advance in
   // bounded steps without replacing EventSource, stores or the production hook.
   for (let attempt = 2; attempt <= 5; attempt += 1) {
-    await page.clock.runFor(62_000);
-    await expect.poll(() => api.sseAttempts).toBeGreaterThanOrEqual(attempt);
+    // onerror awaits a real auth request before scheduling the next browser timer.
+    // Advance again if that asynchronous response completed after the previous tick.
+    await expect.poll(async () => {
+      await page.clock.runFor(62_000);
+      return api.sseAttempts;
+    }).toBeGreaterThanOrEqual(attempt);
   }
   const readsBeforeChange = api.statusReads;
   api.setOrderStatus('02');
-  await page.clock.runFor(31_000);
-  await expect.poll(() => api.statusReads).toBeGreaterThan(readsBeforeChange);
+  await expect.poll(async () => {
+    await page.clock.runFor(31_000);
+    return api.statusReads;
+  }).toBeGreaterThan(readsBeforeChange);
   // Network completion schedules React Query notifications on browser timers.
   // Resume the clock before asserting rendered state, not only request count.
   await page.clock.resume();
