@@ -23,7 +23,7 @@ describe('관리자 실제 알림과 로컬 읽음', () => {
     );
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-    return { wrapper, calls: () => calls, props: { enabled, userId: 'u1', sysPlantCd: 'p1' } };
+    return { wrapper, calls: () => calls, props: { enabled, userId: 'u1', sysPlantCd: 'p1', staffRole: '01' } };
   }
 
   it('실제 조회와 종류별 읽음 분리, 새로 열기 복원을 수행한다', async () => {
@@ -69,6 +69,31 @@ describe('관리자 실제 알림과 로컬 읽음', () => {
       window.dispatchEvent(new StorageEvent('storage', { key: notificationStorageKey('u1', 'p1') }));
     });
     expect(hook.result.current.unseenCount).toBe(0);
+    hook.unmount();
+  });
+
+  it('스태프는 공지만 조회하고 문의 API를 요청하지 않는다', async () => {
+    const env = setup();
+    let qnaCalls = 0;
+    server.use(http.get('*/api/client/board/qna/search', () => { qnaCalls += 1; return HttpResponse.json([]); }));
+    const hook = renderHook(() => useManagerNotificationCenter({ ...env.props, staffRole: '02' }), { wrapper: env.wrapper });
+    await waitFor(() => expect(hook.result.current.items).toHaveLength(1));
+    expect(hook.result.current.items[0].kind).toBe('notice');
+    expect(qnaCalls).toBe(0);
+    act(() => hook.result.current.markAllSeen());
+    expect(hook.result.current.unseenCount).toBe(0);
+    hook.unmount();
+  });
+
+  it('같은 계정 역할 변경 중 관리자 문의 캐시를 스태프에게 보여주지 않는다', async () => {
+    const env = setup();
+    const hook = renderHook((props) => useManagerNotificationCenter(props), { wrapper: env.wrapper, initialProps: env.props });
+    await waitFor(() => expect(hook.result.current.items.some((item) => item.kind === 'qna')).toBe(true));
+    hook.rerender({ ...env.props, staffRole: '02' });
+    expect(hook.result.current.items.some((item) => item.kind === 'qna')).toBe(false);
+    await waitFor(() => expect(hook.result.current.items).toHaveLength(1));
+    hook.rerender({ ...env.props, staffRole: '' });
+    expect(hook.result.current.items).toEqual([]);
     hook.unmount();
   });
 });

@@ -19,7 +19,10 @@ export function mapManagerNotifications(notices: ClientNoticeResponse[], inquiri
   return items.sort((a, b) => b.timestamp.localeCompare(a.timestamp) || a.kind.localeCompare(b.kind) || a.sysId.localeCompare(b.sysId));
 }
 
-export async function fetchManagerNotifications(signal?: AbortSignal) {
-  const [notices, inquiries] = await Promise.all([getNotice1({}, signal), getQna1({}, signal)]);
+export async function fetchManagerNotifications(signal?: AbortSignal, includeInquiries = true) {
+  const [notices, inquiries] = await Promise.all([
+    getNotice1({}, signal),
+    includeInquiries ? getQna1({}, signal) : Promise.resolve([]),
+  ]);
   return mapManagerNotifications(notices, inquiries);
 }

@@ -37,7 +37,8 @@ export function ClientLayout() {
     markAllSeen,
     isError: managerNotificationError,
   } = useManagerNotificationCenter({
-    enabled: isAuthenticated && isManager,
+    enabled: isAuthenticated,
+    staffRole: staffRole ?? '',
     userId: typeof user?.userId === 'string' ? user.userId : '',
     sysPlantCd: typeof user?.sysPlantCd === 'string' ? user.sysPlantCd : '',
   });
@@ -76,13 +77,14 @@ export function ClientLayout() {
     }));
 
   const handleNotificationItemClick = (item: ClientNotificationItem) => {
-    if (isManager) markItemSeen(item);
+    if (item.kind !== 'staffCall') markItemSeen(item);
     guardedNavigate(item.targetPath);
   };
 
-  const headerNotificationItems = isManager ? notificationItems : staffCallNotificationItems;
-  const headerUnseenCount = isManager ? unseenNotificationCount : staffCallNotificationItems.length;
-  const headerMarkAllRead = isManager ? markAllSeen : undefined;
+  const headerNotificationItems = isManager ? notificationItems : [...notificationItems, ...staffCallNotificationItems]
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  const headerUnseenCount = unseenNotificationCount + (isManager ? 0 : staffCallNotificationItems.length);
+  const headerMarkAllRead = isManager || unseenNotificationCount > 0 ? markAllSeen : undefined;
 
   useEffect(() => {
     const nextSection = currentSection;
@@ -131,7 +133,7 @@ export function ClientLayout() {
             unseenNotificationCount={headerUnseenCount}
             onNotificationItemClick={handleNotificationItemClick}
             onMarkAllNotificationsRead={headerMarkAllRead}
-            notificationError={isManager ? managerNotificationError : unreadStaffCallsQuery.isError}
+            notificationError={managerNotificationError || (!isManager && unreadStaffCallsQuery.isError)}
           />
         </header>
         <main className="client-layout__main">

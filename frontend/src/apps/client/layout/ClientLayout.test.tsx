@@ -200,7 +200,7 @@ describe('ClientLayout 헤더 알림 역할 분기', () => {
     const { queryClient } = renderLayout('/client/main', { staffRole: '01' });
 
     await waitFor(() => {
-      expect(queryClient.getQueryData(['manager-notifications', 'PC002', 'ADMIN'])).toHaveLength(1);
+      expect(queryClient.getQueryData(['manager-notifications', 'PC002', 'ADMIN', '01'])).toHaveLength(1);
     });
 
     const header = within(screen.getByRole('navigation', { name: '상단 메뉴' }).closest('header')!);
@@ -223,6 +223,7 @@ describe('ClientLayout 헤더 알림 역할 분기', () => {
   });
 
   it('02 스태프는 직원호출 알림을 보고 모두 읽음 버튼은 없다', async () => {
+    server.use(http.get('*/api/client/board/notice/search', () => HttpResponse.json([])));
     mockedUseUnreadStaffCallsQuery.mockReturnValue({
       data: [
         {
@@ -245,5 +246,27 @@ describe('ClientLayout 헤더 알림 역할 분기', () => {
 
     expect(screen.getByText('5번 테이블 직원호출')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '모두 읽음' })).not.toBeInTheDocument();
+  });
+
+  it('스태프는 공지와 직원호출을 함께 보며 모두 읽음은 호출을 처리하지 않는다', async () => {
+    localStorage.clear();
+    let qnaCalls = 0;
+    server.use(
+      http.get('*/api/client/board/notice/search', () => HttpResponse.json([
+        { sysId: 'staff-notice', noticeTitle: '직원 대상 공지', openDate: '2026-11-18' },
+      ])),
+      http.get('*/api/client/board/qna/search', () => { qnaCalls += 1; return HttpResponse.json([]); }),
+    );
+    mockedUseUnreadStaffCallsQuery.mockReturnValue({ data: [{ masterSysId: 'call-1', tableNum: 5,
+      insertDatetime: '2026-11-18T10:00:00', items: [{ callNm: '물', quantity: 1 }] }], isError: false } as never);
+    const user = userEvent.setup();
+    renderLayout('/client/main', { staffRole: '02' });
+    await user.click(await screen.findByRole('button', { name: '읽지 않은 알림 2건' }));
+    expect(screen.getByText('직원 대상 공지')).toBeInTheDocument();
+    expect(screen.getByText('5번 테이블 직원호출')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '모두 읽음' }));
+    expect(screen.getByRole('button', { name: '읽지 않은 알림 1건' })).toBeInTheDocument();
+    expect(screen.getByText('5번 테이블 직원호출')).toBeInTheDocument();
+    expect(qnaCalls).toBe(0);
   });
 });

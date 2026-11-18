@@ -4,15 +4,15 @@ import { fetchManagerNotifications } from '../api/managerNotificationApi';
 import { notificationReadId, notificationStorageKey, readNotificationIds, saveNotificationIds } from '../utils/notificationReadStorage';
 import type { ClientNotificationItem } from '../types';
 
-type Options = { enabled: boolean; userId: string; sysPlantCd: string };
+type Options = { enabled: boolean; userId: string; sysPlantCd: string; staffRole: string };
 
-export function useManagerNotificationCenter({ enabled, userId, sysPlantCd }: Options) {
-  const active = enabled && Boolean(userId && sysPlantCd);
+export function useManagerNotificationCenter({ enabled, userId, sysPlantCd, staffRole }: Options) {
+  const active = enabled && Boolean(userId && sysPlantCd) && ['01', '02'].includes(staffRole);
   const scope = JSON.stringify([userId, sysPlantCd]);
   const [readState, setReadState] = useState<{ scope: string; ids: string[] }>({ scope: '', ids: [] });
   const query = useQuery({
-    queryKey: ['manager-notifications', userId, sysPlantCd],
-    queryFn: ({ signal }) => fetchManagerNotifications(signal),
+    queryKey: ['manager-notifications', userId, sysPlantCd, staffRole],
+    queryFn: ({ signal }) => fetchManagerNotifications(signal, staffRole === '01'),
     enabled: active,
     retry: false,
     staleTime: 60_000,
