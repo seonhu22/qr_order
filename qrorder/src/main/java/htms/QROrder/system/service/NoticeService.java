@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
@@ -36,6 +38,8 @@ public class NoticeService {
                             String sysPlantCd,
                             String menuCd) {
 
+        validateTarget(noticeRequest.getTarget());
+        if (noticeRequest.getTarget() == null) noticeRequest.setTarget("all");
         String ULID = UlidCreator.getMonotonicUlid().toString();
         String fileUlid = UlidCreator.getMonotonicUlid().toString();
         noticeRequest.setSysId(ULID);
@@ -54,7 +58,11 @@ public class NoticeService {
                                 String sysPlantCd,
                                 String menuCd) {
 
+        validateTarget(noticeRequest.getTarget());
+        // getOldData locks this row until the transaction (including audit/files) finishes.
         NoticeResponse oldData = noticeMapper.getOldData(noticeRequest.getSysId());
+        if (oldData == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다.");
+        if (noticeRequest.getTarget() == null) noticeRequest.setTarget(oldData.getTarget());
         String fileUlid = noticeRequest.getFileUuid();
 
         setNewFileUlid(fileRequest, fileUlid);
@@ -82,5 +90,11 @@ public class NoticeService {
         fileRequest.getNewItems().forEach(item -> {
             item.setLinkSysId(fileUlid);
         });
+    }
+
+    private void validateTarget(String target) {
+        if (target != null && !List.of("all", "manager", "staff").contains(target)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 공지 수신 대상을 선택해주세요.");
+        }
     }
 }

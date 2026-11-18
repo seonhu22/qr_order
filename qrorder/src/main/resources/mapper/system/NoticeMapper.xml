@@ -8,6 +8,7 @@
             bn.sys_id,
             bn.notice_title,
             bn.notice_description,
+            bn.target,
             bn.start_date,
             bn.use_yn,
             bn.file_ulid,
@@ -33,6 +34,7 @@
             sys_id,
             notice_title,
             notice_description,
+            target,
             start_date,
             delete_yn,
             use_yn,
@@ -45,6 +47,7 @@
             #{noticeRequest.sysId},
             #{noticeRequest.noticeTitle},
             #{noticeRequest.noticeDescription},
+            #{noticeRequest.target},
             #{noticeRequest.startDate},
             'N',
             #{noticeRequest.useYn},
@@ -59,6 +62,7 @@
         update brd_notice set
             notice_title = #{noticeRequest.noticeTitle},
             notice_description = #{noticeRequest.noticeDescription},
+            target = #{noticeRequest.target},
             start_date = #{noticeRequest.startDate},
             use_yn = #{noticeRequest.useYn},
             modify_user_id = #{userId},
@@ -82,6 +86,7 @@
             bn.sys_id,
             bn.notice_title,
             bn.notice_description,
+            bn.target,
             bn.start_date,
             bn.use_yn,
             bn.file_ulid,
@@ -95,5 +100,6 @@
             on su.user_id = bn.insert_user_id
         where bn.sys_id = #{sysId}
         and bn.delete_yn = 'N'
+        for update of bn
     </select>
 </mapper>
