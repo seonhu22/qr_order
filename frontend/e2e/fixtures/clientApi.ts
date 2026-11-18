@@ -44,6 +44,8 @@ export async function installClientApi(
       await route.fulfill({ json: [] });
     } else if (method === 'GET' && path === '/api/client/staff-call/notifications/unread') {
       await route.fulfill({ json: [] });
+    } else if (method === 'GET' && path === '/api/client/board/notice/search') {
+      await route.fulfill({ json: [] });
     } else if (method === 'GET' && path === '/api/client/store_manage/store_info/search') {
       await route.fulfill({ json: [{ sysId: 'store-e2e', storeName: '브라우저 테스트 매장' }] });
     } else if (method === 'GET' && path === '/api/sse/client/subscribe') {
