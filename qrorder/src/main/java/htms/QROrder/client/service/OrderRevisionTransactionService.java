@@ -207,11 +207,11 @@ public class OrderRevisionTransactionService {
             String itemId = newUlid();
             requireSingleInsert(mapper.insertOrderDetail(new OrderRevisionRows.Item(
                     itemId, orderMasterId, orderId, item.menuSysId(), sysPlantCd,
-                    item.quantity(), !item.options().isEmpty(), userId, now)), "신규 주문 메뉴");
+                    item.quantity(), item.menuUnitAmount(), !item.options().isEmpty(), userId, now)), "신규 주문 메뉴");
             item.options().forEach(option -> requireSingleInsert(
                     mapper.insertOrderDetailOption(new OrderRevisionRows.Option(
                     newUlid(), itemId, option.optionSysId(), sysPlantCd,
-                    option.storedQuantity(), userId, now)), "신규 주문 옵션"));
+                    option.storedQuantity(), option.unitAmount(), userId, now)), "신규 주문 옵션"));
         });
         return new CreatedOrder(orderId, Integer.toString(orderNumber), order.totalAmount());
     }

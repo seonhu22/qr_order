@@ -65,8 +65,10 @@ class ConsumerOrderTransactionServiceTest {
         verify(mapper).insertOrderDetail(item.capture());
         verify(mapper).insertOrderDetailOption(option.capture());
         assertEquals("MENU-1", item.getValue().getMenuSysId());
+        assertEquals(8_000, item.getValue().getUnitPrice());
         assertEquals("OPTION-1", option.getValue().getOptionSysId());
         assertEquals(4, option.getValue().getQuantity());
+        assertEquals(500, option.getValue().getUnitPrice());
         verify(visitService).touchBoundVisit(qr, "VISIT-1");
         verify(eventPublisher).publishAfterCommit(
                 "PLANT-1", "VISIT-1", ConsumerEventService.ORDER_CREATED);

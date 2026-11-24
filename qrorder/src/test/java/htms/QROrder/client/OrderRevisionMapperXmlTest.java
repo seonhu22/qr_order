@@ -19,4 +19,14 @@ class OrderRevisionMapperXmlTest {
         assertFalse(sql.contains("payment_yn = 'N'"));
         assertFalse(sql.contains("request_note"));
     }
+
+    @Test
+    void bindsValidatedUnitPricesForAddedMenuAndOption() throws Exception {
+        String sql = Files.readString(Path.of("src/main/resources/mapper/client/OrderRevisionMapper.xml"))
+                .replaceAll("\\s+", " ");
+        assertTrue(sql.contains("qty, order_unit_price, payment_yn)"));
+        assertTrue(sql.contains("#{quantity}, #{unitPrice}, 'Y')"));
+        assertTrue(sql.contains("link_sys_id2, qty, order_unit_price)"));
+        assertTrue(sql.contains("#{optionSysId}, #{quantity}, #{unitPrice})"));
+    }
 }

@@ -14,10 +14,10 @@
                 json_build_object(
                     'menuName', smd.menu_name ,
                     'qty', od.qty ,
-                    'price', smd.menu_price ,
+                    'price', COALESCE(od.order_unit_price, smd.menu_price) ,
                     'totalPrice',   case
                                         when od.payment_yn = 'Y'
-                                            then smd.menu_price * od.qty
+                                            then COALESCE(od.order_unit_price, smd.menu_price) * od.qty
                                         else 0
                                     end ,
                     'paymentYn', od.payment_yn ,
@@ -25,10 +25,10 @@
                         select json_agg(json_build_object(
                             'optionName', smod.menu_option_name ,
                             'qty', odo.qty ,
-                            'price', smod.menu_option_price ,
+                            'price', COALESCE(odo.order_unit_price, smod.menu_option_price) ,
                             'totalPrice',   case
                                                 when od.payment_yn = 'Y'
-                                                    then smod.menu_option_price * odo.qty
+                                                    then COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty
                                                 else 0
                                             end
                         ))

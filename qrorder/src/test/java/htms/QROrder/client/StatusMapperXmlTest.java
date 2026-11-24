@@ -121,6 +121,30 @@ class StatusMapperXmlTest {
     }
 
     @Test
+    void usesStoredPricesInPaymentAndSettlementReads() throws Exception {
+        String menuPrice = "COALESCE(od.order_unit_price, smd.menu_price)";
+        String optionPrice = "COALESCE(odo.order_unit_price, smod.menu_option_price)";
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId("MASTER-1");
+        String preview = sql("getPaymentCompleteFooterItems",
+                Map.of("header", header, "sysPlantCd", "PLANT-1"));
+        assertTrue(preview.contains(menuPrice + " * od.qty"));
+        assertTrue(preview.contains(optionPrice + " * odo.qty"));
+
+        String paymentDetail = selectBlock(mapperXml("client/PaymentInfoDetailMapper.xml"),
+                "getPaymentInfoDetail");
+        assertTrue(paymentDetail.contains("'price', " + menuPrice));
+        assertTrue(paymentDetail.contains("'price', " + optionPrice));
+
+        String settlement = mapperXml("client/SettlementMapper.xml");
+        for (String statement : List.of("getSettlementSummary", "getSettlementDailyList")) {
+            String query = selectBlock(settlement, statement);
+            assertTrue(query.contains(menuPrice + " * od.qty"));
+            assertTrue(query.contains(optionPrice + " * odo.qty"));
+        }
+    }
+
+    @Test
     void excludesRevisionRemovedDetailsFromAllReadModels() throws Exception {
         for (String statement : new String[]{
                 "getStatusBodyItems", "getStatusFooterItems",

@@ -44,7 +44,7 @@ class ConsumerOrderMapperXmlTest {
     void marksDetailWithOptions() {
         ConsumerOrderWriteRows.Item row = new ConsumerOrderWriteRows.Item(
                 "ITEM-1", "VISIT-1", "ORDER-1", "MENU-1", "PLANT-1",
-                2, true, LocalDateTime.now());
+                2, 8_000, true, LocalDateTime.now());
 
         String sql = sql("insertOrderDetail", row);
 
@@ -56,25 +56,30 @@ class ConsumerOrderMapperXmlTest {
     void marksNewOrderDetailAsPayable() {
         ConsumerOrderWriteRows.Item row = new ConsumerOrderWriteRows.Item(
                 "ITEM-1", "VISIT-1", "ORDER-1", "MENU-1", "PLANT-1",
-                2, false, LocalDateTime.now());
+                2, 8_000, false, LocalDateTime.now());
 
-        String sql = sql("insertOrderDetail", row);
+        BoundSql boundSql = boundSql("insertOrderDetail", row);
+        String sql = normalize(boundSql.getSql());
 
-        assertTrue(sql.contains("qty, payment_yn"));
+        assertTrue(sql.contains("qty, order_unit_price, payment_yn"));
+        assertTrue(boundSql.getParameterMappings().stream()
+                .anyMatch(mapping -> "unitPrice".equals(mapping.getProperty())));
         assertTrue(sql.endsWith("'Y' )"));
     }
 
     @Test
-    void bindsStoredOptionQuantity() {
+    void bindsStoredOptionQuantityAndUnitPrice() {
         ConsumerOrderWriteRows.Option row = new ConsumerOrderWriteRows.Option(
                 "ORDER-OPTION-1", "ITEM-1", "OPTION-1", "PLANT-1",
-                4, LocalDateTime.now());
+                4, 500, LocalDateTime.now());
 
         BoundSql boundSql = boundSql("insertOrderDetailOption", row);
 
-        assertTrue(normalize(boundSql.getSql()).contains("order_detail_option"));
+        assertTrue(normalize(boundSql.getSql()).contains("qty, order_unit_price"));
         assertTrue(boundSql.getParameterMappings().stream()
                 .anyMatch(mapping -> "quantity".equals(mapping.getProperty())));
+        assertTrue(boundSql.getParameterMappings().stream()
+                .anyMatch(mapping -> "unitPrice".equals(mapping.getProperty())));
     }
 
     @Test
@@ -92,6 +97,20 @@ class ConsumerOrderMapperXmlTest {
             assertTrue(sql.contains("og.link_sys_id = ?"));
             assertTrue(sql.contains("og.sys_plant_cd = ?"));
         }
+    }
+
+    @Test
+    void usesStoredPricesInOrderListAndDetail() {
+        Map<String, Object> parameters = Map.of(
+                "consumerSessionId", "VISIT-1", "sysPlantCd", "PLANT-1", "orderId", "ORDER-1");
+        String menuPrice = "COALESCE(od.order_unit_price, smd.menu_price)";
+        String optionPrice = "COALESCE(odo.order_unit_price, smod.menu_option_price)";
+
+        String listSql = sql("findOrders", parameters);
+        assertTrue(listSql.contains(menuPrice + "::bigint * od.qty"));
+        assertTrue(listSql.contains(optionPrice + "::bigint * odo.qty"));
+        assertTrue(sql("findOrderItems", parameters).contains(menuPrice + " AS menu_unit_amount"));
+        assertTrue(sql("findOrderOptions", parameters).contains(optionPrice + " AS unit_amount"));
     }
 
     @Test

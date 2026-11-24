@@ -43,6 +43,7 @@ public final class OrderRevisionRows {
         String menuSysId;
         String sysPlantCd;
         int quantity;
+        int unitPrice;
         boolean hasOptions;
         String userId;
         LocalDateTime orderedAt;
@@ -55,6 +56,7 @@ public final class OrderRevisionRows {
         String optionSysId;
         String sysPlantCd;
         int quantity;
+        int unitPrice;
         String userId;
         LocalDateTime orderedAt;
     }
