@@ -1,6 +1,7 @@
 package htms.QROrder.system.service;
 
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import htms.QROrder.system.dto.QnaRequest;
@@ -39,13 +40,14 @@ public class QnaService {
         if (oldData == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문의사항을 찾을 수 없습니다.");
         }
-        setNewFileLinkSysId(fileRequest, qnaRequest.getSysId());
+        String linkSysId = oldData.getSysId();
+        setNewFileLinkSysId(fileRequest, linkSysId);
 
         auditService.insertUpdateAuditTrailData(oldData, qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
         if (qnaMapper.updateQna(qnaRequest, userId) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문의사항을 찾을 수 없습니다.");
         }
-        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        fileService.saveFile(fileRequest, userId, new AttachScope(sysPlantCd, linkSysId), menuCd);
     }
 
     private void setNewFileLinkSysId(FileRequest fileRequest, String sysId) {

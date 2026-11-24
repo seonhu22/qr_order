@@ -112,6 +112,7 @@ describe('attachFile utilities', () => {
       ],
     });
 
+    expect(formData.get('linkSysId')).toBe('file-link-1');
     expect(formData.get('newItems[0].file')).toBe(file);
     expect(formData.get('newItems[0].linkSysId')).toBe('file-link-1');
     expect(formData.get('newItems[0].convertFileNm')).toEqual(expect.any(String));

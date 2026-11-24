@@ -1,6 +1,7 @@
 package htms.QROrder.common.controller;
 
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.client.service.MenuOptionDetailService;
 import htms.QROrder.common.dto.*;
 import htms.QROrder.common.service.FileService;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,6 +26,7 @@ import java.util.List;
 public class FileController {
 
     private final FileService fileService;
+    private final MenuOptionDetailService menuOptionDetailService;
 
     @GetMapping
     public List<FileResponse> getAttachFile(@RequestParam String linkSysId) {
@@ -34,12 +36,14 @@ public class FileController {
 
     @PostMapping("/save")
     public ResponseEntity<CommonResponse> saveFile(@ModelAttribute FileRequest fileRequest,
+                                                    @RequestParam("linkSysId") String linkSysId,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        fileService.saveFile(fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        menuOptionDetailService.saveOptionDetailAttachments(
+                fileRequest, linkSysId, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

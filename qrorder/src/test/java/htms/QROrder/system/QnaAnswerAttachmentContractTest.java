@@ -1,6 +1,7 @@
 package htms.QROrder.system;
 
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import htms.QROrder.system.dto.QnaRequest;
@@ -45,7 +46,9 @@ class QnaAnswerAttachmentContractTest {
 
         var mapper = mock(QnaMapper.class);
         var storage = mock(FileService.class);
-        when(mapper.getOldData(answer)).thenReturn(new QnaResponse());
+        var stored = new QnaResponse();
+        stored.setSysId("QNA-1");
+        when(mapper.getOldData(answer)).thenReturn(stored);
         when(mapper.updateQna(answer, "ADMIN-USER")).thenReturn(1);
         new QnaService(mapper, mock(AuditService.class), storage)
                 .updateQna(answer, files, "ADMIN-USER", "ADMIN", "QNA");
@@ -53,7 +56,7 @@ class QnaAnswerAttachmentContractTest {
         assertEquals("QNA-1", files.getNewItems().get(0).getLinkSysId());
         assertTrue(files.getDelItems().isEmpty());
         verify(mapper).updateQna(answer, "ADMIN-USER");
-        verify(storage).saveFile(files, "ADMIN-USER", "ADMIN", "QNA");
+        verify(storage).saveFile(files, "ADMIN-USER", new AttachScope("ADMIN", "QNA-1"), "QNA");
     }
 
     @Test

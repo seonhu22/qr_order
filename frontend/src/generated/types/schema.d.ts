@@ -2427,6 +2427,7 @@ export interface components {
             pdfYn?: string;
         };
         FileRequest: {
+            linkSysId?: string;
             newItems?: components["schemas"]["FileIO"][];
             updateItems?: components["schemas"]["FileInfo"][];
             delItems?: components["schemas"]["FileInfo"][];
@@ -5370,6 +5371,7 @@ export interface operations {
         parameters: {
             query: {
                 fileRequest: components["schemas"]["FileRequest"];
+                linkSysId: string;
             };
             header?: never;
             path?: never;

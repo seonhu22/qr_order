@@ -7,6 +7,7 @@ import htms.QROrder.client.dto.ClientQnaRequest;
 import htms.QROrder.client.repository.ClientQnaMapper;
 import htms.QROrder.client.service.ClientNoticeService;
 import htms.QROrder.client.service.ClientQnaService;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -122,7 +123,8 @@ class ClientQnaContractTest {
         assertNotEquals(request.getSysId(), request.getFileUlid());
 
         var fileRequest = ArgumentCaptor.forClass(FileRequest.class);
-        verify(files).saveFile(fileRequest.capture(), eq("OWNER"), eq("DEMO01"), eq("QNA"));
+        verify(files).saveFile(fileRequest.capture(), eq("OWNER"),
+                eq(new AttachScope("DEMO01", request.getFileUlid())), eq("QNA"));
         assertTrue(fileRequest.getValue().getDelItems().isEmpty());
         assertTrue(fileRequest.getValue().getUpdateItems().isEmpty());
         assertEquals(1, fileRequest.getValue().getNewItems().size());

@@ -2,6 +2,7 @@ package htms.QROrder.auth;
 
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.util.FileSystemUtils;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -39,14 +40,12 @@ public final class LocalPostgresTestSupport implements AutoCloseable {
                         && Files.isRegularFile(binaries.resolve("pg_ctl" + suffix))
                         && Files.isRegularFile(binaries.resolve("postgres" + suffix)),
                 "Local PostgreSQL binaries unavailable; real persistence checks were NOT executed.");
-        Path temporaryRoot = Path.of("build", "tmp").toAbsolutePath().normalize();
-        Files.createDirectories(temporaryRoot);
-        Path workspace = Files.createTempDirectory(temporaryRoot, "user-auth-postgres-").toRealPath();
-        if (!workspace.startsWith(temporaryRoot.toRealPath())) throw new IOException("Unsafe test cluster path");
         int port;
         try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
             port = socket.getLocalPort();
         }
+        Path temporaryRoot = Files.createDirectories(Path.of("build", "tmp")).toRealPath();
+        Path workspace = Files.createTempDirectory(temporaryRoot, "user-auth-postgres-");
         var database = new LocalPostgresTestSupport(binaries, workspace, port);
         try {
             database.command("initdb", "--pgdata=" + database.data, "--username=qa_owner", "--auth=trust",
@@ -58,9 +57,11 @@ public final class LocalPostgresTestSupport implements AutoCloseable {
             return database;
         } catch (Exception failure) {
             // pg_ctl may have launched postgres even when its wait operation failed.
-            if (Files.exists(database.data.resolve("postmaster.pid"))) {
-                database.started = true;
-                try { database.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
+            database.started = Files.exists(database.data.resolve("postmaster.pid"));
+            try {
+                database.close();
+            } catch (Exception cleanup) {
+                failure.addSuppressed(cleanup);
             }
             throw failure;
         }
@@ -92,13 +93,19 @@ public final class LocalPostgresTestSupport implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        if (!started) return;
+        if (started) {
+            stop();
+            started = false;
+        }
+        FileSystemUtils.deleteRecursively(workspace);
+    }
+
+    private void stop() throws Exception {
         try {
             command("pg_ctl", "-D", data.toString(), "-m", "fast", "-w", "-t", "30", "stop");
         } catch (Exception first) {
             try { command("pg_ctl", "-D", data.toString(), "-m", "immediate", "-w", "-t", "15", "stop"); }
             catch (Exception second) { first.addSuppressed(second); throw first; }
         }
-        started = false;
     }
 }

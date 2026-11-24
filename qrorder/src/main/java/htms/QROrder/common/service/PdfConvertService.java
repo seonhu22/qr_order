@@ -5,12 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jodconverter.core.DocumentConverter;
 import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +16,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PdfConvertService {
-
-    @Value("${file.upload.path}")
-    private String uploadPath;
 
     private final DocumentConverter documentConverter;
 
@@ -35,9 +30,7 @@ public class PdfConvertService {
                 tempInput = Files.createTempFile("convert_", "_" + file.getFile().getOriginalFilename());
                 file.getFile().transferTo(tempInput);
 
-                // 출력 경로: uploadPath + filePath + / + convertFileNm + .pdf
-                Path outputPath = Paths.get(uploadPath + file.getFilePath() + "/" + file.getConvertFileNm() + ".pdf");
-                Files.createDirectories(outputPath.getParent());
+                Path outputPath = Path.of(file.getFilePath()).resolve(file.getConvertFileNm() + ".pdf");
 
                 // PDF 변환
                 documentConverter.convert(tempInput.toFile())

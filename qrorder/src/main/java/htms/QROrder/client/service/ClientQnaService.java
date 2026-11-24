@@ -5,6 +5,7 @@ import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.client.dto.ClientQnaRequest;
 import htms.QROrder.client.dto.ClientQnaResponse;
 import htms.QROrder.client.repository.ClientQnaMapper;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class ClientQnaService {
         qnaMapper.newQna(qnaRequest, userId, sysPlantCd);
 
         var newItems = fileRequest.getNewItems();
-        if (!newItems.isEmpty()) {
+        if (fileRequest.hasItems()) {
             String filePath = YearMonth.now().format(ATTACHMENT_MONTH);
             for (int i = 0; i < newItems.size(); i++) {
                 var item = newItems.get(i);
@@ -57,7 +58,7 @@ public class ClientQnaService {
                 item.setFilePath(filePath);
                 item.setOrdNo(i + 1);
             }
-            fileService.saveFile(fileRequest, userId, sysPlantCd, "QNA");
+            fileService.saveFile(fileRequest, userId, new AttachScope(sysPlantCd, fileUlid), "QNA");
         }
     }
 

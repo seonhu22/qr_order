@@ -6,13 +6,16 @@ import htms.QROrder.client.dto.MenuOptionDetailItem;
 import htms.QROrder.client.dto.MenuOptionDetailRequest;
 import htms.QROrder.client.dto.MenuOptionDetailResponse;
 import htms.QROrder.client.repository.MenuOptionDetailMapper;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.common.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,9 +65,26 @@ public class MenuOptionDetailService {
             delMenuOptionDetail(delItems, userId, sysPlantCd, menuCd);
         }
 
-        if (fileRequest != null && (!fileRequest.getNewItems().isEmpty() || !fileRequest.getUpdateItems().isEmpty() || !fileRequest.getDelItems().isEmpty())) {
-            fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        if (fileRequest != null && fileRequest.hasItems()) {
+            String requestedLink = fileRequest.requestedLinkSysId();
+            if (requestedLink == null && newItems.size() == 1) {
+                requestedLink = newItems.get(0).getFileUlid();
+            }
+            fileService.saveFile(fileRequest, userId, requireAttachmentScope(requestedLink, sysPlantCd), menuCd);
         }
+    }
+
+    public void saveOptionDetailAttachments(FileRequest fileRequest, String linkSysId, String userId,
+                                            String sysPlantCd, String menuCd) {
+        fileService.saveFile(fileRequest, userId, requireAttachmentScope(linkSysId, sysPlantCd), menuCd);
+    }
+
+    private AttachScope requireAttachmentScope(String linkSysId, String sysPlantCd) {
+        String storedLink = menuOptionDetailMapper.lockAttachmentLink(linkSysId, sysPlantCd);
+        if (storedLink == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "메뉴 옵션을 찾을 수 없습니다.");
+        }
+        return new AttachScope(sysPlantCd, storedLink);
     }
 
     private void newMenuOptionDetail(List<MenuOptionDetailItem> newItems,

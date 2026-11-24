@@ -176,6 +176,9 @@ function appendMenuDetailFileFields(
   fileChangeState: FileChangeState | undefined,
 ) {
   const filePath = getDefaultAttachFilePath();
+  if (fileUlid && (fileChangeState?.newFiles.length || fileChangeState?.deletedFiles.length)) {
+    formData.append('linkSysId', fileUlid);
+  }
 
   fileChangeState?.newFiles.forEach((file, i) => {
     formData.append(`newItems[${i}].file`, file);
