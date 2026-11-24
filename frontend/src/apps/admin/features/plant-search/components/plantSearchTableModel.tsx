@@ -79,7 +79,7 @@ export function createPlantSearchTableRows(rows: PlantSearchRow[]): SharedTableR
           className: 'plant-search-page__muted common-table__cell--truncate',
           title: row.phoneNumber,
         },
-        clientUrl: {
+        clientUrl: hasClientUrl ? {
           type: 'custom',
           render: () => (
             <Button
@@ -88,12 +88,15 @@ export function createPlantSearchTableRows(rows: PlantSearchRow[]): SharedTableR
               size="sm"
               className="plant-search-page__access-button"
               rightIcon={<Icon id="i-plant-access" size={11} />}
-              disabled={!hasClientUrl}
               onClick={() => window.open(row.clientUrl, '_blank')}
             >
               접속
             </Button>
           ),
+        } : {
+          type: 'text',
+          value: '-',
+          className: 'plant-search-page__muted',
         },
       },
     };
