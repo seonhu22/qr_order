@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.WebUtils;
 
 @Slf4j
 @RestController
@@ -24,9 +25,15 @@ public class SignUpController {
     public ResponseEntity<CommonResponse> chkBRN(@RequestBody SignUpRequest signUpRequest,
                                                  HttpSession session){
 
-        session.removeAttribute(VerifiedBusiness.SESSION_KEY);
+        // 인증값 저장/폐기와 가입의 확인/소모는 같은 세션 뮤텍스 안에서만 한다. NTS 호출은 뮤텍스 밖.
+        Object mutex = WebUtils.getSessionMutex(session);
+        synchronized (mutex) {
+            session.removeAttribute(VerifiedBusiness.SESSION_KEY);
+        }
         signUpService.chkBRN(signUpRequest);
-        session.setAttribute(VerifiedBusiness.SESSION_KEY, VerifiedBusiness.of(signUpRequest));
+        synchronized (mutex) {
+            session.setAttribute(VerifiedBusiness.SESSION_KEY, VerifiedBusiness.of(signUpRequest));
+        }
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -62,16 +69,19 @@ public class SignUpController {
             throw new EmailValidException("이메일 인증을 먼저 완료해주세요.");
         }
 
-        Object verified = session.getAttribute(VerifiedBusiness.SESSION_KEY);
-        if (!(verified instanceof VerifiedBusiness business) || !business.matches(signUpRequest)) {
-            throw new BusinessRegiException("사업자 인증을 먼저 완료해주세요.");
+        // 일치한 인증은 DB 호출 전에 소모한다. 같은 세션의 동시 가입은 하나만 서비스까지 간다.
+        synchronized (WebUtils.getSessionMutex(session)) {
+            Object verified = session.getAttribute(VerifiedBusiness.SESSION_KEY);
+            if (!(verified instanceof VerifiedBusiness business) || !business.matches(signUpRequest)) {
+                throw new BusinessRegiException("사업자 인증을 먼저 완료해주세요.");
+            }
+            session.removeAttribute(VerifiedBusiness.SESSION_KEY);
         }
 
         signUpService.newUser(signUpRequest);
 
         session.removeAttribute("signupEmail");
         session.removeAttribute("signupValidCode");
-        session.removeAttribute(VerifiedBusiness.SESSION_KEY);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

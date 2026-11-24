@@ -10,6 +10,12 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -56,6 +62,56 @@ class SignUpBusinessVerificationTest {
                         .content(body("1234567890", "홍길동", "2020-01-02")))
                 .andExpect(status().isOk());
         verify(service, times(1)).newUser(any());
+        assertNull(session.getAttribute(VerifiedBusiness.SESSION_KEY));
+    }
+
+    @Test void concurrentSignupsInOneSessionReachServiceOnce() throws Exception {
+        var session = emailVerified();
+        checkBusiness(session, "1234567890", "홍길동", "2020-01-02");
+        var inService = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        doAnswer(call -> { inService.countDown(); assertTrue(release.await(5, TimeUnit.SECONDS)); return null; })
+                .when(service).newUser(any());
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            Callable<Integer> signup = () -> mvc.perform(post("/api/auth/signup/new").session(session)
+                    .contentType(APPLICATION_JSON).content(body("1234567890", "홍길동", "2020-01-02")))
+                    .andReturn().getResponse().getStatus();
+            Future<Integer> first = executor.submit(signup);
+            assertTrue(inService.await(5, TimeUnit.SECONDS));
+            // 첫 요청이 DB 처리 중이어도 인증은 이미 소모되어 두 번째는 400.
+            assertNull(session.getAttribute(VerifiedBusiness.SESSION_KEY));
+            assertEquals(400, executor.submit(signup).get(5, TimeUnit.SECONDS));
+            release.countDown();
+            assertEquals(200, first.get(5, TimeUnit.SECONDS));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+        verify(service, times(1)).newUser(any());
+    }
+
+    @Test void newVerificationSavedDuringSignupSurvivesIt() throws Exception {
+        var session = emailVerified();
+        checkBusiness(session, "1234567890", "홍길동", "2020-01-02");
+        doAnswer(call -> {
+            session.setAttribute(VerifiedBusiness.SESSION_KEY,
+                    new VerifiedBusiness("9999999999", "홍길동", java.time.LocalDate.of(2020, 1, 2)));
+            return null;
+        }).when(service).newUser(any());
+        mvc.perform(post("/api/auth/signup/new").session(session).contentType(APPLICATION_JSON)
+                        .content(body("1234567890", "홍길동", "2020-01-02")))
+                .andExpect(status().isOk());
+        assertNotNull(session.getAttribute(VerifiedBusiness.SESSION_KEY));
+    }
+
+    @Test void failedSignupStillConsumesVerification() throws Exception {
+        var session = emailVerified();
+        checkBusiness(session, "1234567890", "홍길동", "2020-01-02");
+        doThrow(new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.")).when(service).newUser(any());
+        mvc.perform(post("/api/auth/signup/new").session(session).contentType(APPLICATION_JSON)
+                        .content(body("1234567890", "홍길동", "2020-01-02")))
+                .andExpect(status().isBadRequest());
         assertNull(session.getAttribute(VerifiedBusiness.SESSION_KEY));
     }
 
