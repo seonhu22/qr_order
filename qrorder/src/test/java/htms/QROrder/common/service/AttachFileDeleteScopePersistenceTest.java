@@ -23,6 +23,7 @@ import htms.QROrder.common.dto.FileIO;
 import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.exception.GlobalExceptionHandler;
+import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.common.repository.FileMapper;
 import htms.QROrder.system.dto.NoticeRequest;
 import htms.QROrder.system.repository.NoticeMapper;
@@ -391,6 +392,35 @@ class AttachFileDeleteScopePersistenceTest {
     }
 
     @Test
+    void uploadRejectsUnsafeStoredNamesWithoutWritingRowsOrFiles() throws Exception {
+        long filesBefore = fileCount();
+        for (String name : List.of("..", "...", "a/b", "..\\x", "a:b", "a<b", "a*b", "a%2e", "a\u0000b", "a\nb")) {
+            var request = new FileRequest();
+            request.setNewItems(List.of(upload(null, name)));
+
+            var thrown = assertThrows(ValidationException.class,
+                    () -> fileService.saveFile(request, "USER-A", STORE_SCOPE, "FILE"), name);
+
+            assertAll(name,
+                    () -> assertEquals("첨부파일 이름이 올바르지 않습니다.", thrown.getMessage()),
+                    () -> assertEquals(0, attachmentCount()),
+                    () -> assertEquals(filesBefore, fileCount()));
+        }
+    }
+
+    @Test
+    void uploadAcceptsKoreanDigitsSpaceAndAllowedPunctuation() throws Exception {
+        var request = new FileRequest();
+        request.setNewItems(List.of(upload(null, "한글 파일-1_(2).v")));
+
+        fileService.saveFile(request, "USER-A", STORE_SCOPE, "FILE");
+
+        assertAll(
+                () -> assertEquals(1, attachmentCount()),
+                () -> assertTrue(Files.exists(uploadRoot.resolve("FILE").resolve("한글 파일-1_(2).v.txt"))));
+    }
+
+    @Test
     void rollBackKeepsThePhysicalFile() throws Exception {
         Path stored = storeAttachment("ROLLBACK-A", "LINK-A", PLANT, "rollback-a");
         var transaction = new TransactionTemplate(manager);
@@ -634,6 +664,12 @@ class AttachFileDeleteScopePersistenceTest {
 
     private int orderNo(String sysId) {
         return jdbc.queryForObject("select ord_no from attach_file where sys_id=?", Integer.class, sysId);
+    }
+
+    private long fileCount() throws Exception {
+        try (var files = Files.walk(uploadRoot)) {
+            return files.filter(Files::isRegularFile).count();
+        }
     }
 
     private int attachmentCount() {

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +33,9 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class FileService {
+
+    // 저장 파일명 본체: 글자(한글 포함), 숫자, 공백, - _ . ( ) 만 허용한다.
+    private static final Pattern SAFE_FILE_NAME = Pattern.compile("[\\p{L}\\p{Nd} ._()-]+");
 
     private final FileMapper fileMapper;
     private final FileIOService fileIOService;
@@ -114,7 +118,8 @@ public class FileService {
 
         for (FileIO item : newItems) {
             String name = item.getConvertFileNm();
-            if (name == null || name.isBlank() || name.contains("/") || name.contains("\\") || name.contains(":")) {
+            if (name == null || name.isBlank() || !SAFE_FILE_NAME.matcher(name).matches()
+                    || name.chars().allMatch(c -> c == '.')) {
                 throw new ValidationException("첨부파일 이름이 올바르지 않습니다.");
             }
         }
