@@ -55,6 +55,7 @@ public class AdminUserService {
         }
 
         rejectOpenSubscriptionOwners(delItems);
+        List<AdminUser> oldData = updateItems.isEmpty() ? List.of() : lockAdminRows(updateItems);
 
         if(!newItems.isEmpty()){
 
@@ -77,7 +78,7 @@ public class AdminUserService {
 
         if(!updateItems.isEmpty()){
 
-            updateAdminUser(userId, sysPlantCd, menuCd, updateItems);
+            updateAdminUser(userId, sysPlantCd, menuCd, updateItems, oldData);
         }
 
         if(!delItems.isEmpty()){
@@ -95,6 +96,16 @@ public class AdminUserService {
         }
     }
 
+    /** 수정 대상은 이미 ADMIN 소속이고 삭제되지 않은 행만. 하나라도 아니면 쓰기 전에 404. */
+    private List<AdminUser> lockAdminRows(List<AdminUser> updateItems) {
+        long requested = updateItems.stream().map(AdminUser::getSysId).distinct().count();
+        List<AdminUser> oldData = getOldData(updateItems);
+        if (updateItems.stream().anyMatch(item -> item.getSysId() == null) || oldData.size() != requested) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "시스템 관리 계정을 찾을 수 없습니다.");
+        }
+        return oldData;
+    }
+
     private void delAdminUser(String userId,
                                 String sysPlantCd,
                                 String menuCd,
@@ -107,9 +118,8 @@ public class AdminUserService {
     private void updateAdminUser(String userId,
                                     String sysPlantCd,
                                     String menuCd,
-                                    List<AdminUser> updateItems) {
-
-        List<AdminUser> oldData = getOldData(updateItems);
+                                    List<AdminUser> updateItems,
+                                    List<AdminUser> oldData) {
 
         auditService.insertUpdateAuditTrailData(oldData, updateItems, menuCd, "sys_user", userId, sysPlantCd);
         adminUserMapper.updateAdminUser(updateItems, userId, sysPlantCd);

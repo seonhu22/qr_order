@@ -111,6 +111,28 @@ class SubscriptionOwnerProtectionPersistenceTest {
         assertEquals("Y", db.column("sys_user", "delete_yn", "STAFF-A"));
     }
 
+    @Test void adminUpdateCannotMoveStoreOwnerIntoAdminPlant() {
+        var failure = assertThrows(ResponseStatusException.class,
+                () -> admins.saveAdminUser(update("OWNER-A", "바뀐 이름"), "system", "ADMIN", "ADMIN_USER"));
+        assertEquals(404, failure.getStatusCode().value());
+        assertEquals("STORE-A", db.column("sys_user", "plant_cd", "OWNER-A"));
+        assertEquals("OWNER-A", db.column("sys_user", "user_nm", "OWNER-A"));
+        assertNull(db.column("sys_user", "modify_datetime", "OWNER-A"));
+    }
+
+    @Test void adminUpdateOfAdminAccountStillWorks() {
+        db.user("SYSADM", "ADMIN", "01");
+        admins.saveAdminUser(update("SYSADM", "새 이름"), "system", "ADMIN", "ADMIN_USER");
+        assertEquals("새 이름", db.column("sys_user", "user_nm", "SYSADM"));
+        assertEquals("ADMIN", db.column("sys_user", "plant_cd", "SYSADM"));
+    }
+
+    private static AdminUserRequest update(String sysId, String name) {
+        var user = new AdminUser(); user.setSysId(sysId); user.setUserNm(name); user.setPlantCd("ADMIN");
+        var request = new AdminUserRequest(); request.setUpdateItems(List.of(user));
+        return request;
+    }
+
     private static AdminUserRequest delete(String sysId) {
         var user = new AdminUser(); user.setSysId(sysId);
         var request = new AdminUserRequest(); request.setDelItems(List.of(user));

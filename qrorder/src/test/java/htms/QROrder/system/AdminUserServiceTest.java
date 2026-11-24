@@ -19,7 +19,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -79,6 +82,22 @@ class AdminUserServiceTest {
         var order = inOrder(subscriptions, mapper);
         order.verify(subscriptions).lockOpenByOwners(List.of("PLAIN"));
         order.verify(mapper).deleteAdminUser(request.getDelItems(), "admin", "ADMIN");
+    }
+
+    @Test
+    void updatingRowOutsideAdminIs404BeforeAuditOrUpdate() {
+        var request = new AdminUserRequest();
+        var owner = adminUser("ADMIN");
+        owner.setSysId("STORE-OWNER");
+        request.setUpdateItems(List.of(owner));
+        when(mapper.getOldData(request.getUpdateItems())).thenReturn(List.of());
+
+        var error = assertThrows(ResponseStatusException.class,
+                () -> service.saveAdminUser(request, "admin", "ADMIN", "ADMIN_USER"));
+
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
+        verify(mapper, never()).updateAdminUser(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     private void assertRejected(AdminUserRequest request) {
