@@ -11,5 +11,5 @@ public interface ClientQnaMapper {
     List<ClientQnaResponse> getQna(String searchKeyword, String sysPlantCd);
     void newQna(ClientQnaRequest qnaRequest, String userId, String sysPlantCd);
     int updateQna(ClientQnaRequest qnaRequest, String userId, String sysPlantCd);
-    void delQna(ClientQnaRequest qnaRequest, String userId, String sysPlantCd);
+    int delQna(ClientQnaRequest qnaRequest, String userId, String sysPlantCd);
 }

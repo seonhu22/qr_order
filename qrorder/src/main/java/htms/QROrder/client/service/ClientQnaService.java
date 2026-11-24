@@ -76,6 +76,8 @@ public class ClientQnaService {
                        String menuCd) {
 
         // auditService.insertDeleteAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
-        qnaMapper.delQna(qnaRequest, userId, sysPlantCd);
+        if (qnaMapper.delQna(qnaRequest, userId, sysPlantCd) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문의사항을 찾을 수 없습니다.");
+        }
     }
 }
