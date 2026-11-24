@@ -8,6 +8,21 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PlantSearchTable } from './PlantSearchTable';
+import type { PlantSearchRow } from '../types';
+
+const plantRow: PlantSearchRow = {
+  id: 'plant-1',
+  plantCode: 'PLANT-001',
+  plantName: '강남점',
+  storeName: '강남 매장',
+  ownerName: '홍길동',
+  email: 'gangnam@example.com',
+  managerName: '담당자 1',
+  postalCode: '06123',
+  address: '서울 강남구',
+  phoneNumber: '02-1234-5678',
+  clientUrl: 'https://client.example.com',
+};
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -44,21 +59,7 @@ describe('PlantSearchTable', () => {
   it('renders plant rows when data exists', () => {
     render(
       <PlantSearchTable
-        rows={[
-          {
-            id: 'plant-1',
-            plantCode: 'PLANT-001',
-            plantName: '강남점',
-            storeName: '강남 매장',
-            ownerName: '홍길동',
-            email: 'gangnam@example.com',
-            managerName: '담당자 1',
-            postalCode: '06123',
-            address: '서울 강남구',
-            phoneNumber: '02-1234-5678',
-            clientUrl: 'https://client.example.com',
-          },
-        ]}
+        rows={[plantRow]}
         isLoading={false}
         isError={false}
       />,
@@ -70,25 +71,21 @@ describe('PlantSearchTable', () => {
     expect(screen.getByRole('button', { name: '접속' })).toBeInTheDocument();
   });
 
+  it.each(['-', ''])('renders a dash without an access button for URL %j', (clientUrl) => {
+    render(
+      <PlantSearchTable rows={[{ ...plantRow, clientUrl }]} isLoading={false} isError={false} />,
+    );
+
+    expect(screen.getByRole('cell', { name: '-' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '접속' })).not.toBeInTheDocument();
+  });
+
   it('opens client url in new window when access button is clicked', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-    const row = {
-      id: 'plant-1',
-      plantCode: 'PLANT-001',
-      plantName: '강남점',
-      storeName: '강남 매장',
-      ownerName: '홍길동',
-      email: 'gangnam@example.com',
-      managerName: '담당자 1',
-      postalCode: '06123',
-      address: '서울 강남구',
-      phoneNumber: '02-1234-5678',
-      clientUrl: 'https://client.example.com',
-    };
 
     render(
       <PlantSearchTable
-        rows={[row]}
+        rows={[plantRow]}
         isLoading={false}
         isError={false}
       />,
@@ -97,6 +94,6 @@ describe('PlantSearchTable', () => {
     // 현재 계약: 접속 버튼은 clientUrl을 새 창으로 연다.
     fireEvent.click(screen.getByRole('button', { name: '접속' }));
 
-    expect(openSpy).toHaveBeenCalledWith(row.clientUrl, '_blank');
+    expect(openSpy).toHaveBeenCalledWith(plantRow.clientUrl, '_blank');
   });
 });
