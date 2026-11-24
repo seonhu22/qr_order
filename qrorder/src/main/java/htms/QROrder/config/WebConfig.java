@@ -44,6 +44,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/auth/pwd_change",
                         "/api/qr/**",
                         "/api/client/consumer/**",
+                        // 결제 제공자 웹훅은 로그인 대신 서명으로 인증한다(정책 4C §10). 한 단계 경로만.
+                        "/api/billing/webhook/*",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**");
 
         registry.addInterceptor(new ConsumerAuthInterceptor())
