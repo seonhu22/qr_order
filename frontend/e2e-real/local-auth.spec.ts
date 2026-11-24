@@ -156,17 +156,17 @@ test('메뉴 / 결제 상세 매장 권한', async ({ browser }) => {
       for (const path of [...menuPages.map(([route]) => route), '/CLIENT/MENU/INFO/OPTION', '/client/%6denu/info/option']) {
         await page.goto(path);
         await expect(page).toHaveURL(/\/client\/main$/);
-        await expect(page.getByRole('heading', { name: '클라이언트 메인' })).toBeVisible();
+        await expect(page.getByRole('navigation', { name: '매장 운영 바로가기' })).toBeVisible();
         console.log(`${path} -> /client/main`);
       }
       const side = page.getByRole('navigation', { name: '사이드 메뉴' });
       const menuTab = page.getByRole('navigation', { name: '상단 메뉴' }).getByRole('button', { name: '메뉴', exact: true });
-      if (await menuTab.isVisible()) {
-        await menuTab.click();
-        const group = side.getByRole('button', { name: '메뉴 정보 관리', exact: true });
-        if (await group.getAttribute('aria-expanded') === 'false') await group.click();
-      }
+      await menuTab.click();
+      const group = side.getByRole('button', { name: '메뉴 정보 관리', exact: true });
+      if (await group.getAttribute('aria-expanded') === 'false') await group.click();
+      await expect(side.getByRole('button', { name: '직원호출 관리', exact: true })).toBeVisible();
       for (const [, label] of menuPages) await expect(side.getByRole('button', { name: label, exact: true })).toHaveCount(0);
+      console.log('스태프 메뉴 정보 관리: 직원호출 표시 / 메뉴·옵션 관리 미표시');
       expect(hits).toEqual([]);
     });
 

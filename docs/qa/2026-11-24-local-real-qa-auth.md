@@ -1,6 +1,7 @@
 # 2026-11-24 로컬 실서버 QA / 인증과 권한
 
 - 대상은 실행 중인 `dev:real` / `dev` 백엔드 / `qrdemo` PostgreSQL 사본이다. QA 워크트리 HEAD는 `b90371ed`이며 실행 프로세스의 정확한 커밋은 확인하지 않았다.
+- 아래 첫 실행의 fail 4건은 로컬 환경 공백이었고 [재검증](#재검증-2026-11-24)에서 pass로 바뀌었다.
 - Playwright 실행 결과는 3개 시나리오 중 1개 통과, 2개 실패다. 각 시나리오에서 독립 검증을 이어서 수행했다. 모든 조건을 통과한 체크만 [대기 목록](../../frontend/docs/todo.md#일괄-수동-qa-대기-목록)에 표시했다.
 - 주문과 결제는 기존 데이터 조회만 사용했다. 사용자 변경은 이 실행이 만든 `AUTO-QA auth` 계정으로 제한했다. 로그인 잠금은 `demo_lock`으로 검증하고 복구했다.
 
@@ -67,3 +68,20 @@
 - [실서버 Playwright 시나리오](../../frontend/e2e-real/local-auth.spec.ts)는 로컬 QA 전용이다. 제공된 계정 비밀번호를 `QA_AUTH_FIXTURE_PASSWORD`, Client 안내 값을 `QA_AUTH_INITIAL_PASSWORD`, `psql.exe` 절대 경로를 `QA_AUTH_PSQL`에 설정한다. 제공된 연결 스크립트를 실행하고 `PGHOST=127.0.0.1`, `PGPORT=55432`, `PGDATABASE=qrdemo`를 확인한다. 비밀번호는 결과에 기록하지 않는다.
 - `frontend`에서 `npx playwright test -c playwright.real.config.ts local-auth.spec.ts --max-failures=0` → 실패 2 / 통과 1 / 37.8초. `npm run typecheck`와 `npx tsc --noEmit -p tsconfig.e2e.json` → 통과.
 - 세 차례 실행에서 만든 픽스처 9개를 소프트 삭제했다. 마지막 `psql` 조회에서 활성 픽스처 0개와 `demo_lock` 실패 횟수 0을 확인했다.
+
+## 재검증 2026-11-24
+
+[로컬 환경 보정](2026-11-24-local-real-qa-env.md) 후 실행 중인 스택에서 재검증했다.
+
+| 확인 | 결과 | 근거 |
+| --- | --- | --- |
+| AUTHZ-01 / 관리자 01 메뉴 / 옵션 표시와 조회 | pass | `demo_owner`의 `GET /api/system/settings/menu/search` → `200` / 35건 / 두 관리 경로 포함. 상단에 매장 / 메뉴 / 주문 / 결제 / 게시판을 표시했다. 사이드바의 메뉴 관리 / 옵션 관리 버튼과 각 화면을 확인했다. 메뉴 목록 / 옵션 조회는 각각 200. |
+| AUTHZ-01 / 스태프 02 메뉴 표시와 계정 전환 | pass | 같은 브라우저에서 `autoqa_staff_a`로 전환 후 상단 메뉴를 눌러 메뉴 정보 관리 그룹을 열었다. 직원호출 관리 버튼은 표시됐고 메뉴 관리 / 옵션 관리 버튼은 없었다. 일반 메뉴 / 옵션 URL과 대문자 / 인코딩 변형은 모두 `/client/main`으로 이동했다. 브라우저의 메뉴 관리 API 호출은 0건이다. |
+| AUTH-STAFF / 신규 매장 소속과 안내 비밀번호로 최초 로그인 | pass | DB의 `plant_cd` / `sys_plant_cd`는 모두 `DEMO01`, 목록 재조회와 새로고침 후 신규 행 표시. 안내값으로 `POST /api/auth/login` → `200 {data,error,message,success}`. `/api/auth/me`의 `initPwdRequired=true`와 변경 폼을 확인했다. 본인 변경 200 후 `false`, 새 비밀번호 로그인 200. |
+| SEC-01 / 초기화 후 실패 횟수 복구와 강제 변경 | pass | 목록에서 초기화하면 `POST /api/client/store_manage/user_manage/reset_pwd/{sysId}` → `200 {data,error,message,success}`. DB `password_fail_cnt=0` / `init_yn=Y`. 모달에 표시된 값으로 로그인 200, 강제 변경 폼 표시, 본인 변경 200 후 `/api/auth/me`의 `initPwdRequired=false`. Admin 지원 초기화 200 / 타인 변경 403도 다시 확인했다. |
+| USER-01 / 관리자 행과 기존 스태프 초기화 | pass | 관리자 행은 편집 버튼 / 선택 체크박스가 없고 초기화 버튼은 이메일 요청을 안내했다. 이미 최초 변경을 마친 이번 QA 스태프는 위 Client 목록 초기화 후 안내값으로 다시 로그인해 강제 변경을 완료했다. |
+| AUTH-STAFF / 이전 보고의 기존 두 계정 | blocked | 별도 보정 대상은 이번 로컬 QA 픽스처 범위 밖이다. |
+
+- 기존 스펙 실행은 2개 통과 / 1개 실패였다. 스태프는 메인 URL로 이동했으나 스펙이 [현재 메인 화면](../../frontend/src/apps/client/pages/main/MainPage.tsx#L21)에 없는 제목을 기다렸다. 스펙에서 현재 바로가기 영역과 스태프의 직원호출 메뉴 표시를 확인하도록 수정했다.
+- `npx playwright test -c playwright.real.config.ts local-auth.spec.ts --max-failures=0` → 3개 통과 / 26.8초. `npm run typecheck` / `npx tsc --noEmit -p tsconfig.e2e.json` → 통과.
+- 종료 후 `psql` 조회에서 `demo_lock` 실패 횟수 0 / 활성 `AUTO-QA-auth-` 픽스처 0건을 확인했다.
