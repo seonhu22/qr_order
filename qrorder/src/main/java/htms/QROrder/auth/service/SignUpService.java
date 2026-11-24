@@ -49,6 +49,13 @@ public class SignUpService {
 
         signUpRequest.setBusinessRegiNum(signUpRequest.getBusinessRegiNum().replaceAll("\\D", ""));
         signUpRequest.setUserNm(signUpRequest.getUserNm().trim());
+        // NTS 정상 경로는 매장명을 받지 않는다. sys_plant.plant_nm NOT NULL이라 인증된 대표자명으로 기본 매장명을 정한다.
+        // 매장명은 가입 뒤 매장 정보에서 바꾼다.
+        if (signUpRequest.getPlantNm() == null || signUpRequest.getPlantNm().isBlank()) {
+            signUpRequest.setPlantNm(signUpRequest.getUserNm() + "컴퍼니");
+        } else {
+            signUpRequest.setPlantNm(signUpRequest.getPlantNm().trim());
+        }
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");

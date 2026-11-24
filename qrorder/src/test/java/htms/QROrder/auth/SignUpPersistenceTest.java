@@ -111,6 +111,15 @@ class SignUpPersistenceTest {
         assertEquals(1, count("sys_subscription"));
     }
 
+    @Test void ntsPathWithoutPlantNameStillCreatesStoreNamedAfterVerifiedOwner() {
+        // NTS 정상 경로의 프론트(signupNewUserApi.ts)는 plantNm을 보내지 않는다.
+        var request = request("1234567890", "owner1");
+        request.setPlantNm(null);
+        signUp.newUser(request);
+        assertEquals("대표컴퍼니", jdbc.queryForObject("select plant_nm from sys_plant", String.class));
+        assertEquals(1, count("sys_user"));
+    }
+
     @Test void userInsertFailureLeavesNoRows() {
         // sys_user.email은 200자, 매장/구독에는 email이 없어 마지막 사용자 INSERT만 실패한다.
         var request = request("1234567890", "owner1");
