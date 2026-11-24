@@ -1,5 +1,7 @@
 # 로컬 실서버 QA / ops / 2026-11-24
 
+1차 실패/차단 중 재검증에서 통과한 항목과 의도된 동작으로 확인된 항목은 [재검증 결과](#재검증-2026-11-24)를 기준으로 본다.
+
 기동 중인 로컬 프론트 `localhost:3000`, 백엔드 `127.0.0.1:8080`, PostgreSQL `qrdemo` 사본으로 확인했다. 주문은 `AUTOQA_B`의 AUTO-QA 92번 테이블과 옵션 없는 AUTO-QA 메뉴를 사용했다. 공지/문의/사용자 데이터는 `AUTO-QA ops` 표기로 생성했다. [QA 체크리스트](../../frontend/docs/todo.md#일괄-수동-qa-대기-목록)
 
 ## NOTICE-01
@@ -94,3 +96,28 @@
 - Playwright 브라우저/API 프로브와 `psql -X -At -c` 읽기 쿼리로 수동 항목을 확인했다. 빈 응답/장애 주입 범위는 표에 명시했다.
 - 공지와 문의/관리자 계정 테스트 행은 삭제 API로 정리했다. 주문 이력과 첨부 테스트 파일은 로컬 사본에 남는다. 마지막 QR 재스캔이 만든 방문에는 주문이 없다.
 - 전체 테스트, 빌드, 공유 DB 적용과 배포 후 QA는 실행 범위에서 제외했다.
+
+## 재검증 2026-11-24
+
+기동 중인 dev 실서버와 로컬 `qrdemo` 사본을 사용했다. 문의는 DEMO01, 호출은 AUTOQA_B / 92번 테이블에서 검증했다.
+
+| 항목 / 확인 | 결과 | 근거 |
+| --- | --- | --- |
+| QNA-01a / 신규 수정일 | pass | Client 문의 등록 200 / Admin 검색 200 배열 1건. DB 수정일과 API `modifyDatetime`은 null, Admin 수정일 셀은 `-`였다. |
+| QNA-01a / Client 수정 후 재조회 | pass | Client 수정 POST 200 `{data,error,message,success}` / `success=true`. Admin 검색 200 배열의 최종 수정일과 DB `2026-11-24 19:53:26.582531`가 일치했다. 화면은 초 단위로 표시했다. |
+| QNA-01a / Admin 답변 후 재조회 | pass | Admin 답변 POST 200 이후 재조회에서 답변 본문과 완료 상태가 유지됐다. API의 수정일과 답변일은 DB 수정일 `2026-11-24 19:53:28.477958`과 일치했고 화면에도 표시됐다. |
+| QNA-01b / 답변 multipart와 DB 연결 | pass | Admin 편집기에서 실제 multipart POST 200. 브라우저가 전송한 `newItems[0].file/linkSysId/convertFileNm/filePath/ordNo`를 확인했다. DB `attach_file.link_sys_id`는 문의 `sysId`였다. |
+| QNA-01b / 원문·답변 조회와 다운로드 | pass | 원문은 `fileUlid`, 답변은 `sysId`로 분리됐다. 첨부 GET은 연결 ID마다 200 배열 1건. 새로고침 뒤 Admin/Client 각각에서 두 PNG를 클릭해 다운로드 200, 파일명과 바이트가 원본과 일치했다. |
+| QNA-01b / 실패·재시도·닫기 초기화 | pass | 답변 POST 1회에 503 `{success,message}`를 주입했다. 답변과 파일 선택이 유지됐고 같은 초안으로 실서버 재시도 200. 파일을 새로 선택하고 닫기 확인 후 다시 열면 임시 선택만 초기화됐다. |
+| QNA-01b / 기존 첨부 포함 한도 | pass | 저장 파일 1개가 있을 때 5개 추가와 10 MiB 초과 개별 파일은 거부됐다. 실제 첨부 조회 응답에서는 6 MiB TXT가 추가됐다. 첨부 GET 200 배열 1건에 테스트 전용으로 `fileSize: '45'`를 주입하자 같은 파일은 추가되지 않았고, 총 50 MB에서 기존 45 MB를 뺀 잔여 한도 오류 “전체 파일 크기는 5MB를 초과할 수 없습니다.”가 표시됐다. [첨부 정책](../../frontend/src/apps/admin/features/inquiry-manage/constants.ts#L6) |
+| PLANT-01 / 누락 담당자·URL | pass | 사업장 검색 200. DEMO01의 담당자와 접속 열이 모두 `-`이며 해당 행에 링크와 접속 버튼이 없었다. |
+| PLANT-01 / 사업장 선택·저장과 기존 코드 보존 | pass | 1차에서 실제 사업장 선택/저장과 DB 코드, 기존 ADMIN 사용자의 이름 수정 시 코드 보존을 확인했다. 프로그램 관리자 목록은 `plant_cd='ADMIN'` 범위다. Issue #45의 ADMIN 조회 범위를 적용하면 다른 사업장에 저장한 행이 재검색에서 제외되는 동작도 계약에 부합하므로 체크를 통과로 판정했다. [Issue #45 / 유지보수자 답변](https://github.com/seonhu22/qr_order/issues/45#issuecomment-4333980930) |
+| NOTICE-01 / 모두 읽음 후 직원호출 유지 | pass | 공통코드 콤보 GET 200 배열 1건, 매장 호출 설정 저장 200, Consumer 호출 POST 200. 스태프 알림에서 모두 읽음 후 공지만 읽음으로 바뀌었다. 호출 확인 POST는 0건이며 호출 조회 200에 같은 ID가 남았다. DB `read_yn=N`은 전후 동일했다. 나머지 체크는 1차 근거를 적용했다. |
+| OPS-01 / 관리자 실제 알림과 스태프 호출 | pass | 관리자 알림에 실서버 공지와 답변 완료 문의를 확인했다. 스태프 알림에는 공지와 92번 직원호출이 함께 표시됐고 모두 읽음 뒤에도 호출이 미확인으로 남았다. |
+
+- 로컬 시드에 `STAFF_CALL_TYPE` 마스터와 `AUTO-QA-ops` 상세를 추가했다. `psql -X -w -v ON_ERROR_STOP=1 -f D:/coding/qr_order-local/seed_qa.sql` 첫 적용은 각각 1건, 재적용은 각각 0건. 활성 마스터/상세 행의 해시가 두 번 모두 `6265741bb28375330977b852cfead571`였다. 실행 방법은 로컬 `README-qa.md`에 기록했다.
+- 로컬 Admin 메뉴 카탈로그에 문의 경로가 없어 답변 재시도 전에 로그 API로 `QNA` 감사 메뉴를 지정했다. Admin 카탈로그를 통한 문의 진입은 검증 범위에서 제외했다.
+- 원문 TXT 프로브 3회는 12–15초 내 HTTP 응답을 받지 못했다. 세 건의 문의와 첨부 저장을 DB에서 확인했다. 완료 응답 시간과 PDF 변환 결과는 미확인이고, 위 첨부 결과는 PNG 기준이다. [PDF 변환 호출](../../qrorder/src/main/java/htms/QROrder/common/service/PdfConvertService.java#L43)
+- 문의와 공지 테스트 행을 정리했고, 새 직원호출만 개별 확인 후 임시 매장 설정을 삭제했다. 첨부와 확인된 호출 이력은 로컬 사본에 남는다.
+- [실서버 재검증 스펙](../../frontend/e2e-real/ops-board-recheck.spec.ts) / 로컬 QA 환경 스크립트를 불러온 뒤 `QA_AUTH_PSQL`과 `QA_AUTH_FIXTURE_PASSWORD`를 설정한다. 50 MB 합계 정책을 반영한 뒤 `npx.cmd playwright test -c playwright.real.config.ts ops-board-recheck.spec.ts` 3개 통과. `npm.cmd run typecheck`, `npx.cmd tsc --noEmit -p tsconfig.e2e.json`, `npx.cmd eslint e2e-real/ops-board-recheck.spec.ts` 통과.
+- 공유 DB, 배포 후 QA, 전체 테스트와 빌드는 실행하지 않았다.
