@@ -1,6 +1,7 @@
 package htms.QROrder.common.service;
 
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.common.dto.AttachReadScope;
 import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileIO;
 import htms.QROrder.common.dto.FileInfo;
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,15 +35,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FileService {
 
+    // 저장 파일명 본체: 글자(한글 포함), 숫자, 공백, - _ . ( ) 만 허용한다.
+    private static final Pattern SAFE_FILE_NAME = Pattern.compile("[\\p{L}\\p{Nd} ._()-]+");
+
     private final FileMapper fileMapper;
     private final FileIOService fileIOService;
     private final AuditService auditService;
     private final PdfConvertService pdfConvertService;
     private final FileValidationService fileValidationService;
 
-    public List<FileResponse> getAttachFile(String sysId) {
+    /** 읽을 수 없는 부모의 첨부는 없는 첨부와 같이 빈 목록이다. */
+    public List<FileResponse> getAttachFile(String sysId, AttachReadScope read) {
 
-        return fileMapper.getAttachFile(sysId);
+        return fileMapper.getAttachFile(sysId, read);
     }
 
     public FileInfo getFileInfo(String sysId) {
@@ -49,14 +55,28 @@ public class FileService {
         return fileMapper.getFileInfo(sysId);
     }
 
+    /** 읽을 수 없는 첨부와 없는 첨부를 같은 404로 돌려준다. */
+    public FileInfo getReadableFileInfo(String sysId, AttachReadScope read) {
+
+        FileInfo fileInfo = fileMapper.getReadableFileInfo(sysId, read);
+        if (fileInfo == null) {
+            throw attachmentNotFound();
+        }
+        return fileInfo;
+    }
+
     public Resource readFile(FileInfo fileInfo) {
 
         return fileIOService.IOReadFile(fileInfo);
     }
 
-    public ByteArrayResource downloadAll(String linkSysId) {
+    /** 읽을 수 있는 첨부가 하나도 없으면 부모가 없는 경우와 같은 404다. */
+    public ByteArrayResource downloadAll(String linkSysId, AttachReadScope read) {
 
-        List<FileInfo> files = fileMapper.getFileInfoList(linkSysId);
+        List<FileInfo> files = fileMapper.getFileInfoList(linkSysId, read);
+        if (files.isEmpty()) {
+            throw attachmentNotFound();
+        }
         return fileIOService.IOZipFiles(files);
     }
 
@@ -114,7 +134,8 @@ public class FileService {
 
         for (FileIO item : newItems) {
             String name = item.getConvertFileNm();
-            if (name == null || name.isBlank() || name.contains("/") || name.contains("\\") || name.contains(":")) {
+            if (name == null || name.isBlank() || !SAFE_FILE_NAME.matcher(name).matches()
+                    || name.chars().allMatch(c -> c == '.')) {
                 throw new ValidationException("첨부파일 이름이 올바르지 않습니다.");
             }
         }

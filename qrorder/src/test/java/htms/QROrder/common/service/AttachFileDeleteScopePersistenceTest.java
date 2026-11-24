@@ -23,6 +23,7 @@ import htms.QROrder.common.dto.FileIO;
 import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.exception.GlobalExceptionHandler;
+import htms.QROrder.common.exception.ValidationException;
 import htms.QROrder.common.repository.FileMapper;
 import htms.QROrder.system.dto.NoticeRequest;
 import htms.QROrder.system.repository.NoticeMapper;
@@ -62,8 +63,11 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -391,6 +395,35 @@ class AttachFileDeleteScopePersistenceTest {
     }
 
     @Test
+    void uploadRejectsUnsafeStoredNamesWithoutWritingRowsOrFiles() throws Exception {
+        long filesBefore = fileCount();
+        for (String name : List.of("..", "...", "a/b", "..\\x", "a:b", "a<b", "a*b", "a%2e", "a\u0000b", "a\nb")) {
+            var request = new FileRequest();
+            request.setNewItems(List.of(upload(null, name)));
+
+            var thrown = assertThrows(ValidationException.class,
+                    () -> fileService.saveFile(request, "USER-A", STORE_SCOPE, "FILE"), name);
+
+            assertAll(name,
+                    () -> assertEquals("첨부파일 이름이 올바르지 않습니다.", thrown.getMessage()),
+                    () -> assertEquals(0, attachmentCount()),
+                    () -> assertEquals(filesBefore, fileCount()));
+        }
+    }
+
+    @Test
+    void uploadAcceptsKoreanDigitsSpaceAndAllowedPunctuation() throws Exception {
+        var request = new FileRequest();
+        request.setNewItems(List.of(upload(null, "한글 파일-1_(2).v")));
+
+        fileService.saveFile(request, "USER-A", STORE_SCOPE, "FILE");
+
+        assertAll(
+                () -> assertEquals(1, attachmentCount()),
+                () -> assertTrue(Files.exists(uploadRoot.resolve("FILE").resolve("한글 파일-1_(2).v.txt"))));
+    }
+
+    @Test
     void rollBackKeepsThePhysicalFile() throws Exception {
         Path stored = storeAttachment("ROLLBACK-A", "LINK-A", PLANT, "rollback-a");
         var transaction = new TransactionTemplate(manager);
@@ -570,6 +603,265 @@ class AttachFileDeleteScopePersistenceTest {
                 () -> assertTrue(Files.exists(foreign)));
     }
 
+    // Read scope: an attachment is readable only by a session that may read its parent row.
+
+    @Test
+    void listReturnsSamePlantAttachments() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
+        storeAttachment("OWN-READ", "LINK-A", PLANT, "own-read");
+
+        mvc.perform(get("/api/attach_file").param("linkSysId", "LINK-A").sessionAttr("loginUser", login(PLANT, "02")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].sysId").value("OWN-READ"));
+    }
+
+    @Test
+    void listHidesAnotherPlantsAttachmentsLikeMissingOnes() throws Exception {
+        storeAttachment("FOREIGN-READ", "LINK-B", FOREIGN_PLANT, "foreign-read");
+        storeOptionParent("LINK-B", FOREIGN_PLANT);
+
+        for (String link : List.of("LINK-B", "NO-SUCH-LINK")) {
+            mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
+
+    @Test
+    void listFollowsInquiryReadPermissionForOriginalAndAnswer() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+        storeAttachment("QNA-B-ANSWER", "QNA-B", "ADMIN", "qna-answer");
+
+        for (String link : List.of("QNA-B-FILES", "QNA-B")) {
+            for (Login reader : List.of(login("ADMIN", null), login(FOREIGN_PLANT, "02"))) {
+                mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", reader))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.length()").value(1));
+            }
+            mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
+
+    @Test
+    void listFollowsClientNoticeVisibility() throws Exception {
+        storeNotice("N-ALL", "LINK-N-ALL");
+        storeAttachment("N-ALL-FILE", "LINK-N-ALL", "ADMIN", "n-all");
+        storeNotice("N-MANAGER", "LINK-N-MANAGER");
+        jdbc.update("update brd_notice set target='manager' where sys_id='N-MANAGER'");
+        storeAttachment("N-MANAGER-FILE", "LINK-N-MANAGER", "ADMIN", "n-manager");
+        storeNotice("N-HIDDEN", "LINK-N-HIDDEN");
+        jdbc.update("update brd_notice set use_yn='N' where sys_id='N-HIDDEN'");
+        storeAttachment("N-HIDDEN-FILE", "LINK-N-HIDDEN", "ADMIN", "n-hidden");
+
+        assertNoticeFiles(login(PLANT, "01"), 1, 1, 0);
+        assertNoticeFiles(login(PLANT, "02"), 1, 0, 0);
+        assertNoticeFiles(login(PLANT, null), 0, 0, 0);
+        assertNoticeFiles(login("ADMIN", null), 1, 1, 1);
+    }
+
+    @Test
+    void downloadAndViewServeSamePlantFile() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
+        storeAttachment("OWN-FILE", "LINK-A", PLANT, "own-file");
+
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            mvc.perform(get(path).param("sysId", "OWN-FILE").sessionAttr("loginUser", login(PLANT, "02")))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("OWN-FILE"));
+        }
+    }
+
+    @Test
+    void downloadAndViewAnswer404ForForeignDeletedAndMissingFiles() throws Exception {
+        Path foreign = storeAttachment("FOREIGN-FILE", "LINK-B", FOREIGN_PLANT, "foreign-file");
+        Path deleted = storeAttachment("DELETED-FILE", "LINK-A", PLANT, "deleted-file");
+        jdbc.update("update attach_file set delete_yn='Y' where sys_id='DELETED-FILE'");
+
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            for (String sysId : List.of("FOREIGN-FILE", "DELETED-FILE", "NO-SUCH-FILE")) {
+                mvc.perform(get(path).param("sysId", sysId).sessionAttr("loginUser", login(PLANT, "01")))
+                        .andExpect(status().isNotFound());
+            }
+        }
+        assertAll(
+                () -> assertEquals("N", deleteYn("FOREIGN-FILE")),
+                () -> assertEquals("Y", deleteYn("DELETED-FILE")),
+                () -> assertTrue(Files.exists(foreign)),
+                () -> assertTrue(Files.exists(deleted)));
+    }
+
+    @Test
+    void downloadFollowsInquiryReadPermissionForOriginalAndAnswer() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+        storeAttachment("QNA-B-ANSWER", "QNA-B", "ADMIN", "qna-answer");
+
+        for (String sysId : List.of("QNA-B-ORIGINAL", "QNA-B-ANSWER")) {
+            for (Login reader : List.of(login("ADMIN", null), login(FOREIGN_PLANT, "02"))) {
+                mvc.perform(get("/api/attach_file/download").param("sysId", sysId).sessionAttr("loginUser", reader))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(sysId));
+            }
+            mvc.perform(get("/api/attach_file/download").param("sysId", sysId)
+                            .sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
+    void downloadAllZipsOnlyReadableAttachmentsAndHidesTheRest() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
+        storeAttachment("ZIP-OWN-1", "LINK-A", PLANT, "zip-own-1");
+        storeAttachment("ZIP-OWN-2", "LINK-A", PLANT, "zip-own-2");
+        jdbc.update("update attach_file set original_file_nm='second' where sys_id='ZIP-OWN-2'");
+        Path foreign = storeAttachment("ZIP-FOREIGN", "LINK-B", FOREIGN_PLANT, "zip-foreign");
+
+        byte[] zip = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "LINK-A")
+                        .sessionAttr("loginUser", login(PLANT, "02")))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        for (String link : List.of("LINK-B", "NO-SUCH-LINK")) {
+            mvc.perform(get("/api/attach_file/download_all").param("linkSysId", link)
+                            .sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isNotFound());
+        }
+
+        assertAll(
+                () -> assertEquals(2, zipEntryCount(zip)),
+                () -> assertEquals("N", deleteYn("ZIP-FOREIGN")),
+                () -> assertTrue(Files.exists(foreign)));
+    }
+
+    @Test
+    void adminDownloadsAllAttachmentsOfAnotherPlantsInquiry() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+
+        byte[] zip = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "QNA-B-FILES")
+                        .sessionAttr("loginUser", login("ADMIN", null)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "QNA-B-FILES")
+                        .sessionAttr("loginUser", login(PLANT, "01")))
+                .andExpect(status().isNotFound());
+
+        assertEquals(1, zipEntryCount(zip));
+    }
+
+    @Test
+    void deletedParentHidesAttachmentsEvenFromItsOwnPlant() throws Exception {
+        storeQna("QNA-D", "QNA-D-FILES", PLANT);
+        Path original = storeAttachment("QNA-D-ORIGINAL", "QNA-D-FILES", PLANT, "qna-d-original");
+        Path answer = storeAttachment("QNA-D-ANSWER", "QNA-D", "ADMIN", "qna-d-answer");
+        storeNotice("N-D", "LINK-N-D");
+        Path notice = storeAttachment("N-D-FILE", "LINK-N-D", "ADMIN", "n-d");
+        storeMenuParent("LINK-M-D", PLANT);
+        Path menu = storeAttachment("M-D-FILE", "LINK-M-D", PLANT, "m-d");
+        storeOptionParent("LINK-O-D", PLANT);
+        Path option = storeAttachment("O-D-FILE", "LINK-O-D", PLANT, "o-d");
+        var cases = List.of(
+                new ReadCase("QNA-D-ORIGINAL", "QNA-D-FILES", login(PLANT, "01")),
+                new ReadCase("QNA-D-ANSWER", "QNA-D", login("ADMIN", null)),
+                new ReadCase("QNA-D-ANSWER", "QNA-D", login(PLANT, "01")),
+                new ReadCase("N-D-FILE", "LINK-N-D", login("ADMIN", null)),
+                new ReadCase("N-D-FILE", "LINK-N-D", login(PLANT, "01")),
+                new ReadCase("M-D-FILE", "LINK-M-D", login(PLANT, "01")),
+                new ReadCase("O-D-FILE", "LINK-O-D", login(PLANT, "02")));
+        for (ReadCase readCase : cases) {
+            assertReadPaths(readCase, true);
+        }
+
+        jdbc.update("update brd_qna set delete_yn='Y' where sys_id='QNA-D'");
+        jdbc.update("update brd_notice set delete_yn='Y' where sys_id='N-D'");
+        jdbc.update("update store_menu_detail set delete_yn='Y' where file_ulid='LINK-M-D'");
+        jdbc.update("update store_menu_option_detail set delete_yn='Y' where file_ulid='LINK-O-D'");
+        for (ReadCase readCase : cases) {
+            assertReadPaths(readCase, false);
+        }
+
+        assertAll(
+                () -> assertEquals(5, jdbc.queryForObject(
+                        "select count(*) from attach_file where delete_yn='N'", Integer.class)),
+                () -> assertTrue(Files.exists(original)),
+                () -> assertTrue(Files.exists(answer)),
+                () -> assertTrue(Files.exists(notice)),
+                () -> assertTrue(Files.exists(menu)),
+                () -> assertTrue(Files.exists(option)));
+    }
+
+    @Test
+    void samePlantAttachmentWithoutParentRowIsHidden() throws Exception {
+        storeAttachment("ORPHAN-FILE", "LINK-ORPHAN", PLANT, "orphan");
+
+        assertReadPaths(new ReadCase("ORPHAN-FILE", "LINK-ORPHAN", login(PLANT, "01")), false);
+    }
+
+    private record ReadCase(String fileId, String link, Login reader) {
+    }
+
+    /** Each link holds one attachment. list = 200 with 1 or 0 rows; download/view/download_all = 200 or 404. */
+    private void assertReadPaths(ReadCase readCase, boolean readable) throws Exception {
+        String label = readCase.fileId() + " as " + readCase.reader().getSysPlantCd();
+        mvc.perform(get("/api/attach_file").param("linkSysId", readCase.link())
+                        .sessionAttr("loginUser", readCase.reader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(readable ? 1 : 0));
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            int status = mvc.perform(get(path).param("sysId", readCase.fileId())
+                            .sessionAttr("loginUser", readCase.reader()))
+                    .andReturn().getResponse().getStatus();
+            assertEquals(readable ? 200 : 404, status, path + " " + label);
+        }
+        int zipStatus = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", readCase.link())
+                        .sessionAttr("loginUser", readCase.reader()))
+                .andReturn().getResponse().getStatus();
+        assertEquals(readable ? 200 : 404, zipStatus, "download_all " + label);
+    }
+
+    private void storeMenuParent(String fileUlid, String plant) {
+        jdbc.update("insert into store_menu_detail values (?, ?, 'N')", fileUlid, plant);
+    }
+
+    private static int zipEntryCount(byte[] zip) throws Exception {
+        int count = 0;
+        try (var in = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(zip))) {
+            while (in.getNextEntry() != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void assertNoticeFiles(Login reader, int all, int manager, int hidden) throws Exception {
+        for (var expected : List.of(List.of("LINK-N-ALL", all), List.of("LINK-N-MANAGER", manager),
+                List.of("LINK-N-HIDDEN", hidden))) {
+            mvc.perform(get("/api/attach_file").param("linkSysId", (String) expected.get(0))
+                            .sessionAttr("loginUser", reader))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(expected.get(1)));
+        }
+    }
+
+    private void storeQna(String sysId, String fileUlid, String plant) {
+        jdbc.update("""
+                insert into brd_qna(sys_id, qna_title, qna_description, delete_yn, file_ulid, answer_yn,
+                    insert_datetime, insert_user_id, sys_plant_cd)
+                values (?, 'title', 'body', 'N', ?, 'Y', now(), 'WRITER', ?)
+                """, sysId, fileUlid, plant);
+    }
+
+    private static Login login(String plant, String role) {
+        var login = new Login();
+        login.setUserId("READER");
+        login.setSysPlantCd(plant);
+        login.setUserRole(role);
+        return login;
+    }
+
     private String inquiryDeleteYn() {
         return jdbc.queryForObject("select delete_yn from brd_qna", String.class);
     }
@@ -634,6 +926,12 @@ class AttachFileDeleteScopePersistenceTest {
 
     private int orderNo(String sysId) {
         return jdbc.queryForObject("select ord_no from attach_file where sys_id=?", Integer.class, sysId);
+    }
+
+    private long fileCount() throws Exception {
+        try (var files = Files.walk(uploadRoot)) {
+            return files.filter(Files::isRegularFile).count();
+        }
     }
 
     private int attachmentCount() {
