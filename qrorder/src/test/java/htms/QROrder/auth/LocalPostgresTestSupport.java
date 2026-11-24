@@ -68,8 +68,13 @@ public final class LocalPostgresTestSupport implements AutoCloseable {
     }
 
     public DataSource dataSource() {
+        return dataSource("qa_auth");
+    }
+
+    /** Same disposable cluster with another search path, e.g. "public" to run migration files as written. */
+    public DataSource dataSource(String schema) {
         return new DriverManagerDataSource("jdbc:postgresql://127.0.0.1:" + port
-                + "/postgres?currentSchema=qa_auth&ApplicationName=qr-auth-persistence&connectTimeout=5&socketTimeout=20",
+                + "/postgres?currentSchema=" + schema + "&ApplicationName=qr-auth-persistence&connectTimeout=5&socketTimeout=20",
                 "qa_owner", "");
     }
 

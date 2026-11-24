@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -37,6 +38,7 @@ public class SignUpService {
         }
     }
 
+    @Transactional
     public void newUser(SignUpRequest signUpRequest) {
 
         signUpRequest.setBusinessRegiNum(signUpRequest.getBusinessRegiNum().replaceAll("\\D", ""));
