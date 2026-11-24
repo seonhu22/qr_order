@@ -86,10 +86,13 @@ public final class SubscriptionTransition {
         if (current == PENDING || current == PAST_DUE) {
             return change(current, RECORD_FAILURE);
         }
-        if (current == ACTIVE && facts.providerConfirmedFailed() && facts.latestOpenInvoice()) {
-            return change(PAST_DUE, RECORD_FAILURE, SET_GRACE);
+        if (current == ACTIVE) {
+            return facts.providerConfirmedFailed() && facts.latestOpenInvoice()
+                    ? change(PAST_DUE, RECORD_FAILURE, SET_GRACE)
+                    : new Outcome(Kind.RECORD, ACTIVE, Set.of(RECORD_FAILURE));
         }
-        return new Outcome(Kind.RECORD, current, Set.of(RECORD_FAILURE));
+        // C/X는 인보이스/이벤트 기록만 한다. 구독 행(last_failure_code)도 건드리지 않는다(§3 E3).
+        return record(current);
     }
 
     private static Outcome cancelRequest(SubscriptionStatus current, SubscriptionFacts facts) {

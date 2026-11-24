@@ -58,8 +58,8 @@ class SubscriptionTransitionTest {
                 cell(PENDING, INVOICE_FAILED, Kind.APPLY, PENDING, RECORD_FAILURE),
                 cell(ACTIVE, INVOICE_FAILED, Kind.RECORD, ACTIVE, RECORD_FAILURE),
                 cell(PAST_DUE, INVOICE_FAILED, Kind.APPLY, PAST_DUE, RECORD_FAILURE),
-                cell(CANCEL_SCHEDULED, INVOICE_FAILED, Kind.RECORD, CANCEL_SCHEDULED, RECORD_FAILURE),
-                cell(EXPIRED, INVOICE_FAILED, Kind.RECORD, EXPIRED, RECORD_FAILURE),
+                cell(CANCEL_SCHEDULED, INVOICE_FAILED, Kind.RECORD, CANCEL_SCHEDULED),
+                cell(EXPIRED, INVOICE_FAILED, Kind.RECORD, EXPIRED),
                 // E4 현재 회차 전액 환불
                 cell(PENDING, CURRENT_PERIOD_FULL_REFUND, Kind.RECORD, PENDING),
                 cell(ACTIVE, CURRENT_PERIOD_FULL_REFUND, Kind.APPLY, EXPIRED, REVOKE_ROLE, END_PROVIDER),
@@ -134,6 +134,15 @@ class SubscriptionTransitionTest {
                 BEFORE_DEADLINES.withConfirmedLatestFailure(false, true))) {
             assertOutcome(Kind.RECORD, ACTIVE, Set.of(RECORD_FAILURE),
                     SubscriptionTransition.apply(ACTIVE, INVOICE_FAILED, facts));
+        }
+    }
+
+    @Test void failureOnCancelScheduledOrExpiredNeverTouchesSubscriptionRow() {
+        var confirmed = BEFORE_DEADLINES.withConfirmedLatestFailure(true, true);
+        for (var status : List.of(CANCEL_SCHEDULED, EXPIRED)) {
+            var outcome = SubscriptionTransition.apply(status, INVOICE_FAILED, confirmed);
+            assertOutcome(Kind.RECORD, status, Set.of(), outcome);
+            assertFalse(outcome.actions().contains(RECORD_FAILURE), status.name());
         }
     }
 

@@ -18,7 +18,7 @@ public enum SubscriptionAction {
     CLEAR_GRACE,
     /** grace_until = paid_through_at + 7일. */
     SET_GRACE,
-    /** last_failure_code를 기록한다. */
+    /** 구독 행 last_failure_code를 기록한다. P/A/D에서만(C/X의 실패는 인보이스 기록만). */
     RECORD_FAILURE,
     /** 해지 예약 뒤 결제. apply_result=AFTER_CANCEL, 환불 대기. */
     HOLD_REFUND_AFTER_CANCEL,
