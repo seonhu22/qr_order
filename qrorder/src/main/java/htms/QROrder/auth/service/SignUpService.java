@@ -5,6 +5,9 @@ import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
 import htms.QROrder.common.exception.DuplicateException;
+import htms.QROrder.system.billing.domain.Subscription;
+import htms.QROrder.system.billing.domain.SubscriptionStatus;
+import htms.QROrder.system.billing.repository.SubscriptionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import java.util.Map;
 public class SignUpService {
 
     private final SignUpMapper signUpMapper;
+    private final SubscriptionMapper subscriptionMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${nts.api.service-key}")
@@ -58,12 +62,25 @@ public class SignUpService {
         if (signUpMapper.existsActivePlant(signUpRequest.getBusinessRegiNum())) {
             throw new DuplicateException("이미 가입된 사업자번호입니다.");
         }
+        // 셀프 가입 대표는 02 + PENDING 구독으로 시작하고, 구독 결제가 01로 올린다(정책 4C §1).
+        // 쓰기 순서는 매장 → 구독 → 사용자(구독 잠금 순서 §8과 같은 방향).
         try {
             signUpMapper.newPlant(signUpRequest);
+            subscriptionMapper.insertSubscription(pendingSubscription(signUpRequest));
         } catch (DuplicateKeyException race) {
             throw new DuplicateException("이미 가입된 사업자번호입니다.");
         }
         signUpMapper.newUser(signUpRequest);
+    }
+
+    private static Subscription pendingSubscription(SignUpRequest signUpRequest) {
+        Subscription subscription = new Subscription();
+        subscription.setSysId(UlidCreator.getUlid().toString());
+        subscription.setPlantCd(signUpRequest.getBusinessRegiNum());
+        subscription.setOwnerUserSysId(signUpRequest.getSysId());
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setInsertUserId(signUpRequest.getUserId());
+        return subscription;
     }
 
     public boolean idDuplicateChk(String userId) {

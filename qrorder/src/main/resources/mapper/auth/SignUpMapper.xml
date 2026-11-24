@@ -59,7 +59,7 @@
             #{userId},
             now(),
             #{businessRegiNum},
-            '01'
+            '02'
         )
     </insert>
 

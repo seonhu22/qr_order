@@ -5,6 +5,7 @@ import htms.QROrder.auth.repository.SignUpMapper;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.exception.DuplicateException;
 import htms.QROrder.common.exception.GlobalExceptionHandler;
+import htms.QROrder.system.billing.repository.SubscriptionMapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.apache.ibatis.session.Configuration;
@@ -47,17 +48,19 @@ class SignUpPersistenceTest {
             jdbc = new JdbcTemplate(source);
             TeamSchemaFixture.createCoreTables(jdbc);
             jdbc.execute(TeamSchemaFixture.migration(APPLY));
+            jdbc.execute(TeamSchemaFixture.migration("2026-11-25-subscription-billing.sql"));
             Configuration configuration = new Configuration();
             configuration.setMapUnderscoreToCamelCase(true);
             var factory = new SqlSessionFactoryBean();
             factory.setDataSource(source);
             factory.setConfiguration(configuration);
             factory.setTransactionFactory(new SpringManagedTransactionFactory());
-            factory.setMapperLocations(new ClassPathResource("mapper/auth/SignUpMapper.xml"));
+            factory.setMapperLocations(new ClassPathResource("mapper/auth/SignUpMapper.xml"),
+                    new ClassPathResource("mapper/system/billing/SubscriptionMapper.xml"));
             var sql = new SqlSessionTemplate(factory.getObject());
             transactions = new DataSourceTransactionManager(source);
             ProxyFactory proxy = new ProxyFactory(new SignUpService(sql.getMapper(SignUpMapper.class),
-                    new BCryptPasswordEncoder(4)));
+                    sql.getMapper(SubscriptionMapper.class), new BCryptPasswordEncoder(4)));
             proxy.setProxyTargetClass(true);
             proxy.addAdvice(new TransactionInterceptor(transactions, new AnnotationTransactionAttributeSource()));
             signUp = (SignUpService) proxy.getProxy();
@@ -72,7 +75,7 @@ class SignUpPersistenceTest {
     }
 
     @BeforeEach void resetFixture() {
-        jdbc.execute("truncate table sys_user, sys_plant");
+        jdbc.execute("truncate table sys_subscription_invoice, sys_subscription, sys_user, sys_plant");
     }
 
     @Test void signupWritesOnePlantAndOneUser() {
@@ -81,13 +84,41 @@ class SignUpPersistenceTest {
         assertEquals(1, count("sys_user"));
     }
 
-    @Test void userInsertFailureLeavesNoPlantRow() {
-        // sys_user.email은 200자, sys_plant에는 email이 없어 두 번째 INSERT만 실패한다.
+    @Test void selfSignupOwnerStartsAs02WithOnePendingSubscription() {
+        signUp.newUser(request("123-45-67890", "owner1"));
+        var user = jdbc.queryForMap("select sys_id, user_role, plant_cd from sys_user");
+        assertEquals("02", user.get("user_role"));
+        assertEquals("1234567890", user.get("plant_cd"));
+        var subscription = jdbc.queryForMap("select * from sys_subscription");
+        assertEquals(1, count("sys_subscription"));
+        assertEquals("PENDING", subscription.get("status"));
+        assertEquals("1234567890", subscription.get("plant_cd"));
+        assertEquals(user.get("sys_id"), subscription.get("owner_user_sys_id"));
+        assertEquals("N", subscription.get("role_granted_yn"));
+        assertNull(subscription.get("plan_sys_id"));
+        assertNull(subscription.get("paid_through_at"));
+        assertEquals("owner1", subscription.get("insert_user_id"));
+    }
+
+    @Test void leftoverOpenSubscriptionBlocksSignupWith409() {
+        jdbc.update("""
+                insert into sys_subscription(sys_id, plant_cd, owner_user_sys_id, status, insert_user_id, insert_datetime)
+                values ('ORPHAN', '1234567890', 'GONE', 'PENDING', 'T', now())
+                """);
+        assertThrows(DuplicateException.class, () -> signUp.newUser(request("1234567890", "owner1")));
+        assertEquals(0, count("sys_plant"));
+        assertEquals(0, count("sys_user"));
+        assertEquals(1, count("sys_subscription"));
+    }
+
+    @Test void userInsertFailureLeavesNoRows() {
+        // sys_user.email은 200자, 매장/구독에는 email이 없어 마지막 사용자 INSERT만 실패한다.
         var request = request("1234567890", "owner1");
         request.setEmail("e".repeat(201));
         assertThrows(org.springframework.dao.DataAccessException.class, () -> signUp.newUser(request));
         assertEquals(0, count("sys_plant"));
         assertEquals(0, count("sys_user"));
+        assertEquals(0, count("sys_subscription"));
     }
 
     @Test void sameBusinessNumberSignupIs409AndKeepsOneStore() {
@@ -96,13 +127,18 @@ class SignUpPersistenceTest {
         assertEquals(409, new GlobalExceptionHandler().handleDuplicatePlantException(failure).getStatusCode().value());
         assertEquals(1, count("sys_plant"));
         assertEquals(1, count("sys_user"));
+        assertEquals(1, count("sys_subscription"));
     }
 
-    @Test void deletedStoreDoesNotBlockNewSignup() {
+    @Test void deletedStoreWithEndedSubscriptionDoesNotBlockNewSignup() {
         signUp.newUser(request("1234567890", "owner1"));
         jdbc.update("update sys_plant set delete_yn='Y'");
+        // 매장만 지우고 구독이 진행 중이면 여전히 409. 구독이 끝나야 같은 번호로 다시 가입된다.
+        assertThrows(DuplicateException.class, () -> signUp.newUser(request("1234567890", "owner2")));
+        jdbc.update("update sys_subscription set status='EXPIRED'");
         signUp.newUser(request("1234567890", "owner2"));
         assertEquals(1, jdbc.queryForObject("select count(*) from sys_plant where delete_yn='N'", Integer.class));
+        assertEquals(1, jdbc.queryForObject("select count(*) from sys_subscription where status='PENDING'", Integer.class));
     }
 
     @Test void concurrentSameNumberSignupWaitsOnIndexAndLoserGets409() throws Exception {
@@ -133,6 +169,7 @@ class SignUpPersistenceTest {
         }
         assertEquals(1, count("sys_plant"));
         assertEquals(1, count("sys_user"));
+        assertEquals(1, count("sys_subscription"));
     }
 
     @Test void migrationBlocksReapplyRollsBackAndRefusesDuplicates() throws Exception {
