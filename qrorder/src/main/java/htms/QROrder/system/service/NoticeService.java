@@ -2,6 +2,7 @@ package htms.QROrder.system.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import htms.QROrder.system.dto.NoticeRequest;
@@ -49,7 +50,7 @@ public class NoticeService {
 
         auditService.insertNewAuditTrailData(noticeRequest, noticeRequest.getSysId(), menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.newNotice(noticeRequest, userId, sysPlantCd);
-        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        fileService.saveFile(fileRequest, userId, new AttachScope(sysPlantCd, fileUlid), menuCd);
     }
 
     public void updateNotice(NoticeRequest noticeRequest,
@@ -60,16 +61,17 @@ public class NoticeService {
 
         validateTarget(noticeRequest.getTarget());
         // getOldData locks this row until the transaction (including audit/files) finishes.
-        NoticeResponse oldData = noticeMapper.getOldData(noticeRequest.getSysId());
+        NoticeResponse oldData = noticeMapper.getOldData(noticeRequest.getSysId(), sysPlantCd);
         if (oldData == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다.");
         if (noticeRequest.getTarget() == null) noticeRequest.setTarget(oldData.getTarget());
-        String fileUlid = noticeRequest.getFileUuid();
+        String fileUlid = oldData.getFileUlid();
+        noticeRequest.setFileUuid(fileUlid);
 
         setNewFileUlid(fileRequest, fileUlid);
 
         auditService.insertUpdateAuditTrailData(oldData, noticeRequest, noticeRequest.getSysId(), menuCd, "brd_notice", userId, sysPlantCd);
         noticeMapper.updateNotice(noticeRequest, userId, sysPlantCd);
-        fileService.saveFile(fileRequest, userId, sysPlantCd, menuCd);
+        fileService.saveFile(fileRequest, userId, new AttachScope(sysPlantCd, fileUlid), menuCd);
     }
 
     public void delNotice(List<NoticeRequest> noticeRequest,

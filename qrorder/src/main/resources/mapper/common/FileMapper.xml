@@ -92,30 +92,39 @@
         </foreach>
     </insert>
 
+    <sql id="activeScope">
+        af.sys_plant_cd = #{scope.sysPlantCd}
+        and af.link_sys_id = #{scope.linkSysId}
+        and af.delete_yn = 'N'
+    </sql>
+
     <update id="updateFile">
-        <foreach collection="updateItems" item="item" separator=";">
-            update attach_file set
-                ord_no = #{item.ordNo},
-                modify_user_id = #{userId},
-                modify_datetime = now()
-            where 1=1
-            and sys_id = #{item.sysId}
+        update attach_file af set
+            ord_no = changes.ord_no,
+            modify_user_id = #{userId},
+            modify_datetime = now()
+        from (values
+        <foreach collection="updateItems" item="item" separator=",">
+            (cast(#{item.sysId} as varchar), cast(#{item.ordNo} as integer))
         </foreach>
+        ) as changes(sys_id, ord_no)
+        where af.sys_id = changes.sys_id
+        and <include refid="activeScope"/>
     </update>
 
-    <delete id="delFile">
-        update attach_file set
+    <update id="delFile">
+        update attach_file af set
             delete_yn = 'Y',
             modify_user_id = #{userId},
             modify_datetime = now()
-        where 1=1
-        and sys_id in
+        where af.sys_id in
         <foreach collection="ids" item="id" open="(" separator="," close=")" >
             #{id}
         </foreach>
-    </delete>
+        and <include refid="activeScope"/>
+    </update>
 
-    <select id="getOldData" resultType="htms.QROrder.common.dto.FileInfo">
+    <select id="lockOwned" resultType="htms.QROrder.common.dto.FileInfo">
         select
             sys_id ,
             link_sys_id ,
@@ -125,12 +134,15 @@
             mime_type ,
             file_size ,
             file_path ,
+            pdf_yn ,
             ord_no
         from attach_file af
-        where 1=1
-        and sys_id in
-        <foreach collection="updateItems" item="item" open="(" separator="," close=")">
-            #{item.sysId}
+        where af.sys_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
         </foreach>
+        and <include refid="activeScope"/>
+        order by af.sys_id
+        for update
     </select>
 </mapper>

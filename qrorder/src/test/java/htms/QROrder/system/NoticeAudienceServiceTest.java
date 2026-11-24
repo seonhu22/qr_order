@@ -42,7 +42,7 @@ class NoticeAudienceServiceTest {
         var mapper=mock(NoticeMapper.class); var service=new NoticeService(mapper,mock(AuditService.class),mock(FileService.class));
         var created=new NoticeRequest(); service.newNotice(created,new FileRequest(),"ADMIN","ADMIN","NOTICE");
         assertEquals("all",created.getTarget());
-        var old=new NoticeResponse(); old.setTarget("staff"); when(mapper.getOldData("N1")).thenReturn(old);
+        var old=new NoticeResponse(); old.setTarget("staff"); when(mapper.getOldData("N1", "ADMIN")).thenReturn(old);
         var update=new NoticeRequest(); update.setSysId("N1");
         service.updateNotice(update,new FileRequest(),"ADMIN","ADMIN","NOTICE");
         assertEquals("staff",update.getTarget()); verify(mapper).updateNotice(update,"ADMIN","ADMIN");

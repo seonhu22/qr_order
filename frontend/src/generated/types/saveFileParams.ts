@@ -9,4 +9,5 @@ import type { FileRequest } from './fileRequest';
 
 export type SaveFileParams = {
 fileRequest: FileRequest;
+linkSysId: string;
 };

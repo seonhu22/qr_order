@@ -9,6 +9,7 @@ import type { FileIO } from './fileIO';
 import type { FileInfo } from './fileInfo';
 
 export interface FileRequest {
+  linkSysId?: string;
   newItems?: FileIO[];
   updateItems?: FileInfo[];
   delItems?: FileInfo[];

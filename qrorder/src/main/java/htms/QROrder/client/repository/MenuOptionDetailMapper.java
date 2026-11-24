@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper
 public interface MenuOptionDetailMapper {
     List<MenuOptionDetailResponse> getMenuOptionDetail(String masterSysId);
+    String lockAttachmentLink(String fileUlid, String sysPlantCd);
     void newMenuOptionDetail(List<MenuOptionDetailItem> newItems, String userId, String sysPlantCd, String menuCd);
     void updateMenuOptionDetail(List<MenuOptionDetailItem> updateItems, String userId, String sysPlantCd, String menuCd);
     void delMenuOptionDetail(List<MenuOptionDetailItem> delItems, String userId, String sysPlantCd, String menuCd);
