@@ -7,10 +7,14 @@ import htms.QROrder.client.dto.ClientQnaResponse;
 import htms.QROrder.client.service.ClientNoticeService;
 import htms.QROrder.client.service.ClientQnaService;
 import htms.QROrder.common.dto.CommonResponse;
+import htms.QROrder.common.dto.FileRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,14 +45,20 @@ public class BoardController {
         return qnaService.getQna(searchKeyword, loginUser.getSysPlantCd());
     }
 
+    @InitBinder("fileRequest")
+    void bindNewInquiryFiles(WebDataBinder binder) {
+        binder.setAllowedFields("newItems[*].file");
+    }
+
+    @Operation(description = "원문 첨부파일은 선택 사항이며 multipart/form-data의 newItems[0].file 등으로 전송합니다.")
     @PostMapping("/qna/new")
     public ResponseEntity<CommonResponse> newQna(@ModelAttribute ClientQnaRequest qnaRequest,
+                                                    @Parameter(hidden = true) @ModelAttribute FileRequest fileRequest,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
-        String menuCd = (String) session.getAttribute("menuCd");
 
-    qnaService.newQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        qnaService.newQna(qnaRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -63,9 +73,8 @@ public class BoardController {
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
-        String menuCd = (String) session.getAttribute("menuCd");
 
-        qnaService.updateQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        qnaService.updateQna(qnaRequest, loginUser.getUserId(), loginUser.getSysPlantCd());
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

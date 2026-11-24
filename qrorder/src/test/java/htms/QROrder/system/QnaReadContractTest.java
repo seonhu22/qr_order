@@ -11,23 +11,32 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QnaReadContractTest {
     @Test
-    void exposesExistingModificationTimeInScopedInquiryRead() throws Exception {
+    void searchesActiveInquiriesAcrossStoresAndExposesModificationTime() throws Exception {
         var configuration = new Configuration();
         String resource = "mapper/system/QnaMapper.xml";
         try (var input = Resources.getResourceAsStream(resource)) {
             new XMLMapperBuilder(input, configuration, resource, configuration.getSqlFragments()).parse();
         }
         String sql = configuration.getMappedStatement("htms.QROrder.system.repository.QnaMapper.getQna")
-                .getBoundSql(Map.of("sysPlantCd", "ADMIN", "searchKeyword", ""))
+                .getBoundSql(Map.of("searchKeyword", "AUTO-QA"))
                 .getSql().replaceAll("\\s+", " ");
         assertTrue(sql.contains("bq.modify_datetime"));
-        assertTrue(sql.contains("bq.sys_plant_cd = ?"));
+        assertFalse(sql.contains("sys_plant_cd"));
         assertTrue(sql.contains("bq.delete_yn = 'N'"));
+        assertTrue(sql.contains("bq.qna_title like"));
+        assertTrue(sql.contains("bq.qna_description like"));
         assertEquals(LocalDateTime.class, QnaResponse.class.getDeclaredField("modifyDatetime").getType());
+
+        String answerSql = configuration.getMappedStatement("htms.QROrder.system.repository.QnaMapper.updateQna")
+                .getBoundSql(Map.of()).getSql().replaceAll("\\s+", " ");
+        assertFalse(answerSql.contains("sys_plant_cd"));
+        assertTrue(answerSql.contains("delete_yn = 'N'"));
+        assertTrue(answerSql.contains("modify_datetime = now()"));
     }
 
     @Test
