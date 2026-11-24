@@ -107,7 +107,9 @@ public final class SubscriptionTransition {
 
     private static Outcome due(SubscriptionStatus current, SubscriptionFacts facts) {
         boolean reached = switch (current) {
-            case ACTIVE -> facts.paidThroughAt() != null && reached(facts.now(), facts.paidThroughAt().plus(GRACE));
+            // ACTIVE는 웹훅 유실 대비로 잠금 밖 대사가 성공하고 놓친 결제가 없을 때만, 잠금 안 기한 재확인으로 만료한다.
+            case ACTIVE -> facts.reconcile() == ProviderReconcile.NO_UNSEEN_PAYMENT
+                    && facts.paidThroughAt() != null && reached(facts.now(), facts.paidThroughAt().plus(GRACE));
             case PAST_DUE -> reached(facts.now(), facts.graceUntil());
             case CANCEL_SCHEDULED -> reached(facts.now(), facts.endAt());
             case PENDING, EXPIRED -> false;

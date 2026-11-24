@@ -1,5 +1,6 @@
 package htms.QROrder.system.billing;
 
+import htms.QROrder.system.billing.domain.ProviderReconcile;
 import htms.QROrder.system.billing.domain.SubscriptionAction;
 import htms.QROrder.system.billing.domain.SubscriptionEvent;
 import htms.QROrder.system.billing.domain.SubscriptionFacts;
@@ -154,12 +155,34 @@ class SubscriptionTransitionTest {
                 SubscriptionTransition.apply(PAST_DUE, CANCEL_REQUEST, ended.withPaidThroughAt(NOW.plusSeconds(1))));
     }
 
-    @Test void activeExpiresAtPaidThroughPlusSevenDaysInclusive() {
+    @Test void activeExpiresAtPaidThroughPlusSevenDaysInclusiveAfterReconcile() {
         var paidThrough = NOW.minus(Duration.ofDays(7));
+        var reconciled = BEFORE_DEADLINES.withReconcile(ProviderReconcile.NO_UNSEEN_PAYMENT);
         assertOutcome(Kind.APPLY, EXPIRED, Set.of(REVOKE_ROLE, END_PROVIDER),
-                SubscriptionTransition.apply(ACTIVE, DUE, BEFORE_DEADLINES.withPaidThroughAt(paidThrough)));
+                SubscriptionTransition.apply(ACTIVE, DUE, reconciled.withPaidThroughAt(paidThrough)));
         assertOutcome(Kind.NOOP, ACTIVE, Set.of(),
-                SubscriptionTransition.apply(ACTIVE, DUE, BEFORE_DEADLINES.withPaidThroughAt(paidThrough.plusSeconds(1))));
+                SubscriptionTransition.apply(ACTIVE, DUE, reconciled.withPaidThroughAt(paidThrough.plusSeconds(1))));
+    }
+
+    @Test void activeNeverExpiresWithoutSuccessfulReconcile() {
+        var longPast = BEFORE_DEADLINES.withPaidThroughAt(NOW.minus(Duration.ofDays(30)));
+        for (var reconcile : List.of(ProviderReconcile.NOT_RUN, ProviderReconcile.FAILED)) {
+            assertOutcome(Kind.NOOP, ACTIVE, Set.of(),
+                    SubscriptionTransition.apply(ACTIVE, DUE, longPast.withReconcile(reconcile)));
+        }
+    }
+
+    @Test void activeWithUnseenRenewalPaymentIsNotExpired() {
+        var longPast = BEFORE_DEADLINES.withPaidThroughAt(NOW.minus(Duration.ofDays(30)));
+        assertOutcome(Kind.NOOP, ACTIVE, Set.of(),
+                SubscriptionTransition.apply(ACTIVE, DUE, longPast.withReconcile(ProviderReconcile.UNSEEN_PAYMENT)));
+    }
+
+    @Test void activeRecheckUnderLockUsesPeriodMovedByLatePaid() {
+        // 대사 뒤 잠금 사이에 늦은 Paid가 paid_through_at을 옮겼으면 잠금 안 재확인에서 만료하지 않는다.
+        var moved = BEFORE_DEADLINES.withReconcile(ProviderReconcile.NO_UNSEEN_PAYMENT)
+                .withPaidThroughAt(NOW.plus(Duration.ofDays(30)));
+        assertOutcome(Kind.NOOP, ACTIVE, Set.of(), SubscriptionTransition.apply(ACTIVE, DUE, moved));
     }
 
     @Test void pastDueExpiresAtGraceUntilInclusive() {
@@ -175,7 +198,7 @@ class SubscriptionTransitionTest {
     }
 
     @Test void missingDeadlineNeverExpires() {
-        var none = SubscriptionFacts.at(NOW);
+        var none = SubscriptionFacts.at(NOW).withReconcile(ProviderReconcile.NO_UNSEEN_PAYMENT);
         for (var status : List.of(ACTIVE, PAST_DUE, CANCEL_SCHEDULED)) {
             assertEquals(Kind.NOOP, SubscriptionTransition.apply(status, DUE, none).kind(), status.name());
         }

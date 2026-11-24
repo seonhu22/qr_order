@@ -14,6 +14,7 @@ import java.time.Instant;
  * @param providerConfirmedFailed 제공자 재조회 결과가 FAILED임(E3, ACTIVE)
  * @param latestOpenInvoice       실패 인보이스가 최신 미결 회차임(E3, ACTIVE)
  * @param resubscribeAllowed      직전 대표 본인, 제공자 종료 확인, 미결 인보이스 0건(E1, EXPIRED)
+ * @param reconcile               잠금 밖 제공자 대사 결과(E8, ACTIVE)
  */
 public record SubscriptionFacts(
         Instant now,
@@ -24,44 +25,50 @@ public record SubscriptionFacts(
         boolean nextPeriodInvoice,
         boolean providerConfirmedFailed,
         boolean latestOpenInvoice,
-        boolean resubscribeAllowed) {
+        boolean resubscribeAllowed,
+        ProviderReconcile reconcile) {
 
     public static SubscriptionFacts at(Instant now) {
-        return new SubscriptionFacts(now, null, null, null, false, false, false, false, false);
+        return new SubscriptionFacts(now, null, null, null, false, false, false, false, false, ProviderReconcile.NOT_RUN);
     }
 
     public SubscriptionFacts withPaidThroughAt(Instant value) {
         return new SubscriptionFacts(now, value, graceUntil, endAt, checkoutOpen, nextPeriodInvoice,
-                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed);
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withGraceUntil(Instant value) {
         return new SubscriptionFacts(now, paidThroughAt, value, endAt, checkoutOpen, nextPeriodInvoice,
-                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed);
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withEndAt(Instant value) {
         return new SubscriptionFacts(now, paidThroughAt, graceUntil, value, checkoutOpen, nextPeriodInvoice,
-                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed);
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withCheckoutOpen(boolean value) {
         return new SubscriptionFacts(now, paidThroughAt, graceUntil, endAt, value, nextPeriodInvoice,
-                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed);
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withNextPeriodInvoice(boolean value) {
         return new SubscriptionFacts(now, paidThroughAt, graceUntil, endAt, checkoutOpen, value,
-                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed);
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withConfirmedLatestFailure(boolean providerFailed, boolean latestOpen) {
         return new SubscriptionFacts(now, paidThroughAt, graceUntil, endAt, checkoutOpen, nextPeriodInvoice,
-                providerFailed, latestOpen, resubscribeAllowed);
+                providerFailed, latestOpen, resubscribeAllowed, reconcile);
     }
 
     public SubscriptionFacts withResubscribeAllowed(boolean value) {
         return new SubscriptionFacts(now, paidThroughAt, graceUntil, endAt, checkoutOpen, nextPeriodInvoice,
-                providerConfirmedFailed, latestOpenInvoice, value);
+                providerConfirmedFailed, latestOpenInvoice, value, reconcile);
+    }
+
+    public SubscriptionFacts withReconcile(ProviderReconcile value) {
+        return new SubscriptionFacts(now, paidThroughAt, graceUntil, endAt, checkoutOpen, nextPeriodInvoice,
+                providerConfirmedFailed, latestOpenInvoice, resubscribeAllowed, value);
     }
 }
