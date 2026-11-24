@@ -5,7 +5,7 @@ import htms.QROrder.auth.domain.Login;
 /**
  * 첨부 읽기 범위. 첨부는 부모 행을 읽을 수 있는 세션만 읽는다 (FileMapper.xml readScope).
  *
- * @param sysPlantCd   세션 매장. 같은 매장 첨부는 읽을 수 있다.
+ * @param sysPlantCd   세션 매장. 같은 매장의 살아 있는 부모(문의/공지/메뉴/옵션) 첨부를 읽는다.
  * @param admin        시스템 관리자(ADMIN 매장). 모든 매장의 Client 문의 원문/답변 첨부를 읽는다.
  * @param noticeTarget Client 공지 대상(manager/staff). 공지 목록과 같은 조건의 공지 첨부를 읽는다. 없으면 null.
  */

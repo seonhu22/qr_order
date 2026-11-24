@@ -607,6 +607,7 @@ class AttachFileDeleteScopePersistenceTest {
 
     @Test
     void listReturnsSamePlantAttachments() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
         storeAttachment("OWN-READ", "LINK-A", PLANT, "own-read");
 
         mvc.perform(get("/api/attach_file").param("linkSysId", "LINK-A").sessionAttr("loginUser", login(PLANT, "02")))
@@ -664,6 +665,7 @@ class AttachFileDeleteScopePersistenceTest {
 
     @Test
     void downloadAndViewServeSamePlantFile() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
         storeAttachment("OWN-FILE", "LINK-A", PLANT, "own-file");
 
         for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
@@ -712,6 +714,7 @@ class AttachFileDeleteScopePersistenceTest {
 
     @Test
     void downloadAllZipsOnlyReadableAttachmentsAndHidesTheRest() throws Exception {
+        storeMenuParent("LINK-A", PLANT);
         storeAttachment("ZIP-OWN-1", "LINK-A", PLANT, "zip-own-1");
         storeAttachment("ZIP-OWN-2", "LINK-A", PLANT, "zip-own-2");
         jdbc.update("update attach_file set original_file_nm='second' where sys_id='ZIP-OWN-2'");
@@ -747,6 +750,80 @@ class AttachFileDeleteScopePersistenceTest {
                 .andExpect(status().isNotFound());
 
         assertEquals(1, zipEntryCount(zip));
+    }
+
+    @Test
+    void deletedParentHidesAttachmentsEvenFromItsOwnPlant() throws Exception {
+        storeQna("QNA-D", "QNA-D-FILES", PLANT);
+        Path original = storeAttachment("QNA-D-ORIGINAL", "QNA-D-FILES", PLANT, "qna-d-original");
+        Path answer = storeAttachment("QNA-D-ANSWER", "QNA-D", "ADMIN", "qna-d-answer");
+        storeNotice("N-D", "LINK-N-D");
+        Path notice = storeAttachment("N-D-FILE", "LINK-N-D", "ADMIN", "n-d");
+        storeMenuParent("LINK-M-D", PLANT);
+        Path menu = storeAttachment("M-D-FILE", "LINK-M-D", PLANT, "m-d");
+        storeOptionParent("LINK-O-D", PLANT);
+        Path option = storeAttachment("O-D-FILE", "LINK-O-D", PLANT, "o-d");
+        var cases = List.of(
+                new ReadCase("QNA-D-ORIGINAL", "QNA-D-FILES", login(PLANT, "01")),
+                new ReadCase("QNA-D-ANSWER", "QNA-D", login("ADMIN", null)),
+                new ReadCase("QNA-D-ANSWER", "QNA-D", login(PLANT, "01")),
+                new ReadCase("N-D-FILE", "LINK-N-D", login("ADMIN", null)),
+                new ReadCase("N-D-FILE", "LINK-N-D", login(PLANT, "01")),
+                new ReadCase("M-D-FILE", "LINK-M-D", login(PLANT, "01")),
+                new ReadCase("O-D-FILE", "LINK-O-D", login(PLANT, "02")));
+        for (ReadCase readCase : cases) {
+            assertReadPaths(readCase, true);
+        }
+
+        jdbc.update("update brd_qna set delete_yn='Y' where sys_id='QNA-D'");
+        jdbc.update("update brd_notice set delete_yn='Y' where sys_id='N-D'");
+        jdbc.update("update store_menu_detail set delete_yn='Y' where file_ulid='LINK-M-D'");
+        jdbc.update("update store_menu_option_detail set delete_yn='Y' where file_ulid='LINK-O-D'");
+        for (ReadCase readCase : cases) {
+            assertReadPaths(readCase, false);
+        }
+
+        assertAll(
+                () -> assertEquals(5, jdbc.queryForObject(
+                        "select count(*) from attach_file where delete_yn='N'", Integer.class)),
+                () -> assertTrue(Files.exists(original)),
+                () -> assertTrue(Files.exists(answer)),
+                () -> assertTrue(Files.exists(notice)),
+                () -> assertTrue(Files.exists(menu)),
+                () -> assertTrue(Files.exists(option)));
+    }
+
+    @Test
+    void samePlantAttachmentWithoutParentRowIsHidden() throws Exception {
+        storeAttachment("ORPHAN-FILE", "LINK-ORPHAN", PLANT, "orphan");
+
+        assertReadPaths(new ReadCase("ORPHAN-FILE", "LINK-ORPHAN", login(PLANT, "01")), false);
+    }
+
+    private record ReadCase(String fileId, String link, Login reader) {
+    }
+
+    /** Each link holds one attachment. list = 200 with 1 or 0 rows; download/view/download_all = 200 or 404. */
+    private void assertReadPaths(ReadCase readCase, boolean readable) throws Exception {
+        String label = readCase.fileId() + " as " + readCase.reader().getSysPlantCd();
+        mvc.perform(get("/api/attach_file").param("linkSysId", readCase.link())
+                        .sessionAttr("loginUser", readCase.reader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(readable ? 1 : 0));
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            int status = mvc.perform(get(path).param("sysId", readCase.fileId())
+                            .sessionAttr("loginUser", readCase.reader()))
+                    .andReturn().getResponse().getStatus();
+            assertEquals(readable ? 200 : 404, status, path + " " + label);
+        }
+        int zipStatus = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", readCase.link())
+                        .sessionAttr("loginUser", readCase.reader()))
+                .andReturn().getResponse().getStatus();
+        assertEquals(readable ? 200 : 404, zipStatus, "download_all " + label);
+    }
+
+    private void storeMenuParent(String fileUlid, String plant) {
+        jdbc.update("insert into store_menu_detail values (?, ?, 'N')", fileUlid, plant);
     }
 
     private static int zipEntryCount(byte[] zip) throws Exception {
