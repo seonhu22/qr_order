@@ -25,6 +25,7 @@ public final class ConsumerOrderWriteRows {
         String menuSysId;
         String sysPlantCd;
         int quantity;
+        int unitPrice;
         boolean hasOptions;
         LocalDateTime orderedAt;
     }
@@ -36,6 +37,7 @@ public final class ConsumerOrderWriteRows {
         String optionSysId;
         String sysPlantCd;
         int quantity;
+        int unitPrice;
         LocalDateTime orderedAt;
     }
 }

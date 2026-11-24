@@ -130,17 +130,18 @@
 
     <insert id="insertOrderDetail">
         INSERT INTO order_detail (sys_id, link_sys_id, option_yn, insert_user_id,
-                                  insert_datetime, sys_plant_cd, link_sys_id2, link_sys_id3, qty, payment_yn)
+                                  insert_datetime, sys_plant_cd, link_sys_id2, link_sys_id3, qty,
+                                  order_unit_price, payment_yn)
         VALUES (#{orderItemId}, #{orderMasterId},
                 <choose><when test="hasOptions">'Y'</when><otherwise>'N'</otherwise></choose>,
-                #{userId}, #{orderedAt}, #{sysPlantCd}, #{menuSysId}, #{orderId}, #{quantity}, 'Y')
+                #{userId}, #{orderedAt}, #{sysPlantCd}, #{menuSysId}, #{orderId}, #{quantity}, #{unitPrice}, 'Y')
     </insert>
 
     <insert id="insertOrderDetailOption">
         INSERT INTO order_detail_option (sys_id, link_sys_id, insert_user_id, insert_datetime,
-                                         sys_plant_cd, link_sys_id2, qty)
+                                         sys_plant_cd, link_sys_id2, qty, order_unit_price)
         VALUES (#{orderOptionId}, #{orderItemId}, #{userId}, #{orderedAt},
-                #{sysPlantCd}, #{optionSysId}, #{quantity})
+                #{sysPlantCd}, #{optionSysId}, #{quantity}, #{unitPrice})
     </insert>
 
     <update id="completeRevision">

@@ -21,7 +21,7 @@
                 sum(
                     case
                         when od.payment_yn = 'Y'
-                            then smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)
+                            then COALESCE(od.order_unit_price, smd.menu_price) * od.qty + coalesce(opt_sum.option_price, 0)
                         else 0
                     end
                 ) as total_price
@@ -33,7 +33,7 @@
             left join (
                 select
                     odo.link_sys_id ,
-                    sum(smod.menu_option_price * odo.qty) as option_price
+                    sum(COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty) as option_price
                 from order_detail_option odo
                 left join store_menu_option_detail smod
                     on smod.sys_id = odo.link_sys_id2
