@@ -3,11 +3,13 @@ package htms.QROrder.client;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.auth.domain.Login;
 import htms.QROrder.client.controller.BoardController;
+import htms.QROrder.client.dto.ClientQnaItem;
 import htms.QROrder.client.dto.ClientQnaRequest;
 import htms.QROrder.client.repository.ClientQnaMapper;
 import htms.QROrder.client.service.ClientNoticeService;
 import htms.QROrder.client.service.ClientQnaService;
 import htms.QROrder.common.dto.AttachScope;
+import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -74,15 +76,18 @@ class ClientQnaContractTest {
 
     @Test
     void softDeletesOnlyOwnedActiveInquiryInSessionStore() throws Exception {
-        when(sqlSession.update(eq(NAMESPACE + "delQna"), any())).thenReturn(1);
+        var deleted = new ClientQnaItem();
+        deleted.setSysId("QNA-1");
+        when(sqlSession.selectOne(eq(NAMESPACE + "delQna"), any())).thenReturn(deleted);
 
         postInquiryDelete("QNA-1").andExpect(status().isOk());
 
-        assertEquals("QNA-1", captureRequest("delQna", false).getSysId());
+        assertEquals("QNA-1", captureDeleteRequest().getSysId());
         var sql = configuration.getMappedStatement(NAMESPACE + "delQna").getBoundSql(Map.of());
         assertEquals("""
                 update brd_qna set delete_yn = 'Y', modify_user_id = ?, modify_datetime = now() \
-                where sys_id = ? and sys_plant_cd = ? and insert_user_id = ? and delete_yn = 'N'""",
+                where sys_id = ? and sys_plant_cd = ? and insert_user_id = ? and delete_yn = 'N' \
+                returning sys_id, file_ulid""",
                 sql.getSql().replaceAll("\\s+", " ").trim());
         assertEquals(List.of("userId", "qnaRequest.sysId", "sysPlantCd", "userId"),
                 sql.getParameterMappings().stream().map(ParameterMapping::getProperty).toList());
@@ -91,12 +96,29 @@ class ClientQnaContractTest {
 
     @Test
     void returnsNotFoundWhenDeleteChangesNoRows() throws Exception {
-        when(sqlSession.update(eq(NAMESPACE + "delQna"), any())).thenReturn(0);
-
         postInquiryDelete("QNA-1").andExpect(status().isNotFound());
 
-        assertEquals("QNA-1", captureRequest("delQna", false).getSysId());
+        assertEquals("QNA-1", captureDeleteRequest().getSysId());
         verifyNoInteractions(files);
+    }
+
+    @Test
+    void deletesAttachmentsFromTheStoredInquiryScope() throws Exception {
+        var deleted = new ClientQnaItem();
+        deleted.setSysId("QNA-1");
+        deleted.setFileUlid("STORED-LINK");
+        var scope = new AttachScope("DEMO01", "STORED-LINK");
+        var attachment = new FileInfo();
+        attachment.setSysId("FILE-1");
+        when(sqlSession.selectOne(eq(NAMESPACE + "delQna"), any())).thenReturn(deleted);
+        when(sqlSession.selectList(eq(NAMESPACE + "getActiveAttachmentIds"), eq(scope)))
+                .thenReturn(List.of(attachment));
+
+        postInquiryDelete("QNA-1").andExpect(status().isOk());
+
+        var request = ArgumentCaptor.forClass(FileRequest.class);
+        verify(files).saveFile(request.capture(), eq("OWNER"), eq(scope), eq("QNA"));
+        assertEquals(List.of(attachment), request.getValue().getDelItems());
     }
 
     @Test
@@ -185,8 +207,18 @@ class ClientQnaContractTest {
         } else {
             verify(sqlSession).update(eq(NAMESPACE + statement), parameters.capture());
         }
-        assertEquals("OWNER", parameters.getValue().get("userId"));
-        assertEquals("DEMO01", parameters.getValue().get("sysPlantCd"));
-        return (ClientQnaRequest) parameters.getValue().get("qnaRequest");
+        return assertRequestScope(parameters.getValue());
+    }
+
+    private ClientQnaRequest captureDeleteRequest() {
+        var parameters = ArgumentCaptor.forClass(Map.class);
+        verify(sqlSession).selectOne(eq(NAMESPACE + "delQna"), parameters.capture());
+        return assertRequestScope(parameters.getValue());
+    }
+
+    private ClientQnaRequest assertRequestScope(Map<?, ?> parameters) {
+        assertEquals("OWNER", parameters.get("userId"));
+        assertEquals("DEMO01", parameters.get("sysPlantCd"));
+        return (ClientQnaRequest) parameters.get("qnaRequest");
     }
 }

@@ -3,11 +3,20 @@ package htms.QROrder.common.service;
 import htms.QROrder.audit.service.AuditService;
 import htms.QROrder.auth.LocalPostgresTestSupport;
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.client.controller.BoardController;
+import htms.QROrder.client.controller.MenuManageController;
+import htms.QROrder.client.dto.ClientQnaRequest;
+import htms.QROrder.client.repository.ClientQnaMapper;
 import htms.QROrder.client.repository.MenuDetailMapper;
 import htms.QROrder.client.repository.MenuOptionDetailMapper;
 import htms.QROrder.client.dto.MenuDetailRequest;
+import htms.QROrder.client.service.ClientNoticeService;
+import htms.QROrder.client.service.ClientQnaService;
 import htms.QROrder.client.service.MenuDetailService;
+import htms.QROrder.client.service.MenuMasterService;
 import htms.QROrder.client.service.MenuOptionDetailService;
+import htms.QROrder.client.service.MenuOptionGroupService;
+import htms.QROrder.client.service.MenuOptionMasterService;
 import htms.QROrder.common.controller.FileController;
 import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileIO;
@@ -27,6 +36,7 @@ import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -45,6 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +63,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -64,12 +76,15 @@ class AttachFileDeleteScopePersistenceTest {
     private static final String PLANT = "STORE-A";
     private static final String FOREIGN_PLANT = "STORE-B";
     private static final AttachScope STORE_SCOPE = new AttachScope(PLANT, "LINK-A");
+    private static final byte[] PNG = Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aB2sAAAAASUVORK5CYII=");
 
     LocalPostgresTestSupport database;
     JdbcTemplate jdbc;
     FileService fileService;
     NoticeService noticeService;
     MenuDetailService menuDetailService;
+    ClientQnaService qnaService;
     DataSourceTransactionManager manager;
     MockMvc mvc;
     Path root;
@@ -102,7 +117,19 @@ class AttachFileDeleteScopePersistenceTest {
                 create table public.store_menu_detail(
                     file_ulid varchar(36) not null, sys_plant_cd varchar(50), delete_yn varchar(1) not null);
                 create table public.store_menu_option_detail(
-                    file_ulid varchar(36) not null, sys_plant_cd varchar(50), delete_yn varchar(1) not null);
+                    sys_id varchar(36) primary key, link_sys_id varchar(36) not null,
+                    menu_option_name varchar(100) not null, menu_option_price integer not null,
+                    menu_description text, maximum_num integer not null, default_yn varchar(1) not null,
+                    sold_out_yn varchar(1) not null, use_yn varchar(1) not null, ord_no integer not null,
+                    delete_yn varchar(1) not null, file_ulid varchar(36) not null,
+                    insert_datetime timestamp not null, insert_user_id varchar(50) not null,
+                    modify_datetime timestamp, modify_user_id varchar(50), sys_plant_cd varchar(50));
+                create table public.brd_qna(
+                    sys_id varchar(36) primary key, qna_title varchar(500) not null, qna_description text not null,
+                    delete_yn varchar(1) not null, file_ulid varchar(36), answer_yn varchar(1) not null,
+                    answer_user_id varchar(50), answer_datetime timestamp, answer_description text,
+                    insert_datetime timestamp not null, insert_user_id varchar(50) not null,
+                    modify_datetime timestamp, modify_user_id varchar(50), sys_plant_cd varchar(50));
                 """);
 
             var factory = new SqlSessionFactoryBean();
@@ -114,7 +141,8 @@ class AttachFileDeleteScopePersistenceTest {
             factory.setMapperLocations(new ClassPathResource("mapper/common/FileMapper.xml"),
                     new ClassPathResource("mapper/system/NoticeMapper.xml"),
                     new ClassPathResource("mapper/client/MenuDetailMapper.xml"),
-                    new ClassPathResource("mapper/client/MenuOptionDetailMapper.xml"));
+                    new ClassPathResource("mapper/client/MenuOptionDetailMapper.xml"),
+                    new ClassPathResource("mapper/client/ClientQnaMapper.xml"));
             var sql = new SqlSessionTemplate(factory.getObject());
 
             Path tmp = Files.createDirectories(Path.of("build", "tmp")).toRealPath();
@@ -134,7 +162,12 @@ class AttachFileDeleteScopePersistenceTest {
                     sql.getMapper(MenuDetailMapper.class), fileService), manager);
             var optionService = transactional(new MenuOptionDetailService(mock(AuditService.class),
                     sql.getMapper(MenuOptionDetailMapper.class), fileService), manager);
-            mvc = MockMvcBuilders.standaloneSetup(new FileController(fileService, optionService))
+            qnaService = transactional(new ClientQnaService(mock(AuditService.class),
+                    sql.getMapper(ClientQnaMapper.class), fileService), manager);
+            var menuController = new MenuManageController(mock(MenuMasterService.class), menuDetailService,
+                    mock(MenuOptionMasterService.class), mock(MenuOptionGroupService.class), optionService);
+            mvc = MockMvcBuilders.standaloneSetup(new FileController(fileService, optionService), menuController,
+                            new BoardController(mock(ClientNoticeService.class), qnaService))
                     .setControllerAdvice(new GlobalExceptionHandler())
                     .build();
         } catch (Exception failure) {
@@ -170,6 +203,7 @@ class AttachFileDeleteScopePersistenceTest {
         jdbc.update("delete from brd_notice");
         jdbc.update("delete from store_menu_detail");
         jdbc.update("delete from store_menu_option_detail");
+        jdbc.update("delete from brd_qna");
         Files.createDirectories(uploadRoot);
         Files.createDirectories(outsideRoot);
     }
@@ -416,7 +450,7 @@ class AttachFileDeleteScopePersistenceTest {
     @Test
     void detachedSaveRequiresTopLevelLink() throws Exception {
         Path stored = storeAttachment("OPT-MISSING", "OPT-A", PLANT, "missing-link");
-        jdbc.update("insert into store_menu_option_detail values ('OPT-A', ?, 'N')", PLANT);
+        storeOptionParent("OPT-A", PLANT);
 
         var result = mvc.perform(detachedDelete("OPT-MISSING")).andExpect(status().isBadRequest()).andReturn();
 
@@ -426,7 +460,7 @@ class AttachFileDeleteScopePersistenceTest {
     @Test
     void detachedSaveChecksOptionParentAgainstSessionPlant() throws Exception {
         Path stored = storeAttachment("OPT-FOREIGN", "OPT-B", FOREIGN_PLANT, "foreign-option");
-        jdbc.update("insert into store_menu_option_detail values ('OPT-B', ?, 'N')", FOREIGN_PLANT);
+        storeOptionParent("OPT-B", FOREIGN_PLANT);
 
         var result = mvc.perform(detachedDelete("OPT-FOREIGN").param("linkSysId", "OPT-B"))
                 .andExpect(status().isNotFound()).andReturn();
@@ -437,7 +471,7 @@ class AttachFileDeleteScopePersistenceTest {
     @Test
     void detachedSaveDeletesAnAttachmentOfTheOwnedOption() throws Exception {
         Path stored = storeAttachment("OPT-OWN", "OPT-A", PLANT, "owned-option");
-        jdbc.update("insert into store_menu_option_detail values ('OPT-A', ?, 'N')", PLANT);
+        storeOptionParent("OPT-A", PLANT);
 
         mvc.perform(detachedDelete("OPT-OWN").param("linkSysId", "OPT-A")).andExpect(status().isOk());
 
@@ -446,13 +480,139 @@ class AttachFileDeleteScopePersistenceTest {
                 () -> assertFalse(Files.exists(stored)));
     }
 
+    @Test
+    void newOptionAndPngCommitUnderThePersistedOptionLink() throws Exception {
+        mvc.perform(newOptionWithPng("new-option")).andExpect(status().isOk());
+
+        String fileUlid = jdbc.queryForObject("""
+                select file_ulid from store_menu_option_detail
+                where link_sys_id='OPTION-GROUP' and sys_plant_cd=? and delete_yn='N'
+                """, String.class, PLANT);
+        Path stored = uploadRoot.resolve("FILE/new-option.png");
+        assertAll(
+                () -> assertEquals(1, attachmentCount()),
+                () -> assertNotEquals("OPTION-GROUP", fileUlid),
+                () -> assertEquals(fileUlid, jdbc.queryForObject("""
+                        select link_sys_id from attach_file where sys_plant_cd=? and delete_yn='N'
+                        """, String.class, PLANT)),
+                () -> assertArrayEquals(PNG, Files.readAllBytes(stored)));
+
+        String attachmentId = jdbc.queryForObject("select sys_id from attach_file", String.class);
+        mvc.perform(multipart("/api/client/menu_manage/option/detail/save")
+                        .param("linkSysId", fileUlid)
+                        .param("delItems[0].sysId", attachmentId)
+                        .sessionAttr("loginUser", login()).sessionAttr("menuCd", "FILE"))
+                .andExpect(status().isOk());
+        assertAll(() -> assertEquals("Y", deleteYn(attachmentId)), () -> assertFalse(Files.exists(stored)));
+    }
+
+    @Test
+    void newOptionWithForeignAttachmentLinkRollsBackWithoutWritingPng() throws Exception {
+        storeOptionParent("FOREIGN-OPTION", FOREIGN_PLANT);
+
+        mvc.perform(newOptionWithPng("foreign-option-upload").param("linkSysId", "FOREIGN-OPTION"))
+                .andExpect(status().isNotFound());
+
+        assertAll(
+                () -> assertEquals(0, jdbc.queryForObject(
+                        "select count(*) from store_menu_option_detail where sys_plant_cd=?", Integer.class, PLANT)),
+                () -> assertEquals(0, attachmentCount()),
+                () -> assertFalse(Files.exists(uploadRoot.resolve("FILE/foreign-option-upload.png"))));
+    }
+
+    @Test
+    void deletingInquiryRemovesOnlyItsOriginalAttachmentsAfterCommit() throws Exception {
+        mvc.perform(multipart("/api/client/board/qna/new")
+                        .file(png("inquiry"))
+                        .param("qnaTitle", "Inquiry with PNG").param("qnaDescription", "Body")
+                        .sessionAttr("loginUser", login()))
+                .andExpect(status().isOk());
+        String qnaId = jdbc.queryForObject("select sys_id from brd_qna", String.class);
+        String fileUlid = jdbc.queryForObject("select file_ulid from brd_qna", String.class);
+        String attachmentId = jdbc.queryForObject("select sys_id from attach_file", String.class);
+        String storedName = jdbc.queryForObject("select convert_file_nm from attach_file", String.class);
+        Path stored = uploadRoot.resolve("QNA").resolve(storedName + ".png");
+        Path secondOriginal = storeAttachment("QNA-SECOND", fileUlid, PLANT, "qna-second");
+        Path neighbor = storeAttachment("QNA-OTHER", "OTHER-QNA", PLANT, "qna-other");
+        Path foreign = storeAttachment("QNA-FOREIGN", fileUlid, FOREIGN_PLANT, "qna-foreign");
+        assertArrayEquals(PNG, Files.readAllBytes(stored));
+
+        new TransactionTemplate(manager).executeWithoutResult(status -> {
+            var request = new ClientQnaRequest();
+            request.setSysId(qnaId);
+            qnaService.delQna(request, "USER-A", PLANT, "QNA");
+            assertAll(
+                    () -> assertEquals("Y", inquiryDeleteYn()),
+                    () -> assertEquals("Y", deleteYn(attachmentId)),
+                    () -> assertTrue(Files.exists(stored)));
+            status.setRollbackOnly();
+        });
+        assertAll(() -> assertEquals("N", inquiryDeleteYn()), () -> assertEquals("N", deleteYn(attachmentId)),
+                () -> assertTrue(Files.exists(stored)));
+
+        mvc.perform(post("/api/client/board/qna/del")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"sysId":"%s","fileUlid":"OTHER-QNA"}
+                                """.formatted(qnaId))
+                        .sessionAttr("loginUser", login()).sessionAttr("menuCd", "QNA"))
+                .andExpect(status().isOk());
+
+        assertAll(
+                () -> assertEquals("Y", inquiryDeleteYn()),
+                () -> assertEquals("Y", deleteYn(attachmentId)),
+                () -> assertEquals("Y", deleteYn("QNA-SECOND")),
+                () -> assertFalse(Files.exists(stored)),
+                () -> assertFalse(Files.exists(secondOriginal)),
+                () -> assertEquals("N", deleteYn("QNA-OTHER")),
+                () -> assertTrue(Files.exists(neighbor)),
+                () -> assertEquals("N", deleteYn("QNA-FOREIGN")),
+                () -> assertTrue(Files.exists(foreign)));
+    }
+
+    private String inquiryDeleteYn() {
+        return jdbc.queryForObject("select delete_yn from brd_qna", String.class);
+    }
+
+    private void storeOptionParent(String fileUlid, String plant) {
+        jdbc.update("""
+                insert into store_menu_option_detail(sys_id, link_sys_id, menu_option_name, menu_option_price,
+                    maximum_num, default_yn, sold_out_yn, use_yn, ord_no, delete_yn, file_ulid,
+                    insert_datetime, insert_user_id, sys_plant_cd)
+                values (?, 'OPTION-GROUP', ?, 100, 1, 'N', 'N', 'Y', 1, 'N', ?, now(), 'USER-A', ?)
+                """, fileUlid + "-ROW", fileUlid, fileUlid, plant);
+    }
+
+    private static MockMultipartHttpServletRequestBuilder newOptionWithPng(String name) {
+        var request = multipart("/api/client/menu_manage/option/detail/save").file(png(name));
+        request.param("newItems[0].linkSysId", "OPTION-GROUP")
+                .param("newItems[0].menuOptionName", name)
+                .param("newItems[0].menuOptionPrice", "100")
+                .param("newItems[0].maximumNum", "1")
+                .param("newItems[0].defaultYn", "N")
+                .param("newItems[0].soldOutYn", "N")
+                .param("newItems[0].useYn", "N")
+                .param("newItems[0].ordNo", "1")
+                .param("newItems[0].convertFileNm", name)
+                .sessionAttr("loginUser", login()).sessionAttr("menuCd", "FILE");
+        return request;
+    }
+
+    private static MockMultipartFile png(String name) {
+        return new MockMultipartFile("newItems[0].file", name + ".png", "image/png", PNG);
+    }
+
     private static MockMultipartHttpServletRequestBuilder detachedDelete(String sysId) {
+        var request = multipart("/api/attach_file/save");
+        request.param("delItems[0].sysId", sysId).sessionAttr("loginUser", login()).sessionAttr("menuCd", "FILE");
+        return request;
+    }
+
+    private static Login login() {
         var login = new Login();
         login.setUserId("USER-A");
         login.setSysPlantCd(PLANT);
-        var request = multipart("/api/attach_file/save");
-        request.param("delItems[0].sysId", sysId).sessionAttr("loginUser", login).sessionAttr("menuCd", "FILE");
-        return request;
+        return login;
     }
 
     private static FileInfo orderChange(String sysId, int orderNo) {

@@ -2,6 +2,7 @@ package htms.QROrder.client.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.client.dto.ClientQnaItem;
 import htms.QROrder.client.dto.ClientQnaRequest;
 import htms.QROrder.client.dto.ClientQnaResponse;
 import htms.QROrder.client.repository.ClientQnaMapper;
@@ -77,8 +78,20 @@ public class ClientQnaService {
                        String menuCd) {
 
         // auditService.insertDeleteAuditTrailData(qnaRequest, qnaRequest.getSysId(), menuCd, "brd_qna", userId, sysPlantCd);
-        if (qnaMapper.delQna(qnaRequest, userId, sysPlantCd) == 0) {
+        ClientQnaItem deleted = qnaMapper.delQna(qnaRequest, userId, sysPlantCd);
+        if (deleted == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문의사항을 찾을 수 없습니다.");
+        }
+        String fileUlid = deleted.getFileUlid();
+        if (fileUlid == null || fileUlid.isBlank()) {
+            return;
+        }
+        AttachScope scope = new AttachScope(sysPlantCd, fileUlid);
+        var attachments = qnaMapper.getActiveAttachmentIds(scope);
+        if (!attachments.isEmpty()) {
+            var fileRequest = new FileRequest();
+            fileRequest.setDelItems(attachments);
+            fileService.saveFile(fileRequest, userId, scope, menuCd);
         }
     }
 }

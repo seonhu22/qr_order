@@ -72,7 +72,8 @@
         and delete_yn = 'N'
     </update>
 
-    <update id="delQna">
+    <select id="delQna" affectData="true" flushCache="true"
+            resultType="htms.QROrder.client.dto.ClientQnaItem">
         update brd_qna set
             delete_yn = 'Y',
             modify_user_id = #{userId},
@@ -81,6 +82,15 @@
         and sys_plant_cd = #{sysPlantCd}
         and insert_user_id = #{userId}
         and delete_yn = 'N'
-    </update>
+        returning sys_id, file_ulid
+    </select>
+
+    <select id="getActiveAttachmentIds" resultType="htms.QROrder.common.dto.FileInfo">
+        select sys_id
+        from attach_file
+        where sys_plant_cd = #{sysPlantCd}
+        and link_sys_id = #{linkSysId}
+        and delete_yn = 'N'
+    </select>
 
 </mapper>
