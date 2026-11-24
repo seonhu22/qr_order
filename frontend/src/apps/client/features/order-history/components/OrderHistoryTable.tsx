@@ -33,14 +33,14 @@ export function OrderHistoryTable({ rows, isLoading, isError, emptyMessage }: Or
       >
         <div className="common-table-wrap">
           <table className="common-table" aria-label="주문 이력 목록 테이블">
-            {/* 컬럼 비율을 동일하게 맞추기 위해 너비 클래스를 지정하지 않는다(table-layout: fixed가 균등 분배) */}
             <colgroup>
-              <col /><col /><col /><col /><col />
+              <col /><col /><col className="order-history-table__details-column" /><col /><col /><col />
             </colgroup>
             <thead>
               <tr>
                 <th>주문번호</th>
                 <th>테이블 번호</th>
+                <th>주문 내역</th>
                 <th>주문 상태</th>
                 <th>결제 상태</th>
                 <th>주문일자</th>
@@ -48,12 +48,26 @@ export function OrderHistoryTable({ rows, isLoading, isError, emptyMessage }: Or
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className="common-table__empty">{emptyMessage}</td></tr>
+                <tr><td colSpan={6} className="common-table__empty">{emptyMessage}</td></tr>
               ) : (
                 rows.map((row) => (
                   <tr key={row.id}>
                     <td className="common-table__mono common-table__cell--center">{row.orderNo}</td>
                     <td className="common-table__cell--center">{row.tableNum}</td>
+                    <td className="common-table__cell--left">
+                      {row.details.length > 0 ? (
+                        <ul className="order-history-table__details">
+                          {row.details.map((detail, index) => (
+                            <li key={detail.id || index}>
+                              <span>{detail.menuName}</span>
+                              {detail.menuOption && (
+                                <div className="order-history-table__options">{detail.menuOption}</div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : '–'}
+                    </td>
                     <td className="common-table__cell--center">
                       <span
                         className={`order-history-status-badge order-history-status-badge--${row.orderStatus.toLowerCase()}`}
