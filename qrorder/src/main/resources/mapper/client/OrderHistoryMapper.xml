@@ -132,7 +132,7 @@
         left join store_menu_option_detail smod
             on smod.sys_id = odo.link_sys_id2
         where 1=1
-        and smod.sys_id in
+        and odo.link_sys_id in
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>

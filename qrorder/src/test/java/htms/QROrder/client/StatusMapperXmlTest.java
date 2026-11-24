@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -157,6 +158,22 @@ class StatusMapperXmlTest {
             assertTrue(query.contains("COUNT(DISTINCT CASE WHEN og.order_status"));
             assertTrue(query.contains("WHEN og.order_status = '99!' AND removed.order_detail_sys_id IS NULL"));
         }
+    }
+
+    @Test
+    void filtersHistoryOptionsByOrderDetailIds() throws Exception {
+        String resource = "mapper/client/OrderHistoryMapper.xml";
+        try (InputStream input = Resources.getResourceAsStream(resource)) {
+            new XMLMapperBuilder(input, configuration, resource, configuration.getSqlFragments()).parse();
+        }
+
+        var boundSql = configuration.getMappedStatement(
+                        "htms.QROrder.client.repository.OrderHistoryMapper.getOrderDetailOption")
+                .getBoundSql(Map.of("list", List.of("DETAIL-1", "DETAIL-2")));
+        String sql = boundSql.getSql().replaceAll("\\s+", " ");
+
+        assertTrue(sql.contains("and odo.link_sys_id in ( ? , ? )"), sql);
+        assertEquals(2, boundSql.getParameterMappings().size());
     }
 
     @Test
