@@ -1,19 +1,21 @@
 package htms.QROrder.common.repository;
 
+import htms.QROrder.common.dto.AttachReadScope;
+import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.dto.FileResponse;
 import org.apache.ibatis.annotations.Mapper;
-import org.springframework.core.io.Resource;
 
 import java.util.List;
 
 @Mapper
 public interface FileMapper {
-    List<FileResponse> getAttachFile(String sysId);
-    List<FileInfo> getFileInfoList(String linkSysId);
+    List<FileResponse> getAttachFile(String sysId, AttachReadScope read);
+    List<FileInfo> getFileInfoList(String linkSysId, AttachReadScope read);
     void newFile(List<FileInfo> newItems, String userId, String sysPlantCd);
-    void updateFile(List<FileInfo> updateItems, String userId);
-    void delFile(List<String> ids, String userId);
-    List<FileInfo> getOldData(List<FileInfo> updateItems);
+    List<FileInfo> lockOwned(List<String> ids, AttachScope scope);
+    int updateFile(List<FileInfo> updateItems, String userId, AttachScope scope);
+    int delFile(List<String> ids, String userId, AttachScope scope);
     FileInfo getFileInfo(String sysId);
+    FileInfo getReadableFileInfo(String sysId, AttachReadScope read);
 }

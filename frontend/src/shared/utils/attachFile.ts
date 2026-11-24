@@ -45,6 +45,7 @@ export function buildAttachFileSaveFormData(
   fileChangeState: FileChangeState,
 ): FormData {
   const formData = new FormData();
+  formData.append('linkSysId', linkSysId);
   const filePath = getDefaultAttachFilePath();
 
   fileChangeState.newFiles.forEach((file, index) => {

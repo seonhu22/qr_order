@@ -10,12 +10,15 @@ import htms.QROrder.system.repository.AdminUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -42,6 +45,11 @@ public class AdminUserService {
         List<AdminUser> newItems = adminUserRequest.getNewItems();
         List<AdminUser> updateItems = adminUserRequest.getUpdateItems();
         List<AdminUser> delItems = adminUserRequest.getDelItems();
+
+        if (Stream.concat(newItems.stream(), updateItems.stream())
+                .anyMatch(user -> !"ADMIN".equals(user.getPlantCd()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사업장은 시스템 관리(ADMIN)만 선택할 수 있습니다.");
+        }
 
         if(!newItems.isEmpty()){
 

@@ -252,7 +252,13 @@ public class MenuManageController {
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        menuOptionDetailService.saveMenuOptionDetail(menuOptionDetailRequest, fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        // Option rows and attachments share flat multipart field names. An attachment save supplies its own link or upload.
+        boolean hasAttachmentInput = fileRequest.getLinkSysId() != null
+                || fileRequest.getNewItems().stream().anyMatch(item -> item.getFile() != null);
+        // The nested link belongs to the option group. FileRequest binds the same field as well.
+        fileRequest.getNewItems().forEach(item -> item.setLinkSysId(null));
+        menuOptionDetailService.saveMenuOptionDetail(menuOptionDetailRequest, hasAttachmentInput ? fileRequest : null,
+                loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()

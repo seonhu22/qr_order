@@ -985,6 +985,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description 원문 첨부파일은 선택 사항이며 multipart/form-data의 newItems[0].file 등으로 전송합니다. */
         post: operations["newQna"];
         delete?: never;
         options?: never;
@@ -2426,6 +2427,7 @@ export interface components {
             pdfYn?: string;
         };
         FileRequest: {
+            linkSysId?: string;
             newItems?: components["schemas"]["FileIO"][];
             updateItems?: components["schemas"]["FileInfo"][];
             delItems?: components["schemas"]["FileInfo"][];
@@ -5369,6 +5371,7 @@ export interface operations {
         parameters: {
             query: {
                 fileRequest: components["schemas"]["FileRequest"];
+                linkSysId: string;
             };
             header?: never;
             path?: never;

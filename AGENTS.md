@@ -10,32 +10,15 @@ This file is the always-on router for coding agents. Read only the linked contex
 - Harness maintenance and validation: `docs/harness/README.md`
 - Past fixes and reusable lessons: search `docs/solutions/` by YAML frontmatter before debugging a documented area.
 - Consumer API contract: start at `docs/specs/consumer-mvp-api-spec.md` only for Consumer API/session/order/SSE work.
-- Multi-agent orchestration artifacts: use `.orchestra/README.md` only when the user requests orchestration or the work is high-risk enough to require independent review.
 
 When sources conflict, follow this order: current user-approved decision, applicable `AGENTS.md`, approved decision record, current code/API contract, latest verification evidence, older plans or notes.
 
-## QR Order Ownership Boundary
+## Change Boundary
 
-This project currently uses a frontend/backend ownership split.
-
-- Default editable scope for agent work is frontend code, frontend docs, mocks, and tests.
-- Do not edit backend files under `qrorder/src/**` unless the user explicitly asks for backend code changes in the current request.
-- If a backend bug or suspicious backend contract is found during frontend work, report it as a backend handoff note instead of patching it.
-- Backend files may be read for investigation, contract confirmation, and error explanation.
-- Issue comments from backend maintainers should be treated as API contracts. Implement the frontend side of the contract first.
-- If the contract says `/api/auth/me` returns `initPwdRequired`, frontend code should use `initPwdRequired`; do not rewire backend `init_yn` behavior without explicit permission.
-
-When in doubt, ask: "Is backend modification allowed for this task?"
-
-### Consumer Menu API Exception
-
-- Backend changes are authorized only when the user explicitly requests implementation of the following three Consumer menu APIs:
-  - `GET /api/consumer/menu/main`
-  - `GET /api/consumer/menu/search`
-  - `GET /api/consumer/menu/{menuSysId}`
-- For those requests, add only the required Controller, DTO, Service, Mapper interface, Mapper XML, and test files.
-- Do not modify existing shared/common code or the database schema while implementing these APIs.
-- Do not extend this exception to Consumer cart, order, SSE, authentication, or other backend APIs without separate explicit permission from the user.
+- Frontend and backend (`qrorder/src/**`) code may both be fixed when the fix stays inside the existing architecture: layer split, package layout, shared infrastructure, and dependency direction in `docs/architecture/README.md`.
+- Stop and ask before changing architecture: new layers or modules, shared/common infrastructure, security/session configuration, build tooling, or the database schema.
+- Never read, edit, print, or commit secret or local-environment files: `application-local.properties`, `.env*` with real values, private keys, tokens, or DB/SSH credentials. Use the committed `*.example` files as the reference.
+- Issue comments from backend maintainers are API contracts. When the contract says `/api/auth/me` returns `initPwdRequired`, use that field; do not rewire backend `init_yn` behavior without explicit permission.
 
 ## Utility and Helper Reuse
 
@@ -53,7 +36,7 @@ When in doubt, ask: "Is backend modification allowed for this task?"
 - Preserve prior user decisions, project rules, security constraints, and other context that may conflict with or constrain the current request.
 - Expand the reading scope only when required to verify dependencies, shared configuration, authentication or authorization boundaries, or data contracts.
 - When expanding the scope, briefly state what needs to be verified and why.
-- Use sub-agents and multi-perspective review only when the user requests them or when they are necessary for high-risk work.
+- Parallel work runs as separate top-level sessions managed outside the repository (herdr). Do not spawn sub-agents or run multi-agent review unless the user asks for it in the current request.
 
 ## Verification
 

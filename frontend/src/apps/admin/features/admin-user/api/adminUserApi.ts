@@ -58,7 +58,7 @@ export function mapToPlantSelectOption(combo: Combo): SelectOption {
 export function getPlantSelectOptions(combos: Combo[] | undefined): SelectOption[] {
   return (combos ?? [])
     .map(mapToPlantSelectOption)
-    .filter((option) => option.value && option.label);
+    .filter((option) => option.value === 'ADMIN' && option.label);
 }
 
 function isSameAdminUserRow(a: AdminUserRow, b: AdminUserRow) {

@@ -314,7 +314,7 @@ class OrderRevisionTransactionServiceTest {
     }
 
     @Test
-    void storesOptionQuantityMultipliedByMenuQuantityAndAuditScope() {
+    void storesValidatedUnitPricesWithOptionQuantityAndAuditScope() {
         ConsumerOrderCreateItemRequest item = new ConsumerOrderCreateItemRequest();
         item.setMenuSysId("M1"); item.setQuantity(3); item.setOptions(List.of());
         OrderRevisionRequest request = request(List.of(), List.of(item));
@@ -339,7 +339,9 @@ class OrderRevisionTransactionServiceTest {
                 () -> assertEquals("OM1", detailCaptor.getValue().getOrderMasterId()),
                 () -> assertEquals("P1", detailCaptor.getValue().getSysPlantCd()),
                 () -> assertEquals("U1", detailCaptor.getValue().getUserId()),
+                () -> assertEquals(1000, detailCaptor.getValue().getUnitPrice()),
                 () -> assertEquals(6, optionCaptor.getValue().getQuantity()),
+                () -> assertEquals(100, optionCaptor.getValue().getUnitPrice()),
                 () -> assertEquals("P1", optionCaptor.getValue().getSysPlantCd()),
                 () -> assertEquals("U1", optionCaptor.getValue().getUserId())
         );

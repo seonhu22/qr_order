@@ -99,7 +99,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
       return useMutation(mutationOptions, queryClient);
     }
-    export const newQna = (
+    /**
+ * 원문 첨부파일은 선택 사항이며 multipart/form-data의 newItems[0].file 등으로 전송합니다.
+ */
+export const newQna = (
     params: NewQnaParams,
  options?: SecondParameter<typeof httpClient>,signal?: AbortSignal
 ) => {

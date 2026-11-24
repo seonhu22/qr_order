@@ -71,6 +71,7 @@ public class ConsumerOrderTransactionService {
                     item.menuSysId(),
                     qrTableInfo.getSysPlantCd(),
                     item.quantity(),
+                    item.menuUnitAmount(),
                     !item.options().isEmpty(),
                     orderedAt
             ));
@@ -82,6 +83,7 @@ public class ConsumerOrderTransactionService {
                         option.optionSysId(),
                         qrTableInfo.getSysPlantCd(),
                         option.storedQuantity(),
+                        option.unitAmount(),
                         orderedAt
                 ));
             }

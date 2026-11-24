@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import '@/shared/styles/login.css';
 import { TextInput } from '@/shared/components/input/TextInput';
@@ -29,7 +29,9 @@ export default function LoginPage() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
   const authenticatedUserId = typeof user?.userId === 'string' ? user.userId : '';
-  const isInitialPasswordUser = isAuthenticated && isInitialPasswordChangeRequired(user);
+  const isInitialPasswordUser =
+    isAuthenticated && user?.role === 'SUPER_ADMIN' && isInitialPasswordChangeRequired(user);
+  const isStoreAccount = isAuthenticated && typeof user?.role === 'string' && user.role !== 'SUPER_ADMIN';
 
   const [step, setStep] = useState<Step>('login');
   const [showInitAlert, setShowInitAlert] = useState(false);
@@ -64,13 +66,23 @@ export default function LoginPage() {
         if (data.success) {
           let userData = getAuthResponseData(data);
 
-          if (!hasInitialPasswordRequirementSignal(userData)) {
+          if (typeof userData?.role !== 'string' || !hasInitialPasswordRequirementSignal(userData)) {
             try {
               userData = await refetchCurrentUser();
             } catch {
               setErrorMessage('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');
               return;
             }
+          }
+
+          if (typeof userData?.role !== 'string' || !hasInitialPasswordRequirementSignal(userData)) {
+            setErrorMessage('로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.');
+            return;
+          }
+
+          if (userData.role !== 'SUPER_ADMIN') {
+            setUserPassword('');
+            return;
           }
 
           if (isInitialPasswordChangeRequired(userData)) {
@@ -249,6 +261,14 @@ export default function LoginPage() {
               <h1 className="login-card__heading">로그인</h1>
               <p className="login-card__subheading">계정 정보를 입력하여 로그인하세요.</p>
             </div>
+
+            {isStoreAccount && (
+              <FormAlert
+                type="info"
+                description={<>매장 계정은 <Link to="/client/login">클라이언트 로그인</Link>을 이용해주세요.</>}
+                dismissible={false}
+              />
+            )}
 
             {errorMessage && (
               <FormAlert

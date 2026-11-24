@@ -99,6 +99,7 @@
         left join sys_user su
             on su.user_id = bn.insert_user_id
         where bn.sys_id = #{sysId}
+        and bn.sys_plant_cd = #{sysPlantCd}
         and bn.delete_yn = 'N'
         for update of bn
     </select>

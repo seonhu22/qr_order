@@ -41,7 +41,11 @@ import {
   getGetSysAccessLogDetailMockHandler,
   getGetAuditTrailMockHandler,
 } from '../generated/settings-controller/settings-controller.msw';
-import { getComboControllerMock } from '../generated/combo-controller/combo-controller.msw';
+import {
+  getGetCommonComboMockHandler,
+  getGetPlantComboMockHandler,
+  getGetPlantComboResponseMock,
+} from '../generated/combo-controller/combo-controller.msw';
 import { getFileControllerMock } from '../generated/file-controller/file-controller.msw';
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
 import { getMainControllerMock } from '../generated/main-controller/main-controller.msw';
@@ -1466,7 +1470,11 @@ export const handlers = [
   auditTrailOverrideHandler,
   attachFileOverrideHandler,
   ...settingsHandlers,
-  ...getComboControllerMock(),
+  getGetPlantComboMockHandler(() => [
+    { code: 'ADMIN', name: '시스템 관리' },
+    ...getGetPlantComboResponseMock(),
+  ]),
+  getGetCommonComboMockHandler(),
   ...getFileControllerMock(),
   ...getLogControllerMock(),
   ...getMainControllerMock(),

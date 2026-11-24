@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -120,6 +121,30 @@ class StatusMapperXmlTest {
     }
 
     @Test
+    void usesStoredPricesInPaymentAndSettlementReads() throws Exception {
+        String menuPrice = "COALESCE(od.order_unit_price, smd.menu_price)";
+        String optionPrice = "COALESCE(odo.order_unit_price, smod.menu_option_price)";
+        StatusItem.Header header = new StatusItem.Header();
+        header.setSysId("MASTER-1");
+        String preview = sql("getPaymentCompleteFooterItems",
+                Map.of("header", header, "sysPlantCd", "PLANT-1"));
+        assertTrue(preview.contains(menuPrice + " * od.qty"));
+        assertTrue(preview.contains(optionPrice + " * odo.qty"));
+
+        String paymentDetail = selectBlock(mapperXml("client/PaymentInfoDetailMapper.xml"),
+                "getPaymentInfoDetail");
+        assertTrue(paymentDetail.contains("'price', " + menuPrice));
+        assertTrue(paymentDetail.contains("'price', " + optionPrice));
+
+        String settlement = mapperXml("client/SettlementMapper.xml");
+        for (String statement : List.of("getSettlementSummary", "getSettlementDailyList")) {
+            String query = selectBlock(settlement, statement);
+            assertTrue(query.contains(menuPrice + " * od.qty"));
+            assertTrue(query.contains(optionPrice + " * odo.qty"));
+        }
+    }
+
+    @Test
     void excludesRevisionRemovedDetailsFromAllReadModels() throws Exception {
         for (String statement : new String[]{
                 "getStatusBodyItems", "getStatusFooterItems",
@@ -157,6 +182,22 @@ class StatusMapperXmlTest {
             assertTrue(query.contains("COUNT(DISTINCT CASE WHEN og.order_status"));
             assertTrue(query.contains("WHEN og.order_status = '99!' AND removed.order_detail_sys_id IS NULL"));
         }
+    }
+
+    @Test
+    void filtersHistoryOptionsByOrderDetailIds() throws Exception {
+        String resource = "mapper/client/OrderHistoryMapper.xml";
+        try (InputStream input = Resources.getResourceAsStream(resource)) {
+            new XMLMapperBuilder(input, configuration, resource, configuration.getSqlFragments()).parse();
+        }
+
+        var boundSql = configuration.getMappedStatement(
+                        "htms.QROrder.client.repository.OrderHistoryMapper.getOrderDetailOption")
+                .getBoundSql(Map.of("list", List.of("DETAIL-1", "DETAIL-2")));
+        String sql = boundSql.getSql().replaceAll("\\s+", " ");
+
+        assertTrue(sql.contains("and odo.link_sys_id in ( ? , ? )"), sql);
+        assertEquals(2, boundSql.getParameterMappings().size());
     }
 
     @Test

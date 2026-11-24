@@ -38,6 +38,10 @@ function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to={loginPath} replace />;
   }
 
+  if (loginPath === '/admin/login' && user?.role !== 'SUPER_ADMIN') {
+    return <Navigate to={loginPath} replace />;
+  }
+
   if (isInitialPasswordChangeRequired(user)) {
     return <Navigate to={loginPath} replace />;
   }
@@ -115,6 +119,8 @@ function isPublicStandalonePath(pathname: string) {
 function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const isPasswordChangeRequired = isAuthenticated && isInitialPasswordChangeRequired(user);
+  const canOpenAdminMain =
+    isAuthenticated && user?.role === 'SUPER_ADMIN' && user.initPwdRequired === false;
   // 로딩이 끝난 뒤 보호된 콘텐츠로 이어지는 경우(로그인 완료 + 초기 비밀번호 변경도 불필요)에만
   // 최소 노출 시간을 지킨다 — 그 외(로그인 페이지로 튕겨나갈 것)는 즉시 사라지게 한다.
   const showLoading = useMinDisplayDuration(
@@ -135,12 +141,7 @@ function AppRoutes() {
     },
     {
       path: '/admin/login',
-      element:
-        isAuthenticated && !isPasswordChangeRequired ? (
-          <Navigate to="/admin/main" replace />
-        ) : (
-          <LoginPage />
-        ),
+      element: canOpenAdminMain ? <Navigate to="/admin/main" replace /> : <LoginPage />,
     },
     {
       path: '/admin/forbidden',

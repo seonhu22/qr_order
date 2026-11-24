@@ -1,6 +1,7 @@
 package htms.QROrder.common.controller;
 
 import htms.QROrder.auth.domain.Login;
+import htms.QROrder.client.service.MenuOptionDetailService;
 import htms.QROrder.common.dto.*;
 import htms.QROrder.common.service.FileService;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,21 +26,24 @@ import java.util.List;
 public class FileController {
 
     private final FileService fileService;
+    private final MenuOptionDetailService menuOptionDetailService;
 
     @GetMapping
-    public List<FileResponse> getAttachFile(@RequestParam String linkSysId) {
+    public List<FileResponse> getAttachFile(@RequestParam String linkSysId, HttpSession session) {
 
-        return fileService.getAttachFile(linkSysId);
+        return fileService.getAttachFile(linkSysId, readScope(session));
     }
 
     @PostMapping("/save")
     public ResponseEntity<CommonResponse> saveFile(@ModelAttribute FileRequest fileRequest,
+                                                    @RequestParam("linkSysId") String linkSysId,
                                                     HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         String menuCd = (String) session.getAttribute("menuCd");
 
-        fileService.saveFile(fileRequest, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
+        menuOptionDetailService.saveOptionDetailAttachments(
+                fileRequest, linkSysId, loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -50,9 +54,9 @@ public class FileController {
     }
 
     @GetMapping("/download")
-    public ResponseEntity<Resource> downloadFile(@RequestParam String sysId) {
+    public ResponseEntity<Resource> downloadFile(@RequestParam String sysId, HttpSession session) {
 
-        FileInfo fileInfo = fileService.getFileInfo(sysId);
+        FileInfo fileInfo = fileService.getReadableFileInfo(sysId, readScope(session));
         Resource resource = fileService.readFile(fileInfo);
 
         String downloadName = fileInfo.getOriginalFileNm() + fileInfo.getFileExt();
@@ -68,9 +72,9 @@ public class FileController {
     }
 
     @GetMapping("/download_all")
-    public ResponseEntity<ByteArrayResource> downloadAllFile(@RequestParam String linkSysId) {
+    public ResponseEntity<ByteArrayResource> downloadAllFile(@RequestParam String linkSysId, HttpSession session) {
 
-        ByteArrayResource resource = fileService.downloadAll(linkSysId);
+        ByteArrayResource resource = fileService.downloadAll(linkSysId, readScope(session));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -84,9 +88,9 @@ public class FileController {
     }
 
     @GetMapping("/view")
-    public ResponseEntity<Resource> viewFile(@RequestParam String sysId) {
+    public ResponseEntity<Resource> viewFile(@RequestParam String sysId, HttpSession session) {
 
-        FileInfo fileInfo = fileService.getFileInfo(sysId);
+        FileInfo fileInfo = fileService.getReadableFileInfo(sysId, readScope(session));
         Resource resource = fileService.readFile(fileInfo);
 
         String contentType = "Y".equals(fileInfo.getPdfYn()) ? "application/pdf" : fileInfo.getMimeType();
@@ -96,5 +100,9 @@ public class FileController {
                         ContentDisposition.inline().build().toString())
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
+    }
+
+    private static AttachReadScope readScope(HttpSession session) {
+        return AttachReadScope.of((Login) session.getAttribute("loginUser"));
     }
 }

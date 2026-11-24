@@ -26,19 +26,19 @@ export const handlers = [
       currentUser = {
         userId: 'admin',
         userNm: '슈퍼 관리자',
-        role: 'ADMIN',
+        role: 'SUPER_ADMIN',
         initPwdRequired: false,
       };
       return HttpResponse.json({
         success: true,
         message: '로그인 성공',
-        data: { userId: 'admin', userNm: '슈퍼 관리자', role: 'ADMIN' },
+        data: { userId: 'admin', userNm: '슈퍼 관리자', role: 'SUPER_ADMIN' },
       });
     }
 
     if (body.userId === 'a' && body.userPassword === '1') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'ADMIN', staffRole: '01', initPwdRequired: false };
+      currentUser = { userId: 'a', userNm: '일반 관리자', role: 'STAFF', staffRole: '01', initPwdRequired: false };
       return HttpResponse.json({
         success: true,
         message: '로그인 성공',
@@ -48,7 +48,7 @@ export const handlers = [
 
     if (body.userId === 'b' && body.userPassword === '1') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'b', userNm: '초기 비밀번호 관리자', role: 'ADMIN', staffRole: '02', initPwdRequired: true };
+      currentUser = { userId: 'b', userNm: '초기 비밀번호 관리자', role: 'STAFF', staffRole: '02', initPwdRequired: true };
       return HttpResponse.json({
         success: true,
         message: '로그인 성공',
@@ -59,7 +59,7 @@ export const handlers = [
     // 02 스태프 알림(직원호출) 확인용 — b와 달리 초기 비밀번호 변경 없이 바로 로그인된다.
     if (body.userId === 'c' && body.userPassword === '1') {
       failedAttempts[body.userId] = 0;
-      currentUser = { userId: 'c', userNm: '스태프', role: 'ADMIN', staffRole: '02', initPwdRequired: false };
+      currentUser = { userId: 'c', userNm: '스태프', role: 'STAFF', staffRole: '02', initPwdRequired: false };
       return HttpResponse.json({
         success: true,
         message: '로그인 성공',

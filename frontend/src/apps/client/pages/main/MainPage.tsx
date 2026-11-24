@@ -1,25 +1,36 @@
-import '@/apps/client/pages/main/MainPage.css';
+import { Link } from 'react-router-dom';
+import { Icon } from '@/shared/assets/icons/Icon';
+import { useAuth } from '@/shared/auth/AuthContext';
+import { getAuthUserStaffRole } from '@/shared/auth/authUserDisplay';
+import { canAccessClientMenuPath } from '@/shared/menu/clientMenuAccess';
+import './MainPage.css';
+
+const SHORTCUTS = [
+  { label: '주문 상태 관리', path: '/client/order/status/management' },
+  { label: '결제 목록 조회', path: '/client/payment/status/list' },
+  { label: '직원호출 관리', path: '/client/menu/info/staff-call' },
+  { label: '메뉴 관리', path: '/client/menu/info/management' },
+];
 
 export function MainPage() {
+  const { user } = useAuth();
+  const staffRole = getAuthUserStaffRole(user);
+  const shortcuts = SHORTCUTS.filter(({ path }) => canAccessClientMenuPath(path, staffRole));
+
   return (
     <section className="client-main-page" aria-labelledby="client-main-page-title">
-      <header className="client-main-page__header">
-        <h1 id="client-main-page-title" className="client-main-page__title">
-          클라이언트 메인
-        </h1>
-        <p className="client-main-page__description">
-          현재 페이지는 클라이언트 레이아웃 확인을 위한 빈 컨테이너입니다.
-        </p>
-      </header>
+      <h1 id="client-main-page-title" className="client-main-page__title">
+        매장 운영 화면에 오신 것을 환영합니다
+      </h1>
 
-      <div className="client-main-page__canvas">
-        <div className="client-main-page__placeholder">
-          <strong className="client-main-page__placeholder-title">/client/main</strong>
-          <p className="client-main-page__placeholder-copy">
-            클라이언트 대시보드 콘텐츠가 이곳에 추가됩니다.
-          </p>
-        </div>
-      </div>
+      <nav className="client-main-page__shortcuts" aria-label="매장 운영 바로가기">
+        {shortcuts.map(({ label, path }) => (
+          <Link key={path} to={path} className="client-main-page__shortcut">
+            {label}
+            <Icon id="i-chevron-right" size={16} />
+          </Link>
+        ))}
+      </nav>
     </section>
   );
 }
