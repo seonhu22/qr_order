@@ -26,14 +26,16 @@
         for update
     </select>
 
-    <update id="initPwd">
+    <!-- SUPER_ADMIN 초기화는 sys_id로 확정한 1명만, 구독 대표는 제외한다(정책 4C §1 대표 보호).
+         대표는 본인 비밀번호 변경(init-pwd-active)이나 비밀번호 찾기를 쓴다. -->
+    <update id="initPwdBySysId">
         update sys_user set
             init_yn = 'Y',
             password_fail_cnt = 0,
-            user_password = #{initPwdRequest.password}
-        where 1=1
-        and user_id = #{userId}
+            user_password = #{password}
+        where sys_id = #{sysId}
         and delete_yn = 'N'
+        and not exists (select 1 from sys_subscription s where s.owner_user_sys_id = sys_user.sys_id)
     </update>
 
     <update id="pwdIncorrectCntIncrease">
