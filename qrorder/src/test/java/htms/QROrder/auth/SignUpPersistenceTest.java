@@ -60,7 +60,7 @@ class SignUpPersistenceTest {
             var sql = new SqlSessionTemplate(factory.getObject());
             transactions = new DataSourceTransactionManager(source);
             ProxyFactory proxy = new ProxyFactory(new SignUpService(sql.getMapper(SignUpMapper.class),
-                    sql.getMapper(SubscriptionMapper.class), new BCryptPasswordEncoder(4)));
+                    sql.getMapper(SubscriptionMapper.class), new BCryptPasswordEncoder(4), (number, date, name) -> true));
             proxy.setProxyTargetClass(true);
             proxy.addAdvice(new TransactionInterceptor(transactions, new AnnotationTransactionAttributeSource()));
             signUp = (SignUpService) proxy.getProxy();
