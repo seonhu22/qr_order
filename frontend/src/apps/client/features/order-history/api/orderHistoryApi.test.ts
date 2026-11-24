@@ -52,7 +52,29 @@ describe('mapToOrderHistoryRow', () => {
       orderStatus: 'CANCELLED',
       paymentStatus: 'UNPAID',
       orderDatetime: '2026-08-06 14:25:00',
+      details: [],
     });
+  });
+
+  it('주문 ID로 메뉴 상세를 연결하고 옵션 문구를 보존한다', () => {
+    const menuOption = '- 치즈 추가500\n- 매운 소스0';
+    const rows = mapToOrderHistoryRows({
+      orderMasterHistory: [
+        { sysId: 'master-1', orderNo: '2' },
+        { sysId: 'master-2', orderNo: '2' },
+        { sysId: 'master-3' },
+      ],
+      orderDetailHistory: [
+        { sysId: 'detail-2', masterSysId: 'master-2', menuName: '반미' },
+        { sysId: 'detail-1', masterSysId: 'master-1', menuName: '쌀국수', menuOption },
+      ],
+    });
+
+    expect(rows.map((row) => row.details)).toEqual([
+      [{ id: 'detail-1', menuName: '쌀국수', menuOption }],
+      [{ id: 'detail-2', menuName: '반미', menuOption: '' }],
+      [],
+    ]);
   });
 
   it('목록이 없으면 빈 배열을 반환한다', () => {
