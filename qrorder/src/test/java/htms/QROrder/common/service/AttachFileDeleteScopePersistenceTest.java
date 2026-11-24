@@ -66,6 +66,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -659,6 +660,54 @@ class AttachFileDeleteScopePersistenceTest {
         assertNoticeFiles(login(PLANT, "02"), 1, 0, 0);
         assertNoticeFiles(login(PLANT, null), 0, 0, 0);
         assertNoticeFiles(login("ADMIN", null), 1, 1, 1);
+    }
+
+    @Test
+    void downloadAndViewServeSamePlantFile() throws Exception {
+        storeAttachment("OWN-FILE", "LINK-A", PLANT, "own-file");
+
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            mvc.perform(get(path).param("sysId", "OWN-FILE").sessionAttr("loginUser", login(PLANT, "02")))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("OWN-FILE"));
+        }
+    }
+
+    @Test
+    void downloadAndViewAnswer404ForForeignDeletedAndMissingFiles() throws Exception {
+        Path foreign = storeAttachment("FOREIGN-FILE", "LINK-B", FOREIGN_PLANT, "foreign-file");
+        Path deleted = storeAttachment("DELETED-FILE", "LINK-A", PLANT, "deleted-file");
+        jdbc.update("update attach_file set delete_yn='Y' where sys_id='DELETED-FILE'");
+
+        for (String path : List.of("/api/attach_file/download", "/api/attach_file/view")) {
+            for (String sysId : List.of("FOREIGN-FILE", "DELETED-FILE", "NO-SUCH-FILE")) {
+                mvc.perform(get(path).param("sysId", sysId).sessionAttr("loginUser", login(PLANT, "01")))
+                        .andExpect(status().isNotFound());
+            }
+        }
+        assertAll(
+                () -> assertEquals("N", deleteYn("FOREIGN-FILE")),
+                () -> assertEquals("Y", deleteYn("DELETED-FILE")),
+                () -> assertTrue(Files.exists(foreign)),
+                () -> assertTrue(Files.exists(deleted)));
+    }
+
+    @Test
+    void downloadFollowsInquiryReadPermissionForOriginalAndAnswer() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+        storeAttachment("QNA-B-ANSWER", "QNA-B", "ADMIN", "qna-answer");
+
+        for (String sysId : List.of("QNA-B-ORIGINAL", "QNA-B-ANSWER")) {
+            for (Login reader : List.of(login("ADMIN", null), login(FOREIGN_PLANT, "02"))) {
+                mvc.perform(get("/api/attach_file/download").param("sysId", sysId).sessionAttr("loginUser", reader))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(sysId));
+            }
+            mvc.perform(get("/api/attach_file/download").param("sysId", sysId)
+                            .sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     private void assertNoticeFiles(Login reader, int all, int manager, int hidden) throws Exception {

@@ -35,6 +35,23 @@
         and sys_id = #{sysId}
     </select>
 
+    <select id="getReadableFileInfo" resultType="htms.QROrder.common.dto.FileInfo">
+        select
+            sys_id ,
+            link_sys_id ,
+            original_file_nm ,
+            convert_file_nm ,
+            file_ext ,
+            mime_type ,
+            file_size ,
+            file_path ,
+            pdf_yn ,
+            ord_no
+        from attach_file af
+        where af.sys_id = #{sysId}
+        and <include refid="readScope"/>
+    </select>
+
     <select id="getFileInfoList" resultType="htms.QROrder.common.dto.FileInfo">
         select
             sys_id ,

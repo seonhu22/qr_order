@@ -17,4 +17,5 @@ public interface FileMapper {
     int updateFile(List<FileInfo> updateItems, String userId, AttachScope scope);
     int delFile(List<String> ids, String userId, AttachScope scope);
     FileInfo getFileInfo(String sysId);
+    FileInfo getReadableFileInfo(String sysId, AttachReadScope read);
 }

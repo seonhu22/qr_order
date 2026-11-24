@@ -54,9 +54,9 @@ public class FileController {
     }
 
     @GetMapping("/download")
-    public ResponseEntity<Resource> downloadFile(@RequestParam String sysId) {
+    public ResponseEntity<Resource> downloadFile(@RequestParam String sysId, HttpSession session) {
 
-        FileInfo fileInfo = fileService.getFileInfo(sysId);
+        FileInfo fileInfo = fileService.getReadableFileInfo(sysId, readScope(session));
         Resource resource = fileService.readFile(fileInfo);
 
         String downloadName = fileInfo.getOriginalFileNm() + fileInfo.getFileExt();
@@ -88,9 +88,9 @@ public class FileController {
     }
 
     @GetMapping("/view")
-    public ResponseEntity<Resource> viewFile(@RequestParam String sysId) {
+    public ResponseEntity<Resource> viewFile(@RequestParam String sysId, HttpSession session) {
 
-        FileInfo fileInfo = fileService.getFileInfo(sysId);
+        FileInfo fileInfo = fileService.getReadableFileInfo(sysId, readScope(session));
         Resource resource = fileService.readFile(fileInfo);
 
         String contentType = "Y".equals(fileInfo.getPdfYn()) ? "application/pdf" : fileInfo.getMimeType();

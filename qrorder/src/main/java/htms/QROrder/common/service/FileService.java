@@ -55,6 +55,16 @@ public class FileService {
         return fileMapper.getFileInfo(sysId);
     }
 
+    /** 읽을 수 없는 첨부와 없는 첨부를 같은 404로 돌려준다. */
+    public FileInfo getReadableFileInfo(String sysId, AttachReadScope read) {
+
+        FileInfo fileInfo = fileMapper.getReadableFileInfo(sysId, read);
+        if (fileInfo == null) {
+            throw attachmentNotFound();
+        }
+        return fileInfo;
+    }
+
     public Resource readFile(FileInfo fileInfo) {
 
         return fileIOService.IOReadFile(fileInfo);
