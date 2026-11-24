@@ -94,6 +94,29 @@
         where sys_id = #{subscriptionSysId} and role_granted_yn = 'Y'
     </update>
 
+    <select id="findPlanCode" resultType="string">
+        select payment_cd from sys_payment where sys_id = #{planSysId}
+    </select>
+
+    <select id="findOwnerRole" resultType="string">
+        select u.user_role
+        from sys_subscription s
+        join sys_user u on u.sys_id = s.owner_user_sys_id and u.plant_cd = s.plant_cd and u.delete_yn = 'N'
+        where s.sys_id = #{subscriptionSysId}
+    </select>
+
+    <update id="applyPaid">
+        update sys_subscription
+        set status = #{status},
+            paid_through_at = case
+                when #{periodEndAt}::timestamptz is null then paid_through_at
+                when paid_through_at is null or paid_through_at &lt; #{periodEndAt}::timestamptz then #{periodEndAt}::timestamptz
+                else paid_through_at end,
+            grace_until = case when #{clearGrace} then null else grace_until end,
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+    </update>
+
     <update id="markRoleRevoked">
         update sys_subscription
         set role_revoked_at = #{now}, modify_user_id = #{userId}, modify_datetime = now()

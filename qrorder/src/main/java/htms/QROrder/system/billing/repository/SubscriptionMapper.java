@@ -44,4 +44,15 @@ public interface SubscriptionMapper {
 
     int markRoleRevoked(@Param("subscriptionSysId") String subscriptionSysId, @Param("now") Instant now,
                         @Param("userId") String userId);
+
+    /** 스냅샷한 플랜의 sys_payment.payment_cd(제공자 상품 ID 매핑 키). 삭제 여부와 관계없이 읽는다. */
+    String findPlanCode(@Param("planSysId") String planSysId);
+
+    /** 구독 대표가 삭제되지 않았으면 그 역할(01/02), 아니면 null. 잠금 없는 읽기(대표는 고정). */
+    String findOwnerRole(@Param("subscriptionSysId") String subscriptionSysId);
+
+    /** Paid 반영: 상태 변경 + paid_through_at은 앞으로만, clearGrace면 grace_until 제거. 잠긴 행에만 호출. */
+    int applyPaid(@Param("sysId") String sysId, @Param("status") String status,
+                  @Param("periodEndAt") Instant periodEndAt, @Param("clearGrace") boolean clearGrace,
+                  @Param("userId") String userId);
 }

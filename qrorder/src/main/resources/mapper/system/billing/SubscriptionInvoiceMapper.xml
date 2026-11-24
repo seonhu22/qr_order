@@ -26,4 +26,14 @@
             #{periodStartAt}, #{periodEndAt}, #{paidAt}, #{applyResult}, #{insertUserId}, now()
         )
     </insert>
+
+    <update id="updateFromProvider">
+        update sys_subscription_invoice
+        set amount = #{amount}, refunded_amount = #{refundedAmount}, currency = #{currency}, status = #{status},
+            attempt_count = #{attemptCount}, provider_updated_at = #{providerUpdatedAt},
+            period_start_at = #{periodStartAt}, period_end_at = #{periodEndAt}, paid_at = #{paidAt},
+            charge_kind = #{chargeKind}, apply_result = coalesce(#{applyResult}, apply_result),
+            modify_user_id = #{insertUserId}, modify_datetime = now()
+        where sys_id = #{sysId}
+    </update>
 </mapper>
