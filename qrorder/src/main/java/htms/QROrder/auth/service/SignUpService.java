@@ -4,9 +4,11 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
+import htms.QROrder.common.exception.DuplicateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -52,7 +54,15 @@ public class SignUpService {
         signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
-        signUpMapper.newPlant(signUpRequest);
+        // 서비스 확인은 일반 경우의 409, 동시 가입은 sys_plant 부분 유니크가 막는다.
+        if (signUpMapper.existsActivePlant(signUpRequest.getBusinessRegiNum())) {
+            throw new DuplicateException("이미 가입된 사업자번호입니다.");
+        }
+        try {
+            signUpMapper.newPlant(signUpRequest);
+        } catch (DuplicateKeyException race) {
+            throw new DuplicateException("이미 가입된 사업자번호입니다.");
+        }
         signUpMapper.newUser(signUpRequest);
     }
 

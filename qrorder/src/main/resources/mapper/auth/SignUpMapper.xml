@@ -63,6 +63,14 @@
         )
     </insert>
 
+    <select id="existsActivePlant" resultType="boolean">
+        select exists (
+            select 1 from sys_plant
+            where plant_cd = #{plantCd}
+            and delete_yn = 'N'
+        )
+    </select>
+
     <select id="idDuplicateChk" resultType="boolean">
         select
             count(*) > 0
