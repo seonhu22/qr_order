@@ -380,7 +380,7 @@ test('qa-b / 보안 공격 확인 1-4', async ({ playwright }) => {
     for (const row of query<Attachment>(`select sys_id, link_sys_id, file_path, convert_file_nm, file_ext, pdf_yn, delete_yn from attach_file where original_file_nm like '${tag}-%'`)) {
       const base = join(row.file_path, row.convert_file_nm);
       for (const path of [base + row.file_ext, `${base}.pdf`]) {
-        if (!diskExists(path)) continue;
+        if (!existsSync(path)) continue;
         const underRoot = relative(realpathSync(root), realpathSync(dirname(path)));
         expect(underRoot === '..' || underRoot.startsWith(`..${sep}`) || isAbsolute(underRoot)).toBe(false);
         rmSync(path);
@@ -528,13 +528,17 @@ test('qa-b / 보안 공격 확인 1-4', async ({ playwright }) => {
       record(`3${'abc'[i]}`, `filePath='${forgedPath}'`, res.status === 200 && underRoot && stored && !stray,
         `POST ${files}/save -> ${res.status} / 저장 경로 ${row?.file_path ?? '행 없음'} (루트 하위 ${underRoot}) / 저장 파일 ${stored} / 위조 위치 파일 ${stray ? '있음' : '없음'}`);
     }
-    for (const [i, name] of ['../../../qa-b-escape-name', '..\\qa-b-escape-name', 'a:b', '..'].entries()) {
+    // 허용 문자 [\p{L}\p{Nd} ._()-]+ 이고 점만으로 된 이름은 400, 한글 이름은 200
+    const names = [['../../../qa-b-escape-name', 400], ['..\\qa-b-escape-name', 400], ['a:b', 400], ['..', 400],
+      ['...', 400], ['a/b', 400], ['메뉴 사진(1)', 200]] as const;
+    for (const [i, [name, expected]] of names.entries()) {
       const s = `name-${i}`;
       const res = await attempt(attacker, `${files}/save`, { method: 'POST', multipart: { linkSysId: OA.file_ulid, ...upload(`${tag}-${s}`), 'newItems[0].convertFileNm': name } });
       const rows = bySuffix(s);
       const leaked = diskExists(join(logsDir, 'qa-b-escape-name.png')) || diskExists(join(uploadRoot, '..', 'qa-b-escape-name.png'));
-      record(`3${'defg'[i]}`, `convertFileNm='${name}'`, !leaked && (res.status >= 400 || rows.every((r) => !r.convert_file_nm.includes('/'))),
-        `POST ${files}/save -> ${res.status} "${res.message}" / 행 ${rows.length}개${rows[0] ? ` convert_file_nm=${rows[0].convert_file_nm}` : ''} / 루트 밖 파일 ${leaked ? '있음' : '없음'}`);
+      const stored = expected === 200 ? rows.length === 1 && rows[0].convert_file_nm === name && existsSync(join(rows[0].file_path, name + rows[0].file_ext)) : rows.length === 0;
+      record(`3${'defgijk'[i]}`, `convertFileNm='${name}'`, !leaked && res.status === expected && stored,
+        `POST ${files}/save -> ${res.status} (기대 ${expected}) "${res.message}" / 행 ${rows.length}개${rows[0] ? ` convert_file_nm=${rows[0].convert_file_nm}` : ''} / 루트 밖 파일 ${leaked ? '있음' : '없음'}`);
     }
     // menuCd 는 세션 값이므로 공격자가 /menu_open_access_log 로 임의 값을 넣을 수 있다.
     const menuEscape = '../qa-b-menu-escape';
@@ -573,13 +577,17 @@ test('qa-b / 보안 공격 확인 1-4', async ({ playwright }) => {
     record('4f', '공지 A 수정 + 새 파일 linkSysId=공지 B', resN.status === 200 ? x4f?.link_sys_id === NA.file_ulid : resN.status === 404,
       `POST ${notice}/update -> ${resN.status} / 신규 첨부 연결 ${x4f ? (x4f.link_sys_id === NA.file_ulid ? '공지 A(서버가 덮어씀)' : x4f.link_sys_id === NB.file_ulid ? '공지 B(침해)' : '기타') : '없음'}`);
 
-    // 참고: 읽기 API는 매장 범위를 확인하는가 (판정 제외, 상태 코드만 기록)
-    for (const [label, path, params] of [
-      ['목록', files, { linkSysId: V.link_sys_id }], ['다운로드', `${files}/download`, { sysId: V.sys_id }],
-      ['보기', `${files}/view`, { sysId: V.sys_id }], ['전체 다운로드', `${files}/download_all`, { linkSysId: V.link_sys_id }],
+    // 읽기 범위: 다른 매장(DEMO01) 첨부는 목록 200 [], 나머지 404
+    for (const [id, label, path, params, status, size] of [
+      ['5a', '목록', files, { linkSysId: V.link_sys_id }, 200, 2],
+      ['5b', '다운로드', `${files}/download`, { sysId: V.sys_id }, 404, 0],
+      ['5c', '보기', `${files}/view`, { sysId: V.sys_id }, 404, 0],
+      ['5d', '전체 다운로드', `${files}/download_all`, { linkSysId: V.link_sys_id }, 404, 0],
     ] as const) {
       const response = await attacker.fetch(path, { params, timeout: 35_000 });
-      console.log(`참고 읽기 ${label} GET ${path} (AUTOQA_B -> DEMO01 첨부) -> ${response.status()} ${(await response.body()).length} bytes`);
+      const bytes = (await response.body()).length;
+      record(id, `읽기 ${label} (AUTOQA_B -> DEMO01 첨부)`, response.status() === status && (size ? bytes === size : bytes > 0),
+        `GET ${path} -> ${response.status()} (기대 ${status}) ${bytes} bytes`);
     }
   } finally {
     try {
@@ -589,5 +597,113 @@ test('qa-b / 보안 공격 확인 1-4', async ({ playwright }) => {
     }
   }
   console.log(`--- 요약 ${results.length - failures.length}/${results.length} PASS ---`);
+  expect(failures, failures.join('\n')).toEqual([]);
+});
+
+// ---- qa-read: 첨부 읽기 범위 (정상 읽기 200 / 범위 밖 404) ----
+test('qa-b / 읽기 범위', async ({ playwright }) => {
+  test.setTimeout(240_000);
+  const tag = `AUTO-QA qa-b ${randomUUID().slice(0, 8)}`;
+  const manager = await playwright.request.newContext({ baseURL });
+  const owner = await playwright.request.newContext({ baseURL });
+  const admin = await playwright.request.newContext({ baseURL });
+  const results: string[] = [];
+  const failures: string[] = [];
+  const bySuffix = (suffix: string) => query<Attachment>(
+    `select sys_id, link_sys_id, file_path, convert_file_nm, file_ext, pdf_yn, delete_yn from attach_file where original_file_nm = '${tag}-${suffix}'`)[0];
+
+  function record(id: string, label: string, ok: boolean, detail: string) {
+    const line = `${id} ${label} / ${detail} / ${ok ? 'PASS' : 'FAIL'}`;
+    console.log(line);
+    results.push(line);
+    if (!ok) failures.push(line);
+  }
+
+  // 같은 요청 4종(목록/다운로드/보기/전체 다운로드)을 보내 상태 코드와 본문 크기를 기록한다.
+  async function readAll(id: string, label: string, session: APIRequestContext, row: Attachment, status: number) {
+    const requests = [['목록', files, { linkSysId: row.link_sys_id }], ['다운로드', `${files}/download`, { sysId: row.sys_id }],
+      ['보기', `${files}/view`, { sysId: row.sys_id }], ['전체', `${files}/download_all`, { linkSysId: row.link_sys_id }]] as const;
+    const seen: string[] = [];
+    let ok = true;
+    for (const [name, path, params] of requests) {
+      const response = await session.fetch(path, { params, timeout: 35_000 });
+      const bytes = (await response.body()).length;
+      // 목록은 읽을 수 있으면 첨부 JSON(2 bytes 초과), 범위 밖이면 200 [] (2 bytes)
+      const expected = name === '목록' ? 200 : status;
+      const sized = name === '목록' ? (status === 200 ? bytes > 2 : bytes === 2) : bytes > 0;
+      ok &&= response.status() === expected && sized;
+      seen.push(`${name} ${response.status()}/${bytes}B`);
+    }
+    record(id, label, ok, `${seen.join(' ')} (기대 ${status})`);
+  }
+
+  async function purge() {
+    const parents = { brd_qna: 'qna_title', brd_notice: 'notice_title' } as const;
+    for (const row of query<Attachment>(`select sys_id, link_sys_id, file_path, convert_file_nm, file_ext, pdf_yn, delete_yn from attach_file where original_file_nm like '${tag}-%'`)) {
+      for (const path of [join(row.file_path, row.convert_file_nm + row.file_ext), join(row.file_path, `${row.convert_file_nm}.pdf`)]) {
+        if (!existsSync(path)) continue;
+        const underRoot = relative(realpathSync(root), realpathSync(dirname(path)));
+        expect(underRoot === '..' || underRoot.startsWith(`..${sep}`) || isAbsolute(underRoot)).toBe(false);
+        rmSync(path);
+      }
+    }
+    const ids = Object.entries(parents).flatMap(([table, column]) => query<{ sys_id: string }>(`select sys_id from ${table} where ${column} like '${tag}-%'`).map((r) => r.sys_id));
+    for (const id of ids) expect(id).toMatch(/^[A-Z0-9]{26}$/);
+    db(`begin;
+        delete from attach_file where original_file_nm like '${tag}-%';
+        ${ids.length ? `delete from sys_audit_trail where ref_key in ('${ids.join("','")}');` : ''}
+        ${Object.entries(parents).map(([table, column]) => `delete from ${table} where ${column} like '${tag}-%';`).join('\n')}
+        commit;`);
+    console.log(`${tag} / 정리 완료: 첨부 ${db(`select count(*) from attach_file where original_file_nm like '${tag}-%'`)}행 잔존`);
+  }
+
+  try {
+    await login(manager, 'autoqa_manager_b', 'AUTOQA_B');
+    await login(owner, 'demo_owner', 'DEMO01');
+    await login(admin, 'demo_admin');
+
+    // 준비: DEMO01 문의(피해자), AUTOQA_B 문의 + Admin 답변 첨부, Admin 공지 첨부
+    await save(owner, `${qna}/new`, { qnaTitle: `${tag}-victim`, qnaDescription: tag, ...upload(`${tag}-victim`) });
+    await save(manager, `${qna}/new`, { qnaTitle: `${tag}-own`, qnaDescription: tag, ...upload(`${tag}-own`) });
+    const own = query<Parent>(`select sys_id, file_ulid from brd_qna where qna_title = '${tag}-own'`)[0];
+    await call(admin, '/api/log/log/menu_open_access_log', { method: 'POST', params: { menuCd: 'QNA' } });
+    await save(admin, answer, { sysId: own.sys_id, answerDescription: tag, answerYn: 'Y', ...upload(`${tag}-answer`) });
+    await call(admin, '/api/log/log/menu_open_access_log', { method: 'POST', params: { menuCd: 'NOTICE' } });
+    await save(admin, `${notice}/new`, { noticeTitle: `${tag}-notice`, noticeDescription: tag, target: 'manager',
+      startDate: `${new Date().toISOString().slice(0, 10)} 00:00:00`, useYn: 'Y', ...upload(`${tag}-notice`) });
+    const [victim, ownFile, answerFile, noticeFile] = ['victim', 'own', 'answer', 'notice'].map(bySuffix);
+    for (const row of [victim, ownFile, answerFile, noticeFile]) expect(row?.delete_yn).toBe('N');
+    const plants = db(`select string_agg(original_file_nm || '=' || sys_plant_cd, ',' order by original_file_nm) from attach_file where original_file_nm like '${tag}-%'`);
+    console.log(`첨부 매장 ${plants.replaceAll(`${tag}-`, '')}`);
+
+    await readAll('6a', '다른 매장(AUTOQA_B -> DEMO01) 문의 첨부', manager, victim, 404);
+    await readAll('6b', '같은 매장 문의 첨부(AUTOQA_B -> AUTOQA_B)', manager, ownFile, 200);
+    await readAll('6c', 'Admin -> Client 문의 원문 첨부(DEMO01)', admin, victim, 200);
+    await readAll('6d', 'Client -> Admin 답변 첨부(plant=ADMIN)', manager, answerFile, 200);
+    await readAll('6e', 'Client -> Admin 공지 첨부(plant=ADMIN, target=manager)', manager, noticeFile, 200);
+    await readAll('6f', 'DEMO01 -> AUTOQA_B 문의 첨부(역방향)', owner, ownFile, 404);
+
+    const fake = '01ZZZZZZZZZZZZZZZZZZZZZZZZ';
+    for (const [id, label, path, params] of [
+      ['6g', '없는 sysId 다운로드', `${files}/download`, { sysId: fake }], ['6h', '없는 sysId 보기', `${files}/view`, { sysId: fake }],
+      ['6i', '없는 linkSysId 전체 다운로드', `${files}/download_all`, { linkSysId: fake }],
+    ] as const) {
+      const response = await manager.fetch(path, { params, timeout: 35_000 });
+      record(id, label, response.status() === 404, `GET ${path} -> ${response.status()} (기대 404) ${(await response.body()).length}B`);
+    }
+    const emptyList = await manager.fetch(files, { params: { linkSysId: fake }, timeout: 35_000 });
+    record('6j', '없는 linkSysId 목록', emptyList.status() === 200 && (await emptyList.body()).length === 2, `GET ${files} -> ${emptyList.status()} (기대 200 [])`);
+
+    // 부모 문의를 삭제하면 같은 매장이어도 읽지 못한다
+    await call(manager, `${qna}/del`, { method: 'POST', data: { sysId: own.sys_id } });
+    await readAll('6k', '삭제된 부모의 첨부(같은 매장)', manager, ownFile, 404);
+  } finally {
+    try {
+      await purge();
+    } finally {
+      await Promise.all([manager.dispose(), owner.dispose(), admin.dispose()]);
+    }
+  }
+  console.log(`--- 읽기 범위 요약 ${results.length - failures.length}/${results.length} PASS ---`);
   expect(failures, failures.join('\n')).toEqual([]);
 });
