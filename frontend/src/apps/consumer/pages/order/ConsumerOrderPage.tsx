@@ -62,8 +62,6 @@ export function ConsumerOrderPage() {
     duplicateTime,
     completedOrderNo,
     orderConfirmOpen,
-    requestNote,
-    changeRequestNote,
     placeOrder,
     confirmPlaceOrder,
     cancelPlaceOrder,
@@ -338,8 +336,6 @@ export function ConsumerOrderPage() {
           {orderConfirmOpen && (
             <OrderConfirmModal
               totalPrice={totalCartPrice}
-              requestNote={requestNote}
-              onRequestNoteChange={changeRequestNote}
               onConfirm={confirmPlaceOrder}
               onCancel={cancelPlaceOrder}
             />
