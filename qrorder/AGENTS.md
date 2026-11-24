@@ -1,6 +1,6 @@
 # Backend scope instructions
 
-These instructions apply when Codex starts in `qrorder/`. Backend modification still requires the authorization described in the repository root `AGENTS.md`.
+These instructions apply when Codex starts in `qrorder/`. The change boundary in the repository root `AGENTS.md` applies.
 
 ## Structure and contracts
 
