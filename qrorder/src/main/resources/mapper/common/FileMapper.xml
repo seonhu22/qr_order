@@ -13,9 +13,8 @@
             file_ext ,
             pdf_yn
         from attach_file af
-        where 1=1
-        and link_sys_id = #{sysId}
-        and delete_yn = 'N'
+        where af.link_sys_id = #{sysId}
+        and <include refid="readScope"/>
         order by ord_no
     </select>
 
@@ -96,6 +95,40 @@
         af.sys_plant_cd = #{scope.sysPlantCd}
         and af.link_sys_id = #{scope.linkSysId}
         and af.delete_yn = 'N'
+    </sql>
+
+    <!--
+        첨부 읽기 범위 = 부모 행 읽기 권한. 범위 밖과 없는 첨부를 구분하지 않는다.
+        1) 세션과 같은 매장의 첨부
+        2) Client 문의 원문(file_ulid)/관리자 답변(sys_id) 첨부: 그 문의를 읽는 세션
+           (같은 매장 문의, 관리자는 모든 문의. ClientQnaMapper/QnaMapper.getQna 조건)
+        3) 공지 첨부: Client 공지 목록과 같은 조건(ClientNoticeMapper.getNotice)
+    -->
+    <sql id="readScope">
+        af.delete_yn = 'N'
+        and (
+            af.sys_plant_cd = #{read.sysPlantCd}
+            or exists (
+                select 1
+                from brd_qna bq
+                where af.link_sys_id in (bq.sys_id, bq.file_ulid)
+                and bq.delete_yn = 'N'
+                <if test="!read.admin">
+                and bq.sys_plant_cd = #{read.sysPlantCd}
+                </if>
+            )
+            <if test="read.noticeTarget != null">
+            or exists (
+                select 1
+                from brd_notice bn
+                where bn.file_ulid = af.link_sys_id
+                and bn.delete_yn = 'N'
+                and bn.use_yn = 'Y'
+                and bn.target in ('all', #{read.noticeTarget})
+                and bn.start_date &lt;= now()
+            )
+            </if>
+        )
     </sql>
 
     <update id="updateFile">

@@ -1,6 +1,7 @@
 package htms.QROrder.common.service;
 
 import htms.QROrder.audit.service.AuditService;
+import htms.QROrder.common.dto.AttachReadScope;
 import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileIO;
 import htms.QROrder.common.dto.FileInfo;
@@ -43,9 +44,10 @@ public class FileService {
     private final PdfConvertService pdfConvertService;
     private final FileValidationService fileValidationService;
 
-    public List<FileResponse> getAttachFile(String sysId) {
+    /** 읽을 수 없는 부모의 첨부는 없는 첨부와 같이 빈 목록이다. */
+    public List<FileResponse> getAttachFile(String sysId, AttachReadScope read) {
 
-        return fileMapper.getAttachFile(sysId);
+        return fileMapper.getAttachFile(sysId, read);
     }
 
     public FileInfo getFileInfo(String sysId) {

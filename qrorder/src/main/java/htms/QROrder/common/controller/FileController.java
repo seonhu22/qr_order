@@ -29,9 +29,9 @@ public class FileController {
     private final MenuOptionDetailService menuOptionDetailService;
 
     @GetMapping
-    public List<FileResponse> getAttachFile(@RequestParam String linkSysId) {
+    public List<FileResponse> getAttachFile(@RequestParam String linkSysId, HttpSession session) {
 
-        return fileService.getAttachFile(linkSysId);
+        return fileService.getAttachFile(linkSysId, readScope(session));
     }
 
     @PostMapping("/save")
@@ -100,5 +100,9 @@ public class FileController {
                         ContentDisposition.inline().build().toString())
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
+    }
+
+    private static AttachReadScope readScope(HttpSession session) {
+        return AttachReadScope.of((Login) session.getAttribute("loginUser"));
     }
 }

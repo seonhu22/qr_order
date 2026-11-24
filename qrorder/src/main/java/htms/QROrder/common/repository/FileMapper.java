@@ -1,5 +1,6 @@
 package htms.QROrder.common.repository;
 
+import htms.QROrder.common.dto.AttachReadScope;
 import htms.QROrder.common.dto.AttachScope;
 import htms.QROrder.common.dto.FileInfo;
 import htms.QROrder.common.dto.FileResponse;
@@ -9,7 +10,7 @@ import java.util.List;
 
 @Mapper
 public interface FileMapper {
-    List<FileResponse> getAttachFile(String sysId);
+    List<FileResponse> getAttachFile(String sysId, AttachReadScope read);
     List<FileInfo> getFileInfoList(String linkSysId);
     void newFile(List<FileInfo> newItems, String userId, String sysPlantCd);
     List<FileInfo> lockOwned(List<String> ids, AttachScope scope);

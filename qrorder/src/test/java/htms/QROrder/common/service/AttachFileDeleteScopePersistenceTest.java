@@ -63,8 +63,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -598,6 +600,91 @@ class AttachFileDeleteScopePersistenceTest {
                 () -> assertTrue(Files.exists(neighbor)),
                 () -> assertEquals("N", deleteYn("QNA-FOREIGN")),
                 () -> assertTrue(Files.exists(foreign)));
+    }
+
+    // Read scope: an attachment is readable only by a session that may read its parent row.
+
+    @Test
+    void listReturnsSamePlantAttachments() throws Exception {
+        storeAttachment("OWN-READ", "LINK-A", PLANT, "own-read");
+
+        mvc.perform(get("/api/attach_file").param("linkSysId", "LINK-A").sessionAttr("loginUser", login(PLANT, "02")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].sysId").value("OWN-READ"));
+    }
+
+    @Test
+    void listHidesAnotherPlantsAttachmentsLikeMissingOnes() throws Exception {
+        storeAttachment("FOREIGN-READ", "LINK-B", FOREIGN_PLANT, "foreign-read");
+        storeOptionParent("LINK-B", FOREIGN_PLANT);
+
+        for (String link : List.of("LINK-B", "NO-SUCH-LINK")) {
+            mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
+
+    @Test
+    void listFollowsInquiryReadPermissionForOriginalAndAnswer() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+        storeAttachment("QNA-B-ANSWER", "QNA-B", "ADMIN", "qna-answer");
+
+        for (String link : List.of("QNA-B-FILES", "QNA-B")) {
+            for (Login reader : List.of(login("ADMIN", null), login(FOREIGN_PLANT, "02"))) {
+                mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", reader))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.length()").value(1));
+            }
+            mvc.perform(get("/api/attach_file").param("linkSysId", link).sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
+
+    @Test
+    void listFollowsClientNoticeVisibility() throws Exception {
+        storeNotice("N-ALL", "LINK-N-ALL");
+        storeAttachment("N-ALL-FILE", "LINK-N-ALL", "ADMIN", "n-all");
+        storeNotice("N-MANAGER", "LINK-N-MANAGER");
+        jdbc.update("update brd_notice set target='manager' where sys_id='N-MANAGER'");
+        storeAttachment("N-MANAGER-FILE", "LINK-N-MANAGER", "ADMIN", "n-manager");
+        storeNotice("N-HIDDEN", "LINK-N-HIDDEN");
+        jdbc.update("update brd_notice set use_yn='N' where sys_id='N-HIDDEN'");
+        storeAttachment("N-HIDDEN-FILE", "LINK-N-HIDDEN", "ADMIN", "n-hidden");
+
+        assertNoticeFiles(login(PLANT, "01"), 1, 1, 0);
+        assertNoticeFiles(login(PLANT, "02"), 1, 0, 0);
+        assertNoticeFiles(login(PLANT, null), 0, 0, 0);
+        assertNoticeFiles(login("ADMIN", null), 1, 1, 1);
+    }
+
+    private void assertNoticeFiles(Login reader, int all, int manager, int hidden) throws Exception {
+        for (var expected : List.of(List.of("LINK-N-ALL", all), List.of("LINK-N-MANAGER", manager),
+                List.of("LINK-N-HIDDEN", hidden))) {
+            mvc.perform(get("/api/attach_file").param("linkSysId", (String) expected.get(0))
+                            .sessionAttr("loginUser", reader))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(expected.get(1)));
+        }
+    }
+
+    private void storeQna(String sysId, String fileUlid, String plant) {
+        jdbc.update("""
+                insert into brd_qna(sys_id, qna_title, qna_description, delete_yn, file_ulid, answer_yn,
+                    insert_datetime, insert_user_id, sys_plant_cd)
+                values (?, 'title', 'body', 'N', ?, 'Y', now(), 'WRITER', ?)
+                """, sysId, fileUlid, plant);
+    }
+
+    private static Login login(String plant, String role) {
+        var login = new Login();
+        login.setUserId("READER");
+        login.setSysPlantCd(plant);
+        login.setUserRole(role);
+        return login;
     }
 
     private String inquiryDeleteYn() {
