@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- INSERT는 구독/인보이스 변경과 같은 트랜잭션에서만 한다. 실패하면 함께 롤백되어 재전송 때 다시 처리된다. -->
+<mapper namespace="htms.QROrder.system.billing.repository.BillingWebhookEventMapper">
+
+    <select id="findResult" resultType="string">
+        select result
+        from sys_billing_webhook_event
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and webhook_id = #{webhookId}
+    </select>
+
+    <insert id="insertEvent">
+        insert into sys_billing_webhook_event (
+            sys_id, provider, provider_store_id, webhook_id, event_type, resource_id,
+            occurred_at, received_at, processed_at, result
+        )
+        values (
+            #{sysId}, #{provider}, #{providerStoreId}, #{webhookId}, #{eventType}, #{resourceId},
+            #{occurredAt}, #{receivedAt}, #{processedAt}, #{result}
+        )
+    </insert>
+</mapper>

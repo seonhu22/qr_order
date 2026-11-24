@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 잠금 순서: sys_subscription, sys_subscription_invoice, sys_billing_webhook_event, sys_user (정책 4C §8). -->
+<mapper namespace="htms.QROrder.system.billing.repository.SubscriptionMapper">
+
+    <sql id="columns">
+        sys_id, plant_cd, owner_user_sys_id, plan_sys_id, amount, currency, period_month,
+        provider, provider_store_id, provider_customer_id, provider_subscription_id,
+        checkout_attempt_id, checkout_expires_at, status, paid_through_at, grace_until, end_at,
+        cancel_requested_at, expired_at, provider_end_status, payment_method_status,
+        role_granted_yn, role_granted_at, role_revoked_at, last_failure_code, insert_user_id
+    </sql>
+
+    <insert id="insertSubscription">
+        insert into sys_subscription (
+            sys_id, plant_cd, owner_user_sys_id, status,
+            provider_end_status, payment_method_status, role_granted_yn,
+            insert_user_id, insert_datetime
+        )
+        values (
+            #{sysId}, #{plantCd}, #{ownerUserSysId}, #{status},
+            'NONE', 'NONE', 'N',
+            #{insertUserId}, now()
+        )
+    </insert>
+
+    <select id="findOpenByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd} and status &lt;&gt; 'EXPIRED'
+    </select>
+
+    <select id="lockOpenByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd} and status &lt;&gt; 'EXPIRED'
+        for update
+    </select>
+
+    <select id="lockOpenByOwners" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where status &lt;&gt; 'EXPIRED'
+        and owner_user_sys_id in
+        <foreach collection="ownerUserSysIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        order by sys_id
+        for update
+    </select>
+
+    <select id="lockByProviderSubscription" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and provider_subscription_id = #{providerSubscriptionId}
+        for update
+    </select>
+
+    <!-- UPDATE ... FROM은 sys_subscription 행을 잠그지 않는다. 호출자가 이미 구독 행을 잠갔다. -->
+    <update id="grantOwnerRole">
+        update sys_user u
+        set user_role = '01', modify_user_id = #{userId}, modify_datetime = now()
+        from sys_subscription s
+        where s.sys_id = #{subscriptionSysId}
+        and u.sys_id = s.owner_user_sys_id
+        and u.plant_cd = s.plant_cd
+        and u.plant_cd &lt;&gt; 'ADMIN'
+        and u.user_role = '02'
+        and u.delete_yn = 'N'
+    </update>
+
+    <update id="markRoleGranted">
+        update sys_subscription
+        set role_granted_yn = 'Y', role_granted_at = #{now}, role_revoked_at = null,
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'N'
+    </update>
+
+    <update id="revokeOwnerRole">
+        update sys_user u
+        set user_role = '02', modify_user_id = #{userId}, modify_datetime = now()
+        from sys_subscription s
+        where s.sys_id = #{subscriptionSysId}
+        and s.role_granted_yn = 'Y'
+        and s.role_revoked_at is null
+        and u.sys_id = s.owner_user_sys_id
+        and u.plant_cd = s.plant_cd
+        and u.user_role = '01'
+    </update>
+
+    <update id="markRoleRevoked">
+        update sys_subscription
+        set role_revoked_at = #{now}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'Y' and role_revoked_at is null
+    </update>
+</mapper>
