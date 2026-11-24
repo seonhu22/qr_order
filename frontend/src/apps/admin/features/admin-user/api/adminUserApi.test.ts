@@ -5,18 +5,18 @@ describe('getPlantSelectOptions', () => {
   it('does not invent plants when combo data is empty or invalid', () => {
     expect(getPlantSelectOptions([])).toEqual([]);
     expect(getPlantSelectOptions(undefined)).toEqual([]);
-    expect(getPlantSelectOptions([{ code: '', name: '이름만 있음' }, { code: 'ONLY_CODE', name: '' }])).toEqual([]);
+    expect(getPlantSelectOptions([{ code: '', name: '이름만 있음' }, { code: 'ADMIN', name: '' }])).toEqual([]);
   });
 
-  it('returns mapped combo options when API data exists', () => {
+  it('offers only ADMIN when the plant combo also contains stores', () => {
     expect(
       getPlantSelectOptions([
         { code: 'A001', name: '본점' },
+        { code: 'ADMIN', name: '시스템 관리' },
         { code: 'A002', name: '서브점' },
       ]),
     ).toEqual([
-      { value: 'A001', label: '본점' },
-      { value: 'A002', label: '서브점' },
+      { value: 'ADMIN', label: '시스템 관리' },
     ]);
   });
 });
