@@ -72,13 +72,15 @@
         and delete_yn = 'N'
     </update>
 
-    <delete id="delQna">
+    <update id="delQna">
         update brd_qna set
             delete_yn = 'Y',
             modify_user_id = #{userId},
             modify_datetime = now()
-        where 1=1
-        and sys_id = #{qnaRequest.sysId}
-    </delete>
+        where sys_id = #{qnaRequest.sysId}
+        and sys_plant_cd = #{sysPlantCd}
+        and insert_user_id = #{userId}
+        and delete_yn = 'N'
+    </update>
 
 </mapper>

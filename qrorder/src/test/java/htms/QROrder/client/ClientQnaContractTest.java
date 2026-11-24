@@ -11,6 +11,7 @@ import htms.QROrder.common.dto.FileRequest;
 import htms.QROrder.common.service.FileService;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,6 +69,33 @@ class ClientQnaContractTest {
     @Test
     void returnsNotFoundWhenNoOwnedActiveInquiryWasUpdated() throws Exception {
         postInquiryUpdate("OTHER-QNA").andExpect(status().isNotFound());
+    }
+
+    @Test
+    void softDeletesOnlyOwnedActiveInquiryInSessionStore() throws Exception {
+        when(sqlSession.update(eq(NAMESPACE + "delQna"), any())).thenReturn(1);
+
+        postInquiryDelete("QNA-1").andExpect(status().isOk());
+
+        assertEquals("QNA-1", captureRequest("delQna", false).getSysId());
+        var sql = configuration.getMappedStatement(NAMESPACE + "delQna").getBoundSql(Map.of());
+        assertEquals("""
+                update brd_qna set delete_yn = 'Y', modify_user_id = ?, modify_datetime = now() \
+                where sys_id = ? and sys_plant_cd = ? and insert_user_id = ? and delete_yn = 'N'""",
+                sql.getSql().replaceAll("\\s+", " ").trim());
+        assertEquals(List.of("userId", "qnaRequest.sysId", "sysPlantCd", "userId"),
+                sql.getParameterMappings().stream().map(ParameterMapping::getProperty).toList());
+        verifyNoInteractions(files);
+    }
+
+    @Test
+    void returnsNotFoundWhenDeleteChangesNoRows() throws Exception {
+        when(sqlSession.update(eq(NAMESPACE + "delQna"), any())).thenReturn(0);
+
+        postInquiryDelete("QNA-1").andExpect(status().isNotFound());
+
+        assertEquals("QNA-1", captureRequest("delQna", false).getSysId());
+        verifyNoInteractions(files);
     }
 
     @Test
@@ -123,6 +152,16 @@ class ClientQnaContractTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {"sysId":"%s","qnaTitle":"Updated title","qnaDescription":"Updated inquiry"}
+                        """.formatted(sysId))
+                .sessionAttr("loginUser", login)
+                .sessionAttr("menuCd", "QNA"));
+    }
+
+    private ResultActions postInquiryDelete(String sysId) throws Exception {
+        return mvc.perform(post("/api/client/board/qna/del")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"sysId":"%s"}
                         """.formatted(sysId))
                 .sessionAttr("loginUser", login)
                 .sessionAttr("menuCd", "QNA"));
