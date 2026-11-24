@@ -710,6 +710,55 @@ class AttachFileDeleteScopePersistenceTest {
         }
     }
 
+    @Test
+    void downloadAllZipsOnlyReadableAttachmentsAndHidesTheRest() throws Exception {
+        storeAttachment("ZIP-OWN-1", "LINK-A", PLANT, "zip-own-1");
+        storeAttachment("ZIP-OWN-2", "LINK-A", PLANT, "zip-own-2");
+        jdbc.update("update attach_file set original_file_nm='second' where sys_id='ZIP-OWN-2'");
+        Path foreign = storeAttachment("ZIP-FOREIGN", "LINK-B", FOREIGN_PLANT, "zip-foreign");
+
+        byte[] zip = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "LINK-A")
+                        .sessionAttr("loginUser", login(PLANT, "02")))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        for (String link : List.of("LINK-B", "NO-SUCH-LINK")) {
+            mvc.perform(get("/api/attach_file/download_all").param("linkSysId", link)
+                            .sessionAttr("loginUser", login(PLANT, "01")))
+                    .andExpect(status().isNotFound());
+        }
+
+        assertAll(
+                () -> assertEquals(2, zipEntryCount(zip)),
+                () -> assertEquals("N", deleteYn("ZIP-FOREIGN")),
+                () -> assertTrue(Files.exists(foreign)));
+    }
+
+    @Test
+    void adminDownloadsAllAttachmentsOfAnotherPlantsInquiry() throws Exception {
+        storeQna("QNA-B", "QNA-B-FILES", FOREIGN_PLANT);
+        storeAttachment("QNA-B-ORIGINAL", "QNA-B-FILES", FOREIGN_PLANT, "qna-original");
+
+        byte[] zip = mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "QNA-B-FILES")
+                        .sessionAttr("loginUser", login("ADMIN", null)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        mvc.perform(get("/api/attach_file/download_all").param("linkSysId", "QNA-B-FILES")
+                        .sessionAttr("loginUser", login(PLANT, "01")))
+                .andExpect(status().isNotFound());
+
+        assertEquals(1, zipEntryCount(zip));
+    }
+
+    private static int zipEntryCount(byte[] zip) throws Exception {
+        int count = 0;
+        try (var in = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(zip))) {
+            while (in.getNextEntry() != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private void assertNoticeFiles(Login reader, int all, int manager, int hidden) throws Exception {
         for (var expected : List.of(List.of("LINK-N-ALL", all), List.of("LINK-N-MANAGER", manager),
                 List.of("LINK-N-HIDDEN", hidden))) {

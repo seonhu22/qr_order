@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper
 public interface FileMapper {
     List<FileResponse> getAttachFile(String sysId, AttachReadScope read);
-    List<FileInfo> getFileInfoList(String linkSysId);
+    List<FileInfo> getFileInfoList(String linkSysId, AttachReadScope read);
     void newFile(List<FileInfo> newItems, String userId, String sysPlantCd);
     List<FileInfo> lockOwned(List<String> ids, AttachScope scope);
     int updateFile(List<FileInfo> updateItems, String userId, AttachScope scope);

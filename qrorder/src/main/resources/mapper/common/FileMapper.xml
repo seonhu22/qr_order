@@ -63,10 +63,9 @@
             file_path ,
             pdf_yn ,
             ord_no
-        from attach_file
-        where 1=1
-        and link_sys_id = #{linkSysId}
-        and delete_yn = 'N'
+        from attach_file af
+        where af.link_sys_id = #{linkSysId}
+        and <include refid="readScope"/>
         order by ord_no
     </select>
 

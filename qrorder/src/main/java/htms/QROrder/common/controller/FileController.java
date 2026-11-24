@@ -72,9 +72,9 @@ public class FileController {
     }
 
     @GetMapping("/download_all")
-    public ResponseEntity<ByteArrayResource> downloadAllFile(@RequestParam String linkSysId) {
+    public ResponseEntity<ByteArrayResource> downloadAllFile(@RequestParam String linkSysId, HttpSession session) {
 
-        ByteArrayResource resource = fileService.downloadAll(linkSysId);
+        ByteArrayResource resource = fileService.downloadAll(linkSysId, readScope(session));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,

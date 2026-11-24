@@ -70,9 +70,13 @@ public class FileService {
         return fileIOService.IOReadFile(fileInfo);
     }
 
-    public ByteArrayResource downloadAll(String linkSysId) {
+    /** 읽을 수 있는 첨부가 하나도 없으면 부모가 없는 경우와 같은 404다. */
+    public ByteArrayResource downloadAll(String linkSysId, AttachReadScope read) {
 
-        List<FileInfo> files = fileMapper.getFileInfoList(linkSysId);
+        List<FileInfo> files = fileMapper.getFileInfoList(linkSysId, read);
+        if (files.isEmpty()) {
+            throw attachmentNotFound();
+        }
         return fileIOService.IOZipFiles(files);
     }
 
