@@ -1,6 +1,8 @@
 package htms.QROrder.auth.controller;
 
 import htms.QROrder.auth.dto.SignUpRequest;
+import htms.QROrder.auth.dto.VerifiedBusiness;
+import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.exception.EmailValidException;
 import htms.QROrder.auth.service.SignUpService;
 import htms.QROrder.common.dto.CommonResponse;
@@ -19,9 +21,12 @@ public class SignUpController {
     private final SignUpService signUpService;
 
     @PostMapping("/signup/new/chkBRN")
-    public ResponseEntity<CommonResponse> chkBRN(@RequestBody SignUpRequest signUpRequest){
+    public ResponseEntity<CommonResponse> chkBRN(@RequestBody SignUpRequest signUpRequest,
+                                                 HttpSession session){
 
+        session.removeAttribute(VerifiedBusiness.SESSION_KEY);
         signUpService.chkBRN(signUpRequest);
+        session.setAttribute(VerifiedBusiness.SESSION_KEY, VerifiedBusiness.of(signUpRequest));
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
@@ -57,10 +62,16 @@ public class SignUpController {
             throw new EmailValidException("이메일 인증을 먼저 완료해주세요.");
         }
 
+        Object verified = session.getAttribute(VerifiedBusiness.SESSION_KEY);
+        if (!(verified instanceof VerifiedBusiness business) || !business.matches(signUpRequest)) {
+            throw new BusinessRegiException("사업자 인증을 먼저 완료해주세요.");
+        }
+
         signUpService.newUser(signUpRequest);
 
         session.removeAttribute("signupEmail");
         session.removeAttribute("signupValidCode");
+        session.removeAttribute(VerifiedBusiness.SESSION_KEY);
 
         return ResponseEntity.ok(
                 CommonResponse.builder()
