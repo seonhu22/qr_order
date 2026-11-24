@@ -26,7 +26,6 @@
         and (bq.qna_title like concat('%', #{searchKeyword}, '%')
                 or bq.qna_description like concat('%', #{searchKeyword}, '%'))
         </if>
-        and bq.sys_plant_cd = #{sysPlantCd}
         and bq.delete_yn = 'N'
     </select>
 
@@ -38,8 +37,8 @@
             answer_user_id = #{userId},
             modify_user_id = #{userId},
             modify_datetime = now()
-        where 1=1
-        and sys_id = #{qnaRequest.sysId}
+        where sys_id = #{qnaRequest.sysId}
+        and delete_yn = 'N'
     </update>
 
     <select id="getOldData" resultType="htms.QROrder.system.dto.QnaResponse">
@@ -53,8 +52,8 @@
             bq.answer_datetime,
             bq.answer_description
         from brd_qna bq
-        where 1=1
-        and bq.sys_id = #{sysId}
+        where bq.sys_id = #{sysId}
+        and bq.delete_yn = 'N'
     </select>
 
 </mapper>

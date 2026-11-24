@@ -985,6 +985,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description 원문 첨부파일은 선택 사항이며 multipart/form-data의 newItems[0].file 등으로 전송합니다. */
         post: operations["newQna"];
         delete?: never;
         options?: never;

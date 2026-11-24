@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,12 +46,30 @@ class QnaAnswerAttachmentContractTest {
         var mapper = mock(QnaMapper.class);
         var storage = mock(FileService.class);
         when(mapper.getOldData(answer)).thenReturn(new QnaResponse());
+        when(mapper.updateQna(answer, "ADMIN-USER")).thenReturn(1);
         new QnaService(mapper, mock(AuditService.class), storage)
                 .updateQna(answer, files, "ADMIN-USER", "ADMIN", "QNA");
 
         assertEquals("QNA-1", files.getNewItems().get(0).getLinkSysId());
         assertTrue(files.getDelItems().isEmpty());
-        verify(mapper).updateQna(answer, "ADMIN-USER", "ADMIN");
+        verify(mapper).updateQna(answer, "ADMIN-USER");
         verify(storage).saveFile(files, "ADMIN-USER", "ADMIN", "QNA");
+    }
+
+    @Test
+    void rejectsAnUnavailableInquiryBeforeSavingAnswerFiles() {
+        var answer = new QnaRequest();
+        answer.setSysId("MISSING-QNA");
+        var mapper = mock(QnaMapper.class);
+        var audit = mock(AuditService.class);
+        var storage = mock(FileService.class);
+        var service = new QnaService(mapper, audit, storage);
+
+        var error = assertThrows(ResponseStatusException.class,
+                () -> service.updateQna(answer, new FileRequest(), "ADMIN-USER", "ADMIN", "QNA"));
+
+        assertEquals(404, error.getStatusCode().value());
+        verify(mapper, never()).updateQna(any(), any());
+        verifyNoInteractions(audit, storage);
     }
 }
