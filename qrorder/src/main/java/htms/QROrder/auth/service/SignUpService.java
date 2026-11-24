@@ -58,8 +58,8 @@ public class SignUpService {
         signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
-        // 서비스 확인은 일반 경우의 409, 동시 가입은 sys_plant 부분 유니크가 막는다.
-        if (signUpMapper.existsActivePlant(signUpRequest.getBusinessRegiNum())) {
+        // 서비스 확인은 일반 경우의 409(삭제된 매장/끝난 구독 이력 포함), 동시 가입은 sys_plant 부분 유니크가 막는다.
+        if (signUpMapper.existsPlantHistory(signUpRequest.getBusinessRegiNum())) {
             throw new DuplicateException("이미 가입된 사업자번호입니다.");
         }
         // 셀프 가입 대표는 02 + PENDING 구독으로 시작하고, 구독 결제가 01로 올린다(정책 4C §1).

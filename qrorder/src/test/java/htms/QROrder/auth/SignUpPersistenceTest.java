@@ -130,15 +130,28 @@ class SignUpPersistenceTest {
         assertEquals(1, count("sys_subscription"));
     }
 
-    @Test void deletedStoreWithEndedSubscriptionDoesNotBlockNewSignup() {
+    @Test void deletedStoreOrEndedSubscriptionStillBlocksSignupAndKeepsOwner() {
         signUp.newUser(request("1234567890", "owner1"));
+        String owner = jdbc.queryForObject("select sys_id from sys_user where user_id='owner1'", String.class);
         jdbc.update("update sys_plant set delete_yn='Y'");
-        // 매장만 지우고 구독이 진행 중이면 여전히 409. 구독이 끝나야 같은 번호로 다시 가입된다.
         assertThrows(DuplicateException.class, () -> signUp.newUser(request("1234567890", "owner2")));
         jdbc.update("update sys_subscription set status='EXPIRED'");
-        signUp.newUser(request("1234567890", "owner2"));
-        assertEquals(1, jdbc.queryForObject("select count(*) from sys_plant where delete_yn='N'", Integer.class));
-        assertEquals(1, jdbc.queryForObject("select count(*) from sys_subscription where status='PENDING'", Integer.class));
+        // 삭제된 매장 + 끝난 구독도 이력이므로 다른 계정은 같은 번호의 대표가 되지 못한다.
+        assertThrows(DuplicateException.class, () -> signUp.newUser(request("1234567890", "owner2")));
+        assertEquals(1, count("sys_plant"));
+        assertEquals(1, count("sys_user"));
+        assertEquals(1, count("sys_subscription"));
+        assertEquals(owner, jdbc.queryForObject("select owner_user_sys_id from sys_subscription", String.class));
+    }
+
+    @Test void subscriptionHistoryWithoutStoreRowBlocksSignup() {
+        jdbc.update("""
+                insert into sys_subscription(sys_id, plant_cd, owner_user_sys_id, status, insert_user_id, insert_datetime)
+                values ('OLD', '1234567890', 'GONE', 'EXPIRED', 'T', now())
+                """);
+        assertThrows(DuplicateException.class, () -> signUp.newUser(request("1234567890", "owner1")));
+        assertEquals(0, count("sys_plant"));
+        assertEquals(0, count("sys_user"));
     }
 
     @Test void concurrentSameNumberSignupWaitsOnIndexAndLoserGets409() throws Exception {

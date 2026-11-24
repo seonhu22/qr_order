@@ -8,5 +8,5 @@ public interface SignUpMapper {
     void newPlant(SignUpRequest signUpRequest);
     void newUser(SignUpRequest signUpRequest);
     boolean idDuplicateChk(String userId);
-    boolean existsActivePlant(String plantCd);
+    boolean existsPlantHistory(String plantCd);
 }
