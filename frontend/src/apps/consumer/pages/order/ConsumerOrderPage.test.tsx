@@ -210,7 +210,7 @@ describe('ConsumerOrderPage 메뉴 상세 시트', () => {
 });
 
 describe('ConsumerOrderPage 주문 API', { timeout: 10_000 }, () => {
-  it('submits the server request and clears the cart only after success', async () => {
+  it('요청사항 입력 없이 주문하고 성공 후 장바구니를 비운다', async () => {
     let requestBody: Record<string, unknown> | undefined;
     server.use(
       http.post('/api/client/consumer/orders', async ({ request }) => {
@@ -230,7 +230,12 @@ describe('ConsumerOrderPage 주문 API', { timeout: 10_000 }, () => {
 
     renderOrderPage();
     await addPlainMenuToCart();
-    await submitOrderFromCart();
+    await userEvent.click(within(sheet()).getByRole('button', { name: '주문하기' }));
+
+    const confirmation = within(screen.getByRole('alertdialog', { name: '주문하시겠습니까?' }));
+    expect(confirmation.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(confirmation.getByRole('button', { name: '취소' })).toHaveFocus();
+    await userEvent.click(confirmation.getByRole('button', { name: '주문하기' }));
 
     expect(await screen.findByText('주문 완료')).toBeInTheDocument();
     expect(screen.getByText('0001')).toBeInTheDocument();
