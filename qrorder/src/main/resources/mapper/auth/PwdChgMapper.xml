@@ -6,6 +6,7 @@
     <update id="chgPwd">
         update sys_user set
             user_password = #{pwd},
+            password_fail_cnt = 0,
             modify_user_id = #{userId},
             modify_datetime = now()
         where 1=1
