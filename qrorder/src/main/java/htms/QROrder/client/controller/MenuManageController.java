@@ -255,6 +255,8 @@ public class MenuManageController {
         // Option rows and attachments share flat multipart field names. An attachment save supplies its own link or upload.
         boolean hasAttachmentInput = fileRequest.getLinkSysId() != null
                 || fileRequest.getNewItems().stream().anyMatch(item -> item.getFile() != null);
+        // The nested link belongs to the option group. FileRequest binds the same field as well.
+        fileRequest.getNewItems().forEach(item -> item.setLinkSysId(null));
         menuOptionDetailService.saveMenuOptionDetail(menuOptionDetailRequest, hasAttachmentInput ? fileRequest : null,
                 loginUser.getUserId(), loginUser.getSysPlantCd(), menuCd);
 
