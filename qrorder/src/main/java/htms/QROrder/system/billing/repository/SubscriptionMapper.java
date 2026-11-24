@@ -39,6 +39,9 @@ public interface SubscriptionMapper {
     /** role_granted_yn='Y'이고 아직 회수 전일 때만 대표 01을 02로. */
     int revokeOwnerRole(@Param("subscriptionSysId") String subscriptionSysId, @Param("userId") String userId);
 
+    /** SUPER_ADMIN 수동 승격: 이 구독이 올린 01을 영구 01로 바꿔 만료 회수 대상에서 뺀다. */
+    int markRolePermanent(@Param("subscriptionSysId") String subscriptionSysId, @Param("userId") String userId);
+
     int markRoleRevoked(@Param("subscriptionSysId") String subscriptionSysId, @Param("now") Instant now,
                         @Param("userId") String userId);
 }

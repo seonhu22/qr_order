@@ -88,6 +88,12 @@
         and u.user_role = '01'
     </update>
 
+    <update id="markRolePermanent">
+        update sys_subscription
+        set role_granted_yn = 'N', modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'Y'
+    </update>
+
     <update id="markRoleRevoked">
         update sys_subscription
         set role_revoked_at = #{now}, modify_user_id = #{userId}, modify_datetime = now()

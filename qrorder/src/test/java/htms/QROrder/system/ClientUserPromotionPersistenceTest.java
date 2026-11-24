@@ -97,6 +97,7 @@ class ClientUserPromotionPersistenceTest {
             factory.setTransactionFactory(new SpringManagedTransactionFactory());
             factory.setMapperLocations(new ClassPathResource("mapper/client/ClientUserMapper.xml"),
                     new ClassPathResource("mapper/system/ClientUserRoleMapper.xml"),
+                    new ClassPathResource("mapper/system/billing/SubscriptionMapper.xml"),
                     new ClassPathResource("mapper/auth/LoginMapper.xml"),
                     new ClassPathResource("mapper/log/Log.xml"));
             var sql = new SqlSessionTemplate(factory.getObject());
@@ -105,7 +106,8 @@ class ClientUserPromotionPersistenceTest {
                     new BCryptPasswordEncoder(4));
             ReflectionTestUtils.setField(userService, "defaultPassword", "test-only-password");
             users = transactional(userService);
-            roles = transactional(new ClientUserRoleService(sql.getMapper(ClientUserRoleMapper.class)));
+            roles = transactional(new ClientUserRoleService(sql.getMapper(ClientUserRoleMapper.class),
+                    sql.getMapper(htms.QROrder.system.billing.repository.SubscriptionMapper.class)));
             logins = sql.getMapper(LoginMapper.class);
             var loginService = new LoginService(logins, new BCryptPasswordEncoder(4),
                     transactional(new LogService(sql.getMapper(LogMapper.class))));

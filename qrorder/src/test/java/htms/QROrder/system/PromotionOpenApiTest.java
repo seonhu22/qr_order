@@ -27,7 +27,8 @@ class PromotionOpenApiTest {
     @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
     @Import({ClientUserRoleController.class, SecurityConfig.class})
     static class ContractApplication {
-        @Bean ClientUserRoleService roleService() { return new ClientUserRoleService(mock(ClientUserRoleMapper.class)); }
+        @Bean ClientUserRoleService roleService() { return new ClientUserRoleService(mock(ClientUserRoleMapper.class),
+                mock(htms.QROrder.system.billing.repository.SubscriptionMapper.class)); }
     }
 
     @Test void exportsPromotionFromRunningControllerWithoutDatabase() throws Exception {

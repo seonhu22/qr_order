@@ -6961,7 +6961,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 승격 완료 또는 이미 관리자 */
+            /** @description 승격 완료, 이미 관리자, 또는 구독 01을 영구 01로 전환 */
             200: {
                 headers: {
                     [name: string]: unknown;
