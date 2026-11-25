@@ -42,7 +42,7 @@ import java.util.Set;
  * 웹훅 처리(정책 4C §7). 순서: 서명 검증(실패 401, DB 0행) → 처리 완료 webhook_id면 200 →
  * 잠금 밖 제공자 재조회(실패 503) → 한 트랜잭션: 구독 잠금 → 재판정 → 인보이스 upsert → 이벤트 기록 → 대표 역할 → 커밋.
  * 실패하면 이벤트 행도 롤백되어 제공자 재전송 때 다시 처리된다. 인보이스 이벤트는 Paid(E2)/Failed(E3)/환불(E4, E5)을 반영하고,
- * 인보이스가 아닌 이벤트는 IGNORED로 남긴다.
+ * 결제수단 이벤트는 카드 만료(E9)를 반영하고, 그 밖의 이벤트는 IGNORED로 남긴다.
  */
 @Slf4j
 @Service
@@ -104,10 +104,12 @@ public class BillingWebhookService {
 
         ProviderInvoice invoice = null;
         ProviderSubscription subscription = null;
-        if (notice.kind() == NoticeKind.INVOICE && notice.invoiceId() != null) {
+        boolean paymentMethod = notice.kind() == NoticeKind.PAYMENT_METHOD && notice.subscriptionId() != null;
+        if ((notice.kind() == NoticeKind.INVOICE && notice.invoiceId() != null) || paymentMethod) {
             try {
-                invoice = provider.getInvoice(notice.invoiceId());
-                subscription = invoice == null ? null : provider.getSubscription(invoice.subscriptionId());
+                invoice = paymentMethod ? null : provider.getInvoice(notice.invoiceId());
+                String lookupId = paymentMethod ? notice.subscriptionId() : invoice == null ? null : invoice.subscriptionId();
+                subscription = lookupId == null ? null : provider.getSubscription(lookupId);
             } catch (ProviderUnavailableException unavailable) {
                 log.warn("billing webhook provider lookup failed provider={} webhookId={}", provider.name(), notice.webhookId());
                 return Outcome.UNAVAILABLE;
@@ -145,6 +147,10 @@ public class BillingWebhookService {
                 : subscriptions.lockByProviderSubscription(provider.name(), provider.storeId(), subscriptionId);
         // 잠금을 기다리는 동안 같은 webhook-id가 처리됐을 수 있다.
         if (processed(provider, notice)) return false;
+        if (notice.kind() == NoticeKind.PAYMENT_METHOD) {
+            applyPaymentMethodNotice(provider, notice, row, subscription, now);
+            return false;
+        }
         if (invoice != null && !noticeMatchesLookup(notice, invoice)) {
             mismatch(provider, notice, "NOTICE_LOOKUP", now);
             return false;
@@ -167,6 +173,43 @@ public class BillingWebhookService {
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
         return applied == Applied.EXPIRED;
+    }
+
+    /** 결제수단 이벤트(E9 카드 만료 / 재등록). 본문 ID와 재조회 구독, 저장된 구독이 같은 고객/구독이어야 한다. */
+    private void applyPaymentMethodNotice(BillingProvider provider, BillingNotice notice, Subscription row,
+                                          ProviderSubscription subscription, Instant now) {
+        if (row == null || subscription == null) {
+            insertEvent(provider, notice, "IGNORED", now);
+            return;
+        }
+        boolean linked = notice.subscriptionId().equals(subscription.subscriptionId())
+                && provider.storeId().equals(subscription.storeId())
+                && Objects.equals(row.getProviderCustomerId(), subscription.customerId())
+                && (notice.customerId() == null || notice.customerId().equals(row.getProviderCustomerId()));
+        if (!linked) {
+            mismatch(provider, notice, "PAYMENT_METHOD_LINK", now);
+            return;
+        }
+        applyPaymentMethodLocked(row, subscription, now);
+        insertEvent(provider, notice, "PROCESSED", now);
+    }
+
+    /**
+     * E9: 재조회한 결제수단 상태가 EXPIRED면 진행 중(A/D/C) 구독에 payment_method_status=EXPIRED(배너).
+     * 다시 ACTIVE가 되면(재등록) 진행 중 구독의 표시도 되돌린다. 상태/권한은 바꾸지 않는다.
+     */
+    private void applyPaymentMethodLocked(Subscription row, ProviderSubscription subscription, Instant now) {
+        if (subscription == null) return;
+        if ("EXPIRED".equals(subscription.paymentMethodStatus())) {
+            var outcome = SubscriptionTransition.apply(row.getStatus(), SubscriptionEvent.PAYMENT_METHOD_EXPIRED,
+                    SubscriptionFacts.at(now));
+            if (outcome.actions().contains(SubscriptionAction.MARK_PAYMENT_METHOD_EXPIRED)) {
+                subscriptions.markPaymentMethod(row.getSysId(), "EXPIRED", ACTOR);
+            }
+        } else if ("ACTIVE".equals(subscription.paymentMethodStatus())
+                && "EXPIRED".equals(row.getPaymentMethodStatus()) && row.getStatus() != SubscriptionStatus.EXPIRED) {
+            subscriptions.markPaymentMethod(row.getSysId(), "ACTIVE", ACTOR);
+        }
     }
 
     /** 재확인 결과. FAILED = 제공자 조회 실패(아무것도 바꾸지 않음). */
@@ -194,6 +237,13 @@ public class BillingWebhookService {
         }
         List<ProviderInvoice> ordered = new ArrayList<>(found);
         ordered.sort(Comparator.comparing(ProviderInvoice::periodStartAt, Comparator.nullsLast(Comparator.naturalOrder())));
+        transaction.executeWithoutResult(status -> {
+            Subscription row = subscriptions.lockById(subscriptionSysId);
+            if (row != null && providerSubscriptionId.equals(row.getProviderSubscriptionId())
+                    && subscription != null && Objects.equals(row.getProviderCustomerId(), subscription.customerId())) {
+                applyPaymentMethodLocked(row, subscription, clock.instant());
+            }
+        });
         for (ProviderInvoice invoice : ordered) {
             if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())
                     || !providerSubscriptionId.equals(invoice.subscriptionId())) continue;

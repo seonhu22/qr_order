@@ -232,13 +232,14 @@ class BillingWebhookPersistenceTest {
         assertEquals(2, count("sys_billing_webhook_event"));
     }
 
-    @Test void nonInvoiceEventIsIgnored() {
+    @Test void subscriptionEventIsIgnored() {
         pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
         assertEquals(Outcome.OK, deliver(last()));
-        pg.expireCard(launch.providerSubscriptionId());
+        pg.endSubscription(launch.providerSubscriptionId());
         assertEquals(Outcome.OK, deliver(last()));
         assertEquals(1, db.jdbc.queryForObject(
                 "select count(*) from sys_billing_webhook_event where result='IGNORED'", Integer.class));
+        assertEquals("ACTIVE", db.column("sys_subscription", "status", "SUB-A"));
     }
 
     @Test void concurrentDuplicateDeliveriesPromoteOnce() throws Exception {
