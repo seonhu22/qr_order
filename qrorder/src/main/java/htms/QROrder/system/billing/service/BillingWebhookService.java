@@ -128,18 +128,29 @@ public class BillingWebhookService {
                 : subscriptions.lockByProviderSubscription(provider.name(), provider.storeId(), subscriptionId);
         // 잠금을 기다리는 동안 같은 webhook-id가 처리됐을 수 있다.
         if (processed(provider, notice)) return;
+        if (invoice != null && !noticeMatchesLookup(notice, invoice)) {
+            mismatch(provider, notice, "NOTICE_LOOKUP", now);
+            return;
+        }
         if (invoice == null || row == null || invoice.updatedAt() == null
                 || !INVOICE_STATUSES.contains(invoice.status())) {
             insertEvent(provider, notice, "IGNORED", now);
             return;
         }
+        if (notice.customerId() != null && !notice.customerId().equals(row.getProviderCustomerId())) {
+            mismatch(provider, notice, "NOTICE_CUSTOMER", now);
+            return;
+        }
 
         SubscriptionInvoice existing = invoices.lockByProviderInvoice(provider.name(), provider.storeId(), invoice.invoiceId());
-        boolean sameSubscription = existing == null || row.getSysId().equals(existing.getSubscriptionSysId());
+        if (existing != null && !row.getSysId().equals(existing.getSubscriptionSysId())) {
+            mismatch(provider, notice, "INVOICE_OF_OTHER_SUBSCRIPTION", now);
+            return;
+        }
         boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
         String grantFor = null;
-        if (sameSubscription && newer && allowed) {
+        if (newer && allowed) {
             boolean firstPaid = "PAID".equals(invoice.status())
                     && (existing == null || !PAID_FAMILY.contains(existing.getStatus()));
             String applyResult = null;
@@ -158,6 +169,19 @@ public class BillingWebhookService {
         if (grantFor != null && subscriptions.grantOwnerRole(grantFor, ACTOR) == 1) {
             subscriptions.markRoleGranted(grantFor, now, ACTOR);
         }
+    }
+
+    /** 서명된 요청의 ID와 재조회 결과가 같은 인보이스/구독을 가리켜야 한다. 본문에 없는 ID는 비교하지 않는다. */
+    private static boolean noticeMatchesLookup(BillingNotice notice, ProviderInvoice invoice) {
+        return Objects.equals(notice.invoiceId(), invoice.invoiceId())
+                && (notice.subscriptionId() == null || notice.subscriptionId().equals(invoice.subscriptionId()))
+                && (notice.customerId() == null || notice.customerId().equals(invoice.customerId()));
+    }
+
+    /** 연결 불일치: 구독/인보이스/사용자 행은 그대로 두고 이벤트만 MISMATCH로 남긴다(Admin 문제 건). */
+    private void mismatch(BillingProvider provider, BillingNotice notice, String reason, Instant now) {
+        log.warn("billing webhook mismatch provider={} webhookId={} reason={}", provider.name(), notice.webhookId(), reason);
+        insertEvent(provider, notice, "MISMATCH", now);
     }
 
     private record PaidDecision(String applyResult, boolean grantRole) {}

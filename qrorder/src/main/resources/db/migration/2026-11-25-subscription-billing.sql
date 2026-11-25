@@ -117,7 +117,7 @@ CREATE TABLE public.sys_billing_webhook_event (
     processed_at timestamp with time zone,
     result character varying(20) NOT NULL,
     CONSTRAINT sys_billing_webhook_event_pkey PRIMARY KEY (sys_id),
-    CONSTRAINT sys_billing_webhook_event_result_chk CHECK (result IN ('PROCESSED', 'IGNORED')),
+    CONSTRAINT sys_billing_webhook_event_result_chk CHECK (result IN ('PROCESSED', 'IGNORED', 'MISMATCH')),
     CONSTRAINT sys_billing_webhook_event_uk UNIQUE (provider, provider_store_id, webhook_id)
 );
 
@@ -136,5 +136,6 @@ COMMENT ON COLUMN public.sys_subscription_invoice.refunded_amount IS '재조회�
 COMMENT ON COLUMN public.sys_subscription_invoice.provider_updated_at IS '제공자 기준 갱신 시각. 더 새로울 때만 반영.';
 COMMENT ON COLUMN public.sys_subscription_invoice.apply_result IS 'APPLIED/MISMATCH/STALE/AFTER_CANCEL/OWNER_MISSING.';
 COMMENT ON TABLE public.sys_billing_webhook_event IS '4C 처리한 웹훅 기록. 상태 변경과 같은 트랜잭션에서만 INSERT.';
+COMMENT ON COLUMN public.sys_billing_webhook_event.result IS 'PROCESSED/IGNORED/MISMATCH(서명 요청 ID와 조회/저장 행 연결 불일치, 행 변경 없음).';
 
 COMMIT;

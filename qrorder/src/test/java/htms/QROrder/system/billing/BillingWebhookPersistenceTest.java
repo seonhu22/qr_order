@@ -3,8 +3,12 @@ package htms.QROrder.system.billing;
 import htms.QROrder.system.billing.fake.FakeBillingProvider;
 import htms.QROrder.system.billing.fake.FakeBillingProvider.CardScenario;
 import htms.QROrder.system.billing.fake.FakeBillingProvider.ForgeMode;
+import htms.QROrder.system.billing.provider.BillingModels;
 import htms.QROrder.system.billing.provider.BillingModels.CheckoutLaunch;
 import htms.QROrder.system.billing.provider.BillingModels.CheckoutRequest;
+import htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice;
+import htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription;
+import htms.QROrder.system.billing.provider.BillingProvider;
 import htms.QROrder.system.billing.repository.BillingWebhookEventMapper;
 import htms.QROrder.system.billing.repository.SubscriptionInvoiceMapper;
 import htms.QROrder.system.billing.repository.SubscriptionMapper;
@@ -25,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.UnaryOperator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -253,5 +258,96 @@ class BillingWebhookPersistenceTest {
         assertEquals(1, count("sys_billing_webhook_event"));
         assertEquals("01", db.role("OWNER-A"));
         assertEquals("Y", db.column("sys_subscription", "role_granted_yn", "SUB-A"));
+    }
+
+    /** 재조회 결과만 바꿔 돌려주는 제공자. 서명 검증/본문 해석은 진짜 가짜 PG 그대로. */
+    private BillingProvider lookupReturns(UnaryOperator<ProviderInvoice> change) {
+        return new BillingProvider() {
+            public String name() { return pg.name(); }
+            public String storeId() { return pg.storeId(); }
+            public CheckoutLaunch startCheckout(CheckoutRequest request) { return pg.startCheckout(request); }
+            public ProviderSubscription getSubscription(String id) { return pg.getSubscription(id); }
+            public ProviderInvoice getInvoice(String id) { return change.apply(pg.getInvoice(id)); }
+            public void endSubscription(String id) { pg.endSubscription(id); }
+            public void refund(String id, int amount, String reason) { pg.refund(id, amount, reason); }
+            public BillingModels.BillingNotice verifyAndParseWebhook(Map<String, String> headers, byte[] body) {
+                return pg.verifyAndParseWebhook(headers, body);
+            }
+        };
+    }
+
+    private static ProviderInvoice copy(ProviderInvoice i, String invoiceId, String subscriptionId, String customerId) {
+        return new ProviderInvoice(i.storeId(), invoiceId, subscriptionId, customerId, i.productId(), i.chargeKind(),
+                i.paymentMethod(), i.amount(), i.refundedAmount(), i.currency(), i.status(), i.attemptCount(),
+                i.periodStartAt(), i.periodEndAt(), i.paidAt(), i.updatedAt(), i.failureCode());
+    }
+
+    private Outcome deliverVia(BillingProvider provider, Sent message) {
+        return provider == null ? deliver(message)
+                : webhooks.handle(provider, message.headers(), message.body().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void otherStoreSubscription() {
+        db.plant("STORE-B");
+        db.user("OWNER-B", "STORE-B", "02");
+        db.jdbc.update("""
+                insert into sys_subscription(sys_id, plant_cd, owner_user_sys_id, plan_sys_id, amount, currency,
+                  period_month, provider, provider_store_id, provider_customer_id, provider_subscription_id,
+                  status, role_granted_yn, insert_user_id, insert_datetime)
+                values ('SUB-B', 'STORE-B', 'OWNER-B', 'PLAN-1', 29000, 'KRW', 1, 'fake', 'store-test', 'cus_B',
+                  'psub-B', 'PENDING', 'N', 'T', now())
+                """);
+    }
+
+    private void assertMismatchChangedNothing() {
+        assertEquals("MISMATCH", db.jdbc.queryForObject("select result from sys_billing_webhook_event", String.class));
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("N", db.column("sys_subscription", "role_granted_yn", "SUB-A"));
+        assertEquals("02", db.role("OWNER-A"));
+    }
+
+    @Test void lookedUpInvoiceIdOtherThanSignedIdIsMismatch() {
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        var lying = lookupReturns(i -> copy(i, "inv_other", i.subscriptionId(), i.customerId()));
+        assertEquals(Outcome.OK, deliverVia(lying, last()));
+        assertMismatchChangedNothing();
+        assertEquals(0, count("sys_subscription_invoice"));
+    }
+
+    @Test void lookedUpInvoiceOfAnotherSubscriptionIsMismatchAndOtherRowsStay() {
+        otherStoreSubscription();
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        var lying = lookupReturns(i -> copy(i, i.invoiceId(), "psub-B", "cus_B"));
+        assertEquals(Outcome.OK, deliverVia(lying, last()));
+        assertMismatchChangedNothing();
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-B"));
+        assertEquals("02", db.role("OWNER-B"));
+        assertEquals(0, count("sys_subscription_invoice"));
+    }
+
+    @Test void signedCustomerOtherThanStoredCustomerIsMismatch() {
+        db.jdbc.update("update sys_subscription set provider_customer_id = 'cus_other' where sys_id = 'SUB-A'");
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        assertEquals(Outcome.OK, deliver(last()));
+        assertMismatchChangedNothing();
+        assertEquals(0, count("sys_subscription_invoice"));
+    }
+
+    @Test void storedInvoiceOwnedByAnotherSubscriptionIsMismatchAndStaysUntouched() {
+        otherStoreSubscription();
+        var paid = pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        db.jdbc.update("""
+                insert into sys_subscription_invoice(sys_id, subscription_sys_id, provider, provider_store_id,
+                  provider_invoice_id, charge_kind, amount, currency, status, provider_updated_at,
+                  insert_user_id, insert_datetime)
+                values ('INV-B', 'SUB-B', 'fake', 'store-test', ?, 'RECURRING', 29000, 'KRW', 'PENDING',
+                  '2000-01-01T00:00:00Z', 'T', now())
+                """, paid.invoiceId());
+        var before = db.jdbc.queryForMap("select * from sys_subscription_invoice");
+        assertEquals(Outcome.OK, deliver(last()));
+        assertMismatchChangedNothing();
+        assertEquals(before, db.jdbc.queryForMap("select * from sys_subscription_invoice"));
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-B"));
+        assertEquals("02", db.role("OWNER-B"));
     }
 }
