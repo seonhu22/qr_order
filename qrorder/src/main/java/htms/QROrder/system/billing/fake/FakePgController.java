@@ -44,7 +44,7 @@ public class FakePgController {
         this.returnUrl = returnUrl;
     }
 
-    /** 모든 /fake-pg 요청보다 먼저 실행된다. 프록시 헤더는 믿지 않고 소켓 주소만 본다. */
+    /** 이 컨트롤러의 모든 핸들러(아래 catch-all 포함) 앞에서 실행된다. 프록시 헤더는 믿지 않고 소켓 주소만 본다. */
     @ModelAttribute
     void loopbackOnly(HttpServletRequest request) {
         if (!LocalOnlyGuard.isLoopbackHost(request.getRemoteAddr())) {
@@ -156,6 +156,15 @@ public class FakePgController {
                     + "</p><p><a href=\"/fake-pg/console\">콘솔로</a></p>");
         }
         return ResponseEntity.status(HttpStatus.SEE_OTHER).location(URI.create("/fake-pg/console")).build();
+    }
+
+    /**
+     * 등록되지 않은 /fake-pg 경로. 더 구체적인 매핑이 먼저 고른다. 이게 없으면 SPA 폴백(WebMvcConfig)이 index.html을 준다.
+     * 같은 컨트롤러라 루프백 가드가 먼저 돈다: 비루프백 403, 루프백 404.
+     */
+    @RequestMapping({"", "/", "/**"})
+    public ResponseEntity<Void> unknown() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     private static String actorSysId(HttpSession session) {

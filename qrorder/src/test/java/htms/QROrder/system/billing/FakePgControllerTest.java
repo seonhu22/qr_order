@@ -71,6 +71,16 @@ class FakePgControllerTest {
         assertNotNull(provider.peekToken(token, "OWNER-1"));
     }
 
+    @Test void wholePrefixIsLoopbackOnlyAndUnknownPathsAre404() throws Exception {
+        for (String path : new String[]{"/fake-pg", "/fake-pg/", "/fake-pg/nope", "/fake-pg/console/x/y", "/fake-pg/index.html"}) {
+            mvc.perform(get(path).with(from("10.0.0.5"))).andExpect(status().isForbidden());
+            mvc.perform(get(path)).andExpect(status().isNotFound());
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(path))
+                    .andExpect(status().isNotFound());
+        }
+        mvc.perform(get("/fake-pg/console")).andExpect(status().isOk());
+    }
+
     @Test void checkoutPageNeedsLoginAndTheOwner() throws Exception {
         mvc.perform(get("/fake-pg/checkout").param("token", token)).andExpect(status().isUnauthorized());
         mvc.perform(get("/fake-pg/checkout").param("token", token).session(loggedIn("OTHER")))
