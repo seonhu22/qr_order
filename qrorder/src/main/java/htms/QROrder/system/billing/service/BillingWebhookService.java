@@ -190,6 +190,10 @@ public class BillingWebhookService {
             mismatch(provider, notice, "LOOKUP_LINK", now);
             return false;
         }
+        if (applied == Applied.DECIDED_MISMATCH) {
+            mismatch(provider, notice, "DECIDED_SNAPSHOT", now);
+            return false;
+        }
         // 인보이스 반영 뒤, 같은 조회의 최신 결제수단 상태를 반영한다(결제 성공이 카드 만료 표시를 덮지 않는다).
         applyPaymentMethodLocked(subscriptions.findById(row.getSysId()), subscription, now);
         insertEvent(provider, notice, "PROCESSED", now);
@@ -297,7 +301,7 @@ public class BillingWebhookService {
 
     /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
     private enum Applied {
-        NONE, GRANT_ROLE, EXPIRED, GRANT_THEN_EXPIRE, OTHER_SUBSCRIPTION, LINK_MISMATCH;
+        NONE, GRANT_ROLE, EXPIRED, GRANT_THEN_EXPIRE, OTHER_SUBSCRIPTION, LINK_MISMATCH, DECIDED_MISMATCH;
 
         boolean granted() { return this == GRANT_ROLE || this == GRANT_THEN_EXPIRE; }
 
@@ -333,6 +337,13 @@ public class BillingWebhookService {
         String applyResult = null;
         Applied applied = Applied.NONE;
         if (!matches(row, invoice, subscription)) {
+            if (decided(existing)) {
+                // 이미 판정한(APPLIED 등) 결제의 뒤 스냅샷이 어긋남: 반영 이력과 인보이스 행을 덮지 않는다.
+                // 불일치는 웹훅 이벤트(MISMATCH)로 따로 남기고, 정정된 다음 스냅샷은 저장된 이력 기준으로 판정한다.
+                log.warn("billing decided invoice snapshot mismatch subscription={} invoice={}", row.getSysId(),
+                        invoice.invoiceId());
+                return Applied.DECIDED_MISMATCH;
+            }
             applyResult = "MISMATCH";
             log.warn("billing invoice mismatch subscription={} invoice={}", row.getSysId(), invoice.invoiceId());
         } else if (firstPaid) {
@@ -356,6 +367,11 @@ public class BillingWebhookService {
     private static boolean unapplied(SubscriptionInvoice existing) {
         return existing == null || !PAID_FAMILY.contains(existing.getStatus())
                 || "MISMATCH".equals(existing.getApplyResult());
+    }
+
+    /** 반영 여부를 이미 판정한 인보이스(APPLIED/STALE/AFTER_CANCEL/OWNER_MISSING). MISMATCH와 미기록(null)은 아니다. */
+    private static boolean decided(SubscriptionInvoice existing) {
+        return existing != null && existing.getApplyResult() != null && !"MISMATCH".equals(existing.getApplyResult());
     }
 
     private static boolean refundedMore(SubscriptionInvoice existing, ProviderInvoice invoice) {

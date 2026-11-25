@@ -472,4 +472,27 @@ class BillingWebhookPersistenceTest {
         assertEquals(3, count("sys_billing_webhook_event"));
         assertEquals(1, count("sys_subscription_invoice"));
     }
+
+    /** APPLIED 결제의 뒤 스냅샷이 불일치여도 반영 이력(APPLIED)은 그대로, 정정된 현재 회차 전액 환불은 만료 + 회수한다. */
+    @Test void appliedPaymentSurvivesAMismatchSnapshotAndCorrectedFullRefundExpires() {
+        var paid = pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        assertEquals(Outcome.OK, deliver(last()));
+        assertEquals("01", db.role("OWNER-A"));
+        pg.refund(paid.invoiceId(), 29000, "test");
+        var refund = last();
+
+        assertEquals(Outcome.OK, deliverVia(snapshot("msg_broken", i -> withPeriod(i, i.periodStartAt(), null)), refund));
+        assertEquals("APPLIED", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+        assertEquals("PAID", db.jdbc.queryForObject("select status from sys_subscription_invoice", String.class));
+        assertEquals("MISMATCH", db.jdbc.queryForObject(
+                "select result from sys_billing_webhook_event where webhook_id = 'msg_broken'", String.class));
+        assertEquals("ACTIVE", db.column("sys_subscription", "status", "SUB-A"));
+
+        assertEquals(Outcome.OK, deliverVia(snapshot("msg_fixed", i -> updatedLater(i, 1)), refund));
+        assertEquals("REFUNDED", db.jdbc.queryForObject("select status from sys_subscription_invoice", String.class));
+        assertEquals("APPLIED", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+        assertEquals("EXPIRED", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("02", db.role("OWNER-A"));
+        assertNotNull(db.column("sys_subscription", "role_revoked_at", "SUB-A"));
+    }
 }
