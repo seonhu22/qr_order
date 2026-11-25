@@ -7,6 +7,7 @@ import htms.QROrder.system.billing.domain.SubscriptionAction;
 import htms.QROrder.system.billing.domain.SubscriptionEvent;
 import htms.QROrder.system.billing.domain.SubscriptionFacts;
 import htms.QROrder.system.billing.domain.SubscriptionInvoice;
+import htms.QROrder.system.billing.domain.SubscriptionStatus;
 import htms.QROrder.system.billing.domain.SubscriptionTransition;
 import htms.QROrder.system.billing.provider.BillingModels;
 import htms.QROrder.system.billing.provider.BillingModels.BillingNotice;
@@ -40,7 +41,7 @@ import java.util.Set;
 /**
  * 웹훅 처리(정책 4C §7). 순서: 서명 검증(실패 401, DB 0행) → 처리 완료 webhook_id면 200 →
  * 잠금 밖 제공자 재조회(실패 503) → 한 트랜잭션: 구독 잠금 → 재판정 → 인보이스 upsert → 이벤트 기록 → 대표 역할 → 커밋.
- * 실패하면 이벤트 행도 롤백되어 제공자 재전송 때 다시 처리된다. 인보이스 이벤트는 Paid(E2)/Failed(E3)를 반영하고,
+ * 실패하면 이벤트 행도 롤백되어 제공자 재전송 때 다시 처리된다. 인보이스 이벤트는 Paid(E2)/Failed(E3)/환불(E4, E5)을 반영하고,
  * 인보이스가 아닌 이벤트는 IGNORED로 남긴다.
  */
 @Slf4j
@@ -51,6 +52,7 @@ public class BillingWebhookService {
     static final String ACTOR = "BILLING_WEBHOOK";
     private static final Set<String> INVOICE_STATUSES = Set.of("PENDING", "PAID", "FAILED", "PARTIALLY_REFUNDED", "REFUNDED");
     private static final Set<String> PAID_FAMILY = Set.of("PAID", "PARTIALLY_REFUNDED", "REFUNDED");
+    private static final Set<String> REFUND_STATUSES = Set.of("PARTIALLY_REFUNDED", "REFUNDED");
     /** 허용 이동(§7): FAILED→FAILED/PAID, PAID→PARTIALLY_REFUNDED→REFUNDED. PAID→FAILED 금지. */
     private static final Map<String, Set<String>> MOVES = Map.of(
             "PENDING", INVOICE_STATUSES,
@@ -64,21 +66,23 @@ public class BillingWebhookService {
     private final BillingWebhookEventMapper events;
     private final TransactionTemplate transaction;
     private final Environment environment;
+    private final SubscriptionLifecycleService lifecycle;
     private final Clock clock;
 
     @Autowired
     public BillingWebhookService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
-                                 BillingWebhookEventMapper events, PlatformTransactionManager transactionManager,
-                                 Environment environment) {
-        this(subscriptions, invoices, events, transactionManager, environment, Clock.systemUTC());
+                                 BillingWebhookEventMapper events, SubscriptionLifecycleService lifecycle,
+                                 PlatformTransactionManager transactionManager, Environment environment) {
+        this(subscriptions, invoices, events, lifecycle, transactionManager, environment, Clock.systemUTC());
     }
 
     public BillingWebhookService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
-                                 BillingWebhookEventMapper events, PlatformTransactionManager transactionManager,
-                                 Environment environment, Clock clock) {
+                                 BillingWebhookEventMapper events, SubscriptionLifecycleService lifecycle,
+                                 PlatformTransactionManager transactionManager, Environment environment, Clock clock) {
         this.subscriptions = subscriptions;
         this.invoices = invoices;
         this.events = events;
+        this.lifecycle = lifecycle;
         this.transaction = new TransactionTemplate(transactionManager);
         this.environment = environment;
         this.clock = clock;
@@ -111,12 +115,15 @@ public class BillingWebhookService {
         }
         ProviderInvoice fetchedInvoice = invoice;
         ProviderSubscription fetchedSubscription = subscription;
+        Boolean ended;
         try {
-            transaction.executeWithoutResult(status -> apply(provider, notice, fetchedInvoice, fetchedSubscription));
+            ended = transaction.execute(status -> apply(provider, notice, fetchedInvoice, fetchedSubscription));
         } catch (DuplicateKeyException race) {
             // 같은 webhook-id가 먼저 커밋했으면 처리 완료. 아니면 재전송에 맡긴다.
             return processed(provider, notice) ? Outcome.OK : Outcome.UNAVAILABLE;
         }
+        // 만료시킨 구독은 커밋 뒤 잠금 밖에서 제공자 종료를 요청한다(실패하면 배치가 재시도).
+        if (Boolean.TRUE.equals(ended) && fetchedInvoice != null) endProviderOf(provider, fetchedInvoice.subscriptionId());
         return Outcome.OK;
     }
 
@@ -124,35 +131,42 @@ public class BillingWebhookService {
         return events.findResult(provider.name(), provider.storeId(), notice.webhookId()) != null;
     }
 
-    private void apply(BillingProvider provider, BillingNotice notice, ProviderInvoice invoice,
-                       ProviderSubscription subscription) {
+    private void endProviderOf(BillingProvider provider, String providerSubscriptionId) {
+        Subscription row = subscriptions.findByProviderSubscription(provider.name(), provider.storeId(), providerSubscriptionId);
+        if (row != null) lifecycle.endProvider(row.getSysId());
+    }
+
+    /** true = 이 트랜잭션이 구독을 만료시켰다(커밋 뒤 제공자 종료 필요). */
+    private boolean apply(BillingProvider provider, BillingNotice notice, ProviderInvoice invoice,
+                          ProviderSubscription subscription) {
         Instant now = clock.instant();
         String subscriptionId = invoice != null ? invoice.subscriptionId() : notice.subscriptionId();
         Subscription row = subscriptionId == null ? null
                 : subscriptions.lockByProviderSubscription(provider.name(), provider.storeId(), subscriptionId);
         // 잠금을 기다리는 동안 같은 webhook-id가 처리됐을 수 있다.
-        if (processed(provider, notice)) return;
+        if (processed(provider, notice)) return false;
         if (invoice != null && !noticeMatchesLookup(notice, invoice)) {
             mismatch(provider, notice, "NOTICE_LOOKUP", now);
-            return;
+            return false;
         }
         if (invoice == null || row == null || invoice.updatedAt() == null
                 || !INVOICE_STATUSES.contains(invoice.status())) {
             insertEvent(provider, notice, "IGNORED", now);
-            return;
+            return false;
         }
         if (notice.customerId() != null && !notice.customerId().equals(row.getProviderCustomerId())) {
             mismatch(provider, notice, "NOTICE_CUSTOMER", now);
-            return;
+            return false;
         }
 
         Applied applied = applyInvoiceLocked(provider, row, invoice, subscription, now);
         if (applied == Applied.OTHER_SUBSCRIPTION) {
             mismatch(provider, notice, "INVOICE_OF_OTHER_SUBSCRIPTION", now);
-            return;
+            return false;
         }
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
+        return applied == Applied.EXPIRED;
     }
 
     /** 재확인 결과. FAILED = 제공자 조회 실패(아무것도 바꾸지 않음). */
@@ -183,19 +197,22 @@ public class BillingWebhookService {
         for (ProviderInvoice invoice : ordered) {
             if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())
                     || !providerSubscriptionId.equals(invoice.subscriptionId())) continue;
-            transaction.executeWithoutResult(status -> {
+            Boolean ended = transaction.execute(status -> {
                 Instant now = clock.instant();
                 Subscription row = subscriptions.lockById(subscriptionSysId);
                 // 잠금 전 판단은 버린다: 그사이 새 결제 시도로 등록이 바뀌었으면 건너뛴다.
-                if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return;
-                finishUser(row, applyInvoiceLocked(provider, row, invoice, subscription, now), now);
+                if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return false;
+                Applied applied = applyInvoiceLocked(provider, row, invoice, subscription, now);
+                finishUser(row, applied, now);
+                return applied == Applied.EXPIRED;
             });
+            if (Boolean.TRUE.equals(ended)) lifecycle.endProvider(subscriptionSysId);
         }
         return ReconcileResult.CHECKED;
     }
 
     /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
-    private enum Applied { NONE, GRANT_ROLE, OTHER_SUBSCRIPTION }
+    private enum Applied { NONE, GRANT_ROLE, EXPIRED, OTHER_SUBSCRIPTION }
 
     /**
      * 재조회한 인보이스를 잠긴 구독 행에 반영한다(§7 인보이스 상태 이동). 웹훅과 재확인이 같이 쓴다.
@@ -221,9 +238,34 @@ public class BillingWebhookService {
             if (decision.grantRole()) applied = Applied.GRANT_ROLE;
         } else if ("FAILED".equals(invoice.status())) {
             applyFailure(row, invoice, now);
+        } else if (REFUND_STATUSES.contains(invoice.status()) && refundedMore(existing, invoice)
+                && applyRefund(row, existing, invoice, now)) {
+            applied = Applied.EXPIRED;
         }
         upsertInvoice(existing, row, provider, invoice, applyResult);
         return applied;
+    }
+
+    private static boolean refundedMore(SubscriptionInvoice existing, ProviderInvoice invoice) {
+        return existing == null || invoice.refundedAmount() > existing.getRefundedAmount();
+    }
+
+    /**
+     * E4/E5. 판정은 이벤트 금액이 아니라 재조회한 누적 환불액(§4). 현재 회차(시작 <= now < 끝)이고 이 구독 기간을 실제로
+     * 준(APPLIED) 결제가 누적 전액 환불되면 E4(만료 + 회수 + 종료), 그 밖(부분, 과거 회차, 환불 대기 결제)은 E5 기록만.
+     * true = 만료시켰다(회수와 제공자 종료는 호출자).
+     */
+    private boolean applyRefund(Subscription row, SubscriptionInvoice existing, ProviderInvoice invoice, Instant now) {
+        boolean full = invoice.refundedAmount() >= invoice.amount();
+        boolean currentPeriod = invoice.periodStartAt() != null && invoice.periodEndAt() != null
+                && !now.isBefore(invoice.periodStartAt()) && now.isBefore(invoice.periodEndAt());
+        boolean grantedThisPeriod = existing != null && "APPLIED".equals(existing.getApplyResult());
+        SubscriptionEvent event = full && currentPeriod && grantedThisPeriod
+                ? SubscriptionEvent.CURRENT_PERIOD_FULL_REFUND : SubscriptionEvent.OTHER_REFUND;
+        var outcome = SubscriptionTransition.apply(row.getStatus(), event, SubscriptionFacts.at(now));
+        if (outcome.kind() != SubscriptionTransition.Kind.APPLY || outcome.next() != SubscriptionStatus.EXPIRED) return false;
+        lifecycle.expireLocked(row, now);
+        return true;
     }
 
     /**
@@ -249,6 +291,7 @@ public class BillingWebhookService {
         if (applied == Applied.GRANT_ROLE && subscriptions.grantOwnerRole(row.getSysId(), ACTOR) == 1) {
             subscriptions.markRoleGranted(row.getSysId(), now, ACTOR);
         }
+        if (applied == Applied.EXPIRED) lifecycle.revokeLocked(row.getSysId(), now);
     }
 
     /** 서명된 요청의 ID와 재조회 결과가 같은 인보이스/구독을 가리켜야 한다. 본문에 없는 ID는 비교하지 않는다. */

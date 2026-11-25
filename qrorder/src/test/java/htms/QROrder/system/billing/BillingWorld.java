@@ -72,9 +72,9 @@ final class BillingWorld implements AutoCloseable {
                 });
         providers = new BillingProviderRegistry(List.of(pg));
         var env = new MockEnvironment();
-        webhooks = new BillingWebhookService(subscriptions(), invoices(), db.sql.getMapper(BillingWebhookEventMapper.class),
-                db.transactions, env, clock);
         lifecycle = new SubscriptionLifecycleService(subscriptions(), providers, db.transactions);
+        webhooks = new BillingWebhookService(subscriptions(), invoices(), db.sql.getMapper(BillingWebhookEventMapper.class),
+                lifecycle, db.transactions, env, clock);
         client = new ClientSubscriptionService(subscriptions(), invoices(), providers, webhooks, lifecycle, db.transactions,
                 env, clock);
         batch = new SubscriptionBatchService(subscriptions(), providers, webhooks, lifecycle, db.transactions);

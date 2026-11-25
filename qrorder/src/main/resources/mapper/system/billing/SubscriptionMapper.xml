@@ -122,6 +122,14 @@
         select <include refid="columns"/> from sys_subscription where sys_id = #{sysId}
     </select>
 
+    <select id="findByProviderSubscription" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and provider_subscription_id = #{providerSubscriptionId}
+    </select>
+
     <select id="lockById" resultType="htms.QROrder.system.billing.domain.Subscription">
         select <include refid="columns"/> from sys_subscription where sys_id = #{sysId} for update
     </select>

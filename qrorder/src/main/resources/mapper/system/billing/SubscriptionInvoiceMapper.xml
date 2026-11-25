@@ -9,6 +9,10 @@
         period_start_at, period_end_at, paid_at, apply_result, insert_user_id
     </sql>
 
+    <select id="findById" resultType="htms.QROrder.system.billing.domain.SubscriptionInvoice">
+        select <include refid="columns"/> from sys_subscription_invoice where sys_id = #{sysId}
+    </select>
+
     <select id="listBySubscription" resultType="htms.QROrder.system.billing.domain.SubscriptionInvoice">
         select <include refid="columns"/>
         from sys_subscription_invoice

@@ -59,6 +59,11 @@ public interface SubscriptionMapper {
 
     Subscription findById(@Param("sysId") String sysId);
 
+    /** 잠금 없는 읽기(커밋 뒤 제공자 종료 대상 찾기). */
+    Subscription findByProviderSubscription(@Param("provider") String provider,
+                                            @Param("providerStoreId") String providerStoreId,
+                                            @Param("providerSubscriptionId") String providerSubscriptionId);
+
     Subscription lockById(@Param("sysId") String sysId);
 
     /** 매장의 대표 구독 1행: 진행 중이 있으면 그것, 없으면 가장 최근 것. 화면/재구독 판단용. */

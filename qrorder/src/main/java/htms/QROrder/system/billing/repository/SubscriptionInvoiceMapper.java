@@ -18,6 +18,8 @@ public interface SubscriptionInvoiceMapper {
     /** 재조회 값으로 덮어쓴다. 호출자가 provider_updated_at이 더 새롭고 상태 이동이 허용될 때만 부른다. */
     int updateFromProvider(SubscriptionInvoice invoice);
 
+    SubscriptionInvoice findById(@Param("sysId") String sysId);
+
     /** 구독의 인보이스, 기간 시작 최신순. */
     List<SubscriptionInvoice> listBySubscription(@Param("subscriptionSysId") String subscriptionSysId);
 }

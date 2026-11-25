@@ -52,6 +52,8 @@ class BillingWebhookPersistenceTest {
                 "mapper/system/billing/BillingWebhookEventMapper.xml");
         webhooks = new BillingWebhookService(db.sql.getMapper(SubscriptionMapper.class),
                 db.sql.getMapper(SubscriptionInvoiceMapper.class), db.sql.getMapper(BillingWebhookEventMapper.class),
+                new htms.QROrder.system.billing.service.SubscriptionLifecycleService(db.sql.getMapper(SubscriptionMapper.class),
+                        new htms.QROrder.system.billing.provider.BillingProviderRegistry(List.of()), db.transactions),
                 db.transactions, new MockEnvironment());
     }
 
