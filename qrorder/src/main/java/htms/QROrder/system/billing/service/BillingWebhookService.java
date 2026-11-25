@@ -40,8 +40,8 @@ import java.util.Set;
 /**
  * 웹훅 처리(정책 4C §7). 순서: 서명 검증(실패 401, DB 0행) → 처리 완료 webhook_id면 200 →
  * 잠금 밖 제공자 재조회(실패 503) → 한 트랜잭션: 구독 잠금 → 재판정 → 인보이스 upsert → 이벤트 기록 → 대표 역할 → 커밋.
- * 실패하면 이벤트 행도 롤백되어 제공자 재전송 때 다시 처리된다. 이번 단계(§11 행 9)는 Paid만 상태를 바꾸고,
- * 그 밖의 인보이스 상태는 인보이스 사본만 갱신, 인보이스가 아닌 이벤트는 IGNORED로 남긴다.
+ * 실패하면 이벤트 행도 롤백되어 제공자 재전송 때 다시 처리된다. 인보이스 이벤트는 Paid(E2)/Failed(E3)를 반영하고,
+ * 인보이스가 아닌 이벤트는 IGNORED로 남긴다.
  */
 @Slf4j
 @Service
@@ -219,9 +219,29 @@ public class BillingWebhookService {
             PaidDecision decision = decidePaid(row, invoice, now);
             applyResult = decision.applyResult();
             if (decision.grantRole()) applied = Applied.GRANT_ROLE;
+        } else if ("FAILED".equals(invoice.status())) {
+            applyFailure(row, invoice, now);
         }
         upsertInvoice(existing, row, provider, invoice, applyResult);
         return applied;
+    }
+
+    /**
+     * E3. 재조회 결과가 FAILED인 회차만 온다. ACTIVE는 아직 내지 않은 다음 회차(최신 미결)일 때만 PAST_DUE + 7일 유예.
+     * 이미 낸 기간의 실패(늦게 온 옛 회차)는 기록만 한다.
+     */
+    private void applyFailure(Subscription row, ProviderInvoice invoice, Instant now) {
+        boolean latestOpen = row.getPaidThroughAt() == null
+                || (invoice.periodEndAt() != null && invoice.periodEndAt().isAfter(row.getPaidThroughAt()));
+        SubscriptionFacts facts = SubscriptionFacts.at(now).withPaidThroughAt(row.getPaidThroughAt())
+                .withGraceUntil(row.getGraceUntil()).withConfirmedLatestFailure(true, latestOpen);
+        var actions = SubscriptionTransition.apply(row.getStatus(), SubscriptionEvent.INVOICE_FAILED, facts).actions();
+        String code = invoice.failureCode() == null ? "FAILED" : invoice.failureCode();
+        if (actions.contains(SubscriptionAction.SET_GRACE)) {
+            subscriptions.markPastDue(row.getSysId(), row.getPaidThroughAt().plus(SubscriptionTransition.GRACE), code, ACTOR);
+        } else if (actions.contains(SubscriptionAction.RECORD_FAILURE)) {
+            subscriptions.recordFailure(row.getSysId(), code, ACTOR);
+        }
     }
 
     /** sys_user는 잠금 순서의 마지막. */

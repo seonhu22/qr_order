@@ -33,11 +33,13 @@ class FakePgControllerTest {
     private MockMvc mvc;
     private String token;
     private String subscriptionId;
+    private final htms.QROrder.system.billing.service.SubscriptionBatchService batch =
+            org.mockito.Mockito.mock(htms.QROrder.system.billing.service.SubscriptionBatchService.class);
 
     @BeforeEach void setUp() {
         provider = new FakeBillingProvider(dir.resolve("state.json"), "store-test", FakeBillingProviderTest.SECRET,
                 "http://localhost:8080", Clock.systemUTC(), (headers, body) -> 200);
-        mvc = MockMvcBuilders.standaloneSetup(new FakePgController(provider, "http://localhost:3000/client/subscription/result"))
+        mvc = MockMvcBuilders.standaloneSetup(new FakePgController(provider, "http://localhost:3000/client/subscription/result", batch))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
         var launch = provider.startCheckout(new CheckoutRequest("SUB-1", "OWNER-1", "1234567890", "BASIC_MONTHLY",
                 29000, "KRW", 1, "att-1"));
@@ -113,6 +115,18 @@ class FakePgControllerTest {
         assertEquals(2, provider.snapshot().lookupFailuresRemaining);
         mvc.perform(post("/fake-pg/console/refund").param("invoiceId", "nope").param("amount", "1"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test void consoleRunsTheExpiryBatchAtTheGivenKstTime() throws Exception {
+        org.mockito.Mockito.when(batch.run(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new htms.QROrder.system.billing.service.SubscriptionBatchService.Report(1, 1, 1, 1, 0, 0));
+        mvc.perform(post("/fake-pg/console/batch").param("asOf", "2026-12-25T10:00")).andExpect(status().isSeeOther());
+        org.mockito.Mockito.verify(batch).run(java.time.Instant.parse("2026-12-25T01:00:00Z"));
+        mvc.perform(get("/fake-pg/console")).andExpect(content().string(containsString("2026-12-25T10:00 KST")));
+        mvc.perform(post("/fake-pg/console/batch").param("asOf", "tomorrow")).andExpect(status().isBadRequest());
+        mvc.perform(post("/fake-pg/console/batch").param("asOf", "2026-12-25T10:00").with(from("10.0.0.5")))
+                .andExpect(status().isForbidden());
+        org.mockito.Mockito.verify(batch, org.mockito.Mockito.times(1)).run(org.mockito.ArgumentMatchers.any());
     }
 
     @Test void disabledControllerAnswers404ForAnyFakePgPath() throws Exception {

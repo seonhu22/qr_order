@@ -178,6 +178,42 @@
         where subscription_sys_id = #{subscriptionSysId} and status = 'PENDING'
     </select>
 
+    <update id="markPastDue">
+        update sys_subscription
+        set status = 'PAST_DUE', grace_until = #{graceUntil}, last_failure_code = #{failureCode},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status = 'ACTIVE'
+    </update>
+
+    <update id="recordFailure">
+        update sys_subscription
+        set last_failure_code = #{failureCode}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+    </update>
+
+    <update id="expire">
+        update sys_subscription
+        set status = 'EXPIRED', expired_at = #{now}, provider_end_status = #{providerEndStatus},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status &lt;&gt; 'EXPIRED'
+    </update>
+
+    <update id="markProviderEnd">
+        update sys_subscription
+        set provider_end_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and provider_end_status in ('REQUESTED', 'FAILED')
+    </update>
+
+    <select id="findBatchCandidates" resultType="string">
+        select sys_id
+        from sys_subscription
+        where (status = 'ACTIVE' and paid_through_at &lt;= #{activeDeadline})
+           or (status = 'PAST_DUE' and grace_until &lt;= #{asOf})
+           or (status = 'CANCEL_SCHEDULED' and end_at &lt;= #{asOf})
+           or (status = 'EXPIRED' and provider_end_status in ('REQUESTED', 'FAILED'))
+        order by sys_id
+    </select>
+
     <update id="markPaymentMethod">
         update sys_subscription
         set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()

@@ -6,6 +6,9 @@ import htms.QROrder.system.billing.fake.FakeBillingProvider.CardScenario;
 import htms.QROrder.system.billing.fake.FakeBillingProvider.ForgeMode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import htms.QROrder.system.billing.service.SubscriptionBatchService;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.context.annotation.Conditional;
@@ -22,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -34,14 +41,24 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Conditional(FakeBillingCondition.class)
 @RequestMapping("/fake-pg")
 public class FakePgController {
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final FakeBillingProvider provider;
     private final String returnUrl;
+    private final SubscriptionBatchService batch;
+    private volatile String lastBatch = "아직 실행 안 함";
 
+    @Autowired
     public FakePgController(FakeBillingProvider provider,
                             @Value("${billing.fake.return-url:http://localhost:3000/client/subscription/result}")
-                            String returnUrl) {
+                            String returnUrl,
+                            ObjectProvider<SubscriptionBatchService> batch) {
+        this(provider, returnUrl, batch.getIfAvailable());
+    }
+
+    public FakePgController(FakeBillingProvider provider, String returnUrl, SubscriptionBatchService batch) {
         this.provider = provider;
         this.returnUrl = returnUrl;
+        this.batch = batch;
     }
 
     /** 이 컨트롤러의 모든 핸들러(아래 catch-all 포함) 앞에서 실행된다. 프록시 헤더는 믿지 않고 소켓 주소만 본다. */
@@ -125,7 +142,8 @@ public class FakePgController {
                 .append(form("forge", hidden("webhookId", d.webhookId) + hidden("mode", ForgeMode.BAD_SIGNATURE.name()), "위조: 서명 틀림"))
                 .append(form("forge", hidden("webhookId", d.webhookId) + hidden("mode", ForgeMode.STALE_TIMESTAMP.name()), "위조: 5분 초과"))
                 .append("</td></tr>"));
-        body.append("</table><p>asOf 배치 실행은 만료 배치(정책 §11 행 11)와 함께 추가한다.</p>");
+        body.append("</table><h2>만료 배치(asOf)</h2><p>마지막 실행: ").append(htmlEscape(lastBatch)).append("</p>")
+                .append(form("batch", "<input type=\"datetime-local\" name=\"asOf\"> (KST, 비우면 지금)", "배치 실행"));
         return page(HttpStatus.OK, "가짜 PG 콘솔", body.toString());
     }
 
@@ -138,9 +156,11 @@ public class FakePgController {
                                       @RequestParam(required = false) Boolean enabled,
                                       @RequestParam(required = false) Integer amount,
                                       @RequestParam(required = false) Integer count,
-                                      @RequestParam(required = false) ForgeMode mode) {
+                                      @RequestParam(required = false) ForgeMode mode,
+                                      @RequestParam(required = false) String asOf) {
         try {
             switch (action) {
+                case "batch" -> runBatch(asOf);
                 case "next-period" -> provider.chargeNextPeriod(subscriptionId, Boolean.TRUE.equals(success));
                 case "retry" -> provider.retryInvoice(invoiceId, Boolean.TRUE.equals(success));
                 case "refund" -> provider.refund(invoiceId, amount == null ? 0 : amount, "console");
@@ -165,6 +185,19 @@ public class FakePgController {
     @RequestMapping({"", "/", "/**"})
     public ResponseEntity<Void> unknown() {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    /** asOf(KST datetime-local)로 만료 배치를 한 번 돈다. 기간 이동 시연용. */
+    private void runBatch(String asOf) {
+        if (batch == null) throw new IllegalStateException("배치 서비스가 없습니다.");
+        Instant at;
+        try {
+            at = asOf == null || asOf.isBlank() ? Instant.now() : LocalDateTime.parse(asOf).atZone(KST).toInstant();
+        } catch (DateTimeParseException invalid) {
+            throw new IllegalArgumentException("asOf 형식: 2026-12-25T10:00");
+        }
+        var report = batch.run(at);
+        lastBatch = at.atZone(KST).toLocalDateTime() + " KST / " + report;
     }
 
     private static String actorSysId(HttpSession session) {

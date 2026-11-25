@@ -159,6 +159,7 @@ public class FakeBillingProvider implements BillingProvider {
     public void endSubscription(String providerSubscriptionId) {
         List<FakePgState.Delivery> out = new ArrayList<>();
         synchronized (this) {
+            failLookupIfRequested();
             FakePgState.Sub sub = requireSub(providerSubscriptionId);
             if (!"ENDED".equals(sub.status)) {
                 sub.status = "ENDED";
@@ -488,7 +489,7 @@ public class FakeBillingProvider implements BillingProvider {
         if (state.lookupFailuresRemaining > 0) {
             state.lookupFailuresRemaining -= 1;
             save();
-            throw new ProviderUnavailableException("가짜 PG 조회 실패(콘솔 설정)");
+            throw new ProviderUnavailableException("가짜 PG 호출 실패(콘솔 설정)");
         }
     }
 

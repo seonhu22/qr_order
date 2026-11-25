@@ -9,6 +9,8 @@ import htms.QROrder.system.billing.repository.SubscriptionInvoiceMapper;
 import htms.QROrder.system.billing.repository.SubscriptionMapper;
 import htms.QROrder.system.billing.service.BillingWebhookService;
 import htms.QROrder.system.billing.service.ClientSubscriptionService;
+import htms.QROrder.system.billing.service.SubscriptionBatchService;
+import htms.QROrder.system.billing.service.SubscriptionLifecycleService;
 import org.springframework.mock.env.MockEnvironment;
 
 import java.nio.charset.StandardCharsets;
@@ -38,6 +40,8 @@ final class BillingWorld implements AutoCloseable {
     BillingProviderRegistry providers;
     BillingWebhookService webhooks;
     ClientSubscriptionService client;
+    SubscriptionLifecycleService lifecycle;
+    SubscriptionBatchService batch;
 
     record Sent(Map<String, String> headers, String body) {}
 
@@ -71,6 +75,8 @@ final class BillingWorld implements AutoCloseable {
         webhooks = new BillingWebhookService(subscriptions(), invoices(), db.sql.getMapper(BillingWebhookEventMapper.class),
                 db.transactions, env, clock);
         client = new ClientSubscriptionService(subscriptions(), invoices(), providers, webhooks, db.transactions, env, clock);
+        lifecycle = new SubscriptionLifecycleService(subscriptions(), providers, db.transactions);
+        batch = new SubscriptionBatchService(subscriptions(), providers, webhooks, lifecycle, db.transactions);
         db.plant("STORE-A");
         db.user("OWNER-A", "STORE-A", "02");
         db.user("STAFF-A", "STORE-A", "02");
@@ -117,6 +123,12 @@ final class BillingWorld implements AutoCloseable {
     String checkoutAndPay(FakeBillingProvider.CardScenario scenario) {
         var launch = client.checkout(owner(), PLAN);
         return pg.pay(token(launch), "OWNER-A", scenario).invoiceId();
+    }
+
+    java.time.Instant instant(String column) {
+        var value = db.jdbc.queryForObject("select " + column + " from sys_subscription where sys_id='SUB-A'",
+                java.sql.Timestamp.class);
+        return value == null ? null : value.toInstant();
     }
 
     String column(String column) {

@@ -85,6 +85,27 @@ public interface SubscriptionMapper {
     /** 이 구독의 결제 진행 중(PENDING) 인보이스 수. 재구독 조건. */
     int countPendingInvoices(@Param("subscriptionSysId") String subscriptionSysId);
 
+    /** E3 ACTIVE → PAST_DUE: 유예 끝 = paid_through_at + 7일, 실패 코드. 잠긴 행에만. */
+    int markPastDue(@Param("sysId") String sysId, @Param("graceUntil") Instant graceUntil,
+                    @Param("failureCode") String failureCode, @Param("userId") String userId);
+
+    /** E3 PENDING/PAST_DUE: 실패 코드만 기록(유예 그대로). */
+    int recordFailure(@Param("sysId") String sysId, @Param("failureCode") String failureCode,
+                      @Param("userId") String userId);
+
+    /** → EXPIRED. providerEndStatus = REQUESTED(제공자 구독 있음) 또는 DONE(등록 전). 잠긴 진행 중 행에만 1행. */
+    int expire(@Param("sysId") String sysId, @Param("now") Instant now,
+               @Param("providerEndStatus") String providerEndStatus, @Param("userId") String userId);
+
+    /** 제공자 종료 요청 결과(DONE/FAILED). 요청 중(REQUESTED/FAILED)일 때만. */
+    int markProviderEnd(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
+
+    /**
+     * 배치 대상(잠금 없이 고른 후보, 잠근 뒤 다시 판정한다): ACTIVE 기한+7일 도래, PAST_DUE 유예 끝, 해지 예약 끝,
+     * 제공자 종료 재시도.
+     */
+    List<String> findBatchCandidates(@Param("asOf") Instant asOf, @Param("activeDeadline") Instant activeDeadline);
+
     /** E9 카드 만료 / 재등록: payment_method_status. 바뀔 때만 1행. */
     int markPaymentMethod(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
 }
