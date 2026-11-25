@@ -170,6 +170,10 @@ public class BillingWebhookService {
             mismatch(provider, notice, "INVOICE_OF_OTHER_SUBSCRIPTION", now);
             return false;
         }
+        if (applied == Applied.LINK_MISMATCH) {
+            mismatch(provider, notice, "LOOKUP_LINK", now);
+            return false;
+        }
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
         return applied == Applied.EXPIRED;
@@ -262,16 +266,22 @@ public class BillingWebhookService {
     }
 
     /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
-    private enum Applied { NONE, GRANT_ROLE, EXPIRED, OTHER_SUBSCRIPTION }
+    private enum Applied { NONE, GRANT_ROLE, EXPIRED, OTHER_SUBSCRIPTION, LINK_MISMATCH }
 
     /**
      * 재조회한 인보이스를 잠긴 구독 행에 반영한다(§7 인보이스 상태 이동). 웹훅과 재확인이 같이 쓴다.
-     * 순서: 인보이스 행 잠금 → 이동 허용/더 새로운 값 확인 → 확인 항목 → 상태 전이 → 인보이스 upsert.
+     * 순서: 인보이스 행 잠금 → 연결 확인(어긋나면 어떤 행도 쓰지 않음) → 이동 허용/더 새로운 값 확인 → 확인 항목
+     * → 상태 전이 → 인보이스 upsert.
      */
     private Applied applyInvoiceLocked(BillingProvider provider, Subscription row, ProviderInvoice invoice,
                                        ProviderSubscription subscription, Instant now) {
         SubscriptionInvoice existing = invoices.lockByProviderInvoice(provider.name(), provider.storeId(), invoice.invoiceId());
         if (existing != null && !row.getSysId().equals(existing.getSubscriptionSysId())) return Applied.OTHER_SUBSCRIPTION;
+        // 조회한 인보이스/구독이 저장된 구독/고객과 다르면 남의 결제일 수 있다. 기존 인보이스도 덮지 않는다.
+        if (!linked(provider, row, invoice, subscription)) {
+            log.warn("billing invoice link mismatch subscription={} invoice={}", row.getSysId(), invoice.invoiceId());
+            return Applied.LINK_MISMATCH;
+        }
         boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
         if (!newer || !allowed) return Applied.NONE;
@@ -279,7 +289,7 @@ public class BillingWebhookService {
                 && (existing == null || !PAID_FAMILY.contains(existing.getStatus()));
         String applyResult = null;
         Applied applied = Applied.NONE;
-        if (!matches(provider, row, invoice, subscription)) {
+        if (!matches(row, invoice, subscription)) {
             applyResult = "MISMATCH";
             log.warn("billing invoice mismatch subscription={} invoice={}", row.getSysId(), invoice.invoiceId());
         } else if (firstPaid) {
@@ -385,20 +395,25 @@ public class BillingWebhookService {
         return new PaidDecision("APPLIED", "02".equals(ownerRole));
     }
 
-    /** 제공자/상점/고객/구독/상품, 정기 자동 카드 결제, 금액 = 스냅샷(0원 제외), KRW, 결제된 회차는 기간 시작 < 끝(§7 확인 항목). */
-    private boolean matches(BillingProvider provider, Subscription row, ProviderInvoice invoice,
-                            ProviderSubscription subscription) {
-        String planCode = row.getPlanSysId() == null ? null : subscriptions.findPlanCode(row.getPlanSysId());
-        String expectedProduct = BillingProviderRegistry.productIdFor(environment, planCode);
+    /** 제공자/상점/고객/구독 연결: 조회한 인보이스와 구독이 잠긴 구독 행의 저장 키를 가리킨다(§7 확인 항목). */
+    private static boolean linked(BillingProvider provider, Subscription row, ProviderInvoice invoice,
+                                  ProviderSubscription subscription) {
         return subscription != null
                 && provider.storeId().equals(invoice.storeId())
                 && provider.storeId().equals(subscription.storeId())
-                && Objects.equals(row.getProviderSubscriptionId(), invoice.subscriptionId())
-                && Objects.equals(row.getProviderSubscriptionId(), subscription.subscriptionId())
+                && row.getProviderSubscriptionId() != null
+                && row.getProviderSubscriptionId().equals(invoice.subscriptionId())
+                && row.getProviderSubscriptionId().equals(subscription.subscriptionId())
                 && row.getProviderCustomerId() != null
                 && row.getProviderCustomerId().equals(invoice.customerId())
-                && row.getProviderCustomerId().equals(subscription.customerId())
-                && expectedProduct != null && expectedProduct.equals(invoice.productId())
+                && row.getProviderCustomerId().equals(subscription.customerId());
+    }
+
+    /** 연결 확인 뒤의 확인 항목: 상품, 정기 자동 카드 결제, 금액 = 스냅샷(0원 제외), KRW, 결제된 회차는 기간 시작 < 끝. */
+    private boolean matches(Subscription row, ProviderInvoice invoice, ProviderSubscription subscription) {
+        String planCode = row.getPlanSysId() == null ? null : subscriptions.findPlanCode(row.getPlanSysId());
+        String expectedProduct = BillingProviderRegistry.productIdFor(environment, planCode);
+        return expectedProduct != null && expectedProduct.equals(invoice.productId())
                 && expectedProduct.equals(subscription.productId())
                 && BillingModels.CHARGE_RECURRING.equals(invoice.chargeKind())
                 && BillingModels.METHOD_CARD.equals(invoice.paymentMethod())

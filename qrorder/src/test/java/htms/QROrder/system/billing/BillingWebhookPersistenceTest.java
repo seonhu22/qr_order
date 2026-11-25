@@ -393,4 +393,39 @@ class BillingWebhookPersistenceTest {
         assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
         assertEquals("02", db.role("OWNER-A"));
     }
+
+    @Test void lookupCustomerOtherThanStoredLeavesExistingRowsIdentical() {
+        var paid = pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        assertEquals(Outcome.OK, deliver(last()));
+        pg.refund(paid.invoiceId(), 29000, "test");
+        var refund = last();
+        String rows = "select i.*, s.status s_status, s.paid_through_at, s.modify_datetime s_mod, u.user_role, u.modify_datetime u_mod"
+                + " from sys_subscription_invoice i join sys_subscription s on s.sys_id = i.subscription_sys_id"
+                + " join sys_user u on u.sys_id = s.owner_user_sys_id";
+        var before = db.jdbc.queryForMap(rows);
+        // 본문에 고객 ID가 없고, 조회한 인보이스(1) 또는 구독(2)의 고객이 저장 고객과 다르다.
+        var invoiceCustomer = new ForwardingBillingProvider(pg) {
+            @Override public ProviderInvoice getInvoice(String id) { return withCustomer(pg.getInvoice(id), "cus_other"); }
+            @Override public BillingModels.BillingNotice verifyAndParseWebhook(Map<String, String> h, byte[] b) {
+                return withoutCustomer(pg.verifyAndParseWebhook(h, b));
+            }
+        };
+        var subscriptionCustomer = new ForwardingBillingProvider(pg) {
+            @Override public ProviderSubscription getSubscription(String id) {
+                return withCustomer(pg.getSubscription(id), "cus_other");
+            }
+            @Override public BillingModels.BillingNotice verifyAndParseWebhook(Map<String, String> h, byte[] b) {
+                return withWebhookId(withoutCustomer(pg.verifyAndParseWebhook(h, b)), "msg_second");
+            }
+        };
+        assertEquals(Outcome.OK, deliverVia(invoiceCustomer, refund));
+        assertEquals(Outcome.OK, deliverVia(subscriptionCustomer, refund));
+        assertEquals(before, db.jdbc.queryForMap(rows));
+        assertEquals("APPLIED", before.get("apply_result"));
+        assertEquals("PAID", before.get("status"));
+        assertEquals(2, db.jdbc.queryForObject(
+                "select count(*) from sys_billing_webhook_event where result = 'MISMATCH'", Integer.class));
+        assertEquals(1, count("sys_subscription_invoice"));
+        assertEquals("01", db.role("OWNER-A"));
+    }
 }
