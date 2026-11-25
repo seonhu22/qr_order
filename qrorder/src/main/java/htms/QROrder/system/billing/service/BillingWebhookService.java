@@ -53,10 +53,13 @@ public class BillingWebhookService {
     private static final Set<String> INVOICE_STATUSES = Set.of("PENDING", "PAID", "FAILED", "PARTIALLY_REFUNDED", "REFUNDED");
     private static final Set<String> PAID_FAMILY = Set.of("PAID", "PARTIALLY_REFUNDED", "REFUNDED");
     private static final Set<String> REFUND_STATUSES = Set.of("PARTIALLY_REFUNDED", "REFUNDED");
-    /** 허용 이동(§7): FAILED→FAILED/PAID, PAID→PARTIALLY_REFUNDED→REFUNDED. PAID→FAILED 금지. */
+    /**
+     * 허용 이동(§7): FAILED→FAILED/PAID, PAID→PARTIALLY_REFUNDED→REFUNDED. PAID→FAILED 금지.
+     * FAILED→환불 상태는 재시도 결제(PAID) 웹훅을 놓친 경우다. 누적 환불액으로 놓친 전이를 복원한다.
+     */
     private static final Map<String, Set<String>> MOVES = Map.of(
             "PENDING", INVOICE_STATUSES,
-            "FAILED", Set.of("FAILED", "PAID"),
+            "FAILED", Set.of("FAILED", "PAID", "PARTIALLY_REFUNDED", "REFUNDED"),
             "PAID", Set.of("PAID", "PARTIALLY_REFUNDED", "REFUNDED"),
             "PARTIALLY_REFUNDED", Set.of("PARTIALLY_REFUNDED", "REFUNDED"),
             "REFUNDED", Set.of("REFUNDED"));
@@ -187,7 +190,7 @@ public class BillingWebhookService {
         }
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
-        return applied == Applied.EXPIRED;
+        return applied.expired();
     }
 
     /** 결제수단 이벤트(E9 카드 만료 / 재등록). 본문 ID와 재조회 구독, 저장된 구독이 같은 고객/구독이어야 한다. */
@@ -279,7 +282,7 @@ public class BillingWebhookService {
                 if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return false;
                 Applied applied = applyInvoiceLocked(provider, row, invoice, subscription, now);
                 finishUser(row, applied, now);
-                return applied == Applied.EXPIRED;
+                return applied.expired();
             });
             if (Boolean.TRUE.equals(ended)) lifecycle.endProvider(subscriptionSysId);
         }
@@ -287,7 +290,17 @@ public class BillingWebhookService {
     }
 
     /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
-    private enum Applied { NONE, GRANT_ROLE, EXPIRED, OTHER_SUBSCRIPTION, LINK_MISMATCH }
+    private enum Applied {
+        NONE, GRANT_ROLE, EXPIRED, GRANT_THEN_EXPIRE, OTHER_SUBSCRIPTION, LINK_MISMATCH;
+
+        boolean granted() { return this == GRANT_ROLE || this == GRANT_THEN_EXPIRE; }
+
+        boolean expired() { return this == EXPIRED || this == GRANT_THEN_EXPIRE; }
+
+        static Applied of(boolean grant, boolean expire) {
+            return grant && expire ? GRANT_THEN_EXPIRE : grant ? GRANT_ROLE : expire ? EXPIRED : NONE;
+        }
+    }
 
     /**
      * 재조회한 인보이스를 잠긴 구독 행에 반영한다(§7 인보이스 상태 이동). 웹훅과 재확인이 같이 쓴다.
@@ -307,7 +320,10 @@ public class BillingWebhookService {
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
         if (!newer || !allowed) return Applied.NONE;
         // 첫 PAID 이동, 또는 이전 PAID가 MISMATCH로만 기록돼 아직 반영되지 않은 결제의 새 스냅샷. 반영된 PAID는 다시 반영하지 않는다.
-        boolean firstPaid = "PAID".equals(invoice.status()) && unapplied(existing);
+        // 결제(Paid) 웹훅을 놓치고 환불 스냅샷이 먼저 오면, 현재 회차일 때만 검증된 결제를 먼저 반영하고 이어서 누적 환불을
+        // 판정한다. 과거/미래 회차의 반영 전 환불은 기록만 한다(돈은 이미 돌아갔고 권한 기간에 영향이 없다).
+        boolean firstPaid = PAID_FAMILY.contains(invoice.status()) && unapplied(existing)
+                && ("PAID".equals(invoice.status()) || currentPeriod(invoice, now));
         String applyResult = null;
         Applied applied = Applied.NONE;
         if (!matches(row, invoice, subscription)) {
@@ -316,11 +332,14 @@ public class BillingWebhookService {
         } else if (firstPaid) {
             PaidDecision decision = decidePaid(row, invoice, now);
             applyResult = decision.applyResult();
-            if (decision.grantRole()) applied = Applied.GRANT_ROLE;
+            boolean expire = REFUND_STATUSES.contains(invoice.status())
+                    && applyRefund(row, decision.next(), "APPLIED".equals(applyResult), invoice, now);
+            applied = Applied.of(decision.grantRole(), expire);
         } else if ("FAILED".equals(invoice.status())) {
             applyFailure(row, invoice, now);
         } else if (REFUND_STATUSES.contains(invoice.status()) && refundedMore(existing, invoice)
-                && applyRefund(row, existing, invoice, now)) {
+                && applyRefund(row, row.getStatus(),
+                        existing != null && "APPLIED".equals(existing.getApplyResult()), invoice, now)) {
             applied = Applied.EXPIRED;
         }
         upsertInvoice(existing, row, provider, invoice, applyResult);
@@ -342,14 +361,12 @@ public class BillingWebhookService {
      * 준(APPLIED) 결제가 누적 전액 환불되면 E4(만료 + 회수 + 종료), 그 밖(부분, 과거 회차, 환불 대기 결제)은 E5 기록만.
      * true = 만료시켰다(회수와 제공자 종료는 호출자).
      */
-    private boolean applyRefund(Subscription row, SubscriptionInvoice existing, ProviderInvoice invoice, Instant now) {
+    private boolean applyRefund(Subscription row, SubscriptionStatus status, boolean grantedThisPeriod,
+                                ProviderInvoice invoice, Instant now) {
         boolean full = invoice.refundedAmount() >= invoice.amount();
-        boolean currentPeriod = invoice.periodStartAt() != null && invoice.periodEndAt() != null
-                && !now.isBefore(invoice.periodStartAt()) && now.isBefore(invoice.periodEndAt());
-        boolean grantedThisPeriod = existing != null && "APPLIED".equals(existing.getApplyResult());
-        SubscriptionEvent event = full && currentPeriod && grantedThisPeriod
+        SubscriptionEvent event = full && currentPeriod(invoice, now) && grantedThisPeriod
                 ? SubscriptionEvent.CURRENT_PERIOD_FULL_REFUND : SubscriptionEvent.OTHER_REFUND;
-        var outcome = SubscriptionTransition.apply(row.getStatus(), event, SubscriptionFacts.at(now));
+        var outcome = SubscriptionTransition.apply(status, event, SubscriptionFacts.at(now));
         if (outcome.kind() != SubscriptionTransition.Kind.APPLY || outcome.next() != SubscriptionStatus.EXPIRED) return false;
         lifecycle.expireLocked(row, now);
         return true;
@@ -373,12 +390,18 @@ public class BillingWebhookService {
         }
     }
 
-    /** sys_user는 잠금 순서의 마지막. */
+    /** 기간 시작 <= now < 끝. */
+    private static boolean currentPeriod(ProviderInvoice invoice, Instant now) {
+        return invoice.periodStartAt() != null && invoice.periodEndAt() != null
+                && !now.isBefore(invoice.periodStartAt()) && now.isBefore(invoice.periodEndAt());
+    }
+
+    /** sys_user는 잠금 순서의 마지막. 복원한 결제 뒤 전액 환불이면 승격 뒤 바로 회수한다. */
     private void finishUser(Subscription row, Applied applied, Instant now) {
-        if (applied == Applied.GRANT_ROLE && subscriptions.grantOwnerRole(row.getSysId(), ACTOR) == 1) {
+        if (applied.granted() && subscriptions.grantOwnerRole(row.getSysId(), ACTOR) == 1) {
             subscriptions.markRoleGranted(row.getSysId(), now, ACTOR);
         }
-        if (applied == Applied.EXPIRED) lifecycle.revokeLocked(row.getSysId(), now);
+        if (applied.expired()) lifecycle.revokeLocked(row.getSysId(), now);
     }
 
     /** 서명된 요청의 ID와 재조회 결과가 같은 인보이스/구독을 가리켜야 한다. 본문에 없는 ID는 비교하지 않는다. */
@@ -413,7 +436,8 @@ public class BillingWebhookService {
         insertEvent(provider, notice, "MISMATCH", now);
     }
 
-    private record PaidDecision(String applyResult, boolean grantRole) {}
+    /** next = 반영 뒤 구독 상태(반영하지 않았으면 지금 상태). */
+    private record PaidDecision(String applyResult, boolean grantRole, SubscriptionStatus next) {}
 
     /** 첫 PAID 이동 1회만 상태/기간을 바꾼다. 역할 UPDATE는 호출자가 마지막에 한다. */
     private PaidDecision decidePaid(Subscription row, ProviderInvoice invoice, Instant now) {
@@ -425,20 +449,22 @@ public class BillingWebhookService {
                         && invoice.periodEndAt().isAfter(row.getPaidThroughAt())));
         var outcome = SubscriptionTransition.apply(row.getStatus(), SubscriptionEvent.INVOICE_PAID, facts);
         var actions = outcome.actions();
-        if (actions.contains(SubscriptionAction.HOLD_REFUND_AFTER_CANCEL)) return new PaidDecision("AFTER_CANCEL", false);
-        if (actions.contains(SubscriptionAction.HOLD_REFUND_STALE)) return new PaidDecision("STALE", false);
+        if (actions.contains(SubscriptionAction.HOLD_REFUND_AFTER_CANCEL)) {
+            return new PaidDecision("AFTER_CANCEL", false, row.getStatus());
+        }
+        if (actions.contains(SubscriptionAction.HOLD_REFUND_STALE)) return new PaidDecision("STALE", false, row.getStatus());
         if (outcome.kind() != SubscriptionTransition.Kind.APPLY) {
             // ACTIVE인데 다음 회차가 아닌 결제 = 이미 낸 기간의 중복 결제. 환불 대상으로 표시만 한다.
-            return new PaidDecision("STALE", false);
+            return new PaidDecision("STALE", false, row.getStatus());
         }
         subscriptions.applyPaid(row.getSysId(), outcome.next().name(),
                 actions.contains(SubscriptionAction.EXTEND_PERIOD) ? invoice.periodEndAt() : null,
                 actions.contains(SubscriptionAction.CLEAR_GRACE), ACTOR);
-        if (!actions.contains(SubscriptionAction.GRANT_ROLE)) return new PaidDecision("APPLIED", false);
+        if (!actions.contains(SubscriptionAction.GRANT_ROLE)) return new PaidDecision("APPLIED", false, outcome.next());
         String ownerRole = subscriptions.findOwnerRole(row.getSysId());
-        if (ownerRole == null) return new PaidDecision("OWNER_MISSING", false);
+        if (ownerRole == null) return new PaidDecision("OWNER_MISSING", false, outcome.next());
         // 이미 01(레거시/수동)이면 UPDATE 0행이라 role_granted_yn은 N 그대로다.
-        return new PaidDecision("APPLIED", "02".equals(ownerRole));
+        return new PaidDecision("APPLIED", "02".equals(ownerRole), outcome.next());
     }
 
     /** 제공자/상점/고객/구독 연결: 조회한 인보이스와 구독이 잠긴 구독 행의 저장 키를 가리킨다(§7 확인 항목). */

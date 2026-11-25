@@ -113,4 +113,83 @@ class SubscriptionRefundPersistenceTest {
     private static HttpStatus statusOf(Runnable call) {
         return HttpStatus.valueOf(assertThrows(ResponseStatusException.class, call::run).getStatusCode().value());
     }
+
+    private void assertExpiredAfterRestoredPaid(String invoiceId) {
+        assertEquals("REFUNDED", invoiceColumn(invoiceId, "status"));
+        assertEquals("APPLIED", invoiceColumn(invoiceId, "apply_result"));
+        assertEquals("EXPIRED", world.column("status"));
+        assertEquals("02", world.db.role("OWNER-A"));
+        assertNotNull(world.column("role_revoked_at"));
+        assertEquals("DONE", world.column("provider_end_status"));
+        assertEquals("ENDED", world.pg.getSubscription(world.column("provider_subscription_id")).status());
+    }
+
+    @Test void fullRefundBeforeLostFirstPaidRestoresThePaymentThenExpires() {
+        world.autoDeliver = false;
+        String paid = world.checkoutAndPay(CardScenario.SUCCESS);
+        assertEquals("PENDING", world.column("status"));
+        world.autoDeliver = true;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.refund(paid, 29000, "test");
+        assertEquals("Y", world.column("role_granted_yn"));
+        assertExpiredAfterRestoredPaid(paid);
+    }
+
+    @Test void fullRefundOfAFailedInvoiceWhoseRetryPaidWasLostExpires() {
+        String failed = world.checkoutAndPay(CardScenario.DECLINED);
+        assertEquals("FAILED", invoiceColumn(failed, "status"));
+        world.autoDeliver = false;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.retryInvoice(failed, true);
+        world.autoDeliver = true;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.refund(failed, 29000, "test");
+        assertExpiredAfterRestoredPaid(failed);
+    }
+
+    /** ACTIVE에서 갱신 결제 웹훅을 놓치고, 그 회차가 지금 회차일 때 전액 환불이 먼저 온다. */
+    private String lostRenewalInCurrentPeriod() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        world.clock.set(world.instant("paid_through_at").plus(Duration.ofHours(1)));
+        world.autoDeliver = false;
+        String renewal = world.pg.chargeNextPeriod(world.column("provider_subscription_id"), true);
+        world.autoDeliver = true;
+        return renewal;
+    }
+
+    @Test void fullRefundOfLostCurrentRenewalExpires() {
+        String renewal = lostRenewalInCurrentPeriod();
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.refund(renewal, 29000, "test");
+        assertExpiredAfterRestoredPaid(renewal);
+    }
+
+    @Test void refundOfLostPastPeriodPaymentIsRecordOnly() {
+        String renewal = lostRenewalInCurrentPeriod();
+        var paidThrough = world.instant("paid_through_at");
+        world.clock.advance(Duration.ofDays(40));
+        world.pg.refund(renewal, 29000, "test");
+        assertEquals("REFUNDED", invoiceColumn(renewal, "status"));
+        assertNull(invoiceColumn(renewal, "apply_result"));
+        assertEquals("ACTIVE", world.column("status"));
+        assertEquals(paidThrough, world.instant("paid_through_at"));
+        assertEquals("01", world.db.role("OWNER-A"));
+    }
+
+    @Test void refundOfLostPaymentAfterCancelIsRecordOnlyAsRefundPending() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        world.client.cancel(world.owner());
+        var endAt = world.instant("end_at");
+        world.clock.set(world.instant("paid_through_at").minus(Duration.ofHours(1)));
+        world.autoDeliver = false;
+        String late = world.pg.chargeNextPeriod(world.column("provider_subscription_id"), true);
+        world.autoDeliver = true;
+        world.clock.set(world.pg.getInvoice(late).periodStartAt().plus(Duration.ofHours(1)));
+        world.pg.refund(late, 29000, "test");
+        assertEquals("REFUNDED", invoiceColumn(late, "status"));
+        assertEquals("AFTER_CANCEL", invoiceColumn(late, "apply_result"));
+        assertEquals("CANCEL_SCHEDULED", world.column("status"));
+        assertEquals(endAt, world.instant("end_at"));
+        assertEquals("01", world.db.role("OWNER-A"));
+    }
 }
