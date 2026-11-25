@@ -73,8 +73,9 @@ public class SubscriptionBatchService {
     private ProviderReconcile reconcile(Subscription seen) {
         BillingProvider provider = providers.find(seen.getProvider()).orElse(null);
         if (provider == null) return ProviderReconcile.FAILED;
-        return billing.reconcile(provider, seen.getSysId()) == ReconcileResult.FAILED
-                ? ProviderReconcile.FAILED : ProviderReconcile.NO_UNSEEN_PAYMENT;
+        // 저장 키와 일치하는 조회를 마친 경우만 성공. 등록 없음/상점 불일치/다른 구독은 만료 근거가 아니다.
+        return billing.reconcile(provider, seen.getSysId()) == ReconcileResult.CHECKED
+                ? ProviderReconcile.NO_UNSEEN_PAYMENT : ProviderReconcile.FAILED;
     }
 
     private RowResult due(String id, Instant asOf, ProviderReconcile reconcile) {

@@ -227,8 +227,12 @@ public class BillingWebhookService {
         }
     }
 
-    /** 재확인 결과. FAILED = 제공자 조회 실패(아무것도 바꾸지 않음). */
-    public enum ReconcileResult { NOTHING_TO_CHECK, CHECKED, FAILED }
+    /**
+     * 재확인 결과. CHECKED만 "저장 키와 일치하는 제공자 구독/인보이스 조회를 마쳤다"는 뜻이다(E8 만료 판단에 쓸 수 있음).
+     * NOTHING_TO_CHECK = 등록 없음 또는 다른 제공자/상점, UNVERIFIED = 조회는 됐지만 저장 키와 다른 구독이거나 없음,
+     * FAILED = 제공자 조회 실패. 셋 다 아무것도 바꾸지 않는다.
+     */
+    public enum ReconcileResult { NOTHING_TO_CHECK, CHECKED, UNVERIFIED, FAILED }
 
     /**
      * 웹훅을 기다리지 않고 제공자를 다시 조회해 같은 반영 경로({@link #applyInvoiceLocked})로 맞춘다.
@@ -249,6 +253,12 @@ public class BillingWebhookService {
         } catch (ProviderUnavailableException unavailable) {
             log.warn("billing reconcile lookup failed subscription={}", subscriptionSysId);
             return ReconcileResult.FAILED;
+        }
+        if (subscription == null || !providerSubscriptionId.equals(subscription.subscriptionId())
+                || !provider.storeId().equals(subscription.storeId()) || before.getProviderCustomerId() == null
+                || !before.getProviderCustomerId().equals(subscription.customerId())) {
+            log.warn("billing reconcile lookup does not match stored keys subscription={}", subscriptionSysId);
+            return ReconcileResult.UNVERIFIED;
         }
         List<ProviderInvoice> ordered = new ArrayList<>(found);
         ordered.sort(Comparator.comparing(ProviderInvoice::periodStartAt, Comparator.nullsLast(Comparator.naturalOrder())));

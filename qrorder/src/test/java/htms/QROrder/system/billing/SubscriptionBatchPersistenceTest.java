@@ -161,4 +161,25 @@ class SubscriptionBatchPersistenceTest {
             pool.shutdownNow();
         }
     }
+
+    @Test void activeIsNotExpiredWithoutALookupMatchingStoredKeys() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        Instant due = world.instant("paid_through_at").plus(Duration.ofDays(7));
+        var cases = java.util.List.of(
+                "provider_subscription_id = 'sub_unregistered'",
+                "provider_store_id = 'store-other'",
+                "provider_customer_id = 'cus_other'");
+        String psid = world.column("provider_subscription_id");
+        for (String change : cases) {
+            world.db.jdbc.update("update sys_subscription set provider_subscription_id = ?, provider_store_id = 'store-test',"
+                    + " provider_customer_id = ? where sys_id = 'SUB-A'", psid,
+                    world.pg.getSubscription(psid).customerId());
+            world.db.jdbc.update("update sys_subscription set " + change + " where sys_id = 'SUB-A'");
+            var report = world.batch.run(due);
+            assertEquals(0, report.expired(), change);
+            assertEquals(1, report.reconcileFailed(), change);
+            assertEquals("ACTIVE", world.column("status"), change);
+            assertEquals("01", world.db.role("OWNER-A"), change);
+        }
+    }
 }
