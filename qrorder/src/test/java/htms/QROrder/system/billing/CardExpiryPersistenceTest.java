@@ -76,4 +76,40 @@ class CardExpiryPersistenceTest {
         assertEquals("ACTIVE", world.column("payment_method_status"));
         assertNotNull(failed);
     }
+
+    @Test void lostRenewalPaidThenCardExpiryReconcileKeepsTheBanner() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        String psid = world.column("provider_subscription_id");
+        var paidThrough = world.instant("paid_through_at");
+        world.autoDeliver = false;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.chargeNextPeriod(psid, true);
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.expireCard(psid);
+
+        var view = world.client.reconcile(world.owner());
+        assertEquals("ACTIVE", view.status());
+        assertTrue(world.instant("paid_through_at").isAfter(paidThrough));
+        assertEquals("EXPIRED", view.paymentMethodStatus());
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+        assertEquals("01", world.db.role("OWNER-A"));
+    }
+
+    @Test void latePaidWebhookAfterCardExpiryDoesNotClearTheBanner() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        String psid = world.column("provider_subscription_id");
+        world.autoDeliver = false;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.chargeNextPeriod(psid, true);
+        var latePaid = world.sent.get(world.sent.size() - 1);
+        world.autoDeliver = true;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.expireCard(psid);
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+
+        assertEquals(htms.QROrder.system.billing.service.BillingWebhookService.Outcome.OK, world.deliver(latePaid));
+        assertEquals(2, world.count("sys_subscription_invoice"));
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+        assertEquals("ACTIVE", world.column("status"));
+    }
 }

@@ -113,7 +113,6 @@
                 when paid_through_at is null or paid_through_at &lt; #{periodEndAt}::timestamptz then #{periodEndAt}::timestamptz
                 else paid_through_at end,
             grace_until = case when #{clearGrace} then null else grace_until end,
-            payment_method_status = 'ACTIVE',
             modify_user_id = #{userId}, modify_datetime = now()
         where sys_id = #{sysId}
     </update>

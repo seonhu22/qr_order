@@ -53,7 +53,10 @@ public interface SubscriptionMapper {
     /** 구독 대표가 삭제되지 않았으면 그 역할(01/02), 아니면 null. 잠금 없는 읽기(대표는 고정). */
     String findOwnerRole(@Param("subscriptionSysId") String subscriptionSysId);
 
-    /** Paid 반영: 상태 변경 + paid_through_at은 앞으로만, clearGrace면 grace_until 제거. 잠긴 행에만 호출. */
+    /**
+     * Paid 반영: 상태 변경 + paid_through_at은 앞으로만, clearGrace면 grace_until 제거. 잠긴 행에만 호출.
+     * payment_method_status는 건드리지 않는다(재조회한 제공자 결제수단 상태로 따로 맞춘다).
+     */
     int applyPaid(@Param("sysId") String sysId, @Param("status") String status,
                   @Param("periodEndAt") Instant periodEndAt, @Param("clearGrace") boolean clearGrace,
                   @Param("userId") String userId);

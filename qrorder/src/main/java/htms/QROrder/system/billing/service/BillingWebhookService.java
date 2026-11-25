@@ -53,6 +53,8 @@ public class BillingWebhookService {
     private static final Set<String> INVOICE_STATUSES = Set.of("PENDING", "PAID", "FAILED", "PARTIALLY_REFUNDED", "REFUNDED");
     private static final Set<String> PAID_FAMILY = Set.of("PAID", "PARTIALLY_REFUNDED", "REFUNDED");
     private static final Set<String> REFUND_STATUSES = Set.of("PARTIALLY_REFUNDED", "REFUNDED");
+    private static final Set<SubscriptionStatus> IN_PROGRESS_PAID = Set.of(SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.PAST_DUE, SubscriptionStatus.CANCEL_SCHEDULED);
     /**
      * 허용 이동(§7): FAILED→FAILED/PAID, PAID→PARTIALLY_REFUNDED→REFUNDED. PAID→FAILED 금지.
      * FAILED→환불 상태는 재시도 결제(PAID) 웹훅을 놓친 경우다. 누적 환불액으로 놓친 전이를 복원한다.
@@ -188,6 +190,8 @@ public class BillingWebhookService {
             mismatch(provider, notice, "LOOKUP_LINK", now);
             return false;
         }
+        // 인보이스 반영 뒤, 같은 조회의 최신 결제수단 상태를 반영한다(결제 성공이 카드 만료 표시를 덮지 않는다).
+        applyPaymentMethodLocked(subscriptions.findById(row.getSysId()), subscription, now);
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
         return applied.expired();
@@ -214,7 +218,8 @@ public class BillingWebhookService {
 
     /**
      * E9: 재조회한 결제수단 상태가 EXPIRED면 진행 중(A/D/C) 구독에 payment_method_status=EXPIRED(배너).
-     * 다시 ACTIVE가 되면(재등록) 진행 중 구독의 표시도 되돌린다. 상태/권한은 바꾸지 않는다.
+     * ACTIVE면(첫 결제, 재등록) A/D/C 구독의 표시도 ACTIVE로. 상태/권한은 바꾸지 않는다. 제공자 값이 기준이고
+     * 인보이스 반영 뒤에 호출한다(잠긴 행을 다시 읽어 넘긴다).
      */
     private void applyPaymentMethodLocked(Subscription row, ProviderSubscription subscription, Instant now) {
         if (subscription == null) return;
@@ -224,8 +229,8 @@ public class BillingWebhookService {
             if (outcome.actions().contains(SubscriptionAction.MARK_PAYMENT_METHOD_EXPIRED)) {
                 subscriptions.markPaymentMethod(row.getSysId(), "EXPIRED", ACTOR);
             }
-        } else if ("ACTIVE".equals(subscription.paymentMethodStatus())
-                && "EXPIRED".equals(row.getPaymentMethodStatus()) && row.getStatus() != SubscriptionStatus.EXPIRED) {
+        } else if ("ACTIVE".equals(subscription.paymentMethodStatus()) && !"ACTIVE".equals(row.getPaymentMethodStatus())
+                && IN_PROGRESS_PAID.contains(row.getStatus())) {
             subscriptions.markPaymentMethod(row.getSysId(), "ACTIVE", ACTOR);
         }
     }
@@ -265,13 +270,6 @@ public class BillingWebhookService {
         }
         List<ProviderInvoice> ordered = new ArrayList<>(found);
         ordered.sort(Comparator.comparing(ProviderInvoice::periodStartAt, Comparator.nullsLast(Comparator.naturalOrder())));
-        transaction.executeWithoutResult(status -> {
-            Subscription row = subscriptions.lockById(subscriptionSysId);
-            if (row != null && providerSubscriptionId.equals(row.getProviderSubscriptionId())
-                    && subscription != null && Objects.equals(row.getProviderCustomerId(), subscription.customerId())) {
-                applyPaymentMethodLocked(row, subscription, clock.instant());
-            }
-        });
         for (ProviderInvoice invoice : ordered) {
             if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())
                     || !providerSubscriptionId.equals(invoice.subscriptionId())) continue;
@@ -286,6 +284,14 @@ public class BillingWebhookService {
             });
             if (Boolean.TRUE.equals(ended)) lifecycle.endProvider(subscriptionSysId);
         }
+        // 결제수단 상태는 인보이스를 모두 반영한 뒤에 최신 조회 값으로 맞춘다(놓친 Paid → 카드 만료 순서).
+        transaction.executeWithoutResult(status -> {
+            Subscription row = subscriptions.lockById(subscriptionSysId);
+            if (row != null && providerSubscriptionId.equals(row.getProviderSubscriptionId())
+                    && Objects.equals(row.getProviderCustomerId(), subscription.customerId())) {
+                applyPaymentMethodLocked(row, subscription, clock.instant());
+            }
+        });
         return ReconcileResult.CHECKED;
     }
 
