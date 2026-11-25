@@ -530,4 +530,75 @@ class ClientSubscriptionPersistenceTest {
         assertEquals(1, calls.get());
         assertEquals("ACTIVE", world.column("status"));
     }
+
+    /**
+     * 재확인 제한의 확인/기록 사이 경합을 직접 만든다: 먼저 온 요청을 확인 단계(get 또는 compute 안)에서 세워 두고,
+     * 둘째 요청이 같은 단계에 도착한 뒤에 진행시킨다. 확인과 기록이 나뉜 get/put이면 둘 다 통과해 제공자를 두 번 부른다.
+     */
+    @Test void reconcileThrottleHoldsWhenTheSecondRequestArrivesDuringTheFirstCheck() throws Exception {
+        world.autoDeliver = false;
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var counting = new ForwardingBillingProvider(world.pg) {
+            @Override public htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription getSubscription(String id) {
+                calls.incrementAndGet();
+                return super.getSubscription(id);
+            }
+        };
+        var service = clientWith(counting);
+        var secondArrived = new java.util.concurrent.CountDownLatch(1);
+        var firstTaken = new java.util.concurrent.atomic.AtomicBoolean();
+        var held = new java.util.concurrent.ConcurrentHashMap<String, java.time.Instant>() {
+            private void hold() {
+                try {
+                    assertTrue(secondArrived.await(20, java.util.concurrent.TimeUnit.SECONDS));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            @Override public java.time.Instant get(Object key) {
+                // 읽은 뒤에 멈춘다: 첫 요청은 둘째가 같은 값을 읽을 때까지 기록하지 못한다.
+                java.time.Instant value = super.get(key);
+                if (firstTaken.compareAndSet(false, true)) hold();
+                else secondArrived.countDown();
+                return value;
+            }
+
+            @Override public java.time.Instant compute(String key, java.util.function.BiFunction<? super String,
+                    ? super java.time.Instant, ? extends java.time.Instant> remap) {
+                boolean first = firstTaken.compareAndSet(false, true);
+                if (!first) secondArrived.countDown();
+                return super.compute(key, (k, previous) -> {
+                    if (first) hold();
+                    return remap.apply(k, previous);
+                });
+            }
+        };
+        var field = htms.QROrder.system.billing.service.ClientSubscriptionService.class.getDeclaredField("lastReconcile");
+        field.setAccessible(true);
+        field.set(service, held);
+
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            var results = new java.util.ArrayList<java.util.concurrent.Future<HttpStatus>>();
+            for (int i = 0; i < 2; i++) {
+                results.add(pool.submit(() -> {
+                    try {
+                        service.reconcile(world.owner());
+                        return HttpStatus.OK;
+                    } catch (ResponseStatusException e) {
+                        return HttpStatus.valueOf(e.getStatusCode().value());
+                    }
+                }));
+            }
+            var statuses = new java.util.ArrayList<HttpStatus>();
+            for (var r : results) statuses.add(r.get(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertTrue(statuses.contains(HttpStatus.OK), statuses.toString());
+            assertTrue(statuses.contains(HttpStatus.TOO_MANY_REQUESTS), statuses.toString());
+        } finally {
+            pool.shutdownNow();
+        }
+        assertEquals(1, calls.get());
+    }
 }
