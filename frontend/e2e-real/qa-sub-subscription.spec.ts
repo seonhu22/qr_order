@@ -14,6 +14,8 @@ const front = 'http://localhost:3000';
 const back = 'http://localhost:8080';
 const run = randomBytes(3).toString('hex');
 const numbers = [1, 2, 3, 4, 5].map((n) => `999000000${n}`);
+/** 요금제 API 호출의 메뉴 코드. 감사 로그와 메뉴 열람 로그를 이 값으로 정리한다. */
+const qaMenu = 'AUTO-QA-sub';
 const openDate = '2020-01-02';
 const newPassword = `Qa!1${randomBytes(8).toString('hex')}`;
 const numberList = numbers.map((n) => `'${n}'`).join(',');
@@ -141,7 +143,8 @@ function cleanup(plants: string[] = numbers) {
     delete from sys_login_log_detail where link_sys_id in
       (select sys_id from sys_login_log_master where user_id in (${users}));
     delete from sys_login_log_master where sys_plant_cd in (${list});
-    delete from sys_audit_trail where sys_plant_cd in (${list});
+    delete from sys_login_log_detail where menu_cd='${qaMenu}';
+    delete from sys_audit_trail where sys_plant_cd in (${list}) or menu_cd='${qaMenu}';
     delete from sys_error_info where sys_plant_cd in (${list});
     delete from sys_email_log where ${plants.map((p) => `email_to like 'auto-qa-sub-${p.slice(-1)}-%'`).join(' or ')};
     delete from sys_user where plant_cd in (${list});
@@ -281,10 +284,11 @@ async function signupByApi(context: APIRequestContext, who: Owner, options: { ve
 }
 
 function insertStaff(who: Owner) {
-  const userId = `AUTO-QA-sub-staff-${run}`;
+  const tag = who.number.slice(-1);
+  const userId = `AUTO-QA-sub-staff${tag}-${run}`;
   db(`insert into sys_user (sys_id, user_id, user_nm, user_password, insert_user_id, insert_datetime,
       password_fail_cnt, init_yn, plant_cd, delete_yn, user_role, email_valid_yn)
-    select '01AUTOQASUBSTAFF${run.toUpperCase()}0000', '${userId}', 'AUTO-QA-sub staff', user_password,
+    select '01AUTOQASUBSTAFF${run.toUpperCase()}000${tag}', '${userId}', 'AUTO-QA-sub staff', user_password,
       'AUTO-QA-sub', now(), 0, 'N', '${who.number}', 'N', '02', 'Y'
     from sys_user where user_id='autoqa_staff_a'`);
   return userId;
@@ -293,8 +297,16 @@ function insertStaff(who: Owner) {
 // ---- 시나리오 ----
 
 /** 가짜 PG 상태는 실행 사이에 남으므로 이번 시나리오의 첫 등록(since)부터만 센다. ID는 순번이라 문자열 비교가 된다. */
-const activeRegistrations = (plant: string, since: string) => Object.values(fakeState().subscriptions)
-  .filter((s) => s.plantCd === plant && s.subscriptionId >= since && s.status === 'ACTIVE').length;
+const registrations = (plant: string, since: string) => Object.values(fakeState().subscriptions)
+  .filter((s) => s.plantCd === plant && s.subscriptionId >= since);
+const providerPaid = (plant: string, since: string) => {
+  const ids = new Set(registrations(plant, since).map((s) => s.subscriptionId));
+  return Object.values(fakeState().invoices).filter((i) => ids.has(i.subscriptionId) && i.status === 'PAID').length;
+};
+/** 가짜 PG의 ID(sub_/msg_/inv_)는 하나의 순번을 함께 쓰므로 발급 순서를 비교할 수 있다. */
+const sequence = (id: string) => Number(id.split('_')[1]);
+const eventResult = (webhookId: string) =>
+  db(`select coalesce(string_agg(result, ','), '') from sys_billing_webhook_event where webhook_id='${webhookId}'`);
 
 const api = '/api/client/subscription';
 const menuRead = '/api/client/menu_manage/menu/master/search';
@@ -559,7 +571,7 @@ test('1 / 2 / 3 / 8 / 5 / 6 대표 흐름', async ({ page }) => {
   check('6 제공자 종료', fakeState().subscriptions[second].status, 'ENDED');
 });
 
-test('4 웹훅 재전송 / 위조 / 금액 불일치 / 조회 실패', async () => {
+test('4 웹훅 재전송 / 위조 / 금액 불일치 / 조회 실패', async ({ page }) => {
   test.setTimeout(300_000);
   const who = owner(2);
   const plant = who.number;
@@ -593,7 +605,10 @@ test('4 웹훅 재전송 / 위조 / 금액 불일치 / 조회 실패', async () 
   check('4a-2 시도 만료 뒤 새 결제 시작', renewed.status, 200);
   const fresh = providerSub(plant);
   check('4a-2 새 제공자 구독', fresh !== sub, true);
-  check('4a-2 [정책 §6 "대사/종료 뒤 새 시도"] 옛 유료 등록 종료됨', fakeState().subscriptions[sub].status, 'ENDED');
+  check('4a-2 [B2 / 정책 §6] 옛 유료 등록 종료됨', fakeState().subscriptions[sub].status, 'ENDED');
+  check('4a-2 [B2] 종료가 새 등록보다 먼저(순번)',
+    sequence(delivery(sub, 'Subscription.Ended').webhookId) < sequence(fresh), true);
+  check('4a-2 [B2] 제공자 등록 상태(옛 / 새)', registrations(plant, sub).map((s) => s.status), ['ENDED', 'INCOMPLETE']);
 
   console.log('== 4b 웹훅 끄고 결제 -> 위조 -> 조회 실패 503 -> 재전송');
   await fakeConsole(user, 'webhooks', { enabled: 'false' });
@@ -640,17 +655,69 @@ test('4 웹훅 재전송 / 위조 / 금액 불일치 / 조회 실패', async () 
   await fakeConsole(user, 'forge', { webhookId: paid.webhookId, mode: 'BAD_SIGNATURE' });
   check('4c 처리된 ID 위조도 변화 없음', fingerprint(plant), done);
 
-  console.log('== 4a-2 이어서: 버려진 옛 등록의 다음 회차');
-  await fakeConsole(user, 'next-period', { subscriptionId: sub, success: 'true' });
-  const orphan = delivery(sub, 'Invoice.Paid');
-  const orphanInvoice = JSON.parse(orphan.body).data.invoiceId as string;
-  console.log(`OBS 옛 등록 청구: 웹훅 ${orphan.lastStatus} / 이벤트 ${db(`select coalesce(max(result), '없음')
-    from sys_billing_webhook_event where webhook_id='${orphan.webhookId}'`)} / 앱 인보이스 행 ${db(`select count(*)
-    from sys_subscription_invoice where provider_invoice_id='${orphanInvoice}'`)} / 제공자 ACTIVE 등록 ${
-    activeRegistrations(plant, sub)}건`);
+  console.log('== B2 이어서: 연결 끊긴 ACTIVE 등록의 다음 회차 (연결은 DB에서 잠시 끊는다)');
+  // 수정 뒤에는 교체 전에 옛 등록이 ENDED라 가짜 PG가 청구하지 않는다. 연결이 끊긴 ACTIVE 등록은 DB로 만든다.
+  const subId = column(plant, 'sys_id');
+  const problemCount = async () => (await call(boss, 'GET', `${admin}?problemOnly=true`)).body.rows
+    .filter((r: { plantCd: string }) => r.plantCd === plant)
+    .map((r: { problemCount: number }) => r.problemCount);
+  const state = () => db(`select concat_ws('|', status, paid_through_at, grace_until, end_at, role_granted_yn)
+    from sys_subscription where sys_id='${subId}'`);
+  check('B2 청구 전 Admin 문제 건(옛 불일치 1)', await problemCount(), [1]);
+  const linkedState = state();
+  const link = (id: string) =>
+    db(`update sys_subscription set provider_subscription_id='${id}' where sys_id='${subId}'`);
+  let orphanInvoice = '';
+  link(`sub_autoqa_unlinked_${run}`);
+  try {
+    await fakeConsole(user, 'next-period', { subscriptionId: fresh, success: 'true' });
+    const orphan = delivery(fresh, 'Invoice.Paid');
+    orphanInvoice = JSON.parse(orphan.body).data.invoiceId as string;
+    check('B2 연결 끊긴 청구: 웹훅 / 이벤트', [orphan.lastStatus, eventResult(orphan.webhookId)], [200, 'MISMATCH']);
+    check('B2 연결 끊긴 청구: 이 구독의 인보이스 행', db(`select concat_ws('|', status, apply_result, subscription_sys_id='${
+      subId}') from sys_subscription_invoice where provider_invoice_id='${orphanInvoice}'`), 'PAID|MISMATCH|t');
+    check('B2 구독 상태/기간/권한 불변', [state(), db(`select user_role from sys_user where user_id='${who.userId}'`)],
+      [linkedState, '01']);
+  } finally {
+    link(fresh);
+  }
+  check('B2 Admin 문제 건 2', await problemCount(), [2]);
+  const listed = await call(boss, 'GET', admin);
+  check('B2 Admin 불일치 웹훅 목록에 표시', listed.body.mismatchEvents
+    .some((e: { resourceId: string }) => e.resourceId === orphanInvoice), true);
+
+  await page.goto('/admin/login');
+  await page.getByLabel('아이디', { exact: true }).fill('demo_admin');
+  await page.getByLabel('비밀번호', { exact: true }).fill(fixturePassword());
+  await page.getByRole('button', { name: '로그인', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/main$/);
+  await page.goto('/admin/subscriptions');
+  const listRow = page.getByRole('table', { name: '구독 목록' }).getByRole('row').filter({ hasText: who.plantNm });
+  await expect(listRow).toBeVisible();
+  check('B2 화면 목록 문제 건 칸', await listRow.getByRole('cell').last().innerText(), '2');
+  await listRow.getByRole('button', { name: who.plantNm }).click();
+  const problemRow = page.getByRole('table', { name: '인보이스' }).getByRole('row').filter({ hasText: orphanInvoice });
+  await expect(problemRow).toBeVisible();
+  check('B2 화면 상세 문제 행', (await problemRow.innerText()).includes('문제:'), true);
+  console.log(`OBS 화면 문제 행: ${(await problemRow.innerText()).replace(/\s+/g, ' ')}`);
+
+  console.log('== B2 이어서: 종료된 옛 등록에서 온 알림(Admin 환불, DB 조작 없음)');
+  const oldInvoice = (await call(boss, 'GET', `${admin}/${subId}`)).body.invoices
+    .find((i: { providerInvoiceId: string }) =>
+      fakeState().invoices[i.providerInvoiceId]?.subscriptionId === sub);
+  check('B2 옛 등록의 문제 인보이스', [oldInvoice?.applyResult, oldInvoice?.problem], ['MISMATCH', true]);
+  const beforeRefund = state();
+  const refunded = await call(boss, 'POST', `${admin}/${subId}/refund`,
+    { invoiceSysId: oldInvoice?.invoiceSysId, amount: oldInvoice?.refundable });
+  check('B2 옛 등록 환불 HTTP', refunded.status, 200);
+  const refundHook = delivery(sub, 'Invoice.PaymentRefunded');
+  check('B2 옛 등록 환불 알림: 웹훅 / 이벤트(IGNORED 아님)',
+    [refundHook.lastStatus, eventResult(refundHook.webhookId)], [200, 'MISMATCH']);
+  check('B2 환불 반영 / 구독 불변', [db(`select concat_ws('|', status, apply_result) from sys_subscription_invoice
+    where sys_id='${oldInvoice?.invoiceSysId}'`), state()], ['REFUNDED|MISMATCH', beforeRefund]);
 
   console.log('== 추가: Admin 즉시 종료');
-  const ended = await call(boss, 'POST', `${admin}/${column(plant, 'sys_id')}/end`);
+  const ended = await call(boss, 'POST', `${admin}/${subId}/end`);
   const endSnap = snap(plant, 'Admin 종료');
   check('즉시 종료', [ended.status, endSnap.sub, endSnap.owner],
     [200, ['EXPIRED granted=Y revoked=Y end=DONE pm=ACTIVE'], '02']);
@@ -668,20 +735,28 @@ test('추가 / 만료된 결제 시도의 대사가 실패한 상태에서 재�
   check('4e 결제 성공(웹훅 유실)', await payFake(user, first.token), 200);
   await fakeConsole(user, 'webhooks', { enabled: 'true' });
   db(`update sys_subscription set checkout_expires_at = now() - interval '1 minute' where plant_cd='${plant}'`);
+  check('4e 결제 시작 전 DB(웹훅 유실)', snap(plant, '4e 유실'),
+    { sub: ['PENDING granted=N revoked=N end=NONE pm=NONE'], owner: '02', inv: [], evt: [] });
+  const base = fingerprint(plant);
   await fakeConsole(user, 'lookup-failures', { count: '1' });
-  const again = await startCheckout(user);
-  check('4e [정책 §6] 대사 실패면 새 결제 시도를 열지 않음',
-    { status: again.status, sameRegistration: providerSub(plant) === sub }, { status: 503, sameRegistration: true });
-  if (again.token) await payFake(user, again.token);
-  const result = snap(plant, '4e 두 번째 결제 뒤');
-  const paidAtProvider = Object.values(fakeState().invoices).filter((i) =>
-    i.status === 'PAID' && i.subscriptionId >= sub
-    && fakeState().subscriptions[i.subscriptionId]?.plantCd === plant).length;
-  console.log(`OBS 제공자 ACTIVE 등록 ${activeRegistrations(plant, sub)}건 / 제공자 PAID 인보이스 ${paidAtProvider}건`
-    + ` / 앱 인보이스 ${result.inv.length}건`);
+  const failed = await startCheckout(user);
+  check('4e [B1 / 정책 §6] 대사 실패 -> 503, 기존 등록 유지',
+    { status: failed.status, launched: failed.token !== '', sameRegistration: providerSub(plant) === sub },
+    { status: 503, launched: false, sameRegistration: true });
+  check('4e [B1] 503 뒤 DB 변화 없음 / 새 제공자 등록 없음', [fingerprint(plant), registrations(plant, sub).length],
+    [base, 1]);
+
+  const retry = await startCheckout(user);
+  check('4e [B1] 다시 시도 -> 놓친 결제 반영, 새 결제는 409', [retry.status, retry.token, providerSub(plant) === sub],
+    [409, '', true]);
+  const applied: Snap = { sub: ['ACTIVE granted=Y revoked=N end=NONE pm=ACTIVE'], owner: '01',
+    inv: ['PAID refunded=0 APPLIED'], evt: [] };
+  check('4e [B1] 반영 뒤 DB', snap(plant, '4e 재시도'), applied);
+  check('4e [B1] 제공자 등록 1 / 제공자 PAID 1', [registrations(plant, sub).length, providerPaid(plant, sub)], [1, 1]);
   await fakeConsole(user, 'resend', { webhookId: delivery(sub, 'Invoice.Paid').webhookId });
-  console.log(`OBS 유실됐던 첫 결제 웹훅 재전송 ${delivery(sub, 'Invoice.Paid').lastStatus} / 앱 인보이스 ${
-    snap(plant, '4e 첫 웹훅 재전송').inv.length}건`);
+  check('4e 유실됐던 첫 웹훅 재전송 -> 200, 인보이스 1 유지',
+    [delivery(sub, 'Invoice.Paid').lastStatus, snap(plant, '4e 첫 웹훅 재전송')],
+    [200, { ...applied, evt: ['Invoice.Paid PROCESSED'] }]);
 });
 
 test('7 Admin 목록 / 상세 / 환불', async ({ page }) => {
