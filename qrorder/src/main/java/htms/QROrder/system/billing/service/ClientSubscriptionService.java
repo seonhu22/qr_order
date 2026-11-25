@@ -172,11 +172,13 @@ public class ClientSubscriptionService {
                         String productId, Integer amount, String currency, Integer periodMonth) {}
 
     public CheckoutLaunchView checkout(Login actor, String planSysId) {
+        // 매장/대표 확인이 먼저다. 직원 요청은 플랜 검증이나 대사(구독/역할 쓰기) 전에 403으로 끝난다. 잠금 뒤 다시 확인한다.
+        String plantCd = plantOf(actor);
+        ownedRow(actor, "구독 대표만 결제할 수 있습니다.");
         BillingProvider provider = providers.active().orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제 제공자가 설정되지 않았습니다."));
         SubscriptionPlan plan = planSysId == null ? null : subscriptions.findPlan(planSysId);
         if (plan == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "플랜을 선택해 주세요.");
-        String plantCd = plantOf(actor);
         reconcileExpiredAttempt(provider, plantCd);
 
         Step step;
@@ -255,8 +257,10 @@ public class ClientSubscriptionService {
     private Subscription resubscribe(Login actor, String plantCd, Instant now) {
         Subscription latest = subscriptions.findLatestByPlant(plantCd);
         if (latest == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이 매장은 구독 대상이 아닙니다.");
-        boolean allowed = actor.getSysId().equals(latest.getOwnerUserSysId())
-                && Set.of("NONE", "DONE").contains(latest.getProviderEndStatus())
+        if (!actor.getSysId().equals(latest.getOwnerUserSysId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "구독 대표만 결제할 수 있습니다.");
+        }
+        boolean allowed = Set.of("NONE", "DONE").contains(latest.getProviderEndStatus())
                 && subscriptions.countPendingInvoices(latest.getSysId()) == 0;
         var outcome = SubscriptionTransition.apply(SubscriptionStatus.EXPIRED, SubscriptionEvent.CHECKOUT_START,
                 SubscriptionFacts.at(now).withResubscribeAllowed(allowed));
@@ -280,10 +284,14 @@ public class ClientSubscriptionService {
     }
 
     private Subscription ownedRow(Login actor) {
+        return ownedRow(actor, "구독 대표만 볼 수 있습니다.");
+    }
+
+    private Subscription ownedRow(Login actor, String forbidden) {
         Subscription row = subscriptions.findLatestByPlant(plantOf(actor));
         if (row == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "구독 정보가 없습니다.");
         if (!actor.getSysId().equals(row.getOwnerUserSysId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "구독 대표만 볼 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, forbidden);
         }
         return row;
     }

@@ -151,7 +151,7 @@ class ClientSubscriptionPersistenceTest {
         assertStatus(HttpStatus.CONFLICT, () -> world.client.checkout(world.owner(), BillingWorld.PLAN));
         world.db.jdbc.update("update sys_subscription set provider_end_status='DONE'");
         world.db.user("OTHER-A", "STORE-A", "02");
-        assertStatus(HttpStatus.CONFLICT, () -> world.client.checkout(BillingWorld.login("OTHER-A", "STORE-A"), BillingWorld.PLAN));
+        assertStatus(HttpStatus.FORBIDDEN, () -> world.client.checkout(BillingWorld.login("OTHER-A", "STORE-A"), BillingWorld.PLAN));
         assertEquals(1, world.count("sys_subscription"));
 
         world.client.checkout(world.owner(), BillingWorld.PLAN);
@@ -175,5 +175,36 @@ class ClientSubscriptionPersistenceTest {
         assertEquals("PAID", world.db.jdbc.queryForObject(
                 "select status from sys_subscription_invoice where provider_invoice_id=?", String.class, failed));
         assertEquals(2, world.client.invoices(world.owner()).size());
+    }
+
+    private java.util.Map<String, Object> allRows() {
+        return world.db.jdbc.queryForMap("""
+                select (select string_agg(t::text, '|' order by sys_id) from sys_subscription t) subs,
+                       (select string_agg(t::text, '|' order by sys_id) from sys_user t) users,
+                       (select count(*) from sys_subscription_invoice) invoices,
+                       (select count(*) from sys_billing_webhook_event) events
+                """);
+    }
+
+    @Test void staffCheckoutOnExpiredAttemptIs403BeforeReconcileAndWritesNothing() {
+        world.autoDeliver = false;
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        world.clock.advance(Duration.ofMinutes(11));
+        var staff = BillingWorld.login("STAFF-A", "STORE-A");
+        var before = allRows();
+        assertStatus(HttpStatus.FORBIDDEN, () -> world.client.checkout(staff, BillingWorld.PLAN));
+        assertStatus(HttpStatus.FORBIDDEN, () -> world.client.checkout(staff, "NO-PLAN"));
+        assertEquals(before, allRows());
+        assertEquals("PENDING", world.column("status"));
+        assertEquals("02", world.db.role("OWNER-A"));
+    }
+
+    @Test void staffCheckoutOnExpiredSubscriptionIs403AndWritesNothing() {
+        world.db.jdbc.update("update sys_subscription set status='EXPIRED', provider_end_status='DONE'");
+        var before = allRows();
+        assertStatus(HttpStatus.FORBIDDEN,
+                () -> world.client.checkout(BillingWorld.login("STAFF-A", "STORE-A"), BillingWorld.PLAN));
+        assertEquals(before, allRows());
+        assertEquals(1, world.count("sys_subscription"));
     }
 }
