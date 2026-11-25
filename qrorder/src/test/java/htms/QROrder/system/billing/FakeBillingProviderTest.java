@@ -213,6 +213,52 @@ class FakeBillingProviderTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withUserConfiguration(FakeBillingConfig.class);
 
+    @Test void endingRevokesOpenTokenAndLaterPayChangesNothing() {
+        var pg = provider();
+        var launch = pg.startCheckout(request("att-1"));
+        String token = token(launch);
+        pg.endSubscription(launch.providerSubscriptionId());
+        var before = pg.snapshot();
+        assertNull(pg.peekToken(token, "OWNER-1"));
+        assertThrows(IllegalStateException.class, () -> pg.pay(token, "OWNER-1", CardScenario.SUCCESS));
+        var after = pg.snapshot();
+        assertEquals("ENDED", pg.getSubscription(launch.providerSubscriptionId()).status());
+        assertEquals(before.invoices.size(), after.invoices.size());
+        assertEquals(before.deliveries.size(), after.deliveries.size());
+    }
+
+    @Test void failedInvoiceOfEndedSubscriptionCannotBeRetried() {
+        var pg = provider();
+        var launch = pg.startCheckout(request("att-1"));
+        var failed = pg.pay(token(launch), "OWNER-1", CardScenario.DECLINED);
+        pg.endSubscription(launch.providerSubscriptionId());
+        int deliveries = pg.snapshot().deliveries.size();
+        assertThrows(IllegalStateException.class, () -> pg.retryInvoice(failed.invoiceId(), true));
+        assertEquals("ENDED", pg.getSubscription(launch.providerSubscriptionId()).status());
+        assertEquals("FAILED", pg.getInvoice(failed.invoiceId()).status());
+        assertEquals(deliveries, pg.snapshot().deliveries.size());
+        assertThrows(IllegalStateException.class, () -> pg.chargeNextPeriod(launch.providerSubscriptionId(), true));
+    }
+
+    @Test void tokenUseRechecksSubscriptionStateUnderTheSameLock() throws Exception {
+        for (int round = 0; round < 20; round++) {
+            var pg = new FakeBillingProvider(dir.resolve("race-" + round + ".json"), "store-test", SECRET,
+                    "http://localhost:8080", clock, (headers, body) -> 200);
+            var launch = pg.startCheckout(request("att-" + round));
+            String token = token(launch);
+            var gate = new java.util.concurrent.CountDownLatch(1);
+            var payer = new Thread(() -> {
+                try { gate.await(); pg.pay(token, "OWNER-1", CardScenario.SUCCESS); } catch (Exception ignored) { }
+            });
+            payer.start();
+            gate.countDown();
+            pg.endSubscription(launch.providerSubscriptionId());
+            payer.join(10_000);
+            // 끝난 뒤 결제가 ACTIVE로 되돌리지 못한다. 결제가 먼저였으면 그 뒤 종료가 ENDED로 만든다.
+            assertEquals("ENDED", pg.getSubscription(launch.providerSubscriptionId()).status(), "round " + round);
+        }
+    }
+
     @Test void fakeProviderExistsOnlyWithLocalProfileAndSetting() {
         String file = "billing.fake.state-file=" + dir.resolve("ctx.json").toString().replace('\\', '/');
         runner.withPropertyValues("billing.provider=fake", file,

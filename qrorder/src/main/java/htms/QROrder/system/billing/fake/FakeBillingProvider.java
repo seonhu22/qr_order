@@ -142,6 +142,9 @@ public class FakeBillingProvider implements BillingProvider {
             if (!"ENDED".equals(sub.status)) {
                 sub.status = "ENDED";
                 sub.updatedAt = clock.instant();
+                // 끝난 구독의 결제창은 다시 열리지 않는다.
+                state.tokens.values().stream().filter(t -> t.subscriptionId.equals(sub.subscriptionId))
+                        .forEach(t -> t.used = true);
                 out.add(event(PortOneWebhookEvents.SUBSCRIPTION_ENDED, sub, null));
                 save();
             }
@@ -188,14 +191,15 @@ public class FakeBillingProvider implements BillingProvider {
 
     // ---- 결제창 / 콘솔(가짜 전용) ----
 
-    /** 결제창 토큰 확인. 없거나, 썼거나, 만료됐거나, 다른 사람이면 null. */
+    /** 결제창 토큰 확인. 없거나, 썼거나, 만료됐거나, 다른 사람이거나, 구독이 결제수단 등록 전(INCOMPLETE)이 아니면 null. */
     public synchronized FakePgState.Token peekToken(String token, String actorUserSysId) {
         FakePgState.Token found = token == null ? null : state.tokens.get(token);
         if (found == null || found.used || !clock.instant().isBefore(found.expiresAt)
                 || actorUserSysId == null || !actorUserSysId.equals(found.ownerUserSysId)) {
             return null;
         }
-        return found;
+        FakePgState.Sub sub = state.subscriptions.get(found.subscriptionId);
+        return sub != null && "INCOMPLETE".equals(sub.status) ? found : null;
     }
 
     /** 결제수단 등록 + 첫 인보이스. 토큰은 결과와 관계없이 1회만 쓴다. */
@@ -260,6 +264,7 @@ public class FakeBillingProvider implements BillingProvider {
             FakePgState.Invoice inv = requireInvoice(providerInvoiceId);
             if (!"FAILED".equals(inv.status)) throw new IllegalStateException("실패한 인보이스만 재시도합니다.");
             FakePgState.Sub sub = requireSub(inv.subscriptionId);
+            if ("ENDED".equals(sub.status)) throw new IllegalStateException("끝난 구독의 인보이스는 재시도하지 않습니다.");
             Instant now = clock.instant();
             if (success) {
                 sub.status = "ACTIVE";
