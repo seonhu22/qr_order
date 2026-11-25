@@ -1023,6 +1023,23 @@ const menuOverrideHandler = http.get('*/api/system/settings/menu/search', () => 
       menuUrl: '/client/store/table/layout',
     },
     {
+      sysId: 'c-sub-1',
+      menuCd: 'STO_SUB',
+      menuNm: '구독 관리',
+      parentMenuCd: 'STO',
+      ordNo: '4',
+      treeLevel: '2',
+    },
+    {
+      sysId: 'c-sub-2',
+      menuCd: 'STO_SUB_INFO',
+      menuNm: '구독 정보',
+      parentMenuCd: 'STO_SUB',
+      ordNo: '1',
+      treeLevel: '3',
+      menuUrl: '/client/subscription',
+    },
+    {
       sysId: 'c10',
       menuCd: 'MNU',
       menuNm: '메뉴',

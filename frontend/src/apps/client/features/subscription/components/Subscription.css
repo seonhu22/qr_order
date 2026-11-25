@@ -1,0 +1,106 @@
+.subscription-banners {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.subscription-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #eef4ff;
+  color: #1f3a8a;
+}
+
+.subscription-banner--cardExpired {
+  background: #fff4e5;
+  color: #8a4b00;
+}
+
+.subscription-banner a {
+  color: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.subscription-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #e3e6ec;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.subscription-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subscription-card__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.subscription-card__status {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: #f0f2f5;
+}
+
+.subscription-card__description {
+  margin: 0;
+  color: #4b5563;
+}
+
+.subscription-card__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.subscription-card__facts dt {
+  color: #6b7280;
+}
+
+.subscription-card__facts dd {
+  margin: 0;
+}
+
+.subscription-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.subscription-card__message {
+  margin: 0;
+  font-size: 14px;
+}
+
+.subscription-card__message--error {
+  color: #b42318;
+}
+
+.subscription-invoices {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.subscription-invoices th,
+.subscription-invoices td {
+  padding: 8px;
+  border-bottom: 1px solid #eef0f3;
+  text-align: left;
+}
