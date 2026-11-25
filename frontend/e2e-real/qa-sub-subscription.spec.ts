@@ -759,6 +759,78 @@ test('추가 / 만료된 결제 시도의 대사가 실패한 상태에서 재�
     [200, { ...applied, evt: ['Invoice.Paid PROCESSED'] }]);
 });
 
+test('추가 / 재확인 동시 2건 / 사용 중 요금제 409 / 만료 뒤 직원 결제 403', async () => {
+  test.setTimeout(180_000);
+  // 가짜 사업자 확인이 받는 번호는 5개뿐이라, 앞 시나리오가 쓴 번호 5를 비우고 다시 가입한다.
+  const who = owner(5);
+  const plant = who.number;
+  cleanup([plant]);
+  check('9 가입', (await signupByApi(await session(), who)).status, 200);
+  const user = await session(who.userId, newPassword);
+  await payFake(user, (await startCheckout(user)).token);
+  const activeRow = 'ACTIVE granted=Y revoked=N end=NONE pm=ACTIVE';
+  check('9 준비 DB', snap(plant, '9 준비').sub, [activeRow]);
+
+  console.log('== 9a 재확인 동시 2건');
+  const pair = await Promise.all([1, 2].map(() => call(user, 'POST', `${api}/reconcile`)));
+  check('9a 동시 2건 -> 200 하나 + 429 하나', pair.map((r) => r.status).sort(), [200, 429]);
+  check('9a 재확인 뒤 DB', snap(plant, '9a').inv, ['PAID refunded=0 APPLIED']);
+
+  console.log('== 9b §5 진행 중 구독이 쓰는 요금제');
+  const boss = await session('demo_admin');
+  const planSysId = column(plant, 'plan_sys_id');
+  const planRow = () => db(`select p::text from sys_payment p where sys_id='${planSysId}'`);
+  const original = JSON.parse(db(`select json_build_object('sysId', sys_id, 'paymentCd', payment_cd,
+    'paymentNm', payment_nm, 'paymentFee', payment_fee, 'paymentFeeUnit', payment_fee_unit,
+    'licenseValidMonth', license_valid_month, 'deleteYn', delete_yn, 'modifyUserId', modify_user_id,
+    'modifyDatetime', modify_datetime::text) from sys_payment where sys_id='${planSysId}'`)) as {
+    sysId: string; paymentCd: string; paymentNm: string; paymentFee: number; paymentFeeUnit: string;
+    licenseValidMonth: number; deleteYn: string; modifyUserId: string | null; modifyDatetime: string | null;
+  };
+  const literal = (value: string | number | null) => (value === null ? 'null' : `'${String(value).replace(/'/g, "''")}'`);
+  const originalRow = planRow();
+  const { deleteYn, modifyUserId, modifyDatetime, ...plan } = original;
+  // 요금제 저장은 세션의 메뉴 코드를 감사 로그에 남긴다.
+  await call(boss, 'POST', `/api/log/log/menu_open_access_log?menuCd=${qaMenu}`);
+  const save = (change: Partial<typeof plan>) =>
+    call(boss, 'POST', '/api/system/settings/payment/update', { ...plan, ...change });
+  const audits = () => db(`select count(*) from sys_audit_trail where menu_cd='${qaMenu}'`);
+  try {
+    check('9b 금액 수정', (await save({ paymentFee: plan.paymentFee + 1000 })).status, 409);
+    check('9b 기간 수정', (await save({ licenseValidMonth: plan.licenseValidMonth + 1 })).status, 409);
+    check('9b 이름 + 금액 동시 수정', (await save(
+      { paymentNm: `${plan.paymentNm} AUTO-QA`, paymentFee: plan.paymentFee + 1000 })).status, 409);
+    check('9b 삭제', (await call(boss, 'POST', '/api/system/settings/payment/del', [plan])).status, 409);
+    check('9b 409 뒤 요금제 행 / 감사 로그 변화 없음', [planRow(), audits()], [originalRow, '0']);
+    check('9b 이름만 수정', (await save({ paymentNm: `${plan.paymentNm} AUTO-QA` })).status, 200);
+    check('9b 이름만 바뀜', db(`select concat_ws('|', payment_nm, payment_fee, payment_fee_unit, license_valid_month,
+      delete_yn) from sys_payment where sys_id='${planSysId}'`),
+    [`${plan.paymentNm} AUTO-QA`, plan.paymentFee, plan.paymentFeeUnit, plan.licenseValidMonth, deleteYn].join('|'));
+  } finally {
+    db(`update sys_payment set payment_nm=${literal(plan.paymentNm)}, payment_fee=${literal(plan.paymentFee)},
+      payment_fee_unit=${literal(plan.paymentFeeUnit)}, license_valid_month=${literal(plan.licenseValidMonth)},
+      delete_yn=${literal(deleteYn)}, modify_user_id=${literal(modifyUserId)},
+      modify_datetime=${literal(modifyDatetime)} where sys_id='${planSysId}'`);
+  }
+  check('9b 요금제 시드 원복', planRow(), originalRow);
+
+  console.log('== 9c EXPIRED 매장의 직원 결제');
+  const ended = await call(boss, 'POST', `${admin}/${column(plant, 'sys_id')}/end`);
+  check('9c 준비 EXPIRED', [ended.status, column(plant, 'status')], [200, 'EXPIRED']);
+  const staff = await session(insertStaff(who));
+  const rows = () => db(`select (select count(*) from sys_subscription where plant_cd='${plant}') || '/'
+    || (select count(*) from sys_subscription_invoice i join sys_subscription s on s.sys_id=i.subscription_sys_id
+      where s.plant_cd='${plant}') || '/' || (select count(*) from sys_user where plant_cd='${plant}') || '/'
+    || (select count(*) from sys_audit_trail where sys_plant_cd='${plant}')`);
+  const since = providerSub(plant);
+  const before = [rows(), fingerprint(plant), registrations(plant, since).length];
+  const denied = await call(staff, 'POST', `${api}/checkout`, { planSysId });
+  check('9c 직원 결제 403', denied.status, 403);
+  check('9c 쓰기 0(행 수 / 전체 해시 / 제공자 등록)',
+    [rows(), fingerprint(plant), registrations(plant, since).length], before);
+  console.log(`OBS 9c 구독/인보이스/사용자/감사 행 ${before[0]}`);
+});
+
 test('7 Admin 목록 / 상세 / 환불', async ({ page }) => {
   test.setTimeout(300_000);
   const who = owner(3);
