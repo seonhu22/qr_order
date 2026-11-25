@@ -91,6 +91,13 @@ class StandardWebhookVerifierTest {
                 verifier.sign("msg_1", TS, BODY), BODY));
     }
 
+    @Test void timestampOutsideInstantRangeIsRejectedNotThrown() {
+        for (long ts : new long[]{Long.MAX_VALUE, Long.MIN_VALUE, 31556889864403200L, -31557014167219201L}) {
+            assertReason(Reason.INVALID_TIMESTAMP, () -> verifier.verify("msg_1", String.valueOf(ts),
+                    verifier.sign("msg_1", ts, BODY), BODY));
+        }
+    }
+
     @Test void missingHeadersAreRejected() {
         String signature = verifier.sign("msg_1", TS, BODY);
         String ts = String.valueOf(TS);

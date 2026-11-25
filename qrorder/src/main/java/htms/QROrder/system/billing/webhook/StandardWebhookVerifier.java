@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.time.Clock;
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
@@ -42,12 +43,14 @@ public final class StandardWebhookVerifier {
             throw new WebhookVerificationException(WebhookVerificationException.Reason.MISSING_HEADER);
         }
         long seconds;
+        Instant sentAt;
         try {
             seconds = Long.parseLong(timestamp.trim());
-        } catch (NumberFormatException invalid) {
+            sentAt = Instant.ofEpochSecond(seconds);
+        } catch (NumberFormatException | DateTimeException invalid) {
+            // long 범위 안이어도 Instant 범위 밖이면 DateTimeException. 500이 아니라 검증 실패다.
             throw new WebhookVerificationException(WebhookVerificationException.Reason.INVALID_TIMESTAMP);
         }
-        Instant sentAt = Instant.ofEpochSecond(seconds);
         Instant now = clock.instant();
         if (sentAt.isBefore(now.minus(TOLERANCE)) || sentAt.isAfter(now.plus(TOLERANCE))) {
             throw new WebhookVerificationException(WebhookVerificationException.Reason.TIMESTAMP_OUT_OF_TOLERANCE);

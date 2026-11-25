@@ -376,4 +376,16 @@ class BillingWebhookPersistenceTest {
             assertEquals("02", db.role("OWNER-A"));
         }
     }
+
+    @Test void outOfInstantRangeTimestampIs401AndWritesNothing() {
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        var original = last();
+        var headers = new java.util.HashMap<>(original.headers());
+        headers.put("webhook-timestamp", String.valueOf(Long.MAX_VALUE));
+        assertEquals(Outcome.UNAUTHORIZED, deliver(new Sent(headers, original.body())));
+        assertEquals(0, count("sys_subscription_invoice"));
+        assertEquals(0, count("sys_billing_webhook_event"));
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("02", db.role("OWNER-A"));
+    }
 }
