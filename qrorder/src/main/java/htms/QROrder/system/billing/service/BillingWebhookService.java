@@ -245,7 +245,7 @@ public class BillingWebhookService {
 
     /**
      * 재확인 결과. CHECKED만 "저장 키와 일치하는 제공자 구독/인보이스 조회를 마쳤다"는 뜻이다(E8 만료 판단에 쓸 수 있음).
-     * NOTHING_TO_CHECK = 등록 없음 또는 다른 제공자/상점, UNVERIFIED = 조회는 됐지만 저장 키와 다른 구독이거나 없음,
+     * NOTHING_TO_CHECK = 등록 없음 또는 다른 제공자/상점, UNVERIFIED = 조회는 됐지만 저장 키와 다른 구독이거나 없음, 또는 목록 인보이스의 연결(구독/상점/고객)이 다름,
      * FAILED = 제공자 조회 실패. 셋 다 아무것도 바꾸지 않는다.
      */
     public enum ReconcileResult { NOTHING_TO_CHECK, CHECKED, UNVERIFIED, FAILED }
@@ -278,19 +278,26 @@ public class BillingWebhookService {
         }
         List<ProviderInvoice> ordered = new ArrayList<>(found);
         ordered.sort(Comparator.comparing(ProviderInvoice::periodStartAt, Comparator.nullsLast(Comparator.naturalOrder())));
+        // 목록 인보이스 중 저장 키와 연결이 확인되지 않은 것이 있으면 목록 전체를 미확인(UNVERIFIED)으로 돌려준다.
+        // 확인된 인보이스는 반영하되, E8 만료나 시도 교체의 근거로는 쓰지 않는다.
+        boolean unverified = false;
         for (ProviderInvoice invoice : ordered) {
-            if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())
-                    || !providerSubscriptionId.equals(invoice.subscriptionId())) continue;
-            Boolean ended = transaction.execute(status -> {
+            if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())) continue;
+            if (!providerSubscriptionId.equals(invoice.subscriptionId())) {
+                unverified = true;
+                continue;
+            }
+            Applied applied = transaction.execute(status -> {
                 Instant now = clock.instant();
                 Subscription row = subscriptions.lockById(subscriptionSysId);
                 // 잠금 전 판단은 버린다: 그사이 새 결제 시도로 등록이 바뀌었으면 건너뛴다.
-                if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return false;
-                Applied applied = applyInvoiceLocked(provider, row, invoice, subscription, now);
-                finishUser(row, applied, now);
-                return applied.expired();
+                if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return Applied.NONE;
+                Applied result = applyInvoiceLocked(provider, row, invoice, subscription, now);
+                finishUser(row, result, now);
+                return result;
             });
-            if (Boolean.TRUE.equals(ended)) lifecycle.endProvider(subscriptionSysId);
+            if (applied == Applied.LINK_MISMATCH || applied == Applied.OTHER_SUBSCRIPTION) unverified = true;
+            if (applied != null && applied.expired()) lifecycle.endProvider(subscriptionSysId);
         }
         // 결제수단 상태는 인보이스를 모두 반영한 뒤에 최신 조회 값으로 맞춘다(놓친 Paid → 카드 만료 순서).
         transaction.executeWithoutResult(status -> {
@@ -300,6 +307,10 @@ public class BillingWebhookService {
                 applyPaymentMethodLocked(row, subscription, clock.instant());
             }
         });
+        if (unverified) {
+            log.warn("billing reconcile invoice list does not match stored keys subscription={}", subscriptionSysId);
+            return ReconcileResult.UNVERIFIED;
+        }
         return ReconcileResult.CHECKED;
     }
 

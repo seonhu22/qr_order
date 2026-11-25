@@ -182,4 +182,24 @@ class SubscriptionBatchPersistenceTest {
             assertEquals("01", world.db.role("OWNER-A"), change);
         }
     }
+
+    /** 구독 조회는 저장 키와 맞아도 목록 인보이스의 고객이 다르면 연결 미확인(UNVERIFIED): E8 만료하지 않는다. */
+    @Test void activeIsNotExpiredWhenAListedInvoiceBelongsToAnotherCustomer() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        Instant due = world.instant("paid_through_at").plus(Duration.ofDays(7));
+        var otherCustomer = new ForwardingBillingProvider(world.pg) {
+            @Override public java.util.List<htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice> listInvoices(
+                    String id) {
+                return super.listInvoices(id).stream().map(i -> withCustomer(i, "cus_other")).toList();
+            }
+        };
+        var batch = new htms.QROrder.system.billing.service.SubscriptionBatchService(world.subscriptions(),
+                new htms.QROrder.system.billing.provider.BillingProviderRegistry(java.util.List.of(otherCustomer)),
+                world.webhooks, world.lifecycle, world.db.transactions);
+        var report = batch.run(due);
+        assertEquals(0, report.expired());
+        assertEquals(1, report.reconcileFailed());
+        assertEquals("ACTIVE", world.column("status"));
+        assertEquals("01", world.db.role("OWNER-A"));
+    }
 }

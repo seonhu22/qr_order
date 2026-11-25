@@ -317,6 +317,23 @@ class ClientSubscriptionPersistenceTest {
         assertEquals(1, world.pg.snapshot().subscriptions.size());
     }
 
+    /** 만료된 시도의 대사에서 목록 인보이스 고객이 저장 고객과 다르면 연결 미확인: 503, 옛 등록 유지(교체/종료 없음). */
+    @Test void expiredAttemptWithAnInvoiceOfAnotherCustomerIs503AndKeepsProviderIds() {
+        world.checkoutAndPay(CardScenario.DECLINED);
+        world.clock.advance(Duration.ofMinutes(11));
+        var before = attempt();
+        var otherCustomer = new ForwardingBillingProvider(world.pg) {
+            @Override public java.util.List<htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice> listInvoices(
+                    String id) {
+                return super.listInvoices(id).stream().map(i -> withCustomer(i, "cus_other")).toList();
+            }
+        };
+        assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> clientWith(otherCustomer).checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals(before, attempt());
+        assertEquals("INCOMPLETE", world.pg.getSubscription((String) before.get("provider_subscription_id")).status());
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+    }
+
     /** QA B2 앞부분: 금액 불일치로 결제만 되고 PENDING인 시도가 만료된 뒤 결제 시작 → 결제가 된 옛 등록도 먼저 ENDED. */
     private String paidMismatchThenAttemptExpires() {
         var launch = world.client.checkout(world.owner(), BillingWorld.PLAN);
