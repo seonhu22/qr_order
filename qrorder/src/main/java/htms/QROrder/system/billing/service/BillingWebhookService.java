@@ -369,10 +369,13 @@ public class BillingWebhookService {
         return applied;
     }
 
-    /** 이 인보이스의 결제가 아직 구독에 반영되지 않았다(없음, 결제 전 상태, 또는 MISMATCH로만 기록됨). */
+    /**
+     * 이 인보이스의 결제가 아직 구독에 반영되지 않았다(없음, 결제 전 상태, MISMATCH로만 기록됨, 또는 판정 없이 기록만 한
+     * 결제 계열 행: Paid 유실 뒤 과거/미래 회차 환불을 기록만 한 경우).
+     */
     private static boolean unapplied(SubscriptionInvoice existing) {
         return existing == null || !PAID_FAMILY.contains(existing.getStatus())
-                || "MISMATCH".equals(existing.getApplyResult());
+                || existing.getApplyResult() == null || "MISMATCH".equals(existing.getApplyResult());
     }
 
     /** 반영 여부를 이미 판정한 인보이스(APPLIED/STALE/AFTER_CANCEL/OWNER_MISSING). MISMATCH와 미기록(null)은 아니다. */

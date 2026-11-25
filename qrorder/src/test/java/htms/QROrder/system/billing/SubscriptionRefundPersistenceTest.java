@@ -192,4 +192,22 @@ class SubscriptionRefundPersistenceTest {
         assertEquals(endAt, world.instant("end_at"));
         assertEquals("01", world.db.role("OWNER-A"));
     }
+
+    /** Paid 유실 뒤 미래 회차 부분 환불은 기록만(apply_result 없음). 회차가 시작된 뒤 잔액 전액 환불 → 결제 복원 후 E4. */
+    @Test void recordOnlyPartialRefundOfLostFuturePaymentThenFullRefundInItsPeriodExpires() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        world.clock.set(world.instant("paid_through_at").minus(Duration.ofDays(2)));
+        world.autoDeliver = false;
+        String renewal = world.pg.chargeNextPeriod(world.column("provider_subscription_id"), true);
+        world.autoDeliver = true;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.refund(renewal, 10000, "test");
+        assertEquals("PARTIALLY_REFUNDED", invoiceColumn(renewal, "status"));
+        assertNull(invoiceColumn(renewal, "apply_result"));
+        assertEquals("ACTIVE", world.column("status"));
+
+        world.clock.set(world.pg.getInvoice(renewal).periodStartAt().plus(Duration.ofHours(1)));
+        world.pg.refund(renewal, 19000, "test");
+        assertExpiredAfterRestoredPaid(renewal);
+    }
 }
