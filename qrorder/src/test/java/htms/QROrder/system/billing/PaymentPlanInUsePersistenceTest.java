@@ -99,4 +99,12 @@ class PaymentPlanInUsePersistenceTest {
         service.delPayment(List.of(plan(39000, "KRW", 1, "기본 월간")), "ADMIN-1", "ADMIN", "M");
         assertEquals("Y", row().get("delete_yn"));
     }
+
+    /** pay_info에도 연결된 플랜이어도 진행 중 구독이 쓰면 금액 변경은 400이 아니라 409(구독 검사가 먼저). */
+    @Test void planAlsoUsedByPayInfoIsStill409ForPricingChange() {
+        db.jdbc.update("insert into sys_plant_pay_info(sys_id, payment_cd) values ('PI-1', 'BASIC_MONTHLY')");
+        var before = row();
+        assertConflict(() -> service.updatePayment(plan(39000, "KRW", 1, "기본 월간"), "ADMIN-1", "ADMIN", "M"));
+        assertEquals(before, row());
+    }
 }

@@ -87,6 +87,15 @@
         and payment_cd = #{paymentCd}
     </select>
 
+    <!-- 수정/삭제 전 요금제 행 잠금. 결제 시작(SubscriptionMapper.lockPlan)과 같은 행을 잠가 사용 검사와 쓰기를 직렬화한다. -->
+    <select id="lockPayments" resultType="string">
+        select sys_id from sys_payment
+        where sys_id in
+        <foreach collection="sysIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        order by sys_id
+        for update
+    </select>
+
     <!-- 진행 중(EXPIRED 아님) 구독이 스냅샷한 플랜이면 금액/단위/기간 수정과 삭제를 막는다(정책 4C §5). -->
     <select id="isPaymentInLiveSubscription" resultType="boolean">
         select exists (

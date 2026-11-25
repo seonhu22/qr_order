@@ -50,10 +50,12 @@ final class BillingWorld implements AutoCloseable {
         this.db = db;
     }
 
-    static BillingWorld start() throws Exception {
-        return new BillingWorld(BillingPersistenceSupport.start("mapper/system/billing/SubscriptionMapper.xml",
+    static BillingWorld start(String... extraMappers) throws Exception {
+        var mappers = new ArrayList<>(List.of("mapper/system/billing/SubscriptionMapper.xml",
                 "mapper/system/billing/SubscriptionInvoiceMapper.xml",
                 "mapper/system/billing/BillingWebhookEventMapper.xml"));
+        mappers.addAll(List.of(extraMappers));
+        return new BillingWorld(BillingPersistenceSupport.start(mappers.toArray(String[]::new)));
     }
 
     SubscriptionMapper subscriptions() { return db.sql.getMapper(SubscriptionMapper.class); }

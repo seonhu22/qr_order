@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!-- 잠금 순서: sys_subscription, sys_subscription_invoice, sys_billing_webhook_event, sys_user (정책 4C §8). -->
+<!-- 잠금 순서: sys_subscription, sys_payment(결제 시작), sys_subscription_invoice, sys_billing_webhook_event, sys_user (정책 4C §8). -->
 <mapper namespace="htms.QROrder.system.billing.repository.SubscriptionMapper">
 
     <sql id="columns">
@@ -186,6 +186,14 @@
         select <include refid="planColumns"/>
         from sys_payment
         where sys_id = #{planSysId} and <include refid="planOnSale"/>
+    </select>
+
+    <!-- 결제 시작 스냅샷 직전, 잠긴 구독 행 다음에 잠근다. 요금제 수정/삭제(PaymentMapper.lockPayments)와 직렬화. -->
+    <select id="lockPlan" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where sys_id = #{planSysId} and <include refid="planOnSale"/>
+        for update
     </select>
 
     <select id="countPendingInvoices" resultType="int">

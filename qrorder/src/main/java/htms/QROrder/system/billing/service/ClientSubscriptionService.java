@@ -357,13 +357,16 @@ public class ClientSubscriptionService {
                 || !retired.providerSubscriptionId().equals(row.getProviderSubscriptionId()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
         }
+        // 플랜 행을 잠그고 다시 읽어 스냅샷한다: 요금제 수정/삭제의 사용 중 검사와 직렬화된다(§5).
+        SubscriptionPlan locked = subscriptions.lockPlan(plan.getPlanSysId());
+        if (locked == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "플랜을 선택해 주세요.");
         // 새 시도 ID와 스냅샷을 제공자 호출 전에 커밋한다.
         String attemptId = "att_" + UlidCreator.getUlid();
-        subscriptions.startCheckoutAttempt(row.getSysId(), plan.getPlanSysId(), plan.getAmount(), plan.getCurrency(),
-                plan.getPeriodMonth(), provider.name(), provider.storeId(), attemptId,
+        subscriptions.startCheckoutAttempt(row.getSysId(), locked.getPlanSysId(), locked.getAmount(), locked.getCurrency(),
+                locked.getPeriodMonth(), provider.name(), provider.storeId(), attemptId,
                 now.plus(Duration.ofMinutes(10)), ACTOR);
-        return new Step(row.getSysId(), false, attemptId, null, productId, plan.getAmount(), plan.getCurrency(),
-                plan.getPeriodMonth());
+        return new Step(row.getSysId(), false, attemptId, null, productId, locked.getAmount(), locked.getCurrency(),
+                locked.getPeriodMonth());
     }
 
     /** EXPIRED 뒤 재구독: 직전 대표 본인, 제공자 종료 확인, 결제 진행 중 인보이스 0건(§1). 새 PENDING 행. */

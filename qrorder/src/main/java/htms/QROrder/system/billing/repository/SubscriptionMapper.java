@@ -100,6 +100,9 @@ public interface SubscriptionMapper {
 
     SubscriptionPlan findPlan(@Param("planSysId") String planSysId);
 
+    /** 판매 중 플랜 행을 잠그고 읽는다(결제 시작 스냅샷용). 없거나 판매 중이 아니면 null. */
+    SubscriptionPlan lockPlan(@Param("planSysId") String planSysId);
+
     /** 이 구독의 결제 진행 중(PENDING) 인보이스 수. 재구독 조건. */
     int countPendingInvoices(@Param("subscriptionSysId") String subscriptionSysId);
 

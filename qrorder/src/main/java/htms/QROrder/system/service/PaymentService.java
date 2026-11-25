@@ -54,16 +54,18 @@ public class PaymentService {
                                 String sysPlantCd,
                                 String menuCd) {
 
-        if(isPaymentCdUse(payment)) {
-
-            throw new ValidationException("해당 코드는 이미 사용중입니다. 편집이 불가합니다.");
-        }
-
+        // 플랜 행 잠금 → 구독 사용 검사 → 쓰기. 결제 시작도 같은 행을 잠근 뒤 스냅샷하므로 둘은 직렬화된다(정책 4C §5).
+        paymentMapper.lockPayments(List.of(payment.getSysId()));
         Payment oldData = getOldData(payment);
         if (oldData != null && pricingChanged(oldData, payment)
                 && paymentMapper.isPaymentInLiveSubscription(payment.getSysId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "진행 중인 구독이 쓰는 요금제는 금액/단위/기간을 바꿀 수 없습니다.");
+        }
+
+        if(isPaymentCdUse(payment)) {
+
+            throw new ValidationException("해당 코드는 이미 사용중입니다. 편집이 불가합니다.");
         }
 
         auditService.insertUpdateAuditTrailData(oldData, payment, payment.getSysId(), menuCd, "sys_payment", userId, sysPlantCd);
@@ -75,6 +77,9 @@ public class PaymentService {
                             String sysPlantCd,
                             String menuCd) {
 
+        List<String> sysIds = payment.stream().filter(Objects::nonNull).map(Payment::getSysId)
+                .filter(Objects::nonNull).toList();
+        if (!sysIds.isEmpty()) paymentMapper.lockPayments(sysIds);
         for (Payment item : payment) {
             if (item != null && paymentMapper.isPaymentInLiveSubscription(item.getSysId())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "진행 중인 구독이 쓰는 요금제는 삭제할 수 없습니다.");
