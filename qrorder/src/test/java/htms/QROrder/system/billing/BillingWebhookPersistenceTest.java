@@ -428,4 +428,45 @@ class BillingWebhookPersistenceTest {
         assertEquals(1, count("sys_subscription_invoice"));
         assertEquals("01", db.role("OWNER-A"));
     }
+
+    /** 조회 결과를 바꾸고 webhook-id도 새로 붙이는 제공자(같은 인보이스의 다른 웹훅). */
+    private BillingProvider snapshot(String webhookId, UnaryOperator<ProviderInvoice> change) {
+        return new ForwardingBillingProvider(pg) {
+            @Override public ProviderInvoice getInvoice(String id) { return change.apply(pg.getInvoice(id)); }
+            @Override public BillingModels.BillingNotice verifyAndParseWebhook(Map<String, String> h, byte[] b) {
+                return withWebhookId(pg.verifyAndParseWebhook(h, b), webhookId);
+            }
+        };
+    }
+
+    private static ProviderInvoice updatedLater(ProviderInvoice i, long seconds) {
+        return new ProviderInvoice(i.storeId(), i.invoiceId(), i.subscriptionId(), i.customerId(), i.productId(),
+                i.chargeKind(), i.paymentMethod(), i.amount(), i.refundedAmount(), i.currency(), i.status(),
+                i.attemptCount(), i.periodStartAt(), i.periodEndAt(), i.paidAt(), i.updatedAt().plusSeconds(seconds),
+                i.failureCode());
+    }
+
+    @Test void correctedSnapshotOfPeriodErrorPaidAppliesOnceAndNeverAgain() {
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        var message = last();
+        assertEquals(Outcome.OK, deliverVia(snapshot("msg_broken", i -> withPeriod(i, i.periodStartAt(), null)), message));
+        assertEquals("MISMATCH", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("02", db.role("OWNER-A"));
+
+        assertEquals(Outcome.OK, deliverVia(snapshot("msg_fixed", i -> updatedLater(i, 1)), message));
+        assertEquals("APPLIED", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+        assertEquals("ACTIVE", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("Y", db.column("sys_subscription", "role_granted_yn", "SUB-A"));
+        assertEquals("01", db.role("OWNER-A"));
+        var applied = db.jdbc.queryForMap("select s.modify_datetime, s.paid_through_at, s.role_granted_at,"
+                + " u.modify_datetime u_mod from sys_subscription s join sys_user u on u.sys_id = s.owner_user_sys_id");
+
+        assertEquals(Outcome.OK, deliverVia(snapshot("msg_again", i -> updatedLater(i, 2)), message));
+        assertEquals(applied, db.jdbc.queryForMap("select s.modify_datetime, s.paid_through_at, s.role_granted_at,"
+                + " u.modify_datetime u_mod from sys_subscription s join sys_user u on u.sys_id = s.owner_user_sys_id"));
+        assertEquals("APPLIED", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+        assertEquals(3, count("sys_billing_webhook_event"));
+        assertEquals(1, count("sys_subscription_invoice"));
+    }
 }

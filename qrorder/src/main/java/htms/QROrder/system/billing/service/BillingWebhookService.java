@@ -285,8 +285,8 @@ public class BillingWebhookService {
         boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
         if (!newer || !allowed) return Applied.NONE;
-        boolean firstPaid = "PAID".equals(invoice.status())
-                && (existing == null || !PAID_FAMILY.contains(existing.getStatus()));
+        // 첫 PAID 이동, 또는 이전 PAID가 MISMATCH로만 기록돼 아직 반영되지 않은 결제의 새 스냅샷. 반영된 PAID는 다시 반영하지 않는다.
+        boolean firstPaid = "PAID".equals(invoice.status()) && unapplied(existing);
         String applyResult = null;
         Applied applied = Applied.NONE;
         if (!matches(row, invoice, subscription)) {
@@ -304,6 +304,12 @@ public class BillingWebhookService {
         }
         upsertInvoice(existing, row, provider, invoice, applyResult);
         return applied;
+    }
+
+    /** 이 인보이스의 결제가 아직 구독에 반영되지 않았다(없음, 결제 전 상태, 또는 MISMATCH로만 기록됨). */
+    private static boolean unapplied(SubscriptionInvoice existing) {
+        return existing == null || !PAID_FAMILY.contains(existing.getStatus())
+                || "MISMATCH".equals(existing.getApplyResult());
     }
 
     private static boolean refundedMore(SubscriptionInvoice existing, ProviderInvoice invoice) {
