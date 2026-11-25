@@ -60,6 +60,12 @@ class BusinessVerifierProfileTest {
         local.withPropertyValues("spring.datasource.url=jdbc:postgresql://localhost:15432/team", "ssh.enabled=true",
                         "signup.business-verifier=fake")
                 .run(context -> assertNotNull(context.getStartupFailure()));
+        for (String url : new String[]{"jdbc:postgresql://localhost/qr?PGHOST=10.0.0.5",
+                "jdbc:postgresql://127.0.0.1/qr?socketFactory=org.example.Proxy",
+                "jdbc:postgresql://localhost/qr?service=no-such-service"}) {
+            local.withPropertyValues("spring.datasource.url=" + url, "signup.business-verifier=fake")
+                    .run(context -> assertNotNull(context.getStartupFailure(), url));
+        }
     }
 
     @Test void signupCheckWithFakeVerifierPassesListedNumberAndRejectsOthers() {

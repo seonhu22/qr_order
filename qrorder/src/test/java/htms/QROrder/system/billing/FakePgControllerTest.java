@@ -112,6 +112,24 @@ class FakePgControllerTest {
         disabled.perform(post("/fake-pg/checkout").param("token", "x")).andExpect(status().isNotFound());
     }
 
+    @Test void fakeProviderRefusesToStartWhenDriverWouldReachAnotherHost() {
+        String file = "billing.fake.state-file=" + dir.resolve("guard.json").toString().replace('\\', '/');
+        var runner = new ApplicationContextRunner().withUserConfiguration(FakeBillingConfig.class)
+                .withInitializer(c -> c.getEnvironment().setActiveProfiles("local"))
+                .withPropertyValues("billing.provider=fake", file);
+        for (String url : new String[]{"jdbc:postgresql://localhost/qr?PGHOST=10.0.0.5",
+                "jdbc:postgresql://127.0.0.1:1,db.example.com:2/qr",
+                "jdbc:postgresql://127.0.0.1/qr?socketFactoryArg=10.0.0.5",
+                "jdbc:postgresql://localhost/qr?service=no-such-service"}) {
+            runner.withPropertyValues("spring.datasource.url=" + url)
+                    .run(context -> assertNotNull(context.getStartupFailure(), url));
+        }
+        runner.withPropertyValues("spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/qrdemo", "ssh.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        runner.withPropertyValues("spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/qrdemo")
+                .run(context -> assertNull(context.getStartupFailure()));
+    }
+
     @Test void defaultProfileRegistersOnlyTheNotFoundController() {
         String file = "billing.fake.state-file=" + dir.resolve("ctx.json").toString().replace('\\', '/');
         var runner = new ApplicationContextRunner()
