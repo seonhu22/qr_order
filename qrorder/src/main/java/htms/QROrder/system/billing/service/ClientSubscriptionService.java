@@ -122,11 +122,16 @@ public class ClientSubscriptionService {
     public SubscriptionView reconcile(Login actor) {
         Subscription row = ownedRow(actor);
         Instant now = clock.instant();
-        Instant previous = lastReconcile.get(row.getSysId());
-        if (previous != null && now.isBefore(previous.plus(RECONCILE_INTERVAL))) {
+        // 확인과 갱신을 한 번의 원자적 compute로: 동시에 온 요청 중 하나만 통과한다.
+        boolean[] allowed = {false};
+        lastReconcile.compute(row.getSysId(), (id, previous) -> {
+            if (previous != null && now.isBefore(previous.plus(RECONCILE_INTERVAL))) return previous;
+            allowed[0] = true;
+            return now;
+        });
+        if (!allowed[0]) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "10초 뒤에 다시 확인해 주세요.");
         }
-        lastReconcile.put(row.getSysId(), now);
         BillingProvider provider = providers.find(row.getProvider()).orElse(null);
         if (provider != null && billing.reconcile(provider, row.getSysId()) == ReconcileResult.FAILED) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제사 확인에 실패했습니다. 잠시 뒤 다시 확인해 주세요.");

@@ -421,4 +421,47 @@ class ClientSubscriptionPersistenceTest {
         assertEquals("DONE", world.column("provider_end_status"));
         assertEquals("EXPIRED", world.column("status"));
     }
+
+    @Test void twoConcurrentReconcilesCallTheProviderOnceAndTheOtherIs429() throws Exception {
+        world.autoDeliver = false;
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var slow = new ForwardingBillingProvider(world.pg) {
+            @Override public htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription getSubscription(String id) {
+                calls.incrementAndGet();
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return super.getSubscription(id);
+            }
+        };
+        var service = clientWith(slow);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var gate = new java.util.concurrent.CountDownLatch(1);
+        try {
+            var results = new java.util.ArrayList<java.util.concurrent.Future<HttpStatus>>();
+            for (int i = 0; i < 2; i++) {
+                results.add(pool.submit(() -> {
+                    gate.await();
+                    try {
+                        service.reconcile(world.owner());
+                        return HttpStatus.OK;
+                    } catch (ResponseStatusException e) {
+                        return HttpStatus.valueOf(e.getStatusCode().value());
+                    }
+                }));
+            }
+            gate.countDown();
+            var statuses = new java.util.ArrayList<HttpStatus>();
+            for (var r : results) statuses.add(r.get(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertTrue(statuses.contains(HttpStatus.OK), statuses.toString());
+            assertTrue(statuses.contains(HttpStatus.TOO_MANY_REQUESTS), statuses.toString());
+        } finally {
+            pool.shutdownNow();
+        }
+        assertEquals(1, calls.get());
+        assertEquals("ACTIVE", world.column("status"));
+    }
 }
