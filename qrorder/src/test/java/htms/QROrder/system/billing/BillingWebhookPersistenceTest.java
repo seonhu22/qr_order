@@ -350,4 +350,30 @@ class BillingWebhookPersistenceTest {
         assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-B"));
         assertEquals("02", db.role("OWNER-B"));
     }
+
+    private static ProviderInvoice withPeriod(ProviderInvoice i, java.time.Instant start, java.time.Instant end) {
+        return new ProviderInvoice(i.storeId(), i.invoiceId(), i.subscriptionId(), i.customerId(), i.productId(),
+                i.chargeKind(), i.paymentMethod(), i.amount(), i.refundedAmount(), i.currency(), i.status(),
+                i.attemptCount(), start, end, i.paidAt(), i.updatedAt(), i.failureCode());
+    }
+
+    @Test void paidWithoutValidProviderPeriodIsNotApplied() {
+        pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
+        var message = last();
+        var start = java.time.Instant.parse("2026-11-25T00:00:00Z");
+        List<UnaryOperator<ProviderInvoice>> broken = List.of(
+                i -> withPeriod(i, i.periodStartAt(), null),
+                i -> withPeriod(i, null, i.periodEndAt()),
+                i -> withPeriod(i, start, start),
+                i -> withPeriod(i, start, start.minusSeconds(1)));
+        for (var change : broken) {
+            db.jdbc.update("truncate table sys_billing_webhook_event, sys_subscription_invoice");
+            assertEquals(Outcome.OK, deliverVia(lookupReturns(change), message));
+            assertEquals("MISMATCH", db.jdbc.queryForObject("select apply_result from sys_subscription_invoice", String.class));
+            assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
+            assertNull(db.column("sys_subscription", "paid_through_at", "SUB-A"));
+            assertEquals("N", db.column("sys_subscription", "role_granted_yn", "SUB-A"));
+            assertEquals("02", db.role("OWNER-A"));
+        }
+    }
 }

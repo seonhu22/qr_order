@@ -212,7 +212,7 @@ public class BillingWebhookService {
         return new PaidDecision("APPLIED", "02".equals(ownerRole));
     }
 
-    /** 제공자/상점/고객/구독/상품, 정기 자동 카드 결제, 금액 = 스냅샷(0원 제외), KRW(§7 확인 항목). */
+    /** 제공자/상점/고객/구독/상품, 정기 자동 카드 결제, 금액 = 스냅샷(0원 제외), KRW, 결제된 회차는 기간 시작 < 끝(§7 확인 항목). */
     private boolean matches(BillingProvider provider, Subscription row, ProviderInvoice invoice,
                             ProviderSubscription subscription) {
         String planCode = row.getPlanSysId() == null ? null : subscriptions.findPlanCode(row.getPlanSysId());
@@ -230,7 +230,14 @@ public class BillingWebhookService {
                 && BillingModels.CHARGE_RECURRING.equals(invoice.chargeKind())
                 && BillingModels.METHOD_CARD.equals(invoice.paymentMethod())
                 && invoice.amount() > 0 && row.getAmount() != null && invoice.amount() == row.getAmount()
-                && "KRW".equals(invoice.currency()) && "KRW".equals(row.getCurrency());
+                && "KRW".equals(invoice.currency()) && "KRW".equals(row.getCurrency())
+                && (!PAID_FAMILY.contains(invoice.status()) || validPeriod(invoice));
+    }
+
+    /** 기간이 없거나 거꾸로면 paid_through_at을 정할 수 없어 E8 만료도 못 한다. 그런 결제는 반영하지 않는다. */
+    private static boolean validPeriod(ProviderInvoice invoice) {
+        return invoice.periodStartAt() != null && invoice.periodEndAt() != null
+                && invoice.periodStartAt().isBefore(invoice.periodEndAt());
     }
 
     private void upsertInvoice(SubscriptionInvoice existing, Subscription row, BillingProvider provider,
