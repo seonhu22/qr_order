@@ -159,6 +159,14 @@
         where sys_id = #{sysId} and checkout_attempt_id = #{attemptId} and status = 'PENDING'
     </update>
 
+    <update id="attachLateRegistration">
+        update sys_subscription
+        set provider_customer_id = #{providerCustomerId}, provider_subscription_id = #{providerSubscriptionId},
+            provider_end_status = 'REQUESTED', modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and checkout_attempt_id = #{attemptId} and status = 'EXPIRED'
+        and provider_subscription_id is null
+    </update>
+
     <sql id="planColumns">
         sys_id as plan_sys_id, payment_cd as plan_code, payment_nm as plan_name, payment_fee as amount,
         payment_fee_unit as currency, license_valid_month as period_month

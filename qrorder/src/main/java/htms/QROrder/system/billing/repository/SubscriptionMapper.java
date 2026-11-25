@@ -83,6 +83,15 @@ public interface SubscriptionMapper {
                                  @Param("providerSubscriptionId") String providerSubscriptionId,
                                  @Param("expiresAt") Instant expiresAt, @Param("userId") String userId);
 
+    /**
+     * 해지(EXPIRED) 뒤에 도착한 이 시도의 제공자 등록을 붙이고 종료 요청 대기(REQUESTED)로 둔다. 커밋 뒤 제공자 종료,
+     * 실패하면 배치가 재시도한다. 같은 시도이고 아직 등록 ID가 없을 때만 1행.
+     */
+    int attachLateRegistration(@Param("sysId") String sysId, @Param("attemptId") String attemptId,
+                               @Param("providerCustomerId") String providerCustomerId,
+                               @Param("providerSubscriptionId") String providerSubscriptionId,
+                               @Param("userId") String userId);
+
     /** 판매 중 플랜(sys_payment, 원화, 금액/기간 양수, 삭제 안 됨). */
     List<SubscriptionPlan> findPlans();
 

@@ -179,6 +179,7 @@ public class ClientSubscriptionService {
                 new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제 제공자가 설정되지 않았습니다."));
         SubscriptionPlan plan = planSysId == null ? null : subscriptions.findPlan(planSysId);
         if (plan == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "플랜을 선택해 주세요.");
+        recoverRegistration(provider, actor, plantCd, plan.getPlanSysId());
         Retired retired = retireExpiredRegistration(plantCd, plan.getPlanSysId());
 
         Step step;
@@ -205,10 +206,72 @@ public class ClientSubscriptionService {
                         launch.providerCustomerId(), launch.providerSubscriptionId(), launch.expiresAt(), ACTOR);
             });
             if (saved == null || saved != 1) {
+                abandonRegistration(provider, step.subscriptionSysId(), step.attemptId(), launch);
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
             }
         }
         return new CheckoutLaunchView(launch.provider(), launch.launch(), launch.expiresAt());
+    }
+
+    private enum Abandon { KEEP, END_NOW, END_BY_LIFECYCLE }
+
+    /**
+     * 저장하지 못한 제공자 등록(해지/교체가 먼저 커밋됨)은 결제창이 살아 있지 않도록 종료한다.
+     * 해지된 그 시도의 등록이면 행에 붙여 REQUESTED로 두고 종료(실패 시 배치 재시도), 행이 이미 같은 등록을 쓰면 그대로 둔다.
+     */
+    private void abandonRegistration(BillingProvider provider, String subscriptionSysId, String attemptId,
+                                     CheckoutLaunch launch) {
+        Abandon action = transaction.execute(status -> {
+            Subscription row = subscriptions.lockById(subscriptionSysId);
+            if (row != null && launch.providerSubscriptionId().equals(row.getProviderSubscriptionId())) return Abandon.KEEP;
+            if (row != null && subscriptions.attachLateRegistration(subscriptionSysId, attemptId,
+                    launch.providerCustomerId(), launch.providerSubscriptionId(), ACTOR) == 1) {
+                return Abandon.END_BY_LIFECYCLE;
+            }
+            return Abandon.END_NOW;
+        });
+        if (action == Abandon.END_BY_LIFECYCLE) {
+            lifecycle.endProvider(subscriptionSysId);
+        } else if (action == Abandon.END_NOW) {
+            try {
+                provider.endSubscription(launch.providerSubscriptionId());
+            } catch (ProviderUnavailableException | IllegalStateException | IllegalArgumentException failed) {
+                log.warn("billing abandoned registration end failed subscription={} registration={} reason={}",
+                        subscriptionSysId, launch.providerSubscriptionId(), failed.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 등록 ID 없이 열린 채 끝난 시도(병렬 시작, 응답 유실, 등록 실패)는 같은 키/스냅샷으로 제공자 등록을 되찾는다.
+     * 같은 키면 제공자는 같은 등록을 돌려준다. 만료 시각은 그대로 두어 아래 교체 판단이 이어서 한다.
+     */
+    private void recoverRegistration(BillingProvider provider, Login actor, String plantCd, String planSysId) {
+        Subscription open = subscriptions.findOpenByPlant(plantCd);
+        if (open == null || open.getStatus() != SubscriptionStatus.PENDING || open.getCheckoutAttemptId() == null
+                || open.getProviderSubscriptionId() != null || checkoutOpen(open, planSysId, clock.instant())) {
+            return;
+        }
+        if (!provider.name().equals(open.getProvider())) throw unavailable();
+        String productId = BillingProviderRegistry.productIdFor(environment, subscriptions.findPlanCode(open.getPlanSysId()));
+        CheckoutLaunch launch;
+        try {
+            launch = provider.startCheckout(new CheckoutRequest(open.getSysId(), actor.getSysId(), plantCd, productId,
+                    open.getAmount(), open.getCurrency(), open.getPeriodMonth(), open.getCheckoutAttemptId()));
+        } catch (ProviderUnavailableException failed) {
+            throw unavailable();
+        } catch (IllegalStateException | IllegalArgumentException rejected) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, rejected.getMessage());
+        }
+        Integer saved = transaction.execute(status -> {
+            subscriptions.lockById(open.getSysId());
+            return subscriptions.saveCheckoutRegistration(open.getSysId(), open.getCheckoutAttemptId(),
+                    launch.providerCustomerId(), launch.providerSubscriptionId(), open.getCheckoutExpiresAt(), ACTOR);
+        });
+        if (saved == null || saved != 1) {
+            abandonRegistration(provider, open.getSysId(), open.getCheckoutAttemptId(), launch);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
+        }
     }
 
     /** 대사와 제공자 종료를 마친 옛 등록. 잠금 안에서 행이 아직 이 시도/등록일 때만 새 시도로 바꾼다. */
@@ -271,7 +334,8 @@ public class ClientSubscriptionService {
                     row.getAmount(), row.getCurrency(), row.getPeriodMonth());
         }
         // START_NEW_CHECKOUT: 옛 등록이 있으면 대사 + 제공자 종료를 마친 바로 그 시도/등록일 때만 바꾼다.
-        if (row.getProviderSubscriptionId() != null && (retired == null
+        boolean unrecovered = row.getCheckoutAttemptId() != null && row.getProviderSubscriptionId() == null;
+        if (unrecovered || row.getProviderSubscriptionId() != null && (retired == null
                 || !retired.attemptId().equals(row.getCheckoutAttemptId())
                 || !retired.providerSubscriptionId().equals(row.getProviderSubscriptionId()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
@@ -309,8 +373,9 @@ public class ClientSubscriptionService {
         return subscriptions.lockById(created.getSysId());
     }
 
+    /** 열린 시도: 같은 플랜, 만료 전. 등록 ID가 아직 없어도(등록 중/응답 유실) 같은 키로 재개한다. */
     private static boolean checkoutOpen(Subscription row, String planSysId, Instant now) {
-        return row.getCheckoutAttemptId() != null && row.getProviderSubscriptionId() != null
+        return row.getCheckoutAttemptId() != null
                 && row.getCheckoutExpiresAt() != null && now.isBefore(row.getCheckoutExpiresAt())
                 && Objects.equals(planSysId, row.getPlanSysId());
     }

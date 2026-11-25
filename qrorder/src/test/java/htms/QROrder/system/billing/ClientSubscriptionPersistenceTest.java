@@ -314,4 +314,111 @@ class ClientSubscriptionPersistenceTest {
         assertEquals(2, world.subscriptions().findAdminRow("SUB-A").getProblemCount());
         assertEquals(1, world.admin.list(null, true).mismatchEvents().size());
     }
+
+    @Test void parallelCheckoutStartsResumeOneAttemptAndOneRegistration() throws Exception {
+        int n = 8;
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(n);
+        var gate = new java.util.concurrent.CountDownLatch(1);
+        try {
+            var futures = new java.util.ArrayList<java.util.concurrent.Future<String>>();
+            for (int i = 0; i < n; i++) {
+                futures.add(pool.submit(() -> {
+                    gate.await();
+                    return BillingWorld.token(world.client.checkout(world.owner(), BillingWorld.PLAN));
+                }));
+            }
+            gate.countDown();
+            var tokens = new java.util.HashSet<String>();
+            for (var f : futures) tokens.add(f.get(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(1, tokens.size());
+        } finally {
+            pool.shutdownNow();
+        }
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+        assertEquals(world.pg.snapshot().subscriptions.keySet().iterator().next(), world.column("provider_subscription_id"));
+    }
+
+    @Test void lostRegistrationResponseIsResumedWithTheSameKey() {
+        var lost = new ForwardingBillingProvider(world.pg) {
+            boolean dropped;
+            @Override public htms.QROrder.system.billing.provider.BillingModels.CheckoutLaunch startCheckout(
+                    htms.QROrder.system.billing.provider.BillingModels.CheckoutRequest request) {
+                var launch = super.startCheckout(request);
+                if (!dropped) {
+                    dropped = true;
+                    throw new htms.QROrder.system.billing.provider.ProviderUnavailableException("response lost");
+                }
+                return launch;
+            }
+        };
+        var service = clientWith(lost);
+        assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> service.checkout(world.owner(), BillingWorld.PLAN));
+        String attempt = world.column("checkout_attempt_id");
+        assertNotNull(attempt);
+        assertNull(world.column("provider_subscription_id"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+
+        service.checkout(world.owner(), BillingWorld.PLAN);
+        assertEquals(attempt, world.column("checkout_attempt_id"));
+        assertEquals(world.pg.snapshot().subscriptions.keySet().iterator().next(), world.column("provider_subscription_id"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+    }
+
+    @Test void lostRegistrationOfAnExpiredAttemptIsRecoveredAndEndedBeforeANewAttempt() {
+        var lost = new ForwardingBillingProvider(world.pg) {
+            boolean dropped;
+            @Override public htms.QROrder.system.billing.provider.BillingModels.CheckoutLaunch startCheckout(
+                    htms.QROrder.system.billing.provider.BillingModels.CheckoutRequest request) {
+                var launch = super.startCheckout(request);
+                if (!dropped) {
+                    dropped = true;
+                    throw new htms.QROrder.system.billing.provider.ProviderUnavailableException("response lost");
+                }
+                return launch;
+            }
+        };
+        assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> clientWith(lost).checkout(world.owner(), BillingWorld.PLAN));
+        String attempt = world.column("checkout_attempt_id");
+        String orphan = world.pg.snapshot().subscriptions.keySet().iterator().next();
+        world.clock.advance(Duration.ofMinutes(11));
+        world.client.checkout(world.owner(), BillingWorld.PLAN);
+        assertNotEquals(attempt, world.column("checkout_attempt_id"));
+        assertEquals("ENDED", world.pg.getSubscription(orphan).status());
+        assertNotEquals(orphan, world.column("provider_subscription_id"));
+        assertEquals(2, world.pg.snapshot().subscriptions.size());
+    }
+
+    @Test void registrationArrivingAfterCancelIsEnded() throws Exception {
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var slow = new ForwardingBillingProvider(world.pg) {
+            @Override public htms.QROrder.system.billing.provider.BillingModels.CheckoutLaunch startCheckout(
+                    htms.QROrder.system.billing.provider.BillingModels.CheckoutRequest request) {
+                entered.countDown();
+                try {
+                    release.await(20, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return super.startCheckout(request);
+            }
+        };
+        var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var checkout = pool.submit(() -> clientWith(slow).checkout(world.owner(), BillingWorld.PLAN));
+            assertTrue(entered.await(20, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals("EXPIRED", world.client.cancel(world.owner()).status());
+            release.countDown();
+            var error = assertThrows(java.util.concurrent.ExecutionException.class,
+                    () -> checkout.get(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(HttpStatus.CONFLICT, ((ResponseStatusException) error.getCause()).getStatusCode());
+        } finally {
+            pool.shutdownNow();
+        }
+        String late = world.pg.snapshot().subscriptions.keySet().iterator().next();
+        assertEquals("ENDED", world.pg.getSubscription(late).status());
+        assertEquals(late, world.column("provider_subscription_id"));
+        assertEquals("DONE", world.column("provider_end_status"));
+        assertEquals("EXPIRED", world.column("status"));
+    }
 }
