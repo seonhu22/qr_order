@@ -93,7 +93,7 @@ class ClientSubscriptionPersistenceTest {
         var fresh = world.client.checkout(world.owner(), BillingWorld.PLAN);
         assertNotEquals(BillingWorld.token(first), BillingWorld.token(fresh));
         assertNotEquals(firstRegistration, world.column("provider_subscription_id"));
-        assertEquals("INCOMPLETE", world.pg.getSubscription(firstRegistration).status());
+        assertEquals("ENDED", world.pg.getSubscription(firstRegistration).status());
         assertThrows(IllegalStateException.class, () -> world.pg.pay(BillingWorld.token(first), "OWNER-A", CardScenario.SUCCESS));
     }
 
@@ -206,5 +206,65 @@ class ClientSubscriptionPersistenceTest {
                 () -> world.client.checkout(BillingWorld.login("STAFF-A", "STORE-A"), BillingWorld.PLAN));
         assertEquals(before, allRows());
         assertEquals(1, world.count("sys_subscription"));
+    }
+
+    private htms.QROrder.system.billing.service.ClientSubscriptionService clientWith(
+            htms.QROrder.system.billing.provider.BillingProvider provider) {
+        return new htms.QROrder.system.billing.service.ClientSubscriptionService(world.subscriptions(), world.invoices(),
+                new htms.QROrder.system.billing.provider.BillingProviderRegistry(java.util.List.of(provider)),
+                world.webhooks, world.lifecycle, world.db.transactions,
+                new org.springframework.mock.env.MockEnvironment(), world.clock);
+    }
+
+    private java.util.Map<String, Object> attempt() {
+        return world.db.jdbc.queryForMap("select checkout_attempt_id, provider_customer_id, provider_subscription_id,"
+                + " status from sys_subscription where sys_id='SUB-A'");
+    }
+
+    /** QA B1: 첫 웹훅 유실 → 시도 만료 → 제공자 조회 실패 중 결제 시작 = 503, 기존 등록 유지, 중복 결제 0. */
+    @Test void expiredAttemptReconcileFailureIs503AndKeepsProviderIds() {
+        world.autoDeliver = false;
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        world.clock.advance(Duration.ofMinutes(11));
+        var before = attempt();
+        world.pg.failNextLookups(1);
+        assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> world.client.checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals(before, attempt());
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+
+        // 조회가 돌아오면 놓친 결제를 반영하고 새 등록은 만들지 않는다.
+        assertStatus(HttpStatus.CONFLICT, () -> world.client.checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals("ACTIVE", world.column("status"));
+        assertEquals("01", world.db.role("OWNER-A"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+        assertEquals(1, world.pg.snapshot().invoices.size());
+    }
+
+    @Test void oldRegistrationEndFailureIs503AndKeepsProviderIds() {
+        world.client.checkout(world.owner(), BillingWorld.PLAN);
+        world.clock.advance(Duration.ofMinutes(11));
+        var before = attempt();
+        var endFails = new ForwardingBillingProvider(world.pg) {
+            @Override public void endSubscription(String id) {
+                throw new htms.QROrder.system.billing.provider.ProviderUnavailableException("down");
+            }
+        };
+        assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> clientWith(endFails).checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals(before, attempt());
+        assertEquals("INCOMPLETE", world.pg.getSubscription((String) before.get("provider_subscription_id")).status());
+    }
+
+    @Test void oldRegistrationIsReplacedOnlyIfTheSameAttemptIsStillThereUnderLock() {
+        world.client.checkout(world.owner(), BillingWorld.PLAN);
+        world.clock.advance(Duration.ofMinutes(11));
+        var replacedMeanwhile = new ForwardingBillingProvider(world.pg) {
+            @Override public void endSubscription(String id) {
+                super.endSubscription(id);
+                world.db.jdbc.update("update sys_subscription set checkout_attempt_id='att_other' where sys_id='SUB-A'");
+            }
+        };
+        assertStatus(HttpStatus.CONFLICT, () -> clientWith(replacedMeanwhile).checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals("att_other", world.column("checkout_attempt_id"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
     }
 }

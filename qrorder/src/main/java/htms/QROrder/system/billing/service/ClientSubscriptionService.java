@@ -179,11 +179,11 @@ public class ClientSubscriptionService {
                 new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제 제공자가 설정되지 않았습니다."));
         SubscriptionPlan plan = planSysId == null ? null : subscriptions.findPlan(planSysId);
         if (plan == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "플랜을 선택해 주세요.");
-        reconcileExpiredAttempt(provider, plantCd);
+        Retired retired = retireExpiredRegistration(plantCd, plan.getPlanSysId());
 
         Step step;
         try {
-            step = transaction.execute(status -> prepare(provider, actor, plantCd, plan));
+            step = transaction.execute(status -> prepare(provider, actor, plantCd, plan, retired));
         } catch (DuplicateKeyException race) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
         }
@@ -211,16 +211,42 @@ public class ClientSubscriptionService {
         return new CheckoutLaunchView(launch.provider(), launch.launch(), launch.expiresAt());
     }
 
-    /** 만료된 시도의 등록은 버리기 전에 대사한다(창이 닫힌 뒤 결제 + 웹훅 유실). */
-    private void reconcileExpiredAttempt(BillingProvider provider, String plantCd) {
+    /** 대사와 제공자 종료를 마친 옛 등록. 잠금 안에서 행이 아직 이 시도/등록일 때만 새 시도로 바꾼다. */
+    private record Retired(String attemptId, String providerSubscriptionId) {}
+
+    /**
+     * 열린 시도가 아닌 옛 등록은 버리기 전에 대사한다(창이 닫힌 뒤 결제 + 웹훅 유실, 옛 실패 인보이스 재결제).
+     * 대사가 끝나지 않으면 503으로 기존 제공자 ID를 그대로 둔다. 대사 뒤에도 PENDING(반영할 결제 없음)이면
+     * 옛 등록을 제공자에서 종료하고(실패하면 503), 종료한 시도/등록을 돌려준다. 결제가 반영됐으면 null(이후 409).
+     */
+    private Retired retireExpiredRegistration(String plantCd, String planSysId) {
         Subscription open = subscriptions.findOpenByPlant(plantCd);
-        if (open != null && open.getStatus() == SubscriptionStatus.PENDING && open.getProviderSubscriptionId() != null
-                && !checkoutOpen(open, open.getPlanSysId(), clock.instant())) {
-            billing.reconcile(provider, open.getSysId());
+        if (open == null || open.getStatus() != SubscriptionStatus.PENDING || open.getProviderSubscriptionId() == null
+                || checkoutOpen(open, planSysId, clock.instant())) {
+            return null;
         }
+        BillingProvider owner = providers.find(open.getProvider()).orElseThrow(() -> unavailable());
+        if (billing.reconcile(owner, open.getSysId()) != ReconcileResult.CHECKED) throw unavailable();
+        Subscription checked = subscriptions.findById(open.getSysId());
+        if (checked == null || checked.getStatus() != SubscriptionStatus.PENDING
+                || !Objects.equals(open.getCheckoutAttemptId(), checked.getCheckoutAttemptId())
+                || !Objects.equals(open.getProviderSubscriptionId(), checked.getProviderSubscriptionId())) {
+            return null;
+        }
+        try {
+            owner.endSubscription(checked.getProviderSubscriptionId());
+        } catch (ProviderUnavailableException | IllegalStateException | IllegalArgumentException failed) {
+            log.warn("billing old registration end failed subscription={} reason={}", checked.getSysId(), failed.getMessage());
+            throw unavailable();
+        }
+        return new Retired(checked.getCheckoutAttemptId(), checked.getProviderSubscriptionId());
     }
 
-    private Step prepare(BillingProvider provider, Login actor, String plantCd, SubscriptionPlan plan) {
+    private static ResponseStatusException unavailable() {
+        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제사 확인에 실패했습니다. 잠시 뒤 다시 시도해 주세요.");
+    }
+
+    private Step prepare(BillingProvider provider, Login actor, String plantCd, SubscriptionPlan plan, Retired retired) {
         Instant now = clock.instant();
         Subscription row = subscriptions.lockOpenByPlant(plantCd);
         if (row == null) row = resubscribe(actor, plantCd, now);
@@ -244,7 +270,13 @@ public class ClientSubscriptionService {
             return new Step(row.getSysId(), false, row.getCheckoutAttemptId(), null, productId,
                     row.getAmount(), row.getCurrency(), row.getPeriodMonth());
         }
-        // START_NEW_CHECKOUT: 새 시도 ID와 스냅샷을 제공자 호출 전에 커밋한다. 옛 등록(INCOMPLETE)은 결제되지 않은 채 남는다.
+        // START_NEW_CHECKOUT: 옛 등록이 있으면 대사 + 제공자 종료를 마친 바로 그 시도/등록일 때만 바꾼다.
+        if (row.getProviderSubscriptionId() != null && (retired == null
+                || !retired.attemptId().equals(row.getCheckoutAttemptId())
+                || !retired.providerSubscriptionId().equals(row.getProviderSubscriptionId()))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "다른 결제 시도가 먼저 시작되었습니다. 새로고침해 주세요.");
+        }
+        // 새 시도 ID와 스냅샷을 제공자 호출 전에 커밋한다.
         String attemptId = "att_" + UlidCreator.getUlid();
         subscriptions.startCheckoutAttempt(row.getSysId(), plan.getPlanSysId(), plan.getAmount(), plan.getCurrency(),
                 plan.getPeriodMonth(), provider.name(), provider.storeId(), attemptId,
