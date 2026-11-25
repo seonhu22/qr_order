@@ -3,8 +3,9 @@
  * npx playwright test -c playwright.real.config.ts qa-sub-subscription --max-failures=0
  * 환경: qa-env.ps1(PG*), QA_AUTH_PSQL, QA_AUTH_FIXTURE_PASSWORD. 127.0.0.1:25가 비어 있어야 한다.
  */
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { once } from 'node:events';
 import { existsSync, readFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import { isDeepStrictEqual } from 'node:util';
@@ -140,6 +141,8 @@ function cleanup(plants: string[] = numbers) {
     delete from sys_subscription_invoice where subscription_sys_id in
       (select sys_id from sys_subscription where plant_cd in (${list}));
     delete from sys_subscription where plant_cd in (${list});
+    delete from sys_payment p where p.payment_cd like 'AUTO-QA-sub-%'
+      and not exists (select 1 from sys_subscription s where s.plan_sys_id=p.sys_id);
     delete from sys_login_log_detail where link_sys_id in
       (select sys_id from sys_login_log_master where user_id in (${users}));
     delete from sys_login_log_master where sys_plant_cd in (${list});
@@ -150,6 +153,45 @@ function cleanup(plants: string[] = numbers) {
     delete from sys_user where plant_cd in (${list});
     delete from sys_plant where plant_cd in (${list});
     commit;`);
+}
+
+/** QA psql 세션 하나가 잠금을 쥔다. 서버 트랜잭션을 정해진 지점에서 세우는 데만 쓴다. */
+async function holdLock(lockSql: string) {
+  db('select 1'); // 로컬 DB 확인
+  const psql = spawn(process.env.QA_AUTH_PSQL!, ['-XwAqt', '-v', 'ON_ERROR_STOP=1'],
+    { env: { ...process.env, PGCLIENTENCODING: 'UTF8' } });
+  let output = '';
+  psql.stdout.on('data', (chunk) => { output += String(chunk); });
+  psql.stderr.on('data', (chunk) => { console.log(`psql ${String(chunk).trim()}`); });
+  psql.stdin.write(`set statement_timeout='30s'; set idle_in_transaction_session_timeout='60s';
+    begin; ${lockSql}; select 'holder=' || pg_backend_pid();\n`);
+  await expect.poll(() => /holder=(\d+)/.test(output), { timeout: 10_000 }).toBe(true);
+  let open = true;
+  return {
+    pid: Number(/holder=(\d+)/.exec(output)![1]),
+    /** lastSql은 잠금을 풀기 직전 같은 트랜잭션에서 실행한다. */
+    async release(lastSql = '') {
+      if (!open) return;
+      open = false;
+      const closed = once(psql, 'close');
+      psql.stdin.end(`${lastSql}\ncommit;\n`);
+      expect((await closed)[0], 'psql 종료 코드').toBe(0);
+    },
+  };
+}
+
+/** holder 때문에 대기 중이고 SQL이 pattern에 맞는 백엔드가 생길 때까지 기다려 pid를 돌려준다. */
+async function waitBlocked(holder: number, pattern: RegExp, label: string) {
+  let found: { pid: number; query: string } | undefined;
+  await expect.poll(() => {
+    const waiting = JSON.parse(db(`select coalesce(json_agg(json_build_object('pid', pid, 'query',
+        regexp_replace(query, '\\s+', ' ', 'g'))), '[]')
+      from pg_stat_activity where ${holder} = any(pg_blocking_pids(pid))`)) as { pid: number; query: string }[];
+    found = waiting.find((w) => pattern.test(w.query));
+    return found !== undefined;
+  }, { message: label, timeout: 10_000 }).toBe(true);
+  console.log(`잠금 대기[${label}] pid=${found!.pid} <- ${holder} :: ${pattern.exec(found!.query)![0].slice(-120)}`);
+  return found!.pid;
 }
 
 // ---- 가짜 PG ----
@@ -933,4 +975,123 @@ test('7 대표 삭제 409 / 수동 승격 영구 01', async () => {
     [['EXPIRED granted=N revoked=N end=DONE pm=ACTIVE'], '01']);
   check('7d 만료 뒤 메뉴 API', (await call(user, 'GET', menuRead)).status, 200);
   check('7d 레거시 01 유지', db(`select user_role from sys_user where user_id='demo_owner'`), '01');
+});
+
+test('추가 / 요금제 삭제와 결제 시작이 겹치면 하나만 성공', async () => {
+  test.setTimeout(180_000);
+  const who = owner(5);
+  const plant = who.number;
+  cleanup([plant]);
+  check('10 가입', (await signupByApi(await session(), who)).status, 200);
+  const user = await session(who.userId, newPassword);
+  const boss = await session('demo_admin');
+  await call(boss, 'POST', `/api/log/log/menu_open_access_log?menuCd=${qaMenu}`);
+  const newPlan = async (tag: string) => {
+    const plan = { paymentCd: `AUTO-QA-sub-${tag}-${run}`, paymentNm: `AUTO-QA-sub ${tag}`, paymentFee: 99000,
+      paymentFeeUnit: 'KRW', licenseValidMonth: 1 };
+    check(`10 요금제 ${tag} 생성`, (await call(boss, 'POST', '/api/system/settings/payment/new', plan)).status, 200);
+    return { ...plan, sysId: db(`select sys_id from sys_payment where payment_cd='${plan.paymentCd}'`) };
+  };
+  const deleted = (sysId: string) => db(`select delete_yn from sys_payment where sys_id='${sysId}'`);
+  const audits = () => Number(db(`select count(*) from sys_audit_trail where menu_cd='${qaMenu}'`));
+  const registered = () => Object.values(fakeState().subscriptions).filter((s) => s.plantCd === plant).length;
+  const first = await newPlan('planA');
+  const second = await newPlan('planB');
+
+  /** 선행 요청이 플랜 행을 잠근 뒤 holder에서 멈추고, 후행 요청은 그 플랜 행 잠금에서 기다리게 만든다. */
+  const race = async (label: string, holderSql: string, leaderAt: RegExp,
+    leader: () => ReturnType<typeof call>, follower: () => ReturnType<typeof call>) => {
+    const holder = await holdLock(holderSql);
+    const answered: string[] = [];
+    let lead: ReturnType<typeof call> | undefined;
+    let follow: ReturnType<typeof call> | undefined;
+    try {
+      lead = leader().finally(() => answered.push('leader'));
+      const leadPid = await waitBlocked(holder.pid, leaderAt, `${label} 선행 요청`);
+      follow = follower().finally(() => answered.push('follower'));
+      await waitBlocked(leadPid, /from sys_payment .*for update/i, `${label} 후행 요청(플랜 행)`);
+      check(`${label} 두 요청 모두 응답 전`, answered, []);
+    } finally {
+      await holder.release();
+    }
+    return Promise.all([lead!, follow!]);
+  };
+
+  console.log('== 10a 삭제가 플랜 잠금을 먼저 잡음 (감사 로그 테이블 잠금으로 삭제를 세움)');
+  const base = [fingerprint(plant), registered()];
+  const [removed, rejected] = await race('10a', 'lock table sys_audit_trail in share mode', /sys_audit_trail/i,
+    () => call(boss, 'POST', '/api/system/settings/payment/del', [second]),
+    () => call(user, 'POST', `${api}/checkout`, { planSysId: second.sysId }));
+  check('10a 삭제 200 / 결제 시작 400', [removed.status, rejected.status, rejected.body?.message],
+    [200, 400, '플랜을 선택해 주세요.']);
+  check('10a 요금제 삭제됨 / 구독 DB 변화 없음 / 제공자 등록 수 변화 없음',
+    [deleted(second.sysId), fingerprint(plant), registered()], ['Y', ...base]);
+
+  console.log('== 10b 결제 시작이 플랜 잠금을 먼저 잡음 (구독 테이블 잠금으로 결제 시작을 세움)');
+  const auditsBefore = audits();
+  const [started, refused] = await race('10b', 'lock table sys_subscription in share mode', /update sys_subscription/i,
+    () => call(user, 'POST', `${api}/checkout`, { planSysId: first.sysId }),
+    () => call(boss, 'POST', '/api/system/settings/payment/del', [first]));
+  check('10b 결제 시작 200 / 삭제 409', [started.status, refused.status, refused.body?.message],
+    [200, 409, '진행 중인 구독이 쓰는 요금제는 삭제할 수 없습니다.']);
+  check('10b 요금제 유지 / 삭제 감사 로그 0', [deleted(first.sysId), audits() - auditsBefore], ['N', 0]);
+  check('10b 구독 스냅샷 = 그 요금제', db(`select concat_ws('|', status, plan_sys_id='${first.sysId}', amount,
+    provider_subscription_id is not null) from sys_subscription where plant_cd='${plant}'`), 'PENDING|t|99000|t');
+});
+
+test('추가 / 카드 만료 뒤 늦은 갱신 Paid -> 배너 유지', async ({ page }) => {
+  test.setTimeout(180_000);
+  const who = owner(5);
+  const plant = who.number;
+  cleanup([plant]);
+  check('11 가입', (await signupByApi(await session(), who)).status, 200);
+  const user = await session(who.userId, newPassword);
+  await payFake(user, (await startCheckout(user)).token);
+  const sub = providerSub(plant);
+  const method = async () => [column(plant, 'payment_method_status'),
+    (await call(user, 'GET', api)).body.paymentMethodStatus];
+  const applied = (count: number) => Array<string>(count).fill('PAID refunded=0 APPLIED');
+  /** 갱신 결제는 성공했지만 Paid 웹훅이 아직 도착하지 않은 상태를 만든다. */
+  const undelivered = async () => {
+    await fakeConsole(user, 'webhooks', { enabled: 'false' });
+    await fakeConsole(user, 'next-period', { subscriptionId: sub, success: 'true' });
+    await fakeConsole(user, 'webhooks', { enabled: 'true' });
+    const paid = delivery(sub, 'Invoice.Paid');
+    check('11 갱신 Paid 미전송', paid.lastStatus, 0);
+    return paid.webhookId;
+  };
+  check('11 준비 DB', [snap(plant, '11 준비').inv, await method()], [applied(1), ['ACTIVE', 'ACTIVE']]);
+
+  console.log('== 11a 카드 만료 전 조회(ACTIVE)를 든 Paid가 만료 커밋 뒤에 반영됨');
+  // 가짜 PG로는 두 조회의 순서를 만들 수 없어, 만료 커밋은 잠금을 쥔 psql 트랜잭션이 대신한다.
+  const staleId = await undelivered();
+  const before = column(plant, 'provider_updated_at');
+  const holder = await holdLock(`select 1 from sys_subscription where plant_cd='${plant}' for update`);
+  let resent: Promise<void> | undefined;
+  try {
+    resent = fakeConsole(user, 'resend', { webhookId: staleId });
+    await waitBlocked(holder.pid, /from sys_subscription .*for update/i, '11a Paid 웹훅(조회 끝, 행 잠금)');
+  } finally {
+    await holder.release(`update sys_subscription set payment_method_status='EXPIRED',
+      provider_updated_at=clock_timestamp() where plant_cd='${plant}';`);
+  }
+  await resent;
+  check('11a 웹훅 200 / 갱신 반영 / 결제수단 EXPIRED 유지', [delivery(sub, 'Invoice.Paid').lastStatus,
+    snap(plant, '11a').inv, await method()], [200, applied(2), ['EXPIRED', 'EXPIRED']]);
+  db(`update sys_subscription set payment_method_status='ACTIVE', provider_updated_at='${before}'
+    where plant_cd='${plant}'`);
+
+  console.log('== 11b HTTP만: 갱신 결제 -> 카드 만료 -> 늦은 Paid 전달');
+  const lateId = await undelivered();
+  await fakeConsole(user, 'expire-card', { subscriptionId: sub });
+  check('11b 카드 만료 웹훅', [delivery(sub, 'Customer.PaymentMethodRevoked').lastStatus, await method()],
+    [200, ['EXPIRED', 'EXPIRED']]);
+  const paidThrough = column(plant, 'paid_through_at');
+  await fakeConsole(user, 'resend', { webhookId: lateId });
+  check('11b 늦은 Paid 200 / 갱신 반영 / 결제수단 EXPIRED 유지', [delivery(sub, 'Invoice.Paid').lastStatus,
+    eventResult(lateId), snap(plant, '11b').inv, await method()], [200, 'PROCESSED', applied(3), ['EXPIRED', 'EXPIRED']]);
+  check('11b 기간은 늘어남', column(plant, 'paid_through_at') > paidThrough, true);
+  await clientLogin(page, who.userId, newPassword);
+  await expect(page.getByText(cardBanner)).toBeVisible();
+  check('11b 화면 배너 유지 / 상태', [await page.getByText(cardBanner).count(), column(plant, 'status')], [1, 'ACTIVE']);
 });
