@@ -267,4 +267,51 @@ class ClientSubscriptionPersistenceTest {
         assertEquals("att_other", world.column("checkout_attempt_id"));
         assertEquals(1, world.pg.snapshot().subscriptions.size());
     }
+
+    /** QA B2 앞부분: 금액 불일치로 결제만 되고 PENDING인 시도가 만료된 뒤 결제 시작 → 결제가 된 옛 등록도 먼저 ENDED. */
+    private String paidMismatchThenAttemptExpires() {
+        var launch = world.client.checkout(world.owner(), BillingWorld.PLAN);
+        world.db.jdbc.update("update sys_subscription set amount = amount + 1000 where sys_id='SUB-A'");
+        world.pg.pay(BillingWorld.token(launch), "OWNER-A", CardScenario.SUCCESS);
+        assertEquals("MISMATCH", world.db.jdbc.queryForObject(
+                "select apply_result from sys_subscription_invoice", String.class));
+        assertEquals("PENDING", world.column("status"));
+        world.clock.advance(Duration.ofMinutes(11));
+        return world.column("provider_subscription_id");
+    }
+
+    @Test void paidMismatchOldRegistrationIsEndedBeforeTheNewAttempt() {
+        String old = paidMismatchThenAttemptExpires();
+        world.client.checkout(world.owner(), BillingWorld.PLAN);
+        assertEquals("ENDED", world.pg.getSubscription(old).status());
+        assertNotEquals(old, world.column("provider_subscription_id"));
+        assertEquals("29000", world.column("amount"));
+        assertThrows(IllegalStateException.class, () -> world.pg.chargeNextPeriod(old, true));
+        // 결제된 옛 인보이스는 이 구독의 문제 건(환불 대상)으로 남는다.
+        assertEquals(1, world.subscriptions().findAdminRow("SUB-A").getProblemCount());
+    }
+
+    /** QA B2 뒷부분: 종료되지 않고 연결이 끊긴 옛 등록(수정 전 데이터)의 다음 회차 청구는 이 구독의 문제 건으로 남는다. */
+    @Test void chargeOnUnlinkedOldRegistrationIsRecordedAsAProblemRow() {
+        String old = paidMismatchThenAttemptExpires();
+        world.db.jdbc.update("""
+                update sys_subscription set provider_subscription_id = null, provider_customer_id = null,
+                  checkout_attempt_id = 'att_new', checkout_expires_at = null where sys_id='SUB-A'
+                """);
+        String charged = world.pg.chargeNextPeriod(old, true);
+        var invoice = world.db.jdbc.queryForMap(
+                "select subscription_sys_id, status, apply_result from sys_subscription_invoice where provider_invoice_id=?",
+                charged);
+        assertEquals("SUB-A", invoice.get("subscription_sys_id"));
+        assertEquals("PAID", invoice.get("status"));
+        assertEquals("MISMATCH", invoice.get("apply_result"));
+        assertEquals(1, world.db.jdbc.queryForObject("select count(*) from sys_billing_webhook_event"
+                + " where result = 'MISMATCH' and resource_id = ?", Integer.class, charged));
+        assertEquals(0, world.db.jdbc.queryForObject(
+                "select count(*) from sys_billing_webhook_event where result = 'IGNORED'", Integer.class));
+        assertEquals("PENDING", world.column("status"));
+        assertEquals("02", world.db.role("OWNER-A"));
+        assertEquals(2, world.subscriptions().findAdminRow("SUB-A").getProblemCount());
+        assertEquals(1, world.admin.list(null, true).mismatchEvents().size());
+    }
 }

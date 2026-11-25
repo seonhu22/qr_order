@@ -104,12 +104,19 @@ public class BillingWebhookService {
 
         ProviderInvoice invoice = null;
         ProviderSubscription subscription = null;
+        List<String> siblingInvoiceIds = List.of();
         boolean paymentMethod = notice.kind() == NoticeKind.PAYMENT_METHOD && notice.subscriptionId() != null;
         if ((notice.kind() == NoticeKind.INVOICE && notice.invoiceId() != null) || paymentMethod) {
             try {
                 invoice = paymentMethod ? null : provider.getInvoice(notice.invoiceId());
                 String lookupId = paymentMethod ? notice.subscriptionId() : invoice == null ? null : invoice.subscriptionId();
                 subscription = lookupId == null ? null : provider.getSubscription(lookupId);
+                if (invoice != null && invoice.subscriptionId() != null && subscriptions.findByProviderSubscription(
+                        provider.name(), provider.storeId(), invoice.subscriptionId()) == null) {
+                    // 저장된 구독과 연결이 끊긴 등록의 청구: 같은 등록의 인보이스로 어느 구독 것이었는지 찾는다.
+                    siblingInvoiceIds = provider.listInvoices(invoice.subscriptionId()).stream()
+                            .filter(Objects::nonNull).map(ProviderInvoice::invoiceId).toList();
+                }
             } catch (ProviderUnavailableException unavailable) {
                 log.warn("billing webhook provider lookup failed provider={} webhookId={}", provider.name(), notice.webhookId());
                 return Outcome.UNAVAILABLE;
@@ -117,9 +124,10 @@ public class BillingWebhookService {
         }
         ProviderInvoice fetchedInvoice = invoice;
         ProviderSubscription fetchedSubscription = subscription;
+        List<String> siblings = siblingInvoiceIds;
         Boolean ended;
         try {
-            ended = transaction.execute(status -> apply(provider, notice, fetchedInvoice, fetchedSubscription));
+            ended = transaction.execute(status -> apply(provider, notice, fetchedInvoice, fetchedSubscription, siblings));
         } catch (DuplicateKeyException race) {
             // 같은 webhook-id가 먼저 커밋했으면 처리 완료. 아니면 재전송에 맡긴다.
             return processed(provider, notice) ? Outcome.OK : Outcome.UNAVAILABLE;
@@ -140,7 +148,7 @@ public class BillingWebhookService {
 
     /** true = 이 트랜잭션이 구독을 만료시켰다(커밋 뒤 제공자 종료 필요). */
     private boolean apply(BillingProvider provider, BillingNotice notice, ProviderInvoice invoice,
-                          ProviderSubscription subscription) {
+                          ProviderSubscription subscription, List<String> siblingInvoiceIds) {
         Instant now = clock.instant();
         String subscriptionId = invoice != null ? invoice.subscriptionId() : notice.subscriptionId();
         Subscription row = subscriptionId == null ? null
@@ -155,9 +163,12 @@ public class BillingWebhookService {
             mismatch(provider, notice, "NOTICE_LOOKUP", now);
             return false;
         }
-        if (invoice == null || row == null || invoice.updatedAt() == null
-                || !INVOICE_STATUSES.contains(invoice.status())) {
+        if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())) {
             insertEvent(provider, notice, "IGNORED", now);
+            return false;
+        }
+        if (row == null) {
+            unlinkedCharge(provider, notice, invoice, siblingInvoiceIds, now);
             return false;
         }
         if (notice.customerId() != null && !notice.customerId().equals(row.getProviderCustomerId())) {
@@ -365,6 +376,25 @@ public class BillingWebhookService {
         return Objects.equals(notice.invoiceId(), invoice.invoiceId())
                 && (notice.subscriptionId() == null || notice.subscriptionId().equals(invoice.subscriptionId()))
                 && (notice.customerId() == null || notice.customerId().equals(invoice.customerId()));
+    }
+
+    /**
+     * 우리 상점 인보이스인데 그 제공자 구독이 어떤 구독 행에도 연결돼 있지 않다(예: 교체 전 옛 등록이 종료되지 않고 청구됨).
+     * 조용히 IGNORED로 넘기지 않는다. 같은 등록의 인보이스를 기록한 구독이 하나로 정해지면 그 구독의 MISMATCH 인보이스로
+     * 남겨 Admin 문제 건(환불 대상)에 보이고, 아니면 연결 불일치 웹훅으로만 남긴다. 구독 상태/권한은 바꾸지 않는다.
+     */
+    private void unlinkedCharge(BillingProvider provider, BillingNotice notice, ProviderInvoice invoice,
+                                List<String> siblingInvoiceIds, Instant now) {
+        String owner = siblingInvoiceIds.isEmpty() ? null
+                : invoices.findSubscriptionOfProviderInvoices(provider.name(), provider.storeId(), siblingInvoiceIds);
+        Subscription ownerRow = owner == null ? null : subscriptions.lockById(owner);
+        if (ownerRow != null && provider.storeId().equals(invoice.storeId())) {
+            SubscriptionInvoice existing = invoices.lockByProviderInvoice(provider.name(), provider.storeId(), invoice.invoiceId());
+            boolean sameOwner = existing == null || ownerRow.getSysId().equals(existing.getSubscriptionSysId());
+            boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
+            if (sameOwner && newer) upsertInvoice(existing, ownerRow, provider, invoice, "MISMATCH");
+        }
+        mismatch(provider, notice, "UNLINKED_REGISTRATION", now);
     }
 
     /** 연결 불일치: 구독/인보이스/사용자 행은 그대로 두고 이벤트만 MISMATCH로 남긴다(Admin 문제 건). */

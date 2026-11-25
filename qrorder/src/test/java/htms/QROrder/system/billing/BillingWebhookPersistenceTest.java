@@ -188,11 +188,14 @@ class BillingWebhookPersistenceTest {
         assertEquals("01", db.role("OWNER-A"));
     }
 
-    @Test void unknownSubscriptionIsIgnoredOnce() {
+    @Test void chargeOfUnknownSubscriptionIsAMismatchProblemOnce() {
         db.jdbc.update("update sys_subscription set provider_subscription_id = 'sub_other'");
         pg.pay(token(), "OWNER-A", CardScenario.SUCCESS);
         assertEquals(Outcome.OK, deliver(last()));
-        assertEquals("IGNORED", db.jdbc.queryForObject("select result from sys_billing_webhook_event", String.class));
+        // 우리 상점에서 결제됐는데 연결된 구독이 없다: 조용히 IGNORED가 아니라 Admin 불일치 웹훅으로 남긴다.
+        assertEquals("MISMATCH", db.jdbc.queryForObject("select result from sys_billing_webhook_event", String.class));
+        assertEquals("PENDING", db.column("sys_subscription", "status", "SUB-A"));
+        assertEquals("02", db.role("OWNER-A"));
         assertEquals(0, count("sys_subscription_invoice"));
         assertEquals(Outcome.OK, deliver(last()));
         assertEquals(1, count("sys_billing_webhook_event"));

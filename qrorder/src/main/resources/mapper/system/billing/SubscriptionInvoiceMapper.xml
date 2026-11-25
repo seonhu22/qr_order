@@ -13,6 +13,16 @@
         select <include refid="columns"/> from sys_subscription_invoice where sys_id = #{sysId}
     </select>
 
+    <select id="findSubscriptionOfProviderInvoices" resultType="string">
+        select min(subscription_sys_id)
+        from sys_subscription_invoice
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and provider_invoice_id in
+        <foreach collection="providerInvoiceIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        having count(distinct subscription_sys_id) = 1
+    </select>
+
     <select id="listBySubscription" resultType="htms.QROrder.system.billing.domain.SubscriptionInvoice">
         select <include refid="columns"/>
         from sys_subscription_invoice
