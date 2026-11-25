@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ClientSubscription } from '../types';
-import { describeSubscription, formatKst, getSubscriptionBanners } from './subscriptionDisplay';
+import { formatKst } from '@/shared/utils/subscriptionFormat';
+import { describeSubscription, getSubscriptionBanners } from './subscriptionDisplay';
 
 const base: ClientSubscription = {
   hasSubscription: true,

@@ -10,12 +10,8 @@ import {
   useClientSubscription,
   useSubscriptionInvoices,
 } from '../api/subscriptionApi';
-import {
-  describeSubscription,
-  formatKst,
-  formatWon,
-  SUBSCRIPTION_STATUS_LABEL,
-} from '../utils/subscriptionDisplay';
+import { formatKst, formatWon, SUBSCRIPTION_STATUS_LABEL } from '@/shared/utils/subscriptionFormat';
+import { describeSubscription } from '../utils/subscriptionDisplay';
 import { SubscriptionInvoiceTable } from './SubscriptionInvoiceTable';
 import './Subscription.css';
 

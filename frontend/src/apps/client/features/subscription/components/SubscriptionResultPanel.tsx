@@ -7,7 +7,8 @@ import {
   useClientSubscription,
   useReconcileSubscription,
 } from '../api/subscriptionApi';
-import { describeSubscription, SUBSCRIPTION_STATUS_LABEL } from '../utils/subscriptionDisplay';
+import { SUBSCRIPTION_STATUS_LABEL } from '@/shared/utils/subscriptionFormat';
+import { describeSubscription } from '../utils/subscriptionDisplay';
 import './Subscription.css';
 
 /** 서버와 같은 간격. 버튼은 누른 뒤 이 시간 동안 잠긴다. */

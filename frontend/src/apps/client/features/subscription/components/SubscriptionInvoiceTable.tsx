@@ -1,5 +1,5 @@
 import type { SubscriptionInvoiceRow } from '../types';
-import { formatKst, formatWon, INVOICE_STATUS_LABEL } from '../utils/subscriptionDisplay';
+import { formatKst, formatWon, INVOICE_STATUS_LABEL } from '@/shared/utils/subscriptionFormat';
 import './Subscription.css';
 
 export function SubscriptionInvoiceTable({ rows }: { rows: SubscriptionInvoiceRow[] }) {

@@ -1,0 +1,82 @@
+.admin-subscription {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-subscription__filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-subscription__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #fff;
+}
+
+.admin-subscription__table th,
+.admin-subscription__table td {
+  padding: 8px;
+  border-bottom: 1px solid #eef0f3;
+  text-align: left;
+}
+
+.admin-subscription__selected {
+  background: #f3f6fd;
+}
+
+.admin-subscription__problem {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.admin-subscription__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1f4fd1;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.admin-subscription__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e3e6ec;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-subscription__detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-subscription__detail-header h3 {
+  margin: 0;
+}
+
+.admin-subscription__refund {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.admin-subscription__refund input {
+  width: 90px;
+}
+
+.admin-subscription__message {
+  margin: 0;
+}
+
+.admin-subscription__mismatch h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}

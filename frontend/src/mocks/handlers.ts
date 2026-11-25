@@ -920,6 +920,15 @@ const menuOverrideHandler = http.get('*/api/system/settings/menu/search', () => 
       menuUrl: '/admin/payment/coupon',
     },
     {
+      sysId: 'm-sub-1',
+      menuCd: 'subscriptionManage',
+      menuNm: '구독 관리',
+      parentMenuCd: 'paymentManagement',
+      ordNo: '4',
+      treeLevel: '3',
+      menuUrl: '/admin/subscriptions',
+    },
+    {
       sysId: 'm18',
       menuCd: 'logManagement',
       menuNm: '이력 관리',
