@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 잠금 순서: sys_subscription, sys_payment(결제 시작), sys_subscription_invoice, sys_billing_webhook_event, sys_user (정책 4C §8). -->
+<mapper namespace="htms.QROrder.system.billing.repository.SubscriptionMapper">
+
+    <sql id="columns">
+        sys_id, plant_cd, owner_user_sys_id, plan_sys_id, amount, currency, period_month,
+        provider, provider_store_id, provider_customer_id, provider_subscription_id,
+        checkout_attempt_id, checkout_expires_at, status, paid_through_at, grace_until, end_at,
+        cancel_requested_at, expired_at, provider_end_status, payment_method_status, provider_updated_at,
+        role_granted_yn, role_granted_at, role_revoked_at, last_failure_code, insert_user_id
+    </sql>
+
+    <insert id="insertSubscription">
+        insert into sys_subscription (
+            sys_id, plant_cd, owner_user_sys_id, status,
+            provider_end_status, payment_method_status, role_granted_yn,
+            insert_user_id, insert_datetime
+        )
+        values (
+            #{sysId}, #{plantCd}, #{ownerUserSysId}, #{status},
+            'NONE', 'NONE', 'N',
+            #{insertUserId}, now()
+        )
+    </insert>
+
+    <select id="findOpenByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd} and status &lt;&gt; 'EXPIRED'
+    </select>
+
+    <select id="lockOpenByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd} and status &lt;&gt; 'EXPIRED'
+        for update
+    </select>
+
+    <select id="lockOpenByOwners" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where status &lt;&gt; 'EXPIRED'
+        and owner_user_sys_id in
+        <foreach collection="ownerUserSysIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        order by sys_id
+        for update
+    </select>
+
+    <select id="lockByProviderSubscription" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and provider_subscription_id = #{providerSubscriptionId}
+        for update
+    </select>
+
+    <!-- UPDATE ... FROM은 sys_subscription 행을 잠그지 않는다. 호출자가 이미 구독 행을 잠갔다. -->
+    <update id="grantOwnerRole">
+        update sys_user u
+        set user_role = '01', modify_user_id = #{userId}, modify_datetime = now()
+        from sys_subscription s
+        where s.sys_id = #{subscriptionSysId}
+        and u.sys_id = s.owner_user_sys_id
+        and u.plant_cd = s.plant_cd
+        and u.plant_cd &lt;&gt; 'ADMIN'
+        and u.user_role = '02'
+        and u.delete_yn = 'N'
+    </update>
+
+    <update id="markRoleGranted">
+        update sys_subscription
+        set role_granted_yn = 'Y', role_granted_at = #{now}, role_revoked_at = null,
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'N'
+    </update>
+
+    <update id="revokeOwnerRole">
+        update sys_user u
+        set user_role = '02', modify_user_id = #{userId}, modify_datetime = now()
+        from sys_subscription s
+        where s.sys_id = #{subscriptionSysId}
+        and s.role_granted_yn = 'Y'
+        and s.role_revoked_at is null
+        and u.sys_id = s.owner_user_sys_id
+        and u.plant_cd = s.plant_cd
+        and u.user_role = '01'
+    </update>
+
+    <update id="markRolePermanent">
+        update sys_subscription
+        set role_granted_yn = 'N', modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'Y'
+    </update>
+
+    <select id="findPlanCode" resultType="string">
+        select payment_cd from sys_payment where sys_id = #{planSysId}
+    </select>
+
+    <select id="findOwnerRole" resultType="string">
+        select u.user_role
+        from sys_subscription s
+        join sys_user u on u.sys_id = s.owner_user_sys_id and u.plant_cd = s.plant_cd and u.delete_yn = 'N'
+        where s.sys_id = #{subscriptionSysId}
+    </select>
+
+    <update id="applyPaid">
+        update sys_subscription
+        set status = #{status},
+            paid_through_at = case
+                when #{periodEndAt}::timestamptz is null then paid_through_at
+                when paid_through_at is null or paid_through_at &lt; #{periodEndAt}::timestamptz then #{periodEndAt}::timestamptz
+                else paid_through_at end,
+            grace_until = case when #{clearGrace} then null else grace_until end,
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+    </update>
+
+    <select id="findById" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/> from sys_subscription where sys_id = #{sysId}
+    </select>
+
+    <select id="findByProviderSubscription" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where provider = #{provider}
+        and provider_store_id = #{providerStoreId}
+        and provider_subscription_id = #{providerSubscriptionId}
+    </select>
+
+    <select id="lockById" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/> from sys_subscription where sys_id = #{sysId} for update
+    </select>
+
+    <select id="findLatestByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd}
+        order by (status &lt;&gt; 'EXPIRED') desc, insert_datetime desc, sys_id desc
+        limit 1
+    </select>
+
+    <update id="startCheckoutAttempt">
+        update sys_subscription
+        set plan_sys_id = #{planSysId}, amount = #{amount}, currency = #{currency}, period_month = #{periodMonth},
+            provider = #{provider}, provider_store_id = #{providerStoreId},
+            provider_customer_id = null, provider_subscription_id = null,
+            checkout_attempt_id = #{attemptId}, checkout_expires_at = #{expiresAt},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status = 'PENDING'
+    </update>
+
+    <update id="saveCheckoutRegistration">
+        update sys_subscription
+        set provider_customer_id = #{providerCustomerId}, provider_subscription_id = #{providerSubscriptionId},
+            checkout_expires_at = #{expiresAt}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and checkout_attempt_id = #{attemptId} and status = 'PENDING'
+    </update>
+
+    <update id="attachLateRegistration">
+        update sys_subscription
+        set provider_customer_id = #{providerCustomerId}, provider_subscription_id = #{providerSubscriptionId},
+            provider_end_status = 'REQUESTED', modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and checkout_attempt_id = #{attemptId} and status = 'EXPIRED'
+        and provider_subscription_id is null
+    </update>
+
+    <sql id="planColumns">
+        sys_id as plan_sys_id, payment_cd as plan_code, payment_nm as plan_name, payment_fee as amount,
+        payment_fee_unit as currency, license_valid_month as period_month
+    </sql>
+
+    <sql id="planOnSale">
+        coalesce(delete_yn, 'N') = 'N' and payment_fee_unit = 'KRW' and payment_fee &gt; 0 and license_valid_month &gt; 0
+    </sql>
+
+    <select id="findPlans" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where <include refid="planOnSale"/>
+        order by payment_fee, payment_cd
+    </select>
+
+    <select id="findPlan" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where sys_id = #{planSysId} and <include refid="planOnSale"/>
+    </select>
+
+    <!-- 결제 시작 스냅샷 직전, 잠긴 구독 행 다음에 잠근다. 요금제 수정/삭제(PaymentMapper.lockPayments)와 직렬화. -->
+    <select id="lockPlan" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where sys_id = #{planSysId} and <include refid="planOnSale"/>
+        for update
+    </select>
+
+    <select id="countPendingInvoices" resultType="int">
+        select count(*) from sys_subscription_invoice
+        where subscription_sys_id = #{subscriptionSysId} and status = 'PENDING'
+    </select>
+
+    <update id="markPastDue">
+        update sys_subscription
+        set status = 'PAST_DUE', grace_until = #{graceUntil}, last_failure_code = #{failureCode},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status = 'ACTIVE'
+    </update>
+
+    <update id="recordFailure">
+        update sys_subscription
+        set last_failure_code = #{failureCode}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+    </update>
+
+    <update id="expire">
+        update sys_subscription
+        set status = 'EXPIRED', expired_at = #{now}, provider_end_status = #{providerEndStatus},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status &lt;&gt; 'EXPIRED'
+    </update>
+
+    <update id="markProviderEnd">
+        update sys_subscription
+        set provider_end_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and provider_end_status in ('REQUESTED', 'FAILED')
+    </update>
+
+    <select id="findBatchCandidates" resultType="string">
+        select sys_id
+        from sys_subscription
+        where (status = 'ACTIVE' and paid_through_at &lt;= #{activeDeadline})
+           or (status = 'PAST_DUE' and grace_until &lt;= #{asOf})
+           or (status = 'CANCEL_SCHEDULED' and end_at &lt;= #{asOf})
+           or (status = 'EXPIRED' and provider_end_status in ('REQUESTED', 'FAILED'))
+        order by sys_id
+    </select>
+
+    <update id="scheduleCancel">
+        update sys_subscription
+        set status = 'CANCEL_SCHEDULED', end_at = paid_through_at, cancel_requested_at = #{now},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status in ('ACTIVE', 'PAST_DUE') and paid_through_at is not null
+    </update>
+
+    <!-- 문제 건: MISMATCH/OWNER_MISSING은 언제나, STALE/AFTER_CANCEL은 아직 전액 환불 전일 때. -->
+    <sql id="adminRow">
+        select s.sys_id as subscription_sys_id, s.plant_cd, p.plant_nm, s.owner_user_sys_id,
+               u.user_id as owner_user_id, u.user_nm as owner_user_nm, u.user_role as owner_user_role,
+               s.status, pay.payment_nm as plan_name, s.amount, s.paid_through_at, s.grace_until, s.end_at,
+               s.expired_at, s.role_granted_yn, s.payment_method_status, s.provider_end_status, s.last_failure_code,
+               (select count(*) from sys_subscription_invoice i
+                 where i.subscription_sys_id = s.sys_id
+                 and (i.apply_result in ('MISMATCH', 'OWNER_MISSING')
+                      or (i.apply_result in ('STALE', 'AFTER_CANCEL') and i.status &lt;&gt; 'REFUNDED'))) as problem_count
+        from sys_subscription s
+        left join sys_plant p on p.plant_cd = s.plant_cd and p.delete_yn = 'N'
+        left join sys_user u on u.sys_id = s.owner_user_sys_id
+        left join sys_payment pay on pay.sys_id = s.plan_sys_id
+    </sql>
+
+    <select id="findAdminRows" resultType="htms.QROrder.system.billing.dto.AdminSubscriptionRow">
+        select * from (<include refid="adminRow"/>) r
+        where 1 = 1
+        <if test="status != null and status != ''">and r.status = #{status}</if>
+        <if test="problemOnly">and r.problem_count &gt; 0</if>
+        order by (r.status = 'EXPIRED'), r.subscription_sys_id desc
+        limit 500
+    </select>
+
+    <select id="findAdminRow" resultType="htms.QROrder.system.billing.dto.AdminSubscriptionRow">
+        select * from (<include refid="adminRow"/>) r where r.subscription_sys_id = #{sysId}
+    </select>
+
+    <update id="markPaymentMethod">
+        update sys_subscription
+        set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and payment_method_status &lt;&gt; #{status}
+    </update>
+
+    <!-- 결제수단 상태에 반영한 제공자 구독 조회 시각. 앞으로만 움직인다. -->
+    <update id="markProviderUpdatedAt">
+        update sys_subscription
+        set provider_updated_at = #{updatedAt}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+        and (provider_updated_at is null or provider_updated_at &lt; #{updatedAt}::timestamptz)
+    </update>
+
+    <update id="markRoleRevoked">
+        update sys_subscription
+        set role_revoked_at = #{now}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{subscriptionSysId} and role_granted_yn = 'Y' and role_revoked_at is null
+    </update>
+</mapper>

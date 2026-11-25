@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { subscriptionHandlers } from '@/apps/client/features/subscription/mock/subscriptionMock';
 
 let currentUser = null;
 const failedAttempts = {};
@@ -181,4 +182,5 @@ export const handlers = [
     }
     return HttpResponse.json({ success: true, message: '비밀번호가 변경되었습니다.' });
   }),
+  ...subscriptionHandlers,
 ];

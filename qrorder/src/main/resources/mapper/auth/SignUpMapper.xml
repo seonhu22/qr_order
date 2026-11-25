@@ -59,9 +59,16 @@
             #{userId},
             now(),
             #{businessRegiNum},
-            '01'
+            '02'
         )
     </insert>
+
+    <!-- 셀프 가입은 삭제 여부와 관계없이 매장 또는 구독 이력이 있는 plant_cd를 받지 않는다.
+         주문 내역 등은 plant_cd로 묶이므로 다른 계정이 같은 번호를 이어받으면 안 된다(정책 4C §1). -->
+    <select id="existsPlantHistory" resultType="boolean">
+        select exists (select 1 from sys_plant where plant_cd = #{plantCd})
+            or exists (select 1 from sys_subscription where plant_cd = #{plantCd})
+    </select>
 
     <select id="idDuplicateChk" resultType="boolean">
         select

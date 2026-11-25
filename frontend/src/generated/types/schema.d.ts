@@ -2274,6 +2274,174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/system/subscriptions/{sysId}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 인보이스 환불 요청
+         * @description 제공자 환불 → 환불 웹훅으로 반영. 현재 회차 누적 전액이면 만료 + 권한 회수
+         */
+        post: operations["refund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/subscriptions/{sysId}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 즉시 종료
+         * @description 만료 + 이 구독이 올린 01 회수 + 제공자 종료. 이미 만료면 그대로
+         */
+        post: operations["end"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/subscription/reconcile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 결제 결과 재확인(구독 대표 본인, 10초 1회)
+         * @description 제공자 재조회 뒤 최신 구독 상태. 이후 /api/auth/me 재조회
+         */
+        post: operations["reconcile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/subscription/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 결제 시작(구독 대표 본인)
+         * @description 응답 launch로 결제창을 연다. 가짜 PG = launch.redirectUrl
+         */
+        post: operations["checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/subscription/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 해지 예약(구독 대표 본인)
+         * @description 유료기간 끝에 종료. 이미 예약/만료면 그대로 200
+         */
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 구독 목록 + 연결 불일치 웹훅 */
+        get: operations["list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/subscriptions/{sysId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 구독 상세(인보이스/웹훅) */
+        get: operations["detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 자기 매장 구독 상태 + 플랜 */
+        get: operations["view"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/subscription/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 결제 이력(구독 대표 본인) */
+        get: operations["invoices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3454,6 +3622,170 @@ export interface components {
             ordNo?: number;
             fileExt?: string;
             pdfYn?: string;
+        };
+        RefundBody: {
+            invoiceSysId: string;
+            /**
+             * Format: int32
+             * @description 원, 1 이상 남은 결제 금액 이하
+             */
+            amount: number;
+        };
+        /** @description 제공자 환불 요청 결과. 권한/상태 반영은 환불 웹훅 + 재조회로 한다 */
+        RefundAccepted: {
+            invoiceSysId?: string;
+            /** Format: int32 */
+            requestedAmount?: number;
+            message?: string;
+        };
+        AdminEvent: {
+            webhookId?: string;
+            eventType?: string;
+            resourceId?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            /** Format: date-time */
+            receivedAt?: string;
+            /** @description PROCESSED / IGNORED / MISMATCH */
+            result?: string;
+        };
+        AdminInvoice: {
+            invoiceSysId?: string;
+            providerInvoiceId?: string;
+            /** @description PENDING / PAID / FAILED / PARTIALLY_REFUNDED / REFUNDED */
+            status?: string;
+            /** Format: int32 */
+            amount?: number;
+            /** Format: int32 */
+            refundedAmount?: number;
+            /** Format: int32 */
+            attemptCount?: number;
+            /** Format: date-time */
+            periodStartAt?: string;
+            /** Format: date-time */
+            periodEndAt?: string;
+            /** Format: date-time */
+            paidAt?: string;
+            /** @description APPLIED / MISMATCH / STALE / AFTER_CANCEL / OWNER_MISSING */
+            applyResult?: string;
+            /** @description 미해결 문제 건 */
+            problem?: boolean;
+            /**
+             * Format: int32
+             * @description 환불 가능 금액(원)
+             */
+            refundable?: number;
+        };
+        AdminSubscriptionDetail: {
+            subscription?: components["schemas"]["AdminSubscriptionRow"];
+            providerSubscriptionId?: string;
+            invoices?: components["schemas"]["AdminInvoice"][];
+            events?: components["schemas"]["AdminEvent"][];
+            /** @description 즉시 종료 가능(만료 전) */
+            canEnd?: boolean;
+        };
+        AdminSubscriptionRow: {
+            subscriptionSysId?: string;
+            plantCd?: string;
+            plantNm?: string;
+            ownerUserSysId?: string;
+            ownerUserId?: string;
+            ownerUserNm?: string;
+            ownerUserRole?: string;
+            status?: string;
+            planName?: string;
+            /** Format: int32 */
+            amount?: number;
+            /** Format: date-time */
+            paidThroughAt?: string;
+            /** Format: date-time */
+            graceUntil?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+            roleGrantedYn?: string;
+            paymentMethodStatus?: string;
+            providerEndStatus?: string;
+            lastFailureCode?: string;
+            /** Format: int32 */
+            problemCount?: number;
+        };
+        /** @description 판매 중 플랜(sys_payment) */
+        PlanItem: {
+            planSysId?: string;
+            planName?: string;
+            /** Format: int32 */
+            amount?: number;
+            currency?: string;
+            /** Format: int32 */
+            periodMonth?: number;
+        };
+        /** @description 자기 매장 구독. hasSubscription=false면 레거시/관리자 매장(구독 없음) */
+        SubscriptionView: {
+            hasSubscription?: boolean;
+            /** @description PENDING / ACTIVE / PAST_DUE / CANCEL_SCHEDULED / EXPIRED */
+            status?: string;
+            /** @description 로그인 사용자가 구독 대표인지. 대표만 결제/해지/이력 */
+            owner?: boolean;
+            planSysId?: string;
+            planName?: string;
+            /** Format: int32 */
+            amount?: number;
+            currency?: string;
+            /** Format: int32 */
+            periodMonth?: number;
+            /** Format: date-time */
+            paidThroughAt?: string;
+            /** Format: date-time */
+            graceUntil?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** @description NONE / ACTIVE / EXPIRED */
+            paymentMethodStatus?: string;
+            /** @description 이 구독 결제가 대표를 01로 올렸는지 */
+            roleGranted?: boolean;
+            lastFailureCode?: string;
+            /** @description 결제 시작 가능(대표 + 제공자 켜짐 + 상태 허용) */
+            canCheckout?: boolean;
+            /** @description 해지 예약 가능(대표 + 진행 중) */
+            canCancel?: boolean;
+            plans?: components["schemas"]["PlanItem"][];
+        };
+        CheckoutBody: {
+            planSysId: string;
+        };
+        /** @description 공통 결제 시작 계약. 가짜 launch.redirectUrl, 포트원 launch = SDK 인자 */
+        CheckoutLaunchView: {
+            provider?: string;
+            launch?: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        AdminSubscriptionList: {
+            rows?: components["schemas"]["AdminSubscriptionRow"][];
+            /** @description 연결 불일치 웹훅(구독에 붙이지 않음), 최근 50건 */
+            mismatchEvents?: components["schemas"]["AdminEvent"][];
+        };
+        InvoiceItem: {
+            invoiceSysId?: string;
+            /** @description PENDING / PAID / FAILED / PARTIALLY_REFUNDED / REFUNDED */
+            status?: string;
+            /** Format: int32 */
+            amount?: number;
+            /** Format: int32 */
+            refundedAmount?: number;
+            currency?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            /** Format: date-time */
+            periodStartAt?: string;
+            /** Format: date-time */
+            periodEndAt?: string;
+            /** Format: date-time */
+            paidAt?: string;
         };
     };
     responses: never;
@@ -6961,7 +7293,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 승격 완료 또는 이미 관리자 */
+            /** @description 승격 완료, 이미 관리자, 또는 구독 01을 영구 01로 전환 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -7004,6 +7336,203 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CommonResponse"];
+                };
+            };
+        };
+    };
+    refund: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RefundAccepted"];
+                };
+            };
+        };
+    };
+    end: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminSubscriptionDetail"];
+                };
+            };
+        };
+    };
+    reconcile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SubscriptionView"];
+                };
+            };
+        };
+    };
+    checkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckoutLaunchView"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SubscriptionView"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                status?: string;
+                problemOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminSubscriptionList"];
+                };
+            };
+        };
+    };
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sysId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminSubscriptionDetail"];
+                };
+            };
+        };
+    };
+    view: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SubscriptionView"];
+                };
+            };
+        };
+    };
+    invoices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvoiceItem"][];
                 };
             };
         };

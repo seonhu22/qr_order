@@ -85,6 +85,9 @@ class ClientUserPromotionPersistenceTest {
                     create view public.sys_user as select * from qa_auth.sys_user;
                     create view public.sys_plant as select * from qa_auth.sys_plant;
                     """);
+            // 4C 대표 보호 SQL이 읽는 실제 구독 테이블(public)을 이 스키마에서도 보이게 한다.
+            jdbc.execute(htms.QROrder.auth.TeamSchemaFixture.migration("2026-11-25-subscription-billing.sql"));
+            jdbc.execute("create view qa_auth.sys_subscription as select * from public.sys_subscription");
             Configuration configuration = new Configuration();
             configuration.setMapUnderscoreToCamelCase(true);
             var factory = new SqlSessionFactoryBean();
@@ -94,6 +97,7 @@ class ClientUserPromotionPersistenceTest {
             factory.setTransactionFactory(new SpringManagedTransactionFactory());
             factory.setMapperLocations(new ClassPathResource("mapper/client/ClientUserMapper.xml"),
                     new ClassPathResource("mapper/system/ClientUserRoleMapper.xml"),
+                    new ClassPathResource("mapper/system/billing/SubscriptionMapper.xml"),
                     new ClassPathResource("mapper/auth/LoginMapper.xml"),
                     new ClassPathResource("mapper/log/Log.xml"));
             var sql = new SqlSessionTemplate(factory.getObject());
@@ -102,7 +106,8 @@ class ClientUserPromotionPersistenceTest {
                     new BCryptPasswordEncoder(4));
             ReflectionTestUtils.setField(userService, "defaultPassword", "test-only-password");
             users = transactional(userService);
-            roles = transactional(new ClientUserRoleService(sql.getMapper(ClientUserRoleMapper.class)));
+            roles = transactional(new ClientUserRoleService(sql.getMapper(ClientUserRoleMapper.class),
+                    sql.getMapper(htms.QROrder.system.billing.repository.SubscriptionMapper.class)));
             logins = sql.getMapper(LoginMapper.class);
             var loginService = new LoginService(logins, new BCryptPasswordEncoder(4),
                     transactional(new LogService(sql.getMapper(LogMapper.class))));
@@ -119,6 +124,7 @@ class ClientUserPromotionPersistenceTest {
 
     @BeforeEach void resetFixture() {
         jdbc.execute("truncate table qa_auth.sys_login_log_master, qa_auth.sys_user, qa_auth.sys_plant cascade");
+        jdbc.execute("truncate table public.sys_subscription cascade");
         jdbc.update("insert into qa_auth.sys_plant(plant_cd, plant_nm) values ('STORE-A','A'),('STORE-B','B'),('ADMIN','System')");
         insert("MANAGER", "STORE-A", "01");
         insert("SYSTEM", "ADMIN", "01");

@@ -11,10 +11,13 @@ import htms.QROrder.system.dto.PaymentResponse;
 import htms.QROrder.system.repository.PaymentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -51,12 +54,19 @@ public class PaymentService {
                                 String sysPlantCd,
                                 String menuCd) {
 
+        // 플랜 행 잠금 → 구독 사용 검사 → 쓰기. 결제 시작도 같은 행을 잠근 뒤 스냅샷하므로 둘은 직렬화된다(정책 4C §5).
+        paymentMapper.lockPayments(List.of(payment.getSysId()));
+        Payment oldData = getOldData(payment);
+        if (oldData != null && pricingChanged(oldData, payment)
+                && paymentMapper.isPaymentInLiveSubscription(payment.getSysId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "진행 중인 구독이 쓰는 요금제는 금액/단위/기간을 바꿀 수 없습니다.");
+        }
+
         if(isPaymentCdUse(payment)) {
 
             throw new ValidationException("해당 코드는 이미 사용중입니다. 편집이 불가합니다.");
         }
-
-        Payment oldData = getOldData(payment);
 
         auditService.insertUpdateAuditTrailData(oldData, payment, payment.getSysId(), menuCd, "sys_payment", userId, sysPlantCd);
         paymentMapper.updatePayment(payment, userId, sysPlantCd);
@@ -66,6 +76,15 @@ public class PaymentService {
                             String userId,
                             String sysPlantCd,
                             String menuCd) {
+
+        List<String> sysIds = payment.stream().filter(Objects::nonNull).map(Payment::getSysId)
+                .filter(Objects::nonNull).toList();
+        if (!sysIds.isEmpty()) paymentMapper.lockPayments(sysIds);
+        for (Payment item : payment) {
+            if (item != null && paymentMapper.isPaymentInLiveSubscription(item.getSysId())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "진행 중인 구독이 쓰는 요금제는 삭제할 수 없습니다.");
+            }
+        }
 
         auditService.insertDeleteAuditTrailData(payment, menuCd, "sys_payment", userId, sysPlantCd);
         paymentMapper.delPayment(payment, userId, sysPlantCd);
@@ -79,6 +98,13 @@ public class PaymentService {
     private boolean isPaymentCdUse(Payment payment) {
 
         return paymentMapper.isPaymentCdUse(payment);
+    }
+
+    /** 구독 스냅샷과 비교하는 값(금액/단위/기간)이 바뀌는지. 이름만 바꾸는 수정은 허용한다. */
+    private static boolean pricingChanged(Payment oldData, Payment payment) {
+        return !Objects.equals(oldData.getPaymentFee(), payment.getPaymentFee())
+                || !Objects.equals(oldData.getPaymentFeeUnit(), payment.getPaymentFeeUnit())
+                || !Objects.equals(oldData.getLicenseValidMonth(), payment.getLicenseValidMonth());
     }
 
     private Payment getOldData(Payment payment) {

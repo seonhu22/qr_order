@@ -50,6 +50,11 @@ export const CLIENT_MENUS_BY_SECTION: Record<ClientSection, SidebarNavDepth1[]> 
           items: [{ key: 'STO_INFO_BASE', label: '매장 기본 정보', path: '/client/store/info/base' }],
         },
         {
+          key: 'STO_SUB',
+          label: '구독 관리',
+          items: [{ key: 'STO_SUB_INFO', label: '구독 정보', path: '/client/subscription' }],
+        },
+        {
           key: 'STO_TBL',
           label: '테이블 정보 관리',
           items: [
