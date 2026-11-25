@@ -11,10 +11,13 @@ import htms.QROrder.system.dto.PaymentResponse;
 import htms.QROrder.system.repository.PaymentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -57,6 +60,11 @@ public class PaymentService {
         }
 
         Payment oldData = getOldData(payment);
+        if (oldData != null && pricingChanged(oldData, payment)
+                && paymentMapper.isPaymentInLiveSubscription(payment.getSysId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "진행 중인 구독이 쓰는 요금제는 금액/단위/기간을 바꿀 수 없습니다.");
+        }
 
         auditService.insertUpdateAuditTrailData(oldData, payment, payment.getSysId(), menuCd, "sys_payment", userId, sysPlantCd);
         paymentMapper.updatePayment(payment, userId, sysPlantCd);
@@ -66,6 +74,12 @@ public class PaymentService {
                             String userId,
                             String sysPlantCd,
                             String menuCd) {
+
+        for (Payment item : payment) {
+            if (item != null && paymentMapper.isPaymentInLiveSubscription(item.getSysId())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "진행 중인 구독이 쓰는 요금제는 삭제할 수 없습니다.");
+            }
+        }
 
         auditService.insertDeleteAuditTrailData(payment, menuCd, "sys_payment", userId, sysPlantCd);
         paymentMapper.delPayment(payment, userId, sysPlantCd);
@@ -79,6 +93,13 @@ public class PaymentService {
     private boolean isPaymentCdUse(Payment payment) {
 
         return paymentMapper.isPaymentCdUse(payment);
+    }
+
+    /** 구독 스냅샷과 비교하는 값(금액/단위/기간)이 바뀌는지. 이름만 바꾸는 수정은 허용한다. */
+    private static boolean pricingChanged(Payment oldData, Payment payment) {
+        return !Objects.equals(oldData.getPaymentFee(), payment.getPaymentFee())
+                || !Objects.equals(oldData.getPaymentFeeUnit(), payment.getPaymentFeeUnit())
+                || !Objects.equals(oldData.getLicenseValidMonth(), payment.getLicenseValidMonth());
     }
 
     private Payment getOldData(Payment payment) {

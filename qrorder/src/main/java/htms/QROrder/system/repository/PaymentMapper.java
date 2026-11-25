@@ -17,5 +17,7 @@ public interface PaymentMapper {
     void delPayment(List<Payment> payment, String userId, String sysPlantCd);
     boolean duplicateChk(Payment payment);
     boolean isPaymentCdUse(Payment payment);
+    /** 진행 중 구독(sys_subscription, EXPIRED 아님)이 이 플랜을 쓰고 있다. */
+    boolean isPaymentInLiveSubscription(String sysId);
     Payment getOldData(Payment payment);
 }

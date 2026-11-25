@@ -87,6 +87,15 @@
         and payment_cd = #{paymentCd}
     </select>
 
+    <!-- 진행 중(EXPIRED 아님) 구독이 스냅샷한 플랜이면 금액/단위/기간 수정과 삭제를 막는다(정책 4C §5). -->
+    <select id="isPaymentInLiveSubscription" resultType="boolean">
+        select exists (
+            select 1 from sys_subscription
+            where plan_sys_id = #{sysId}
+            and status &lt;&gt; 'EXPIRED'
+        )
+    </select>
+
     <select id="getOldData" resultType="htms.QROrder.system.domain.Payment">
         select
         sp.sys_id ,
