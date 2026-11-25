@@ -11,6 +11,28 @@
         and webhook_id = #{webhookId}
     </select>
 
+    <sql id="columns">
+        sys_id, provider, provider_store_id, webhook_id, event_type, resource_id,
+        occurred_at, received_at, processed_at, result
+    </sql>
+
+    <select id="findByResources" resultType="htms.QROrder.system.billing.domain.BillingWebhookEvent">
+        select <include refid="columns"/>
+        from sys_billing_webhook_event
+        where resource_id in
+        <foreach collection="resourceIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        order by received_at desc, sys_id desc
+        limit 200
+    </select>
+
+    <select id="findMismatches" resultType="htms.QROrder.system.billing.domain.BillingWebhookEvent">
+        select <include refid="columns"/>
+        from sys_billing_webhook_event
+        where result = 'MISMATCH'
+        order by received_at desc, sys_id desc
+        limit #{limit}
+    </select>
+
     <insert id="insertEvent">
         insert into sys_billing_webhook_event (
             sys_id, provider, provider_store_id, webhook_id, event_type, resource_id,

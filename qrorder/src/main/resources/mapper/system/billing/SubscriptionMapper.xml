@@ -229,6 +229,35 @@
         where sys_id = #{sysId} and status in ('ACTIVE', 'PAST_DUE') and paid_through_at is not null
     </update>
 
+    <!-- 문제 건: MISMATCH/OWNER_MISSING은 언제나, STALE/AFTER_CANCEL은 아직 전액 환불 전일 때. -->
+    <sql id="adminRow">
+        select s.sys_id as subscription_sys_id, s.plant_cd, p.plant_nm, s.owner_user_sys_id,
+               u.user_id as owner_user_id, u.user_nm as owner_user_nm, u.user_role as owner_user_role,
+               s.status, pay.payment_nm as plan_name, s.amount, s.paid_through_at, s.grace_until, s.end_at,
+               s.expired_at, s.role_granted_yn, s.payment_method_status, s.provider_end_status, s.last_failure_code,
+               (select count(*) from sys_subscription_invoice i
+                 where i.subscription_sys_id = s.sys_id
+                 and (i.apply_result in ('MISMATCH', 'OWNER_MISSING')
+                      or (i.apply_result in ('STALE', 'AFTER_CANCEL') and i.status &lt;&gt; 'REFUNDED'))) as problem_count
+        from sys_subscription s
+        left join sys_plant p on p.plant_cd = s.plant_cd and p.delete_yn = 'N'
+        left join sys_user u on u.sys_id = s.owner_user_sys_id
+        left join sys_payment pay on pay.sys_id = s.plan_sys_id
+    </sql>
+
+    <select id="findAdminRows" resultType="htms.QROrder.system.billing.dto.AdminSubscriptionRow">
+        select * from (<include refid="adminRow"/>) r
+        where 1 = 1
+        <if test="status != null and status != ''">and r.status = #{status}</if>
+        <if test="problemOnly">and r.problem_count &gt; 0</if>
+        order by (r.status = 'EXPIRED'), r.subscription_sys_id desc
+        limit 500
+    </select>
+
+    <select id="findAdminRow" resultType="htms.QROrder.system.billing.dto.AdminSubscriptionRow">
+        select * from (<include refid="adminRow"/>) r where r.subscription_sys_id = #{sysId}
+    </select>
+
     <update id="markPaymentMethod">
         update sys_subscription
         set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()

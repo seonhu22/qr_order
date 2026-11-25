@@ -28,7 +28,7 @@ class SubscriptionRefundPersistenceTest {
 
     @BeforeEach void reset() {
         world.reset(dir.resolve("state-" + System.nanoTime() + ".json"));
-        admin = new AdminSubscriptionService(world.subscriptions(), world.invoices(), world.providers);
+        admin = world.admin;
     }
 
     private String invoiceSysId(String providerInvoiceId) {

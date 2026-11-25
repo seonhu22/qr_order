@@ -42,6 +42,7 @@ final class BillingWorld implements AutoCloseable {
     ClientSubscriptionService client;
     SubscriptionLifecycleService lifecycle;
     SubscriptionBatchService batch;
+    htms.QROrder.system.billing.service.AdminSubscriptionService admin;
 
     record Sent(Map<String, String> headers, String body) {}
 
@@ -78,6 +79,8 @@ final class BillingWorld implements AutoCloseable {
         client = new ClientSubscriptionService(subscriptions(), invoices(), providers, webhooks, lifecycle, db.transactions,
                 env, clock);
         batch = new SubscriptionBatchService(subscriptions(), providers, webhooks, lifecycle, db.transactions);
+        admin = new htms.QROrder.system.billing.service.AdminSubscriptionService(subscriptions(), invoices(),
+                db.sql.getMapper(BillingWebhookEventMapper.class), providers, lifecycle, db.transactions, clock);
         db.plant("STORE-A");
         db.user("OWNER-A", "STORE-A", "02");
         db.user("STAFF-A", "STORE-A", "02");

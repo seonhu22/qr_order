@@ -12,6 +12,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import htms.QROrder.system.billing.domain.BillingWebhookEvent;
+import htms.QROrder.system.billing.domain.SubscriptionStatus;
+import htms.QROrder.system.billing.dto.AdminSubscriptionDtos.AdminEvent;
+import htms.QROrder.system.billing.dto.AdminSubscriptionDtos.AdminInvoice;
+import htms.QROrder.system.billing.dto.AdminSubscriptionDtos.AdminSubscriptionDetail;
+import htms.QROrder.system.billing.dto.AdminSubscriptionDtos.AdminSubscriptionList;
+import htms.QROrder.system.billing.dto.AdminSubscriptionRow;
+import htms.QROrder.system.billing.repository.BillingWebhookEventMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,16 +36,96 @@ import java.util.Set;
 @Service
 public class AdminSubscriptionService {
     private static final Set<String> REFUNDABLE = Set.of("PAID", "PARTIALLY_REFUNDED");
+    private static final Set<String> STATUSES = Set.of("PENDING", "ACTIVE", "PAST_DUE", "CANCEL_SCHEDULED", "EXPIRED");
+    static final String ACTOR = "ADMIN_SUBSCRIPTION";
 
     private final SubscriptionMapper subscriptions;
     private final SubscriptionInvoiceMapper invoices;
+    private final BillingWebhookEventMapper events;
     private final BillingProviderRegistry providers;
+    private final SubscriptionLifecycleService lifecycle;
+    private final TransactionTemplate transaction;
+    private final Clock clock;
+
+    @Autowired
+    public AdminSubscriptionService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
+                                    BillingWebhookEventMapper events, BillingProviderRegistry providers,
+                                    SubscriptionLifecycleService lifecycle, PlatformTransactionManager transactionManager) {
+        this(subscriptions, invoices, events, providers, lifecycle, transactionManager, Clock.systemUTC());
+    }
 
     public AdminSubscriptionService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
-                                    BillingProviderRegistry providers) {
+                                    BillingWebhookEventMapper events, BillingProviderRegistry providers,
+                                    SubscriptionLifecycleService lifecycle, PlatformTransactionManager transactionManager,
+                                    Clock clock) {
         this.subscriptions = subscriptions;
         this.invoices = invoices;
+        this.events = events;
         this.providers = providers;
+        this.lifecycle = lifecycle;
+        this.transaction = new TransactionTemplate(transactionManager);
+        this.clock = clock;
+    }
+
+    public AdminSubscriptionList list(String status, boolean problemOnly) {
+        if (status != null && !status.isBlank() && !STATUSES.contains(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "알 수 없는 구독 상태입니다.");
+        }
+        return new AdminSubscriptionList(subscriptions.findAdminRows(status, problemOnly),
+                events.findMismatches(50).stream().map(AdminSubscriptionService::event).toList());
+    }
+
+    public AdminSubscriptionDetail detail(String subscriptionSysId) {
+        AdminSubscriptionRow row = subscriptions.findAdminRow(subscriptionSysId);
+        Subscription subscription = subscriptions.findById(subscriptionSysId);
+        if (row == null || subscription == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "구독을 찾을 수 없습니다.");
+        List<SubscriptionInvoice> rows = invoices.listBySubscription(subscriptionSysId);
+        List<String> resources = new ArrayList<>();
+        if (subscription.getProviderSubscriptionId() != null) resources.add(subscription.getProviderSubscriptionId());
+        rows.forEach(i -> resources.add(i.getProviderInvoiceId()));
+        List<AdminEvent> found = resources.isEmpty() ? List.of()
+                : events.findByResources(resources).stream().map(AdminSubscriptionService::event).toList();
+        return new AdminSubscriptionDetail(row, subscription.getProviderSubscriptionId(),
+                rows.stream().map(AdminSubscriptionService::invoice).toList(), found,
+                subscription.getStatus() != SubscriptionStatus.EXPIRED);
+    }
+
+    /**
+     * 즉시 종료(대표 소실, 매장 삭제 등 운영 판단). 잠근 행을 만료 + 이 구독이 올린 01 회수, 커밋 뒤 제공자 종료.
+     * 이미 만료면 그대로(제공자 종료가 남아 있으면 다시 요청).
+     */
+    public AdminSubscriptionDetail end(String subscriptionSysId) {
+        Boolean found = transaction.execute(status -> {
+            Instant now = clock.instant();
+            Subscription row = subscriptions.lockById(subscriptionSysId);
+            if (row == null) return false;
+            if (row.getStatus() != SubscriptionStatus.EXPIRED) {
+                lifecycle.expireLocked(row, now);
+                lifecycle.revokeLocked(row.getSysId(), now);
+            }
+            return true;
+        });
+        if (!Boolean.TRUE.equals(found)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "구독을 찾을 수 없습니다.");
+        lifecycle.endProvider(subscriptionSysId);
+        return detail(subscriptionSysId);
+    }
+
+    private static boolean problem(SubscriptionInvoice i) {
+        String result = i.getApplyResult();
+        return "MISMATCH".equals(result) || "OWNER_MISSING".equals(result)
+                || (("STALE".equals(result) || "AFTER_CANCEL".equals(result)) && !"REFUNDED".equals(i.getStatus()));
+    }
+
+    private static AdminInvoice invoice(SubscriptionInvoice i) {
+        int refundable = REFUNDABLE.contains(i.getStatus()) ? i.getAmount() - i.getRefundedAmount() : 0;
+        return new AdminInvoice(i.getSysId(), i.getProviderInvoiceId(), i.getStatus(), i.getAmount(), i.getRefundedAmount(),
+                i.getAttemptCount(), i.getPeriodStartAt(), i.getPeriodEndAt(), i.getPaidAt(), i.getApplyResult(),
+                problem(i), refundable);
+    }
+
+    private static AdminEvent event(BillingWebhookEvent e) {
+        return new AdminEvent(e.getWebhookId(), e.getEventType(), e.getResourceId(), e.getOccurredAt(),
+                e.getReceivedAt(), e.getResult());
     }
 
     public RefundAccepted refund(String subscriptionSysId, String invoiceSysId, Integer amount) {

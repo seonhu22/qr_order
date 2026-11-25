@@ -1,6 +1,7 @@
 package htms.QROrder.system.billing.repository;
 
 import htms.QROrder.system.billing.domain.Subscription;
+import htms.QROrder.system.billing.dto.AdminSubscriptionRow;
 import htms.QROrder.system.billing.domain.SubscriptionPlan;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -113,6 +114,11 @@ public interface SubscriptionMapper {
 
     /** E6 → CANCEL_SCHEDULED: end_at = paid_through_at 고정(예약 시점 값), cancel_requested_at. 잠긴 A/D 행에만. */
     int scheduleCancel(@Param("sysId") String sysId, @Param("now") Instant now, @Param("userId") String userId);
+
+    /** Admin 목록. status 비면 전체, problemOnly면 미해결 문제 인보이스가 있는 구독만. 최근 순. */
+    List<AdminSubscriptionRow> findAdminRows(@Param("status") String status, @Param("problemOnly") boolean problemOnly);
+
+    AdminSubscriptionRow findAdminRow(@Param("sysId") String sysId);
 
     /** E9 카드 만료 / 재등록: payment_method_status. 바뀔 때만 1행. */
     int markPaymentMethod(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
