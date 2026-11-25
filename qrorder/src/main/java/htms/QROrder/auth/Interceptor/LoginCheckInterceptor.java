@@ -7,17 +7,27 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.function.Predicate;
+
 public class LoginCheckInterceptor implements HandlerInterceptor {
     private static final String CHECKED_USER = LoginCheckInterceptor.class.getName() + ".user";
     private final LoginMapper loginMapper;
+    private final Predicate<Object> signedHandler;
 
     public LoginCheckInterceptor(LoginMapper loginMapper) {
+        this(loginMapper, handler -> false);
+    }
+
+    /** signedHandler: 로그인 대신 서명으로 인증하는 핸들러(경로가 아니라 실제로 고른 핸들러로 판단). */
+    public LoginCheckInterceptor(LoginMapper loginMapper, Predicate<Object> signedHandler) {
         this.loginMapper = java.util.Objects.requireNonNull(loginMapper);
+        this.signedHandler = java.util.Objects.requireNonNull(signedHandler);
     }
     @Override
     public boolean preHandle(HttpServletRequest request,
                                 HttpServletResponse response,
                                 Object handler) throws Exception {
+        if (signedHandler.test(handler)) return true;
 
         HttpSession session = request.getSession(false);
 

@@ -1,6 +1,5 @@
 package htms.QROrder.system.billing;
 
-import htms.QROrder.auth.Interceptor.LoginCheckInterceptor;
 import htms.QROrder.config.WebConfig;
 import htms.QROrder.system.billing.controller.BillingWebhookController;
 import htms.QROrder.system.billing.provider.BillingProvider;
@@ -9,12 +8,10 @@ import htms.QROrder.system.billing.service.BillingWebhookService.Outcome;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.handler.MappedInterceptor;
-import org.springframework.web.util.ServletRequestPathUtils;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.List;
 
@@ -22,10 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** 웹훅 경로: 로그인 제외는 정확히 한 단계 경로만, 결과 → HTTP 상태, 켜지지 않은 제공자 404. */
+/** 웹훅 경로: 로그인 제외는 웹훅 POST 핸들러만, 결과 → HTTP 상태, 켜지지 않은 제공자 404. */
 class BillingWebhookControllerTest {
     private final BillingWebhookService service = mock(BillingWebhookService.class);
     private final BillingProvider fake = mock(BillingProvider.class);
@@ -56,21 +56,36 @@ class BillingWebhookControllerTest {
         verifyNoInteractions(service);
     }
 
-    @Test void onlyTheExactWebhookPathSkipsLogin() throws Exception {
-        assertFalse(loginChecked("/api/billing/webhook/fake"));
-        assertTrue(loginChecked("/api/billing/webhook/fake/extra"));
-        assertTrue(loginChecked("/api/billing/webhook"));
-        assertTrue(loginChecked("/api/billing/other"));
+    /** 웹훅 POST 핸들러가 아닌 요청이 가는 곳(실서버의 SPA 폴백 등). */
+    @org.springframework.web.bind.annotation.RestController
+    static class Fallback {
+        @org.springframework.web.bind.annotation.RequestMapping("/api/**")
+        public String any() { return "fallback"; }
     }
 
-    private static boolean loginChecked(String path) throws Exception {
+    private MockMvc withWebConfigInterceptors() {
+        when(fake.name()).thenReturn("fake");
+        when(service.handle(eq(fake), any(), any())).thenReturn(Outcome.OK);
+        var context = new StaticApplicationContext();
+        context.getBeanFactory().registerSingleton("p0", fake);
+        context.refresh();
         var registry = new InterceptorRegistry() {
-            List<Object> entries() { return getInterceptors(); }
+            HandlerInterceptor[] entries() { return getInterceptors().toArray(HandlerInterceptor[]::new); }
         };
         new WebConfig(mock(htms.QROrder.auth.repository.LoginMapper.class)).addInterceptors(registry);
-        var request = new MockHttpServletRequest("POST", path);
-        ServletRequestPathUtils.parseAndCache(request);
-        return registry.entries().stream().map(MappedInterceptor.class::cast)
-                .anyMatch(m -> m.getInterceptor() instanceof LoginCheckInterceptor && m.matches(request));
+        return MockMvcBuilders.standaloneSetup(new BillingWebhookController(context.getBeanProvider(BillingProvider.class),
+                service), new Fallback()).addInterceptors(registry.entries()).build();
+    }
+
+    @Test void onlyTheWebhookPostHandlerSkipsLogin() throws Exception {
+        var mvc = withWebConfigInterceptors();
+        mvc.perform(post("/api/billing/webhook/fake").contentType("application/json").content("{}"))
+                .andExpect(status().isOk());
+        for (var request : List.of(get("/api/billing/webhook/fake"), put("/api/billing/webhook/fake"),
+                delete("/api/billing/webhook/fake"), post("/api/billing/webhook/fake/extra"),
+                get("/api/billing/webhook/fake/extra"), post("/api/billing/webhook"), post("/api/billing/other"))) {
+            mvc.perform(request).andExpect(status().isUnauthorized());
+        }
+        verify(service, times(1)).handle(any(), any(), any());
     }
 }
