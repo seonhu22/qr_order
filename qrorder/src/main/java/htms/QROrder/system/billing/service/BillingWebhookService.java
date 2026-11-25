@@ -14,6 +14,7 @@ import htms.QROrder.system.billing.provider.BillingModels.NoticeKind;
 import htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice;
 import htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription;
 import htms.QROrder.system.billing.provider.BillingProvider;
+import htms.QROrder.system.billing.provider.BillingProviderRegistry;
 import htms.QROrder.system.billing.provider.ProviderUnavailableException;
 import htms.QROrder.system.billing.repository.BillingWebhookEventMapper;
 import htms.QROrder.system.billing.repository.SubscriptionInvoiceMapper;
@@ -29,6 +30,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -142,32 +146,88 @@ public class BillingWebhookService {
             return;
         }
 
-        SubscriptionInvoice existing = invoices.lockByProviderInvoice(provider.name(), provider.storeId(), invoice.invoiceId());
-        if (existing != null && !row.getSysId().equals(existing.getSubscriptionSysId())) {
+        Applied applied = applyInvoiceLocked(provider, row, invoice, subscription, now);
+        if (applied == Applied.OTHER_SUBSCRIPTION) {
             mismatch(provider, notice, "INVOICE_OF_OTHER_SUBSCRIPTION", now);
             return;
         }
+        insertEvent(provider, notice, "PROCESSED", now);
+        finishUser(row, applied, now);
+    }
+
+    /** 재확인 결과. FAILED = 제공자 조회 실패(아무것도 바꾸지 않음). */
+    public enum ReconcileResult { NOTHING_TO_CHECK, CHECKED, FAILED }
+
+    /**
+     * 웹훅을 기다리지 않고 제공자를 다시 조회해 같은 반영 경로({@link #applyInvoiceLocked})로 맞춘다.
+     * 조회는 잠금 밖, 인보이스마다 짧은 트랜잭션(구독 → 인보이스 → 사용자). 웹훅 이벤트 행은 쓰지 않는다.
+     */
+    public ReconcileResult reconcile(BillingProvider provider, String subscriptionSysId) {
+        Subscription before = subscriptions.findById(subscriptionSysId);
+        if (before == null || before.getProviderSubscriptionId() == null
+                || !provider.name().equals(before.getProvider()) || !provider.storeId().equals(before.getProviderStoreId())) {
+            return ReconcileResult.NOTHING_TO_CHECK;
+        }
+        String providerSubscriptionId = before.getProviderSubscriptionId();
+        ProviderSubscription subscription;
+        List<ProviderInvoice> found;
+        try {
+            subscription = provider.getSubscription(providerSubscriptionId);
+            found = provider.listInvoices(providerSubscriptionId);
+        } catch (ProviderUnavailableException unavailable) {
+            log.warn("billing reconcile lookup failed subscription={}", subscriptionSysId);
+            return ReconcileResult.FAILED;
+        }
+        List<ProviderInvoice> ordered = new ArrayList<>(found);
+        ordered.sort(Comparator.comparing(ProviderInvoice::periodStartAt, Comparator.nullsLast(Comparator.naturalOrder())));
+        for (ProviderInvoice invoice : ordered) {
+            if (invoice == null || invoice.updatedAt() == null || !INVOICE_STATUSES.contains(invoice.status())
+                    || !providerSubscriptionId.equals(invoice.subscriptionId())) continue;
+            transaction.executeWithoutResult(status -> {
+                Instant now = clock.instant();
+                Subscription row = subscriptions.lockById(subscriptionSysId);
+                // 잠금 전 판단은 버린다: 그사이 새 결제 시도로 등록이 바뀌었으면 건너뛴다.
+                if (row == null || !providerSubscriptionId.equals(row.getProviderSubscriptionId())) return;
+                finishUser(row, applyInvoiceLocked(provider, row, invoice, subscription, now), now);
+            });
+        }
+        return ReconcileResult.CHECKED;
+    }
+
+    /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
+    private enum Applied { NONE, GRANT_ROLE, OTHER_SUBSCRIPTION }
+
+    /**
+     * 재조회한 인보이스를 잠긴 구독 행에 반영한다(§7 인보이스 상태 이동). 웹훅과 재확인이 같이 쓴다.
+     * 순서: 인보이스 행 잠금 → 이동 허용/더 새로운 값 확인 → 확인 항목 → 상태 전이 → 인보이스 upsert.
+     */
+    private Applied applyInvoiceLocked(BillingProvider provider, Subscription row, ProviderInvoice invoice,
+                                       ProviderSubscription subscription, Instant now) {
+        SubscriptionInvoice existing = invoices.lockByProviderInvoice(provider.name(), provider.storeId(), invoice.invoiceId());
+        if (existing != null && !row.getSysId().equals(existing.getSubscriptionSysId())) return Applied.OTHER_SUBSCRIPTION;
         boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
-        String grantFor = null;
-        if (newer && allowed) {
-            boolean firstPaid = "PAID".equals(invoice.status())
-                    && (existing == null || !PAID_FAMILY.contains(existing.getStatus()));
-            String applyResult = null;
-            if (!matches(provider, row, invoice, subscription)) {
-                applyResult = "MISMATCH";
-                log.warn("billing invoice mismatch subscription={} invoice={}", row.getSysId(), invoice.invoiceId());
-            } else if (firstPaid) {
-                PaidDecision decision = decidePaid(row, invoice, now);
-                applyResult = decision.applyResult();
-                grantFor = decision.grantRole() ? row.getSysId() : null;
-            }
-            upsertInvoice(existing, row, provider, invoice, applyResult);
+        if (!newer || !allowed) return Applied.NONE;
+        boolean firstPaid = "PAID".equals(invoice.status())
+                && (existing == null || !PAID_FAMILY.contains(existing.getStatus()));
+        String applyResult = null;
+        Applied applied = Applied.NONE;
+        if (!matches(provider, row, invoice, subscription)) {
+            applyResult = "MISMATCH";
+            log.warn("billing invoice mismatch subscription={} invoice={}", row.getSysId(), invoice.invoiceId());
+        } else if (firstPaid) {
+            PaidDecision decision = decidePaid(row, invoice, now);
+            applyResult = decision.applyResult();
+            if (decision.grantRole()) applied = Applied.GRANT_ROLE;
         }
-        insertEvent(provider, notice, "PROCESSED", now);
-        // sys_user는 잠금 순서의 마지막.
-        if (grantFor != null && subscriptions.grantOwnerRole(grantFor, ACTOR) == 1) {
-            subscriptions.markRoleGranted(grantFor, now, ACTOR);
+        upsertInvoice(existing, row, provider, invoice, applyResult);
+        return applied;
+    }
+
+    /** sys_user는 잠금 순서의 마지막. */
+    private void finishUser(Subscription row, Applied applied, Instant now) {
+        if (applied == Applied.GRANT_ROLE && subscriptions.grantOwnerRole(row.getSysId(), ACTOR) == 1) {
+            subscriptions.markRoleGranted(row.getSysId(), now, ACTOR);
         }
     }
 
@@ -216,7 +276,7 @@ public class BillingWebhookService {
     private boolean matches(BillingProvider provider, Subscription row, ProviderInvoice invoice,
                             ProviderSubscription subscription) {
         String planCode = row.getPlanSysId() == null ? null : subscriptions.findPlanCode(row.getPlanSysId());
-        String expectedProduct = planCode == null ? null : environment.getProperty("billing.products." + planCode, planCode);
+        String expectedProduct = BillingProviderRegistry.productIdFor(environment, planCode);
         return subscription != null
                 && provider.storeId().equals(invoice.storeId())
                 && provider.storeId().equals(subscription.storeId())

@@ -100,15 +100,7 @@ public class FakeBillingProvider implements BillingProvider {
                 sub = state.subscriptions.get(subscriptionId);
             }
             FakePgState.Token token = openToken(sub, now);
-            if (token == null) {
-                token = new FakePgState.Token();
-                token.token = randomToken();
-                token.subscriptionId = sub.subscriptionId;
-                token.subscriptionSysId = sub.subscriptionSysId;
-                token.ownerUserSysId = sub.ownerUserSysId;
-                token.expiresAt = now.plus(TOKEN_TTL);
-                state.tokens.put(token.token, token);
-            }
+            if (token == null) token = newToken(sub, now);
             save();
             return new CheckoutLaunch(NAME, storeId, sub.customerId, sub.subscriptionId,
                     Map.of("redirectUrl", baseUrl + "/fake-pg/checkout?token=" + token.token), token.expiresAt);
@@ -127,11 +119,40 @@ public class FakeBillingProvider implements BillingProvider {
     @Override
     public synchronized ProviderInvoice getInvoice(String providerInvoiceId) {
         failLookupIfRequested();
+        return getInvoiceUnchecked(providerInvoiceId);
+    }
+
+    private ProviderInvoice getInvoiceUnchecked(String providerInvoiceId) {
         FakePgState.Invoice inv = state.invoices.get(providerInvoiceId);
         if (inv == null) return null;
         return new ProviderInvoice(storeId, inv.invoiceId, inv.subscriptionId, inv.customerId, inv.productId,
                 inv.chargeKind, inv.paymentMethod, inv.amount, inv.refundedAmount, inv.currency, inv.status,
                 inv.attemptCount, inv.periodStartAt, inv.periodEndAt, inv.paidAt, inv.updatedAt, inv.failureCode);
+    }
+
+    @Override
+    public synchronized List<ProviderInvoice> listInvoices(String providerSubscriptionId) {
+        failLookupIfRequested();
+        return state.invoices.values().stream().filter(i -> i.subscriptionId.equals(providerSubscriptionId))
+                .map(i -> getInvoiceUnchecked(i.invoiceId)).toList();
+    }
+
+    @Override
+    public synchronized CheckoutLaunch reregisterPaymentMethod(String providerSubscriptionId, String ownerUserSysId) {
+        Instant now = clock.instant();
+        FakePgState.Sub sub = requireSub(providerSubscriptionId);
+        if (!"ACTIVE".equals(sub.status)) throw new IllegalStateException("진행 중 구독만 결제수단을 다시 등록합니다.");
+        if (!sub.ownerUserSysId.equals(ownerUserSysId)) throw new IllegalStateException("본인 구독이 아닙니다.");
+        FakePgState.Token token = state.tokens.values().stream()
+                .filter(t -> t.subscriptionId.equals(sub.subscriptionId) && t.reregister && !t.used && now.isBefore(t.expiresAt))
+                .findFirst().orElse(null);
+        if (token == null) {
+            token = newToken(sub, now);
+            token.reregister = true;
+        }
+        save();
+        return new CheckoutLaunch(NAME, storeId, sub.customerId, sub.subscriptionId,
+                Map.of("redirectUrl", baseUrl + "/fake-pg/checkout?token=" + token.token), token.expiresAt);
     }
 
     @Override
@@ -199,7 +220,8 @@ public class FakeBillingProvider implements BillingProvider {
             return null;
         }
         FakePgState.Sub sub = state.subscriptions.get(found.subscriptionId);
-        return sub != null && "INCOMPLETE".equals(sub.status) ? found : null;
+        String allowed = found.reregister ? "ACTIVE" : "INCOMPLETE";
+        return sub != null && allowed.equals(sub.status) ? found : null;
     }
 
     /** 결제수단 등록 + 첫 인보이스. 토큰은 결과와 관계없이 1회만 쓴다. */
@@ -207,6 +229,7 @@ public class FakeBillingProvider implements BillingProvider {
         List<FakePgState.Delivery> out = new ArrayList<>();
         PayResult result;
         synchronized (this) {
+            // 토큰 확인(구독 상태 포함)과 상태 변경을 같은 잠금 안에서 한다.
             FakePgState.Token found = peekToken(token, actorUserSysId);
             if (found == null) {
                 throw new IllegalStateException("결제창이 만료되었거나 본인 결제가 아닙니다.");
@@ -214,22 +237,42 @@ public class FakeBillingProvider implements BillingProvider {
             found.used = true;
             FakePgState.Sub sub = requireSub(found.subscriptionId);
             Instant now = clock.instant();
-            FakePgState.Invoice inv = newInvoice(sub, now, addMonths(now, sub.periodMonth));
-            if (scenario == CardScenario.SUCCESS) {
-                sub.status = "ACTIVE";
-                sub.paymentMethodStatus = "ACTIVE";
-                sub.updatedAt = now;
-                markPaid(inv, now);
-                out.add(event(PortOneWebhookEvents.INVOICE_PAID, sub, inv));
-            } else {
-                markFailed(inv, now, scenario.name());
-                out.add(event(PortOneWebhookEvents.INVOICE_PAYMENT_FAILED, sub, inv));
-            }
-            result = new PayResult(scenario == CardScenario.SUCCESS, inv.invoiceId, inv.failureCode);
+            result = found.reregister ? reregister(sub, scenario, now, out) : firstPayment(sub, scenario, now, out);
             save();
         }
         deliver(out);
         return result;
+    }
+
+    /** 결제수단 등록 + 첫 인보이스. */
+    private PayResult firstPayment(FakePgState.Sub sub, CardScenario scenario, Instant now, List<FakePgState.Delivery> out) {
+        FakePgState.Invoice inv = newInvoice(sub, now, addMonths(now, sub.periodMonth));
+        if (scenario == CardScenario.SUCCESS) {
+            sub.status = "ACTIVE";
+            sub.paymentMethodStatus = "ACTIVE";
+            sub.updatedAt = now;
+            markPaid(inv, now);
+            out.add(event(PortOneWebhookEvents.INVOICE_PAID, sub, inv));
+        } else {
+            markFailed(inv, now, scenario.name());
+            out.add(event(PortOneWebhookEvents.INVOICE_PAYMENT_FAILED, sub, inv));
+        }
+        return new PayResult(scenario == CardScenario.SUCCESS, inv.invoiceId, inv.failureCode);
+    }
+
+    /** 결제수단 재등록. 성공하면 가장 최근 실패 회차를 같은 인보이스 ID로 다시 청구한다. */
+    private PayResult reregister(FakePgState.Sub sub, CardScenario scenario, Instant now, List<FakePgState.Delivery> out) {
+        if (scenario != CardScenario.SUCCESS) return new PayResult(false, null, scenario.name());
+        sub.paymentMethodStatus = "ACTIVE";
+        sub.updatedAt = now;
+        out.add(event(PortOneWebhookEvents.CUSTOMER_PAYMENT_METHOD_REGISTERED, sub, null));
+        FakePgState.Invoice failed = state.invoices.values().stream()
+                .filter(i -> i.subscriptionId.equals(sub.subscriptionId) && "FAILED".equals(i.status))
+                .max(java.util.Comparator.comparing(i -> i.periodStartAt)).orElse(null);
+        if (failed == null) return new PayResult(true, null, null);
+        markPaid(failed, now);
+        out.add(event(PortOneWebhookEvents.INVOICE_PAID, sub, failed));
+        return new PayResult(true, failed.invoiceId, null);
     }
 
     /** 다음 회차 청구(성공/실패). 기간은 마지막 인보이스 끝에서 이어진다. */
@@ -332,6 +375,17 @@ public class FakeBillingProvider implements BillingProvider {
     }
 
     // ---- 내부 ----
+
+    private FakePgState.Token newToken(FakePgState.Sub sub, Instant now) {
+        FakePgState.Token token = new FakePgState.Token();
+        token.token = randomToken();
+        token.subscriptionId = sub.subscriptionId;
+        token.subscriptionSysId = sub.subscriptionSysId;
+        token.ownerUserSysId = sub.ownerUserSysId;
+        token.expiresAt = now.plus(TOKEN_TTL);
+        state.tokens.put(token.token, token);
+        return token;
+    }
 
     private FakePgState.Token openToken(FakePgState.Sub sub, Instant now) {
         if (!"INCOMPLETE".equals(sub.status)) {

@@ -268,6 +268,8 @@ class BillingWebhookPersistenceTest {
             public CheckoutLaunch startCheckout(CheckoutRequest request) { return pg.startCheckout(request); }
             public ProviderSubscription getSubscription(String id) { return pg.getSubscription(id); }
             public ProviderInvoice getInvoice(String id) { return change.apply(pg.getInvoice(id)); }
+            public List<ProviderInvoice> listInvoices(String id) { return pg.listInvoices(id).stream().map(change).toList(); }
+            public CheckoutLaunch reregisterPaymentMethod(String id, String owner) { return pg.reregisterPaymentMethod(id, owner); }
             public void endSubscription(String id) { pg.endSubscription(id); }
             public void refund(String id, int amount, String reason) { pg.refund(id, amount, reason); }
             public BillingModels.BillingNotice verifyAndParseWebhook(Map<String, String> headers, byte[] body) {

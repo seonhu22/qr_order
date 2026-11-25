@@ -6,6 +6,7 @@ import htms.QROrder.system.billing.provider.BillingModels.CheckoutRequest;
 import htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice;
 import htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +27,12 @@ public interface BillingProvider {
     ProviderSubscription getSubscription(String providerSubscriptionId);
 
     ProviderInvoice getInvoice(String providerInvoiceId);
+
+    /** 구독의 인보이스 전부(대사용). 웹훅을 놓친 결제를 찾는다. */
+    List<ProviderInvoice> listInvoices(String providerSubscriptionId);
+
+    /** PAST_DUE 대표의 결제수단 재등록 창. 성공하면 제공자가 실패 회차를 다시 청구하고 웹훅을 보낸다. */
+    CheckoutLaunch reregisterPaymentMethod(String providerSubscriptionId, String ownerUserSysId);
 
     /** 제공자 구독 종료. 이미 끝났으면 그대로 성공. */
     void endSubscription(String providerSubscriptionId);

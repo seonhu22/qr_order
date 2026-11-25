@@ -1,6 +1,7 @@
 package htms.QROrder.system.billing.repository;
 
 import htms.QROrder.system.billing.domain.Subscription;
+import htms.QROrder.system.billing.domain.SubscriptionPlan;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -55,4 +56,35 @@ public interface SubscriptionMapper {
     int applyPaid(@Param("sysId") String sysId, @Param("status") String status,
                   @Param("periodEndAt") Instant periodEndAt, @Param("clearGrace") boolean clearGrace,
                   @Param("userId") String userId);
+
+    Subscription findById(@Param("sysId") String sysId);
+
+    Subscription lockById(@Param("sysId") String sysId);
+
+    /** 매장의 대표 구독 1행: 진행 중이 있으면 그것, 없으면 가장 최근 것. 화면/재구독 판단용. */
+    Subscription findLatestByPlant(@Param("plantCd") String plantCd);
+
+    /** 결제 시도 선커밋: 플랜 스냅샷 + 새 시도 ID + 만료. 제공자 등록 ID는 비운다(새 등록으로 바뀜). 잠긴 PENDING 행에만. */
+    int startCheckoutAttempt(@Param("sysId") String sysId, @Param("planSysId") String planSysId,
+                             @Param("amount") int amount, @Param("currency") String currency,
+                             @Param("periodMonth") int periodMonth, @Param("provider") String provider,
+                             @Param("providerStoreId") String providerStoreId, @Param("attemptId") String attemptId,
+                             @Param("expiresAt") Instant expiresAt, @Param("userId") String userId);
+
+    /** 제공자 사전 등록 결과 저장. 같은 시도일 때만 1행. */
+    int saveCheckoutRegistration(@Param("sysId") String sysId, @Param("attemptId") String attemptId,
+                                 @Param("providerCustomerId") String providerCustomerId,
+                                 @Param("providerSubscriptionId") String providerSubscriptionId,
+                                 @Param("expiresAt") Instant expiresAt, @Param("userId") String userId);
+
+    /** 판매 중 플랜(sys_payment, 원화, 금액/기간 양수, 삭제 안 됨). */
+    List<SubscriptionPlan> findPlans();
+
+    SubscriptionPlan findPlan(@Param("planSysId") String planSysId);
+
+    /** 이 구독의 결제 진행 중(PENDING) 인보이스 수. 재구독 조건. */
+    int countPendingInvoices(@Param("subscriptionSysId") String subscriptionSysId);
+
+    /** E9 카드 만료 / 재등록: payment_method_status. 바뀔 때만 1행. */
+    int markPaymentMethod(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
 }

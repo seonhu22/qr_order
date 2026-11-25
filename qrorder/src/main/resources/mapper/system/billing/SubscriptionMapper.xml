@@ -113,8 +113,75 @@
                 when paid_through_at is null or paid_through_at &lt; #{periodEndAt}::timestamptz then #{periodEndAt}::timestamptz
                 else paid_through_at end,
             grace_until = case when #{clearGrace} then null else grace_until end,
+            payment_method_status = 'ACTIVE',
             modify_user_id = #{userId}, modify_datetime = now()
         where sys_id = #{sysId}
+    </update>
+
+    <select id="findById" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/> from sys_subscription where sys_id = #{sysId}
+    </select>
+
+    <select id="lockById" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/> from sys_subscription where sys_id = #{sysId} for update
+    </select>
+
+    <select id="findLatestByPlant" resultType="htms.QROrder.system.billing.domain.Subscription">
+        select <include refid="columns"/>
+        from sys_subscription
+        where plant_cd = #{plantCd}
+        order by (status &lt;&gt; 'EXPIRED') desc, insert_datetime desc, sys_id desc
+        limit 1
+    </select>
+
+    <update id="startCheckoutAttempt">
+        update sys_subscription
+        set plan_sys_id = #{planSysId}, amount = #{amount}, currency = #{currency}, period_month = #{periodMonth},
+            provider = #{provider}, provider_store_id = #{providerStoreId},
+            provider_customer_id = null, provider_subscription_id = null,
+            checkout_attempt_id = #{attemptId}, checkout_expires_at = #{expiresAt},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status = 'PENDING'
+    </update>
+
+    <update id="saveCheckoutRegistration">
+        update sys_subscription
+        set provider_customer_id = #{providerCustomerId}, provider_subscription_id = #{providerSubscriptionId},
+            checkout_expires_at = #{expiresAt}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and checkout_attempt_id = #{attemptId} and status = 'PENDING'
+    </update>
+
+    <sql id="planColumns">
+        sys_id as plan_sys_id, payment_cd as plan_code, payment_nm as plan_name, payment_fee as amount,
+        payment_fee_unit as currency, license_valid_month as period_month
+    </sql>
+
+    <sql id="planOnSale">
+        coalesce(delete_yn, 'N') = 'N' and payment_fee_unit = 'KRW' and payment_fee &gt; 0 and license_valid_month &gt; 0
+    </sql>
+
+    <select id="findPlans" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where <include refid="planOnSale"/>
+        order by payment_fee, payment_cd
+    </select>
+
+    <select id="findPlan" resultType="htms.QROrder.system.billing.domain.SubscriptionPlan">
+        select <include refid="planColumns"/>
+        from sys_payment
+        where sys_id = #{planSysId} and <include refid="planOnSale"/>
+    </select>
+
+    <select id="countPendingInvoices" resultType="int">
+        select count(*) from sys_subscription_invoice
+        where subscription_sys_id = #{subscriptionSysId} and status = 'PENDING'
+    </select>
+
+    <update id="markPaymentMethod">
+        update sys_subscription
+        set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and payment_method_status &lt;&gt; #{status}
     </update>
 
     <update id="markRoleRevoked">

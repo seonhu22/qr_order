@@ -63,6 +63,8 @@ public class FakePgState {
         public String ownerUserSysId;
         public Instant expiresAt;
         public boolean used;
+        /** true = PAST_DUE 결제수단 재등록 창(ACTIVE 구독에만 열린다). */
+        public boolean reregister;
     }
 
     /** 보낸(또는 꺼둬서 잃은) 웹훅. 재전송은 같은 webhookId/본문으로 한다. */

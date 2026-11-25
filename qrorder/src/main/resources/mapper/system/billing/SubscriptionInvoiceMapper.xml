@@ -3,10 +3,21 @@
 <!-- 구독 행을 잠근 뒤에만 호출한다. 잠금 순서는 SubscriptionMapper.xml 참고. -->
 <mapper namespace="htms.QROrder.system.billing.repository.SubscriptionInvoiceMapper">
 
+    <sql id="columns">
+        sys_id, subscription_sys_id, provider, provider_store_id, provider_invoice_id, charge_kind,
+        amount, refunded_amount, currency, status, attempt_count, provider_updated_at,
+        period_start_at, period_end_at, paid_at, apply_result, insert_user_id
+    </sql>
+
+    <select id="listBySubscription" resultType="htms.QROrder.system.billing.domain.SubscriptionInvoice">
+        select <include refid="columns"/>
+        from sys_subscription_invoice
+        where subscription_sys_id = #{subscriptionSysId}
+        order by period_start_at desc nulls last, insert_datetime desc
+    </select>
+
     <select id="lockByProviderInvoice" resultType="htms.QROrder.system.billing.domain.SubscriptionInvoice">
-        select sys_id, subscription_sys_id, provider, provider_store_id, provider_invoice_id, charge_kind,
-               amount, refunded_amount, currency, status, attempt_count, provider_updated_at,
-               period_start_at, period_end_at, paid_at, apply_result, insert_user_id
+        select <include refid="columns"/>
         from sys_subscription_invoice
         where provider = #{provider}
         and provider_store_id = #{providerStoreId}
