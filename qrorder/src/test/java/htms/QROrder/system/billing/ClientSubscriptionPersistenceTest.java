@@ -268,6 +268,55 @@ class ClientSubscriptionPersistenceTest {
         assertEquals(1, world.pg.snapshot().subscriptions.size());
     }
 
+    /** 대사 뒤 종료 직전에 옛 실패 인보이스가 재결제되고 웹훅이 유실됨 → 종료 뒤 다시 대사해 반영, 새 시도로 바꾸지 않는다. */
+    @Test void oldFailedInvoiceRepaidRightBeforeEndIsReconciledInsteadOfReplaced() {
+        String failed = world.checkoutAndPay(CardScenario.DECLINED);
+        world.clock.advance(Duration.ofMinutes(11));
+        var before = attempt();
+        var repaidBeforeEnd = new ForwardingBillingProvider(world.pg) {
+            @Override public void endSubscription(String id) {
+                world.autoDeliver = false;
+                world.pg.retryInvoice(failed, true);
+                super.endSubscription(id);
+            }
+        };
+        assertStatus(HttpStatus.CONFLICT, () -> clientWith(repaidBeforeEnd).checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals(before.get("checkout_attempt_id"), world.column("checkout_attempt_id"));
+        assertEquals(before.get("provider_subscription_id"), world.column("provider_subscription_id"));
+        assertEquals("ACTIVE", world.column("status"));
+        assertEquals("01", world.db.role("OWNER-A"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+    }
+
+    /** 종료 뒤 대사에서 제공자에 결제 진행 중(PENDING) 인보이스가 있으면 교체하지 않는다. */
+    @Test void openInvoiceFoundAfterEndBlocksReplacement() {
+        world.client.checkout(world.owner(), BillingWorld.PLAN);
+        world.clock.advance(Duration.ofMinutes(11));
+        var before = attempt();
+        String psid = (String) before.get("provider_subscription_id");
+        var openAfterEnd = new ForwardingBillingProvider(world.pg) {
+            boolean ended;
+            @Override public void endSubscription(String id) {
+                super.endSubscription(id);
+                ended = true;
+            }
+            @Override public java.util.List<htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice> listInvoices(
+                    String id) {
+                if (!ended) return super.listInvoices(id);
+                var sub = world.pg.getSubscription(psid);
+                return java.util.List.of(new htms.QROrder.system.billing.provider.BillingModels.ProviderInvoice(
+                        world.pg.storeId(), "inv_open", psid, sub.customerId(), sub.productId(), "RECURRING", "CARD",
+                        29000, 0, "KRW", "PENDING", 1, world.clock.instant(), world.clock.instant().plus(Duration.ofDays(30)),
+                        null, world.clock.instant(), null));
+            }
+        };
+        assertStatus(HttpStatus.CONFLICT, () -> clientWith(openAfterEnd).checkout(world.owner(), BillingWorld.PLAN));
+        assertEquals(before.get("checkout_attempt_id"), world.column("checkout_attempt_id"));
+        assertEquals(psid, world.column("provider_subscription_id"));
+        assertEquals("PENDING", world.column("status"));
+        assertEquals(1, world.pg.snapshot().subscriptions.size());
+    }
+
     /** QA B2 앞부분: 금액 불일치로 결제만 되고 PENDING인 시도가 만료된 뒤 결제 시작 → 결제가 된 옛 등록도 먼저 ENDED. */
     private String paidMismatchThenAttemptExpires() {
         var launch = world.client.checkout(world.owner(), BillingWorld.PLAN);

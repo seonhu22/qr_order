@@ -307,6 +307,18 @@ public class ClientSubscriptionService {
             log.warn("billing old registration end failed subscription={} reason={}", checked.getSysId(), failed.getMessage());
             throw unavailable();
         }
+        // 대사와 종료 사이에 옛 실패 인보이스가 재결제되고 웹훅이 유실될 수 있다. 종료 뒤 같은 등록의 최종 인보이스를
+        // 다시 대사하고, 결제가 반영됐거나(PENDING 아님) 결제 진행 중 인보이스가 있으면 교체하지 않는다.
+        if (billing.reconcile(owner, checked.getSysId()) != ReconcileResult.CHECKED) throw unavailable();
+        Subscription ended = subscriptions.findById(checked.getSysId());
+        if (ended == null || ended.getStatus() != SubscriptionStatus.PENDING
+                || !Objects.equals(checked.getCheckoutAttemptId(), ended.getCheckoutAttemptId())
+                || !Objects.equals(checked.getProviderSubscriptionId(), ended.getProviderSubscriptionId())) {
+            return null;
+        }
+        if (subscriptions.countPendingInvoices(ended.getSysId()) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "결제가 진행 중입니다. 잠시 뒤 다시 확인해 주세요.");
+        }
         return new Retired(checked.getCheckoutAttemptId(), checked.getProviderSubscriptionId());
     }
 
