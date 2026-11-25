@@ -7,7 +7,7 @@
         sys_id, plant_cd, owner_user_sys_id, plan_sys_id, amount, currency, period_month,
         provider, provider_store_id, provider_customer_id, provider_subscription_id,
         checkout_attempt_id, checkout_expires_at, status, paid_through_at, grace_until, end_at,
-        cancel_requested_at, expired_at, provider_end_status, payment_method_status,
+        cancel_requested_at, expired_at, provider_end_status, payment_method_status, provider_updated_at,
         role_granted_yn, role_granted_at, role_revoked_at, last_failure_code, insert_user_id
     </sql>
 
@@ -269,6 +269,14 @@
         update sys_subscription
         set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()
         where sys_id = #{sysId} and payment_method_status &lt;&gt; #{status}
+    </update>
+
+    <!-- 결제수단 상태에 반영한 제공자 구독 조회 시각. 앞으로만 움직인다. -->
+    <update id="markProviderUpdatedAt">
+        update sys_subscription
+        set provider_updated_at = #{updatedAt}, modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId}
+        and (provider_updated_at is null or provider_updated_at &lt; #{updatedAt}::timestamptz)
     </update>
 
     <update id="markRoleRevoked">

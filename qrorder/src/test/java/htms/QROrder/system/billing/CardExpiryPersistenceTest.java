@@ -112,4 +112,73 @@ class CardExpiryPersistenceTest {
         assertEquals("EXPIRED", world.column("payment_method_status"));
         assertEquals("ACTIVE", world.column("status"));
     }
+
+    /** 갱신 Paid 웹훅의 ACTIVE 구독 조회가 카드 만료 커밋 뒤에 적용돼도 배너(EXPIRED)는 남는다(제공자 updatedAt 순서). */
+    @Test void staleActiveLookupAppliedAfterCardExpiryKeepsTheBanner() throws Exception {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        String psid = world.column("provider_subscription_id");
+        var paidThrough = world.instant("paid_through_at");
+        world.autoDeliver = false;
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.chargeNextPeriod(psid, true);
+        var renewal = world.sent.get(world.sent.size() - 1);
+        var looked = new java.util.concurrent.CountDownLatch(1);
+        var resume = new java.util.concurrent.CountDownLatch(1);
+        var slow = new ForwardingBillingProvider(world.pg) {
+            @Override public htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription getSubscription(String id) {
+                var snapshot = super.getSubscription(id);
+                looked.countDown();
+                try {
+                    resume.await(20, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return snapshot;
+            }
+        };
+        var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var late = pool.submit(() -> world.webhooks.handle(slow, renewal.headers(),
+                    renewal.body().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            assertTrue(looked.await(20, java.util.concurrent.TimeUnit.SECONDS));
+            world.clock.advance(Duration.ofMinutes(1));
+            world.autoDeliver = true;
+            world.pg.expireCard(psid);
+            assertEquals("EXPIRED", world.column("payment_method_status"));
+            resume.countDown();
+            assertEquals(htms.QROrder.system.billing.service.BillingWebhookService.Outcome.OK,
+                    late.get(30, java.util.concurrent.TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+        assertTrue(world.instant("paid_through_at").isAfter(paidThrough));
+        assertEquals("ACTIVE", world.column("status"));
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+    }
+
+    /** 이미 반영한 인보이스의 중복 웹훅(전이 생략)은 결제수단 상태도 쓰지 않는다. */
+    @Test void duplicateInvoiceDeliveryDoesNotWritePaymentMethod() {
+        world.checkoutAndPay(CardScenario.SUCCESS);
+        var paid = world.sent.get(world.sent.size() - 1);
+        String psid = world.column("provider_subscription_id");
+        world.clock.advance(Duration.ofMinutes(1));
+        world.pg.expireCard(psid);
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+        var duplicate = new ForwardingBillingProvider(world.pg) {
+            @Override public htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription getSubscription(String id) {
+                var s = super.getSubscription(id);
+                return new htms.QROrder.system.billing.provider.BillingModels.ProviderSubscription(s.storeId(),
+                        s.subscriptionId(), s.customerId(), s.productId(), s.status(), "ACTIVE",
+                        world.clock.instant().plus(Duration.ofHours(1)));
+            }
+            @Override public htms.QROrder.system.billing.provider.BillingModels.BillingNotice verifyAndParseWebhook(
+                    java.util.Map<String, String> h, byte[] b) {
+                return withWebhookId(super.verifyAndParseWebhook(h, b), "msg_duplicate");
+            }
+        };
+        assertEquals(htms.QROrder.system.billing.service.BillingWebhookService.Outcome.OK, world.webhooks.handle(
+                duplicate, paid.headers(), paid.body().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        assertEquals("EXPIRED", world.column("payment_method_status"));
+        assertEquals(1, world.count("sys_subscription_invoice"));
+    }
 }

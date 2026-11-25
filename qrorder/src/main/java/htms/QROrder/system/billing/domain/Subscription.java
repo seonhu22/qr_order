@@ -28,6 +28,7 @@ public class Subscription {
     private Instant expiredAt;
     private String providerEndStatus;
     private String paymentMethodStatus;
+    private Instant providerUpdatedAt;
     private String roleGrantedYn;
     private Instant roleGrantedAt;
     private Instant roleRevokedAt;

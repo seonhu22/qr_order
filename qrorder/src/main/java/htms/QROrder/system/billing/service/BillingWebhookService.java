@@ -195,7 +195,8 @@ public class BillingWebhookService {
             return false;
         }
         // 인보이스 반영 뒤, 같은 조회의 최신 결제수단 상태를 반영한다(결제 성공이 카드 만료 표시를 덮지 않는다).
-        applyPaymentMethodLocked(subscriptions.findById(row.getSysId()), subscription, now);
+        // 중복/허용 안 된 이동으로 전이를 생략한 인보이스는 결제수단도 쓰지 않는다.
+        if (applied != Applied.SKIPPED) applyPaymentMethodLocked(subscriptions.findById(row.getSysId()), subscription, now);
         insertEvent(provider, notice, "PROCESSED", now);
         finishUser(row, applied, now);
         return applied.expired();
@@ -223,10 +224,13 @@ public class BillingWebhookService {
     /**
      * E9: 재조회한 결제수단 상태가 EXPIRED면 진행 중(A/D/C) 구독에 payment_method_status=EXPIRED(배너).
      * ACTIVE면(첫 결제, 재등록) A/D/C 구독의 표시도 ACTIVE로. 상태/권한은 바꾸지 않는다. 제공자 값이 기준이고
-     * 인보이스 반영 뒤에 호출한다(잠긴 행을 다시 읽어 넘긴다).
+     * 인보이스 반영 뒤에 호출한다(잠긴 행을 다시 읽어 넘긴다). 조회는 잠금 밖이라 늦게 커밋되는 옛 조회가 있다:
+     * 제공자 구독 updatedAt이 이미 반영한 조회보다 오래됐거나 없으면 쓰지 않는다.
      */
     private void applyPaymentMethodLocked(Subscription row, ProviderSubscription subscription, Instant now) {
-        if (subscription == null) return;
+        if (subscription == null || subscription.updatedAt() == null) return;
+        if (row.getProviderUpdatedAt() != null && subscription.updatedAt().isBefore(row.getProviderUpdatedAt())) return;
+        subscriptions.markProviderUpdatedAt(row.getSysId(), subscription.updatedAt(), ACTOR);
         if ("EXPIRED".equals(subscription.paymentMethodStatus())) {
             var outcome = SubscriptionTransition.apply(row.getStatus(), SubscriptionEvent.PAYMENT_METHOD_EXPIRED,
                     SubscriptionFacts.at(now));
@@ -301,7 +305,9 @@ public class BillingWebhookService {
 
     /** 잠긴 구독 행 기준으로 반영한 결과. 사용자 행 변경은 호출자가 잠금 순서의 마지막에 한다. */
     private enum Applied {
-        NONE, GRANT_ROLE, EXPIRED, GRANT_THEN_EXPIRE, OTHER_SUBSCRIPTION, LINK_MISMATCH, DECIDED_MISMATCH;
+        NONE, GRANT_ROLE, EXPIRED, GRANT_THEN_EXPIRE, OTHER_SUBSCRIPTION, LINK_MISMATCH, DECIDED_MISMATCH,
+        /** 저장값보다 새롭지 않거나 허용되지 않는 이동이라 아무것도 쓰지 않았다. */
+        SKIPPED;
 
         boolean granted() { return this == GRANT_ROLE || this == GRANT_THEN_EXPIRE; }
 
@@ -328,7 +334,7 @@ public class BillingWebhookService {
         }
         boolean newer = existing == null || invoice.updatedAt().isAfter(existing.getProviderUpdatedAt());
         boolean allowed = existing == null || MOVES.getOrDefault(existing.getStatus(), Set.of()).contains(invoice.status());
-        if (!newer || !allowed) return Applied.NONE;
+        if (!newer || !allowed) return Applied.SKIPPED;
         // 첫 PAID 이동, 또는 이전 PAID가 MISMATCH로만 기록돼 아직 반영되지 않은 결제의 새 스냅샷. 반영된 PAID는 다시 반영하지 않는다.
         // 결제(Paid) 웹훅을 놓치고 환불 스냅샷이 먼저 오면, 현재 회차일 때만 검증된 결제를 먼저 반영하고 이어서 누적 환불을
         // 판정한다. 과거/미래 회차의 반영 전 환불은 기록만 한다(돈은 이미 돌아갔고 권한 기간에 영향이 없다).

@@ -134,4 +134,8 @@ public interface SubscriptionMapper {
 
     /** E9 카드 만료 / 재등록: payment_method_status. 바뀔 때만 1행. */
     int markPaymentMethod(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
+
+    /** 결제수단 상태에 반영한 제공자 구독 조회의 updatedAt. 저장값보다 새로울 때만 바꾼다. 잠긴 행에만. */
+    int markProviderUpdatedAt(@Param("sysId") String sysId, @Param("updatedAt") Instant updatedAt,
+                              @Param("userId") String userId);
 }

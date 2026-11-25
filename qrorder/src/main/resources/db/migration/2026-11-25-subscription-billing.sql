@@ -37,6 +37,7 @@ CREATE TABLE public.sys_subscription (
     expired_at timestamp with time zone,
     provider_end_status character varying(20) DEFAULT 'NONE' NOT NULL,
     payment_method_status character varying(20) DEFAULT 'NONE' NOT NULL,
+    provider_updated_at timestamp with time zone,
     role_granted_yn character varying(1) DEFAULT 'N' NOT NULL,
     role_granted_at timestamp with time zone,
     role_revoked_at timestamp with time zone,
@@ -130,6 +131,7 @@ COMMENT ON COLUMN public.sys_subscription.paid_through_at IS '결제된 기간�
 COMMENT ON COLUMN public.sys_subscription.grace_until IS 'PAST_DUE 유예 끝 = paid_through_at + 7일.';
 COMMENT ON COLUMN public.sys_subscription.end_at IS '해지 예약 시 고정한 종료 시각.';
 COMMENT ON COLUMN public.sys_subscription.provider_end_status IS '제공자 구독 종료 요청 상태 NONE/REQUESTED/DONE/FAILED.';
+COMMENT ON COLUMN public.sys_subscription.provider_updated_at IS '결제수단 상태에 반영한 제공자 구독 조회의 updatedAt. 더 오래된 조회는 반영하지 않는다.';
 COMMENT ON COLUMN public.sys_subscription.role_granted_yn IS 'Y = 이 구독 결제가 02에서 01로 직접 올림. 수동 승격은 N.';
 COMMENT ON TABLE public.sys_subscription_invoice IS '4C 제공자 인보이스 사본. 재조회한 값만 저장.';
 COMMENT ON COLUMN public.sys_subscription_invoice.refunded_amount IS '재조회한 누적 환불 금액(원).';
