@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { AuthContext } from '@/shared/auth/AuthContext';
+import { AuthProvider } from '@/shared/auth/AuthProvider';
 import { server } from '@/test/server';
 import AppRoutes from './AppRoutes';
 
@@ -65,6 +66,82 @@ function renderRoutes(initialPath: string, authState: Partial<AuthTestState> = {
   };
 }
 
+type AdminLoginUser = { userId: string; role: 'SUPER_ADMIN' | 'STAFF'; initPwdRequired: boolean };
+
+function submitAdminLogin(user: AdminLoginUser, loginData: Partial<AdminLoginUser> = user) {
+  let sessionUser: AdminLoginUser | null = null;
+  server.use(
+    http.get('/api/auth/me', () => HttpResponse.json({ success: !!sessionUser, data: sessionUser })),
+    http.post('/api/auth/login', () => {
+      sessionUser = user;
+      return HttpResponse.json({ success: true, data: loginData });
+    }),
+  );
+
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <MemoryRouter initialEntries={['/admin/login']}>
+        <AuthProvider>
+          <Suspense fallback={<div>route loading</div>}>
+            <AppRoutes />
+          </Suspense>
+          <LocationProbe />
+        </AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+
+  fireEvent.change(screen.getByLabelText('아이디'), { target: { value: 'test-user' } });
+  fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'Test-password!' } });
+  fireEvent.click(screen.getByRole('button', { name: '로그인' }));
+}
+
+describe('Admin login role', () => {
+  it.each([false, true])('guides a store account to Client login with initPwdRequired=%s', async (initPwdRequired) => {
+    submitAdminLogin({ userId: 'test-user', role: 'STAFF', initPwdRequired });
+
+    const clientLoginLink = await screen.findByRole('link', { name: '클라이언트 로그인' });
+    await waitFor(() => expect(screen.getByLabelText('비밀번호')).toHaveValue(''));
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/login');
+    expect(screen.queryByRole('heading', { name: '비밀번호 변경' })).not.toBeInTheDocument();
+
+    fireEvent.click(clientLoginLink);
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/client/login');
+  });
+
+  it('opens Admin main after confirming a missing login role via /me', async () => {
+    server.use(
+      http.get('/api/system/settings/menu/search', () => HttpResponse.json([])),
+      http.get('/api/dashboard/info', () => HttpResponse.json({ success: true })),
+    );
+
+    submitAdminLogin(
+      { userId: 'test-user', role: 'SUPER_ADMIN', initPwdRequired: false },
+      { userId: 'test-user', initPwdRequired: false },
+    );
+
+    expect(await screen.findByRole('heading', { name: '관리자 메인' })).toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/main');
+  });
+
+  it('keeps a SUPER_ADMIN on the initial password change step when required', async () => {
+    submitAdminLogin({ userId: 'test-user', role: 'SUPER_ADMIN', initPwdRequired: true });
+
+    expect(await screen.findByRole('heading', { name: '비밀번호 변경' })).toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/login');
+  });
+
+  it('guides an existing store session away from a direct Admin main visit', async () => {
+    renderRoutes('/admin/main', {
+      isAuthenticated: true,
+      user: { userId: 'test-user', role: 'STAFF', initPwdRequired: false },
+    });
+
+    expect(await screen.findByRole('link', { name: '클라이언트 로그인' })).toBeInTheDocument();
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/admin/login');
+  });
+});
+
 describe('AppRoutes auth redirect', () => {
   it('redirects the root path to client login by default', async () => {
     renderRoutes('/');
@@ -108,7 +185,7 @@ describe('AppRoutes auth redirect', () => {
       user: { userId: 'STAFF', roleCd: '02', initPwdRequired: false },
     });
 
-    expect(await screen.findByRole('heading', { name: '클라이언트 메인' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '매장 운영 화면에 오신 것을 환영합니다' })).toBeInTheDocument();
   });
 
   it('renders a development guide through the lazy dev route boundary', async () => {

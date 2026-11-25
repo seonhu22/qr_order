@@ -8,7 +8,7 @@ QR Order는 매장에서 QR 코드를 통해 주문을 받고, 관리자가 주�
 
 ## 서비스 소개
 
-QR Order는 다음 흐름을 목표로 합니다.
+QR Order의 주문과 운영 흐름은 다음과 같습니다.
 
 1. 고객이 QR 코드로 주문 화면에 접근
 2. 메뉴 확인 후 주문 진행
@@ -17,33 +17,13 @@ QR Order는 다음 흐름을 목표로 합니다.
 
 ## 구현 현황
 
-| 영역           | 상태                       |
-| -------------- | -------------------------- |
-| Admin 영역     | 구현 및 QA 진행            |
-| 고객/주문 영역 | 서비스 목표 또는 예정 기능 |
+| 영역 | 기능 | 검증 현황 |
+|---|---|---|
+| Admin | 계정/사업장/공지/문의와 첨부 관리, 접속 로그와 변경 이력 조회 | 문의와 사업장 조회는 로컬 사본 DB에서 재검증했다. |
+| Client / v2 | 메뉴와 매장 사용자 관리, 주문 상태/결제/정산, 공지와 직원호출 | 인증/권한, 주문과 운영 기능은 로컬 사본 DB에서 확인했다. |
+| Consumer / v3 | QR 방문, 메뉴/주문, 주문 상태와 방문 마감 | 로컬 사본 DB에서 주문 변경/마감과 양방향 SSE를 확인했다. 카드 결제 흐름은 모의 결제를 사용한다. |
 
-## 주요 기능
-
-### Admin 영역
-
-- 관리자 로그인/로그아웃
-- 초기 비밀번호 변경
-- 관리자 계정 관리
-- 메뉴 관리
-- 공지사항 관리
-- 문의사항 관리
-- 첨부파일 업로드/다운로드
-- 접속 로그 조회
-- 변경 이력 조회
-
-### 고객/주문 영역
-
-아래 기능은 서비스 목표 또는 예정 기능입니다.
-
-- QR 기반 주문 화면 접근
-- 메뉴 확인
-- 주문 진행
-- 주문 상태 확인
+팀 서버 검증과 제품 담당자 확인 항목은 [마감 TODO](./docs/plans/2026-11-10-project-closeout-backlog.md)에서 관리한다.
 
 ## 사용자 유형
 
@@ -113,13 +93,16 @@ npm run dev:real
 
 ## 참고 문서
 
-- [frontend/README.md](./frontend/README.md): 프론트엔드 실행·개발 가이드
+- [frontend/README.md](./frontend/README.md): 프론트엔드 실행/개발 가이드
 - [frontend/docs/README.md](./frontend/docs/README.md): 프론트엔드 문서 지도
 - [docs/architecture/README.md](./docs/architecture/README.md): 애플리케이션 구조와 계약 흐름 지도
 - [docs/harness/README.md](./docs/harness/README.md): 공유 Codex 하네스 구성과 검증 방법
-- [docs/plans/2026-11-10-project-closeout-backlog.md](./docs/plans/2026-11-10-project-closeout-backlog.md): 마감 전 보안·권한·기능·품질 TODO와 근거
+- [docs/plans/2026-11-10-project-closeout-backlog.md](./docs/plans/2026-11-10-project-closeout-backlog.md): 권한/기능/품질 현황과 결정 대기 항목
+- [후속 작업 현황](./docs/plans/2026-11-17-followup-work-backlog.md)
+- [로컬 인증 QA](./docs/qa/2026-11-24-local-real-qa-auth.md) / [로컬 운영 QA](./docs/qa/2026-11-24-local-real-qa-ops.md) / [로컬 환경 보정](./docs/qa/2026-11-24-local-real-qa-env.md)
+- [공통코드 연결 현황](./docs/qa/2026-11-24-common-code-connection-report.md)
 - [사용자 관리 권한 보완 플랜](./docs/plans/2026-11-16-001-fix-client-user-authorization-plan.md): 같은 매장 스태프 관리와 시스템 관리자 전용 승격 설계
-- [사용자 관리 권한 검증](./docs/qa/2026-11-16-client-user-authorization.md): 독립 검토와 PostgreSQL 검증/남은 실제 서버 QA
+- [사용자 관리 권한 검증](./docs/qa/2026-11-16-client-user-authorization.md): 독립 검토와 임시 PostgreSQL 검증
 - [dev 워크트리 병합 검증](./docs/qa/2026-11-17-dev-worktree-integration.md): 포함 브랜치와 원본 검증/실행 서버 반영 구분
 - [공지 대상별 알림 적용](./docs/qa/2026-11-18-notice-audience-integration.md): SQL 적용/배포 순서와 역할별 QA
 - [qrorder/](./qrorder/): 백엔드 프로젝트

@@ -51,6 +51,7 @@
             link_sys_id2,
             link_sys_id3,
             qty,
+            order_unit_price,
             payment_yn
         ) VALUES (
             #{orderItemId},
@@ -65,6 +66,7 @@
             #{menuSysId},
             #{orderId},
             #{quantity},
+            #{unitPrice},
             'Y'
         )
     </insert>
@@ -77,7 +79,8 @@
             insert_datetime,
             sys_plant_cd,
             link_sys_id2,
-            qty
+            qty,
+            order_unit_price
         ) VALUES (
             #{orderOptionId},
             #{orderItemId},
@@ -85,7 +88,8 @@
             #{orderedAt},
             #{sysPlantCd},
             #{optionSysId},
-            #{quantity}
+            #{quantity},
+            #{unitPrice}
         )
     </insert>
 
@@ -108,7 +112,7 @@
             og.order_num AS order_number,
             og.order_status,
             COALESCE(SUM(
-                smd.menu_price::bigint * od.qty
+                COALESCE(od.order_unit_price, smd.menu_price)::bigint * od.qty
                 + COALESCE(option_total.amount, 0)
             ), 0) AS total_amount,
             COALESCE(SUM(od.qty), 0) AS item_count,
@@ -120,20 +124,21 @@
             ON od.link_sys_id3 = og.sys_id
             AND od.link_sys_id = og.link_sys_id
             AND od.sys_plant_cd = og.sys_plant_cd
-        INNER JOIN store_menu_detail smd
+        LEFT JOIN store_menu_detail smd
             ON smd.sys_id = od.link_sys_id2
             AND smd.sys_plant_cd = od.sys_plant_cd
         LEFT JOIN (
             SELECT
                 odo.link_sys_id AS order_item_id,
-                SUM(smod.menu_option_price::bigint * odo.qty) AS amount
+                SUM(COALESCE(odo.order_unit_price, smod.menu_option_price)::bigint * odo.qty) AS amount
             FROM order_detail_option odo
-            INNER JOIN store_menu_option_detail smod
+            LEFT JOIN store_menu_option_detail smod
                 ON smod.sys_id = odo.link_sys_id2
                 AND smod.sys_plant_cd = odo.sys_plant_cd
             GROUP BY odo.link_sys_id
         ) option_total ON option_total.order_item_id = od.sys_id
         WHERE <include refid="currentConsumerOrderPredicate"/>
+          AND COALESCE(od.order_unit_price, smd.menu_price) IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM client_order_revision_removed_detail removed
               WHERE removed.order_detail_sys_id = od.sys_id
@@ -182,21 +187,22 @@
             resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderItemRow">
         SELECT
             od.sys_id AS order_item_id,
-            smd.sys_id AS menu_sys_id,
+            od.link_sys_id2 AS menu_sys_id,
             smd.menu_name,
             od.qty AS quantity,
-            smd.menu_price AS menu_unit_amount
+            COALESCE(od.order_unit_price, smd.menu_price) AS menu_unit_amount
         FROM order_group og
         <include refid="currentConsumerOrderScope"/>
         INNER JOIN order_detail od
             ON od.link_sys_id3 = og.sys_id
             AND od.link_sys_id = og.link_sys_id
             AND od.sys_plant_cd = og.sys_plant_cd
-        INNER JOIN store_menu_detail smd
+        LEFT JOIN store_menu_detail smd
             ON smd.sys_id = od.link_sys_id2
             AND smd.sys_plant_cd = od.sys_plant_cd
         WHERE <include refid="currentConsumerOrderPredicate"/>
           AND og.sys_id = #{orderId}
+          AND COALESCE(od.order_unit_price, smd.menu_price) IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM client_order_revision_removed_detail removed
               WHERE removed.order_detail_sys_id = od.sys_id
@@ -208,10 +214,10 @@
             resultType="htms.QROrder.consumer.order.repository.row.ConsumerOrderOptionRow">
         SELECT
             od.sys_id AS order_item_id,
-            smod.sys_id AS option_sys_id,
+            odo.link_sys_id2 AS option_sys_id,
             smod.menu_option_name AS option_name,
             odo.qty AS stored_quantity,
-            smod.menu_option_price AS unit_amount
+            COALESCE(odo.order_unit_price, smod.menu_option_price) AS unit_amount
         FROM order_group og
         <include refid="currentConsumerOrderScope"/>
         INNER JOIN order_detail od
@@ -221,11 +227,12 @@
         INNER JOIN order_detail_option odo
             ON odo.link_sys_id = od.sys_id
             AND odo.sys_plant_cd = od.sys_plant_cd
-        INNER JOIN store_menu_option_detail smod
+        LEFT JOIN store_menu_option_detail smod
             ON smod.sys_id = odo.link_sys_id2
             AND smod.sys_plant_cd = odo.sys_plant_cd
         WHERE <include refid="currentConsumerOrderPredicate"/>
           AND og.sys_id = #{orderId}
+          AND COALESCE(odo.order_unit_price, smod.menu_option_price) IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM client_order_revision_removed_detail removed
               WHERE removed.order_detail_sys_id = od.sys_id

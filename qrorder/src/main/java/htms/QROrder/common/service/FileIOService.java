@@ -2,9 +2,12 @@ package htms.QROrder.common.service;
 
 import htms.QROrder.common.dto.FileIO;
 import htms.QROrder.common.dto.FileInfo;
+import htms.QROrder.common.exception.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -14,10 +17,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -28,6 +36,25 @@ public class FileIOService {
     @Value("${file.upload.path}")
     private String uploadPath;
 
+    Path prepareUploadDirectory(String menuCd) {
+        Path root = Path.of(uploadPath).toAbsolutePath().normalize();
+        try {
+            Path directory = root.resolve(String.valueOf(menuCd)).normalize();
+            if (!root.equals(directory.getParent())) {
+                throw new ValidationException("첨부파일 저장 경로가 올바르지 않습니다.");
+            }
+            Files.createDirectories(directory);
+            if (!root.toRealPath().equals(directory.toRealPath().getParent())) {
+                throw new ValidationException("첨부파일 저장 경로가 올바르지 않습니다.");
+            }
+            return directory;
+        } catch (InvalidPathException e) {
+            throw new ValidationException("첨부파일 저장 경로가 올바르지 않습니다.");
+        } catch (IOException e) {
+            throw new IllegalStateException("첨부파일 저장 디렉터리를 준비할 수 없습니다.", e);
+        }
+    }
+
     void IOInsertFile(List<FileIO> files) {
 
         List<Path> saved = new ArrayList<>();
@@ -35,8 +62,7 @@ public class FileIOService {
         try {
             for (FileIO ioReq : files) {
 
-                Path dirPath = Paths.get(uploadPath + ioReq.getFilePath());
-                Files.createDirectories(dirPath);
+                Path dirPath = Path.of(ioReq.getFilePath());
 
                 String originalName = ioReq.getFile().getOriginalFilename();
                 String ext = (originalName != null && originalName.contains("."))
@@ -65,17 +91,45 @@ public class FileIOService {
         }
     }
 
-    void IODelFile(List<FileInfo> files) {
-
-        files.forEach(file -> {
-            String path = resolvePath(file);
-            try {
-                Files.deleteIfExists(Paths.get(path));
+    void scheduleDelete(List<FileInfo> files) {
+        var targets = files.stream().flatMap(file -> {
+            var original = Map.entry(file.getSysId(), resolvePath(file, file.getFileExt()));
+            if ("Y".equals(file.getPdfYn()) && !".pdf".equals(file.getFileExt())) {
+                return Stream.of(original, Map.entry(file.getSysId(), resolvePath(file, ".pdf")));
             }
-            catch (IOException e) {
-                log.error("파일 삭제 실패: {}, {}", path, e.getMessage());
+            return Stream.of(original);
+        }).toList();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                targets.forEach(target -> deleteStoredFile(target.getKey(), target.getValue()));
             }
         });
+    }
+
+    private void deleteStoredFile(String sysId, String storedPath) {
+        try {
+            Path root = Path.of(uploadPath).toAbsolutePath().normalize();
+            Path path = Path.of(storedPath).toAbsolutePath().normalize();
+            if (!path.startsWith(root) || path.equals(root)) {
+                log.warn("업로드 경로 밖 첨부파일 삭제 건너뜀: {}", sysId);
+                return;
+            }
+
+            Path parent = path.getParent().toRealPath();
+            if (!parent.startsWith(root.toRealPath())) {
+                log.warn("업로드 경로 밖 첨부파일 삭제 건너뜀: {}", sysId);
+                return;
+            }
+            Path target = parent.resolve(path.getFileName());
+            if (!Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)) {
+                Files.deleteIfExists(target);
+            }
+        } catch (NoSuchFileException ignored) {
+            // A missing directory means the attachment is already absent.
+        } catch (IOException | InvalidPathException | SecurityException e) {
+            log.error("첨부파일 삭제 실패: {}, {}", sysId, e.getMessage());
+        }
     }
 
     Resource IOReadFile(FileInfo file) {
@@ -128,6 +182,10 @@ public class FileIOService {
 
     private String resolvePath(FileInfo file) {
         String ext = "Y".equals(file.getPdfYn()) ? ".pdf" : file.getFileExt();
+        return resolvePath(file, ext);
+    }
+
+    private String resolvePath(FileInfo file, String ext) {
         return file.getFilePath() + "/" + file.getConvertFileNm() + ext;
     }
 }

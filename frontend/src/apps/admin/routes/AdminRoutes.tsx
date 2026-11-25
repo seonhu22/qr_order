@@ -22,6 +22,7 @@ import { RejectUnexpectedSearchParams } from '@/apps/admin/routes/RejectUnexpect
 
 const MainPage = lazyNamed(() => import('@/apps/admin/pages/main/MainPage'), 'MainPage');
 const CommonCodePage = lazyNamed(() => import('@/apps/admin/pages/common-code/CommonCodePage'), 'CommonCodePage');
+const AdminSubscriptionsPage = lazyNamed(() => import('@/apps/admin/pages/subscription/AdminSubscriptionsPage'), 'AdminSubscriptionsPage');
 const PaymentManagePage = lazyNamed(() => import('@/apps/admin/pages/payment-manage/PaymentManagePage'), 'PaymentManagePage');
 const PlantStatusPage = lazyNamed(() => import('@/apps/admin/pages/plant-status/PlantStatusPage'), 'PlantStatusPage');
 const PlantSearchPage = lazyNamed(() => import('@/apps/admin/pages/plant-search/PlantSearchPage'), 'PlantSearchPage');
@@ -75,6 +76,10 @@ export const adminRoutes: RouteObject[] = [
             <RuleManagementPage/>
           </RejectUnexpectedSearchParams>
         ),
+      },
+      {
+        path: 'subscriptions',
+        element: <AdminSubscriptionsPage />,
       },
       {
         path: 'payment/rate',

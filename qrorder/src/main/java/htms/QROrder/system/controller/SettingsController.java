@@ -519,12 +519,8 @@ public class SettingsController {
     }
 
     @GetMapping("/board/qna/search")
-    public List<QnaResponse> getQna(@RequestParam(required = false) String searchKeyword,
-                                HttpSession session) {
-
-        Login loginUser = (Login) session.getAttribute("loginUser");
-
-        return qnaService.getQna(searchKeyword, loginUser.getSysPlantCd());
+    public List<QnaResponse> getQna(@RequestParam(required = false) String searchKeyword) {
+        return qnaService.getQna(searchKeyword);
     }
 
     @PostMapping("/board/qna/update")

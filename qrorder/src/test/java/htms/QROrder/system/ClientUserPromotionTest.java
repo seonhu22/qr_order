@@ -2,6 +2,8 @@ package htms.QROrder.system;
 
 import htms.QROrder.auth.StaffTestSupport;
 import htms.QROrder.client.dto.ClientUserResponse;
+import htms.QROrder.system.billing.domain.Subscription;
+import htms.QROrder.system.billing.repository.SubscriptionMapper;
 import htms.QROrder.system.repository.ClientUserRoleMapper;
 import htms.QROrder.system.service.ClientUserRoleService;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,8 @@ class ClientUserPromotionTest {
         verify(mapper, times(1)).promote(any(), any(), any());
     }
     private final ClientUserRoleMapper mapper = mock(ClientUserRoleMapper.class);
-    private final ClientUserRoleService service = new ClientUserRoleService(mapper);
+    private final SubscriptionMapper subscriptions = mock(SubscriptionMapper.class);
+    private final ClientUserRoleService service = new ClientUserRoleService(mapper, subscriptions);
     private ClientUserResponse user(String store, String role) {
         var user = new ClientUserResponse(); user.setSysId("TARGET"); user.setPlantCd(store); user.setUserRole(role); return user;
     }
@@ -43,11 +46,31 @@ class ClientUserPromotionTest {
         service.promote("TARGET", admin); service.promote("TARGET", admin);
         verify(mapper, times(1)).promote("TARGET", "STORE", "SUPPORT");
     }
+    @Test void locksOwnedSubscriptionBeforeUserAndConvertsSubscriptionManagerToPermanent() {
+        var admin = StaffTestSupport.login("SUPPORT", "ADMIN", null);
+        var granted = new Subscription(); granted.setSysId("SUB"); granted.setRoleGrantedYn("Y");
+        when(subscriptions.lockOpenByOwners(java.util.List.of("TARGET"))).thenReturn(java.util.List.of(granted));
+        when(subscriptions.markRolePermanent("SUB", "SUPPORT")).thenReturn(1);
+        when(mapper.lockForPromotion("TARGET")).thenReturn(user("STORE", "01"));
+        assertEquals(ClientUserRoleService.Promotion.MADE_PERMANENT, service.promote("TARGET", admin));
+        var order = inOrder(subscriptions, mapper);
+        order.verify(subscriptions).lockOpenByOwners(java.util.List.of("TARGET"));
+        order.verify(mapper).lockForPromotion("TARGET");
+        order.verify(subscriptions).markRolePermanent("SUB", "SUPPORT");
+        verify(mapper, never()).promote(any(), any(), any());
+    }
+    @Test void legacyManagerWithoutSubscriptionStaysNoWrite() {
+        var admin = StaffTestSupport.login("SUPPORT", "ADMIN", null);
+        when(mapper.lockForPromotion("TARGET")).thenReturn(user("STORE", "01"));
+        assertEquals(ClientUserRoleService.Promotion.ALREADY_MANAGER, service.promote("TARGET", admin));
+        verify(subscriptions, never()).markRolePermanent(any(), any());
+        verify(mapper, never()).promote(any(), any(), any());
+    }
     @Test void storeManagerAndStaffCannotPromote() {
         for (String role : new String[]{"01", "02"}) {
             assertThrows(ResponseStatusException.class, () -> service.promote("TARGET", StaffTestSupport.login("USER", "STORE", role)));
         }
-        verifyNoInteractions(mapper);
+        verifyNoInteractions(mapper, subscriptions);
     }
     @Test void missingSystemAccountAndInvalidRoleAreRejected() {
         var actor = StaffTestSupport.login("SUPPORT", "ADMIN", null);

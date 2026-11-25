@@ -11,17 +11,17 @@ This repository keeps durable agent context in Git so a trusted clone receives t
 | Maps | `docs/architecture/README.md` | components and contract flow |
 | History | `docs/decisions/README.md`, `docs/solutions/**` | decisions, tradeoffs, past fixes |
 | Guardrails | `docs/verification/contracts.json` | applicable checks and evidence |
-| Roles | `.codex/agents/*.toml` | reusable read-only explorer/reviewer |
 | Validation | `scripts/validate-codex-harness.mjs` | missing/drift/unsafe config checks |
 
 ## Bootstrap after clone
 
-1. Mark the repository as trusted in Codex. Project `.codex/` files are ignored for untrusted projects.
-2. Install the root tooling with `npm ci` and frontend dependencies with `npm ci --prefix frontend`.
-3. Run `npm run harness:check`.
-4. Add local secrets only from committed example files. Never commit the populated files.
+1. Install the root tooling with `npm ci` and frontend dependencies with `npm ci --prefix frontend`.
+2. Run `npm run harness:check`.
+3. Add local secrets only from committed example files. Never commit the populated files.
 
 ## Intentionally not shared
+
+The repository ships no sub-agent roles or orchestration artifacts. Parallel sessions are run outside the repository (herdr).
 
 The following remain user/organization decisions and are not set by this repository:
 

@@ -30,7 +30,7 @@
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
             od.qty ,
-            smd.menu_price * od.qty as price ,
+            COALESCE(od.order_unit_price, smd.menu_price) * od.qty as price ,
             od.payment_yn
         from order_detail od
         left join order_group og
@@ -54,7 +54,7 @@
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
             odo.qty ,
-            smod.menu_option_price * odo.qty as price ,
+            COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty as price ,
             'Y' as payment_yn
         from order_detail od
         left join order_group og
@@ -80,7 +80,7 @@
             sum(
                 case
                     when od.payment_yn = 'Y'
-                        then smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)
+                        then COALESCE(od.order_unit_price, smd.menu_price) * od.qty + coalesce(opt_sum.option_price, 0)
                     else 0
                 end
             ) as total_price
@@ -92,7 +92,7 @@
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
-            select odo.link_sys_id , sum(smod.menu_option_price * odo.qty) as option_price
+            select odo.link_sys_id , sum(COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty) as option_price
             from order_detail_option odo
             left join store_menu_option_detail smod
                 on smod.sys_id = odo.link_sys_id2
@@ -283,7 +283,7 @@
             null as parent_detail_sys_id ,
             smd.menu_name as item_name ,
             od.qty ,
-            smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0) as price ,
+            COALESCE(od.order_unit_price, smd.menu_price) * od.qty + coalesce(opt_sum.option_price, 0) as price ,
             od.payment_yn
         from order_detail od
         inner join order_group og
@@ -291,7 +291,7 @@
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
-            select odo.link_sys_id, sum(smod.menu_option_price * odo.qty) as option_price
+            select odo.link_sys_id, sum(COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty) as option_price
             from order_detail_option odo
             left join store_menu_option_detail smod
                 on smod.sys_id = odo.link_sys_id2
@@ -313,7 +313,7 @@
             odo.link_sys_id as parent_detail_sys_id ,
             smod.menu_option_name as item_name ,
             odo.qty ,
-            smod.menu_option_price * odo.qty as price ,
+            COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty as price ,
             'Y' as payment_yn
         from order_detail od
         inner join order_group og
@@ -338,7 +338,7 @@
             sum(
                 case
                     when od.payment_yn = 'Y'
-                        then smd.menu_price * od.qty + coalesce(opt_sum.option_price, 0)
+                        then COALESCE(od.order_unit_price, smd.menu_price) * od.qty + coalesce(opt_sum.option_price, 0)
                     else 0
                 end
             ) as total_price
@@ -348,7 +348,7 @@
         left join store_menu_detail smd
             on smd.sys_id = od.link_sys_id2
         left join (
-            select odo.link_sys_id , sum(smod.menu_option_price * odo.qty) as option_price
+            select odo.link_sys_id , sum(COALESCE(odo.order_unit_price, smod.menu_option_price) * odo.qty) as option_price
             from order_detail_option odo
             left join store_menu_option_detail smod
                 on smod.sys_id = odo.link_sys_id2

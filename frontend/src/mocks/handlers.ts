@@ -41,7 +41,11 @@ import {
   getGetSysAccessLogDetailMockHandler,
   getGetAuditTrailMockHandler,
 } from '../generated/settings-controller/settings-controller.msw';
-import { getComboControllerMock } from '../generated/combo-controller/combo-controller.msw';
+import {
+  getGetCommonComboMockHandler,
+  getGetPlantComboMockHandler,
+  getGetPlantComboResponseMock,
+} from '../generated/combo-controller/combo-controller.msw';
 import { getFileControllerMock } from '../generated/file-controller/file-controller.msw';
 import { getLogControllerMock } from '../generated/log-controller/log-controller.msw';
 import { getMainControllerMock } from '../generated/main-controller/main-controller.msw';
@@ -916,6 +920,15 @@ const menuOverrideHandler = http.get('*/api/system/settings/menu/search', () => 
       menuUrl: '/admin/payment/coupon',
     },
     {
+      sysId: 'm-sub-1',
+      menuCd: 'subscriptionManage',
+      menuNm: '구독 관리',
+      parentMenuCd: 'paymentManagement',
+      ordNo: '4',
+      treeLevel: '3',
+      menuUrl: '/admin/subscriptions',
+    },
+    {
       sysId: 'm18',
       menuCd: 'logManagement',
       menuNm: '이력 관리',
@@ -1017,6 +1030,23 @@ const menuOverrideHandler = http.get('*/api/system/settings/menu/search', () => 
       ordNo: '3',
       treeLevel: '3',
       menuUrl: '/client/store/table/layout',
+    },
+    {
+      sysId: 'c-sub-1',
+      menuCd: 'STO_SUB',
+      menuNm: '구독 관리',
+      parentMenuCd: 'STO',
+      ordNo: '4',
+      treeLevel: '2',
+    },
+    {
+      sysId: 'c-sub-2',
+      menuCd: 'STO_SUB_INFO',
+      menuNm: '구독 정보',
+      parentMenuCd: 'STO_SUB',
+      ordNo: '1',
+      treeLevel: '3',
+      menuUrl: '/client/subscription',
     },
     {
       sysId: 'c10',
@@ -1466,7 +1496,11 @@ export const handlers = [
   auditTrailOverrideHandler,
   attachFileOverrideHandler,
   ...settingsHandlers,
-  ...getComboControllerMock(),
+  getGetPlantComboMockHandler(() => [
+    { code: 'ADMIN', name: '시스템 관리' },
+    ...getGetPlantComboResponseMock(),
+  ]),
+  getGetCommonComboMockHandler(),
   ...getFileControllerMock(),
   ...getLogControllerMock(),
   ...getMainControllerMock(),

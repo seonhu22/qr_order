@@ -37,5 +37,6 @@ export const ORDER_HISTORY_MOCK: OrderHistoryRow[] = MOCK_SEEDS.map((seed, index
     orderStatus: seed.orderStatus,
     paymentStatus: seed.paymentStatus,
     orderDatetime,
+    details: [],
   };
 });

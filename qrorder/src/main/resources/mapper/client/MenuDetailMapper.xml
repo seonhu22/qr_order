@@ -3,6 +3,15 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="htms.QROrder.client.repository.MenuDetailMapper">
 
+    <select id="lockAttachmentLink" resultType="string">
+        select file_ulid
+        from store_menu_detail
+        where file_ulid = #{fileUlid}
+        and sys_plant_cd = #{sysPlantCd}
+        and delete_yn = 'N'
+        for update
+    </select>
+
     <select id="getMenuDetailSearchKeyword" resultType="htms.QROrder.client.dto.MenuDetailResponse">
         select
         sys_id ,

@@ -20,6 +20,7 @@ import {
 } from '@/apps/client/features/staff-call-notifications/api/staffCallNotificationApi';
 import { useManagerNotificationCenter } from '@/apps/client/features/notification-center/hooks/useManagerNotificationCenter';
 import type { ClientNotificationItem } from '@/apps/client/features/notification-center/types';
+import { SubscriptionBanner } from '@/apps/client/features/subscription/components/SubscriptionBanner';
 
 export function ClientLayout() {
   const { isAuthenticated, user } = useAuth();
@@ -138,6 +139,7 @@ export function ClientLayout() {
         </header>
         <main className="client-layout__main">
           {!hideBreadcrumb && <ClientPageNavigation breadcrumb={breadcrumb} />}
+          <SubscriptionBanner />
           <Outlet />
         </main>
       </div>

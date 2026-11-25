@@ -20,6 +20,25 @@
   min-height: 0;
 }
 
+.order-history-table__details-column {
+  width: 30%;
+}
+
+.order-history-table__details {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: var(--spacing-2) 0;
+  padding: 0;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+
+.order-history-table__options {
+  padding-inline-start: var(--spacing-2);
+  color: var(--color-text-tertiary);
+  white-space: pre-line;
+}
+
 /* ── 검색 폼 ── */
 .order-history-filters {
   display: flex;

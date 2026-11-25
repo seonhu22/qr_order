@@ -12,6 +12,7 @@ import type { OrderMasterHistoryItem } from '@/generated/types/orderMasterHistor
 import { queryKeys } from '@/shared/api/queryKeys';
 import { queryPolicies } from '@/shared/api/queryPolicies';
 import type {
+  OrderHistoryDetail,
   OrderHistoryPaymentStatus,
   OrderHistoryRow,
   OrderHistorySearchParams,
@@ -46,7 +47,10 @@ function toPaymentStatus(status?: string): OrderHistoryPaymentStatus {
   return 'PENDING';
 }
 
-export function mapToOrderHistoryRow(item: OrderMasterHistoryItem): OrderHistoryRow {
+export function mapToOrderHistoryRow(
+  item: OrderMasterHistoryItem,
+  details: OrderHistoryDetail[] = [],
+): OrderHistoryRow {
   return {
     id: item.sysId ?? '',
     orderNo: item.orderNo ?? '',
@@ -54,11 +58,26 @@ export function mapToOrderHistoryRow(item: OrderMasterHistoryItem): OrderHistory
     orderStatus: toOrderStatus(item.orderStatus),
     paymentStatus: toPaymentStatus(item.paymentStatus),
     orderDatetime: item.orderStartDatetime ?? '',
+    details,
   };
 }
 
 export function mapToOrderHistoryRows(response: OrderHistoryResponse): OrderHistoryRow[] {
-  return (response.orderMasterHistory ?? []).map(mapToOrderHistoryRow);
+  const detailsByMasterId = new Map<string, OrderHistoryDetail[]>();
+  for (const detail of response.orderDetailHistory ?? []) {
+    if (!detail.masterSysId) continue;
+    const details = detailsByMasterId.get(detail.masterSysId) ?? [];
+    details.push({
+      id: detail.sysId ?? '',
+      menuName: detail.menuName || '메뉴명 없음',
+      menuOption: detail.menuOption ?? '',
+    });
+    detailsByMasterId.set(detail.masterSysId, details);
+  }
+
+  return (response.orderMasterHistory ?? []).map((item) =>
+    mapToOrderHistoryRow(item, detailsByMasterId.get(item.sysId ?? '')),
+  );
 }
 
 export function toOrderHistoryQueryParams(

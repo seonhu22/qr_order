@@ -15,5 +15,5 @@ public interface NoticeMapper {
     void newNotice(NoticeRequest noticeRequest, String userId, String sysPlantCd);
     void updateNotice(NoticeRequest noticeRequest, String userId, String sysPlantCd);
     void delNotice(List<NoticeRequest> noticeRequest, String userId, String sysPlantCd);
-    NoticeResponse getOldData(String sysId);
+    NoticeResponse getOldData(String sysId, String sysPlantCd);
 }

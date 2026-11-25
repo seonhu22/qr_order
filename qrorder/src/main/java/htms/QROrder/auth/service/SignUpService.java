@@ -4,20 +4,17 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import htms.QROrder.auth.dto.SignUpRequest;
 import htms.QROrder.auth.exception.BusinessRegiException;
 import htms.QROrder.auth.repository.SignUpMapper;
+import htms.QROrder.common.exception.DuplicateException;
+import htms.QROrder.system.billing.domain.Subscription;
+import htms.QROrder.system.billing.domain.SubscriptionStatus;
+import htms.QROrder.system.billing.repository.SubscriptionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -25,10 +22,9 @@ import java.util.Map;
 public class SignUpService {
 
     private final SignUpMapper signUpMapper;
+    private final SubscriptionMapper subscriptionMapper;
     private final PasswordEncoder passwordEncoder;
-
-    @Value("${nts.api.service-key}")
-    private String ntsServiceKey;
+    private final BusinessRegistrationVerifier businessRegistrationVerifier;
 
     public void chkBRN(SignUpRequest signUpRequest) {
 
@@ -37,10 +33,18 @@ public class SignUpService {
         }
     }
 
+    @Transactional
     public void newUser(SignUpRequest signUpRequest) {
 
         signUpRequest.setBusinessRegiNum(signUpRequest.getBusinessRegiNum().replaceAll("\\D", ""));
         signUpRequest.setUserNm(signUpRequest.getUserNm().trim());
+        // NTS 정상 경로는 매장명을 받지 않는다. sys_plant.plant_nm NOT NULL이라 인증된 대표자명으로 기본 매장명을 정한다.
+        // 매장명은 가입 뒤 매장 정보에서 바꾼다.
+        if (signUpRequest.getPlantNm() == null || signUpRequest.getPlantNm().isBlank()) {
+            signUpRequest.setPlantNm(signUpRequest.getUserNm() + "컴퍼니");
+        } else {
+            signUpRequest.setPlantNm(signUpRequest.getPlantNm().trim());
+        }
 
         if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordChk())) {
             throw new BusinessRegiException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
@@ -50,8 +54,29 @@ public class SignUpService {
         signUpRequest.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         signUpRequest.setPasswordChk(passwordEncoder.encode(signUpRequest.getPasswordChk()));
 
-        signUpMapper.newPlant(signUpRequest);
+        // 서비스 확인은 일반 경우의 409(삭제된 매장/끝난 구독 이력 포함), 동시 가입은 sys_plant 부분 유니크가 막는다.
+        if (signUpMapper.existsPlantHistory(signUpRequest.getBusinessRegiNum())) {
+            throw new DuplicateException("이미 가입된 사업자번호입니다.");
+        }
+        // 셀프 가입 대표는 02 + PENDING 구독으로 시작하고, 구독 결제가 01로 올린다(정책 4C §1).
+        // 쓰기 순서는 매장 → 구독 → 사용자(구독 잠금 순서 §8과 같은 방향).
+        try {
+            signUpMapper.newPlant(signUpRequest);
+            subscriptionMapper.insertSubscription(pendingSubscription(signUpRequest));
+        } catch (DuplicateKeyException race) {
+            throw new DuplicateException("이미 가입된 사업자번호입니다.");
+        }
         signUpMapper.newUser(signUpRequest);
+    }
+
+    private static Subscription pendingSubscription(SignUpRequest signUpRequest) {
+        Subscription subscription = new Subscription();
+        subscription.setSysId(UlidCreator.getUlid().toString());
+        subscription.setPlantCd(signUpRequest.getBusinessRegiNum());
+        subscription.setOwnerUserSysId(signUpRequest.getSysId());
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setInsertUserId(signUpRequest.getUserId());
+        return subscription;
     }
 
     public boolean idDuplicateChk(String userId) {
@@ -76,45 +101,11 @@ public class SignUpService {
         }
 
         try {
-            RestTemplate restTemplate = new RestTemplate();
-
-            String url = "https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=" + ntsServiceKey;
-
-            Map<String, Object> business = new HashMap<>();
-            business.put("b_no", businessRegiNum);
-            business.put("start_dt", signUpRequest.getBusinessRegiDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")));
-            business.put("p_nm", userNm);
-            business.put("p_nm2", "");
-            business.put("b_nm", "");
-            business.put("corp_no", "");
-            business.put("b_sector", "");
-            business.put("b_type", "");
-            business.put("b_adr", "");
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("businesses", List.of(business));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
-
-                if (data != null && !data.isEmpty()) {
-                    return "01".equals(data.get(0).get("valid"));
-                }
-            }
+            return businessRegistrationVerifier.isValid(businessRegiNum, signUpRequest.getBusinessRegiDate(), userNm);
         } catch (BusinessRegiException e) {
             throw e;
         } catch (Exception e) {
             throw new BusinessRegiException("사업자등록번호 확인 중 오류가 발생했습니다.", e);
         }
-
-        return false;
     }
 }

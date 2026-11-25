@@ -18,7 +18,9 @@
 | [API 코드 생성](./api-codegen.md) | OpenAPI 코드 생성, MSW 핸들러, mock 파일 기준 |
 | [인증 구조](./auth.md) | 로그인 흐름, 인증 상태 관리, 권한 필드 기준, 비밀번호 정책 |
 | [테스트](./testing.md) | 테스트 실행, 실패 결과 보관, 관련 설정 문서의 부모 문서 |
-| [TODO](./todo.md) | 확인됐지만 아직 완료되지 않은 프론트엔드 작업과 완료 조건 |
+| [TODO](./todo.md) | 프론트 작업, 로컬 사본 DB QA 결과와 남은 확인 |
+| [프로젝트 마감 TODO](../../docs/plans/2026-11-10-project-closeout-backlog.md) | 프로젝트 공통 마감 상태와 제품 담당자 질문 |
+| [후속 작업](../../docs/plans/2026-11-17-followup-work-backlog.md) | 공지/실제 서버 자동 QA/대시보드/공통코드/사용자 관리 |
 | [완료 기록](./completed.md) | 완료된 TODO의 결과, 검증 근거, 상세 문서 링크 |
 | [주요 설정 파일](./config.md) | Vite, TypeScript, ESLint, Prettier, 진입점 파일 요약 |
 | [의사결정 기록](./decisions.md) | 주요 설계 결정과 ADR |
@@ -44,5 +46,6 @@
 | 공용 컴포넌트 작업 | [공용 컴포넌트](./components.md) |
 | 인증·권한·401/403 처리 | [인증 구조](./auth.md), [아키텍처](./architecture.md) |
 | 테스트 실행/실패 로그 저장 | [테스트](./testing.md) |
+| 실제 서버 QA 준비/결과 | [실행 안내](./testing/real-server-qa.md) / [로컬 사본 DB 결과](./todo.md#로컬-사본-db-qa-결과와-남은-확인) |
 | 라우팅·폴더 위치 판단 | [아키텍처](./architecture.md) |
 | 설정 파일 확인 | [주요 설정 파일](./config.md) |

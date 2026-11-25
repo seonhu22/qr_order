@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 @MapperScan({
         "htms.QROrder.auth.repository",
         "htms.QROrder.system.repository",
+        "htms.QROrder.system.billing.repository",
         "htms.QROrder.common.repository",
         "htms.QROrder.home.repository",
         "htms.QROrder.popup.repository",

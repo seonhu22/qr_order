@@ -56,6 +56,7 @@
         </foreach>
     </insert>
     
+    <!-- 관리 계정 수정은 이미 ADMIN 소속인 행만 바꾼다. 매장 대표/직원을 ADMIN으로 옮기지 못한다. -->
     <update id="updateAdminUser">
         <foreach collection="updateItems" item="item" separator=";">
             update sys_user set
@@ -65,6 +66,8 @@
                 modify_datetime = now()
             where 1=1
             and sys_id = #{item.sysId}
+            and plant_cd = 'ADMIN'
+            and delete_yn = 'N'
         </foreach>
     </update>
 
@@ -127,5 +130,8 @@
         <foreach collection="adminUser" item="item" open="(" separator="," close=")">
             #{item.sysId}
         </foreach>
+        and su.plant_cd = 'ADMIN'
+        and su.delete_yn = 'N'
+        for update of su
     </select>
 </mapper>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 구독 대표(sys_subscription.owner_user_sys_id)는 매장 직원 관리 대상이 아니다(정책 4C §1 대표 보호).
+     대표는 가입 때 고정되고 바뀌지 않아 잠그지 않는 NOT EXISTS로 충분하다. -->
 <mapper namespace="htms.QROrder.client.repository.ClientUserMapper">
 
     <select id="getClientUser" resultType="htms.QROrder.client.dto.ClientUserResponse">
@@ -65,6 +67,7 @@
         and plant_cd = #{sysPlantCd}
         and user_role = '02'
         and delete_yn = 'N'
+        and not exists (select 1 from sys_subscription s where s.owner_user_sys_id = sys_user.sys_id)
     </update>
 
     <delete id="delClientUser">
@@ -76,6 +79,7 @@
         and plant_cd = #{sysPlantCd}
         and user_role = '02'
         and delete_yn = 'N'
+        and not exists (select 1 from sys_subscription s where s.owner_user_sys_id = sys_user.sys_id)
         and sys_id in
         <foreach collection="ids" item="id" open="(" separator="," close=")" >
             #{id}
@@ -94,6 +98,7 @@
         and plant_cd = #{sysPlantCd}
         and user_role = '02'
         and delete_yn = 'N'
+        and not exists (select 1 from sys_subscription s where s.owner_user_sys_id = sys_user.sys_id)
     </update>
 
     <select id="duplicateChk" resultType="boolean">
@@ -109,6 +114,7 @@
         select sys_id, user_id, user_nm, plant_cd, user_role
         from sys_user
         where plant_cd = #{sysPlantCd} and user_role = '02' and delete_yn = 'N'
+        and not exists (select 1 from sys_subscription s where s.owner_user_sys_id = sys_user.sys_id)
         and sys_id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
         order by sys_id

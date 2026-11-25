@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { mapFileResponseToServerFile } from '@/shared/utils/attachFile';
 import {
   buildMenuDetailFormData,
   buildMenuDetailRequest,
@@ -100,6 +101,20 @@ describe('menuManagementApi', () => {
     expect(JSON.parse(menuRequestJson)).toEqual(request);
     expect(formData.has('newItems[0].menuName')).toBe(false);
     expect(formData.get('newItems[0].file')).toBe(file);
+    expect(formData.get('linkSysId')).toBe('FILE-ULID-1');
     expect(formData.get('newItems[0].linkSysId')).toBe('FILE-ULID-1');
+  });
+
+  it('sends the stored menu link when only an attachment is removed', () => {
+    const formData = buildMenuDetailFormData({}, {
+      fileUlid: 'FILE-ULID-1',
+      fileChangeState: {
+        newFiles: [],
+        deletedFiles: [mapFileResponseToServerFile({ sysId: 'ATTACH-1' })],
+      },
+    });
+
+    expect(formData.get('linkSysId')).toBe('FILE-ULID-1');
+    expect(formData.get('delItems[0].sysId')).toBe('ATTACH-1');
   });
 });

@@ -1,6 +1,12 @@
 export type OrderHistoryStatus = 'RECEIVED' | 'COOKING' | 'SERVED' | 'CANCELLED';
 export type OrderHistoryPaymentStatus = 'PENDING' | 'PAID' | 'UNPAID' | 'REFUNDED';
 
+export type OrderHistoryDetail = {
+  id: string;
+  menuName: string;
+  menuOption: string;
+};
+
 export type OrderHistoryRow = {
   id: string;
   orderNo: string;
@@ -9,6 +15,7 @@ export type OrderHistoryRow = {
   paymentStatus: OrderHistoryPaymentStatus;
   /** ISO 형식("YYYY-MM-DDTHH:mm:ss") 원본 일시. 표시는 컴포넌트에서 "YYYY-MM-DD HH:MM"으로 가공한다. */
   orderDatetime: string;
+  details: OrderHistoryDetail[];
 };
 
 export type OrderHistorySearchParams = {

@@ -19,6 +19,8 @@ const OrderStatusManagementPage = lazyNamed(() => import('@/apps/client/pages/or
 const PaymentStatusListPage = lazyNamed(() => import('@/apps/client/pages/payment-status/PaymentStatusListPage'), 'PaymentStatusListPage');
 const SettlementListPage = lazyNamed(() => import('@/apps/client/pages/settlement/SettlementListPage'), 'SettlementListPage');
 const NoticeListPage = lazyNamed(() => import('@/apps/client/pages/notice/NoticeListPage'), 'NoticeListPage');
+const SubscriptionPage = lazyNamed(() => import('@/apps/client/pages/subscription/SubscriptionPage'), 'SubscriptionPage');
+const SubscriptionResultPage = lazyNamed(() => import('@/apps/client/pages/subscription/SubscriptionResultPage'), 'SubscriptionResultPage');
 const InquiryManagementPage = lazyNamed(() => import('@/apps/client/pages/inquiry/InquiryManagementPage'), 'InquiryManagementPage');
 
 export const clientRoutes: RouteObject[] = [
@@ -41,6 +43,14 @@ export const clientRoutes: RouteObject[] = [
       {
         path: 'store/info/base',
         element: <StoreInfoPage />,
+      },
+      {
+        path: 'subscription',
+        element: <SubscriptionPage />,
+      },
+      {
+        path: 'subscription/result',
+        element: <SubscriptionResultPage />,
       },
       {
         path: 'store/table/management',
