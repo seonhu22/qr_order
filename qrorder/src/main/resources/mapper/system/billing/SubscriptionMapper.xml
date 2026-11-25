@@ -214,6 +214,13 @@
         order by sys_id
     </select>
 
+    <update id="scheduleCancel">
+        update sys_subscription
+        set status = 'CANCEL_SCHEDULED', end_at = paid_through_at, cancel_requested_at = #{now},
+            modify_user_id = #{userId}, modify_datetime = now()
+        where sys_id = #{sysId} and status in ('ACTIVE', 'PAST_DUE') and paid_through_at is not null
+    </update>
+
     <update id="markPaymentMethod">
         update sys_subscription
         set payment_method_status = #{status}, modify_user_id = #{userId}, modify_datetime = now()

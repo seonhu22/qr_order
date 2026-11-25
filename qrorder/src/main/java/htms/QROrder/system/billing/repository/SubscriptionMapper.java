@@ -106,6 +106,9 @@ public interface SubscriptionMapper {
      */
     List<String> findBatchCandidates(@Param("asOf") Instant asOf, @Param("activeDeadline") Instant activeDeadline);
 
+    /** E6 → CANCEL_SCHEDULED: end_at = paid_through_at 고정(예약 시점 값), cancel_requested_at. 잠긴 A/D 행에만. */
+    int scheduleCancel(@Param("sysId") String sysId, @Param("now") Instant now, @Param("userId") String userId);
+
     /** E9 카드 만료 / 재등록: payment_method_status. 바뀔 때만 1행. */
     int markPaymentMethod(@Param("sysId") String sysId, @Param("status") String status, @Param("userId") String userId);
 }

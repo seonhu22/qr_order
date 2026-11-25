@@ -57,6 +57,7 @@ public class ClientSubscriptionService {
     private final SubscriptionInvoiceMapper invoices;
     private final BillingProviderRegistry providers;
     private final BillingWebhookService billing;
+    private final SubscriptionLifecycleService lifecycle;
     private final TransactionTemplate transaction;
     private final Environment environment;
     private final Clock clock;
@@ -65,18 +66,21 @@ public class ClientSubscriptionService {
     @Autowired
     public ClientSubscriptionService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
                                      BillingProviderRegistry providers, BillingWebhookService billing,
+                                     SubscriptionLifecycleService lifecycle,
                                      PlatformTransactionManager transactionManager, Environment environment) {
-        this(subscriptions, invoices, providers, billing, transactionManager, environment, Clock.systemUTC());
+        this(subscriptions, invoices, providers, billing, lifecycle, transactionManager, environment, Clock.systemUTC());
     }
 
     public ClientSubscriptionService(SubscriptionMapper subscriptions, SubscriptionInvoiceMapper invoices,
                                      BillingProviderRegistry providers, BillingWebhookService billing,
+                                     SubscriptionLifecycleService lifecycle,
                                      PlatformTransactionManager transactionManager, Environment environment,
                                      Clock clock) {
         this.subscriptions = subscriptions;
         this.invoices = invoices;
         this.providers = providers;
         this.billing = billing;
+        this.lifecycle = lifecycle;
         this.transaction = new TransactionTemplate(transactionManager);
         this.environment = environment;
         this.clock = clock;
@@ -126,6 +130,40 @@ public class ClientSubscriptionService {
         BillingProvider provider = providers.find(row.getProvider()).orElse(null);
         if (provider != null && billing.reconcile(provider, row.getSysId()) == ReconcileResult.FAILED) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "결제사 확인에 실패했습니다. 잠시 뒤 다시 확인해 주세요.");
+        }
+        return view(actor);
+    }
+
+    /**
+     * E6 해지 예약. ACTIVE = 유료기간 끝에 끝나도록 end_at 고정(이후 결제는 AFTER_CANCEL로 연장 없음),
+     * PAST_DUE = 기간이 남았으면 같은 예약, 끝났으면 즉시 만료 + 회수, PENDING = 즉시 만료. 이미 예약/만료면 그대로 200.
+     */
+    public SubscriptionView cancel(Login actor) {
+        String plantCd = plantOf(actor);
+        Boolean endProvider = transaction.execute(status -> {
+            Instant now = clock.instant();
+            Subscription row = subscriptions.lockOpenByPlant(plantCd);
+            if (row == null) {
+                ownedRow(actor);
+                return false;
+            }
+            if (!actor.getSysId().equals(row.getOwnerUserSysId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "구독 대표만 해지할 수 있습니다.");
+            }
+            var outcome = SubscriptionTransition.apply(row.getStatus(), SubscriptionEvent.CANCEL_REQUEST,
+                    SubscriptionFacts.at(now).withPaidThroughAt(row.getPaidThroughAt()));
+            if (outcome.kind() != SubscriptionTransition.Kind.APPLY) return false;
+            if (outcome.actions().contains(SubscriptionAction.FIX_END_AT)) {
+                subscriptions.scheduleCancel(row.getSysId(), now, ACTOR);
+                return false;
+            }
+            lifecycle.expireLocked(row, now);
+            if (outcome.actions().contains(SubscriptionAction.REVOKE_ROLE)) lifecycle.revokeLocked(row.getSysId(), now);
+            return outcome.actions().contains(SubscriptionAction.END_PROVIDER);
+        });
+        if (Boolean.TRUE.equals(endProvider)) {
+            Subscription latest = subscriptions.findLatestByPlant(plantCd);
+            if (latest != null) lifecycle.endProvider(latest.getSysId());
         }
         return view(actor);
     }

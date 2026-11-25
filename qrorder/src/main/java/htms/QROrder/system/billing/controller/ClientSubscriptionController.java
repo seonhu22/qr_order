@@ -44,6 +44,12 @@ public class ClientSubscriptionController {
         return service.reconcile(actor(session));
     }
 
+    @Operation(summary = "해지 예약(구독 대표 본인)", description = "유료기간 끝에 종료. 이미 예약/만료면 그대로 200")
+    @PostMapping("/cancel")
+    public SubscriptionView cancel(HttpSession session) {
+        return service.cancel(actor(session));
+    }
+
     @Operation(summary = "결제 이력(구독 대표 본인)")
     @GetMapping("/invoices")
     public List<InvoiceItem> invoices(HttpSession session) {
